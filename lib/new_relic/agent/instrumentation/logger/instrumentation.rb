@@ -7,6 +7,7 @@ module NewRelic
     module Instrumentation
       module Logger
         def skip_instrumenting?
+          ::NewRelic::Agent.agent.log_event_aggregator.register_logger(self) unless defined?(@newrelic_registered)
           defined?(@skip_instrumenting) ? @skip_instrumenting : false
         end
 
@@ -35,7 +36,6 @@ module NewRelic
 
         def format_message_with_tracing(severity, datetime, progname, msg)
           formatted_message = yield
-          ::NewRelic::Agent.agent.log_event_aggregator.register_logger(self) unless skip_instrumenting?
           return formatted_message if skip_instrumenting?
 
           begin

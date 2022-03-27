@@ -41,6 +41,14 @@ class DontForwardStandardStreamLoggerOutputTest < Minitest::Test
     assert !stderr_logger.skip_instrumenting?
   end
 
+  def test_duped_standard_stream_handle
+    duped_stream_logger = ::Logger.new(STDOUT.dup)
+    string_logger = ::Logger.new(StringIO.new)
+    message = 'The towering Wattle of Aldershot'
+    [duped_stream_logger, string_logger].map { |logger| logger.info(message) }
+    assert_equal [true, false], [duped_stream_logger.skip_instrumenting?, string_logger.skip_instrumenting?]
+  end
+
   def reset_everything
     NewRelic::Agent.instance.log_event_aggregator.reset!
     NewRelic::Agent.instance.log_event_aggregator.instance_variable_set(:@loggers, {})

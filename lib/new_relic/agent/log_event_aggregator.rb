@@ -157,8 +157,7 @@ module NewRelic
       end
 
       def register_logger(logger)
-        return if @loggers.key?(logger)
-
+        logger.instance_variable_set(:@newrelic_registered, true)
         logdev = logger.instance_variable_get(:@logdev)
         dev = logdev.instance_variable_get(:@dev) if logdev
         @loggers[logger] = dev
@@ -240,21 +239,14 @@ module NewRelic
         message.byteslice(0...MAX_BYTES)
       end
 
-      # don't forward logs from a logger writing to a standard streams unless
-      # it happens to be the only logger in use
+      # don't forward logs from a logger writing to a standard stream
+      # (stdout/stderr) unless it happens to be the only logger in use
       def mark_standard_streams_for_skipping
         return unless @loggers.keys.size > 1
 
-        to_prune = []
         @loggers.each do |logger, dev|
-          if dev === $stdout || dev === $stderr
-            logger.mark_skip_instrumenting
-            to_prune << logger
-          else
-            logger.clear_skip_instrumenting
-          end
+          logger.mark_skip_instrumenting if dev.respond_to?(:tty?) && dev.tty?
         end
-        to_prune.each { |logger| @loggers.delete(logger) }
       end
     end
   end
