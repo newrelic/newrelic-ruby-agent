@@ -379,7 +379,7 @@ module NewRelic::Agent
 
       payload, size = LogEventAggregator.payload_to_melt_format(log_data)
       expected = [{
-        common: {attributes: {"entity.guid" => "GUID"}},
+        common: {attributes: {"entity.guid" => "GUID", "entity.name" => "Hola"}},
         logs: [{"message": "This is a mess"}]
       }]
 

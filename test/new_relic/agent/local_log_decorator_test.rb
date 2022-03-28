@@ -9,10 +9,11 @@ module NewRelic::Agent
   module LocalLogDecorator
     class LocalLogDecoratorTest < Minitest::Test
       MESSAGE = 'message'.freeze
-      METADATA_STRING = 'NR-LINKING|GUID|localhost|trace_id|span_id|'
+      METADATA_STRING = 'NR-LINKING|GUID|localhost|trace_id|span_id|app|'
 
       def setup
         @enabled_config = {
+          :app_name => 'app',
           :entity_guid => 'GUID',
           :'application_logging.local_decorating.enabled' => true,
           :'application_logging.enabled' => true,
@@ -75,6 +76,20 @@ module NewRelic::Agent
         message = "This is a test of the Emergency Alert System\n this is only a test...."
         decorated_message = LocalLogDecorator.decorate(message)
         assert_equal decorated_message, "This is a test of the Emergency Alert System #{METADATA_STRING}\n this is only a test...."
+      end
+
+      def test_URI_encodes_entity_name
+        with_config(app_name: "My App | Production") do
+          decorated_message = LocalLogDecorator.decorate(MESSAGE)
+          assert_includes decorated_message, "My%20App%20%7C%20Production"
+        end
+      end
+
+      def test_safe_without_entity_name
+        with_config(app_name: nil) do
+          decorated_message = LocalLogDecorator.decorate(MESSAGE)
+          assert_includes decorated_message, '||'
+        end
       end
     end
   end
