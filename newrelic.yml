@@ -26,6 +26,10 @@ common: &default_settings
 # All of the following configuration options are optional. Review them, and
 # uncomment or edit them if they appear relevant to your application needs.
 
+# If `true`, all logging-related features for the agent can be enabled or disabled
+# independently. If `false`, all logging-related features are disabled.
+# application_logging.enabled: true
+
 # If `true`, the agent captures log records emitted by this application.
 # application_logging.forwarding.enabled: false
 
