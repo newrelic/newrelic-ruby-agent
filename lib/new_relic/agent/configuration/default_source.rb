@@ -329,7 +329,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Your New Relic [license key](/docs/accounts-partnerships/accounts/account-setup/license-key).'
+          :description => 'Your New Relic [license key](/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key).'
         },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
@@ -367,7 +367,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When `true`, the agent transmits data about your application to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
+          :description => 'When `true`, the agent transmits data about your app to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
         },
         :test_mode => {
           :default => false,
@@ -438,18 +438,19 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'When `true`, the agent captures HTTP request parameters ' \
             'and attaches them to transaction traces, traced errors, and ' \
-            '[`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241)'\
+            '[`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).'\
             "\n" \
-            '<div class="callout-warning">' \
             "\n" \
-            'When using the `capture_params` setting, the Ruby agent will not attempt ' \
+            '    <Callout variant="caution">' \
+            "\n" \
+            '      When using the `capture_params` setting, the Ruby agent will not attempt ' \
             'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
             'request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) ' \
             'instead. For more information, see the ' \
             '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
             'Ruby attribute examples</a>.' \
             "\n" \
-            '</div>'
+            '    </Callout>'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -815,7 +816,33 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).'
+          :description => 'If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).'\
+          "\n" \
+          "\n" \
+          '    <Callout variant="important">' \
+          "\n" \
+          '      Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.' \
+          "\n" \
+          "\n" \
+          '      To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:'\
+          "\n" \
+          "\n" \
+          '      ```'\
+          "\n" \
+          '      # newrelic.yml'\
+          "\n" \
+          "\n" \
+          '        cross_application_tracer:'\
+          "\n" \
+          '          enabled: true'\
+          "\n" \
+          '        distributed_tracing:'\
+          "\n" \
+          '          enabled: false'\
+          "\n" \
+          '      ```'\
+          "\n" \
+          '    </Callout>'
         },
         :disable_view_instrumentation => {
           :default => false,
@@ -1166,11 +1193,9 @@ module NewRelic
 
   By default, this is set to `obfuscated`, which strips out the numeric and string literals.
 
-  <ul>
-    <li>If you do not want the agent to capture query information, set this to `none`.</li>
-    <li>If you want the agent to capture all query information in its original form, set this to `raw`.</li>
-    <li>When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.</li>
-  </ul>
+  - If you do not want the agent to capture query information, set this to `none`.
+  - If you want the agent to capture all query information in its original form, set this to `raw`.
+  - When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
   '
         },
         :'transaction_tracer.record_redis_arguments' => {
@@ -1334,7 +1359,14 @@ module NewRelic
           :deprecated => true,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
+          :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.' \
+          "\n" \
+          "\n" \
+          '    <Callout variant="caution">' \
+          "\n" \
+          '      Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.'\
+          "\n" \
+          '    </Callout>'
         },
         :'error_collector.ignore_classes' => {
           :default => [],
@@ -1342,7 +1374,14 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A list of error classes that the agent should ignore. *Note: this setting cannot be set via environment variable.*'
+          :description => 'A list of error classes that the agent should ignore.' \
+          "\n" \
+          "\n" \
+          '  <Callout variant="caution">' \
+          "\n" \
+          '    This option can\'t be set via environment variable.'\
+          "\n" \
+          '  </Callout>'
         },
         :'error_collector.ignore_messages' => {
           :default => {},
@@ -1350,7 +1389,14 @@ module NewRelic
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored. *Note: this setting cannot be set via environment variable.*'
+          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.' \
+          "\n" \
+          "\n" \
+          '  <Callout variant="caution">' \
+          "\n" \
+          '    This option can\'t be set via environment variable.'\
+          "\n" \
+          '  </Callout>'
         },
         :'error_collector.ignore_status_codes' => {
           :default => '',
@@ -1366,7 +1412,14 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A list of error classes that the agent should treat as expected. *Note: this setting cannot be set via environment variable.*'
+          :description => 'A list of error classes that the agent should treat as expected.' \
+          "\n" \
+          "\n" \
+          '  <Callout variant="caution">' \
+          "\n" \
+          '    This option can\'t be set via environment variable.'\
+          "\n" \
+          '  </Callout>'
         },
         :'error_collector.expected_messages' => {
           :default => {},
@@ -1374,7 +1427,14 @@ module NewRelic
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected. *Note: this setting cannot be set via environment variable.*'
+          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.' \
+          "\n" \
+          "\n" \
+          '  <Callout variant="caution">' \
+          "\n" \
+          '    This option can\'t be set via environment variable.'\
+          "\n" \
+          '  </Callout>'
         },
         :'error_collector.expected_status_codes' => {
           :default => '',
@@ -1817,7 +1877,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from your agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
+          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
         },
         :aggressive_keepalive => {
           :default => true,
@@ -1875,7 +1935,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid.',
+          :description => 'Specify a maximum number of custom events to buffer in memory at a time.',
           :dynamic_name => true
         },
         :'application_logging.enabled' => {
@@ -2272,7 +2332,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of span events reported from a single harvest.'
+          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid.'
         },
         :'exclude_newrelic_header' => {
           :default => false,
