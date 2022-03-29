@@ -30,6 +30,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             stub_reconnection
             @agent = NewRelic::Agent.instance
             @agent.service.agent_id = 666
+            @server_response_enum = nil
+            @mock_thread = nil
           end
 
           def stub_reconnection
@@ -48,7 +50,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def teardown
+            @mock_thread.kill if @mock_thread
             @mock_thread = nil
+            @server_response_enum = nil
             reset_buffers_and_caches
             assert_only_one_subscription_notifier
             reset_infinite_tracer
@@ -302,15 +306,16 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           ## &block = code we want to execute on "SERVER" thread
-          def create_grpc_mock(simulate_broken_server: false, &block)
+          def create_grpc_mock(simulate_broken_server: false, expect_mock: true, &block)
             seen_spans = [] # array of how many spans our mock sees
             @mock_thread = nil # keep track of the thread for our mock server
 
             @server_response_enum = ServerResponseSimulator.new
 
             mock_rpc = mock()
+            expectation = expect_mock ? :at_least_once : :never
             # stubs out the record_span to keep track of what the agent passes to grpc (and bypass using grpc in the tests)
-            tmp = mock_rpc.expects(:record_span).at_least_once.with do |enum, metadata|
+            mock_rpc.expects(:record_span).send(expectation).with do |enum, metadata|
               @mock_thread = Thread.new do
                 # puts "mock: class #{enum.class}"
                 enum.each do |span|
@@ -327,7 +332,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def join_grpc_mock
-            @mock_thread.join
+            @mock_thread.join if @mock_thread
           end
 
           def mock_response
@@ -393,10 +398,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # This helper is used to setup and teardown streaming to the fake trace observer
           # A block that generates segments is expected and yielded to by this methd
           # The spans collected by the server are returned for further inspection
-          def generate_and_stream_segments
+          def generate_and_stream_segments(expect_mock: true)
             # NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
             unstub_reconnection
             server_context = nil
+            spans = create_grpc_mock(expect_mock: expect_mock)
             with_config fake_server_config do
               # Suppresses intermittent fails from server not ready to accept streaming
               # (the retry loop goes _much_ faster)
@@ -406,21 +412,23 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
-                server_context = ServerContext.new FAKE_SERVER_PORT, InfiniteTracer
+                # server_context = ServerContext.new FAKE_SERVER_PORT, InfiniteTracer
                 simulator.join
 
                 yield
 
                 # ensures all segments consumed
                 NewRelic::Agent.agent.infinite_tracer.flush
-                server_context.flush
-                server_context.stop
+                # server_context.flush
+                # server_context.stop
 
-                return server_context.spans
+                # return server_context.spans
+                return spans
               ensure
                 Connection.instance.unstub(:retry_connection_period)
                 NewRelic::Agent.agent.infinite_tracer.stop
-                server_context.stop unless server_context.nil?
+                join_grpc_mock
+                # server_context.stop unless server_context.nil?
                 reset_infinite_tracer
                 nr_unfreeze_time
                 nr_unfreeze_process_time
