@@ -15,10 +15,12 @@ class LoggerInstrumentationTest < Minitest::Test
     end
 
     NewRelic::Agent.instance.stats_engine.reset!
+    NewRelic::Agent.instance.log_event_aggregator.reset!
   end
 
   def teardown
     NewRelic::Agent.instance.stats_engine.reset!
+    NewRelic::Agent.instance.log_event_aggregator.reset!
   end
 
   LEVELS = [
@@ -35,7 +37,7 @@ class LoggerInstrumentationTest < Minitest::Test
       @logger.send(name, "A message")
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
-      assert_logging_metrics(name.upcase)
+      assert_logging_instrumentation(name.upcase)
     end
 
     define_method("test_records_multiple_calls_#{name}") do
@@ -45,7 +47,7 @@ class LoggerInstrumentationTest < Minitest::Test
       assert_equal(2, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
       assert_match(/#{name.upcase}.*Another/, @written.string)
-      assert_logging_metrics(name.upcase, 2)
+      assert_logging_instrumentation(name.upcase, 2)
     end
 
     # logger#debug(Object.new)
@@ -53,7 +55,7 @@ class LoggerInstrumentationTest < Minitest::Test
       @logger.send(name, Object.new)
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*<Object.*>/, @written.string)
-      assert_logging_metrics(name.upcase)
+      assert_logging_instrumentation(name.upcase)
     end
 
     # logger#debug { "message" }
@@ -64,7 +66,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
-      assert_logging_metrics(name.upcase)
+      assert_logging_instrumentation(name.upcase)
     end
 
     # logger#log(Logger::DEBUG, "message")
@@ -72,7 +74,7 @@ class LoggerInstrumentationTest < Minitest::Test
       @logger.log(level, "A message")
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
-      assert_logging_metrics(name.upcase)
+      assert_logging_instrumentation(name.upcase)
     end
 
     # logger#log(Logger::DEBUG} { "message" }
@@ -80,7 +82,7 @@ class LoggerInstrumentationTest < Minitest::Test
       @logger.log(level) { "A message" }
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
-      assert_logging_metrics(name.upcase)
+      assert_logging_instrumentation(name.upcase)
     end
 
     # logger#log(Logger::DEBUG, "message", "progname")
@@ -88,7 +90,21 @@ class LoggerInstrumentationTest < Minitest::Test
       @logger.log(level, "A message", "progname")
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*progname.*A message/, @written.string)
-      assert_logging_metrics(name.upcase)
+      assert_logging_instrumentation(name.upcase)
+    end
+
+    define_method("test_decorates_message_when_enabled_#{name}") do
+      with_config(:'application_logging.local_decorating.enabled' => true) do
+        @logger.log(level) { "A message" }
+        assert_includes @written.string, 'NR-LINKING'
+      end
+    end
+
+    define_method("test_does_not_decorate_message_when_disabled_#{name}") do
+      with_config(:'application_logging.local_decorating.enabled' => false) do
+        @logger.log(level) { "A message" }
+        refute_includes @written.string, 'NR-LINKING'
+      end
     end
   end
 
@@ -96,35 +112,35 @@ class LoggerInstrumentationTest < Minitest::Test
     @logger.level = ::Logger::INFO
     @logger.debug("Won't see this")
     assert_equal(0, @written.string.lines.count)
-    refute_any_logging_metrics()
+    refute_any_logging_instrumentation()
   end
 
   def test_unknown
     @logger.unknown("A message")
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*A message/, @written.string)
-    assert_logging_metrics("ANY")
+    assert_logging_instrumentation("ANY")
   end
 
   def test_really_high_level
     @logger.log(1_000_000, "A message")
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*A message/, @written.string)
-    assert_logging_metrics("ANY")
+    assert_logging_instrumentation("ANY")
   end
 
   def test_really_high_level_with_progname
     @logger.log(1_000_000, "A message", "progname")
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*progname.*A message/, @written.string)
-    assert_logging_metrics("ANY")
+    assert_logging_instrumentation("ANY")
   end
 
   def test_nil_severity
     @logger.log(nil, "A message", "progname")
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*progname.*A message/, @written.string)
-    assert_logging_metrics("ANY")
+    assert_logging_instrumentation("ANY")
   end
 
   def test_skips_when_set
@@ -133,21 +149,42 @@ class LoggerInstrumentationTest < Minitest::Test
 
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*progname.*A message/, @written.string)
-    refute_any_logging_metrics()
+    refute_any_logging_instrumentation()
   end
 
-  def refute_any_logging_metrics
+  def test_enabled_returns_false_when_disabled
+    with_config(:'instrumentation.logger' => 'disabled') do
+      refute NewRelic::Agent::Instrumentation::Logger.enabled?
+    end
+  end
+
+  def test_enabled_returns_true_when_enabled
+    with_config(:'instrumentation.logger' => 'auto') do
+      assert NewRelic::Agent::Instrumentation::Logger.enabled?
+    end
+  end
+
+  def refute_any_logging_instrumentation
+    _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
+    assert_empty logs
+
     assert_metrics_recorded_exclusive([])
   end
 
-  def assert_logging_metrics(label, count = 1)
+  def assert_logging_instrumentation(level, count = 1)
+    # We count on Logger calls but actually write metrics on harvest to
+    # minimize impact in the hot path
+    _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
+    logs_at_level = logs.select { |log| log.last["level"] == level }
+    assert_equal count, logs_at_level.count
+
     assert_metrics_recorded_exclusive({
       "Logging/lines" => {:call_count => count},
-      "Logging/lines/#{label}" => {:call_count => count},
-      "Logging/size" => {},
-      "Logging/size/#{label}" => {},
-      "Supportability/API/increment_metric" => {},
-      "Supportability/API/record_metric" => {}
-    })
+      "Logging/lines/#{level}" => {:call_count => count},
+      "Logging/Forwarding/Dropped" => {},
+      "Supportability/Logging/Forwarding/Seen" => {},
+      "Supportability/Logging/Forwarding/Sent" => {}
+    },
+      :ignore_filter => %r{^Supportability/API/})
   end
 end

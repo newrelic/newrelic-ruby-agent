@@ -13,7 +13,8 @@ class EventDataCollectionTest < Minitest::Test
         "analytic_event_data" => 1200,
         "custom_event_data" => 1000,
         "error_event_data" => 100,
-        "span_event_data" => 2000
+        "span_event_data" => 2000,
+        "log_event_data" => 10000
       }
     }
 
@@ -22,7 +23,7 @@ class EventDataCollectionTest < Minitest::Test
     assert_equal expected, single_connect_posted['event_harvest_config']
   end
 
-  def test_sets_event_report_period_on_connect_repsonse
+  def test_sets_event_report_period_on_connect_response
     connect_response = {
       "agent_run_id" => 1,
       "event_harvest_config" => {
@@ -30,7 +31,8 @@ class EventDataCollectionTest < Minitest::Test
         "harvest_limits" => {
           "analytic_event_data" => 1200,
           "custom_event_data" => 1000,
-          "error_event_data" => 100
+          "error_event_data" => 100,
+          "log_event_data" => 10000
         }
       }
     }
@@ -50,7 +52,8 @@ class EventDataCollectionTest < Minitest::Test
         "harvest_limits" => {
           "analytic_event_data" => 1200,
           "custom_event_data" => 1000,
-          "error_event_data" => 100
+          "error_event_data" => 100,
+          "log_event_data" => 10000
         }
       }
     }

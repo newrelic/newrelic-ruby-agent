@@ -5,6 +5,7 @@
 require 'logger'
 require 'fileutils'
 require 'new_relic/agent/hostname'
+require 'new_relic/agent/instrumentation/logger/instrumentation'
 
 module NewRelic
   module Agent
@@ -69,6 +70,9 @@ module NewRelic
         else
           @log = NewRelic::Agent::NullLogger.new
         end
+
+        # Never have agent log forwarding capture audits
+        NewRelic::Agent::Instrumentation::Logger.mark_skip_instrumenting(@log)
 
         @log.formatter = create_log_formatter
       end

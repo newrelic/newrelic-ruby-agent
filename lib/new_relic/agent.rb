@@ -59,6 +59,8 @@ module NewRelic
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
     require 'new_relic/agent/attribute_processing'
+    require 'new_relic/agent/linking_metadata'
+    require 'new_relic/agent/local_log_decorator'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -726,20 +728,8 @@ module NewRelic
     # @api public
     def linking_metadata
       metadata = Hash.new
-      metadata[ENTITY_NAME_KEY] = config[:app_name][0]
-      metadata[ENTITY_TYPE_KEY] = ENTITY_TYPE
-      metadata[HOSTNAME_KEY] = Hostname.get
-
-      if entity_guid = config[:entity_guid]
-        metadata[ENTITY_GUID_KEY] = entity_guid
-      end
-
-      if trace_id = Tracer.current_trace_id
-        metadata[TRACE_ID_KEY] = trace_id
-      end
-      if span_id = Tracer.current_span_id
-        metadata[SPAN_ID_KEY] = span_id
-      end
+      LinkingMetadata.append_service_linking_metadata(metadata)
+      LinkingMetadata.append_trace_linking_metadata(metadata)
       metadata
     end
 

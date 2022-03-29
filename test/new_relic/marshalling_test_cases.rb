@@ -66,7 +66,7 @@ module MarshallingTestCases
     event[0].delete("priority")
 
     assert_equal "Transaction", event[0]["type"]
-    assert_equal t0.to_f, event[0]["timestamp"]
+    assert_equal t0, event[0]["timestamp"]
     assert_equal "TestTransaction/do_it", event[0]["name"]
     assert_equal 0.0, event[0]["duration"]
     assert_equal false, event[0]["error"]
@@ -151,6 +151,38 @@ module MarshallingTestCases
     assert_equal event[2], {}
 
     assert_equal event.size, 3
+  end
+
+  def test_sends_log_events
+    # Standard with other agents on millis, not seconds
+    t0 = nr_freeze_process_time.to_f * 1000
+    message = "A deadly message"
+    severity = "FATAL"
+
+    with_config(:'application_logging.forwarding.enabled' => true) do
+      with_around_hook do
+        NewRelic::Agent.agent.log_event_aggregator.record(message, severity)
+      end
+    end
+
+    transmit_data
+
+    result = $collector.calls_for('log_event_data')
+    assert_equal 1, result.length
+
+    common = result.first.common["attributes"]
+    refute_nil common["hostname"]
+
+    # Excluding this explicitly vs classic logs-in-context to save space
+    assert_nil common["entity.type"]
+
+    logs = result.first.logs
+    refute_empty logs
+
+    log = logs.find { |l| l["message"] == message && l["level"] == severity }
+
+    refute_nil log
+    assert_equal t0, log["timestamp"]
   end
 
   class Transactioner
