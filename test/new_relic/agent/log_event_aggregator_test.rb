@@ -117,6 +117,7 @@ module NewRelic::Agent
     def test_doesnt_record_customer_metrics_when_disabled
       with_config LogEventAggregator::METRICS_ENABLED_KEY => false do
         @aggregator.record("Are you counting this?", "DEBUG")
+        @aggregator.harvest!
       end
 
       assert_metrics_not_recorded([
