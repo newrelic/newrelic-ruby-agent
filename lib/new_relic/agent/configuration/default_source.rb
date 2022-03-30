@@ -333,6 +333,7 @@ module NewRelic
         },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -364,6 +365,7 @@ module NewRelic
         },
         :monitor_mode => {
           :default => value_of(:enabled),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -543,6 +545,7 @@ module NewRelic
         },
         :'strip_exception_messages.enabled' => {
           :default => value_of(:high_security),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -760,6 +763,7 @@ module NewRelic
         },
         :'audit_log.path' => {
           :default => DefaultSource.audit_log_path,
+          :documentation_default => 'config/newrelic_audit.log',
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -867,6 +871,7 @@ module NewRelic
         },
         :disable_activerecord_instrumentation => {
           :default => value_of(:skip_ar_instrumentation),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -890,6 +895,7 @@ module NewRelic
         },
         :'instrumentation.net_http' => {
           :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -898,6 +904,7 @@ module NewRelic
         },
         :'instrumentation.typhoeus' => {
           :default => instrumentation_value_of(:disable_typhoeus),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -906,6 +913,7 @@ module NewRelic
         },
         :'instrumentation.bunny' => {
           :default => instrumentation_value_of(:disable_bunny),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -914,6 +922,7 @@ module NewRelic
         },
         :'instrumentation.httprb' => {
           :default => instrumentation_value_of(:disable_httprb),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -922,6 +931,7 @@ module NewRelic
         },
         :'instrumentation.resque' => {
           :default => instrumentation_value_of(:disable_resque),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -930,6 +940,7 @@ module NewRelic
         },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -938,6 +949,7 @@ module NewRelic
         },
         :'instrumentation.rake' => {
           :default => instrumentation_value_of(:disable_rake),
+          :documentation_default => 'auto',
           :public => :true,
           :type => String,
           :dynamic_name => true,
@@ -946,6 +958,7 @@ module NewRelic
         },
         :'instrumentation.mongo' => {
           :default => instrumentation_value_of(:disable_mongo),
+          :documentation_default => 'enabled',
           :public => :true,
           :type => String,
           :dynamic_name => true,
@@ -954,6 +967,7 @@ module NewRelic
         },
         :'instrumentation.delayed_job' => {
           :default => instrumentation_value_of(:disable_dj),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -962,6 +976,7 @@ module NewRelic
         },
         :'instrumentation.httpclient' => {
           :default => instrumentation_value_of(:disable_httpclient),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -970,6 +985,7 @@ module NewRelic
         },
         :'instrumentation.curb' => {
           :default => instrumentation_value_of(:disable_curb),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -978,6 +994,7 @@ module NewRelic
         },
         :'instrumentation.sinatra' => {
           :default => instrumentation_value_of(:disable_sinatra),
+          :documentation_default => 'auto',
           :public => :true,
           :type => String,
           :dynamic_name => true,
@@ -986,6 +1003,7 @@ module NewRelic
         },
         :'instrumentation.rack' => {
           :default => instrumentation_value_of(:disable_rack),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -996,6 +1014,7 @@ module NewRelic
         },
         :'instrumentation.rack_urlmap' => {
           :default => instrumentation_value_of(:disable_rack_urlmap),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1004,6 +1023,7 @@ module NewRelic
         },
         :'instrumentation.puma_rack' => {
           :default => instrumentation_value_of(:disable_puma_rack), # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1014,6 +1034,7 @@ module NewRelic
         },
         :'instrumentation.puma_rack_urlmap' => {
           :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1022,6 +1043,7 @@ module NewRelic
         },
         :'instrumentation.memcached' => {
           :default => instrumentation_value_of(:disable_memcached),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1030,6 +1052,7 @@ module NewRelic
         },
         :'instrumentation.memcache_client' => {
           :default => instrumentation_value_of(:disable_memcache_client),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1038,6 +1061,7 @@ module NewRelic
         },
         :'instrumentation.memcache' => {
           :default => instrumentation_value_of(:disable_dalli),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1046,6 +1070,7 @@ module NewRelic
         },
         :'instrumentation.logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1093,6 +1118,7 @@ module NewRelic
         },
         :disable_memcached => {
           :default => value_of(:disable_memcache_instrumentation),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :deprecated => true,
@@ -1101,6 +1127,7 @@ module NewRelic
         },
         :disable_memcache_client => {
           :default => value_of(:disable_memcache_instrumentation),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :deprecated => true,
@@ -1109,6 +1136,7 @@ module NewRelic
         },
         :disable_dalli => {
           :default => value_of(:disable_memcache_instrumentation),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :deprecated => true,
@@ -1117,6 +1145,7 @@ module NewRelic
         },
         :disable_dalli_cas_client => {
           :default => value_of(:disable_memcache_instrumentation),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :deprecated => true,
@@ -1290,6 +1319,7 @@ module NewRelic
         },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
@@ -1297,6 +1327,7 @@ module NewRelic
         },
         :'slow_sql.explain_threshold' => {
           :default => value_of(:'transaction_tracer.explain_threshold'),
+          :documentation_default => 0.5,
           :public => true,
           :type => Float,
           :allowed_from_server => true,
@@ -1304,6 +1335,7 @@ module NewRelic
         },
         :'slow_sql.explain_enabled' => {
           :default => value_of(:'transaction_tracer.explain_enabled'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
@@ -1311,6 +1343,7 @@ module NewRelic
         },
         :'slow_sql.record_sql' => {
           :default => value_of(:'transaction_tracer.record_sql'),
+          :documentation_default => 'obfuscated',
           :public => true,
           :type => String,
           :allowed_from_server => true,
@@ -1453,6 +1486,7 @@ module NewRelic
         },
         :'error_collector.capture_events' => {
           :default => value_of(:'error_collector.enabled'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
@@ -1510,6 +1544,7 @@ module NewRelic
         },
         :'browser_monitoring.auto_instrument' => {
           :default => value_of(:'rum.enabled'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
@@ -1610,6 +1645,7 @@ module NewRelic
         },
         :'thread_profiler.enabled' => {
           :default => DefaultSource.thread_profiler_enabled,
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
@@ -1647,6 +1683,7 @@ module NewRelic
         },
         :'transaction_events.enabled' => {
           :default => value_of(:'analytics_events.enabled'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
@@ -1654,6 +1691,7 @@ module NewRelic
         },
         :'transaction_events.max_samples_stored' => {
           :default => value_of(:'analytics_events.max_samples_stored'),
+          :documentation_default => 1200,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
@@ -1757,6 +1795,7 @@ module NewRelic
         },
         :'instrumentation.excon' => {
           :default => instrumentation_value_of(:disable_excon),
+          :documentation_default => 'enabled',
           :public => :true,
           :type => String,
           :dynamic_name => true,
@@ -1802,6 +1841,7 @@ module NewRelic
         },
         :disable_puma_rack => {
           :default => value_of(:disable_rack),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :dynamic_name => true,
@@ -1811,6 +1851,7 @@ module NewRelic
         },
         :disable_puma_rack_urlmap => {
           :default => value_of(:disable_rack_urlmap),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :dynamic_name => true,
@@ -1976,6 +2017,7 @@ module NewRelic
         },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
           :dynamic_name => true,
           :public => true,
           :type => String,
@@ -2002,6 +2044,7 @@ module NewRelic
         },
         :'instrumentation.grape' => {
           :default => instrumentation_value_of(:disable_grape_instrumentation),
+          :documentation_default => 'auto',
           :public => :true,
           :type => String,
           :dynamic_name => true,
@@ -2017,6 +2060,7 @@ module NewRelic
         },
         :'transaction_tracer.attributes.enabled' => {
           :default => value_of(:'transaction_tracer.capture_attributes'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -2024,6 +2068,7 @@ module NewRelic
         },
         :'transaction_events.attributes.enabled' => {
           :default => value_of(:'analytics_events.capture_attributes'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -2031,6 +2076,7 @@ module NewRelic
         },
         :'error_collector.attributes.enabled' => {
           :default => value_of(:'error_collector.capture_attributes'),
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -2038,6 +2084,7 @@ module NewRelic
         },
         :'browser_monitoring.attributes.enabled' => {
           :default => value_of(:'browser_monitoring.capture_attributes'),
+          :documentation_default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,

@@ -20,7 +20,8 @@ namespace :newrelic do
     }
 
     NAME_OVERRIDES = {
-      "slow_sql" => "Slow SQL"
+      "slow_sql" => "Slow SQL",
+      "custom_insights_events" => "Custom Events"
     }
 
     def output(format)
@@ -52,7 +53,7 @@ namespace :newrelic do
           :key => key,
           :type => format_type(value[:type]),
           :description => format_description(value),
-          :default => format_default_value(value, key),
+          :default => format_default_value(value),
           :env_var => format_env_var(key)
         }
       end
@@ -107,20 +108,13 @@ namespace :newrelic do
       description
     end
 
-    def format_default_value(spec, key)
+    def format_default_value(spec)
+      return spec[:documentation_default] if !spec[:documentation_default].nil?
       if spec[:default].is_a?(Proc)
-        return '(Dynamic)' unless default_value_auto?(key)
-        '"auto"'
+        return '(Dynamic)'
       else
         "#{spec[:default].inspect}"
       end
-    end
-
-    # currently the only 'instrumentation.XXXX' configs that
-    # do not use a default of auto are mongo and excon
-    def default_value_auto?(key)
-      return false if key.match(/mongo/) || key.match(/excon/)
-      key.match(/^instrumentation/)
     end
 
     def format_env_var(key)
