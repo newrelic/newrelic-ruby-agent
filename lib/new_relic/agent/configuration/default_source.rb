@@ -438,12 +438,12 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => <<~DESCRIPTION
-          When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
+          :description => <<-DESCRIPTION
+When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
-              <Callout variant="caution">
-                When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. <b>Recommendation:</b> To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
-              </Callout>
+    <Callout variant="caution">
+      When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. <b>Recommendation:</b> To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+    </Callout>
           DESCRIPTION
         },
         :config_path => {
@@ -812,23 +812,23 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => <<~DESCRIPTION
-          If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
+          :description => <<-DESCRIPTION
+If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
-              <Callout variant="important">
-                Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+    <Callout variant="important">
+      Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
-                To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+      To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
-                ```
-                # newrelic.yml
+      ```
+      # newrelic.yml
 
-                  cross_application_tracer:
-                    enabled: true
-                  distributed_tracing:
-                    enabled: false
-                ```
-              </Callout>
+        cross_application_tracer:
+          enabled: true
+        distributed_tracing:
+          enabled: false
+      ```
+    </Callout>
           DESCRIPTION
         },
         :disable_view_instrumentation => {
@@ -1375,12 +1375,12 @@ module NewRelic
           :deprecated => true,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<~DESCRIPTION
-          Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.
+          :description => <<-DESCRIPTION
+Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.
 
-              <Callout variant="caution">
-                Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.
-              </Callout>
+    <Callout variant="caution">
+      Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.
+    </Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_classes' => {
@@ -1389,12 +1389,12 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<~DESCRIPTION
-          A list of error classes that the agent should ignore.
+          :description => <<-DESCRIPTION
+A list of error classes that the agent should ignore.
 
-            <Callout variant="caution">
-              This option can't be set via environment variable.
-            </Callout>
+  <Callout variant="caution">
+    This option can't be set via environment variable.
+  </Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
