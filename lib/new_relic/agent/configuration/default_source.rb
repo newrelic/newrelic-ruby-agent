@@ -1403,7 +1403,7 @@ A list of error classes that the agent should ignore.
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<~DESCRIPTION
+          :description => <<-DESCRIPTION
           A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
 
             <Callout variant="caution">
@@ -1425,7 +1425,7 @@ A list of error classes that the agent should ignore.
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<~DESCRIPTION
+          :description => <<-DESCRIPTION
           A list of error classes that the agent should treat as expected.
 
             <Callout variant="caution">
@@ -1439,7 +1439,7 @@ A list of error classes that the agent should ignore.
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<~DESCRIPTION
+          :description => <<-DESCRIPTION
           A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
 
             <Callout variant="caution">
