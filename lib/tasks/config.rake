@@ -111,7 +111,7 @@ namespace :newrelic do
     def format_default_value(spec)
       return spec[:documentation_default] if !spec[:documentation_default].nil?
       if spec[:default].is_a?(Proc)
-        return '(Dynamic)'
+        '(Dynamic)'
       else
         "#{spec[:default].inspect}"
       end
