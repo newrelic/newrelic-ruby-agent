@@ -1404,11 +1404,11 @@ A list of error classes that the agent should ignore.
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<-DESCRIPTION
-          A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
+A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
 
-            <Callout variant="caution">
-              This option can't be set via environment variable.
-            </Callout>
+  <Callout variant="caution">
+    This option can't be set via environment variable.
+  </Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_status_codes' => {
@@ -1426,11 +1426,11 @@ A list of error classes that the agent should ignore.
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<-DESCRIPTION
-          A list of error classes that the agent should treat as expected.
+A list of error classes that the agent should treat as expected.
 
-            <Callout variant="caution">
-              This option can't be set via environment variable.
-            </Callout>
+  <Callout variant="caution">
+    This option can't be set via environment variable.
+  </Callout>
           DESCRIPTION
         },
         :'error_collector.expected_messages' => {
@@ -1440,11 +1440,11 @@ A list of error classes that the agent should ignore.
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<-DESCRIPTION
-          A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
+A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
 
-            <Callout variant="caution">
-              This option can't be set via environment variable.
-            </Callout>
+  <Callout variant="caution">
+    This option can't be set via environment variable.
+  </Callout>
           DESCRIPTION
         },
         :'error_collector.expected_status_codes' => {
