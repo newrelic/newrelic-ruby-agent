@@ -820,33 +820,24 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).'\
-          "\n" \
-          "\n" \
-          '    <Callout variant="important">' \
-          "\n" \
-          '      Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.' \
-          "\n" \
-          "\n" \
-          '      To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:'\
-          "\n" \
-          "\n" \
-          '      ```'\
-          "\n" \
-          '      # newrelic.yml'\
-          "\n" \
-          "\n" \
-          '        cross_application_tracer:'\
-          "\n" \
-          '          enabled: true'\
-          "\n" \
-          '        distributed_tracing:'\
-          "\n" \
-          '          enabled: false'\
-          "\n" \
-          '      ```'\
-          "\n" \
-          '    </Callout>'
+          :description => <<~DESCRIPTION
+          If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
+
+              <Callout variant="important">
+                Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+
+                To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+
+                ```
+                # newrelic.yml
+
+                  cross_application_tracer:
+                    enabled: true
+                  distributed_tracing:
+                    enabled: false
+                ```
+              </Callout>
+          DESCRIPTION
         },
         :disable_view_instrumentation => {
           :default => false,
