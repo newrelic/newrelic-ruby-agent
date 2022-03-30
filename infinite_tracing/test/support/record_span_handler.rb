@@ -43,7 +43,6 @@ module NewRelic::Agent
             @record_status_stream.push(record_status)
             @record_status_stream.push(nil)
           rescue StandardError => e
-            puts "SERVER ERROR", e.inspect
             raise e
           ensure
             @lock.synchronize { @worker, @record_spans = nil }

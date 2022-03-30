@@ -43,8 +43,6 @@ module NewRelic::Agent
           begin
             [key, AttributeValue.new(safe_param_name(value) => value)]
           rescue => e
-            puts e.inspect
-            puts [key, value].inspect
             nil
           end
         end.to_h

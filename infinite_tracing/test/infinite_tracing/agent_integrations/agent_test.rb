@@ -34,6 +34,10 @@ module NewRelic
                 end
               end
 
+              # This ensures that the mock server thread is able to complete processing before asserting starts
+              simulate_server_response
+              wait_for_mock_server_process
+
               # ensures all segments consumed
               NewRelic::Agent.agent.infinite_tracer.flush
               join_grpc_mock
