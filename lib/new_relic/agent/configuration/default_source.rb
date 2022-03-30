@@ -438,21 +438,13 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When `true`, the agent captures HTTP request parameters ' \
-            'and attaches them to transaction traces, traced errors, and ' \
-            '[`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).'\
-            "\n" \
-            "\n" \
-            '    <Callout variant="caution">' \
-            "\n" \
-            '      When using the `capture_params` setting, the Ruby agent will not attempt ' \
-            'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
-            'request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) ' \
-            'instead. For more information, see the ' \
-            '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
-            'Ruby attribute examples</a>.' \
-            "\n" \
-            '    </Callout>'
+          :description => <<~DESCRIPTION
+          When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
+
+              <Callout variant="caution">
+                When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. <b>Recommendation:</b> To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+              </Callout>
+          DESCRIPTION
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -1383,14 +1375,13 @@ module NewRelic
           :deprecated => true,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.' \
-          "\n" \
-          "\n" \
-          '    <Callout variant="caution">' \
-          "\n" \
-          '      Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.'\
-          "\n" \
-          '    </Callout>'
+          :description => <<~DESCRIPTION
+          Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.
+
+              <Callout variant="caution">
+                Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.
+              </Callout>
+          DESCRIPTION
         },
         :'error_collector.ignore_classes' => {
           :default => [],
@@ -1398,14 +1389,13 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A list of error classes that the agent should ignore.' \
-          "\n" \
-          "\n" \
-          '  <Callout variant="caution">' \
-          "\n" \
-          '    This option can\'t be set via environment variable.'\
-          "\n" \
-          '  </Callout>'
+          :description => <<~DESCRIPTION
+          A list of error classes that the agent should ignore.
+
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
+          DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
           :default => {},
@@ -1413,14 +1403,13 @@ module NewRelic
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.' \
-          "\n" \
-          "\n" \
-          '  <Callout variant="caution">' \
-          "\n" \
-          '    This option can\'t be set via environment variable.'\
-          "\n" \
-          '  </Callout>'
+          :description => <<~DESCRIPTION
+          A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
+
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
+          DESCRIPTION
         },
         :'error_collector.ignore_status_codes' => {
           :default => '',
@@ -1436,14 +1425,13 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A list of error classes that the agent should treat as expected.' \
-          "\n" \
-          "\n" \
-          '  <Callout variant="caution">' \
-          "\n" \
-          '    This option can\'t be set via environment variable.'\
-          "\n" \
-          '  </Callout>'
+          :description => <<~DESCRIPTION
+          A list of error classes that the agent should treat as expected.
+
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
+          DESCRIPTION
         },
         :'error_collector.expected_messages' => {
           :default => {},
@@ -1451,14 +1439,13 @@ module NewRelic
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.' \
-          "\n" \
-          "\n" \
-          '  <Callout variant="caution">' \
-          "\n" \
-          '    This option can\'t be set via environment variable.'\
-          "\n" \
-          '  </Callout>'
+          :description => <<~DESCRIPTION
+          A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
+
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
+          DESCRIPTION
         },
         :'error_collector.expected_status_codes' => {
           :default => '',
