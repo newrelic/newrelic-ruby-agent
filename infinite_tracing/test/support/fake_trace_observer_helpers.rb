@@ -4,6 +4,7 @@
 # frozen_string_literal: true
 
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
+  require_relative 'server_response_simulator'
 
   module NewRelic
     module Agent
@@ -72,63 +73,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           RUNNING_SERVER_CONTEXTS = {}
-
-          # ServerContext lets us centralize starting/stopping the Fake Trace Observer Server
-          # and track spans the server receives across multiple Tracers and Server restarts.
-          # One ServerContext instance per unit test is expected and is in play for
-          # the duration of the unit test.
-          class ServerContext
-            attr_reader :port
-            attr_reader :tracer_class
-            attr_reader :server
-            attr_reader :spans
-
-            def initialize port, tracer_class
-              @port = port
-              @tracer_class = tracer_class
-              @lock = Mutex.new
-              @spans = []
-              start
-            end
-
-            def start
-              @lock.synchronize do
-                @flushed = false
-                @server = FakeTraceObserverServer.new port, tracer_class
-                @server.set_server_context self
-                @server.run
-                RUNNING_SERVER_CONTEXTS[self] = :running
-              end
-            end
-
-            def stop
-              @lock.synchronize do
-                @server.stop
-                RUNNING_SERVER_CONTEXTS[self] = :stopped
-              end
-            end
-
-            def wait_for_notice
-              @server.wait_for_notice
-            end
-
-            def flush count = 0
-              @lock.synchronize do
-                @flushed = true
-              end
-            end
-
-            def restart tracer_class = nil
-              @tracer_class = tracer_class unless tracer_class.nil?
-              flush
-              stop
-              start
-            end
-          end
-
-          def restart_fake_trace_observer_server context, tracer_class = nil
-            context.restart tracer_class
-          end
 
           def localhost_config
             {
@@ -224,34 +168,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
           ensure
             client.stop unless client.nil?
-          end
-
-          # class to handle the responses to the client from the server
-          class ServerResponseSimulator
-            def initialize
-              @buffer = Queue.new
-            end
-
-            def << value
-              @buffer << value
-            end
-
-            def empty?
-              @buffer.empty?
-            end
-
-            def enumerator
-              return enum_for(:enumerator) unless block_given?
-              loop do
-                if return_value = @buffer.pop(false)
-                  # grpc raises any errors it gets rather than yielding them, this mimics that behavior
-                  if return_value.is_a?(GRPC::BadStatus) && !return_value.is_a?(GRPC::Ok)
-                    raise return_value
-                  end
-                  yield return_value
-                end
-              end
-            end
           end
 
           # when the server responds with an error that should stop the server
