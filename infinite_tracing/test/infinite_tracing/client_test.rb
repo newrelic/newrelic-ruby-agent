@@ -38,9 +38,9 @@ module NewRelic
             total_spans = 5
             spans, segments = emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
-                client.restart # idk what to replace with???
+                client.restart
               else
-                simulate_server_response # if segments.size == 5
+                simulate_server_response
               end
             end
 
