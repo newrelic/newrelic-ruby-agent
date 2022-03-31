@@ -175,7 +175,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # We count on Logger calls but actually write metrics on harvest to
     # minimize impact in the hot path
     _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
-    logs_at_level = logs.select { |log| log.last["level"] == level }
+    logs_at_level = logs.select { |log| log.last["log.level"] == level }
     assert_equal count, logs_at_level.count
 
     assert_metrics_recorded_exclusive({
