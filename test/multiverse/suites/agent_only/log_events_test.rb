@@ -23,7 +23,7 @@ class LogEventsTest < Minitest::Test
 
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
-    assert_equal "FATAL", last_log["level"]
+    assert_equal "FATAL", last_log["log.level"]
     assert_equal trace_id, last_log["trace.id"]
     assert_equal span_id, last_log["span.id"]
 
@@ -41,7 +41,7 @@ class LogEventsTest < Minitest::Test
 
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
-    assert_equal "FATAL", last_log["level"]
+    assert_equal "FATAL", last_log["log.level"]
     assert_equal nil, last_log["trace.id"]
     assert_equal nil, last_log["span.id"]
 
