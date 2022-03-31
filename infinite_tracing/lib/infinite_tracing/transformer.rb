@@ -43,6 +43,7 @@ module NewRelic::Agent
           begin
             [key, AttributeValue.new(safe_param_name(value) => value)]
           rescue => e
+            NewRelic::Agent.logger.debug("Infinite tracing transformer error: #{e.inspect}")
             nil
           end
         end.to_h
