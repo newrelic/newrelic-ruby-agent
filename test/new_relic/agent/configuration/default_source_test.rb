@@ -156,6 +156,12 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_application_logging_enabled_default
+      with_config(:'application_logging.enabled' => :foo) do
+        assert_equal :foo, NewRelic::Agent.config['application_logging.enabled']
+      end
+    end
+
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
       types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
@@ -244,6 +250,19 @@ module NewRelic::Agent::Configuration
     def test_api_host_eu
       with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
         assert_equal 'rpm.eu.newrelic.com', DefaultSource.api_host.call
+      end
+    end
+
+    # Tests self.instrumentation_value_from_boolean
+    def test_instrumentation_logger_matches_application_logging_enabled
+      with_config(:'application_logging.enabled' => true) do
+        assert_equal 'auto', NewRelic::Agent.config['instrumentation.logger']
+      end
+    end
+
+    def test_instrumentation_logger_matches_application_logging_disabled
+      with_config(:'application_logging.enabled' => false) do
+        assert_equal 'disabled', NewRelic::Agent.config['instrumentation.logger']
       end
     end
 

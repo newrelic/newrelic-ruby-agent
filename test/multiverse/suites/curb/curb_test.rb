@@ -141,6 +141,11 @@ class CurbTest < Minitest::Test
     assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
   end
 
+  # https://github.com/newrelic/newrelic-ruby-agent/issues/1033
+  def test_method_with_tracing_passes_the_verb_downstream
+    assert Curl::Easy.new.method(:to_s).call.is_a?(String), 'Failed to create #to_s method'
+  end
+
   #
   # Helper functions
   #

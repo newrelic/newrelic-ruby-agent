@@ -102,7 +102,7 @@ module Performance
         sprintf("#{prefix}%.1f%%", v)
       }
 
-      table = Table.new(rows) do
+      table = Table.new(rows, @options) do
         column :name
         column :before, &(FormattingHelpers.method(:format_duration))
         column :after, &(FormattingHelpers.method(:format_duration))

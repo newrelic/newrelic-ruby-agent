@@ -25,6 +25,7 @@ require 'new_relic/agent/monitors'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
+require 'new_relic/agent/log_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -73,6 +74,7 @@ module NewRelic
         @transaction_event_recorder = TransactionEventRecorder.new @events
         @custom_event_aggregator = CustomEventAggregator.new @events
         @span_event_aggregator = SpanEventAggregator.new @events
+        @log_event_aggregator = LogEventAggregator.new @events
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -146,6 +148,7 @@ module NewRelic
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
         attr_reader :span_event_aggregator
+        attr_reader :log_event_aggregator
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
@@ -559,6 +562,7 @@ module NewRelic
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
           @span_event_aggregator.reset!
+          @log_event_aggregator.reset!
           @sql_sampler.reset!
 
           if Agent.config[:clear_transaction_state_after_fork]
@@ -580,6 +584,7 @@ module NewRelic
             transmit_custom_event_data
             transmit_error_event_data
             transmit_span_event_data
+            transmit_log_event_data
           end
         end
 
@@ -607,6 +612,7 @@ module NewRelic
           CUSTOM_EVENT_DATA = "custom_event_data".freeze
           ERROR_EVENT_DATA = "error_event_data".freeze
           SPAN_EVENT_DATA = "span_event_data".freeze
+          LOG_EVENT_DATA = "log_event_data".freeze
 
           def create_and_run_event_loop
             data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
@@ -628,6 +634,9 @@ module NewRelic
             end
             @event_loop.on(interval_for SPAN_EVENT_DATA) do
               transmit_span_event_data
+            end
+            @event_loop.on(interval_for LOG_EVENT_DATA) do
+              transmit_log_event_data
             end
             @event_loop.on(:reset_log_once_keys) do
               ::NewRelic::Agent.logger.clear_already_logged
@@ -893,6 +902,7 @@ module NewRelic
           when :custom_event_data then @custom_event_aggregator
           when :span_event_data then span_event_aggregator
           when :sql_trace_data then @sql_sampler
+          when :log_event_data then @log_event_aggregator
           end
         end
 
@@ -1080,6 +1090,10 @@ module NewRelic
           harvest_and_send_from_container(span_event_aggregator, :span_event_data)
         end
 
+        def harvest_and_send_log_event_data
+          harvest_and_send_from_container(@log_event_aggregator, :log_event_data)
+        end
+
         def check_for_and_handle_agent_commands
           begin
             @agent_command_router.check_for_and_handle_agent_commands
@@ -1120,6 +1134,11 @@ module NewRelic
           transmit_single_data_type(:harvest_and_send_span_event_data, SPAN_EVENT)
         end
 
+        LOG_EVENT = "LogEvent".freeze
+        def transmit_log_event_data
+          transmit_single_data_type(:harvest_and_send_log_event_data, LOG_EVENT)
+        end
+
         def transmit_single_data_type(harvest_method, supportability_name)
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
@@ -1146,6 +1165,7 @@ module NewRelic
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
             harvest_and_send_span_event_data
+            harvest_and_send_log_event_data
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands
@@ -1174,6 +1194,7 @@ module NewRelic
               transmit_custom_event_data
               transmit_error_event_data
               transmit_span_event_data
+              transmit_log_event_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

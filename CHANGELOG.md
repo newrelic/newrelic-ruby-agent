@@ -1,5 +1,32 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.6.0
+
+* **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
+
+    - Adds support for forwarding application logs to New Relic. This automatically sends application logs that have been enriched to power Telemetry-in-Context. This is disabled by default in this release. This may be on by default in a future release.
+    - Adds support for enriching application logs written to disk or standard out. This can be used with another log forwarder to power Telemetry-in-Context if in-agent log forwarding is not desired. We recommend enabling either log forwarding or local log decorating, but not both features. This is disabled by default in this release.
+    - Improves speed and Resque support for logging metrics which shows the rate of log message by severity in the Logs chart in the APM Summary view. This is enabled by default in this release.
+
+    To learn more about Telemetry-in-Context and the configuration options please see the documentation [here](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/).  
+
+  * **Improve the usage of the 'hostname' executable and other executables**
+
+    In all places where a call to an executable binary is made (currently this is done only for the 'hostname' and 'uname' binaries), leverage a new helper method when making the call. This new helper will a) not attempt to execute the binary if it cannot be found, and b) prevent STDERR/STDOUT content from appearing anywhere except New Relic's own logs if the New Relic logger is set to the 'debug' level. When calling 'hostname', fall back to `Socket.gethostname` if the 'hostname' binary cannot be found. When calling 'uname', fall back on using a value of 'unknown' if the 'uname' command fails. Many thanks to @metaskills and @brcarp for letting us know that Ruby AWS Lambda functions can't invoke 'hostname' and for providing ideas and feedback with [Issue #697](https://github.com/newrelic/newrelic-ruby-agent/issues/697).
+
+  * **Documentation: remove confusing duplicate RUM entry from newrelic.yml**
+
+    The `browser_monitoring.auto_instrument` configuration option to enable web page load timing (RUM) was confusingly listed twice in the newrelic.yml config file. This option is enabled by default. The newrelic.yml file has been updated to list the option only once. Many thanks to @robotfelix for bringing this to our attention with [Issue #955](https://github.com/newrelic/newrelic-ruby-agent/issues/955).
+
+  * **Bugfix: fix unit test failures when New Relic environment variables are present**
+
+    Previously, unit tests would fail with unexpected invocation errors when `NEW_RELIC_LICENSE_KEY` and `NEW_RELIC_HOST` environment variables were present. Now, tests will discard these environment variables before running.
+
+  * **Bugfix: Curb - satify method_with_tracing's verb argument requirement**
+
+    When Curb instrumentation is used (either via prepend or chain), be sure to always pass the verb argument over to `method_with_tracing` which requires it. Thank you to @knarewski for bringing this issue to our attention, for providing a means of reproducing an error, and for providing a fix. That fix has been replicated by the agent team with permission. See [Issue 1033](https://github.com/newrelic/newrelic-ruby-agent/issues/1033) for more details.
+  
+
   ## v8.5.0
 
   * **AWS: Support IMDSv2 by using a token with metadata API calls**
@@ -564,7 +591,7 @@
   ## v6.12.0
 
   * The New Relic Ruby Agent is now open source under the [Apache 2 license](LICENSE)
-    and you can now observe the project roadmap. See our [Contributing guide](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md)
+    and you can now observe the [issues we're working on](https://github.com/orgs/newrelic/projects/17). See our [Contributing guide](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md)
     and [Code of Conduct](https://github.com/newrelic/.github/blob/master/CODE_OF_CONDUCT.md) for details on contributing!
 
   * **Security: Updated all uses of Rake to >= 12.3.3**

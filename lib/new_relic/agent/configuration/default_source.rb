@@ -38,6 +38,12 @@ module NewRelic
         end
       end
 
+      def self.instrumentation_value_from_boolean(key)
+        Proc.new do
+          NewRelic::Agent.config[key] ? 'auto' : 'disabled'
+        end
+      end
+
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
       def self.deprecated_description new_setting, description
@@ -354,21 +360,21 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The [Entity GUID](/attribute-dictionary/span/entityguid) for the entity running this agent.'
+          :description => 'The [Entity GUID](/attribute-dictionary/span/entityguid) for the entity running your agent.'
         },
         :monitor_mode => {
           :default => value_of(:enabled),
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When `true`, the agent transmits data about your app to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
+          :description => 'When `true`, the agent transmits data about your application to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
         },
         :test_mode => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Used in tests for agent to start up but not connect to collector. Formerly used `developer_mode` in test config for this purpose.'
+          :description => 'Used in tests for the agent to start up, but not connect to the collector. Formerly used `developer_mode` in test config for this purpose.'
         },
         :log_level => {
           :default => 'info',
@@ -679,6 +685,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic error event collection services.'
+        },
+        :'event_report_period.log_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic log event collection services.'
         },
         :'event_report_period.span_event_data' => {
           :default => 60,
@@ -1004,7 +1018,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.logger' => {
-          :default => "auto",
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1017,7 +1031,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Tilt at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,
@@ -1390,7 +1404,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of [TransactionError events](/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights) sent to Insights per harvest cycle.'
+          :description => 'Defines the maximum number of [TransactionError events](/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights) reported per harvest cycle.'
         },
         :'rum.enabled' => {
           :default => true,
@@ -1508,7 +1522,7 @@ module NewRelic
           :deprecated => true,
           :description => deprecated_description(
             :'distributed_tracing-enabled',
-            'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/)'
+            'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) when `distributed_tracing.enabled` is set to `false`.'
           )
         },
         :cross_application_tracing => {
@@ -1803,7 +1817,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
+          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from your agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
         },
         :aggressive_keepalive => {
           :default => true,
@@ -1833,7 +1847,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.'
+          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. See documentation on (ignoring specific transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] for more details.'
         },
         :'synthetics.traces_limit' => {
           :default => 20,
@@ -1854,15 +1868,59 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, the agent captures [New Relic Insights custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
+          :description => 'If `true`, the agent captures [custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
         },
         :'custom_insights_events.max_samples_stored' => {
           :default => 1000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Specify a maximum number of custom Insights events to buffer in memory at a time.',
+          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid.',
           :dynamic_name => true
+        },
+        :'application_logging.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables log decoration and the collection of log events and metrics.'
+        },
+        :'application_logging.forwarding.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent captures log records emitted by your application.'
+        },
+        :'application_logging.forwarding.max_samples_stored' => {
+          :default => 10000,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Defines the maximum number of log records to buffer in memory at a time.',
+          :dynamic_name => true
+        },
+        :'application_logging.metrics.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent captures metrics related to logging for your application.'
+        },
+        :'application_logging.local_decorating.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
+        },
+        :'instrumentation.active_support_logger' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :dynamic_name => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of ActiveSupport::Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_grape_instrumentation => {
           :default => false,
@@ -2056,7 +2114,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `false`, custom attributes will not be sent on Insights events.'
+          :description => 'If `false`, custom attributes will not be sent on events.'
         },
         :'utilization.detect_aws' => {
           :default => true,
@@ -2155,7 +2213,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The account id associated with this application.'
+          :description => 'The account id associated with your application.'
         },
         :primary_application_id => {
           :default => nil,
@@ -2163,7 +2221,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The primary id associated with this application.'
+          :description => 'The primary id associated with your application.'
         },
         :'distributed_tracing.enabled' => {
           :default => true,

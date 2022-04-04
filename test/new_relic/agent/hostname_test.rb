@@ -17,11 +17,6 @@ module NewRelic
         NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       end
 
-      def test_get_fqdn
-        fqdn = NewRelic::Agent::Hostname.get_fqdn.to_s
-        refute_equal '', fqdn
-      end
-
       def test_get_returns_socket_hostname
         assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
       end
@@ -120,6 +115,48 @@ module NewRelic
       ensure
         ENV.delete('DYNO')
       end
+
+      # begin fqdn tests
+
+      # allow the real fqdn determination code to fire and make sure it works
+      def test_get_fqdn_no_stubs
+        fqdn = NewRelic::Agent::Hostname.get_fqdn
+        refute_equal '', fqdn
+      end
+
+      # 'hostname -f' succeeds
+      def test_get_fqdn_hostname_f
+        stubbed = 'Rivendell.Eriador.MiddleEarth'
+        NewRelic::Helper.stubs('run_command').with('hostname -f').returns(stubbed)
+        fqdn = NewRelic::Agent::Hostname.get_fqdn
+        assert_equal stubbed, fqdn
+      end
+
+      # 'hostname -f' fails, 'hostname' succeeds
+      def test_get_fqdn_hostname
+        stubbed = 'Lauterbrunnen.Switzerland.Earth'
+        NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandRunFailedError)
+        NewRelic::Helper.stubs('run_command').with('hostname').returns(stubbed)
+        fqdn = NewRelic::Agent::Hostname.get_fqdn
+        assert_equal stubbed, fqdn
+      end
+
+      # 'hostname -f' and 'hostname' both fail
+      def test_get_fqdn_hostname_fails
+        NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandRunFailedError)
+        NewRelic::Helper.stubs('run_command').with('hostname').raises(NewRelic::CommandRunFailedError)
+        fqdn = NewRelic::Agent::Hostname.get_fqdn
+        assert_equal 'Rivendell', fqdn # stubbed in 'setup' above
+      end
+
+      # the 'hostname' executable doesn't even exist
+      def test_get_fqdn_hostname_nonexistent
+        NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandExecutableNotFoundError)
+        fqdn = NewRelic::Agent::Hostname.get_fqdn
+        assert_equal 'Rivendell', fqdn # stubbed in 'setup' above
+      end
+
+      # end fqdn tests
     end
   end
 end

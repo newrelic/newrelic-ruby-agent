@@ -16,7 +16,8 @@ module Performance
       :brief => false,
       :tags => {},
       :dir => File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
-      :agent_path => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
+      :agent_path => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..'),
+      :markdown => false
     }
 
     def initialize(options = {})
