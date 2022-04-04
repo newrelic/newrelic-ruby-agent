@@ -2,7 +2,7 @@
 
   ## v8.6.0
 
-  * **Telemetry-in-Context: a quick way to view logs no matter where you are in the platform**
+* **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
 
     - Adds support for forwarding application logs to New Relic. This automatically sends application logs that have been enriched to power Telemetry-in-Context. This is disabled by default in this release. This may be on by default in a future release.
     - Adds support for enriching application logs written to disk or standard out. This can be used with another log forwarder to power Telemetry-in-Context if in-agent log forwarding is not desired. We recommend enabling either log forwarding or local log decorating, but not both features. This is disabled by default in this release.
