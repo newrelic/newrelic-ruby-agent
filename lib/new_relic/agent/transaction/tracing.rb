@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class Transaction
       module Tracing
-        attr_reader :current_segment
+        # attr_reader :current_segment
 
         def async?
           @async ||= false
@@ -24,7 +24,7 @@ module NewRelic
           segment.transaction = self
           NewRelic::Agent.logger.debug("WALUIGI: name - #{segment&.name} parent.name - #{parent&.name} current_segment - #{current_segment&.name} current_segment.guid - #{current_segment&.guid}")
           segment.parent = parent || current_segment
-          @current_segment = segment
+          set_current_segment segment
           if @segments.length < segment_limit
             @segments << segment
           else
@@ -35,7 +35,8 @@ module NewRelic
         end
 
         def segment_complete segment
-          @current_segment = segment.parent
+          # when thread is over, does parent work right?
+          set_current_segment segment.parent
         end
 
         def segment_limit
