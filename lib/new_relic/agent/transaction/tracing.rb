@@ -22,6 +22,7 @@ module NewRelic
 
         def add_segment segment, parent = nil
           segment.transaction = self
+          NewRelic::Agent.logger.debug("WALUIGI: name - #{segment&.name} parent.name - #{parent&.name} current_segment - #{current_segment&.name} current_segment.guid - #{current_segment&.guid}")
           segment.parent = parent || current_segment
           @current_segment = segment
           if @segments.length < segment_limit
