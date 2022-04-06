@@ -901,6 +901,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.thread' => {
+          :default => 'chain',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Thread at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),
           :public => true,

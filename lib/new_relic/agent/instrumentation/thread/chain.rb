@@ -1,0 +1,23 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+
+require_relative 'instrumentation'
+
+module NewRelic::Agent::Instrumentation
+  module Thread
+    module Chain
+      def self.instrument!
+        ::Thread.class_eval do
+          include NewRelic::Agent::Instrumentation::Thread
+
+          alias_method :initialize_without_new_relic, :initialize
+
+          def initialize(*args, &block)
+            initialize_with_newrelic_tracing { initialize_without_new_relic(*args, &block) }
+          end
+        end
+      end
+    end
+  end
+end

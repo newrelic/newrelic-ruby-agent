@@ -8,12 +8,14 @@ module NewRelic
       module NetHTTP
         def request_with_tracing(request)
           wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
+          NewRelic::Agent.logger.debug("=====WALUIGI threadid: #{::Thread.current.object_id} //in net http request_with_tracing wrapped_request: #{wrapped_request.inspect}")
 
           segment = NewRelic::Agent::Tracer.start_external_request_segment(
             library: wrapped_request.type,
             uri: wrapped_request.uri,
             procedure: wrapped_request.method
           )
+          NewRelic::Agent.logger.debug("=====WALUIGI threadid: #{::Thread.current.object_id} //in net http request_with_tracing segment id: #{segment&.guid}")
 
           begin
             response = nil
@@ -31,6 +33,7 @@ module NewRelic
             segment.process_response_headers wrapped_response
             response
           ensure
+            NewRelic::Agent.logger.debug("=====WALUIGI threadid: #{::Thread.current.object_id} //in net http request_with_tracing ensure segment id: #{segment&.guid}")
             segment.finish
           end
         end

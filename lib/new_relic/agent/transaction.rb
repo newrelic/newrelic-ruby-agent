@@ -263,8 +263,8 @@ module NewRelic
         end
       end
 
-      def parent_thread_id(current_thread_id)
-        nil
+      def parent_thread_id
+        Thread.current.nr_parent_thread_id if Thread.current.respond_to?(:nr_parent_thread_id)
       end
 
       def current_segment
@@ -273,7 +273,7 @@ module NewRelic
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
 
         # if this thread id does not have a current segment, this is where we'll need thread parent
-        parent_thread_id = parent_thread_id(current_thread_id) # do we really need to pass?  or just do thread.current in there
+        # parent_thread_id = parent_thread_id(current_thread_id) # do we really need to pass?  or just do thread.current in there
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
 
         # if both of those fail, fall back to starting thread current segment?
