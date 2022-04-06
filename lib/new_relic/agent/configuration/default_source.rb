@@ -902,7 +902,7 @@ module NewRelic
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.thread' => {
-          :default => 'chain',
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
