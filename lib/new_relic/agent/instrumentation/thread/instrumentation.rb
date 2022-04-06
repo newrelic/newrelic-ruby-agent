@@ -11,7 +11,7 @@ module NewRelic
         def initialize_with_newrelic_tracing # (*args, &block)
           # grab parent
           puts "itsa thread waluigi"
-          @nr_parent_thread_id = ::Thread.current
+          @nr_parent_thread_id = ::Thread.current.object_id
           yield
         end
       end
