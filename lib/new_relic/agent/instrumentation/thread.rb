@@ -18,7 +18,7 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument ::Thread.singleton_class, ::NewRelic::Agent::Instrumentation::Thread::Prepend
+      prepend_instrument ::Thread, ::NewRelic::Agent::Instrumentation::Thread::Prepend
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Thread::Chain
     end
