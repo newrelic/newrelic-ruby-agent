@@ -9,20 +9,20 @@ module NewRelic
         attr_reader :nr_parent_thread_id
 
         def initialize_with_newrelic_tracing
-          # grab parent
-          # puts "itsa thread waluigi"
           @nr_parent_thread_id = ::Thread.current.object_id
           yield
         end
 
         def add_thread_tracing(*args, block)
+          return block unless NewRelic::Agent.config[:'instrumentation.thread.auto_instrument']
+
           instrumentation = ::Thread.current[:newrelic_tracer_state]
           Proc.new do |*args|
             ::Thread.current[:newrelic_tracer_state] = instrumentation
             segment = NewRelic::Agent::Tracer.start_segment(name: "Thread#{::Thread.current.object_id}")
             block.call(*args) if block.respond_to?(:call)
           ensure
-            segment.finish
+            segment.finish if segment
           end
         end
       end
