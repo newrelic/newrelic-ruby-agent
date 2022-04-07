@@ -286,6 +286,10 @@ module NewRelic
         current_segment_by_thread[Thread.current.object_id] = new_segment
       end
 
+      def remove_current_segment_by_thread_id(id)
+        current_segment_by_thread.delete(id)
+      end
+
       def distributed_tracer
         @distributed_tracer ||= DistributedTracer.new(self)
       end

@@ -36,8 +36,12 @@ module NewRelic
         end
 
         def segment_complete segment
-          # when thread is over, does parent work right?
-          set_current_segment segment.parent
+          # if parent was in another thread remove the current_segment entry for this thread
+          if segment.parent && segment.parent.starting_thread_id != ::Thread.current.object_id
+            remove_current_segment_by_thread_id(::Thread.current.object_id)
+          else
+            set_current_segment segment.parent
+          end
         end
 
         def segment_limit

@@ -23,6 +23,18 @@ module NewRelic
 
         alias_method :tl_get, :state
 
+        def create_traced_thread(*args, &block)
+          instrumentation = ::Thread.current[:newrelic_tracer_state]
+
+          Thread.new(*args) do |*args|
+            ::Thread.current[:newrelic_tracer_state] = instrumentation
+            segment = NewRelic::Agent::Tracer.start_segment(name: "Thread#{::Thread.current.object_id}")
+            block.call(*args) if block.respond_to?(:call)
+          ensure
+            segment.finish if segment
+          end
+        end
+
         # Returns +true+ unless called from within an
         # +NewRelic::Agent.disable_all_tracing+ block.
         #
