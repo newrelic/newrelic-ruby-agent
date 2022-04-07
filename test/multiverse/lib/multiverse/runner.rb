@@ -65,7 +65,7 @@ module Multiverse
 
         next if dir =~ /\A\./
         next unless passes_filter?(dir, filter)
-        next unless File.exists?(File.join(full_path, "Envfile"))
+        next unless File.exist?(File.join(full_path, "Envfile"))
 
         begin
           suite = Suite.new(full_path, opts)
