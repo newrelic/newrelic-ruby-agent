@@ -31,8 +31,11 @@ def mongo_versions
   versions += MONGO_VERSIONS_RUBY26 if ruby_gte?('2.6.0')
   return versions if RUBY_PLATFORM.eql?('java')
 
-  versions += MONGO_VERSIONS_RUBY25 if ruby_gte?('2.5.0')
-  versions += MONGO_VERSIONS_OLD_RUBIES unless ruby_gte?('2.5.0')
+  if ruby_gte?('2.5.0')
+    versions += MONGO_VERSIONS_RUBY25
+  else
+    versions += MONGO_VERSIONS_OLDER_RUBIES
+  end
   versions
 end
 
