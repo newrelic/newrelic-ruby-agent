@@ -1249,6 +1249,7 @@ module NewRelic::Agent
         txn.class.set_overriding_transaction_name('name_from_api', 'category')
 
         assert_equal 'category/name_from_api', txn.best_name
+        assert_equal 'category', txn.category
       end
     end
 
