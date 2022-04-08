@@ -901,7 +901,8 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-        :'instrumentation.thread' => {
+        # TODO: change name for these 2
+        :'instrumentation.thread.span_parent' => {
           :default => 'auto',
           :public => true,
           :type => String,
@@ -910,11 +911,12 @@ module NewRelic
           :description => "Controls auto-instrumentation of Threads at start up to enable accurate parent tracking for spans. May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.thread.auto_instrument' => {
-          :default => false,
+          # :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Thread at start up to enabled the agent to track spans within threads.  May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of the Thread class at start up to enabled the agent to track spans within threads.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),

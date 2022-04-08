@@ -6,6 +6,7 @@
 module NewRelic
   class TracedThread < Thread
     def initialize(*args, &block)
+      # we should add metrics
       traced_block = create_traced_block(*args, block)
       super(*args, &traced_block)
     end

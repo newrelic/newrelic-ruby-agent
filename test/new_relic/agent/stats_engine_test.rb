@@ -183,10 +183,14 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     nthreads = 25
     iterations = 100
 
-    nthreads.times do |tid|
-      threads << Thread.new do
-        iterations.times do
-          in_transaction('txn') do
+    # TODO: why are no scoped metrics being recorded?
+    # if you comment out the lines in the assert:   ['m1', 'txn'] => expected, and ['m2', 'txn'] => expected,
+    # everything passes, so the correct number of metrics is being recorded for unscoped, no weird intermittent stuff
+    # why is the transaction not existing to get scoped metrics????
+    in_transaction('txn') do
+      nthreads.times do |tid|
+        threads << Thread.new do
+          iterations.times do
             @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
             @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
           end
