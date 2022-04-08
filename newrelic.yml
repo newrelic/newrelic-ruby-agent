@@ -42,6 +42,9 @@ common: &default_settings
 # If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.
 # application_logging.local_decorating.enabled: false
 
+# If `true`, the agent will report source code level metrics for monitored methods
+# code_level_metrics.enabled: true
+
 # If true, enables transaction event sampling.
 # transaction_events.enabled: true
 

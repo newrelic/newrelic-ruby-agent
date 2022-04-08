@@ -16,6 +16,8 @@ module NewRelic
         end
 
         def self.find_all_subscribers
+          # TODO: MLT - need to make sure we have MLT coverage for these
+
           # TODO: need to talk to Rails core about an API for this,
           # rather than digging through Listener ivars
           instance_variable_names = [:@subscribers, :@string_subscribers, :@other_subscribers]

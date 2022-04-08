@@ -143,6 +143,9 @@ module NewRelic
     #
     def add_or_defer_method_tracer(receiver, method_name, metric_name, options)
       @tracer_lock.synchronize do
+        # TODO: MLT - need to pass this info downstream
+        code_info = NewRelic::Agent::MethodTracerHelpers.code_information(receiver, method_name)
+
         if @agent
           receiver.send(:_nr_add_method_tracer_now, method_name, metric_name, options)
         else

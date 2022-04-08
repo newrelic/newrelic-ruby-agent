@@ -16,6 +16,7 @@ module NewRelic
           controller_class = controller_class(payload)
 
           if state.is_execution_traced? && !should_ignore(payload, controller_class)
+            # TODO: MLT - possible Rails entrypoint for mlt
             finishable = start_transaction_or_segment(payload, request, controller_class)
             push_segment(id, finishable)
           else

@@ -45,6 +45,10 @@ module NewRelic
           @record_scoped_metric = true
           @record_on_finish = false
           @noticed_error = nil
+          @code_filepath = nil
+          @code_function = nil
+          @code_lineno = nil
+          @code_namespace = nil
         end
 
         def start
@@ -56,6 +60,7 @@ module NewRelic
         def finish
           @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = end_time - start_time
+
           return unless transaction
           run_complete_callbacks
           finalize if record_on_finish?
@@ -107,6 +112,20 @@ module NewRelic
 
         def concurrent_children?
           @concurrent_children
+        end
+
+        def code_information=(info = {})
+          @code_filepath = info[:filepath]
+          @code_function = info[:function]
+          @code_lineno = info[:lineno]
+          @code_namespace = info[:namespace]
+        end
+
+        def code_information
+          {filepath: @code_filepath,
+           function: @code_functiom,
+           lineno: @code_lineno,
+           namespace: @code_namespace}
         end
 
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
