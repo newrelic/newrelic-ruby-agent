@@ -20,7 +20,7 @@ end
   RB
 end
 
-unless RUBY_PLATFORM == 'java'
+unless RUBY_PLATFORM == 'java' || RUBY_VERSION >= '3.2.0'
   gemfile <<-RB
     gem 'memcached', '~> 1.8.0'
   RB
