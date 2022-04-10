@@ -9,7 +9,7 @@ module NewRelic::Agent::Configuration
   class EventHarvestConfigTest < Minitest::Test
     def test_from_config
       config = NewRelic::Agent::Configuration::Manager.new
-      config.add_config_for_testing(:'transaction_events.max_samples_stored' => 1000)
+      config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
       config.add_config_for_testing(:'custom_insights_events.max_samples_stored' => 1000)
       config.add_config_for_testing(:'error_collector.max_event_samples_stored' => 1000)
       config.add_config_for_testing(:'span_events.max_event_samples_stored' => 2000)
@@ -47,8 +47,8 @@ module NewRelic::Agent::Configuration
       }
 
       expected = {
-        :'transaction_events.max_samples_stored' => 833,
-        :'event_report_period.transaction_event_data' => 5,
+        :'analytics_events.max_samples_stored' => 833,
+        :'event_report_period.analytic_event_data' => 5,
         :'custom_insights_events.max_samples_stored' => 83,
         :'event_report_period.custom_event_data' => 5,
         :'error_collector.max_event_samples_stored' => 8,
@@ -76,8 +76,8 @@ module NewRelic::Agent::Configuration
       }
 
       expected = {
-        :'transaction_events.max_samples_stored' => 833,
-        :'event_report_period.transaction_event_data' => 5,
+        :'analytics_events.max_samples_stored' => 833,
+        :'event_report_period.analytic_event_data' => 5,
         :'custom_insights_events.max_samples_stored' => 83,
         :'event_report_period.custom_event_data' => 5,
         :'error_collector.max_event_samples_stored' => 8,

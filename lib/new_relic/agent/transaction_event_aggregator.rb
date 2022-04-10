@@ -12,8 +12,8 @@ module NewRelic
   module Agent
     class TransactionEventAggregator < EventAggregator
       named :TransactionEventAggregator
-      capacity_key :'transaction_events.max_samples_stored'
-      enabled_key :'transaction_events.enabled'
+      capacity_key :'analytics_events.max_samples_stored'
+      enabled_key :'analytics_events.enabled'
       buffer_class PrioritySampledBuffer
 
       def record priority: nil, event: nil, &blk

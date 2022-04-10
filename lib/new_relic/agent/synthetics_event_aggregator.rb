@@ -13,7 +13,7 @@ module NewRelic
 
       named :SyntheticsEventAggregator
       capacity_key :'synthetics.events_limit'
-      enabled_key :'transaction_events.enabled'
+      enabled_key :'analytics_events.enabled'
       buffer_class TimestampSampledBuffer
 
       def record event

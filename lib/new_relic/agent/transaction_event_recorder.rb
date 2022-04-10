@@ -20,7 +20,7 @@ module NewRelic
       end
 
       def record payload
-        return unless NewRelic::Agent.config[:'transaction_events.enabled']
+        return unless NewRelic::Agent.config[:'analytics_events.enabled']
 
         if synthetics_event? payload
           event = create_event payload

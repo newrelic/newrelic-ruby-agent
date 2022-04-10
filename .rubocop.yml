@@ -638,7 +638,7 @@ Lint/NumberedParameterAssignment:
   Enabled: true
 
 Lint/OrAssignmentToConstant:
-  Enabled: false
+  Enabled: true
 
 Lint/OrderedMagicComments:
   Enabled: true

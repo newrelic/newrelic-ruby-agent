@@ -76,7 +76,7 @@ module NewRelic
         end
 
         EVENT_HARVEST_CONFIG_SUPPORTABILITY_METRIC_NAMES = {
-          :'transaction_events.max_samples_stored' => 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
+          :'analytics_events.max_samples_stored' => 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
           :'custom_insights_events.max_samples_stored' => 'Supportability/EventHarvest/CustomEventData/HarvestLimit',
           :'error_collector.max_event_samples_stored' => 'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
           :'application_logging.forwarding.max_samples_stored' => 'Supportability/EventHarvest/LogEventData/HarvestLimit',
@@ -137,7 +137,7 @@ module NewRelic
             'transaction_tracer.enabled' => 'collect_traces',
             'slow_sql.enabled' => 'collect_traces',
             'error_collector.enabled' => 'collect_errors',
-            'transaction_events.enabled' => 'collect_analytics_events',
+            'analytics_events.enabled' => 'collect_analytics_events',
             'custom_insights_events.enabled' => 'collect_custom_events',
             'error_collector.capture_events' => 'collect_error_events',
             'span_events.enabled' => 'collect_span_events'

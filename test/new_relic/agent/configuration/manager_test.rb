@@ -210,15 +210,6 @@ module NewRelic::Agent::Configuration
       assert_equal 'new', observed_value
     end
 
-    def test_callback_evals_procs
-      actual = nil
-      @manager.register_callback(:test) do |value|
-        actual = value
-      end
-      @manager.add_config_for_testing(:test => Proc.new { "value" })
-      assert actual.class != Proc, 'Callback returned Proc'
-    end
-
     def test_callback_not_called_if_no_change
       state = nil
       @manager.add_config_for_testing(:test => true, :other => false)

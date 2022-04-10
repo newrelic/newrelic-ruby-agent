@@ -113,8 +113,10 @@ module NewRelic
             accessor = key.to_sym
 
             if config.has_key?(accessor)
+              evaluated = evaluate_procs(config[accessor])
+
               begin
-                return evaluate_and_apply_transformations(accessor, config[accessor])
+                return apply_transformations(accessor, evaluated)
               rescue
                 next
               end
@@ -130,10 +132,6 @@ module NewRelic
           else
             value
           end
-        end
-
-        def evaluate_and_apply_transformations(key, value)
-          apply_transformations(key, evaluate_procs(value))
         end
 
         def apply_transformations(key, value)
@@ -161,21 +159,12 @@ module NewRelic
         def invoke_callbacks(direction, source)
           return unless source
           source.keys.each do |key|
-            begin
-              # we need to evaluate and apply transformations for the value to deal with procs as values
-              # this is usually done by the fetch method when accessing config, however the callbacks bypass that
-              evaluated_cache = evaluate_and_apply_transformations(key, @cache[key])
-              evaluated_source = evaluate_and_apply_transformations(key, source[key])
-            rescue
-              next
-            end
-
-            if evaluated_cache != evaluated_source
+            if @cache[key] != source[key]
               @callbacks[key].each do |proc|
                 if direction == :add
-                  proc.call(evaluated_source)
+                  proc.call(source[key])
                 else
-                  proc.call(evaluated_cache)
+                  proc.call(@cache[key])
                 end
               end
             end
