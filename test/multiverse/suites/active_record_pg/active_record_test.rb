@@ -248,7 +248,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   # depends on gem versions in play
   def postgresql_not_unique_error_class
-     /(PG::UniqueViolation)|(ActiveRecord::RecordNotUnique)|(ActiveRecord::JDBCError)/
+    /(PG::UniqueViolation)|(ActiveRecord::RecordNotUnique)|(ActiveRecord::JDBCError)/
   end
 
   def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
@@ -582,7 +582,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   ## helpers
 
   def adapter
-    #ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
+    # ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     #       ActiveRecord::Base.configs_for(env_name: NewRelic::Control.instance.env)['adapter']
     #       ActiveRecord::Base.configs_for(env_name: RAILS_ENV)['adapter']
     # require 'pry'; binding.pry
