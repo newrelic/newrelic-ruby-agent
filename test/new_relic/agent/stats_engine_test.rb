@@ -208,7 +208,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     )
   end
 
-  def test_record_scoped_and_unscoped_metrics_is_thread_safe_without_traced_threads
+  def test_record_scoped_and_unscoped_metrics_is_thread_safe_with_traced_threads
     threads = []
     nthreads = 25
     iterations = 100
