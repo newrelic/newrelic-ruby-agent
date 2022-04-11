@@ -10,8 +10,7 @@ module NewRelic
 
       def initialize(channel_id)
         @channel_id = channel_id
-        @collector = NewRelic::Control::Server.new(:name => 'parent',
-          :port => 0)
+        @collector = NewRelic::Control::Server.new({name: 'parent', port: 0})
         @pipe = NewRelic::Agent::PipeChannelManager.channels[@channel_id]
         if @pipe && @pipe.parent_pid != $$
           @pipe.after_fork_in_child
