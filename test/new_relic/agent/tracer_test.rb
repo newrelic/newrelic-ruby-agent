@@ -282,7 +282,7 @@ module NewRelic
         assert_nil Tracer.current_segment
       end
 
-      def test_current_segment_in_nested_threads_v4
+      def test_current_segment_in_nested_threads_with_traced_thread
         assert_nil Tracer.current_segment
 
         txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
@@ -310,7 +310,7 @@ module NewRelic
         assert_nil Tracer.current_segment
       end
 
-      def test_current_segment_in_nested_threads_v3
+      def test_current_segment_in_nested_threads_auto
         with_config(:'instrumentation.thread.auto_instrument' => true) do
           assert_nil Tracer.current_segment
 
@@ -340,7 +340,7 @@ module NewRelic
         end
       end
 
-      def test_current_segment_in_nested_threads
+      def test_current_segment_in_nested_threads_manual
         assert_nil Tracer.current_segment
 
         txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
