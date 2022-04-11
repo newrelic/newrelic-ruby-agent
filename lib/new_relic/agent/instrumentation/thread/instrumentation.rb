@@ -14,7 +14,7 @@ module NewRelic
         end
 
         def add_thread_tracing(*args, block)
-          return block unless NewRelic::Agent.config[:'instrumentation.thread.auto_instrument']
+          return block unless NewRelic::Agent.config[:'instrumentation.thread.tracing']
 
           instrumentation = ::Thread.current[:newrelic_tracer_state]
           Proc.new do |*args|

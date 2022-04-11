@@ -901,23 +901,20 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-        # TODO: change name for these 2
-        # :'instrumentation.thread.span_parent' => {
         :'instrumentation.thread' => {
           :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Threads at start up to enable accurate parent tracking for spans. May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of the Thread class at start up to enable accurate parent tracking for spans in applications manually inserting new relic tracing into threads. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
         },
-        :'instrumentation.thread.auto_instrument' => {
-          # :default => false,
-          :default => true,
+        :'instrumentation.thread.tracing' => {
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of the Thread class at start up to enabled the agent to track spans within threads.  May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of the Thread class at start up to enabled the agent to automatically trace spans created within threads."
         },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),

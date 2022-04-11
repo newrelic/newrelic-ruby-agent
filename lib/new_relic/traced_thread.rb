@@ -12,7 +12,7 @@ module NewRelic
     end
 
     def create_traced_block(*args, block)
-      return block if NewRelic::Agent.config[:'instrumentation.thread.auto_instrument'] # if this is on, don't double trace
+      return block if NewRelic::Agent.config[:'instrumentation.thread.tracing'] # if this is on, don't double trace
 
       instrumentation = ::Thread.current[:newrelic_tracer_state]
       Proc.new do |*args|

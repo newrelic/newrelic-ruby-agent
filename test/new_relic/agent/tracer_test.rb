@@ -311,7 +311,7 @@ module NewRelic
       end
 
       def test_current_segment_in_nested_threads_auto
-        with_config(:'instrumentation.thread.auto_instrument' => true) do
+        with_config(:'instrumentation.thread.tracing' => true) do
           assert_nil Tracer.current_segment
 
           txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
