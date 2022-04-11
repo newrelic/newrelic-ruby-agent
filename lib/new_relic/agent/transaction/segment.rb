@@ -17,7 +17,6 @@ module NewRelic
 
         def initialize name = nil, unscoped_metrics = nil, start_time = nil
           @unscoped_metrics = unscoped_metrics
-          @starting_thread_id = Thread.current.object_id
           super name, start_time
         end
 

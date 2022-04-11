@@ -60,7 +60,6 @@ module NewRelic
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
-      attr_accessor :current_segment_by_thread
 
       # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
@@ -218,7 +217,6 @@ module NewRelic
 
       def initialize(category, options)
         @nesting_max_depth = 0
-        @current_segment = nil
         @current_segment_by_thread = {}
         @segments = []
 
@@ -273,16 +271,13 @@ module NewRelic
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
 
         # if this thread id does not have a current segment, this is where we'll need thread parent
-        # parent_thread_id = parent_thread_id(current_thread_id) # do we really need to pass?  or just do thread.current in there
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
 
-        # if both of those fail, fall back to starting thread current segment?
+        # if both of those fail, fall back to starting thread current segment
         return current_segment_by_thread[@starting_thread_id]
       end
 
       def set_current_segment(new_segment)
-        # how do we know to remove current segment for a thread when that thread is over.
-        # would it happen automatically when the segment finishes? do we need to make it happen when the segment finishes?
         current_segment_by_thread[Thread.current.object_id] = new_segment
       end
 

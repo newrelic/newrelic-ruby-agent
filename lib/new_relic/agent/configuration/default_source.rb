@@ -902,7 +902,8 @@ module NewRelic
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         # TODO: change name for these 2
-        :'instrumentation.thread.span_parent' => {
+        # :'instrumentation.thread.span_parent' => {
+        :'instrumentation.thread' => {
           :default => 'auto',
           :public => true,
           :type => String,
