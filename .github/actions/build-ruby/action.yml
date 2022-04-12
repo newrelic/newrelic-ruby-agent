@@ -5,7 +5,7 @@ inputs:
   ruby-version:
     description: 'Ruby version'
     required: true
-    default: '2.7.5'
+    default: '2.7.6'
   dependencies:
     description: 'A list of ubuntu package names to install'
     required: true
