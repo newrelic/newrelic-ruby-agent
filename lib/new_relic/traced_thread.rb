@@ -18,11 +18,11 @@ module NewRelic
     # @api public
     def initialize(*args, &block)
       NewRelic::Agent.record_api_supportability_metric(:traced_thread)
-      traced_block = create_traced_block(*args, block)
+      traced_block = create_traced_block(*args, &block)
       super(*args, &traced_block)
     end
 
-    def create_traced_block(*args, block)
+    def create_traced_block(*args, &block)
       return block if NewRelic::Agent.config[:'instrumentation.thread.tracing'] # if this is on, don't double trace
 
       instrumentation = ::Thread.current[:newrelic_tracer_state]
