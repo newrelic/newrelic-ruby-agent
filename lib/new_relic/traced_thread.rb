@@ -4,9 +4,20 @@
 # frozen_string_literal: true
 
 module NewRelic
+  #
+  # This class creates a thread that contains instrumentation to allow the agent to see spans created inside of this thread.
+  # In order to have this functionality inserted into all threads automatically,
+  # enable the `instrumentation.thread.tracing` configuration option in your newrelic.yml
+  #
+  # @api public
   class TracedThread < Thread
+    #
+    # Creates a new thread that will be traced by the agent.
+    # Use this class the same as the Thread class
+    #
+    # @api public
     def initialize(*args, &block)
-      # we should add metrics
+      NewRelic::Agent.record_api_supportability_metric(:traced_thread)
       traced_block = create_traced_block(*args, block)
       super(*args, &traced_block)
     end
