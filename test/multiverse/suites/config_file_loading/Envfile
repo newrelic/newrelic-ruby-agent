@@ -1,7 +1,5 @@
 omit_collector!
 
-fakefs_require = RUBY_VERSION >= '3.2.0' ? false : 'fakefs/safe'
-
 gemfile <<-RB
   # stub file system so we can test that newrelic.yml can be loaded from
   # various places.
