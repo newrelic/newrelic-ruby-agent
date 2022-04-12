@@ -38,10 +38,9 @@ SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
   # must use older gems for older Rubies
   gem_redis = RUBY_VERSION <= "2.3.0" ? "gem 'redis', '<= 4.1.0'" : ""
   gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
-  gem_json = RUBY_VERSION >= "2.1.0" ? "gem 'json'" : "gem 'json', '< 2.0.0'"
   gemfile <<-RB
     gem 'rack'
-    #{gem_json}
+    gem 'json'
     #{gem_connection_pool}
     #{gem_timers}
     #{gem_redis}

@@ -35,6 +35,13 @@ class ConfigFileLoadingTest < Minitest::Test
     # require the agent before we're in FakeFS so require doesn't hit the fake
     require 'newrelic_rpm'
 
+    # We defer the requiring of FakeFS until here to prevent it from causing
+    # issues with FileUtils calls being made by 3rd parties (Bundler, Rake,
+    # etc.) before this file is loaded.
+    # See #Caveats here: https://github.com/fakefs/fakefs/commit/11e80d2ec36e6f8a89e090fad29be69e20aa337d
+    require 'fakefs'
+    require 'fakefs/safe'
+
     # Use a fake file system so we don't damage the real one.
     FakeFS.activate!
     FakeFS::FileSystem.clear

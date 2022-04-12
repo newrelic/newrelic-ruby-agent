@@ -9,14 +9,12 @@ if RUBY_VERSION >= '2.3.0'
   RB
 end
 
-if RUBY_VERSION >= '2.2.0'
-  gemfile <<-RB
-    gem 'sinatra', '~> 2.0.0'
-    gem 'rack',    '~> 2.0.0'
-    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-    #{ruby3_gem_webrick}
-  RB
-end
+gemfile <<-RB
+  gem 'sinatra', '~> 2.0.0'
+  gem 'rack',    '~> 2.0.0'
+  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+  #{ruby3_gem_webrick}
+RB
 
 gemfile <<-RB
   gem 'sinatra', '~> 1.4.8'
