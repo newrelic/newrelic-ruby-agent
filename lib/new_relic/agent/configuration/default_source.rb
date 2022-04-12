@@ -907,7 +907,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of the Thread class at start up to enable accurate parent tracking for spans in applications manually inserting new relic tracing into threads. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of the Thread class at start up to enable accurate parent tracking for spans in applications manually inserting New Relic tracing into threads. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.thread.tracing' => {
           :default => false,
