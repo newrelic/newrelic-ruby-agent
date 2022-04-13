@@ -193,8 +193,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
             end
           end
         end
+        threads.each { |t| t.join }
       end
-      threads.each { |t| t.join }
     end
 
     expected = {:call_count => nthreads * iterations}
@@ -227,8 +227,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
             end
           end
         end
+        threads.each { |t| t.join }
       end
-      threads.each { |t| t.join }
     end
 
     expected = {:call_count => nthreads * iterations}
