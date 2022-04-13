@@ -5,7 +5,7 @@
 
 module NewRelic
   #
-  # This class creates a thread that contains instrumentation to allow the agent to see spans created inside of this thread.
+  # This class allows the state of a transaction to be passed to a Thread so that nested segments can be created from the operations performed within the Thread's block.
   # In order to have this functionality inserted into all threads automatically,
   # enable the `instrumentation.thread.tracing` configuration option in your newrelic.yml
   #
@@ -26,12 +26,14 @@ module NewRelic
       return block if NewRelic::Agent.config[:'instrumentation.thread.tracing'] # if this is on, don't double trace
 
       instrumentation = ::Thread.current[:newrelic_tracer_state]
-      Proc.new do |*args|
-        ::Thread.current[:newrelic_tracer_state] = instrumentation
-        segment = NewRelic::Agent::Tracer.start_segment(name: "Thread#{::Thread.current.object_id}")
-        block.call(*args) if block.respond_to?(:call)
-      ensure
-        segment.finish if segment
+      Proc.new do
+        begin
+          ::Thread.current[:newrelic_tracer_state] = instrumentation
+          segment = NewRelic::Agent::Tracer.start_segment(name: "Thread#{::Thread.current.object_id}")
+          block.call(*args) if block.respond_to?(:call)
+        ensure
+          segment.finish if segment
+        end
       end
     end
   end
