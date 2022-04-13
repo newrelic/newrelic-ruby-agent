@@ -1,5 +1,18 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.7.0
+
+  * **Improved async support and Thread instrumentation**
+
+    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes a new class available `NewRelic::TracedThread` that wil create a thread that includes New Relic instrumentation, see our [API documentation](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic) for more details. 
+
+    This release also adds 2 new configuration options to control the agents behavior in multithreaded applications.
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asyncronous transaction   |
+    | `instrumentation.thread.tracing` | `false` (disabled)   |  Automatically add tracing to all Threads created in the application. This may be enabled by default in a future release. |
+
+
   ## v8.6.0
 
 * **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
