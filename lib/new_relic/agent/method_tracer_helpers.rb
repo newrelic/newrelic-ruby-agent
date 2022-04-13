@@ -38,41 +38,41 @@ module NewRelic
         end
       end
 
-      def class_info(object)
-        name = object.name
-
-        return [name, true] if name
-        return [Regexp.last_match(1), false] if object.to_s =~ /^#<Class:(.*)>$/
-
-        ::NewRelic::Agent.logger.error("Unable to determine name for what was expected to be a singleton class, #{object}")
-        [nil, nil]
+      def klass_name(klass_string)
+        Regexp.last_match(1) if klass_string =~ /^#<Class:(.*)>$/
       end
 
-      def class_or_instance(name, is_instance_method)
-        klass = Object.const_get(name)
-        return klass unless is_instance_method
-
-        klass.new
+      def klass(klass_string)
+        Object.const_get(klass_string)
+      rescue => e
+        ::NewRelic::Agent.logger.error("Unable to constantize '#{klass_string}' - #{e.class}: #{e.message}")
+        nil
       end
 
-      def location(name, method_name, is_instance_method)
-        begin
-          class_or_instance(name, is_instance_method).method(method_name).source_location
-        rescue => e
-          ::NewRelic::Agent.logger.error("Unable to determine source code info for class '#{name}', " \
-                                          "method '#{method_name}' - #{e.class}: #{e.message}")
-          []
-        end
+      def location(object, method_name)
+        object.method(method_name).source_location
+      rescue => e
+        ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object}', " \
+                                        "method '#{method_name}' - #{e.class}: #{e.message}")
+        []
       end
 
       def code_information(object, method_name)
         return NewRelic::EMTPY_HASH unless NewRelic::Agent.config[:'code_level_metrics.enabled']
 
-        klass_name, is_instance_method = class_info(object)
-        return NewRelic::EMPTY_HASH unless klass_name
+        name = object.name
+        if name
+          object = object.new
+        else
+          name = klass_name(object.to_s)
+          return NewRelic::EMPTY_HASH unless name
 
-        file_info = location(klass_name, method_name, is_instance_method)
-        namespace = Regexp.last_match(1) if klass_name =~ /(.*)::[^:]+/
+          object = klass(name)
+          return NewRelic::EMPTY_HASH unless object
+        end
+
+        namespace = Regexp.last_match(1) if name =~ /(.*)::[^:]+/
+        file_info = location(object, method_name)
 
         {filepath: file_info.first,
          lineno: file_info.last,

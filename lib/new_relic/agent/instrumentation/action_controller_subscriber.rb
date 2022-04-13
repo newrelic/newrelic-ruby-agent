@@ -16,7 +16,6 @@ module NewRelic
           controller_class = controller_class(payload)
 
           if state.is_execution_traced? && !should_ignore(payload, controller_class)
-            # TODO: MLT - possible Rails entrypoint for mlt
             finishable = start_transaction_or_segment(payload, request, controller_class)
             push_segment(id, finishable)
           else
@@ -48,27 +47,31 @@ module NewRelic
         end
 
         def start_transaction_or_segment(payload, request, controller_class)
+          code_info = NewRelic::Agent::MethodTracerHelpers.code_information(controller_class, payload[:action])
+
+          options = {
+            request: request,
+            filtered_params: NewRelic::Agent::ParameterFiltering.filter_using_rails(
+              payload[:params],
+              Rails.application.config.filter_parameters
+            ),
+            apdex_start_time: queue_start(request),
+            ignore_apdex: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+              ControllerInstrumentation::NR_IGNORE_APDEX_KEY,
+              controller_class,
+              payload[:action]
+            ),
+            ignore_enduser: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+              ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
+              controller_class,
+              payload[:action]
+            )
+          }
+
           Tracer.start_transaction_or_segment(
             name: format_metric_name(payload[:action], controller_class),
             category: :controller,
-            options: {
-              request: request,
-              filtered_params: NewRelic::Agent::ParameterFiltering.filter_using_rails(
-                payload[:params],
-                Rails.application.config.filter_parameters
-              ),
-              apdex_start_time: queue_start(request),
-              ignore_apdex: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
-                ControllerInstrumentation::NR_IGNORE_APDEX_KEY,
-                controller_class,
-                payload[:action]
-              ),
-              ignore_enduser: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
-                ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
-                controller_class,
-                payload[:action]
-              )
-            }
+            options: options.merge(code_info)
           )
         end
 

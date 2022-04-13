@@ -433,10 +433,11 @@ module NewRelic
           unscoped_metrics: summary_metrics
         )
 
+        # TODO: we perform this quite a few times on options hashes devoid of code info
         code_info = options.select do |parameter, _value|
           NewRelic::Agent::MethodTracerHelpers::SOURCE_CODE_INFORMATION_PARAMETERS.include?(parameter)
         end
-        segment.code_information = code_info
+        segment.code_information = code_info unless code_info.empty?
 
         segment
       end
