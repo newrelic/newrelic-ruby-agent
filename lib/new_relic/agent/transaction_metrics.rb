@@ -13,7 +13,6 @@ module NewRelic
       DEFAULT_PROC = Proc.new { |hash, name| hash[name] = NewRelic::Agent::Stats.new }
 
       def initialize
-        @lock = Mutex.new
         @unscoped = Hash.new(&DEFAULT_PROC)
         @scoped = Hash.new(&DEFAULT_PROC)
       end
@@ -55,14 +54,10 @@ module NewRelic
         case names
         when Array
           names.each do |name|
-            @lock.synchronize do
-              target[name].record(value, aux, &blk)
-            end
+            target[name].record(value, aux, &blk)
           end
         else
-          @lock.synchronize do
-            target[names].record(value, aux, &blk)
-          end
+          target[names].record(value, aux, &blk)
         end
       end
     end
