@@ -38,46 +38,37 @@ module NewRelic
         end
       end
 
-      def class_info(object)
-        name = object.name
+      def klass_name(object)
+        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
+        return name if name
 
-        return [name, true] if name
-        return [Regexp.last_match(1), false] if object.to_s =~ /^#<Class:(.*)>$/
-
-        ::NewRelic::Agent.logger.error("Unable to determine name for what was expected to be a singleton class, #{object}")
-        [nil, nil]
-      end
-
-      def class_or_instance(name, is_instance_method)
-        klass = Object.const_get(name)
-        return klass unless is_instance_method
-
-        klass.new
-      end
-
-      def location(name, method_name, is_instance_method)
-        begin
-          class_or_instance(name, is_instance_method).method(method_name).source_location
-        rescue => e
-          ::NewRelic::Agent.logger.error("Unable to determine source code info for class '#{name}', " \
-                                          "method '#{method_name}' - #{e.class}: #{e.message}")
-          []
-        end
+        ::NewRelic::Agent.logger.error("Unable to determine a name for '#{object}' - #{e.class}: #{e.message}")
+        nil
       end
 
       def code_information(object, method_name)
         return NewRelic::EMTPY_HASH unless NewRelic::Agent.config[:'code_level_metrics.enabled']
 
-        klass_name, is_instance_method = class_info(object)
-        return NewRelic::EMPTY_HASH unless klass_name
+        name = object.name if object.respond_to?(:name)
+        if name
+          location = object.instance_method(method_name).source_location
+        else
+          name = klass_name(object)
+          raise "Unable to glean a class name from string '#{object}'" unless name
 
-        file_info = location(klass_name, method_name, is_instance_method)
-        namespace = Regexp.last_match(1) if klass_name =~ /(.*)::[^:]+/
+          location = Object.const_get(name).method(method_name).source_location
+        end
 
-        {filepath: file_info.first,
-         lineno: file_info.last,
+        namespace = Regexp.last_match(1) if name =~ /(.*)::[^:]+/
+
+        {filepath: location.first,
+         lineno: location.last,
          function: method_name,
          namespace: namespace}
+      rescue => e
+        ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object}', " \
+                                        "method '#{method_name}' - #{e.class}: #{e.message}")
+        NewRelic::EMPTY_HASH
       end
     end
   end
