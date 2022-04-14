@@ -4,9 +4,9 @@
 
   * **Improved async support and Thread instrumentation**
 
-    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes a new class available `NewRelic::TracedThread` that wil create a thread that includes New Relic instrumentation, see our [API documentation](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic) for more details. 
+    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes 2 new configuration options to support multithreaded applications to automatically instrument threads. To support applications that only want some threads instrumented by New Relic, a new class is available `NewRelic::TracedThread` that will create a thread that includes New Relic instrumentation, see our [API documentation](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic) for more details. 
 
-    This release also adds 2 new configuration options to control the agents behavior in multithreaded applications.
+    New configuration options included in this release:
     | Configuration name | Default | Behavior |
     | ----------- | ----------- |----------- |
     | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asyncronous transaction   |
