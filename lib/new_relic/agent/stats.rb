@@ -4,6 +4,8 @@
 module NewRelic
   module Agent
     class Stats
+      SKIP_MARSHALLING = [:@lock]
+
       attr_accessor :call_count
       attr_accessor :min_call_time
       attr_accessor :max_call_time
@@ -139,6 +141,20 @@ module NewRelic
           else
             ::NewRelic::Agent.logger.warn("Attempted to set apdex_t to #{apdex_t.inspect}, backtrace = #{caller.join("\n")}")
           end
+        end
+      end
+
+      # Override marshalling methods to exclude @lock from being included in marshalled data
+      def marshal_dump
+        instance_variables.reject { |name| SKIP_MARSHALLING.include?(name) }.inject({}) do |instance_copy, name|
+          instance_copy[name] = instance_variable_get(name)
+          instance_copy
+        end
+      end
+
+      def marshal_load(marshalled_data)
+        marshalled_data.each do |name, value|
+          instance_variable_set(name, value) unless SKIP_MARSHALLING.include?(name)
         end
       end
 
