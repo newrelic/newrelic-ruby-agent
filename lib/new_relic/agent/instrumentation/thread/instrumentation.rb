@@ -20,7 +20,7 @@ module NewRelic
           Proc.new do
             begin
               ::Thread.current[:newrelic_tracer_state] = instrumentation
-              segment = NewRelic::Agent::Tracer.start_segment(name: "Thread#{::Thread.current.object_id}")
+              segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
               block.call(*args) if block.respond_to?(:call)
             ensure
               segment.finish if segment
