@@ -66,9 +66,8 @@ module NewRelic
          function: method_name,
          namespace: namespace}
       rescue => e
-        ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object_or_name}', " \
-                                        "method '#{method_name}', instance=#{is_instance_method} - " \
-                                        "#{e.class}: #{e.message}")
+        ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object}', " \
+                                        "method '#{method_name}' - #{e.class}: #{e.message}")
         NewRelic::EMPTY_HASH
       end
     end
