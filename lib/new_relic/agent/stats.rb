@@ -156,6 +156,8 @@ module NewRelic
         marshalled_data.each do |name, value|
           instance_variable_set(name, value) unless SKIP_MARSHALLING.include?(name)
         end
+        # since the lock is excluded when marshalling, create a new lock when loading marshalled data
+        @lock = Mutex.new
       end
 
       protected
