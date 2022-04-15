@@ -30,17 +30,7 @@ module NewRelic
 
     def create_traced_block(*args, &block)
       return block if NewRelic::Agent.config[:'instrumentation.thread.tracing'] # if this is on, don't double trace
-
-      instrumentation = ::Thread.current[:newrelic_tracer_state]
-      Proc.new do
-        begin
-          ::Thread.current[:newrelic_tracer_state] = instrumentation
-          segment = NewRelic::Agent::Tracer.start_segment(name: "Thread#{::Thread.current.object_id}")
-          block.call(*args) if block.respond_to?(:call)
-        ensure
-          segment.finish if segment
-        end
-      end
+      NewRelic::Agent::Tracer.thread_block_with_current_state(*args, &block)
     end
   end
 end

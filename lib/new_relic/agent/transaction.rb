@@ -269,8 +269,6 @@ module NewRelic
         current_thread_id = Thread.current.object_id
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
-
-        # if both of those fail for some reason, use this as a back up
         return current_segment_by_thread[@starting_thread_id]
       end
 
