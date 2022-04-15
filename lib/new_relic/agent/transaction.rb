@@ -262,18 +262,18 @@ module NewRelic
       end
 
       def parent_thread_id
-        Thread.current.nr_parent_thread_id if Thread.current.respond_to?(:nr_parent_thread_id)
+        ::Thread.current.nr_parent_thread_id if ::Thread.current.respond_to?(:nr_parent_thread_id)
       end
 
       def current_segment
-        current_thread_id = Thread.current.object_id
+        current_thread_id = ::Thread.current.object_id
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
         return current_segment_by_thread[@starting_thread_id]
       end
 
       def set_current_segment(new_segment)
-        current_segment_by_thread[Thread.current.object_id] = new_segment
+        current_segment_by_thread[::Thread.current.object_id] = new_segment
       end
 
       def remove_current_segment_by_thread_id(id)
