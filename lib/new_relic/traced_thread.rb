@@ -9,7 +9,7 @@ module NewRelic
   # To have the New Relic Ruby agent automatically trace all of your applications threads,
   # enable the `instrumentation.thread.tracing` configuration option in your newrelic.yml.
   #
-  # Note: disabling the configuration option `instrumentation.thread` while using this class can cause incorrectly nested spans
+  # Note: disabling the configuration option `instrumentation.thread` while using this class can cause incorrectly nested spans.
   #
   # @api public
   class TracedThread < Thread
