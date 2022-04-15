@@ -49,7 +49,7 @@ module NewRelic
           end
 
           if supports?(:constant_cache_invalidations)
-            snap.constant_cache_invalidations = gather_constant_cache_invalidatiions
+            snap.constant_cache_invalidations = gather_constant_cache_invalidations
           end
         end
 
