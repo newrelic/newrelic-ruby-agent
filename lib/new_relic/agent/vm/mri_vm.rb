@@ -53,7 +53,7 @@ module NewRelic
           end
         end
 
-        def gather_constant_cache_invalidatiions
+        def gather_constant_cache_invalidations
           # Ruby >= 3.2 uses :constant_cache
           # see: https://github.com/ruby/ruby/pull/5433 and https://bugs.ruby-lang.org/issues/18589
           # TODO: now that 3.2+ provides more granual cache invalidation data, should we report it instead of summing?
