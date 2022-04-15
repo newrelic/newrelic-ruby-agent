@@ -266,14 +266,11 @@ module NewRelic
       end
 
       def current_segment
-        # if this thread id has a current segment use that
         current_thread_id = Thread.current.object_id
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
-
-        # if this thread id does not have a current segment, this is where we'll need thread parent
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
 
-        # if both of those fail, fall back to starting thread current segment
+        # if both of those fail for some reason, use this as a back up
         return current_segment_by_thread[@starting_thread_id]
       end
 
