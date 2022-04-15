@@ -270,7 +270,7 @@ module NewRelic
         current_thread_id = ::Thread.current.object_id
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
-        return current_segment_by_thread[@starting_thread_id]
+        current_segment_by_thread[@starting_thread_id]
       end
 
       def set_current_segment(new_segment)
