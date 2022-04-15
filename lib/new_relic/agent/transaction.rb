@@ -218,6 +218,7 @@ module NewRelic
       def initialize(category, options)
         @nesting_max_depth = 0
         @current_segment_by_thread = {}
+        @current_segment_lock = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -273,11 +274,11 @@ module NewRelic
       end
 
       def set_current_segment(new_segment)
-        current_segment_by_thread[::Thread.current.object_id] = new_segment
+        @current_segment_lock.synchronize { current_segment_by_thread[::Thread.current.object_id] = new_segment }
       end
 
       def remove_current_segment_by_thread_id(id)
-        current_segment_by_thread.delete(id)
+        @current_segment_lock.synchronize { current_segment_by_thread.delete(id) }
       end
 
       def distributed_tracer
