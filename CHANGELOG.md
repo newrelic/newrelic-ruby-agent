@@ -4,7 +4,7 @@
 
   * **Improved async support and Thread instrumentation**
 
-    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes 2 new configuration options to support multithreaded applications to automatically instrument threads. A new configuration option,`instrumentation.thread.tracing` (disabled by default), has been introduced that, when enabled, will allow the agent to insert New Relic tracing inside of all Threads created by an application. To support applications that only want some threads instrumented by New Relic, a new class is available, `NewRelic::TracedThread`, that will create a thread that includes New Relic instrumentation, see our [API documentation](https://www.rubydoc.info/gems/newrelic_rpm/NewRelic) for more details. 
+    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes 2 new configuration options to support multithreaded applications to automatically instrument threads. A new configuration option,`instrumentation.thread.tracing` (disabled by default), has been introduced that, when enabled, will allow the agent to insert New Relic tracing inside of all Threads created by an application. To support applications that only want some threads instrumented by New Relic, a new class is available, `NewRelic::TracedThread`, that will create a thread that includes New Relic instrumentation, see our [API documentation](https://www.rubydoc.info/gems/newrelic_rpm/NewRelic) for more details.
 
     New configuration options included in this release:
     | Configuration name | Default | Behavior |
@@ -25,6 +25,10 @@
   * **Enable Environment Variables setting Array configurations to be converted to Arrays**
 
     Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the `newrelic_agent.log` and a String would be set as the value. Now, Arrays will be accurately coerced.
+
+  * **Bugfix: Allow TransactionEvents to be sampled at the expected rate**
+
+    The `transaction_events.max_samples_stored` capacity value within the TransactionEventAggregator did not match up with its expected harvest cycle interval, causing TransactionEvents to be over-sampled. This bugfix builds upon the updates made in [#952](https://github.com/newrelic/newrelic-ruby-agent/pull/952) so that the interval and capacity behave as expected for the renamed `transaction_events*` configuration options.
 
 
   ## v8.6.0
