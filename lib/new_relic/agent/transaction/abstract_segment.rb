@@ -121,7 +121,13 @@ module NewRelic
           @code_namespace = info[:namespace]
         end
 
+        def all_code_information_present?
+          @code_filepath && @code_function && @code_lineno && @code_namespace
+        end
+
         def code_attributes
+          return ::NewRelic::EMPTY_HASH unless all_code_information_present?
+
           @code_attributes ||= {'code.filepath' => @code_filepath,
                                 'code.function' => @code_functiom,
                                 'code.lineno' => @code_lineno,
