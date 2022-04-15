@@ -16,7 +16,7 @@ module NewRelic
     #
     # Creates a new Thread whose work will be traced by New Relic.
     # Use this class as a replacement for the native Thread class.
-    # Example: instead of using `Thread.new`, use
+    # Example: Instead of using `Thread.new`, use:
     # ```ruby
     #   NewRelic::TracedThread.new { execute_some_code }
     # ```
