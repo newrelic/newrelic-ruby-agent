@@ -7,9 +7,9 @@ require_relative 'instrumentation'
 module NewRelic
   module Agent
     module Instrumentation
-      module ThreadMonitor
+      module MonitoredThread
         module Prepend
-          include NewRelic::Agent::Instrumentation::ThreadMonitor
+          include NewRelic::Agent::Instrumentation::MonitoredThread
 
           def initialize(*args, &block)
             traced_block = add_thread_tracing(*args, &block)

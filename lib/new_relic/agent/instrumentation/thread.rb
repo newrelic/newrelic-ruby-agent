@@ -12,9 +12,9 @@ DependencyDetection.defer do
     ::NewRelic::Agent.logger.info 'Installing Thread Instrumentation'
 
     if use_prepend?
-      prepend_instrument ::Thread, ::NewRelic::Agent::Instrumentation::ThreadMonitor::Prepend
+      prepend_instrument ::Thread, ::NewRelic::Agent::Instrumentation::MonitoredThread::Prepend
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::ThreadMonitor::Chain
+      chain_instrument ::NewRelic::Agent::Instrumentation::MonitoredThread::Chain
     end
   end
 end

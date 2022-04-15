@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Instrumentation
-      module ThreadMonitor
+      module MonitoredThread
         attr_reader :nr_parent_thread_id
 
         def initialize_with_newrelic_tracing

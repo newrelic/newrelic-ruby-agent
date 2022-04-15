@@ -5,11 +5,11 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module ThreadMonitor
+  module MonitoredThread
     module Chain
       def self.instrument!
         ::Thread.class_eval do
-          include NewRelic::Agent::Instrumentation::ThreadMonitor
+          include NewRelic::Agent::Instrumentation::MonitoredThread
 
           alias_method :initialize_without_new_relic, :initialize
 
