@@ -121,11 +121,11 @@ module NewRelic
           @code_namespace = info[:namespace]
         end
 
-        def code_information
-          {filepath: @code_filepath,
-           function: @code_functiom,
-           lineno: @code_lineno,
-           namespace: @code_namespace}
+        def code_attributes
+          @code_attributes ||= {'code.filepath' => @code_filepath,
+                                'code.function' => @code_functiom,
+                                'code.lineno' => @code_lineno,
+                                'code.namespace' => @code_namespace}
         end
 
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
