@@ -165,18 +165,18 @@ module NewRelic
         end
       end
 
-      def merge_and_freeze_attributes agent_attributes, error_attributes
-        return agent_attributes.freeze unless error_attributes
-        return error_attributes.freeze if agent_attributes.equal?(NewRelic::EMPTY_HASH)
-        agent_attributes.merge!(error_attributes).freeze
+      def merge_and_freeze_attributes *hashes
+        hashes.each_with_object({}) do |hash, merged|
+          merged.merge!(hash) if hash
+        end.freeze
       end
 
       def agent_attributes segment
         agent_attributes = segment.attributes
           .agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
         error_attributes = error_attributes(segment)
-        return NewRelic::EMPTY_HASH unless agent_attributes || error_attributes
-        merge_and_freeze_attributes(agent_attributes, error_attributes)
+        code_attributes = segment.code_attributes
+        merge_and_freeze_attributes(agent_attributes, error_attributes, code_attributes)
       end
 
       def parent_guid segment

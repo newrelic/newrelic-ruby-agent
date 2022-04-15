@@ -7,6 +7,8 @@ module NewRelic
     module MethodTracerHelpers
       MAX_ALLOWED_METRIC_DURATION = 1_000_000_000 # roughly 31 years
       SOURCE_CODE_INFORMATION_PARAMETERS = %i[filepath lineno function namespace]
+      CODE_INFORMATION_SUCCESS_METRIC = "Supportability/CodeLevelMetrics/Success".freeze
+      CODE_INFORMATION_FAILURE_METRIC = "Supportabiltiy/CodeLevelMetrics/Failure".freeze
 
       extend self
 
@@ -47,7 +49,11 @@ module NewRelic
       end
 
       def code_information(object, method_name)
-        return NewRelic::EMTPY_HASH unless NewRelic::Agent.config[:'code_level_metrics.enabled']
+        unless NewRelic::Agent.config[:'code_level_metrics.enabled'] && object && method_name
+          return NewRelic::EMTPY_HASH
+        end
+
+        # TODO: MLT - maintain a cache for repeat lookups (object.object_id and method_name?)
 
         name = object.name if object.respond_to?(:name)
         if name
@@ -59,16 +65,17 @@ module NewRelic
           location = Object.const_get(name).method(method_name).source_location
         end
 
-        namespace = Regexp.last_match(1) if name =~ /(.*)::[^:]+/
+        ::NewRelic::Agent.increment_metric(CODE_INFORMATION_SUCCESS_METRIC, 1)
 
         {filepath: location.first,
          lineno: location.last,
          function: method_name,
-         namespace: namespace}
+         namespace: name}
       rescue => e
         ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object}', " \
                                         "method '#{method_name}' - #{e.class}: #{e.message}")
-        NewRelic::EMPTY_HASH
+        ::NewRelic::Agent.increment_metric(CODE_INFORMATION_FAILURE_METRIC, 1)
+        ::NewRelic::EMPTY_HASH
       end
     end
   end
