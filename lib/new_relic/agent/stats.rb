@@ -146,9 +146,9 @@ module NewRelic
 
       # Override marshalling methods to exclude @lock from being included in marshalled data
       def marshal_dump
-        instance_variables.reject { |name| SKIP_MARSHALLING.include?(name) }.inject({}) do |instance_copy, name|
+        instance_variables.each_with_object({}) do |name, instance_copy|
+          next if SKIP_MARSHALLING.include?(name)
           instance_copy[name] = instance_variable_get(name)
-          instance_copy
         end
       end
 
