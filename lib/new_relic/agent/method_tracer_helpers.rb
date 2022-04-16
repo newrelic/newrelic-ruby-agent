@@ -53,7 +53,9 @@ module NewRelic
           return NewRelic::EMTPY_HASH
         end
 
-        # TODO: MLT - maintain a cache for repeat lookups (object.object_id and method_name?)
+        @code_information ||= {}
+        cache_key = "#{object.object_id}#{method_name}"
+        return @code_information[cache_key] if @code_information.key?(cache_key)
 
         name = object.name if object.respond_to?(:name)
         if name
@@ -67,10 +69,10 @@ module NewRelic
 
         ::NewRelic::Agent.increment_metric(CODE_INFORMATION_SUCCESS_METRIC, 1)
 
-        {filepath: location.first,
-         lineno: location.last,
-         function: method_name,
-         namespace: name}
+        @code_information[cache_key] = {filepath: location.first,
+                                        lineno: location.last,
+                                        function: method_name,
+                                        namespace: name}
       rescue => e
         ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object}', " \
                                         "method '#{method_name}' - #{e.class}: #{e.message}")

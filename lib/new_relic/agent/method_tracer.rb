@@ -84,8 +84,6 @@ module NewRelic
       # @api public
       #
       def trace_execution_unscoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
-        # TODO: MLT - need to accept options[:code_information] and pass it forward down to segment creation
-
         NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -337,16 +335,14 @@ module NewRelic
                       super(*args, &block)
                     else
                       ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval,
-                        internal: true,
-                        code_information: code_information) do
+                        internal: true) do
                         super(*args, &block)
                       end
                     end
                   end
                 elsif !unscoped_metrics_eval.empty?
                   ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval,
-                    internal: true,
-                    code_information: code_information) do
+                    internal: true) do
                     super(*args, &block)
                   end
                 end
