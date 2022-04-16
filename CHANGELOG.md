@@ -2,7 +2,7 @@
 
   ## v8.7.0
 
-  * **Enables Environment Varibles setting Array configurations to be converted to Arrays**
+  * **Enables Environment Variables setting Array configurations to be converted to Arrays**
 
     Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the newrelic_agent.log and a string would be set as the value. Now, Arrays will be accurately coerced.
 
