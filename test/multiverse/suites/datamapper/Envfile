@@ -14,26 +14,7 @@ gemfile <<-RB
   gem 'datamapper', '~> 1.2.0', :require => 'data_mapper'
   gem 'dm-ar-finders', '~> 1.2.0'
   gem 'addressable', :require => 'addressable/uri'
-  gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
   #{adapter_gems}
 RB
-
-if RUBY_VERSION < '2.0.0'
-gemfile <<-RB
-  gem 'datamapper', '~> 1.1.0'
-  gem 'dm-ar-finders', '~> 1.1.0'
-  gem 'addressable', :require => 'addressable/uri'
-  gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
-  #{adapter_gems}
-RB
-
-gemfile <<-RB
-  gem 'datamapper', '~> 1.0.2'
-  gem 'dm-ar-finders', '~> 1.0.2'
-  gem 'addressable', :require => 'addressable/uri'
-  gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
-  #{adapter_gems}
-RB
-end
 
 # vim: ft=ruby
