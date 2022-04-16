@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.7.0
+
+  * **Improve documentation for `rake.tasks` configuration**
+
+    The `rake.tasks` description in the default `newrelic.yml` file and the [New Relic Ruby Agent Configuration docs](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration#rake-tasks) have been updated to clarify its behavior and usage. The documentation now reads:
+
+    > Specify an array of Rake tasks to automatically instrument. This configuration option converts the Array to a RegEx list. If you'd like to allow all tasks by default, use `rake.tasks: [.+]`. Rake tasks will not be instrumented unless they're added to this list. For more information, visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].
+
+    We thank @robotfelix for suggesting these changes.
+
   ## v8.6.0
 
 * **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
@@ -8,7 +18,7 @@
     - Adds support for enriching application logs written to disk or standard out. This can be used with another log forwarder to power Telemetry-in-Context if in-agent log forwarding is not desired. We recommend enabling either log forwarding or local log decorating, but not both features. This is disabled by default in this release.
     - Improves speed and Resque support for logging metrics which shows the rate of log message by severity in the Logs chart in the APM Summary view. This is enabled by default in this release.
 
-    To learn more about Telemetry-in-Context and the configuration options please see the documentation [here](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/).  
+    To learn more about Telemetry-in-Context and the configuration options please see the documentation [here](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/).
 
   * **Improve the usage of the 'hostname' executable and other executables**
 
@@ -25,7 +35,7 @@
   * **Bugfix: Curb - satify method_with_tracing's verb argument requirement**
 
     When Curb instrumentation is used (either via prepend or chain), be sure to always pass the verb argument over to `method_with_tracing` which requires it. Thank you to @knarewski for bringing this issue to our attention, for providing a means of reproducing an error, and for providing a fix. That fix has been replicated by the agent team with permission. See [Issue 1033](https://github.com/newrelic/newrelic-ruby-agent/issues/1033) for more details.
-  
+
 
   ## v8.5.0
 

@@ -452,6 +452,10 @@ common: &default_settings
 # rake.connect_timeout: 10
 
 # Specify an array of Rake tasks to automatically instrument.
+# This configuration option converts the Array to a RegEx list.
+# If you'd like to allow all tasks by default, use `rake.tasks: [.+]`.
+# Rake tasks will not be instrumented unless they're added to this list.
+# For more information, visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].
 # rake.tasks: []
 
 # Define transactions you want the agent to ignore, by specifying a list of
