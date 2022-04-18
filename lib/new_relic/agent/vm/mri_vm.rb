@@ -49,7 +49,19 @@ module NewRelic
           end
 
           if supports?(:constant_cache_invalidations)
-            snap.constant_cache_invalidations = RubyVM.stat[:global_constant_state]
+            snap.constant_cache_invalidations = gather_constant_cache_invalidations
+          end
+        end
+
+        def gather_constant_cache_invalidations
+          # Ruby >= 3.2 uses :constant_cache
+          # see: https://github.com/ruby/ruby/pull/5433 and https://bugs.ruby-lang.org/issues/18589
+          # TODO: now that 3.2+ provides more granual cache invalidation data, should we report it instead of summing?
+          if RUBY_VERSION >= '3.2.0'
+            RubyVM.stat[:constant_cache].values.sum
+          # Ruby < 3.2 uses :global_constant_state
+          else
+            RubyVM.stat[:global_constant_state]
           end
         end
 

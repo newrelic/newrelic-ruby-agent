@@ -65,7 +65,7 @@ task :record_build, [:build_number, :stage] do |t, args|
   build_string = args.build_number
   build_string << ".#{args.stage}" unless args.stage.nil? || args.stage.empty?
 
-  gitsha = File.exists?(".git") ? `git rev-parse HEAD` : "Unknown"
+  gitsha = File.exist?(".git") ? `git rev-parse HEAD` : "Unknown"
   gitsha.chomp!
 
   File.open("lib/new_relic/build.rb", "w") do |f|
