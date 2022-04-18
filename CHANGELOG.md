@@ -10,9 +10,14 @@
 
     We thank @robotfelix for suggesting these changes.
 
+  * **Enable Environment Variables setting Array configurations to be converted to Arrays**
+
+    Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the `newrelic_agent.log` and a String would be set as the value. Now, Arrays will be accurately coerced.
+
+
   ## v8.6.0
 
-* **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
+  * **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
 
     - Adds support for forwarding application logs to New Relic. This automatically sends application logs that have been enriched to power Telemetry-in-Context. This is disabled by default in this release. This may be on by default in a future release.
     - Adds support for enriching application logs written to disk or standard out. This can be used with another log forwarder to power Telemetry-in-Context if in-agent log forwarding is not desired. We recommend enabling either log forwarding or local log decorating, but not both features. This is disabled by default in this release.
