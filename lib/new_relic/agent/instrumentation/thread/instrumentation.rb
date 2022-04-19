@@ -19,7 +19,7 @@ module NewRelic
         end
 
         def skip_tracing?
-          !NewRelic::Agent.config[:'instrumentation.thread.tracing'] || (defined?(@nr_skip_tracing) && @nr_skip_tracing)
+          !NewRelic::Agent.config[:'instrumentation.thread.tracing']
         end
       end
     end

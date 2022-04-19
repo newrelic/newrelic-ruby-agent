@@ -7,7 +7,9 @@ module NewRelic
     module Threading
       # This class is used internally by the agent to prevent agent threads from sharing a state with application threads
       class InternalThread < ::Thread
-        @nr_skip_tracing = true
+        def skip_tracing?
+          true
+        end
       end
     end
   end
