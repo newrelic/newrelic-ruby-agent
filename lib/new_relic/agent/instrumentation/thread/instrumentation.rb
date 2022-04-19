@@ -14,8 +14,12 @@ module NewRelic
         end
 
         def add_thread_tracing(*args, &block)
-          return block unless NewRelic::Agent.config[:'instrumentation.thread.tracing']
+          return block if skip_tracing?
           NewRelic::Agent::Tracer.thread_block_with_current_state(*args, &block)
+        end
+
+        def skip_tracing?
+          !NewRelic::Agent.config[:'instrumentation.thread.tracing'] || (defined?(@nr_skip_tracing) && @nr_skip_tracing)
         end
       end
     end

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative 'internal_thread'
+
 module NewRelic
   module Agent
     module Threading
@@ -60,9 +62,8 @@ module NewRelic
           bt
         end
 
-        # To allow tests to swap out Thread for a synchronous alternative,
-        # surface the backing class we'll use from the class level.
-        @backing_thread_class = ::Thread
+        # Use custom thread class to prevent the agent threads from sharing the thread state with other aplication threads
+        @backing_thread_class = ::NewRelic::Agent::Threading::InternalThread
 
         def self.backing_thread_class
           @backing_thread_class
