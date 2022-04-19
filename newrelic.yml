@@ -400,7 +400,7 @@ common: &default_settings
 # instrumentation.thread: auto
 
 # Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application.
-# instrumentation.thread.tracing: true
+# instrumentation.thread.tracing: false
 
 # A dictionary of label names and values that will be applied to the data sent
 # from this agent. May also be expressed asa semicolon-delimited ; string of
