@@ -31,7 +31,7 @@ common: &default_settings
 # application_logging.enabled: true
 
 # If `true`, the agent captures log records emitted by this application.
-# application_logging.forwarding.enabled: false
+# application_logging.forwarding.enabled: true
 
 # Defines the maximum number of log records to buffer in memory at a time.
 # application_logging.forwarding.max_samples_stored: 10000
