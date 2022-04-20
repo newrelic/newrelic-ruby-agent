@@ -12,6 +12,7 @@
     | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asyncronous transaction   |
     | `instrumentation.thread.tracing` | `false` (disabled)   |  Automatically add tracing to all Threads created in the application. This may be enabled by default in a future release. |
 
+    We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
 
   * **Enables Environment Variables setting Array configurations to be converted to Arrays**
 
