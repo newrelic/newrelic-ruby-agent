@@ -44,7 +44,7 @@ module NewRelic
         name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
         return name if name
 
-        ::NewRelic::Agent.logger.error("Unable to determine a name for '#{object}' - #{e.class}: #{e.message}")
+        ::NewRelic::Agent.logger.error("Unable to determine a name for '#{object}'")
         nil
       end
 
