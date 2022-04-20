@@ -406,7 +406,7 @@ module NewRelic
         alias_method :tl_clear, :clear_state
 
         def thread_block_with_current_transaction(*args, &block)
-          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction
+          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state]
           Proc.new do
             begin
               NewRelic::Agent::Tracer.state.current_transaction = current_txn
