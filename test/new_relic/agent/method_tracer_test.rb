@@ -179,6 +179,18 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
+  def test_code_level_metrics_for_a_class_method
+    in_transaction do |txn|
+      MyClass.class_method
+
+      attributes = txn.segments.last.code_attributes
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal :class_method, attributes['code.function']
+      assert_equal 56, attributes['code.lineno']
+      assert_equal 'MyClass', attributes['code.namespace']
+    end
+  end
+
   def test_add_module_method_tracer
     in_transaction do
       MyModule.module_method
@@ -188,12 +200,28 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
-  def test_add_anonymous_class_method_tracer
-    cls = Class.new do
+  def test_code_level_metrics_for_a_module_method
+    in_transaction do |txn|
+      MyModule.module_method
+
+      attributes = txn.segments.last.code_attributes
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal :module_method, attributes['code.function']
+      assert_equal 66, attributes['code.lineno']
+      assert_equal 'MyModule', attributes['code.namespace']
+    end
+  end
+
+  def anonymous_class
+    Class.new do
       def instance_method; end
       include NewRelic::Agent::MethodTracer
       add_method_tracer :instance_method
     end
+  end
+
+  def test_add_anonymous_class_method_tracer
+    cls = anonymous_class
 
     in_transaction do
       cls.new.instance_method
@@ -201,6 +229,20 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     metric = "Custom/AnonymousClass/instance_method"
     assert_metrics_recorded metric => {:call_count => 1}
+  end
+
+  def test_code_level_metrics_for_an_anonymous_method
+    cls = anonymous_class
+
+    in_transaction do |txn|
+      cls.new.instance_method
+
+      attributes = txn.segments.last.code_attributes
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal :instance_method, attributes['code.function']
+      assert_equal 217, attributes['code.lineno']
+      assert_equal '(Anonymous)', attributes['code.namespace']
+    end
   end
 
   def test_add_method_tracer__reentry
