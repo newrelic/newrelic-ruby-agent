@@ -1980,7 +1980,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, enables log decoration and the collection of log events and metrics.'
         },
         :'application_logging.forwarding.enabled' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
