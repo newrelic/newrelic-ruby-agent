@@ -129,7 +129,7 @@ module NewRelic
           return ::NewRelic::EMPTY_HASH unless all_code_information_present?
 
           @code_attributes ||= {'code.filepath' => @code_filepath,
-                                'code.function' => @code_functiom,
+                                'code.function' => @code_function,
                                 'code.lineno' => @code_lineno,
                                 'code.namespace' => @code_namespace}
         end

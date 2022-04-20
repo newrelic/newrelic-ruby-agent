@@ -44,7 +44,7 @@ module NewRelic
         name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
         return name if name
 
-        ::NewRelic::Agent.logger.error("Unable to determine a name for '#{object}' - #{e.class}: #{e.message}")
+        ::NewRelic::Agent.logger.error("Unable to determine a name for '#{object}'")
         nil
       end
 
@@ -64,7 +64,12 @@ module NewRelic
           name = klass_name(object)
           raise "Unable to glean a class name from string '#{object}'" unless name
 
-          location = Object.const_get(name).method(method_name).source_location
+          if name.start_with?('0x')
+            name = '(Anonymous)'
+            location = object.instance_method(method_name).source_location
+          else
+            location = Object.const_get(name).method(method_name).source_location
+          end
         end
 
         ::NewRelic::Agent.increment_metric(CODE_INFORMATION_SUCCESS_METRIC, 1)
