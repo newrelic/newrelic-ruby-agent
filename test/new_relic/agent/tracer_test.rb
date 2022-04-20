@@ -340,42 +340,6 @@ module NewRelic
         end
       end
 
-      def test_current_segment_in_nested_threads_manual
-        with_config(:'instrumentation.thread.tracing' => false) do
-          assert_nil Tracer.current_segment
-
-          txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
-          assert_equal txn.initial_segment, Tracer.current_segment
-          threads = []
-
-          instrumentation = ::Thread.current[:newrelic_tracer_state]
-          threads << ::Thread.new do
-            ::Thread.current[:newrelic_tracer_state] = instrumentation
-
-            segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
-            assert_equal segment, Tracer.current_segment
-
-            instrumentation2 = ::Thread.current[:newrelic_tracer_state]
-            threads << Thread.new do
-              ::Thread.current[:newrelic_tracer_state] = instrumentation2
-
-              segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
-              assert_equal segment2, Tracer.current_segment
-              segment2.finish
-            end
-
-            # make sure current segment is still the outer segment
-            assert_equal segment, Tracer.current_segment
-            segment.finish # finish thread segment
-          end
-
-          assert_equal txn.initial_segment, Tracer.current_segment
-          threads.each(&:join)
-          txn.finish
-          assert_nil Tracer.current_segment
-        end
-      end
-
       def test_start_segment
         name = "Custom/MyClass/myoperation"
         unscoped_metrics = [
