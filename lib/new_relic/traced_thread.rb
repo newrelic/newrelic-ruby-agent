@@ -5,7 +5,7 @@
 
 module NewRelic
   #
-  # This class allows the state of a transaction to be passed to a Thread so that nested segments can be created from the operations performed within the Thread's block.
+  # This class allows the current transaction to be passed to a Thread so that nested segments can be created from the operations performed within the Thread's block.
   # To have the New Relic Ruby agent automatically trace all of your applications threads,
   # enable the `instrumentation.thread.tracing` configuration option in your newrelic.yml.
   #
