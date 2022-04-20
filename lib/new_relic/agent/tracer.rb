@@ -458,7 +458,6 @@ module NewRelic
         end
 
         # Current transaction stack
-        # attr_reader :current_transaction
         attr_accessor :current_transaction
 
         # Execution tracing on current thread
