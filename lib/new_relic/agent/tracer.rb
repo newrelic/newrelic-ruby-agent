@@ -405,11 +405,11 @@ module NewRelic
 
         alias_method :tl_clear, :clear_state
 
-        def thread_block_with_current_state(*args, &block)
-          instrumentation = ::Thread.current[:newrelic_tracer_state]
+        def thread_block_with_current_transaction(*args, &block)
+          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction
           Proc.new do
             begin
-              ::Thread.current[:newrelic_tracer_state] = instrumentation
+              NewRelic::Agent::Tracer.state.current_transaction = current_txn
               segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
               block.call(*args) if block.respond_to?(:call)
             ensure
@@ -458,7 +458,8 @@ module NewRelic
         end
 
         # Current transaction stack
-        attr_reader :current_transaction
+        # attr_reader :current_transaction
+        attr_accessor :current_transaction
 
         # Execution tracing on current thread
         attr_accessor :untraced
