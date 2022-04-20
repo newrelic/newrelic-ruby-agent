@@ -210,6 +210,47 @@ module NewRelic
           assert root_segment.transaction_name, "Expected root segment to have a transaction_name"
           assert_equal transaction.best_name, root_segment.transaction_name
         end
+
+        def clm_info
+          {filepath: '/home/lhollyfeld/src/laseralignment/lib/models/mirror.rb',
+           function: 'rotate',
+           lineno: 1985,
+           namespace: 'LaserAlignment::Mirror'}.freeze
+        end
+
+        def test_code_level_metrics_can_be_set
+          with_segment do |segment|
+            segment.code_information = clm_info
+            assert_equal segment.instance_variable_get(:@code_filepath), clm_info[:filepath]
+            assert_equal segment.instance_variable_get(:@code_function), clm_info[:function]
+            assert_equal segment.instance_variable_get(:@code_lineno), clm_info[:lineno]
+            assert_equal segment.instance_variable_get(:@code_namespace), clm_info[:namespace]
+          end
+        end
+
+        def test_code_level_metrics_attributes_are_exposed
+          with_segment do |segment|
+            segment.code_information = clm_info
+            attributes = segment.code_attributes
+            assert_equal attributes['code.filepath'], clm_info[:filepath]
+            assert_equal attributes['code.function'], clm_info[:function]
+            assert_equal attributes['code.lineno'], clm_info[:lineno]
+            assert_equal attributes['code.namespace'], clm_info[:namespace]
+          end
+        end
+
+        def test_code_level_metrics_attributes_are_empty_if_the_metrics_are_empty
+          with_segment do |segment|
+            assert_equal(segment.code_attributes, {})
+          end
+        end
+
+        def test_code_level_metrics_are_all_or_nothing
+          with_segment do |segment|
+            segment.code_information = clm_info.reject { |key| key == :namespace }
+            assert_equal(segment.code_attributes, {})
+          end
+        end
       end
     end
   end
