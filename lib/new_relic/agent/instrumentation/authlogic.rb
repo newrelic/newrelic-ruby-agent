@@ -13,6 +13,16 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Authlogic instrumentation'
+    deprecation_msg = 'The Ruby Agent is dropping support for Authlogic ' \
+      'in version 9.0.0.' \
+
+    ::NewRelic::Agent.logger.log_once(
+      :warn,
+      :deprecated_authlogic,
+      deprecation_msg
+    )
+
+    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Authlogic", 1)
   end
 
   executes do
