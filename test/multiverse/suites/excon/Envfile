@@ -5,7 +5,8 @@ gemfile <<-RB
   #{ruby3_gem_webrick}
 RB
 
-excon_versions = %w(0.64.0
+excon_versions = %w(0.56.0
+                    0.64.0
                     0.70.0
                     0.78.1
                     0.85.0
