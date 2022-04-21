@@ -13,6 +13,21 @@ DependencyDetection.defer do
   end
 
   executes do
+    if Sidekiq::Version < Gem::Version.new('5.0.0')
+      deprecation_msg = 'The Ruby Agent is dropping support for Sidekiq versions below 5.0.0 ' \
+        'in version 9.0.0. Please upgrade your Sidekiq version to continue receiving full support. ' \
+
+      ::NewRelic::Agent.logger.log_once(
+        :warn,
+        :deprecated_sidekiq_version,
+        deprecation_msg
+      )
+
+      ::NewRelic::Agent.record_metric("Supportability/Deprecated/Sidekiq", 1)
+    end
+  end
+
+  executes do
     module NewRelic::SidekiqInstrumentation
       class Server
         include NewRelic::Agent::Instrumentation::ControllerInstrumentation
