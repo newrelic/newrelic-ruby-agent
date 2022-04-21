@@ -13,30 +13,65 @@ if RUBY_PLATFORM == 'java'
   mysql_vsn = '~> 0.4.4'
 
   gemfile <<-RB
+    gem 'activerecord', '~> 6.1.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~> 61.1'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 6.0.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~> 60.4'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
     gem 'activerecord', '5.2.2'
     gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>52.0'
+    gem 'activerecord-jdbcmysql-adapter', '~> 52.0'
     #{boilerplate_gems}
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 5.1.6'
     gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>51.0'
+    gem 'activerecord-jdbcmysql-adapter', '~> 51.0'
     #{boilerplate_gems}
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 5.0.0'
     gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>50.0'
+    gem 'activerecord-jdbcmysql-adapter', '~> 50.0'
     #{boilerplate_gems}
   RB
 else
   mysql_vsn = '~> 0.4.4'
 
   gemfile <<-RB
-    gem 'activerecord', '5.2.2'
+    gem 'activerecord', '~> 7.0.0'
+    gem 'minitest', '~> 5.2.3'
+    gem '#{mysql_gem}', '#{mysql_vsn}'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 6.1.0'
+    gem 'minitest', '~> 5.2.3'
+    gem '#{mysql_gem}', '#{mysql_vsn}'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 6.0.0'
+    gem 'minitest', '~> 5.2.3'
+    gem '#{mysql_gem}', '#{mysql_vsn}'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.2.2'
     gem 'minitest', '~> 5.2.3'
     gem '#{mysql_gem}', '#{mysql_vsn}'
     #{boilerplate_gems}
