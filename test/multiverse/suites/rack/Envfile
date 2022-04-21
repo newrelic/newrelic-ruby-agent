@@ -17,7 +17,7 @@ ruby_rack_versions.each do |ruby_version, rack_version|
 end
 
 gemfile <<-RB
-  gem 'rack', '~>1.6'
+  gem 'rack', '~>1.6.8'
   gem 'rack-test', '>= 0.8.0'
   #{ruby3_gem_webrick}
 RB
