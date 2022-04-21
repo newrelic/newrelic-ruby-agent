@@ -163,7 +163,6 @@ class SidekiqTest < Minitest::Test
     TestWorker.fail = false
   end
 
-
   def test_captures_sidekiq_internal_errors
     # When testing internal Sidekiq error capturing, we're looking to
     # ensure Sidekiq properly forwards errors to our custom error handler
