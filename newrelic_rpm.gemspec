@@ -47,10 +47,7 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.require_paths = ["lib"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
-  s.post_install_message = 'Thanks for installing the latest version of newrelic_rpm. '\
-    'This version turns on application log forwarding by default. If you want to turn ' \
-    'off this feature, set `application_logging.forwarding.enabled: false`. ' \
-    'For more information, visit: https://docs.newrelic.com/docs/logs/logs-context/configure-logs-context-ruby'
+
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
   s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3
