@@ -48,7 +48,7 @@ module NewRelic
         cache_key = "#{object.object_id}#{method_name}"
         return @code_information[cache_key] if @code_information.key?(cache_key)
 
-        namespace, location = namespace_and_location(object, method_name)
+        namespace, location = namespace_and_location(object, method_name.to_sym)
 
         @code_information[cache_key] = {filepath: location.first,
                                         lineno: location.last,
@@ -73,43 +73,37 @@ module NewRelic
         raise "Unable to glean a class name from string '#{object}'" unless name
       end
 
-      # determine the namespace (class name and all module names in scope) and
-      # source code location (file path and line number) for the given object
-      # and a method name
+      # get at the underlying class from the singleton class
+      #
+      # note: even with the regex hit from klass_name(), `Object.const_get`
+      # is more performant than iterating through `ObjectSpace`
+      def klassify_singleton(object)
+        Object.const_get(klass_name(object))
+      end
+
+      # determine the namespace (class name including all module names in scope)
+      # and source code location (file path and line number) for the given
+      # object and method name
       #
       # traced class methods:
       #     * object is a singleton class, `#<Class::MyClass>`
-      #     * object responds to :name, but returns `nil`
-      #     * its name must derived from the string representation of the object
-      #     * a (non-singleton) class is obtained via a constant lookup
+      #     * get at the underlying non-singleton class
       #
       # traced instance methods and Rails controller methods:
       #     * object is a class, `MyClass`
-      #     * object responds to :name and returns its name, `'MyClass'`
       #
       # anonymous class based methods (`c = Class.new { def method; end; }`:
-      #    * the string representation of the class has '0x' at the start
-      #    * example: `#<Class:0x000000011247f640>`
+      #    * `#name` returns `nil`, so use '(Anonymous)' instead
       #
       def namespace_and_location(object, method_name)
-        name = object.name if object.respond_to?(:name)
-        return [name, object.instance_method(method_name).source_location] if name
-
-        name = klass_name(object)
-        return ['(Anonymous)', location_for_anonymous_class(object, method_name.to_sym)] if name.start_with?('0x')
-
-        # TODO: MLT - let's try object.class, then check #instance_methods on that result
-        location = Object.const_get(name).method(method_name).source_location
-
-        [name, location]
-      end
-
-      def location_for_anonymous_class(object, method_name)
-        if object.instance_methods.include?(method_name)
-          object.instance_method(method_name).source_location
+        klass = object.singleton_class? ? klassify_singleton(object) : object
+        name = klass.name || '(Anonymous)'
+        method = if klass.instance_methods.include?(method_name)
+          klass.instance_method(method_name)
         else
-          object.method(method_name).source_location
+          klass.method(method_name)
         end
+        [name, method.source_location]
       end
     end
   end

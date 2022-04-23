@@ -25,6 +25,11 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
     end
   end
 
+  def test_gets_at_an_underlying_class_from_a_singleton_class
+    klass = NewRelic::Agent::MethodTracerHelpers.send(:klassify_singleton, The::Example.singleton_class)
+    assert The::Example, klass
+  end
+
   def test_do_not_gather_code_info_when_disabled_by_configuration
     with_config(:'code_level_metrics.enabled' => false) do
       info = NewRelic::Agent::MethodTracerHelpers.code_information(The::Example, :class_method)

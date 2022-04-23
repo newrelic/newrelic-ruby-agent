@@ -228,6 +228,14 @@ module NewRelic
           end
         end
 
+        def test_code_info_setting_short_circuits_if_filepath_is_absent
+          with_segment do |segment|
+            segment.code_information = clm_info.merge(filepath: nil)
+            attributes = segment.code_attributes
+            assert_equal NewRelic::EMPTY_HASH, attributes
+          end
+        end
+
         def test_code_level_metrics_attributes_are_exposed
           with_segment do |segment|
             segment.code_information = clm_info

@@ -433,12 +433,9 @@ module NewRelic
           unscoped_metrics: summary_metrics
         )
 
-        # TODO: MLT - we perform this quite a few times on options hashes devoid of code info
-
-        code_info = options.select do |parameter, _value|
-          NewRelic::Agent::MethodTracerHelpers::SOURCE_CODE_INFORMATION_PARAMETERS.include?(parameter)
-        end
-        segment.code_information = code_info unless code_info.empty?
+        # #code_information will glean the code info out of the options hash
+        # if it exists or noop otherwise
+        segment.code_information = options
 
         segment
       end

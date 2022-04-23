@@ -115,6 +115,8 @@ module NewRelic
         end
 
         def code_information=(info = {})
+          return unless info[:filepath]
+
           @code_filepath = info[:filepath]
           @code_function = info[:function]
           @code_lineno = info[:lineno]

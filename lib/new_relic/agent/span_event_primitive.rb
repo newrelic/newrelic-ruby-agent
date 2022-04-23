@@ -165,14 +165,11 @@ module NewRelic
         end
       end
 
-      # TODO: MLT - try to retain the object allocation prevention logic of the previous method code:
-      # return agent_attributes.freeze unless error_attributes
-      # return error_attributes.freeze if agent_attributes.equal?(NewRelic::EMPTY_HASH)
-      # agent_attributes.merge!(error_attributes).freeze
-      def merge_and_freeze_attributes *hashes
-        hashes.each_with_object({}) do |hash, merged|
-          merged.merge!(hash) if hash
-        end.freeze
+      def merge_hashes(hash1, hash2)
+        return hash1 if hash2.nil? || hash2.empty?
+        return hash2 if hash1.nil? || hash1.empty?
+
+        hash1.merge!(hash2)
       end
 
       def agent_attributes segment
@@ -180,7 +177,9 @@ module NewRelic
           .agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
         error_attributes = error_attributes(segment)
         code_attributes = segment.code_attributes
-        merge_and_freeze_attributes(agent_attributes, error_attributes, code_attributes)
+        agent_attributes = merge_hashes(agent_attributes, error_attributes)
+        agent_attributes = merge_hashes(agent_attributes, code_attributes)
+        agent_attributes.freeze
       end
 
       def parent_guid segment
