@@ -334,15 +334,13 @@ module NewRelic
                     if unscoped_metrics_eval.empty?
                       super(*args, &block)
                     else
-                      ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval,
-                        internal: true) do
+                      ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
                         super(*args, &block)
                       end
                     end
                   end
                 elsif !unscoped_metrics_eval.empty?
-                  ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval,
-                    internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
                     super(*args, &block)
                   end
                 end

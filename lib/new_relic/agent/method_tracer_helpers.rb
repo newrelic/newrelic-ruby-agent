@@ -7,8 +7,7 @@ module NewRelic
     module MethodTracerHelpers
       MAX_ALLOWED_METRIC_DURATION = 1_000_000_000 # roughly 31 years
       SOURCE_CODE_INFORMATION_PARAMETERS = %i[filepath lineno function namespace]
-      CODE_INFORMATION_SUCCESS_METRIC = "Supportability/CodeLevelMetrics/Success".freeze
-      CODE_INFORMATION_FAILURE_METRIC = "Supportabiltiy/CodeLevelMetrics/Failure".freeze
+      CODE_INFORMATION_FAILURE_METRIC = "Supportabiltiy/CodeLevelMetrics/Ruby/Failure".freeze
 
       extend self
 
@@ -40,14 +39,6 @@ module NewRelic
         end
       end
 
-      def klass_name(object)
-        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
-        return name if name
-
-        ::NewRelic::Agent.logger.error("Unable to determine a name for '#{object}'")
-        nil
-      end
-
       def code_information(object, method_name)
         unless NewRelic::Agent.config[:'code_level_metrics.enabled'] && object && method_name
           return NewRelic::EMTPY_HASH
@@ -57,32 +48,68 @@ module NewRelic
         cache_key = "#{object.object_id}#{method_name}"
         return @code_information[cache_key] if @code_information.key?(cache_key)
 
-        name = object.name if object.respond_to?(:name)
-        if name
-          location = object.instance_method(method_name).source_location
-        else
-          name = klass_name(object)
-          raise "Unable to glean a class name from string '#{object}'" unless name
-
-          if name.start_with?('0x')
-            name = '(Anonymous)'
-            location = object.instance_method(method_name).source_location
-          else
-            location = Object.const_get(name).method(method_name).source_location
-          end
-        end
-
-        ::NewRelic::Agent.increment_metric(CODE_INFORMATION_SUCCESS_METRIC, 1)
+        namespace, location = namespace_and_location(object, method_name)
 
         @code_information[cache_key] = {filepath: location.first,
                                         lineno: location.last,
                                         function: method_name,
-                                        namespace: name}
+                                        namespace: namespace}
       rescue => e
-        ::NewRelic::Agent.logger.error("Unable to determine source code info for '#{object}', " \
+        ::NewRelic::Agent.logger.warn("Unable to determine source code info for '#{object}', " \
                                         "method '#{method_name}' - #{e.class}: #{e.message}")
         ::NewRelic::Agent.increment_metric(CODE_INFORMATION_FAILURE_METRIC, 1)
         ::NewRelic::EMPTY_HASH
+      end
+
+      private
+
+      # The string representation of a singleton class looks like
+      # '#<Class:MyModule::MyClass>'. Return the 'MyModule::MyClass' part of
+      # that string
+      def klass_name(object)
+        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
+        return name if name
+
+        raise "Unable to glean a class name from string '#{object}'" unless name
+      end
+
+      # determine the namespace (class name and all module names in scope) and
+      # source code location (file path and line number) for the given object
+      # and a method name
+      #
+      # traced class methods:
+      #     * object is a singleton class, `#<Class::MyClass>`
+      #     * object responds to :name, but returns `nil`
+      #     * its name must derived from the string representation of the object
+      #     * a (non-singleton) class is obtained via a constant lookup
+      #
+      # traced instance methods and Rails controller methods:
+      #     * object is a class, `MyClass`
+      #     * object responds to :name and returns its name, `'MyClass'`
+      #
+      # anonymous class based methods (`c = Class.new { def method; end; }`:
+      #    * the string representation of the class has '0x' at the start
+      #    * example: `#<Class:0x000000011247f640>`
+      #
+      def namespace_and_location(object, method_name)
+        name = object.name if object.respond_to?(:name)
+        return [name, object.instance_method(method_name).source_location] if name
+
+        name = klass_name(object)
+        return ['(Anonymous)', location_for_anonymous_class(object, method_name.to_sym)] if name.start_with?('0x')
+
+        # TODO: MLT - let's try object.class, then check #instance_methods on that result
+        location = Object.const_get(name).method(method_name).source_location
+
+        [name, location]
+      end
+
+      def location_for_anonymous_class(object, method_name)
+        if object.instance_methods.include?(method_name)
+          object.instance_method(method_name).source_location
+        else
+          object.method(method_name).source_location
+        end
       end
     end
   end

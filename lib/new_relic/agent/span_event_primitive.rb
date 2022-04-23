@@ -165,6 +165,10 @@ module NewRelic
         end
       end
 
+      # TODO: MLT - try to retain the object allocation prevention logic of the previous method code:
+      # return agent_attributes.freeze unless error_attributes
+      # return error_attributes.freeze if agent_attributes.equal?(NewRelic::EMPTY_HASH)
+      # agent_attributes.merge!(error_attributes).freeze
       def merge_and_freeze_attributes *hashes
         hashes.each_with_object({}) do |hash, merged|
           merged.merge!(hash) if hash

@@ -15,13 +15,14 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   # TODO: trace_execution_scoped should have test coverage
 
   def test_obtains_a_class_name_from_a_singleton_class_string
-    name = NewRelic::Agent::MethodTracerHelpers.klass_name(The::Example.singleton_class.to_s)
+    name = NewRelic::Agent::MethodTracerHelpers.send(:klass_name, The::Example.singleton_class.to_s)
     assert_equal 'The::Example', name
   end
 
   def test_returns_nil_if_a_name_cannot_be_determined
-    name = NewRelic::Agent::MethodTracerHelpers.klass_name('StrawberriesAndSashimi')
-    assert_equal nil, name
+    assert_raises RuntimeError do
+      NewRelic::Agent::MethodTracerHelpers.send(:klass_name, 'StrawberriesAndSashimi')
+    end
   end
 
   def test_do_not_gather_code_info_when_disabled_by_configuration
@@ -44,7 +45,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   def test_provides_accurate_info_for_a_class_method
     info = NewRelic::Agent::MethodTracerHelpers.code_information(The::Example.singleton_class, :class_method)
     assert_equal({filepath: __FILE__,
-      lineno: 9,
+      lineno: The::Example.method(:class_method).source_location.last,
       function: :class_method,
       namespace: 'The::Example'},
       info)
@@ -53,20 +54,32 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   def test_provides_accurate_info_for_an_instance_method
     info = NewRelic::Agent::MethodTracerHelpers.code_information(::The::Example, :instance_method)
     assert_equal({filepath: __FILE__,
-      lineno: 10,
+      lineno: The::Example.instance_method(:instance_method).source_location.last,
       function: :instance_method,
       namespace: 'The::Example'},
       info)
   end
 
-  def test_provides_accurate_info_for_an_anonymous_method
+  def test_provides_accurate_info_for_an_anonymous_instance_method
     klass = Class.new do
       def an_instance_method; end
     end
     info = NewRelic::Agent::MethodTracerHelpers.code_information(klass, :an_instance_method)
     assert_equal({filepath: __FILE__,
-      lineno: 64,
+      lineno: klass.instance_method(:an_instance_method).source_location.last,
       function: :an_instance_method,
+      namespace: '(Anonymous)'},
+      info)
+  end
+
+  def test_provides_accurate_info_for_an_anonymous_class_method
+    klass = Class.new do
+      def self.a_class_method; end
+    end
+    info = NewRelic::Agent::MethodTracerHelpers.code_information(klass, :a_class_method)
+    assert_equal({filepath: __FILE__,
+      lineno: klass.method(:a_class_method).source_location.last,
+      function: :a_class_method,
       namespace: '(Anonymous)'},
       info)
   end
