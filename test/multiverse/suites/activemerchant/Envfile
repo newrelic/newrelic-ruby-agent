@@ -40,8 +40,6 @@ if RUBY_VERSION >= '2.3.0' && RUBY_VERSION < '3.0.0'
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
-
-
 end
 
 if RUBY_VERSION < '2.4.0'
