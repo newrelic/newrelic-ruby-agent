@@ -32,7 +32,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    if Sinatra::Version < Gem::Version.new('2.0.0')
+    if Sinatra::VERSION < Gem::Version.new('2.0.0')
       deprecation_msg = 'Instrumentation for Sinatra versions below 2.0.0 is deprecated.' \
         'They will stop being monitored in version 9.0.0. ' \
         'Please upgrade your Sinatra version to continue receiving full support. '
