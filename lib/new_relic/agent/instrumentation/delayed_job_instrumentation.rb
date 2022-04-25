@@ -88,8 +88,9 @@ DependencyDetection.defer do
 
   executes do
     if DelayedJob::Version < Gem::Version.new('4.1.0')
-      deprecation_msg = 'The Ruby Agent is dropping support for DelayedJob versions below 4.1.0 ' \
-        'in version 9.0.0. Please upgrade your DelayedJob version to continue receiving full compatibility. ' \
+      deprecation_msg = 'Instrumentation for DelayedJob versions below 4.1.0 is deprecated.' \
+        'It will stop being monitored in version 9.0.0. ' \
+        'Please upgrade your DelayedJob version to continue receiving full support. ' \
 
       ::NewRelic::Agent.logger.log_once(
         :warn,
