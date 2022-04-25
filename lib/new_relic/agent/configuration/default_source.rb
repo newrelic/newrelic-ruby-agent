@@ -925,6 +925,21 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.thread' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asyncronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.thread.tracing' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application."
+        },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),
           :documentation_default => 'auto',
@@ -1969,7 +1984,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, enables log decoration and the collection of log events and metrics.'
         },
         :'application_logging.forwarding.enabled' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,

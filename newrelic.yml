@@ -31,7 +31,7 @@ common: &default_settings
 # application_logging.enabled: true
 
 # If `true`, the agent captures log records emitted by this application.
-# application_logging.forwarding.enabled: false
+# application_logging.forwarding.enabled: true
 
 # Defines the maximum number of log records to buffer in memory at a time.
 # application_logging.forwarding.max_samples_stored: 10000
@@ -394,6 +394,13 @@ common: &default_settings
 # Controls auto-instrumentation of Typhoeus at start up.
 # May be one of [auto|prepend|chain|disabled].
 # instrumentation.typhoeus: auto
+
+# Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asyncronous transaction.
+# May be one of [auto|prepend|chain|disabled].
+# instrumentation.thread: auto
+
+# Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application.
+# instrumentation.thread.tracing: false
 
 # A dictionary of label names and values that will be applied to the data sent
 # from this agent. May also be expressed asa semicolon-delimited ; string of

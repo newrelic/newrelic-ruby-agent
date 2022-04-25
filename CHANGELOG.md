@@ -2,6 +2,18 @@
 
   ## v8.7.0
 
+  * **Improved async support and Thread instrumentation**
+
+    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes 2 new configuration options to support multithreaded applications to automatically instrument threads. A new configuration option,`instrumentation.thread.tracing` (disabled by default), has been introduced that, when enabled, will allow the agent to insert New Relic tracing inside of all Threads created by an application. To support applications that only want some threads instrumented by New Relic, a new class is available, `NewRelic::TracedThread`, that will create a thread that includes New Relic instrumentation, see our [API documentation](https://www.rubydoc.info/gems/newrelic_rpm/NewRelic) for more details. 
+
+    New configuration options included in this release:
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asyncronous transaction   |
+    | `instrumentation.thread.tracing` | `false` (disabled)   |  Automatically add tracing to all Threads created in the application. This may be enabled by default in a future release. |
+
+    We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
+
   * **Improve documentation for `rake.tasks` configuration**
 
     The `rake.tasks` description in the default `newrelic.yml` file and the [New Relic Ruby Agent Configuration docs](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration#rake-tasks) have been updated to clarify its behavior and usage. The documentation now reads:

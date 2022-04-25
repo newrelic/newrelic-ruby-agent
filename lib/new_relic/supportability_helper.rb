@@ -50,6 +50,7 @@ module NewRelic
       :shutdown,
       :start_segment,
       :trace,
+      :traced_thread,
       :trace_execution_scoped,
       :trace_execution_unscoped,
       :wrap
