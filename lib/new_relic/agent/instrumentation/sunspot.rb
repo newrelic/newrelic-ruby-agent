@@ -11,8 +11,8 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Rails Sunspot instrumentation'
-    deprecation_msg = 'The Ruby Agent is dropping support for Sunspot ' \
-      'in version 9.0.0.' \
+    deprecation_msg = 'The instrumentation for Sunspot is deprecated.' \
+      ' It will be removed in version 9.0.0.' \
 
     ::NewRelic::Agent.logger.log_once(
       :warn,
