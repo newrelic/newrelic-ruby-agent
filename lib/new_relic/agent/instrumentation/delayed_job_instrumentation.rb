@@ -87,9 +87,18 @@ DependencyDetection.defer do
   end
 
   executes do
-    if DelayedJob::Version < Gem::Version.new('4.1.0')
-      deprecation_msg = 'The Ruby Agent is dropping support for DelayedJob versions below 4.1.0 ' \
-        'in version 9.0.0. Please upgrade your DelayedJob version to continue receiving full compatibility. ' \
+    if use_prepend?
+      prepend_instrument ::Delayed::Worker, ::NewRelic::Agent::Instrumentation::DelayedJob::Prepend
+    else
+      chain_instrument ::NewRelic::Agent::Instrumentation::DelayedJob::Chain
+    end
+  end
+
+  executes do
+    if delayed_job_version < Gem::Version.new('4.1.0')
+      deprecation_msg = 'Instrumentation for DelayedJob versions below 4.1.0 is deprecated.' \
+        'It will stop being monitored in version 9.0.0. ' \
+        'Please upgrade your DelayedJob version to continue receiving full support. ' \
 
       ::NewRelic::Agent.logger.log_once(
         :warn,
@@ -101,11 +110,7 @@ DependencyDetection.defer do
     end
   end
 
-  executes do
-    if use_prepend?
-      prepend_instrument ::Delayed::Worker, ::NewRelic::Agent::Instrumentation::DelayedJob::Prepend
-    else
-      chain_instrument ::NewRelic::Agent::Instrumentation::DelayedJob::Chain
-    end
+  def delayed_job_version
+    Gem.loaded_specs['delayed_job'].version if Gem.loaded_specs['delayed_job']
   end
 end
