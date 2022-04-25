@@ -22,4 +22,42 @@ gemfile <<-RB
   #{ruby3_gem_webrick}
 RB
 
+# TODO: Remove everything below this line in major version 9.0.0
+gemfile <<-RB
+  gem 'rack', '~>1.5.5'
+  gem 'rack-test', '>= 0.8.0'
+  #{ruby3_gem_webrick}
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.4.7'
+  gem 'rack-test', '>= 0.8.0'
+  #{ruby3_gem_webrick}
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.3.10'
+  gem 'rack-test', '>= 0.8.0'
+  #{ruby3_gem_webrick}
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.2.8'
+  gem 'rack-test', '>= 0.8.0'
+  #{ruby3_gem_webrick}
+RB
+
+gemfile <<-RB
+  gem 'rack', '1.1.6'
+  gem 'rack-test', '>= 0.8.0'
+  #{ruby3_gem_webrick}
+RB
+
+# unsupported version
+gemfile <<-RB
+  gem 'rack', '1.0.1'
+  gem 'rack-test', '>= 0.8.0'
+  #{ruby3_gem_webrick}
+RB
+
 # vim: ft=ruby

@@ -5,9 +5,10 @@ SIDEKIQ_VERSIONS = [
   ["~> 6.1.3"],
   ["~> 6.1.0"],
   ["~> 6.0.0"],
-  ["~> 5.0.3"]
+  ["~> 5.0.3"],
+  ["~> 4.2.10"]
 ]
-
+# TODO: Remove 4.2.10 in major version 9.0.0
 # 5.x series requires >= Ruby 2.3
 # 6.x series requires >= Ruby 2.5
 def ruby2_compatible? sidekiq_version
@@ -21,10 +22,16 @@ def ruby2_compatible? sidekiq_version
   end
 end
 
+# TODO: Remove this method in major version 9.0.0
+# older connection pool gems do not work with Ruby 3.0
+# Sidekiq 4.2.10 does not support Ruby 3.0.3/3.1+ YAML parsing
+def ruby3_compatible? sidekiq_version
+  sidekiq_version.split(" ")[-1].to_i > 4
+end
 
 SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
   next if RUBY_VERSION < "3.0.0" && !ruby2_compatible?(sidekiq_version)
-  next if RUBY_PLATFORM == "java"
+  next if (RUBY_VERSION >= "3.0.0" || RUBY_PLATFORM == "java") && !ruby3_compatible?(sidekiq_version)
 
   # use specified version when declared
   gem_timers = timers_version ? "gem 'timers', '#{timers_version}'" : ""
