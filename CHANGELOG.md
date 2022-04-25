@@ -14,9 +14,17 @@
 
     We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
 
-  * **Enables Environment Variables setting Array configurations to be converted to Arrays**
+  * **Improve documentation for `rake.tasks` configuration**
 
-    Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the newrelic_agent.log and a string would be set as the value. Now, Arrays will be accurately coerced.
+    The `rake.tasks` description in the default `newrelic.yml` file and the [New Relic Ruby Agent Configuration docs](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration#rake-tasks) have been updated to clarify its behavior and usage. The documentation now reads:
+
+    > Specify an array of Rake tasks to automatically instrument. This configuration option converts the Array to a RegEx list. If you'd like to allow all tasks by default, use `rake.tasks: [.+]`. Rake tasks will not be instrumented unless they're added to this list. For more information, visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].
+
+    We thank @robotfelix for suggesting these changes.
+
+  * **Enable Environment Variables setting Array configurations to be converted to Arrays**
+
+    Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the `newrelic_agent.log` and a String would be set as the value. Now, Arrays will be accurately coerced.
 
 
   ## v8.6.0
