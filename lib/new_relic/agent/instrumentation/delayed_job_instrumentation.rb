@@ -87,7 +87,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    if DelayedJob::Version < Gem::Version.new('4.1.0')
+    if delayed_job_version < Gem::Version.new('4.1.0')
       deprecation_msg = 'Instrumentation for DelayedJob versions below 4.1.0 is deprecated.' \
         'It will stop being monitored in version 9.0.0. ' \
         'Please upgrade your DelayedJob version to continue receiving full support. ' \
@@ -108,5 +108,9 @@ DependencyDetection.defer do
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::DelayedJob::Chain
     end
+  end
+
+  def delayed_job_version
+    Gem.loaded_specs['delayed_job'].version if Gem.loaded_specs['delayed_job']
   end
 end
