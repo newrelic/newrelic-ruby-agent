@@ -19,18 +19,16 @@
     We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
 
   *  **Added updated configuration options for transaction events and deprecated previous configs**
-  
+
     This release deprecates the following instrumentation:
     | Deprecated      | Replacement |
     | ----------- | ----------- |
+    | ActiveMerchant < 1.65.0 | ActiveMerchant >= 1.65.0 |
     | Acts As Solr (all versions) | none |
     | Authlogic (all versions) | none |
-    | DataMapper (all versions) | none |
-    | Rainbows (all versions) | none |
-    | Sunspot (all versions) | none |
-    | ActiveMerchant < 1.65.0 | ActiveMerchant >= 1.65.0 |
     | Bunny < 2.7.0 | bunny >= 2.7.0 |
     | Dalli < 3.2.1 | Dalli >= 3.2.1 |
+    | DataMapper (all versions) | none |
     | Delayed Job < 4.1.0 | Delayed Job >= 4.1.0 |
     | Excon < 0.56.0 | Excon >= 0.56.0 |
     | Grape < 0.19.2 | Grape >= 0.19.2 |
@@ -41,9 +39,11 @@
     | Passenger < 5.1.3 | Passenger >= 5.1.3 |
     | Puma < 3.9.0 | Puma >= 3.9.0 |
     | Rack < 1.6.8 | Rack >= 1.6.8 |
+    | Rainbows (all versions) | none |
     | Sequel < 4.45.0 | Sequel >= 4.45.0 |
     | Sidekiq < 5.0.0 | Sidekiq >= 5.0.0 |
     | Sinatra < 2.0.0 | Sinatra >= 2.0.0 |
+    | Sunspot (all versions) | none |
     | Typhoeus < 1.3.0 | Typhoeus >= 1.3.0 |
     | Unicorn < 5.3.0 | Unicorn >= 5.3.0 |
 
