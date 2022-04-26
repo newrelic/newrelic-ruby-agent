@@ -18,10 +18,10 @@
 
     We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
 
-  *  **Added updated configuration options for transaction events and deprecated previous configs**
+  *  **Deprecate instrumentation versions with low adoption and/or versions over five years old**
 
     This release deprecates the following instrumentation:
-    | Deprecated      | Replacement |
+    | Deprecated | Replacement |
     | ----------- | ----------- |
     | ActiveMerchant < 1.65.0 | ActiveMerchant >= 1.65.0 |
     | Acts As Solr (all versions) | none |
@@ -47,7 +47,7 @@
     | Typhoeus < 1.3.0 | Typhoeus >= 1.3.0 |
     | Unicorn < 5.3.0 | Unicorn >= 5.3.0 |
 
-    For the gems with deprecated versions, we will no longer test those versions in our multiverse suite. They may, however, still be compatible with the agent. We will no longer fix bug reports for issues with these versions of the gem.
+    For the gems with deprecated versions, we will no longer test those versions in our multiverse suite. They may, however, still be compatible with the agent. We will no longer fix bug reports for issues related to these gem versions.
 
   * **Clarify documentation for `rake.tasks` configuration**
 
