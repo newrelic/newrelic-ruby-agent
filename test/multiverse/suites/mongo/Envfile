@@ -12,6 +12,7 @@ MONGO_VERSIONS_RUBY25 = ['2.15.1',
                          '2.14.0',
                          '2.12.0']
 
+# TODO: Stop testing mongo versions below 2.5.0 during major release 9.0.0
 # Mongo versions to test with CRubies below 2.5.0
 MONGO_VERSIONS_OLDER_RUBIES = ['2.9.0',
                                '2.7.0',
