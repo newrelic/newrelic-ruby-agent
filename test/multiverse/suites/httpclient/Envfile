@@ -1,5 +1,5 @@
 gemfile <<-RB
-  gem 'httpclient' # latest version
+  gem 'httpclient'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
   #{ruby3_gem_webrick}

@@ -1024,7 +1024,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.puma_rack' => {
-          :default => instrumentation_value_of(:disable_puma_rack), # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :default => instrumentation_value_of(:disable_puma_rack), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1035,7 +1035,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
-          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
           :documentation_default => 'auto',
           :public => true,
           :type => String,
