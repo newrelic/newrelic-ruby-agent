@@ -128,7 +128,7 @@ module NewRelic
       end
     end
 
-    # TODO: Major version - remove this method
+    # TODO: MAJOR VERSION - remove this method
     def check_for_rainbows
       if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
         v = find_class_in_object_space(::Rainbows::HttpServer)
