@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '3.0.0'
   gemfile <<-RB
-    gem 'activemerchant' # latest
+    gem 'activemerchant'
     gem 'rack'
     gem 'rexml'
     gem 'webrick'
