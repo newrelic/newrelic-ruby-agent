@@ -1,14 +1,80 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.7.0
+
+  * **APM logs-in-context log forwarding on by default**
+
+    Automatic application log forwarding is now enabled by default. This version of the agent will automatically send enriched application logs to New Relic. To learn more about about this feature see [here](https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/get-started-logs-context/), and additional configuration options are available [here](https://docs.newrelic.com/docs/logs/logs-context/configure-logs-context-ruby). To learn about how to toggle log ingestion on or off by account see [here](https://docs.newrelic.com/docs/logs/logs-context/disable-automatic-logging).
+
+  * **Improved async support and Thread instrumentation**
+
+    Previously, the agent was not able to record events and metrics inside Threads created inside of an already running transaction. This release includes 2 new configuration options to support multithreaded applications to automatically instrument threads. A new configuration option,`instrumentation.thread.tracing` (disabled by default), has been introduced that, when enabled, will allow the agent to insert New Relic tracing inside of all Threads created by an application. To support applications that only want some threads instrumented by New Relic, a new class is available, `NewRelic::TracedThread`, that will create a thread that includes New Relic instrumentation, see our [API documentation](https://www.rubydoc.info/gems/newrelic_rpm/NewRelic) for more details.
+
+    New configuration options included in this release:
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asyncronous transaction   |
+    | `instrumentation.thread.tracing` | `false` (disabled)   |  Automatically add tracing to all Threads created in the application. This may be enabled by default in a future release. |
+
+    We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
+
+  *  **Deprecate instrumentation versions with low adoption and/or versions over five years old**
+
+    This release deprecates the following instrumentation:
+    | Deprecated | Replacement |
+    | ----------- | ----------- |
+    | ActiveMerchant < 1.65.0 | ActiveMerchant >= 1.65.0 |
+    | Acts As Solr (all versions) | none |
+    | Authlogic (all versions) | none |
+    | Bunny < 2.7.0 | bunny >= 2.7.0 |
+    | Dalli < 3.2.1 | Dalli >= 3.2.1 |
+    | DataMapper (all versions) | none |
+    | Delayed Job < 4.1.0 | Delayed Job >= 4.1.0 |
+    | Excon < 0.56.0 | Excon >= 0.56.0 |
+    | Grape < 0.19.2 | Grape >= 0.19.2 |
+    | HTTPClient < 2.8.3 | HTTPClient 2.8.3 |
+    | HTTP.rb < 2.2.2 | HTTP.rb >= 2.2.2 |
+    | Mongo < 2.4.1 | Mongo >= 2.4.1 |
+    | Padrino < 0.15.0 | Padrino >= 0.15.0 |
+    | Passenger < 5.1.3 | Passenger >= 5.1.3 |
+    | Puma < 3.9.0 | Puma >= 3.9.0 |
+    | Rack < 1.6.8 | Rack >= 1.6.8 |
+    | Rainbows (all versions) | none |
+    | Sequel < 4.45.0 | Sequel >= 4.45.0 |
+    | Sidekiq < 5.0.0 | Sidekiq >= 5.0.0 |
+    | Sinatra < 2.0.0 | Sinatra >= 2.0.0 |
+    | Sunspot (all versions) | none |
+    | Typhoeus < 1.3.0 | Typhoeus >= 1.3.0 |
+    | Unicorn < 5.3.0 | Unicorn >= 5.3.0 |
+
+    For the gems with deprecated versions, we will no longer test those versions in our multiverse suite. They may, however, still be compatible with the agent. We will no longer fix bug reports for issues related to these gem versions.
+
+  * **Clarify documentation for `rake.tasks` configuration**
+
+    The `rake.tasks` description in the default `newrelic.yml` file and the [New Relic Ruby Agent Configuration docs](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration#rake-tasks) have been updated to clarify its behavior and usage. The documentation now reads:
+
+    > Specify an array of Rake tasks to automatically instrument. This configuration option converts the Array to a RegEx list. If you'd like to allow all tasks by default, use `rake.tasks: [.+]`. Rake tasks will not be instrumented unless they're added to this list. For more information, visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].
+
+    We thank @robotfelix for suggesting these changes.
+
+  * **Enable Environment Variables setting Array configurations to be converted to Arrays**
+
+    Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the `newrelic_agent.log` and a String would be set as the value. Now, Arrays will be accurately coerced.
+
+  * **Bugfix: Allow TransactionEvents to be sampled at the expected rate**
+
+    The `transaction_events.max_samples_stored` capacity value within the TransactionEventAggregator did not match up with its expected harvest cycle interval, causing TransactionEvents to be over-sampled. This bugfix builds upon the updates made in [#952](https://github.com/newrelic/newrelic-ruby-agent/pull/952) so that the interval and capacity behave as expected for the renamed `transaction_events*` configuration options.
+
+
   ## v8.6.0
 
-* **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
+  * **Telemetry-in-Context: Automatic Application Logs, a quick way to view logs no matter where you are in the platform**
 
     - Adds support for forwarding application logs to New Relic. This automatically sends application logs that have been enriched to power Telemetry-in-Context. This is disabled by default in this release. This may be on by default in a future release.
     - Adds support for enriching application logs written to disk or standard out. This can be used with another log forwarder to power Telemetry-in-Context if in-agent log forwarding is not desired. We recommend enabling either log forwarding or local log decorating, but not both features. This is disabled by default in this release.
     - Improves speed and Resque support for logging metrics which shows the rate of log message by severity in the Logs chart in the APM Summary view. This is enabled by default in this release.
 
-    To learn more about Telemetry-in-Context and the configuration options please see the documentation [here](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/).  
+    To learn more about Telemetry-in-Context and the configuration options please see the documentation [here](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/).
 
   * **Improve the usage of the 'hostname' executable and other executables**
 
@@ -25,7 +91,7 @@
   * **Bugfix: Curb - satify method_with_tracing's verb argument requirement**
 
     When Curb instrumentation is used (either via prepend or chain), be sure to always pass the verb argument over to `method_with_tracing` which requires it. Thank you to @knarewski for bringing this issue to our attention, for providing a means of reproducing an error, and for providing a fix. That fix has been replicated by the agent team with permission. See [Issue 1033](https://github.com/newrelic/newrelic-ruby-agent/issues/1033) for more details.
-  
+
 
   ## v8.5.0
 
