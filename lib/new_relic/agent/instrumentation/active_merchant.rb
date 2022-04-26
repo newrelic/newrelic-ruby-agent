@@ -34,4 +34,19 @@ DependencyDetection.defer do
       end
     end
   end
+
+  executes do
+    if ActiveMerchant::VERSION < Gem::Version.new('0.65.0')
+      deprecation_msg = 'The Ruby Agent is dropping support for ActiveMerchant versions below 0.65.0 ' \
+        'in version 9.0.0. Please upgrade your ActiveMerchant version to continue receiving full support. ' \
+
+      ::NewRelic::Agent.logger.log_once(
+        :warn,
+        :deprecated_active_merchant_version,
+        deprecation_msg
+      )
+
+      ::NewRelic::Agent.record_metric("Supportability/Deprecated/ActiveMerchant", 1)
+    end
+  end
 end
