@@ -1998,7 +1998,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, the agent will report source code level metrics for monitored methods.'
+          :description => 'If `true`, the agent will report source code level metrics for traced methods.'
         },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
