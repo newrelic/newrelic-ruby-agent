@@ -44,17 +44,16 @@ DependencyDetection.defer do
   end
 
   executes do
-    if Sinatra::VERSION < Gem::Version.new('2.0.0')
-      deprecation_msg = 'The Ruby Agent is dropping support for Sinatra versions below 2.0.0 ' \
-        'in version 9.0.0. Please upgrade your Sinatra version to continue receiving full compatibility. ' \
+    next unless Sinatra::VERSION < Gem::Version.new('2.0.0')
+    deprecation_msg = 'The Ruby Agent is dropping support for Sinatra versions below 2.0.0 ' \
+      'in version 9.0.0. Please upgrade your Sinatra version to continue receiving full compatibility. ' \
 
-      ::NewRelic::Agent.logger.log_once(
-        :warn,
-        :deprecated_sinatra_version,
-        deprecation_msg
-      )
+    ::NewRelic::Agent.logger.log_once(
+      :warn,
+      :deprecated_sinatra_version,
+      deprecation_msg
+    )
 
-      ::NewRelic::Agent.record_metric("Supportability/Deprecated/Sinatra", 1)
-    end
+    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Sinatra", 1)
   end
 end
