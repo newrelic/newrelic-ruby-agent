@@ -27,7 +27,8 @@ end
 
 if RUBY_VERSION < '3.0.0'
   gemfile <<-RB
-    gem 'rails', '~> 5.2.0'
+    # Rails 5.2.7.1 uses a '~>>' style heredoc that breaks Ruby 2.2 compatibility
+    gem 'rails', '~> 5.2.0'#{", '<= 5.2.7'" if RUBY_VERSION >= 2.4.0}
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
