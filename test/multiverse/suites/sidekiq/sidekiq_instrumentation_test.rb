@@ -163,20 +163,14 @@ class SidekiqTest < Minitest::Test
     TestWorker.fail = false
   end
 
-  # In <= 2.x of Sidekiq, internal errors (or potentially errors further out
-  # the middleware stack) wouldn't get noticed, but there was no proper hook
-  # to catch it. 3.x+ gives us an error_handler, so only add our misbehaving
-  # middleware for those cases.
-  if Sidekiq::VERSION >= '3'
-    def test_captures_sidekiq_internal_errors
-      # When testing internal Sidekiq error capturing, we're looking to
-      # ensure Sidekiq properly forwards errors to our custom error handler
-      # in order for us to notice the error.
+  def test_captures_sidekiq_internal_errors
+    # When testing internal Sidekiq error capturing, we're looking to
+    # ensure Sidekiq properly forwards errors to our custom error handler
+    # in order for us to notice the error.
 
-      exception = StandardError.new('foo')
-      NewRelic::Agent.expects(:notice_error).with(exception)
-      Sidekiq::CLI.instance.handle_exception(exception)
-    end
+    exception = StandardError.new('foo')
+    NewRelic::Agent.expects(:notice_error).with(exception)
+    Sidekiq::CLI.instance.handle_exception(exception)
   end
 
   def assert_metric_and_call_count(name, expected_call_count)

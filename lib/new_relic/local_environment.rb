@@ -76,6 +76,7 @@ module NewRelic
         rainbows
         unicorn
       ]
+      # TODO: MAJOR VERSION - remove rainbows
       while dispatchers.any? && @discovered_dispatcher.nil?
         send 'check_for_' + (dispatchers.shift)
       end
@@ -127,6 +128,7 @@ module NewRelic
       end
     end
 
+    # TODO: MAJOR VERSION - remove this method
     def check_for_rainbows
       if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
         v = find_class_in_object_space(::Rainbows::HttpServer)

@@ -2,14 +2,14 @@ instrumentation_methods :chain, :prepend
 
 unless RUBY_PLATFORM == 'java'
   gemfile <<-RB
-    gem 'http' # latest version
+    gem 'http'
     gem 'rack'
     #{ruby3_gem_webrick}
   RB
 end
 
 # NOTE, some versions of HTTP gem implements body with
-# String.new("").force_encoding(@encoding) which won't work 
+# String.new("").force_encoding(@encoding) which won't work
 # with Ruby 2.7 and it's automatic freezing of string literals.
 # Those versions are capped at Ruby 2.6
 

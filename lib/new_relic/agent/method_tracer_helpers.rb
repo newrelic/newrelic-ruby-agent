@@ -5,9 +5,14 @@
 module NewRelic
   module Agent
     module MethodTracerHelpers
+      # These are code level metrics (CLM) attributes. For Ruby, they map like so:
+      #   filepath: full path to an .rb file on disk
+      #   lineno: the line number a Ruby method is defined on within a given .rb file
+      #   function: the name of the Ruby method
+      #   namespace: the Ruby class' namespace as a string, ex: 'MyModule::MyClass'
+      SOURCE_CODE_INFORMATION_PARAMETERS = %i[filepath lineno function namespace].freeze
+      SOURCE_CODE_INFORMATION_FAILURE_METRIC = "Supportabiltiy/CodeLevelMetrics/Ruby/Failure".freeze
       MAX_ALLOWED_METRIC_DURATION = 1_000_000_000 # roughly 31 years
-      SOURCE_CODE_INFORMATION_PARAMETERS = %i[filepath lineno function namespace]
-      CODE_INFORMATION_FAILURE_METRIC = "Supportabiltiy/CodeLevelMetrics/Ruby/Failure".freeze
 
       extend self
 
@@ -41,7 +46,7 @@ module NewRelic
 
       def code_information(object, method_name)
         unless NewRelic::Agent.config[:'code_level_metrics.enabled'] && object && method_name
-          return NewRelic::EMTPY_HASH
+          return NewRelic::EMPTY_HASH
         end
 
         @code_information ||= {}
@@ -57,7 +62,7 @@ module NewRelic
       rescue => e
         ::NewRelic::Agent.logger.warn("Unable to determine source code info for '#{object}', " \
                                         "method '#{method_name}' - #{e.class}: #{e.message}")
-        ::NewRelic::Agent.increment_metric(CODE_INFORMATION_FAILURE_METRIC, 1)
+        ::NewRelic::Agent.increment_metric(SOURCE_CODE_INFORMATION_FAILURE_METRIC, 1)
         ::NewRelic::EMPTY_HASH
       end
 
@@ -93,7 +98,7 @@ module NewRelic
       #     * object is a class, `MyClass`
       #
       # anonymous class based methods (`c = Class.new { def method; end; }`:
-      #    * `#name` returns `nil`, so use '(Anonymous)' instead
+      #     * `#name` returns `nil`, so use '(Anonymous)' instead
       #
       def namespace_and_location(object, method_name)
         klass = object.singleton_class? ? klassify_singleton(object) : object

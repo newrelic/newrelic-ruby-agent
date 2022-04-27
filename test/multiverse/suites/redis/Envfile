@@ -2,7 +2,7 @@ instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
   gem 'rack'
-  gem 'redis' # latest version published
+  gem 'redis'
   #{ruby3_gem_webrick}
 RB
 

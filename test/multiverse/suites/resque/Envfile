@@ -1,6 +1,11 @@
 if RUBY_VERSION >= '2.3.0'
   gemfile <<-RB
-    gem 'resque', '2.1.0'
+    gem 'resque', '~> 2.2.0'
+    gem 'json'
+    #{ruby3_gem_webrick}
+  RB
+  gemfile <<-RB
+    gem 'resque', '~> 2.1.0'
     gem 'json'
     #{ruby3_gem_webrick}
   RB
