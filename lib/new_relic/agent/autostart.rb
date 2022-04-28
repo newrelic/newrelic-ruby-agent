@@ -31,7 +31,20 @@ module NewRelic
       COMMA = ",".freeze
 
       def denylisted_constants?
-        denylisted?(NewRelic::Agent.config[:'autostart.denylisted_constants']) { |name| Object.const_defined?(name) }
+        denylisted?(NewRelic::Agent.config[:'autostart.denylisted_constants']) do |name|
+          if RUBY_PLATFORM.eql?('java')
+            # As of JRuby 9.3.4.0, Object.const_defined? will still cross
+            # namespaces to find constants, which is not what we want. This
+            # behavior is similar to CRuby's Object.const_get prior to v2.6.
+            #
+            # Example:
+            #  irb> class MyClass; end; module MyModule; end
+            #  irb> Object.const_defined?('MyModule::MyClass') # => true
+            !!::NewRelic::LanguageSupport.constantize(const_name)
+          else
+            Object.const_defined?(name)
+          end
+        end
       end
 
       def denylisted_executables?
