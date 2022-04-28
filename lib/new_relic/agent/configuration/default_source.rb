@@ -247,7 +247,7 @@ module NewRelic
         end
 
         def self.convert_to_constant_list(raw_value)
-          return [] if raw_value.nil? || raw_value.empty?
+          return NewRelic::EMPTY_ARRAY if raw_value.nil? || raw_value.empty?
 
           constants = convert_to_list(raw_value).map! do |class_name|
             const = ::NewRelic::LanguageSupport.constantize(class_name)
