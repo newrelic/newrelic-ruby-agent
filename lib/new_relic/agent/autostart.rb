@@ -40,7 +40,7 @@ module NewRelic
             # Example:
             #  irb> class MyClass; end; module MyModule; end
             #  irb> Object.const_defined?('MyModule::MyClass') # => true
-            !!::NewRelic::LanguageSupport.constantize(const_name)
+            !!::NewRelic::LanguageSupport.constantize(name)
           else
             Object.const_defined?(name)
           end
