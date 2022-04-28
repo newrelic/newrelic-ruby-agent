@@ -31,23 +31,13 @@ module NewRelic
       COMMA = ",".freeze
 
       def denylisted_constants?
-        constants = NewRelic::Agent.config[:'autostart.denylisted_constants']
-
-        denylisted?(constants) do |name|
-          constant_is_defined?(name)
-        end
+        denylisted?(NewRelic::Agent.config[:'autostart.denylisted_constants']) { |name| Object.const_defined?(name) }
       end
 
       def denylisted_executables?
         denylisted?(NewRelic::Agent.config[:'autostart.denylisted_executables']) do |bin|
           File.basename($0) == bin
         end
-      end
-
-      # Lookup whether namespaced constants (e.g. ::Foo::Bar::Baz) are in the
-      # environment.
-      def constant_is_defined?(const_name)
-        !!::NewRelic::LanguageSupport.constantize(const_name)
       end
 
       def denylisted?(value, &block)

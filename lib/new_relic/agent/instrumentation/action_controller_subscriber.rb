@@ -72,7 +72,7 @@ module NewRelic
         end
 
         def format_metric_name(metric_action, controller_name)
-          controller_class = ::NewRelic::LanguageSupport.constantize(controller_name)
+          controller_class = Object.const_get(controller_name)
           "Controller/#{controller_class.controller_path}/#{metric_action}"
         end
 
