@@ -65,6 +65,11 @@
 
     The `transaction_events.max_samples_stored` capacity value within the TransactionEventAggregator did not match up with its expected harvest cycle interval, causing TransactionEvents to be over-sampled. This bugfix builds upon the updates made in [#952](https://github.com/newrelic/newrelic-ruby-agent/pull/952) so that the interval and capacity behave as expected for the renamed `transaction_events*` configuration options.
 
+  * **Bugfix: Error events missing attributes when created outside of a transaction**
+
+    Previously the agent was not assigning a priority to error events that were created by calling notice_error outside the scope of a transaction. This caused issues with sampling when the error event buffer was full, resulting in a `NoMethodError: undefined method '<' for nil:NilClass` in the newrelic_agent.log. This bugfix ensures that a priority is always assigned on error events so that the agent will be able to sample these error events correctly. Thank you to @olleolleolle for bringing this issue to our attention.
+    
+
 
   ## v8.6.0
 
