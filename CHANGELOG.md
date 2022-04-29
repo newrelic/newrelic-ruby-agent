@@ -18,6 +18,10 @@
 
     We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
 
+  * **Deprecate support for Ruby 2.2**
+
+    Ruby 2.2 reached end of life on March 31, 2018. The agent has deprecated support for Ruby 2.2 and will make breaking changes for this version in its next major release.
+
   *  **Deprecate instrumentation versions with low adoption and/or versions over five years old**
 
     This release deprecates the following instrumentation:
@@ -39,6 +43,7 @@
     | Passenger < 5.1.3 | Passenger >= 5.1.3 |
     | Puma < 3.9.0 | Puma >= 3.9.0 |
     | Rack < 1.6.8 | Rack >= 1.6.8 |
+    | Rails 3.2.x | Rails >= 4.x |
     | Rainbows (all versions) | none |
     | Sequel < 4.45.0 | Sequel >= 4.45.0 |
     | Sidekiq < 5.0.0 | Sidekiq >= 5.0.0 |
@@ -56,6 +61,10 @@
     > Specify an array of Rake tasks to automatically instrument. This configuration option converts the Array to a RegEx list. If you'd like to allow all tasks by default, use `rake.tasks: [.+]`. Rake tasks will not be instrumented unless they're added to this list. For more information, visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].
 
     We thank @robotfelix for suggesting these changes.
+
+  * **Internally leverage `Object.const_get` and `Object.const_defined?`**
+
+    When dynamically checking for or obtaining a handle to a class constant from a string, leverage the `Object` class's built in methods wherever possible to enjoy simpler, more performant operations. All JRubies and CRubies v2.5 and below need a bit of assistance beyond what `Object` can provide given that those Rubies may yield an unwanted constant from a different namespace than the one that was specified. But for all other Rubies and even for those Rubies in contexts where we can 100% trust the string value coming in, leverage the `Object` class's methods and reap the benefits.
 
   * **Enable Environment Variables setting Array configurations to be converted to Arrays**
 
