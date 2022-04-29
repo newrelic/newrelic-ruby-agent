@@ -69,33 +69,31 @@ module NewRelic
     end
 
     def rails_32_deprecation
-      if defined?(Rails::VERSION) && Gem::Version.new(Rails::VERSION::STRING) <= Gem::Version.new('3.2')
-        deprecation_msg = 'The Ruby Agent is dropping support for Rails 3.2 ' \
-          'in a future major release. Please upgrade your Rails version to continue receiving support. ' \
+      return unless defined?(Rails::VERSION) && Gem::Version.new(Rails::VERSION::STRING) <= Gem::Version.new('3.2')
+      deprecation_msg = 'The Ruby Agent is dropping support for Rails 3.2 ' \
+        'in a future major release. Please upgrade your Rails version to continue receiving support. ' \
 
-        Agent.logger.log_once(
-          :warn,
-          :deprecated_rails_version,
-          deprecation_msg
-        )
+      Agent.logger.log_once(
+        :warn,
+        :deprecated_rails_version,
+        deprecation_msg
+      )
 
-        ::NewRelic::Agent.record_metric("Supportability/Deprecated/Rails32", 1)
-      end
+      ::NewRelic::Agent.record_metric("Supportability/Deprecated/Rails32", 1)
     end
 
     def ruby_22_deprecation
-      if RUBY_VERSION <= '2.2.0'
-        deprecation_msg = 'The Ruby Agent is dropping support for Ruby 2.2 ' \
-          'in version 9.0.0. Please upgrade your Ruby version to continue receiving support. ' \
+      return unless RUBY_VERSION <= '2.2.0'
+      deprecation_msg = 'The Ruby Agent is dropping support for Ruby 2.2 ' \
+        'in version 9.0.0. Please upgrade your Ruby version to continue receiving support. ' \
 
-        ::NewRelic::Agent.logger.log_once(
-          :warn,
-          :deprecated_ruby_version,
-          deprecation_msg
-        )
+      ::NewRelic::Agent.logger.log_once(
+        :warn,
+        :deprecated_ruby_version,
+        deprecation_msg
+      )
 
-        ::NewRelic::Agent.record_metric("Supportability/Deprecated/Ruby22", 1)
-      end
+      ::NewRelic::Agent.record_metric("Supportability/Deprecated/Ruby22", 1)
     end
 
     include Instrumentation
