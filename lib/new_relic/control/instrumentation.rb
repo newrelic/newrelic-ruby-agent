@@ -84,7 +84,6 @@ module NewRelic
     end
 
     def ruby_22_deprecation
-      binding.irb
       if RUBY_VERSION <= '3.2.0'
         deprecation_msg = 'The Ruby Agent is dropping support for Ruby 2.2 ' \
           'in version 9.0.0. Please upgrade your Ruby version to continue receiving support. ' \
