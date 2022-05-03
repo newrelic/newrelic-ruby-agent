@@ -461,10 +461,22 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 'some analytic events', response
   end
 
-  def error_event_data
+  def test_error_event_data
     @http_handle.respond_to(:error_event_data, 'some error events')
     response = @service.error_event_data([{}, []])
     assert_equal 'some error events', response
+  end
+
+  def test_span_event_data
+    @http_handle.respond_to(:span_event_data, 'some span events')
+    response = @service.span_event_data([{}, []])
+    assert_equal 'some span events', response
+  end
+
+  def test_log_event_data
+    @http_handle.respond_to(:log_event_data, 'some log events')
+    response = @service.log_event_data([{}, []])
+    assert_equal 'some log events', response
   end
 
   # Although thread profiling is only available in some circumstances, the
@@ -818,8 +830,8 @@ class NewRelicServiceTest < Minitest::Test
       'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
       'Supportability/invoke_remote_serialize' => {:call_count => 1},
       'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
-      'Supportability/invoke_remote_size' => expected_values,
-      'Supportability/invoke_remote_size/foobar' => expected_values
+      'Supportability/Ruby/Collector/Output/Bytes' => expected_values,
+      'Supportability/Ruby/Collector/foobar/Output/Bytes' => expected_values
     )
   end
 
@@ -854,8 +866,8 @@ class NewRelicServiceTest < Minitest::Test
       'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
       'Supportability/invoke_remote_serialize' => {:call_count => 1},
       'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
-      'Supportability/invoke_remote_size' => expected_values,
-      'Supportability/invoke_remote_size/foobar' => expected_values
+      'Supportability/Ruby/Collector/Output/Bytes' => expected_values,
+      'Supportability/Ruby/Collector/foobar/Output/Bytes' => expected_values
     )
   end
 
@@ -880,8 +892,8 @@ class NewRelicServiceTest < Minitest::Test
     assert_metrics_not_recorded([
       'Supportability/invoke_remote_serialize',
       'Supportability/invoke_remote_serialize/foobar',
-      'Supportability/invoke_remote_size',
-      'Supportability/invoke_remote_size/foobar'
+      'Supportability/Ruby/Collector/Output/Bytes',
+      'Supportability/Ruby/Collector/foobar/Output/Bytes'
     ])
   end
 

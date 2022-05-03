@@ -16,3 +16,6 @@ development:
     stack_trace_threshold: 0.5
     transaction_threshold: 1.0
   capture_params: false
+  application_logging:
+    forwarding:
+      enabled: true

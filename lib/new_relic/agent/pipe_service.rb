@@ -10,8 +10,7 @@ module NewRelic
 
       def initialize(channel_id)
         @channel_id = channel_id
-        @collector = NewRelic::Control::Server.new(:name => 'parent',
-          :port => 0)
+        @collector = NewRelic::Control::Server.new({name: 'parent', port: 0})
         @pipe = NewRelic::Agent::PipeChannelManager.channels[@channel_id]
         if @pipe && @pipe.parent_pid != $$
           @pipe.after_fork_in_child
@@ -59,6 +58,10 @@ module NewRelic
 
       def sql_trace_data(sql)
         write_to_pipe(:sql_trace_data, sql) if sql
+      end
+
+      def log_event_data(logs)
+        write_to_pipe(:log_event_data, logs) if logs
       end
 
       def shutdown

@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "he
 end
 
 if RUBY_VERSION >= '2.5.0'
+  # TODO: MAJOR VERSION - Bump lowest version to 3.2.1 in version 9.0.0
   gemfile <<-RB
     gem 'dalli', '~> 3.0.2'
   RB
@@ -20,7 +21,7 @@ end
   RB
 end
 
-unless RUBY_PLATFORM == 'java'
+unless RUBY_PLATFORM == 'java' || RUBY_VERSION >= '3.2.0'
   gemfile <<-RB
     gem 'memcached', '~> 1.8.0'
   RB

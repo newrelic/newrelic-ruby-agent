@@ -10,6 +10,17 @@ module NewRelic
           defined?(@skip_instrumenting) && @skip_instrumenting
         end
 
+        # We support setting this on loggers which might not have
+        # instrumentation installed yet. This lets us disable in AgentLogger
+        # and AuditLogger without them having to know the inner details.
+        def self.mark_skip_instrumenting(logger)
+          logger.instance_variable_set(:@skip_instrumenting, true)
+        end
+
+        def self.clear_skip_instrumenting(logger)
+          logger.instance_variable_set(:@skip_instrumenting, false)
+        end
+
         def mark_skip_instrumenting
           @skip_instrumenting = true
         end
@@ -18,17 +29,8 @@ module NewRelic
           @skip_instrumenting = false
         end
 
-        LINES = "Logging/lines".freeze
-        SIZE = "Logging/size".freeze
-
-        def line_metric_name_by_severity(severity)
-          @line_metrics ||= {}
-          @line_metrics[severity] ||= "Logging/lines/#{severity}".freeze
-        end
-
-        def size_metric_name_by_severity(severity)
-          @size_metrics ||= {}
-          @size_metrics[severity] ||= "Logging/size/#{severity}".freeze
+        def self.enabled?
+          NewRelic::Agent.config[:'instrumentation.logger'] != 'disabled'
         end
 
         def format_message_with_tracing(severity, datetime, progname, msg)
@@ -40,14 +42,12 @@ module NewRelic
             # methods within NewRelic::Agent, or we'll stack overflow!!
             mark_skip_instrumenting
 
-            NewRelic::Agent.increment_metric(LINES)
-            NewRelic::Agent.increment_metric(line_metric_name_by_severity(severity))
+            unless ::NewRelic::Agent.agent.nil?
+              ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity)
+              formatted_message = LocalLogDecorator.decorate(formatted_message)
+            end
 
-            size = formatted_message.nil? ? 0 : formatted_message.bytesize
-            NewRelic::Agent.record_metric(SIZE, size)
-            NewRelic::Agent.record_metric(size_metric_name_by_severity(severity), size)
-
-            return formatted_message
+            formatted_message
           ensure
             clear_skip_instrumenting
           end

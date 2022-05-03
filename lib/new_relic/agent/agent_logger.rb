@@ -6,6 +6,7 @@ require 'thread'
 require 'logger'
 require 'new_relic/agent/hostname'
 require 'new_relic/agent/log_once'
+require 'new_relic/agent/instrumentation/logger/instrumentation'
 
 module NewRelic
   module Agent
@@ -18,6 +19,7 @@ module NewRelic
         create_log(root, override_logger)
         set_log_level!
         set_log_format!
+        disable_log_instrumentation!
 
         gather_startup_logs
       end
@@ -167,6 +169,11 @@ module NewRelic
         @log.formatter = Proc.new do |severity, timestamp, progname, msg|
           "#{@prefix}[#{timestamp.strftime("%F %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
+      end
+
+      # Don't allow agent logs into agent log forwarding for now
+      def disable_log_instrumentation!
+        NewRelic::Agent::Instrumentation::Logger.mark_skip_instrumenting(@log)
       end
 
       def gather_startup_logs

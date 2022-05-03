@@ -868,7 +868,7 @@ module NewRelic::Agent
         assert_empty last_span_events
       end
 
-      def test_non_sampled_segment_does_not_record_span_event
+      def test_ignored_segment_does_not_record_span_event
         in_transaction('wat') do |txn|
           txn.stubs(:ignore?).returns(true)
 

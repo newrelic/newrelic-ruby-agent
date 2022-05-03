@@ -7,8 +7,6 @@ boilerplate = <<-BOILERPLATE
   #{ruby3_gem_webrick}
 BOILERPLATE
 
-boilerplate += "gem 'i18n', '< 1.3'\n" if RUBY_VERSION < "2.1.0"
-
 gemfile <<-RB
   gem 'sshkit', '1.16.0'
   gem 'capistrano', '~>3.11.1'

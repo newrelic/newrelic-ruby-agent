@@ -158,7 +158,7 @@ class DependencyDetectionTest < Minitest::Test
       assert executed
     end
 
-    # TODO: Deprecated!  Remove in 8.0 Release
+    # TODO: MAJOR VERSION - Deprecated!
     with_config(:disable_testing => true) do
       executed = false
       DependencyDetection.detect!

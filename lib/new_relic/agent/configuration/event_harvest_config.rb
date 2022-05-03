@@ -11,14 +11,16 @@ module NewRelic
         EVENT_HARVEST_CONFIG_KEY_MAPPING = {
           :analytic_event_data => :'transaction_events.max_samples_stored',
           :custom_event_data => :'custom_insights_events.max_samples_stored',
-          :error_event_data => :'error_collector.max_event_samples_stored'
+          :error_event_data => :'error_collector.max_event_samples_stored',
+          :log_event_data => :'application_logging.forwarding.max_samples_stored'
         }
 
         # not including span_event_data here because spans are handled separately in transform_span_event_harvest_config
         EVENT_HARVEST_EVENT_REPORT_PERIOD_KEY_MAPPING = {
           :analytic_event_data => :'transaction_event_data',
           :custom_event_data => :'custom_event_data',
-          :error_event_data => :'error_event_data'
+          :error_event_data => :'error_event_data',
+          :log_event_data => :'log_event_data'
         }
 
         def from_config(config)

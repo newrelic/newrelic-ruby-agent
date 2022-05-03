@@ -77,6 +77,7 @@ module NewRelic
 
       attr_reader :guid,
         :metrics,
+        :logs,
         :gc_start_snapshot,
         :category,
         :attributes,
@@ -216,7 +217,8 @@ module NewRelic
 
       def initialize(category, options)
         @nesting_max_depth = 0
-        @current_segment = nil
+        @current_segment_by_thread = {}
+        @current_segment_lock = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -236,6 +238,7 @@ module NewRelic
 
         @exceptions = {}
         @metrics = TransactionMetrics.new
+        @logs = PrioritySampledBuffer.new(NewRelic::Agent.instance.log_event_aggregator.capacity)
         @guid = NewRelic::Agent::GuidGenerator.generate_guid
 
         @ignore_this_transaction = false
@@ -257,6 +260,25 @@ module NewRelic
         else
           @request_attributes = nil
         end
+      end
+
+      def parent_thread_id
+        ::Thread.current.nr_parent_thread_id if ::Thread.current.respond_to?(:nr_parent_thread_id)
+      end
+
+      def current_segment
+        current_thread_id = ::Thread.current.object_id
+        return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
+        return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
+        current_segment_by_thread[@starting_thread_id]
+      end
+
+      def set_current_segment(new_segment)
+        @current_segment_lock.synchronize { current_segment_by_thread[::Thread.current.object_id] = new_segment }
+      end
+
+      def remove_current_segment_by_thread_id(id)
+        @current_segment_lock.synchronize { current_segment_by_thread.delete(id) }
       end
 
       def distributed_tracer
@@ -533,6 +555,7 @@ module NewRelic
 
         record_exceptions
         record_transaction_event
+        record_log_events
         merge_metrics
         send_transaction_finished_event
       end
@@ -716,9 +739,9 @@ module NewRelic
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options = {}) # :nodoc:
         # Only the last error is kept
-        if @current_segment
-          @current_segment.notice_error error, expected: options[:expected]
-          options[:span_id] = @current_segment.guid
+        if current_segment
+          current_segment.notice_error(error, expected: options[:expected])
+          options[:span_id] = current_segment.guid
         end
 
         if @exceptions[error]
@@ -730,6 +753,10 @@ module NewRelic
 
       def record_transaction_event
         agent.transaction_event_recorder.record payload
+      end
+
+      def record_log_events
+        agent.log_event_aggregator.record_batch self, @logs.to_a
       end
 
       def queue_time
@@ -824,6 +851,10 @@ module NewRelic
 
       def add_custom_attributes(p)
         attributes.merge_custom_attributes(p)
+      end
+
+      def add_log_event(event)
+        logs.append(event: event)
       end
 
       def recording_web_transaction?

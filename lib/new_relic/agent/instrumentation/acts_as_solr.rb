@@ -44,6 +44,16 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing ActsAsSolr instrumentation'
+    deprecation_msg = 'The instrumentation for ActsAsSolr is deprecated. ' \
+      'It will be removed in version 9.0.0.' \
+
+    ::NewRelic::Agent.logger.log_once(
+      :warn,
+      :deprecated_acts_as_solr,
+      deprecation_msg
+    )
+
+    ::NewRelic::Agent.record_metric("Supportability/Deprecated/ActsAsSolr", 1)
   end
 
   executes do

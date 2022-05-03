@@ -65,7 +65,7 @@ module Multiverse
 
         next if dir =~ /\A\./
         next unless passes_filter?(dir, filter)
-        next unless File.exists?(File.join(full_path, "Envfile"))
+        next unless File.exist?(File.join(full_path, "Envfile"))
 
         begin
           suite = Suite.new(full_path, opts)
@@ -98,7 +98,7 @@ module Multiverse
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749
-    if RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+    if RUBY_VERSION < '2.3'
       GROUPS['background_2'].delete 'rake'
     end
 
@@ -110,14 +110,12 @@ module Multiverse
       # this suite uses mysql2 which has issues on ruby 3.0+
       # a new suite, active_record_pg, has been added to run active record tests on ruby 3.0+
       GROUPS['rails'].delete 'active_record'
-      GROUPS['frameworks'].delete 'grape'
     end
 
     def excluded?(suite)
-      return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      return true if suite == 'rake' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
-      return true if ["grape"].include?(suite) and RUBY_VERSION >= '3.0'
     end
 
     def passes_filter?(dir, filter)

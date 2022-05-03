@@ -1,36 +1,10 @@
-rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
 instrumentation_methods :chain, :prepend
 
+gemfile <<-RB
+  gem 'activesupport', '~> 3'
+  gem 'padrino', '~> 0.15.1'
+  gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
+  gem 'webrick' if RUBY_VERSION >= '2.7.0'
+RB
 
-if RUBY_VERSION < '2.7.0'
-  # NOTE: this config (padrino = 0.14.0) will break if you have a local bundler version other than 1.17.3.
-  # The github CI handles the bundler version correctly, so tests should pass on github CI.
-  gemfile <<-RB unless RUBY_PLATFORM.eql?('java')
-    gem 'activesupport', '~> 3'
-    gem 'padrino', '~> 0.14.0'
-    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-  RB
-
-  gemfile <<-RB
-    gem 'activesupport', '~> 3'
-    gem 'padrino', '~> 0.15.1'
-    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-  RB
-end
-
-if RUBY_VERSION >= '2.7.0'
-  gemfile <<-RB
-    gem 'activesupport', '~> 3'
-    gem 'padrino', '~> 0.15.1'
-    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-    gem 'webrick'
-  RB
-
-  gemfile <<-RB
-    gem 'activesupport', '~> 3'
-    gem 'padrino', '~> 0.15.1'
-    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-    gem 'webrick'
-  RB
-end
 # vim: ft=ruby
