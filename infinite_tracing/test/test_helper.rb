@@ -13,8 +13,8 @@ $LOAD_PATH << agent_test_path
 
 require 'rubygems'
 require 'rake'
-
 require 'minitest/autorun'
+require 'minitest/pride' unless ENV['CI']
 require 'mocha/setup'
 
 require 'newrelic_rpm'
