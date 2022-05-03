@@ -15,6 +15,18 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing DataMapper instrumentation'
     require 'new_relic/agent/datastores/metric_helper'
+
+    deprecation_msg = 'The instrumentation for DataMapper is deprecated. ' \
+     'It will be removed in version 9.0.0.' \
+     'Visit https://docs.newrelic.com/docs/apm/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks ' \
+     'to learn about supported gems.'
+
+    ::NewRelic::Agent.logger.log_once(
+      :warn,
+      :deprecated_datamapper,
+      deprecation_msg
+    )
+    ::NewRelic::Agent.record_metric("Supportability/Deprecated/DataMapper", 1)
   end
 
   executes do

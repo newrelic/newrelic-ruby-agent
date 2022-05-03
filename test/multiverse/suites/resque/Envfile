@@ -1,17 +1,18 @@
 if RUBY_VERSION >= '2.3.0'
   gemfile <<-RB
-    gem 'redis', '< 4.0.0' if RUBY_VERSION < '2.2.0'
-    gem 'sinatra', '< 2.0' if RUBY_VERSION < '2.2.0'
-    gem 'resque', '2.1.0'
+    gem 'resque', '~> 2.2.0'
+    gem 'json'
+    #{ruby3_gem_webrick}
+  RB
+  gemfile <<-RB
+    gem 'resque', '~> 2.1.0'
     gem 'json'
     #{ruby3_gem_webrick}
   RB
 end
 
 gemfile <<-RB
-  gem 'redis', '< 4.0.0' if RUBY_VERSION < '2.2.0'
   gem 'resque', '~>1.27.4'
-  gem 'sinatra', '< 2.0' if RUBY_VERSION < '2.2.0'
   gem 'json'
   #{ruby3_gem_webrick}
 RB

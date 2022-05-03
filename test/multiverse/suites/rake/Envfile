@@ -24,13 +24,11 @@
 
 instrumentation_methods :chain, :prepend
 
-if RUBY_VERSION >= '2.2.0'
-  gemfile <<-RB
-    gem 'rack'
-    gem 'rake', '~> 13.0.0'
-    #{ruby3_gem_webrick}
-  RB
-end
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 13.0.0'
+  #{ruby3_gem_webrick}
+RB
 
 gemfile <<-RB
   gem 'rack'
@@ -45,7 +43,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'rake', '~> 12.3.3'
     gem 'rails', '~> 4.2.1'
     gem 'minitest', '5.2.3'
-    gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
 end
 

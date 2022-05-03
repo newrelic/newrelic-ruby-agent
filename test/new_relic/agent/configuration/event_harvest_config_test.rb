@@ -88,5 +88,23 @@ module NewRelic::Agent::Configuration
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
+
+    def test_to_config_hash_with_zero_response_for_log_event_data
+      connect_reply = {
+        'event_harvest_config' => {
+          'report_period_ms' => 5000,
+          'harvest_limits' => {
+            'log_event_data' => 0
+          }
+        }
+      }
+
+      expected = {
+        :'application_logging.forwarding.max_samples_stored' => 0,
+        :'event_report_period.log_event_data' => 5,
+        :event_report_period => 5
+      }
+      assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
+    end
   end
 end

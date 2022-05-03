@@ -195,7 +195,7 @@ class MongoServer
   end
 
   def pid
-    File.read(pid_path).to_i if File.exists? pid_path
+    File.read(pid_path).to_i if File.exist? pid_path
   end
 
   def next_available_port

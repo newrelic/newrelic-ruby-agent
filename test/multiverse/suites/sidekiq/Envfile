@@ -5,8 +5,7 @@ SIDEKIQ_VERSIONS = [
   ["~> 6.1.3"],
   ["~> 6.1.0"],
   ["~> 6.0.0"],
-  ["~> 5.0.3"],
-  ["~> 4.2.10"]
+  ["~> 5.0.3"]
 ]
 
 # 5.x series requires >= Ruby 2.3
@@ -22,15 +21,10 @@ def ruby2_compatible? sidekiq_version
   end
 end
 
-# older connection pool gems do not work with Ruby 3.0
-# Sidekiq 4.2.10 does not support Ruby 3.0.3/3.1+ YAML parsing
-def ruby3_compatible? sidekiq_version
-  sidekiq_version.split(" ")[-1].to_i > 4
-end
 
 SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
   next if RUBY_VERSION < "3.0.0" && !ruby2_compatible?(sidekiq_version)
-  next if (RUBY_VERSION >= "3.0.0" || RUBY_PLATFORM == "java") && !ruby3_compatible?(sidekiq_version)
+  next if RUBY_PLATFORM == "java"
 
   # use specified version when declared
   gem_timers = timers_version ? "gem 'timers', '#{timers_version}'" : ""
@@ -38,10 +32,9 @@ SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
   # must use older gems for older Rubies
   gem_redis = RUBY_VERSION <= "2.3.0" ? "gem 'redis', '<= 4.1.0'" : ""
   gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
-  gem_json = RUBY_VERSION >= "2.1.0" ? "gem 'json'" : "gem 'json', '< 2.0.0'"
   gemfile <<-RB
     gem 'rack'
-    #{gem_json}
+    gem 'json'
     #{gem_connection_pool}
     #{gem_timers}
     #{gem_redis}

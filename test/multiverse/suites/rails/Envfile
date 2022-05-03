@@ -38,9 +38,10 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
   RB
 end
 
-if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
+if RUBY_VERSION < '3.0.0'
   gemfile <<-RB
-    gem 'rails', '~> 5.2.0'
+    # Rails 5.2.7.1 uses a '~>>' style heredoc that breaks Ruby 2.2 compatibility
+    gem 'rails', '~> 5.2.0'#{", '<= 5.2.7'" if RUBY_VERSION < '2.3.0'}
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
@@ -68,7 +69,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
-    gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
 
   gemfile <<-RB
@@ -78,14 +78,12 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
-    gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 4.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
-    gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
 
   gemfile <<-RB

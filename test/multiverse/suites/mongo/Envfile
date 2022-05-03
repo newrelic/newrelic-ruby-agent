@@ -12,20 +12,19 @@ MONGO_VERSIONS_RUBY25 = ['2.15.1',
                          '2.14.0',
                          '2.12.0']
 
-# Mongo versions to test with all CRubies
-MONGO_VERSIONS_ALL_RUBIES = ['2.9.0',
-                             '2.7.0',
-                             '2.5.0',
-                             '2.4.0',
-                             '2.1.0',
-                             '2.0.0',
-                             '1.10.0',
-                             ['1.9.2', 2.6],
-                             ['1.8.6', 2.6],
-                             '1.7.1']
+# TODO: MAJOR VERSION - Stop testing mongo versions below 2.5.0
+# Mongo versions to test with CRubies below 2.5.0
+MONGO_VERSIONS_OLDER_RUBIES = ['2.9.0',
+                               '2.7.0',
+                               '2.5.0',
+                               '2.4.0',
+                               '2.1.0',
+                               '2.0.0',
+                               '1.9.2',
+                               '1.8.6']
 
-# Include bson_ext for older Mongo gem versions <= 1.10.0
-BSON_EXT_NEEDED_BEFORE_VERSION = Gem::Version::new("1.10.0")
+# The highest Mongo server version to test 1.x gems against
+MAX_SERVER_VERSION_FOR_1X_GEMS = 2.6
 
 # * JRuby uses Mongo gem versions for v2.6.0+ Ruby only
 # * Newer CRubies use newer Mongo gem versions and older ones
@@ -35,8 +34,11 @@ def mongo_versions
   versions += MONGO_VERSIONS_RUBY26 if ruby_gte?('2.6.0')
   return versions if RUBY_PLATFORM.eql?('java')
 
-  versions += MONGO_VERSIONS_RUBY25 if ruby_gte?('2.5.0')
-  versions += MONGO_VERSIONS_ALL_RUBIES
+  if ruby_gte?('2.5.0')
+    versions += MONGO_VERSIONS_RUBY25
+  else
+    versions += MONGO_VERSIONS_OLDER_RUBIES
+  end
   versions
 end
 
@@ -49,25 +51,12 @@ def installed_mongo_server_version
 end
 
 mongo_versions.each do |mongo_version|
-  if mongo_version.is_a?(Array)
-    last_supported_server_version = mongo_version[1]
-    if installed_mongo_server_version > last_supported_server_version
-      next
-    end
-    mongo_version = mongo_version[0]
-  end
+  next if mongo_version.start_with?('1.') && installed_mongo_server_version > MAX_SERVER_VERSION_FOR_1X_GEMS
 
-
-  if Gem::Version.new(mongo_version) < BSON_EXT_NEEDED_BEFORE_VERSION
-    gemfile <<-RB
-      gem 'mongo', '~>#{mongo_version}'
-      gem 'bson', '< 4.8'
-      gem 'bson_ext', :platforms => :ruby
-    RB
-  elsif Gem::Version.new(mongo_version) >= Gem::Version.new("2.12.0")
+  if Gem::Version.new(mongo_version) >= Gem::Version.new("2.12.0")
     gemfile <<-RB
       gem 'mongo', '~> #{mongo_version}'
-      gem 'bson', '~> 4.8'
+      gem 'bson', '~> 4.14'
     RB
   else
     gemfile <<-RB

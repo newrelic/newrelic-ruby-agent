@@ -20,6 +20,8 @@ module NewRelic::Agent::Instrumentation
       return false unless defined? ::Puma::Const::PUMA_VERSION
 
       version = Gem::Version.new(::Puma::Const::PUMA_VERSION)
+      # TODO: MAJOR VERSION - update min_version to 3.9.0
+      # min_version = Gem::Version.new('3.9.0')
       min_version = Gem::Version.new('2.12.0')
       version >= min_version
     end

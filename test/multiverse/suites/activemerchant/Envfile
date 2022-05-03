@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '3.0.0'
   gemfile <<-RB
-    gem 'activemerchant', '~>1.121.0'
+    gem 'activemerchant'
     gem 'rack'
     gem 'rexml'
     gem 'webrick'
@@ -26,7 +26,7 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
-end 
+end
 
 if RUBY_VERSION >= '2.3.0' && RUBY_VERSION < '3.0.0'
   gemfile <<-RB
@@ -40,13 +40,13 @@ if RUBY_VERSION >= '2.3.0' && RUBY_VERSION < '3.0.0'
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
-    
+
 
 end
 
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
-    gem 'activemerchant', '~>1.62.0' # last supported version for ruby 2.0
+    gem 'activemerchant', '~>1.65.0'
     gem 'rack'
 
     gem 'activesupport', '~>4.0.4'

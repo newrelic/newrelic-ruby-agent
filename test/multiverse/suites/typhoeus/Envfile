@@ -6,9 +6,9 @@ SUPPORTED_TYPHOEUS_VERSIONS = [
 instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
-  gem 'typhoeus' # latest version
+  gem 'typhoeus'
   if RUBY_PLATFORM == 'java'
-    gem 'ethon', '0.14.0' 
+    gem 'ethon', '0.14.0'
   end
   gem 'rack'
   #{ruby3_gem_webrick}
@@ -18,7 +18,7 @@ SUPPORTED_TYPHOEUS_VERSIONS.each do |version|
   gemfile <<-RB
     gem 'typhoeus', '~> #{version}'
     if RUBY_PLATFORM == 'java'
-      gem 'ethon', '0.14.0' 
+      gem 'ethon', '0.14.0'
     end
     gem 'rack'
     #{ruby3_gem_webrick}

@@ -146,7 +146,7 @@ module DependencyDetection
       !(disabled_configured? || deprecated_disabled_configured?)
     end
 
-    # TODO: Remove in 8.0
+    # TODO: MAJOR VERSION
     # will only return true if a disabled key is found and is truthy
     def deprecated_disabled_configured?
       return false if self.name.nil?
