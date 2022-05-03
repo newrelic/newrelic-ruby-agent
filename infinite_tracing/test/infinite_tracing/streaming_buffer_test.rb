@@ -23,6 +23,7 @@ module NewRelic
             total_spans = 1
             buffer, _segments = stream_segments total_spans
             consume_spans buffer
+            # process_threads
 
             refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
             assert_metrics_recorded({
@@ -38,10 +39,12 @@ module NewRelic
             generator, buffer, _segments = prepare_to_stream_segments total_spans
 
             # consumes the queue as it fills
-            _spans, _consumer = prepare_to_consume_spans buffer
+            _spans, consumer = prepare_to_consume_spans buffer
 
             generator.join
             buffer.flush_queue
+            # process_threads
+            consumer.join
 
             refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
             assert_metrics_recorded({
@@ -58,6 +61,7 @@ module NewRelic
             buffer, segments = stream_segments total_spans
 
             spans = consume_spans buffer
+            # process_threads
 
             assert_equal total_spans, spans.size
             spans.each_with_index do |span, index|
@@ -80,10 +84,12 @@ module NewRelic
             generator, buffer, segments = prepare_to_stream_segments total_spans
 
             # consumes the queue as it fills
-            spans, _consumer = prepare_to_consume_spans buffer
+            spans, consumer = prepare_to_consume_spans buffer
 
             generator.join
             buffer.flush_queue
+            consumer.join
+            # process_threads
 
             assert_equal total_spans, spans.size
             spans.each_with_index do |span, index|
@@ -111,6 +117,8 @@ module NewRelic
             # consumes the queue after we've filled it
             spans = consume_spans buffer
 
+            # process_threads
+
             assert_equal 1, spans.size
             assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
             assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
@@ -130,7 +138,7 @@ module NewRelic
             generator, buffer, segments = prepare_to_stream_segments total_spans
 
             # consumes the queue as it fills
-            spans, _consumer = prepare_to_consume_spans buffer
+            spans, consumer = prepare_to_consume_spans buffer
 
             # closes the streaming buffer after queue is emptied
             closed = false
@@ -147,7 +155,9 @@ module NewRelic
 
             closer.join
             generator.join
+            # process_threads
             buffer.flush_queue
+            consumer.join
 
             assert emptied, "spans streamed reached total but buffer not empty!"
             assert closed, "failed to close the buffer"
@@ -166,6 +176,7 @@ module NewRelic
 
         def assert_watched_threads_finished buffer
           @threads.each do |thread_name, thread|
+            # thread.join
             refute thread.alive?, "Thread #{thread_name} is still alive #{buffer.num_waiting}!"
           end
         end
