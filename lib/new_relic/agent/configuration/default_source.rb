@@ -247,17 +247,15 @@ module NewRelic
         end
 
         def self.convert_to_constant_list(raw_value)
-          const_names = convert_to_list(raw_value)
-          const_names.map! do |class_name|
+          return NewRelic::EMPTY_ARRAY if raw_value.nil? || raw_value.empty?
+
+          constants = convert_to_list(raw_value).map! do |class_name|
             const = ::NewRelic::LanguageSupport.constantize(class_name)
-
-            unless const
-              NewRelic::Agent.logger.warn("Ignoring unrecognized constant '#{class_name}' in #{raw_value}")
-            end
-
+            NewRelic::Agent.logger.warn("Ignoring invalid constant '#{class_name}' in #{raw_value}") unless const
             const
           end
-          const_names.compact
+          constants.compact!
+          constants
         end
 
         def self.enforce_fallback(allowed_values: nil, fallback: nil)
@@ -518,7 +516,11 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Specify an array of Rake tasks to automatically instrument.'
+          :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
+          'This configuration option converts the Array to a RegEx list. If you\'d like '\
+          'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be '\
+          'instrumented unless they\'re added to this list. For more information, '\
+          'visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].'
         },
         :'rake.connect_timeout' => {
           :default => 10,
@@ -921,6 +923,21 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.thread' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asyncronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.thread.tracing' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application."
+        },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),
           :documentation_default => 'auto',
@@ -1005,7 +1022,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.puma_rack' => {
-          :default => instrumentation_value_of(:disable_puma_rack), # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :default => instrumentation_value_of(:disable_puma_rack), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1016,7 +1033,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
-          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
           :documentation_default => 'auto',
           :public => true,
           :type => String,

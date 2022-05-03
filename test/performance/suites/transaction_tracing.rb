@@ -96,6 +96,14 @@ class TransactionTracingPerfTests < Performance::TestCase
     end
   end
 
+  def test_short_transactions_in_thread
+    measure { Thread.new { @dummy.short_transaction }.join }
+  end
+
+  def test_long_transactions_in_thread
+    measure { Thread.new { @dummy.long_transaction(10000) }.join }
+  end
+
   def test_with_custom_attributes
     measure { @dummy.transaction_with_attributes }
   end
@@ -143,7 +151,38 @@ class TransactionTracingPerfTests < Performance::TestCase
     end
   end
 
+  def test_short_transaction_with_datastore_segment_in_thread
+    measure do
+      in_transaction do |txn|
+        txn.sampled = true
+        thread = Thread.new do
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
+            product: "SQLite",
+            operation: "insert",
+            collection: "Blog"
+          )
+          segment.finish
+        end
+        thread.join
+      end
+    end
+  end
+
   def test_short_transaction_with_external_request_segment
+    measure do
+      in_transaction do |txn|
+        txn.sampled = true
+        segment = NewRelic::Agent::Tracer.start_external_request_segment(
+          library: "Net::HTTP",
+          uri: "http://remotehost.com/blogs/index",
+          procedure: "GET"
+        )
+        segment.finish
+      end
+    end
+  end
+
+  def test_short_transaction_with_external_request_segment_in_thread
     measure do
       in_transaction do |txn|
         txn.sampled = true

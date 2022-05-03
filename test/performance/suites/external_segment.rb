@@ -39,6 +39,17 @@ class ExternalSegment < Performance::TestCase
     stop_server io_server
   end
 
+  def test_external_request_in_thread
+    io_server = start_server
+    measure do
+      in_transaction do
+        thread = Thread.new { Net::HTTP.get(TEST_URI) }
+        thread.join
+      end
+    end
+    stop_server io_server
+  end
+
   def test_external_cat_request
     NewRelic::Agent.config.add_config_for_testing(CAT_CONFIG)
 
@@ -59,6 +70,19 @@ class ExternalSegment < Performance::TestCase
     measure do
       in_transaction do
         Net::HTTP.get(TEST_URI)
+      end
+    end
+    stop_server io_server
+  end
+
+  def test_external_trace_context_request_within_thread
+    NewRelic::Agent.config.add_config_for_testing(TRACE_CONTEXT_CONFIG)
+
+    io_server = start_server
+    measure do
+      in_transaction do
+        thread = Thread.new { Net::HTTP.get(TEST_URI) }
+        thread.join
       end
     end
     stop_server io_server
