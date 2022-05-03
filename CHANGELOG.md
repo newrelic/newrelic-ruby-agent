@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.7.1
+
+  * **Turn off log forwarding by default**
+
+    The default value for `application_logging.forwarding.enabled` has been reverted from `true` to `false`.
+
   ## v8.7.0
 
   * **Enables Environment Variables setting Array configurations to be converted to Arrays**
