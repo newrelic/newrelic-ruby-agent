@@ -102,8 +102,6 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 2
-            first = true
-
             emulate_streaming_with_initial_error total_spans
 
             assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
