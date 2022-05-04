@@ -73,7 +73,7 @@ module NewRelic
         end
 
         def test_ignored_transaction_does_not_record_span_event
-          span_events = generate_and_stream_segments(expect_mock: false) do
+          span_events = generate_and_stream_segments do
             in_transaction('wat') do |txn|
               txn.stubs(:ignore?).returns(true)
 
