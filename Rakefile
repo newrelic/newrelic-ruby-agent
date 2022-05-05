@@ -116,8 +116,8 @@ task :update_ca_bundle do |t|
 end
 
 namespace :cross_agent_tests do
-  CROSS_AGENT_TESTS_UPSTREAM_PATH = File.expand_path(File.join('..', 'cross_agent_tests'), __FILE__).freeze
-  CROSS_AGENT_TESTS_LOCAL_PATH = File.expand_path(File.join('test', 'fixtures', 'cross_agent_tests'), __FILE__).freeze
+  CROSS_AGENT_TESTS_UPSTREAM_PATH = File.expand_path(File.join('..', 'cross_agent_tests')).freeze
+  CROSS_AGENT_TESTS_LOCAL_PATH = File.expand_path(File.join('test', 'fixtures', 'cross_agent_tests')).freeze
 
   def prompt_to_continue(command, destination = 'local')
     puts "The following rsync command will be executed to update the #{destination} copy of the specs:"
