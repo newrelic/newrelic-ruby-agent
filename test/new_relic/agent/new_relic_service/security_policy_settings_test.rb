@@ -54,7 +54,7 @@ module NewRelic
                 validator.validate_matching_agent_config!
                 settings = SecurityPolicySettings.preliminary_settings(policies)
                 assert_equal test_case['expected_connect_policies'], settings['security_policies']
-                test_case['validate_policies_not_in_connect'].keys.each do |key|
+                test_case['validate_policies_not_in_connect'].each do |key|
                   refute_includes settings['security_policies'].keys, key
                 end
               end

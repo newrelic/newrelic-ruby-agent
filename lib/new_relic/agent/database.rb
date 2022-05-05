@@ -136,10 +136,10 @@ module NewRelic
 
       def parse_operation_from_query(sql)
         sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, NewRelic::EMPTY_STR)
-        if sql =~ /(\w+)/
-          op = $1.downcase
-          return op if KNOWN_OPERATIONS.include?(op)
-        end
+        return unless sql =~ /(\w+)/
+
+        op = Regexp.last_match(1).downcase
+        KNOWN_OPERATIONS.include?(op) ? op : 'other'
       end
 
       class ConnectionManager

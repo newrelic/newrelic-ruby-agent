@@ -101,7 +101,9 @@ module NewRelic
         end
 
         def self.operation_from_sql(sql)
-          NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
+          operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
+          operation = OTHER if operation.eql?('other')
+          operation
         end
 
         # Allow Transaction#with_database_metric_name to override our

@@ -85,7 +85,10 @@ module NewRelic
 
           define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
             NewRelic::Agent::Utilization::AWS.stubs(:imds_token).returns('John Howe')
-            uri_obj = test_case[:uri][:'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document']
+            uri_obj_key = test_case[:uri].keys.detect do |key|
+              key.match?(%r{http://169.254.169.254/(?:2016-09-02|latest)/dynamic/instance-identity/document})
+            end
+            uri_obj = test_case[:uri][uri_obj_key]
             if uri_obj[:timeout]
               @vendor.stubs(:request_metadata).returns(nil)
             else
