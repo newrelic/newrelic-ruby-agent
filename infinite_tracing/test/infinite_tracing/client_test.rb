@@ -76,7 +76,7 @@ module NewRelic
                 # behaves as expected (since we just testing the client behavior)
                 simulate_server_response GRPC::Ok.new
               else
-                # we need to do this so the client streaming helpers know when 
+                # we need to do this so the client streaming helpers know when
                 # the mock server has done its thing
                 simulate_server_response
               end
