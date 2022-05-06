@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../multiverse/lib/multiverse/bundler_patch', __FILE__
-require File.expand_path '../../../../multiverse/lib/multiverse/color', __FILE__
-require File.expand_path '../../../../multiverse/lib/multiverse/shell_utils', __FILE__
+require_relative '../../../multiverse/lib/multiverse/bundler_patch'
+require_relative '../../../multiverse/lib/multiverse/color'
+require_relative '../../../multiverse/lib/multiverse/shell_utils'
 
 module Environments
   class Runner

@@ -22,6 +22,10 @@ You can run against a specific Rails version only by passing the version name (w
 
     bundle exec rake test:env[rails51]
 
+Zsh example:
+
+    bundle exec rake test:env\[rails51\]
+
 In CI, these unit tests are run against all supported major.minor versions of Rails (as well as with Rails absent entirely). The test/environments directory contains dummy Rails apps for each supported Rails versions. You can also locally run tests against all versions of Rails supported by your current Ruby version with:
 
     bundle exec rake test:env
