@@ -819,9 +819,6 @@ Lint/UselessAccessModifier:
 Lint/UselessAssignment:
   Enabled: false
 
-Lint/UselessElseWithoutRescue:
-  Enabled: true
-
 Lint/UselessMethodDefinition:
   Enabled: false
 
