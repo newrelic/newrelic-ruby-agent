@@ -123,7 +123,7 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 5
-            _spans, _segments = emulate_streaming_segments total_spans do |client, segments|
+            emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
                 simulate_server_response_shutdown GRPC::Unimplemented.new("i dont exist")
               else
