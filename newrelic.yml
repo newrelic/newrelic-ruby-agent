@@ -43,7 +43,7 @@ common: &default_settings
 # application_logging.local_decorating.enabled: false
 
 # If `true`, the agent will report source code level metrics for traced methods
-# code_level_metrics.enabled: true
+# code_level_metrics.enabled: false
 
 # If true, enables transaction event sampling.
 # transaction_events.enabled: true

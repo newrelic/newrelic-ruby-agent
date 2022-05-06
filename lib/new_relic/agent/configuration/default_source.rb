@@ -2013,7 +2013,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
         },
         :'code_level_metrics.enabled' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,

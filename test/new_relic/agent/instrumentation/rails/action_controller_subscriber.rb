@@ -324,15 +324,17 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_code_level_metrics
-    @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    txn = NewRelic::Agent::Transaction.tl_current
-    @subscriber.finish('process_action.action_controller', :id, @entry_payload)
-    attributes = txn.segments.first.code_attributes
+    with_config(:'code_level_metrics.enabled' => true) do
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      txn = NewRelic::Agent::Transaction.tl_current
+      @subscriber.finish('process_action.action_controller', :id, @entry_payload)
+      attributes = txn.segments.first.code_attributes
 
-    assert_equal __FILE__, attributes['code.filepath']
-    assert_equal 'index', attributes['code.function']
-    assert_equal TestController.instance_method(:index).source_location.last, attributes['code.lineno']
-    assert_equal "NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest::TestController",
-      attributes['code.namespace']
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal 'index', attributes['code.function']
+      assert_equal TestController.instance_method(:index).source_location.last, attributes['code.lineno']
+      assert_equal "NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest::TestController",
+        attributes['code.namespace']
+    end
   end
 end

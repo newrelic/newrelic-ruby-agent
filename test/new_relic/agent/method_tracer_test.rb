@@ -52,23 +52,25 @@ module TestModuleWithLog
   end
 end
 
-class MyClass
-  def self.class_method
+with_config(:'code_level_metrics.enabled' => true) do
+  class MyClass
+    def self.class_method
+    end
+
+    class << self
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :class_method
+    end
   end
 
-  class << self
-    include NewRelic::Agent::MethodTracer
-    add_method_tracer :class_method
-  end
-end
+  module MyModule
+    def self.module_method
+    end
 
-module MyModule
-  def self.module_method
-  end
-
-  class << self
-    include NewRelic::Agent::MethodTracer
-    add_method_tracer :module_method
+    class << self
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :module_method
+    end
   end
 end
 
@@ -186,7 +188,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal :class_method, attributes['code.function']
-      assert_equal 56, attributes['code.lineno']
+      assert_equal 57, attributes['code.lineno']
       assert_equal 'MyClass', attributes['code.namespace']
     end
   end
@@ -207,16 +209,18 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal :module_method, attributes['code.function']
-      assert_equal 66, attributes['code.lineno']
+      assert_equal 67, attributes['code.lineno']
       assert_equal 'MyModule', attributes['code.namespace']
     end
   end
 
   def anonymous_class
-    Class.new do
-      def instance_method; end
-      include NewRelic::Agent::MethodTracer
-      add_method_tracer :instance_method
+    with_config(:'code_level_metrics.enabled' => true) do
+      Class.new do
+        def instance_method; end
+        include NewRelic::Agent::MethodTracer
+        add_method_tracer :instance_method
+      end
     end
   end
 
@@ -240,7 +244,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal :instance_method, attributes['code.function']
-      assert_equal 217, attributes['code.lineno']
+      assert_equal 220, attributes['code.lineno']
       assert_equal '(Anonymous)', attributes['code.namespace']
     end
   end
