@@ -60,7 +60,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(The::Example.singleton_class, :class_method)
       assert_equal({filepath: __FILE__,
         lineno: The::Example.method(:class_method).source_location.last,
-        function: :class_method,
+        function: 'self.class_method',
         namespace: 'The::Example'},
         info)
     end
@@ -71,7 +71,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(::The::Example, :instance_method)
       assert_equal({filepath: __FILE__,
         lineno: The::Example.instance_method(:instance_method).source_location.last,
-        function: :instance_method,
+        function: 'instance_method',
         namespace: 'The::Example'},
         info)
     end
@@ -85,7 +85,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(klass, :an_instance_method)
       assert_equal({filepath: __FILE__,
         lineno: klass.instance_method(:an_instance_method).source_location.last,
-        function: :an_instance_method,
+        function: 'an_instance_method',
         namespace: '(Anonymous)'},
         info)
     end
@@ -99,7 +99,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(klass, :a_class_method)
       assert_equal({filepath: __FILE__,
         lineno: klass.method(:a_class_method).source_location.last,
-        function: :a_class_method,
+        function: 'self.a_class_method',
         namespace: '(Anonymous)'},
         info)
     end

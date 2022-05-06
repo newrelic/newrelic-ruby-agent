@@ -53,11 +53,11 @@ module NewRelic
         cache_key = "#{object.object_id}#{method_name}"
         return @code_information[cache_key] if @code_information.key?(cache_key)
 
-        namespace, location = namespace_and_location(object, method_name.to_sym)
+        namespace, location, is_class_method = namespace_and_location(object, method_name.to_sym)
 
         @code_information[cache_key] = {filepath: location.first,
                                         lineno: location.last,
-                                        function: method_name,
+                                        function: "#{'self.' if is_class_method}#{method_name}",
                                         namespace: namespace}
       rescue => e
         ::NewRelic::Agent.logger.warn("Unable to determine source code info for '#{object}', " \
@@ -103,12 +103,14 @@ module NewRelic
       def namespace_and_location(object, method_name)
         klass = object.singleton_class? ? klassify_singleton(object) : object
         name = klass.name || '(Anonymous)'
+        is_class_method = false
         method = if klass.instance_methods.include?(method_name)
           klass.instance_method(method_name)
         else
+          is_class_method = true
           klass.method(method_name)
         end
-        [name, method.source_location]
+        [name, method.source_location, is_class_method]
       end
     end
   end
