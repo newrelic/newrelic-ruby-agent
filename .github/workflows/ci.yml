@@ -213,7 +213,7 @@ jobs:
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 40
-          max_attempts: 1
+          max_attempts: 2
           command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
 
       - name: Annotate errors
