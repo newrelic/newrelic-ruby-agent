@@ -71,10 +71,13 @@ module NewRelic
 
             spans, segments = emulate_streaming_segments total_spans do |client, current_segments|
               if current_segments.size == total_spans - leftover_spans
-                # we do this here instead of server_proc because we are testing that if the server restarts while the CLIENT is currently running (since we are not testing the server, just client behavior)
+                # we do this here instead of server_proc because we are testing that if
+                # the server restarts while the CLIENT is currently running, it
+                # behaves as expected (since we just testing the client behavior)
                 simulate_server_response GRPC::Ok.new
               else
-                # we need to do this so the client streaming helpers know when the mock server has done its thing
+                # we need to do this so the client streaming helpers know when 
+                # the mock server has done its thing
                 simulate_server_response
               end
             end
