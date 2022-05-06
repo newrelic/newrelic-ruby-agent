@@ -36,8 +36,8 @@ module NewRelic
           with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans do |client, segments|
-              if segments.size == 3
+            spans, segments = emulate_streaming_segments total_spans do |client, current_segments|
+              if current_segments.size == 3
                 client.restart
               else
                 simulate_server_response
@@ -69,8 +69,8 @@ module NewRelic
             total_spans = 5
             leftover_spans = 2
 
-            spans, segments = emulate_streaming_segments total_spans do |client, segments|
-              if segments.size == total_spans - leftover_spans
+            spans, segments = emulate_streaming_segments total_spans do |client, current_segments|
+              if current_segments.size == total_spans - leftover_spans
                 # we do this here instead of server_proc because we are testing that if the server restarts while the CLIENT is currently running (since we are not testing the server, just client behavior)
                 simulate_server_response GRPC::Ok.new
               else
@@ -120,7 +120,7 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans do |client, segments|
+            _spans, _segments = emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
                 simulate_server_response_shutdown GRPC::Unimplemented.new("i dont exist")
               else

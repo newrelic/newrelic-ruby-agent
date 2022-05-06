@@ -235,7 +235,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_to_unimplemented count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock(simulate_broken_server: true)
             active_client = nil
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
               simulate_server_response_shutdown GRPC::Unimplemented.new
               active_client = client
             end
@@ -246,7 +246,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_to_failed_precondition count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock(simulate_broken_server: true)
             active_client = nil
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
               simulate_server_response_shutdown GRPC::FailedPrecondition.new
               active_client ||= client
             end
@@ -257,7 +257,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_with_initial_error count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock
             first = true
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
               if first
                 # raise error only first time
                 simulate_server_response_shutdown GRPC::PermissionDenied.new(details = "denied")
@@ -272,7 +272,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_ok_close_response count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
               simulate_server_response GRPC::Ok.new
             end
             join_grpc_mock
@@ -282,7 +282,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # A block that generates segments is expected and yielded to by this methd
           def generate_and_stream_segments(expect_mock: true)
             unstub_reconnection
-            server_context = nil
             spans = create_grpc_mock(expect_mock: expect_mock)
             with_config fake_server_config do
               # Suppresses intermittent fails from server not ready to accept streaming
