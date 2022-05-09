@@ -22,10 +22,6 @@ module NewRelic::Agent
           actual_destinations = filter.apply(attribute_name, desired_destinations)
           expected_destinations = to_bitfield(test_case['expected_destinations'])
 
-          if to_names(expected_destinations) != to_names(actual_destinations)
-            binding.irb
-          end
-
           assert_equal(to_names(expected_destinations), to_names(actual_destinations),
             PP.pp(test_case, "") + PP.pp(filter.rules, ""))
         end

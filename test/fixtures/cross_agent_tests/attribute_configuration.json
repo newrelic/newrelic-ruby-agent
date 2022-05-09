@@ -8,13 +8,17 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -26,12 +30,16 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
-      "error_collector"
+      "error_collector",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -42,14 +50,18 @@
       "transaction_events.attributes.enabled": true,
       "transaction_tracer.attributes.enabled": true,
       "error_collector.attributes.enabled": true,
-      "browser_monitoring.attributes.enabled": true
+      "browser_monitoring.attributes.enabled": true,
+      "span_events.attributes.enabled": true,
+      "transaction_segments.attributes.enabled": true
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -60,14 +72,18 @@
     "config": {
       "transaction_events.attributes.enabled": false,
       "transaction_tracer.attributes.enabled": false,
-      "error_collector.attributes.enabled": false
+      "error_collector.attributes.enabled": false,
+      "span_events.attributes.enabled": false,
+      "transaction_segments.attributes.enabled": false
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -84,7 +100,9 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -97,14 +115,18 @@
       "transaction_tracer.attributes.exclude": ["alpha"],
       "error_collector.attributes.exclude": ["alpha"],
       "browser_monitoring.attributes.enabled": true,
-      "browser_monitoring.attributes.exclude": ["alpha"]
+      "browser_monitoring.attributes.exclude": ["alpha"],
+      "span_events.attributes.exclude": ["alpha"],
+      "transaction_segments.attributes.exclude": ["alpha"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -121,13 +143,17 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -138,20 +164,26 @@
       "transaction_tracer.attributes.include": ["alpha"],
       "error_collector.attributes.include": ["alpha"],
       "browser_monitoring.attributes.enabled": true,
-      "browser_monitoring.attributes.include": ["alpha"]
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attribute.include": ["alpha"],
+      "transaction_segments.attributes.include": ["alpha"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -167,7 +199,9 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -184,14 +218,20 @@
       "error_collector.attributes.include": ["alpha"],
       "browser_monitoring.attributes.enabled": true,
       "browser_monitoring.attributes.exclude": ["alpha"],
-      "browser_monitoring.attributes.include": ["alpha"]
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attributes.exclude": ["alpha"],
+      "span_events.attributes.include": ["alpha"],
+      "transaction_segments.attributes.exclude": ["alpha"],
+      "transaction_segments.attributes.include": ["alpha"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -205,14 +245,18 @@
       "transaction_tracer.attributes.include": ["alpha"],
       "error_collector.attributes.include": ["alpha"],
       "browser_monitoring.attributes.enabled": true,
-      "browser_monitoring.attributes.include": ["alpha"]
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attributes.include": ["alpha"],
+      "transaction_segments.attributes.include": ["alpha"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -226,14 +270,18 @@
       "transaction_tracer.attributes.exclude": ["alpha"],
       "error_collector.attributes.exclude": ["alpha"],
       "browser_monitoring.attributes.enabled": true,
-      "browser_monitoring.attributes.exclude": ["alpha"]
+      "browser_monitoring.attributes.exclude": ["alpha"],
+      "span_events.attributes.exclude": ["alpha"],
+      "transaction_segments.attributes.exclude": ["alpha"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -247,20 +295,26 @@
       "transaction_tracer.attributes.exclude": ["alpha*"],
       "error_collector.attributes.exclude": ["alpha*"],
       "browser_monitoring.attributes.enabled": true,
-      "browser_monitoring.attributes.exclude": ["alpha*"]
+      "browser_monitoring.attributes.exclude": ["alpha*"],
+      "span_events.attributes.exclude": ["alpha*"],
+      "transaction_segments.attributes.exclude": ["alpha*"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -276,14 +330,20 @@
       "error_collector.attributes.exclude": ["abcdefg*"],
       "browser_monitoring.attributes.exclude": ["abcdefgh*"],
       "browser_monitoring.attributes.include": ["abcdefghi*"],
-      "browser_monitoring.attributes.enabled": true
+      "browser_monitoring.attributes.enabled": true,
+      "span_events.attributes.exclude": ["abcdefghij*"],
+      "span_events.attributes.include": ["abcdefghijk*"],
+      "transaction_segments.attributes.exclude": ["abcdefghijkl*"],
+      "transaction_segments.attributes.include": ["abcdefghijklm*"]
     },
     "input_key": "abcdefghik",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_tracer",
@@ -304,7 +364,9 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -322,7 +384,9 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -340,13 +404,17 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -362,13 +430,17 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -384,7 +456,9 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -397,12 +471,16 @@
       "transaction_tracer.attributes.exclude": ["alpha*"],
       "error_collector.attributes.include": ["alpha"],
       "browser_monitoring.attributes.exclude": ["alpha*"],
-      "browser_monitoring.attributes.enabled": true
+      "browser_monitoring.attributes.enabled": true,
+      "span_events.attributes.exclude": ["alpha*"],
+      "transaction_segments.attributes.exclude": ["alpha*"]
     },
     "input_key": "alpha.beta",
     "input_default_destinations": [
       "transaction_tracer",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -419,13 +497,17 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -440,13 +522,17 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ]
   },
 
@@ -464,7 +550,9 @@
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
     ]
@@ -478,19 +566,26 @@
       "transaction_tracer.attributes.include": ["alpha"],
       "error_collector.attributes.include": ["alpha"],
       "browser_monitoring.attributes.enabled": true,
-      "browser_monitoring.attributes.include": ["alpha"]
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attributes.enabled": false,
+      "span_events.attributes.include": ["alpha"],
+      "transaction_segments.attributes.enabled": true,
+      "transaction_segments.attributes.include": ["alpha"]
     },
     "input_key": "alpha",
     "input_default_destinations": [
       "transaction_events",
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
     ],
     "expected_destinations": [
       "transaction_tracer",
       "error_collector",
-      "browser_monitoring"
+      "browser_monitoring",
+      "transaction_segments"
     ]
   },
 
