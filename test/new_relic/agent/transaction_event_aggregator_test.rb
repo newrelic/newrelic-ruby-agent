@@ -3,9 +3,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
+require_relative '../common_aggregator_tests'
 require 'new_relic/agent/transaction_event_aggregator'
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction_event_primitive'
