@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative '../../test_helper'
-require_relative '../../test_helper'
 require_relative '../data_container_tests'
 
 class NewRelic::Agent::SqlSamplerTest < Minitest::Test
