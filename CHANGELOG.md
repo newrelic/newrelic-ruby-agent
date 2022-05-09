@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.8.0
+
+  * **Supportability Metrics will always report uncompressed payload size**
+
+    New Relic's agent specifications call for Supportability Metrics to always reference the uncompressed payload byte size. Previously, the Ruby agent was calculating the byte size after compression. Furthermore, compression is only performed on payloads of a certain size. This means that sometimes the value could have represented a compressed size and sometimes an uncompressed one. Now the uncompressed value is always used, bringing consistency for comparing two instances of the same metric and alignment with the New Relic agent specifications.
+
+
   ## v8.7.0
 
   * **APM logs-in-context log forwarding on by default**

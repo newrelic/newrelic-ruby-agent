@@ -15,22 +15,15 @@ module NewRelic
     class NewRelicService
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
-
       PROTOCOL_VERSION = 17
-
-      # 1f147a42: v10 (tag 3.5.3.17)
-      # cf0d1ff1: v9 (tag 3.5.0)
-      # 14105: v8 (tag 2.10.3)
-      # (no v7)
-      # 10379: v6 (not tagged)
-      # 4078:  v5 (tag 2.5.4)
-      # 2292:  v4 (tag 2.3.6)
-      # 1754:  v3 (tag 2.3.0)
-      # 534:   v2 (shows up in 2.1.0, our first tag)
 
       # These include Errno connection errors, and all indicate that the
       # underlying TCP connection may be in a bad state.
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
+
+      # Don't perform compression on the payload unless its uncompressed size is
+      # greater than this number of bytes
+      MIN_BYTE_SIZE_TO_COMPRESS = 64 * 1024
 
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
@@ -203,7 +196,7 @@ module NewRelic
       # to a risk of segfaults if we compress aggressively.
       def compress_request_if_needed(data, endpoint)
         encoding = 'identity'
-        if data.size > 64 * 1024
+        if data.size > MIN_BYTE_SIZE_TO_COMPRESS
           encoding = Agent.config[:compressed_content_encoding]
           data = if encoding == 'deflate'
             Encoders::Compressed::Deflate.encode(data)
@@ -429,8 +422,8 @@ module NewRelic
         end
         serialize_finish_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
+        size = data.size # only the uncompressed size is reported
         data, encoding = compress_request_if_needed(data, method)
-        size = data.size
 
         # Preconnect needs to always use the configured collector host, not the redirect host
         # We reset it here so we are always using the configured collector during our creation of the new connection
