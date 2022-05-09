@@ -58,14 +58,19 @@ module NewRelic
         end
 
         def self.run_in_trace(job, block, event)
-          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}") do
+          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}",
+            code_information: code_information_for_job(job)) do
             block.call
           end
         end
 
         def self.run_in_transaction(job, block)
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
-            category: :other, &block)
+            category: :other, options: {code_information: code_information_for_job(job)}, &block)
+        end
+
+        def self.code_information_for_job(job)
+          NewRelic::Agent::MethodTracerHelpers.code_information(job.class, :perform)
         end
 
         def self.transaction_category

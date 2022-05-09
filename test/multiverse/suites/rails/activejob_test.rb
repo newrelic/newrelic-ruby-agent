@@ -74,6 +74,22 @@ if Rails::VERSION::STRING >= "4.2.0"
       assert_metrics_recorded("#{ENQUEUE_PREFIX}/default")
     end
 
+    def test_code_information_recorded_in_web_transaction
+      code_attributes = {}
+      with_config(:'code_level_metrics.enabled' => true) do
+        in_web_transaction do
+          MyJob.perform_later
+          txn = NewRelic::Agent::Transaction.tl_current
+          code_attributes = txn.segments.last.code_attributes
+        end
+      end
+
+      assert_equal __FILE__, code_attributes['code.filepath']
+      assert_equal 'perform', code_attributes['code.function']
+      assert_equal MyJob.instance_method(:perform).source_location.last, code_attributes['code.lineno']
+      assert_equal 'MyJob', code_attributes['code.namespace']
+    end
+
     def test_record_enqueue_metrics_with_alternate_queue
       in_web_transaction do
         MyJobWithAlternateQueue.perform_later
