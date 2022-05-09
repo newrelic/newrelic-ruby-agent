@@ -4,12 +4,13 @@
 
 require 'resolv'
 require 'mocha/setup'
+require_relative '../test_helper'
 
 class LoadTest < Minitest::Test
   def test_loading_agent_when_disabled_does_not_resolv_addresses
     ::Resolv.expects(:getaddress).never
     ::IPSocket.expects(:getaddress).never
 
-    require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+    require_relative '../test_helper'
   end
 end

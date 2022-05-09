@@ -5,7 +5,6 @@
 require 'rack'
 require 'new_relic/fake_server'
 require 'new_relic/rack/agent_hooks'
-
 require 'json'
 
 module NewRelic

@@ -7,7 +7,6 @@ require 'webrick/https'
 require 'rack'
 require 'rack/handler'
 require 'timeout'
-
 require 'json'
 
 module NewRelic
