@@ -102,7 +102,7 @@ module NewRelic
 
         def self.operation_from_sql(sql)
           operation = NewRelic::Agent::Database.parse_operation_from_query(sql)
-          operation = OTHER if operation.eql?('other')
+          operation = OTHER if operation.eql?(NewRelic::Agent::Database::OTHER_OPERATION)
           operation
         end
 
