@@ -21,7 +21,7 @@ module NewRelic::Agent
         # top of one another.
         #
         explicit_config = {}
-        explicit_config[:host] = test_case['override_host'] if test_case['override_host']
+        explicit_config[:host] = test_case['hostname'] if test_case['hostname']
         explicit_config = ::NewRelic::Agent::Configuration::DottedHash.new(explicit_config, true)
 
         implicit_config = {license_key: test_case['key']}
