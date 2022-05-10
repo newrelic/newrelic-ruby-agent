@@ -7,7 +7,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 module NewRelic
   module Agent
     class TraceContextRequestMonitorTest < Minitest::Test
-
       def setup
         @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
