@@ -20,12 +20,8 @@ module NewRelic::Agent
       end
 
       def credentials
-        if Config.local?
-          :this_channel_is_insecure
-        else
-          # Uses system configured certificates by default
-          GRPC::Core::ChannelCredentials.new
-        end
+        # Uses system configured certificates by default
+        GRPC::Core::ChannelCredentials.new
       end
 
       def host_and_port
