@@ -45,7 +45,7 @@ module NewRelic
           generator, buffer, segments = prepare_to_stream_segments total_spans
 
           # consumes the queue as it fills
-          spans, _consumer = prepare_to_consume_spans buffer
+          spans, consumer = prepare_to_consume_spans buffer
 
           # closes the streaming buffer after queue is emptied
           closed = false
@@ -65,6 +65,7 @@ module NewRelic
           closer.join
           generator.join
           buffer.flush_queue
+          consumer.join
 
           assert emptied, "spans streamed reached total but buffer not empty!"
           assert closed, "failed to close the buffer"
