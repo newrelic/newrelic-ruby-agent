@@ -7,16 +7,6 @@ require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'
 
 class TraceContext < Performance::TestCase
-  include Mocha::API
-
-  def setup
-    mocha_setup
-  end
-
-  def teardown
-    mocha_teardown
-  end
-
   CONFIG = {
     :'distributed_tracing.enabled' => true,
     :account_id => "190",
@@ -55,14 +45,12 @@ class TraceContext < Performance::TestCase
   end
 
   def test_insert_trace_context
-    NewRelic::Agent.agent.stubs(:connected?).returns(true)
-
-    carrier = {}
-
     with_config CONFIG do
       in_transaction do |txn|
         measure do
-          txn.distributed_tracer.insert_trace_context_header carrier: carrier
+          NewRelic::Agent.agent.stub :connected?, true do
+            txn.distributed_tracer.insert_trace_context_header carrier: {}
+          end
         end
       end
     end
