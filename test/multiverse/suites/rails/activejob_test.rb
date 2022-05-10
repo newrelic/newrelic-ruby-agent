@@ -90,6 +90,22 @@ if Rails::VERSION::STRING >= "4.2.0"
       assert_equal 'MyJob', code_attributes['code.namespace']
     end
 
+    def test_code_information_recorded_with_new_transaction
+      code_attributes = {}
+      with_config(:'code_level_metrics.enabled' => true) do
+        name = 'OtherTransaction/ActiveJob::Inline/MyJob/execute'
+        NewRelic::Agent::Transaction.any_instance.expects(:create_segment).with(
+          name,
+          {filepath: __FILE__,
+           function: 'perform',
+           lineno: MyJob.instance_method(:perform).source_location.last,
+           namespace: 'MyJob',
+           transaction_name: name}
+        )
+        MyJob.perform_later
+      end
+    end
+
     def test_record_enqueue_metrics_with_alternate_queue
       in_web_transaction do
         MyJobWithAlternateQueue.perform_later
