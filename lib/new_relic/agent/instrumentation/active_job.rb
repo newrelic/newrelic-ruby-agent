@@ -65,8 +65,10 @@ module NewRelic
         end
 
         def self.run_in_transaction(job, block)
+          options = code_information_for_job(job)
+          options = {} if options.frozen? # the hash will be added to later
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
-            category: :other, options: code_information_for_job(job), &block)
+            category: :other, options: options, &block)
         end
 
         def self.code_information_for_job(job)
