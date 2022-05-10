@@ -303,6 +303,16 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
   end
 
+  def test_blocking_error_rescued
+    listener = NewRelic::Agent::PipeChannelManager::Listener.new
+    error = -> { raise Errno::EWOULDBLOCK }
+    listener.stub(:start, error) do
+      NewRelic::Agent.logger.expects(:error).with do |messages|
+        messages.first.include? 'Issue while reading from the ready pipe'
+      end
+    end
+  end
+
   def assert_lifetime_counts container, value
     buffer = container.instance_variable_get :@buffer
     assert_equal value, buffer.captured_lifetime
