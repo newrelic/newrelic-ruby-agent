@@ -34,6 +34,23 @@ module NewRelic
       RUBY_ENGINE == 'jruby'
     end
 
+    # TODO: OLD RUBIES - RUBY_VERSION < 2.6
+    #
+    # Ruby 2.6 introduced an improved version of `Object.const_get` that
+    # respects the full namespace of the input and doesn't just grab the first
+    # constant matching the string to the right of the last '::'.
+    # Once we drop support for Ruby 2.5 and below, the only value this custom
+    # method will provide beyond `Object.const_get` itself is to automatically
+    # catch NameError.
+    #
+    # see: https://github.com/rails/rails/commit/7057ccf6565c1cb5354c1906880119276a9d15c0
+    #
+    # With Ruby 2.6+, this method can be defined like so:
+    # def constantize(constant_as_string_or_symbol)
+    #   Object.const_get(constant_as_string_or_symbol)
+    # rescue NameError
+    # end
+    #
     def constantize(const_name)
       const_name.to_s.sub(/\A::/, '').split('::').inject(Object) do |namespace, name|
         begin

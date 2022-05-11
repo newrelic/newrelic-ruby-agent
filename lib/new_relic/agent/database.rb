@@ -131,15 +131,15 @@ module NewRelic
         'execute',
         'call'
       ]
-
+      OTHER_OPERATION = 'other'.freeze
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
 
       def parse_operation_from_query(sql)
         sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, NewRelic::EMPTY_STR)
-        if sql =~ /(\w+)/
-          op = $1.downcase
-          return op if KNOWN_OPERATIONS.include?(op)
-        end
+        return unless sql =~ /(\w+)/
+
+        op = Regexp.last_match(1).downcase
+        KNOWN_OPERATIONS.include?(op) ? op : OTHER_OPERATION
       end
 
       class ConnectionManager

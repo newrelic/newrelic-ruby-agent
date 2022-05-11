@@ -114,7 +114,7 @@ module NewRelic::Agent
           @agent_connected = true
           @agent_started.signal
         end
-        @active_clients.each_value(&:restart)
+        @active_clients.values.each(&:restart)
       end
 
       private

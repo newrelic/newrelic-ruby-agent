@@ -6,7 +6,7 @@
     "input_hostname": "myhost",
     "input_boot_id": null,
     "expected_output_json": {
-      "metadata_version": 3,
+      "metadata_version": 5,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost"
@@ -24,7 +24,7 @@
     "input_hostname": "myhost",
     "input_boot_id": "8e84c4ab-943d-46c2-8675-fdf0ab61e1c4",
     "expected_output_json": {
-      "metadata_version": 3,
+      "metadata_version": 5,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost",
@@ -38,7 +38,7 @@
     "input_hostname": "myhost",
     "input_boot_id": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
     "expected_output_json": {
-      "metadata_version": 3,
+      "metadata_version": 5,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost",
@@ -57,7 +57,7 @@
     "input_hostname": "myhost",
     "input_boot_id": "1234",
     "expected_output_json": {
-      "metadata_version": 3,
+      "metadata_version": 5,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost",
@@ -76,7 +76,7 @@
     "input_hostname": "myhost",
     "input_boot_id": "<script>lol</script>",
     "expected_output_json": {
-      "metadata_version": 3,
+      "metadata_version": 5,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost",
@@ -95,7 +95,7 @@
     "input_hostname": "myhost",
     "input_boot_id": "",
     "expected_output_json": {
-      "metadata_version": 3,
+      "metadata_version": 5,
       "logical_processors": 8,
       "total_ram_mib": 1024,
       "hostname": "myhost"

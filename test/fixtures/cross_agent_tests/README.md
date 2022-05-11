@@ -7,7 +7,7 @@ Please be careful when adding new tests from real world failures.
 
 ### Access
 
-Push access to this repository is granted via membership in the cross-agent-team GHE group. Contact Belinda Runkle if you are on the agent team but don't have push access.
+Push access to this repository is granted via membership in the agents GHE group.
 
 ### Tests
 
@@ -17,7 +17,7 @@ Push access to this repository is granted via membership in the cross-agent-team
 | [rum_footer_insertion_location](rum_footer_insertion_location) | Describe where the RUM footer (aka "client config") should be inserted.  These tests do not apply to agents which insert the footer directly after the loader. |
 | [rules.json](rules.json) | Describe how url/metric/txn-name rules should be applied. |
 | [rum_client_config.json](rum_client_config.json) | These tests dictate the format and contents of the browser monitoring client configuration.  For more information see: [SPEC](https://newrelic.atlassian.net/wiki/display/eng/BAM+Agent+Auto-Instrumentation) |
-| [sql_parsing.json](sql_parsing.json) | These tests show how an SQL string should be parsed for the operation and table name. |
+| [sql_parsing.json](sql_parsing.json) | These tests show how an SQL string should be parsed for the operation and table name. *Java Note*: The Java Agent is [out-of-sync with these tests](https://source.datanerd.us/java-agent/java_agent/blob/master/newrelic-agent/src/main/java/com/newrelic/agent/database/DefaultDatabaseStatementParser.java), [has its own tests](https://source.datanerd.us/java-agent/java_agent/blob/master/newrelic-agent/src/test/java/com/newrelic/agent/database/DatabaseStatementResponseParserTest.java), and cannot implement these without a breaking change. |
 | [url_clean.json](url_clean.json) | These tests show how URLs should be cleaned before putting them into a trace segment's parameter hash (under the key 'uri'). |
 | [url_domain_extraction.json](url_domain_extraction.json) | These tests show how the domain of a URL should be extracted (for the purpose of creating external metrics). |
 | [postgres_explain_obfuscation](postgres_explain_obfuscation) | These tests show how plain-text explain plan output from PostgreSQL should be obfuscated when SQL obfuscation is enabled. |
@@ -32,4 +32,4 @@ Push access to this repository is granted via membership in the cross-agent-team
 | [docker_container_id](docker_container_id) | These tests cover parsing of Docker container IDs from `/proc/*/cgroup` on Linux hosts. |
 | [utilization](utilization) | These tests cover the collection and validation of metadata for billing purposes as per the [Utilization spec](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md). |
 | [utilization_vendor_specific](utilization_vendor_specific) | These tests cover the collection and validation of metadata for AWS, Pivotal Cloud Foundry, Google Cloud Platform, and Azure as per the [Utilization spec](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md). |
-| [data_transport](data_transport/data_transport.json) | These test correct JSON payload generation and handling collector responses. See [readme](https://source.datanerd.us/agents/cross_agent_tests/blob/master/data_transport/data_transport.md) for details. |
+| [distributed_tracing](distributed_tracing) | distributed tracing, a.k.a. CAT CATs |

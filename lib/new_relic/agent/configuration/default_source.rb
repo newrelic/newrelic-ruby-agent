@@ -247,17 +247,15 @@ module NewRelic
         end
 
         def self.convert_to_constant_list(raw_value)
-          const_names = convert_to_list(raw_value)
-          const_names.map! do |class_name|
+          return NewRelic::EMPTY_ARRAY if raw_value.nil? || raw_value.empty?
+
+          constants = convert_to_list(raw_value).map! do |class_name|
             const = ::NewRelic::LanguageSupport.constantize(class_name)
-
-            unless const
-              NewRelic::Agent.logger.warn("Ignoring unrecognized constant '#{class_name}' in #{raw_value}")
-            end
-
+            NewRelic::Agent.logger.warn("Ignoring invalid constant '#{class_name}' in #{raw_value}") unless const
             const
           end
-          const_names.compact
+          constants.compact!
+          constants
         end
 
         def self.enforce_fallback(allowed_values: nil, fallback: nil)

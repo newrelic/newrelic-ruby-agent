@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.8.0
+
+  * **Supportability Metrics will always report uncompressed payload size**
+
+    New Relic's agent specifications call for Supportability Metrics to always reference the uncompressed payload byte size. Previously, the Ruby agent was calculating the byte size after compression. Furthermore, compression is only performed on payloads of a certain size. This means that sometimes the value could have represented a compressed size and sometimes an uncompressed one. Now the uncompressed value is always used, bringing consistency for comparing two instances of the same metric and alignment with the New Relic agent specifications.
+
+
   ## v8.7.0
 
   * **APM logs-in-context log forwarding on by default**
@@ -17,6 +24,10 @@
     | `instrumentation.thread.tracing` | `false` (disabled)   |  Automatically add tracing to all Threads created in the application. This may be enabled by default in a future release. |
 
     We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
+
+  * **Deprecate support for Ruby 2.2**
+
+    Ruby 2.2 reached end of life on March 31, 2018. The agent has deprecated support for Ruby 2.2 and will make breaking changes for this version in its next major release.
 
   *  **Deprecate instrumentation versions with low adoption and/or versions over five years old**
 
@@ -39,6 +50,7 @@
     | Passenger < 5.1.3 | Passenger >= 5.1.3 |
     | Puma < 3.9.0 | Puma >= 3.9.0 |
     | Rack < 1.6.8 | Rack >= 1.6.8 |
+    | Rails 3.2.x | Rails >= 4.x |
     | Rainbows (all versions) | none |
     | Sequel < 4.45.0 | Sequel >= 4.45.0 |
     | Sidekiq < 5.0.0 | Sidekiq >= 5.0.0 |
@@ -57,6 +69,10 @@
 
     We thank @robotfelix for suggesting these changes.
 
+  * **Internally leverage `Object.const_get` and `Object.const_defined?`**
+
+    When dynamically checking for or obtaining a handle to a class constant from a string, leverage the `Object` class's built in methods wherever possible to enjoy simpler, more performant operations. All JRubies and CRubies v2.5 and below need a bit of assistance beyond what `Object` can provide given that those Rubies may yield an unwanted constant from a different namespace than the one that was specified. But for all other Rubies and even for those Rubies in contexts where we can 100% trust the string value coming in, leverage the `Object` class's methods and reap the benefits.
+
   * **Enable Environment Variables setting Array configurations to be converted to Arrays**
 
     Prior to this change, when comma-separated lists were passed as environment variables, an error would be emitted to the `newrelic_agent.log` and a String would be set as the value. Now, Arrays will be accurately coerced.
@@ -64,6 +80,11 @@
   * **Bugfix: Allow TransactionEvents to be sampled at the expected rate**
 
     The `transaction_events.max_samples_stored` capacity value within the TransactionEventAggregator did not match up with its expected harvest cycle interval, causing TransactionEvents to be over-sampled. This bugfix builds upon the updates made in [#952](https://github.com/newrelic/newrelic-ruby-agent/pull/952) so that the interval and capacity behave as expected for the renamed `transaction_events*` configuration options.
+
+  * **Bugfix: Error events missing attributes when created outside of a transaction**
+
+    Previously the agent was not assigning a priority to error events that were created by calling notice_error outside the scope of a transaction. This caused issues with sampling when the error event buffer was full, resulting in a `NoMethodError: undefined method '<' for nil:NilClass` in the newrelic_agent.log. This bugfix ensures that a priority is always assigned on error events so that the agent will be able to sample these error events correctly. Thank you to @olleolleolle for bringing this issue to our attention.
+    
 
 
   ## v8.6.0
