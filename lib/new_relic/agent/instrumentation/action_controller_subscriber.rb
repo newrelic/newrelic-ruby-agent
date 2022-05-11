@@ -74,8 +74,8 @@ module NewRelic
           NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(key, controller_class, action)
         end
 
-        def format_metric_name(metric_action, controller_name)
-          controller_class = ::NewRelic::LanguageSupport.constantize(controller_name)
+        def format_metric_name(metric_action, controller)
+          controller_class = controller.is_a?(Class) ? controller : Object.const_get(controller)
           "Controller/#{controller_class.controller_path}/#{metric_action}"
         end
 

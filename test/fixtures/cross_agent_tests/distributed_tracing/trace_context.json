@@ -2091,6 +2091,7 @@
     "raises_exception": false,
     "force_sampled_true": false,
     "span_events_enabled": true,
+    "transaction_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
       {
@@ -2150,6 +2151,7 @@
     "raises_exception": false,
     "force_sampled_true": false,
     "span_events_enabled": true,
+    "transaction_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
       {
@@ -2208,6 +2210,7 @@
     "raises_exception": false,
     "force_sampled_true": false,
     "span_events_enabled": true,
+    "transaction_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
       {
@@ -2270,6 +2273,7 @@
     "raises_exception": false,
     "force_sampled_true": false,
     "span_events_enabled": true,
+    "transaction_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
       {

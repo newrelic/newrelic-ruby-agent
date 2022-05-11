@@ -13,10 +13,10 @@ double-quoted string literals are not allowed in PostgreSQL, where
 double-quotes are instead used around identifiers).
 
 Test cases may also contain the following properties:
-  * `malformed`: (boolean) tests who's SQL queries are not valid SQL in any
+  * `malformed`: (boolean) test SQL queries which are not valid SQL in any
   quoting mode. Some agents may choose to attempt to obfuscate these cases,
   and others may instead just replace the query entirely with a placeholder
-  message.
+  message. In some agents (such as .Net), invalid SQL is caught by the driver - which throws an exception - before the obfuscation method is called. In those cases, implementation of the obfuscation test may be unnecessary.
   * `pathological`: (boolean) tests which are designed specifically to break
   specific methods of obfuscation, or contain patterns that are known to be
   difficult to handle correctly

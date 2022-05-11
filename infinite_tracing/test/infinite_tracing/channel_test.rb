@@ -25,16 +25,6 @@ module NewRelic
           }
         end
 
-        def test_channel_is_insecure_for_local_host
-          with_config local_config do
-            channel = Channel.new
-            credentials = channel.send(:credentials)
-
-            assert_equal "localhost:80", channel.send(:host_and_port)
-            assert_equal :this_channel_is_insecure, credentials
-          end
-        end
-
         def test_channel_is_secure_for_remote_host
           Config.stubs(:test_framework?).returns(false)
 

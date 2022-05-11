@@ -53,7 +53,7 @@ services:
     build:
       context: .
       args:
-        - ruby_version=${RUBY_VERSION}
+        - ruby_version=${RUBY_VERSION:-3.1}
     image: newrelic_rpm
     tty: true
     stdin_open: true
