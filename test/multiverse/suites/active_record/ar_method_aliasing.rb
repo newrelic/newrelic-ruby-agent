@@ -3,13 +3,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'rubygems'
-
 require 'active_record'
 require 'active_support/multibyte'
-
 require 'multiverse/color'
-
-require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
+require_relative 'app/models/models'
 
 class InstrumentActiveRecordMethods < Minitest::Test
   extend Multiverse::Color

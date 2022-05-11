@@ -4,8 +4,8 @@
 
 require 'fileutils'
 require 'timeout'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'docker'))
+require_relative '../../../../helpers/file_searching'
+require_relative '../../../../helpers/docker'
 
 class MongoServer
   extend NewRelic::TestHelpers::FileSearching
