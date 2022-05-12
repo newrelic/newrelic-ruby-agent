@@ -63,6 +63,8 @@ module NewRelic
           append_cat payload, attrs
           DistributedTraceAttributes.copy_to_hash payload, attrs
           PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
+        else
+          attrs[PRIORITY_KEY] = rand.round(NewRelic::PRIORITY_PRECISION)
         end
 
         attrs

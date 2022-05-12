@@ -90,7 +90,7 @@ jobs:
                 "rails": "norails,rails61,rails70"
               },
               "3.2.0-preview1": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.4.0": {
                 "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
@@ -100,7 +100,7 @@ jobs:
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
         with:
-          timeout_minutes: 20
+          timeout_minutes: 30
           max_attempts: 2
           command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
@@ -215,8 +215,8 @@ jobs:
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
         with:
-          timeout_minutes: 40
-          max_attempts: 6
+          timeout_minutes: 15
+          max_attempts: 2
           command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
 
       - name: Annotate errors

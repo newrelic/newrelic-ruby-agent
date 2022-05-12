@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.2.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch"]
+  s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch", "Hannah Ramadan"]
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
@@ -47,7 +47,10 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.require_paths = ["lib"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
-
+  s.post_install_message = 'Thanks for installing the latest version of newrelic_rpm. '\
+    'This version turns on application log forwarding by default. If you want to turn ' \
+    'off this feature, set `application_logging.forwarding.enabled: false`. ' \
+    'For more information, visit: https://docs.newrelic.com/docs/logs/logs-context/configure-logs-context-ruby'
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
   s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3

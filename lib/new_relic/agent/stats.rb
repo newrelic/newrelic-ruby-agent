@@ -4,6 +4,8 @@
 module NewRelic
   module Agent
     class Stats
+      SKIP_MARSHALLING = [:@lock]
+
       attr_accessor :call_count
       attr_accessor :min_call_time
       attr_accessor :max_call_time
@@ -12,6 +14,7 @@ module NewRelic
       attr_accessor :sum_of_squares
 
       def initialize
+        @lock = Mutex.new
         reset
       end
 
@@ -34,12 +37,14 @@ module NewRelic
       end
 
       def merge!(other)
-        @min_call_time = other.min_call_time if min_time_less?(other)
-        @max_call_time = other.max_call_time if other.max_call_time > max_call_time
-        @total_call_time += other.total_call_time
-        @total_exclusive_time += other.total_exclusive_time
-        @sum_of_squares += other.sum_of_squares
-        @call_count += other.call_count
+        @lock.synchronize do
+          @min_call_time = other.min_call_time if min_time_less?(other)
+          @max_call_time = other.max_call_time if other.max_call_time > max_call_time
+          @total_call_time += other.total_call_time
+          @total_exclusive_time += other.total_exclusive_time
+          @sum_of_squares += other.sum_of_squares
+          @call_count += other.call_count
+        end
         self
       end
 
@@ -78,13 +83,15 @@ module NewRelic
       # will aggregate all data points collected over a specified period and upload
       # its data to the NewRelic server
       def record_data_point(value, exclusive_time = value)
-        @call_count += 1
-        @total_call_time += value
-        @min_call_time = value if value < @min_call_time || @call_count == 1
-        @max_call_time = value if value > @max_call_time
-        @total_exclusive_time += exclusive_time
+        @lock.synchronize do
+          @call_count += 1
+          @total_call_time += value
+          @min_call_time = value if value < @min_call_time || @call_count == 1
+          @max_call_time = value if value > @max_call_time
+          @total_exclusive_time += exclusive_time
 
-        @sum_of_squares += (value * value)
+          @sum_of_squares += (value * value)
+        end
         self
       end
 
@@ -92,7 +99,7 @@ module NewRelic
 
       # increments the call_count by one
       def increment_count(value = 1)
-        @call_count += value
+        @lock.synchronize { @call_count += value }
       end
 
       # Concerned about implicit usage of inspect relying on stats format, so
@@ -122,17 +129,35 @@ module NewRelic
       alias_method :apdex_f, :total_exclusive_time
 
       def record_apdex(bucket, apdex_t)
-        case bucket
-        when :apdex_s then @call_count += 1
-        when :apdex_t then @total_call_time += 1
-        when :apdex_f then @total_exclusive_time += 1
+        @lock.synchronize do
+          case bucket
+          when :apdex_s then @call_count += 1
+          when :apdex_t then @total_call_time += 1
+          when :apdex_f then @total_exclusive_time += 1
+          end
+          if apdex_t
+            @min_call_time = apdex_t
+            @max_call_time = apdex_t
+          else
+            ::NewRelic::Agent.logger.warn("Attempted to set apdex_t to #{apdex_t.inspect}, backtrace = #{caller.join("\n")}")
+          end
         end
-        if apdex_t
-          @min_call_time = apdex_t
-          @max_call_time = apdex_t
-        else
-          ::NewRelic::Agent.logger.warn("Attempted to set apdex_t to #{apdex_t.inspect}, backtrace = #{caller.join("\n")}")
+      end
+
+      # Override marshalling methods to exclude @lock from being included in marshalled data
+      def marshal_dump
+        instance_variables.each_with_object({}) do |name, instance_copy|
+          next if SKIP_MARSHALLING.include?(name)
+          instance_copy[name] = instance_variable_get(name)
         end
+      end
+
+      def marshal_load(marshalled_data)
+        marshalled_data.each do |name, value|
+          instance_variable_set(name, value) unless SKIP_MARSHALLING.include?(name)
+        end
+        # since the lock is excluded when marshalling, create a new lock when loading marshalled data
+        @lock = Mutex.new
       end
 
       protected

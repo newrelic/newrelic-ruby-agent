@@ -217,7 +217,8 @@ module NewRelic
 
       def initialize(category, options)
         @nesting_max_depth = 0
-        @current_segment = nil
+        @current_segment_by_thread = {}
+        @current_segment_lock = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -259,6 +260,25 @@ module NewRelic
         else
           @request_attributes = nil
         end
+      end
+
+      def parent_thread_id
+        ::Thread.current.nr_parent_thread_id if ::Thread.current.respond_to?(:nr_parent_thread_id)
+      end
+
+      def current_segment
+        current_thread_id = ::Thread.current.object_id
+        return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
+        return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
+        current_segment_by_thread[@starting_thread_id]
+      end
+
+      def set_current_segment(new_segment)
+        @current_segment_lock.synchronize { current_segment_by_thread[::Thread.current.object_id] = new_segment }
+      end
+
+      def remove_current_segment_by_thread_id(id)
+        @current_segment_lock.synchronize { current_segment_by_thread.delete(id) }
       end
 
       def distributed_tracer
@@ -719,9 +739,9 @@ module NewRelic
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options = {}) # :nodoc:
         # Only the last error is kept
-        if @current_segment
-          @current_segment.notice_error error, expected: options[:expected]
-          options[:span_id] = @current_segment.guid
+        if current_segment
+          current_segment.notice_error(error, expected: options[:expected])
+          options[:span_id] = current_segment.guid
         end
 
         if @exceptions[error]
