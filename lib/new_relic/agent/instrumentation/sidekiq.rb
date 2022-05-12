@@ -99,4 +99,19 @@ DependencyDetection.defer do
       end
     end
   end
+
+  executes do
+    next unless Gem::Version.new(Sidekiq::VERSION) < Gem::Version.new('5.0.0')
+    deprecation_msg = 'Instrumentation for Sidekiq versions below 5.0.0 is deprecated.' \
+      'They will stop being monitored in version 9.0.0. ' \
+      'Please upgrade your Sidekiq version to continue receiving full support. '
+
+    ::NewRelic::Agent.logger.log_once(
+      :warn,
+      :deprecated_sidekiq_version,
+      deprecation_msg
+    )
+
+    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Sidekiq", 1)
+  end
 end

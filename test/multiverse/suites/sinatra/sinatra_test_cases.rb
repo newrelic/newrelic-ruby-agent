@@ -43,38 +43,7 @@ module SinatraTestCases
     end
   end
 
-  module NRRouteNaming
-    # get '/route/:name'
-    def route_name_segment
-      'GET route/([^/?#]+)'
-    end
-
-    # get '/route/no_match'
-    def route_no_match_segment
-      'GET route/no_match'
-    end
-
-    # get /\/regex.*/
-    def regex_segment
-      'GET regex.*'
-    end
-
-    # get '/precondition'
-    def precondition_segment
-      'GET precondition'
-    end
-
-    # get '/ignored'
-    def ignored_segment
-      'GET ignored'
-    end
-  end
-
-  if Sinatra::VERSION >= '1.4.3'
-    include SinatraRouteNaming
-  else
-    include NRRouteNaming
-  end
+  include SinatraRouteNaming
 
   def app
     raise "Must implement app on your test case"
@@ -147,17 +116,6 @@ module SinatraTestCases
     get '/regexes'
     assert_equal "Yeah, regex's!", last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{regex_segment}"])
-  end
-
-  # this test is not applicable to environments that use sinatra.route for txn naming
-  if self.include? NRRouteNaming
-    def test_set_unknown_transaction_name_if_error_in_routing
-      ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer \
-        .stubs(:http_verb).raises(StandardError.new('madness'))
-
-      get '/user/login'
-      assert_metrics_recorded(["Controller/Sinatra/#{app_name}/(unknown)"])
-    end
   end
 
   # https://support.newrelic.com/tickets/31061

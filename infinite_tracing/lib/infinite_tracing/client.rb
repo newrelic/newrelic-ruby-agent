@@ -52,7 +52,7 @@ module NewRelic::Agent
       # Turns camelcase base class name into upper snake case version of the name.
       def formatted_class_name class_name
         class_name = class_name.split(":")[-1]
-        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/, '\1_\2') || class_name).upcase
+        (class_name.gsub!(/(.)([A-Z])/, '\1_\2') || class_name).upcase
       end
 
       # Literal codes are all mapped to unique class names, so we can deduce the

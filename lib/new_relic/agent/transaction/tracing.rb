@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class Transaction
       module Tracing
-        attr_reader :current_segment
+        attr_reader :current_segment_by_thread
 
         def async?
           @async ||= false
@@ -23,7 +23,7 @@ module NewRelic
         def add_segment segment, parent = nil
           segment.transaction = self
           segment.parent = parent || current_segment
-          @current_segment = segment
+          set_current_segment segment
           if @segments.length < segment_limit
             @segments << segment
           else
@@ -34,7 +34,12 @@ module NewRelic
         end
 
         def segment_complete segment
-          @current_segment = segment.parent
+          # if parent was in another thread, remove the current_segment entry for this thread
+          if segment.parent && segment.parent.starting_thread_id != ::Thread.current.object_id
+            remove_current_segment_by_thread_id(::Thread.current.object_id)
+          else
+            set_current_segment segment.parent
+          end
         end
 
         def segment_limit
