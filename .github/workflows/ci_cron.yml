@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - dev
-  pull_request:
+  schedule:
+    - cron:  '0 9 * * *'
 
 jobs:
   run-rubocop:
@@ -24,7 +25,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.4.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.4.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -47,7 +48,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.4.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.4.0]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -63,13 +65,34 @@ jobs:
           map: |
             {
               "2.2.10": {
-                "rails": "norails,rails52,rails42,rails32"
-              }
+                "rails": "norails,rails51,rails42,rails41,rails40,rails32"
+              },
+              "2.3.8": {
+                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
+              },
+              "2.4.10": {
+                "rails": "norails,rails52,rails51,rails42,rails32"
+              },
+              "2.5.9": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42,rails32"
+              },
+              "2.6.10": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+              },
+              "2.7.6": {
+                "rails": "norails,rails61,rails60,rails70,railsedge"
+              },
+              "3.0.4": {
+                "rails": "norails,rails61,rails60,rails70,railsedge"
+              },
               "3.1.2": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,railsedge"
+              },
+              "3.2.0-preview1": {
+                "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.4.0": {
-                "rails": "norails,rails61,rails52,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42,railsedge"
               }
             }
 
@@ -141,7 +164,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: ["agent;background;background_2;database", "httpclients;httpclients_2", "frameworks;rails;rest"]
-        ruby-version: [2.2.10, 3.1.2]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
 
     steps:
       - uses: actions/checkout@v2
@@ -179,7 +202,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 3.1.2]
+        ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
       - uses: actions/checkout@v2
 
@@ -201,7 +224,7 @@ jobs:
 
   jruby_multiverse:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
       mysql:
         image: mysql:5.7
