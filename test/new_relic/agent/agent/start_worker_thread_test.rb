@@ -5,7 +5,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
   require 'new_relic/agent/agent'
-  include NewRelic::Agent::Agent::StartWorkerThread
+  include NewRelic::Agent::StartWorkerThread
 
   def test_deferred_work_connects
     self.expects(:catch_errors).yields
