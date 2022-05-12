@@ -6,7 +6,7 @@ require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 require 'helpers/mongo_metric_builder'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
+require_relative '../../../helpers/docker'
 
 def mongo_host
   docker? ? 'mongodb' : NewRelic::Agent::Hostname.get

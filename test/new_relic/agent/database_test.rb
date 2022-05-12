@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
-  'test_helper'))
+require_relative '../../test_helper'
 require 'new_relic/agent/database'
+
 class NewRelic::Agent::DatabaseTest < Minitest::Test
   def teardown
     NewRelic::Agent::Database::Obfuscator.instance.reset

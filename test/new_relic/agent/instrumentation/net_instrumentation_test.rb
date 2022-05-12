@@ -4,7 +4,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'net/http'
-require File.expand_path '../../../../test_helper', __FILE__
+require_relative '../../../test_helper'
 require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test

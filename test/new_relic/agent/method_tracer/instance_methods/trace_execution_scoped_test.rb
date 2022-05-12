@@ -4,7 +4,8 @@
 
 # TODO: Address intermittent failure where "after_fork" Supportability Metric appears
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
+require_relative '../../../../test_helper'
+
 class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   require 'new_relic/agent/method_tracer'
   include NewRelic::Agent::MethodTracer

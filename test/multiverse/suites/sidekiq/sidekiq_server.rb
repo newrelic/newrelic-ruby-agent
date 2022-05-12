@@ -4,7 +4,7 @@
 
 require 'sidekiq'
 require 'sidekiq/cli'
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+require_relative '../../../helpers/docker'
 
 class SidekiqServer
   include Singleton

@@ -10,9 +10,8 @@ require 'rubygems'
 require 'base64'
 require 'fileutils'
 require 'digest'
-
-require File.expand_path '../../multiverse', __FILE__
-require File.expand_path '../shell_utils', __FILE__
+require_relative '../multiverse'
+require_relative 'shell_utils'
 
 module Multiverse
   class Suite

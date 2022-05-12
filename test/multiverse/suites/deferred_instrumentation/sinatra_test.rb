@@ -4,9 +4,8 @@
 
 require 'newrelic_rpm'
 require 'sinatra'
-
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'sinatra', 'sinatra_test_cases'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
+require_relative '../sinatra/sinatra_test_cases'
+require_relative '../../../helpers/exceptions'
 
 class DeferredSinatraTestApp < Sinatra::Base
   include NewRelic::TestHelpers::Exceptions

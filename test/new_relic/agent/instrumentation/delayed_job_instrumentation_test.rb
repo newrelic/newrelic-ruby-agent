@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require_relative '../../../test_helper'
 require 'new_relic/agent/instrumentation/delayed_job_instrumentation'
 
 module NewRelic::Agent::Instrumentation
