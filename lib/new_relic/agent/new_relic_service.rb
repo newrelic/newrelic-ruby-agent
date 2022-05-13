@@ -22,8 +22,15 @@ module NewRelic
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
 
       # Don't perform compression on the payload unless its uncompressed size is
-      # greater than this number of bytes
-      MIN_BYTE_SIZE_TO_COMPRESS = 64 * 1024
+      # greater than or equal to this number of bytes. In testing with
+      # Ruby 2.2 - 3.1, we determined an absolute minimum value for ASCII to be
+      # 535 bytes to obtain at least a 10% savings in size. It is recommended
+      # that this value be kept above that 535 number. It is also important to
+      # consider the CPU cost involved with performing compression and to find
+      # a balance between CPU cycles spent and bandwidth saved. A good
+      # reasonable default here is 2048 bytes, which is a tried and true Apache
+      # Tomcat default (as of v8.5.78)
+      MIN_BYTE_SIZE_TO_COMPRESS = 2048
 
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
@@ -191,12 +198,9 @@ module NewRelic
         response
       end
 
-      # We do not compress if content is smaller than 64kb.  There are
-      # problems with bugs in Ruby in some versions that expose us
-      # to a risk of segfaults if we compress aggressively.
       def compress_request_if_needed(data, endpoint)
         encoding = 'identity'
-        if data.size > MIN_BYTE_SIZE_TO_COMPRESS
+        if data.size >= MIN_BYTE_SIZE_TO_COMPRESS
           encoding = Agent.config[:compressed_content_encoding]
           data = if encoding == 'deflate'
             Encoders::Compressed::Deflate.encode(data)
