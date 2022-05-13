@@ -40,7 +40,8 @@ class PadrinoRoutesTest < Minitest::Test
   end
 
   def test_tracing_is_involved
-    ::Padrino::Application.any_instance.expects(:invoke_route_with_tracing)
+    klass = ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] == 'chain' ? ::PadrinoTestApp : ::Padrino::Application
+    klass.any_instance.expects(:invoke_route_with_tracing)
     get '/user/login'
   end
 
