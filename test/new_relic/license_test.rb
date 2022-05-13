@@ -37,6 +37,7 @@ class LicenseTest < Minitest::Test
     ['/infinite_tracing/LICENSE', 'Apache'] => 6,
     ['/infinite_tracing/newrelic-infinite_tracing.gemspec', 'Apache'] => 1,
     ['/CHANGELOG.md', 'BSD'] => 3, # reference to BSD the operating system, not BSD the license
+    ['/lib/new_relic/agent/new_relic_service.rb', 'Apache'] => 1, # reference to Apache Tomcat in comments
     ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to the operating system, not the license
     ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to the operating system, not the license
   }
