@@ -72,9 +72,9 @@ module Environments
 
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit version
-      return version if version.to_s == NewRelic::EMPTY_STR
+      return version if version.to_s == ""
       test_version = `bundle #{version} --version` =~ /Could not find command/
-      test_version ? NewRelic::EMPTY_STR : version
+      test_version ? "" : version
     end
 
     def explicit_bundler_version dir
