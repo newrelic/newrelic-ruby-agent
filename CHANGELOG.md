@@ -2,6 +2,10 @@
 
   ## v8.8.0
 
+  * **Lowered the minimum payload size to apply compression at**
+
+    Previously the Ruby agent used a particularly large payload size threshold of 64KiB that would need to be met before the agent would compress data en route to New Relic's collector. The original value stems from segfault issues that very old Rubies (< 2.2) used to encounter when compressing smaller payloads. This value has been lowered to 2KiB (2048 bytes), which should provide a more optimal balance between the CPU cycles spent on compression and the bandwidth savings gained from it.
+
   * **Supportability Metrics will always report uncompressed payload size**
 
     New Relic's agent specifications call for Supportability Metrics to always reference the uncompressed payload byte size. Previously, the Ruby agent was calculating the byte size after compression. Furthermore, compression is only performed on payloads of a certain size. This means that sometimes the value could have represented a compressed size and sometimes an uncompressed one. Now the uncompressed value is always used, bringing consistency for comparing two instances of the same metric and alignment with the New Relic agent specifications.
