@@ -81,7 +81,7 @@ module Environments
       return if RUBY_VERSION.to_f <= 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
-      safe_explicit(version.to_s == NewRelic::EMPTY_STR ? nil : "_#{version}_")
+      safe_explicit(version.to_s == "" ? nil : "_#{version}_")
     end
 
     def bundle_config dir, bundle_cmd
