@@ -336,7 +336,7 @@ class BunnyTest < Minitest::Test
     with_queue do |queue|
       # publish in such a way that the exchange object does not end up in channel.exchanges
       channel = queue.channel
-      channel.basic_publish("test_msg", "", queue.name)
+      channel.basic_publish("test_msg", NewRelic::EMPTY_STR, queue.name)
 
       assert_empty channel.exchanges
 
@@ -352,7 +352,7 @@ class BunnyTest < Minitest::Test
   end
 
   def with_queue temp = true, exclusive = true, &block
-    queue_name = temp ? "" : random_string
+    queue_name = temp ? NewRelic::EMPTY_STR : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
 
     yield queue if block_given?

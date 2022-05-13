@@ -13,7 +13,7 @@ module NewRelic
     class AgentLogger
       include LogOnce
 
-      def initialize(root = "", override_logger = nil)
+      def initialize(root = NewRelic::EMPTY_STR, override_logger = nil)
         @already_logged_lock = Mutex.new
         clear_already_logged
         create_log(root, override_logger)

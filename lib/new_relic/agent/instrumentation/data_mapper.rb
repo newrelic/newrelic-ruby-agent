@@ -127,7 +127,7 @@ module NewRelic
 
       def self.method_body(clazz, method_name, operation_only)
         use_model_name = NewRelic::Helper.instance_methods_include?(clazz, :model)
-        metric_operation = method_name.to_s.gsub(/[!?]/, "")
+        metric_operation = method_name.to_s.gsub(/[!?]/, NewRelic::EMPTY_STR)
 
         Proc.new do |*args, &blk|
           begin

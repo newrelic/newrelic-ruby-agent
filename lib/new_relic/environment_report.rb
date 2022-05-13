@@ -52,7 +52,7 @@ module NewRelic
         # though so try it if the above fails.
         Bundler.load.specs.map do |spec|
           version = (spec.respond_to?(:version) && spec.version)
-          spec.name + (version ? "(#{version})" : "")
+          spec.name + (version ? "(#{version})" : NewRelic::EMPTY_STR)
         end
       end
     end

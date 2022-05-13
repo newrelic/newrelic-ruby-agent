@@ -26,7 +26,7 @@ module Multiverse
     end
 
     def self.encode_options(decoded_opts)
-      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", NewRelic::EMPTY_STR)
     end
 
     def self.decode_options(encoded_opts)
@@ -38,7 +38,7 @@ module Multiverse
     end
 
     def seed
-      opts.fetch(:seed, "")
+      opts.fetch(:seed, NewRelic::EMPTY_STR)
     end
 
     def debug
@@ -130,16 +130,16 @@ module Multiverse
 
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit version
-      return version if version.to_s == ""
+      return version if version.to_s == NewRelic::EMPTY_STR
       test_version = `bundle #{version} --version` =~ /Could not find command/
-      test_version ? "" : version
+      test_version ? NewRelic::EMPTY_STR : version
     end
 
     def explicit_bundler_version dir
       return if RUBY_VERSION.to_f < 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
-      safe_explicit(version.to_s == "" ? nil : "_#{version}_")
+      safe_explicit(version.to_s == NewRelic::EMPTY_STR ? nil : "_#{version}_")
     end
 
     def bundle_show_env bundle_cmd
@@ -520,7 +520,7 @@ module Multiverse
       # to support, so this is simplest for making our test running consistent
       options = []
       options << "-v" if verbose?
-      options << "--seed=#{seed}" unless seed == ""
+      options << "--seed=#{seed}" unless seed == NewRelic::EMPTY_STR
       options << "--name=/#{names.map { |n| n + ".*" }.join("|")}/" unless names == []
 
       original_options = options.dup

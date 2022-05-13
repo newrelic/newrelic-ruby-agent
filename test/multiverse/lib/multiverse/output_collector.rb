@@ -24,7 +24,7 @@ module Multiverse
       key = [suite, env]
       @buffer_lock.synchronize do
         @buffers ||= {}
-        @buffers[key] ||= ""
+        @buffers[key] ||= NewRelic::EMPTY_STR
         @buffers[key]
       end
     end
@@ -60,14 +60,14 @@ module Multiverse
       [red("*" * 80),
         red("Repeating failed test output"),
         red("*" * 80),
-        ""]
+        NewRelic::EMPTY_STR]
     end
 
     def self.failing_output_footer
-      ["",
+      [NewRelic::EMPTY_STR,
         red("*" * 80),
         red("There were failures in #{failing_output.size} test suites"),
-        "",
+        NewRelic::EMPTY_STR,
         @failing_suites.map { |suite, env| red("#{suite} failed in env #{env}") },
         red("*" * 80)]
     end

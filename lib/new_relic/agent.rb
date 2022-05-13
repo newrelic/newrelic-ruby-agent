@@ -756,7 +756,7 @@ module NewRelic
     def browser_timing_header(nonce = nil)
       record_api_supportability_metric(:browser_timing_header)
 
-      return "" unless agent
+      return NewRelic::EMPTY_STR unless agent
       agent.javascript_instrumentor.browser_timing_header(nonce)
     end
 

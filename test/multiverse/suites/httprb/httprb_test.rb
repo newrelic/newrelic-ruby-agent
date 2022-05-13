@@ -30,15 +30,15 @@ class HTTPTest < Minitest::Test
   end
 
   def post_response
-    HTTP.post(default_url, :body => "")
+    HTTP.post(default_url, :body => NewRelic::EMPTY_STR)
   end
 
   def put_response
-    HTTP.put(default_url, :body => "")
+    HTTP.put(default_url, :body => NewRelic::EMPTY_STR)
   end
 
   def delete_response
-    HTTP.delete(default_url, :body => "")
+    HTTP.delete(default_url, :body => NewRelic::EMPTY_STR)
   end
 
   # NOTE, some versions of HTTPrb gem implements body with

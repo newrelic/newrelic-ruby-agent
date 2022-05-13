@@ -102,7 +102,7 @@ module NewRelic
         module AddMethodTracer
           ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_footer].freeze
 
-          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => ""}.freeze
+          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => NewRelic::EMPTY_STR, :code_footer => NewRelic::EMPTY_STR}.freeze
 
           # Checks the provided options to make sure that they make
           # sense. Raises an error if the options are incorrect to

@@ -37,11 +37,11 @@ module Multiverse
     end
 
     def ruby3_gem_webrick
-      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
+      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : NewRelic::EMPTY_STR
     end
 
     def ruby3_gem_sorted_set
-      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
+      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : NewRelic::EMPTY_STR
     end
 
     def omit_collector!

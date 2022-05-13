@@ -35,15 +35,15 @@ class HTTPClientTest < Minitest::Test
   end
 
   def post_response
-    HTTPClient.post(default_url, :body => "")
+    HTTPClient.post(default_url, :body => NewRelic::EMPTY_STR)
   end
 
   def put_response
-    HTTPClient.put(default_url, :body => "")
+    HTTPClient.put(default_url, :body => NewRelic::EMPTY_STR)
   end
 
   def delete_response
-    HTTPClient.delete(default_url, :body => "")
+    HTTPClient.delete(default_url, :body => NewRelic::EMPTY_STR)
   end
 
   def request_instance

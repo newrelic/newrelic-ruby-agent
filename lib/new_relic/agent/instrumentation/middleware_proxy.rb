@@ -92,7 +92,7 @@ module NewRelic
           clazz = class_for_target
 
           name = clazz.name
-          name = clazz.superclass.name if name.nil? || name == ""
+          name = clazz.superclass.name if name.nil? || name == NewRelic::EMPTY_STR
           name = ANONYMOUS_CLASS if name.nil? || name == OBJECT_CLASS_NAME
           name
         end

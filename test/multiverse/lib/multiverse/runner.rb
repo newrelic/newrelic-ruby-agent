@@ -45,7 +45,7 @@ module Multiverse
       opts
     end
 
-    def run(filter = "", opts = {})
+    def run(filter = NewRelic::EMPTY_STR, opts = {})
       execute_suites(filter, opts) do |suite|
         suite.each_instrumentation_method do |method|
           suite.execute method
@@ -53,7 +53,7 @@ module Multiverse
       end
     end
 
-    def prime(filter = "", opts = {})
+    def prime(filter = NewRelic::EMPTY_STR, opts = {})
       execute_suites(filter, opts) do |suite|
         suite.prime
       end

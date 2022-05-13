@@ -256,7 +256,7 @@ module NewRelic
       attr_reader :attribute_name, :destinations, :is_include, :wildcard
 
       def initialize(attribute_name, destinations, is_include)
-        @attribute_name = attribute_name.sub(/\*$/, "")
+        @attribute_name = attribute_name.sub(/\*$/, NewRelic::EMPTY_STR)
         @wildcard = attribute_name.end_with?("*")
         @is_include = is_include
         @destinations = is_include ? destinations : ~destinations

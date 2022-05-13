@@ -43,7 +43,7 @@ class StartUpTest < Minitest::Test
 
     expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
 
-    assert_equal '', output.chomp
+    assert_equal NewRelic::EMPTY_STR, output.chomp
   end
 
   def test_instrumentation_loads_clean_even_without_dependencies

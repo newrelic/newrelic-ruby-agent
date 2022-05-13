@@ -733,7 +733,7 @@ def with_array_logger level = :info
   override_logger = Logger.new(logdev)
 
   with_config(config) do
-    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(NewRelic::EMPTY_STR, override_logger)
     yield
   end
 
