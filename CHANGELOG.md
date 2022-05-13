@@ -4,7 +4,7 @@
 
   * **Provide Code Level Metrics for New Relic CodeStream**
 
-    For Ruby on Rails applications and/or those with manually traced methods, the agent is now capable of reporting metrics with Ruby method level granularity. When the new `code_level_metrics.enabled` configuration parameter is set to a `true` value, the agent will associate source code related metadata with the metrics for things such as Rails controller methods. Then when the corresponding Ruby class file that defines the methods is loaded up in a New Relic [CodeStream](https://www.codestream.com/) powered IDE, data for each method will be presented to the developer directly.
+    For Ruby on Rails applications and/or those with manually traced methods, the agent is now capable of reporting metrics with Ruby method-level granularity. When the new `code_level_metrics.enabled` configuration parameter is set to a `true` value, the agent will associate source-code-related metadata with the metrics for things such as Rails controller methods. Then, when the corresponding Ruby class file that defines the methods is loaded up in a [New Relic CodeStream](https://www.codestream.com/)-powered IDE, [the four golden signals](https://sre.google/sre-book/monitoring-distributed-systems/) for each method will be presented to the developer directly.
 
   * **Supportability Metrics will always report uncompressed payload size**
 
