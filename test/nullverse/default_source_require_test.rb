@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), 'nullverse_helper'))
+require_relative 'nullverse_helper'
 
 # this test exists to ensure that default source doesn't depend on specific parts
 # of the agent having been previously required when default_source is required.

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
 
 module NewRelic
   module Agent
@@ -45,7 +45,7 @@ module NewRelic
           generator, buffer, segments = prepare_to_stream_segments total_spans
 
           # consumes the queue as it fills
-          spans, _consumer = prepare_to_consume_spans buffer
+          spans, consumer = prepare_to_consume_spans buffer
 
           # closes the streaming buffer after queue is emptied
           closed = false
@@ -65,6 +65,7 @@ module NewRelic
           closer.join
           generator.join
           buffer.flush_queue
+          consumer.join
 
           assert emptied, "spans streamed reached total but buffer not empty!"
           assert closed, "failed to close the buffer"

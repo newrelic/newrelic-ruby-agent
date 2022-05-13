@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 
 module NewRelic
   module Agent
@@ -19,15 +19,10 @@ module NewRelic
         def test_streams_multiple_segments
           NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           total_spans = 5
-          server = nil
 
+          spans = create_grpc_mock
           with_config fake_server_config do
-            # Suppresses intermittent fails from server not ready to accept streaming
-            Connection.instance.stubs(:retry_connection_period).returns(0.01)
-
             simulate_connect_to_collector fake_server_config do |simulator|
-              # starts server and simulated agent connection
-              server = ServerContext.new FAKE_SERVER_PORT, InfiniteTracer
               simulator.join
 
               # starts client and streams count segments
@@ -39,18 +34,21 @@ module NewRelic
                 end
               end
 
+              # This ensures that the mock server thread is able to complete processing before asserting starts
+              simulate_server_response
+              wait_for_mock_server_process
+
               # ensures all segments consumed
               NewRelic::Agent.agent.infinite_tracer.flush
-              server.flush total_spans
+              join_grpc_mock
 
-              assert_equal total_spans, server.spans.size
+              assert_equal total_spans, spans.size
               assert_equal total_spans, segments.size
             end
           end
         ensure
           Connection.instance.unstub(:retry_connection_period)
           NewRelic::Agent.agent.infinite_tracer.stop
-          server.stop unless server.nil?
         end
       end
     end

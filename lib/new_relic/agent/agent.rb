@@ -460,6 +460,7 @@ module NewRelic
           # requests, we need to wait until the children are forked
           # before connecting, otherwise the parent process sends useless data
           def using_forking_dispatcher?
+            # TODO: MAJOR VERSION - remove :rainbows
             if [:puma, :passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
               ::NewRelic::Agent.logger.info "Deferring startup of agent reporting thread because #{Agent.config[:dispatcher]} may fork."
               true
@@ -609,7 +610,7 @@ module NewRelic
             :"#{interval}_second_harvest"
           end
 
-          ANALYTIC_EVENT_DATA = "analytic_event_data".freeze
+          TRANSACTION_EVENT_DATA = "transaction_event_data".freeze
           CUSTOM_EVENT_DATA = "custom_event_data".freeze
           ERROR_EVENT_DATA = "error_event_data".freeze
           SPAN_EVENT_DATA = "span_event_data".freeze
@@ -624,7 +625,7 @@ module NewRelic
               transmit_data
             end
 
-            @event_loop.on(interval_for ANALYTIC_EVENT_DATA) do
+            @event_loop.on(interval_for TRANSACTION_EVENT_DATA) do
               transmit_analytic_event_data
             end
             @event_loop.on(interval_for CUSTOM_EVENT_DATA) do
@@ -639,6 +640,7 @@ module NewRelic
             @event_loop.on(interval_for LOG_EVENT_DATA) do
               transmit_log_event_data
             end
+
             @event_loop.on(:reset_log_once_keys) do
               ::NewRelic::Agent.logger.clear_already_logged
             end

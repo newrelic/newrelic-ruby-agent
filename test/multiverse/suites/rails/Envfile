@@ -40,7 +40,7 @@ end
 
 if RUBY_VERSION < '3.0.0'
   gemfile <<-RB
-    gem 'rails', '~> 5.2.0'
+    gem 'rails', '~> 5.2.8'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'

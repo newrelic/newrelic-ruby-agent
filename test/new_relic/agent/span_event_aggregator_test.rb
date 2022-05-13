@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
-require File.expand_path('../../data_container_tests', __FILE__)
-require File.expand_path('../../common_aggregator_tests', __FILE__)
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
+require_relative '../common_aggregator_tests'
 require 'new_relic/agent/span_event_aggregator'
 
 module NewRelic

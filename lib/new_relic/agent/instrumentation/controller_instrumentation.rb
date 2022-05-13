@@ -165,10 +165,6 @@ module NewRelic
           def add_transaction_tracer(method, options = {})
             NewRelic::Agent.record_api_supportability_metric(:add_transaction_tracer)
 
-            # The metric path:
-            options[:name] ||= method.to_s
-
-            argument_list = generate_argument_list(options)
             traced_method, punctuation = parse_punctuation(method)
             with_method_name, without_method_name = build_method_names(traced_method, punctuation)
 
@@ -176,6 +172,12 @@ module NewRelic
               ::NewRelic::Agent.logger.warn("Transaction tracer already in place for class = #{self.name}, method = #{method.to_s}, skipping")
               return
             end
+
+            # The metric path:
+            options[:name] ||= method.to_s
+
+            code_info = NewRelic::Agent::MethodTracerHelpers.code_information(self, method)
+            argument_list = generate_argument_list(options.merge(code_info))
 
             class_eval <<-EOC
               def #{with_method_name}(*args, &block)
@@ -441,6 +443,9 @@ module NewRelic
           txn_options[:apdex_start_time] = queue_start_time
           txn_options[:ignore_apdex] = ignore_apdex?
           txn_options[:ignore_enduser] = ignore_enduser?
+          NewRelic::Agent::MethodTracerHelpers::SOURCE_CODE_INFORMATION_PARAMETERS.each do |parameter|
+            txn_options[parameter] = trace_options[parameter]
+          end
           txn_options
         end
 

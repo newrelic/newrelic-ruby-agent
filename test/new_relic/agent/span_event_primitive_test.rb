@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 module NewRelic
   module Agent
@@ -276,6 +276,36 @@ module NewRelic
 
             assert_equal({:foo => "bar"}, span_agent_attributes)
             assert_equal transaction_agent_attributes, span_agent_attributes
+          end
+        end
+
+        def test_code_level_metrics_added_to_span_events
+          filepath = '/path/to/file.rb'
+          function = 'test'
+          lineno = 1138
+          namespace = 'The::Example'
+
+          in_transaction do |txn|
+            txn.current_segment.code_information = {filepath: filepath,
+                                                    function: function,
+                                                    lineno: lineno,
+                                                    namespace: namespace}
+            _intrinsics, _custom, agent_attributes = SpanEventPrimitive.for_segment txn.current_segment
+            assert_equal [filepath, function, lineno, namespace],
+              agent_attributes.values_at('code.filepath',
+                'code.function',
+                'code.lineno',
+                'code.namespace')
+          end
+        end
+
+        def test_code_level_metrics_absent_if_unset
+          in_transaction do |txn|
+            _intrinsics, _custom, agent_attributes = SpanEventPrimitive.for_segment txn.current_segment
+            existence = %w[code.filepath code.function code.lineno code.namespace].map do |attribute|
+              agent_attributes.key?(attribute)
+            end
+            assert_equal [false, false, false, false], existence
           end
         end
       end

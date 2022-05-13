@@ -50,29 +50,32 @@ module NewRelic
           Tracer.start_transaction_or_segment(
             name: format_metric_name(payload[:action], controller_class),
             category: :controller,
-            options: {
-              request: request,
-              filtered_params: NewRelic::Agent::ParameterFiltering.filter_using_rails(
-                payload[:params],
-                Rails.application.config.filter_parameters
-              ),
-              apdex_start_time: queue_start(request),
-              ignore_apdex: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
-                ControllerInstrumentation::NR_IGNORE_APDEX_KEY,
-                controller_class,
-                payload[:action]
-              ),
-              ignore_enduser: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
-                ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
-                controller_class,
-                payload[:action]
-              )
-            }
+            options: tracer_options(payload, request, controller_class)
           )
         end
 
-        def format_metric_name(metric_action, controller_name)
-          controller_class = ::NewRelic::LanguageSupport.constantize(controller_name)
+        def tracer_options(payload, request, controller_class)
+          {
+            request: request,
+            filtered_params: filtered_params(payload[:params]),
+            apdex_start_time: queue_start(request),
+            ignore_apdex: ignore?(payload[:action], ControllerInstrumentation::NR_IGNORE_APDEX_KEY, controller_class),
+            ignore_enduser: ignore?(payload[:action],
+              ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
+              controller_class)
+          }.merge(NewRelic::Agent::MethodTracerHelpers.code_information(controller_class, payload[:action]))
+        end
+
+        def filtered_params(params)
+          NewRelic::Agent::ParameterFiltering.filter_using_rails(params, Rails.application.config.filter_parameters)
+        end
+
+        def ignore?(action, key, controller_class)
+          NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(key, controller_class, action)
+        end
+
+        def format_metric_name(metric_action, controller)
+          controller_class = controller.is_a?(Class) ? controller : Object.const_get(controller)
           "Controller/#{controller_class.controller_path}/#{metric_action}"
         end
 
