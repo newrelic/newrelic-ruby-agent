@@ -129,7 +129,7 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', nil)
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["log.level"]
+      assert_equal 'UNKNOWN', events[0][1]["level"]
       assert_metrics_recorded([
         "Logging/lines/UNKNOWN"
       ])
@@ -139,7 +139,7 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', '')
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["log.level"]
+      assert_equal 'UNKNOWN', events[0][1]["level"]
       assert_metrics_recorded([
         "Logging/lines/UNKNOWN"
       ])
@@ -286,7 +286,7 @@ module NewRelic::Agent
       event = events.first
 
       assert_equal({
-        'log.level' => "INFO",
+        'level' => "INFO",
         'message' => message,
         'timestamp' => t0
       },
