@@ -3,7 +3,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require_relative '../../../test_helper'
 require 'new_relic/agent/samplers/memory_sampler'
 
 class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test

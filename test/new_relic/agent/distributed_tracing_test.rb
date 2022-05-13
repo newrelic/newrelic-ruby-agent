@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
