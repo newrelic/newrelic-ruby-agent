@@ -18,7 +18,21 @@ module NewRelic::Agent
       end
     end
 
+    # Handles the case where the server tells us to restart -
+    # this clears the data, clears connection attempts, and
+    # waits a while to reconnect.
+    def handle_force_restart(error)
+      ::NewRelic::Agent.logger.debug error.message
+      drop_buffered_data
+      @service.force_restart if @service
+      @connect_state = :pending
+      close_infinite_tracer
+      sleep 30
+    end
+
+    # Whenever we reconnect, close and restart?
     def close_infinite_tracer
+      NewRelic::Agent.logger.debug "Closing infinite tracer threads"
       return unless @infinite_tracer_thread
       @infinite_tracer_thread.join
       @infinite_tracer_thread.stop
