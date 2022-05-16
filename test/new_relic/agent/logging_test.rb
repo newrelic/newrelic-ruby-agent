@@ -26,7 +26,7 @@ module NewRelic
           # Should include the keys:
           #  entity.name, entity.type, hostname, timestamp, message, level
           assert_equal 'this is a test', message['message']
-          assert_equal 'INFO', message['level']
+          assert_equal 'INFO', message['log.level']
 
           assert_includes message, 'entity.name'
           refute_nil message['entity.name']
