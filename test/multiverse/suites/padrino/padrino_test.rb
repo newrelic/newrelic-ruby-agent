@@ -15,12 +15,13 @@ class PadrinoTestApp < Padrino::Application
   end
 
   get(/\/regex.*/) do
-    "with extra regex's please!"
+    "with extra regexes please!"
   end
 end
 
 class PadrinoRoutesTest < Minitest::Test
   include Rack::Test::Methods
+  include Mocha::API
 
   def app
     PadrinoTestApp
@@ -29,6 +30,20 @@ class PadrinoRoutesTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent
+
+  def setup
+    mocha_setup
+  end
+
+  def teardown
+    mocha_teardown
+  end
+
+  def test_tracing_is_involved
+    klass = ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] == 'chain' ? ::PadrinoTestApp : ::Padrino::Application
+    klass.any_instance.expects(:invoke_route_with_tracing)
+    get '/user/login'
+  end
 
   def test_basic_route
     get '/user/login'
@@ -44,7 +59,7 @@ class PadrinoRoutesTest < Minitest::Test
   def test_regex_route
     get '/regexes'
     assert_equal 200, last_response.status
-    assert_equal "with extra regex's please!", last_response.body
+    assert_equal "with extra regexes please!", last_response.body
 
     assert_metrics_recorded([
       "Controller/Sinatra/PadrinoTestApp/GET regex.*",
