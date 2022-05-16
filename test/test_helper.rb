@@ -21,6 +21,11 @@ require 'mocha/setup'
 
 require 'hometown'
 require_relative 'helpers/hometown_monkey_patch'
+require 'simplecov'
+
+SimpleCov.start do
+  enable_coverage :branch
+end
 
 Hometown.watch(::Thread)
 
