@@ -2,7 +2,7 @@
 
   ## v8.8.0
 
-  * **Lowered the minimum payload size to apply compression at**
+  * **Lowered the minimum payload size to compress**
 
     Previously the Ruby agent used a particularly large payload size threshold of 64KiB that would need to be met before the agent would compress data en route to New Relic's collector. The original value stems from segfault issues that very old Rubies (< 2.2) used to encounter when compressing smaller payloads. This value has been lowered to 2KiB (2048 bytes), which should provide a more optimal balance between the CPU cycles spent on compression and the bandwidth savings gained from it.
 
