@@ -2,6 +2,10 @@
 
   ## v8.8.0
 
+  * **Provide Code Level Metrics for New Relic CodeStream**
+
+    For Ruby on Rails applications and/or those with manually traced methods, the agent is now capable of reporting metrics with Ruby method-level granularity. When the new `code_level_metrics.enabled` configuration parameter is set to a `true` value, the agent will associate source-code-related metadata with the metrics for things such as Rails controller methods. Then, when the corresponding Ruby class file that defines the methods is loaded up in a [New Relic CodeStream](https://www.codestream.com/)-powered IDE, [the four golden signals](https://sre.google/sre-book/monitoring-distributed-systems/) for each method will be presented to the developer directly.
+
   * **Supportability Metrics will always report uncompressed payload size**
 
     New Relic's agent specifications call for Supportability Metrics to always reference the uncompressed payload byte size. Previously, the Ruby agent was calculating the byte size after compression. Furthermore, compression is only performed on payloads of a certain size. This means that sometimes the value could have represented a compressed size and sometimes an uncompressed one. Now the uncompressed value is always used, bringing consistency for comparing two instances of the same metric and alignment with the New Relic agent specifications.
