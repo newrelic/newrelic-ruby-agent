@@ -225,7 +225,7 @@ jobs:
 
   jruby_multiverse:
     needs: build-ruby
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     services:
       mysql:
         image: mysql:5.7
