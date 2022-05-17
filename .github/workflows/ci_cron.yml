@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - update_ci_jruby_failures
   schedule:
     - cron:  '0 9 * * *'
 
