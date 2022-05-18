@@ -92,7 +92,7 @@ jobs:
                 "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.4.0": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42,railsedge"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
@@ -224,7 +224,7 @@ jobs:
 
   jruby_multiverse:
     needs: build-ruby
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     services:
       mysql:
         image: mysql:5.7
