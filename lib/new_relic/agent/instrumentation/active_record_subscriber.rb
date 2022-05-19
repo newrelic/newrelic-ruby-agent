@@ -94,6 +94,10 @@ module NewRelic
           connection = nil
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
+            # RE: https://github.com/newrelic/newrelic-ruby-agent/issues/507
+            spec_config = handler.spec && handler.spec.config
+            return spec_config if using_makara?(spec_config)
+
             connection = handler.connections.detect do |conn|
               conn.object_id == connection_id
             end
@@ -131,6 +135,14 @@ module NewRelic
 
           segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
           segment
+        end
+
+        # https://github.com/instacart/makara
+        # This gem defines new database adapters and handles connection pooling config
+        # information differently than the default active_record adapters
+        # Config is returned within the same format
+        def using_makara?(spec_config)
+          spec_config && spec_config[:adapter].include?('makara')
         end
       end
     end
