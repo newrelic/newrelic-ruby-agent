@@ -182,75 +182,75 @@ jobs:
   #       uses: ./.github/actions/annotate
 
   # jruby_multiverse:
-    needs: build-ruby
-    runs-on: ubuntu-18.04
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - "3306:3306"
-      postgres:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: >-
-          --health-cmd "rabbitmqctl node_health_check"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-        options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+  #   needs: build-ruby
+  #   runs-on: ubuntu-18.04
+  #   services:
+  #     mysql:
+  #       image: mysql:5.7
+  #       env:
+  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+  #       ports:
+  #         - "3306:3306"
+  #     postgres:
+  #       image: postgres:latest
+  #       ports:
+  #         - 5432:5432
+  #     redis:
+  #       image: redis
+  #       ports:
+  #         - 6379:6379
+  #       options: >-
+  #         --health-cmd "redis-cli ping"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     mongodb:
+  #       image: mongo
+  #       ports:
+  #         - 27017:27017
+  #     rabbitmq:
+  #       image: rabbitmq:latest
+  #       ports:
+  #         - 5672:5672
+  #       options: >-
+  #         --health-cmd "rabbitmqctl node_health_check"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     memcached:
+  #       image: memcached:latest
+  #       ports:
+  #         - 11211:11211
+  #       options: >-
+  #         --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
 
-    strategy:
-      fail-fast: false
-      matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Build Ruby jruby-9.3.4.0
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: jruby-9.3.4.0
+  #     - name: Build Ruby jruby-9.3.4.0
+  #       uses: ./.github/actions/build-ruby
+  #       with:
+  #         ruby-version: jruby-9.3.4.0
 
-      - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
-        env:
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #     - name: Run Multiverse Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 60
+  #         max_attempts: 2
+  #         command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+  #       env:
+  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+  #     - name: Annotate errors
+  #       if: ${{ failure() }}
+  #       uses: ./.github/actions/annotate
 
