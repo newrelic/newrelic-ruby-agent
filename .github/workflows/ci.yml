@@ -39,6 +39,8 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true 
 
+      - run: gem install bundler:2.3.14
+
       - name: Set up mini-envs for ruby version
         uses: kanga333/variable-mapper@master
         with:
