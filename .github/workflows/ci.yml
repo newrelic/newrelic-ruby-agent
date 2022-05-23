@@ -45,13 +45,34 @@ jobs:
           map: |
             {
               "2.2.10": {
-                "rails": "norails,rails52,rails42,rails32"
+                "rails": "norails,rails51,rails42,rails41,rails40,rails32"
+              },
+              "2.3.8": {
+                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
+              },
+              "2.4.10": {
+                "rails": "norails,rails52,rails51,rails42,rails32"
+              },
+              "2.5.9": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42,rails32"
+              },
+              "2.6.10": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+              },
+              "2.7.6": {
+                "rails": "norails,rails61,rails60,rails70,railsedge"
+              },
+              "3.0.4": {
+                "rails": "norails,rails61,rails60,rails70,railsedge"
               },
               "3.1.2": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,railsedge"
+              },
+              "3.2.0-preview1": {
+                "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.4.0": {
-                "rails": "norails,rails61,rails52,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
