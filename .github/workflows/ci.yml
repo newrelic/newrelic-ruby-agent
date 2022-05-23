@@ -31,7 +31,7 @@ jobs:
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.4.0]
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install libxslt-dev libxml2-dev
+      - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
