@@ -58,7 +58,7 @@ jobs:
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 30
-          max_attempts: 2
+          max_attempts: 1
           command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
