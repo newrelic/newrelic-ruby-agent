@@ -15,22 +15,7 @@ jobs:
       - run: bundle
       - run: rubocop
 
-  build-ruby:
-    needs: run-rubocop
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.4.0]
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-
   unit-tests:
-    needs: build-ruby
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -47,10 +32,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true 
 
       - name: Set up mini-envs for ruby version
         uses: kanga333/variable-mapper@master
@@ -78,124 +64,124 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
-  multiverse:
-    needs: build-ruby
-    runs-on: ubuntu-20.04
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - 3306
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: >-
-          --health-cmd "rabbitmqctl node_health_check"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-        options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+  # multiverse:
+  #   needs: build-ruby
+  #   runs-on: ubuntu-20.04
+  #   services:
+  #     mysql:
+  #       image: mysql:5.7
+  #       env:
+  #         MYSQL_ROOT_PASSWORD: root
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+  #       ports:
+  #         - 3306
+  #     postgres:
+  #       image: postgres:latest
+  #       env:
+  #         POSTGRES_USERNAME: postgres
+  #         POSTGRES_PASSWORD: password
+  #       ports:
+  #         - 5432:5432
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     redis:
+  #       image: redis
+  #       ports:
+  #         - 6379:6379
+  #       options: >-
+  #         --health-cmd "redis-cli ping"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     mongodb:
+  #       image: mongo
+  #       ports:
+  #         - 27017:27017
+  #     rabbitmq:
+  #       image: rabbitmq:latest
+  #       ports:
+  #         - 5672:5672
+  #       options: >-
+  #         --health-cmd "rabbitmqctl node_health_check"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     memcached:
+  #       image: memcached:latest
+  #       ports:
+  #         - 11211:11211
+  #       options: >-
+  #         --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
 
-    strategy:
-      fail-fast: false
-      matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 3.1.2]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+  #       ruby-version: [2.2.10, 3.1.2]
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Build Ruby ${{ matrix.ruby-version }}
+  #       uses: ./.github/actions/build-ruby
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Test MySQL
-        run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
+  #     - name: Test MySQL
+  #       run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
 
-      - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
-        env:
-          DB_PASSWORD: root
-          MYSQL_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
+  #     - name: Run Multiverse Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 60
+  #         max_attempts: 2
+  #         command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+  #       env:
+  #         DB_PASSWORD: root
+  #         MYSQL_PASSWORD: root
+  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         MYSQL_HOST: 127.0.0.1
+  #         POSTGRES_USERNAME: postgres
+  #         POSTGRES_PASSWORD: password
 
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+  #     - name: Annotate errors
+  #       if: ${{ failure() }}
+  #       uses: ./.github/actions/annotate
 
-  infinite_tracing:
-    needs: build-ruby
-    runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-version: [2.5.9, 3.1.2]
-    steps:
-      - uses: actions/checkout@v2
+  # infinite_tracing:
+  #   needs: build-ruby
+  #   runs-on: ubuntu-20.04
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       ruby-version: [2.5.9, 3.1.2]
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Build Ruby ${{ matrix.ruby-version }}
+  #       uses: ./.github/actions/build-ruby
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 15
-          max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+  #     - name: Run Multiverse Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 15
+  #         max_attempts: 2
+  #         command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
 
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+  #     - name: Annotate errors
+  #       if: ${{ failure() }}
+  #       uses: ./.github/actions/annotate
 
-  jruby_multiverse:
+  # jruby_multiverse:
     needs: build-ruby
     runs-on: ubuntu-18.04
     services:
