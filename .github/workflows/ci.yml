@@ -1,10 +1,6 @@
-name: Continuous Integration
+name: PR Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
-      - dev
   pull_request:
 
 jobs:
@@ -140,7 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: ["agent;background;background_2;database", "httpclients;httpclients_2", "frameworks;rails;rest"]
+        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.2.10, 3.1.2]
 
     steps:

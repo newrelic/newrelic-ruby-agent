@@ -46,7 +46,7 @@ jobs:
         ports:
           - "3306:3306"
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.4.0]
 
@@ -92,7 +92,7 @@ jobs:
                 "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.4.0": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42,railsedge"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
@@ -161,7 +161,7 @@ jobs:
           --health-retries 5
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         multiverse: ["agent;background;background_2;database", "httpclients;httpclients_2", "frameworks;rails;rest"]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
@@ -200,7 +200,7 @@ jobs:
     needs: build-ruby
     runs-on: ubuntu-20.04
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
@@ -224,7 +224,7 @@ jobs:
 
   jruby_multiverse:
     needs: build-ruby
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     services:
       mysql:
         image: mysql:5.7
@@ -270,7 +270,7 @@ jobs:
           --health-retries 5
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
 
