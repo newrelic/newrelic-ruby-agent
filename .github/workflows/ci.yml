@@ -39,8 +39,8 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true 
 
+      - run: gem install bundler:2.3.14
       - run: gem install --default bundler:1.17.3
-      # - run: gem install bundler:2.3.14
 
       - name: Set up mini-envs for ruby version
         uses: kanga333/variable-mapper@master
@@ -81,7 +81,7 @@ jobs:
             }
 
 
-      - run: if [[ env.rails =~ .*"4".* ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; fi
+      - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; echo "bundler configured"; fi
 
 
       - name: Run Unit Tests
