@@ -80,6 +80,11 @@ jobs:
               }
             }
 
+
+      - if:  env.rails =~ .*"4".*
+        run: bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
+
+
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
         with:
