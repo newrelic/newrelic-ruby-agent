@@ -81,7 +81,7 @@ jobs:
             }
 
 
-      - if:  env.rails =~ .*"4".*
+      - if:  ${{ env.rails =~ .*"4".* }}
         run: bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
 
 
