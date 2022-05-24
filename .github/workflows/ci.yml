@@ -39,8 +39,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true 
 
-      - if: startsWith(matrix.ruby-version, '2.') != true && ${{ matrix.ruby-version != '2.7.6' }}
-        run: gem update --system 3.0.6 --force
+      - run: if [[ ${{ matrix.ruby-version }} =~ 2.[^7].* ]]; then  gem update --system 3.0.6 --force; echo "rubygems updated"; fi
 
       - run: gem install --default bundler:1.17.3
 
