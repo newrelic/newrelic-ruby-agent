@@ -37,7 +37,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          bundler-cache: true 
 
       - run: if [[ ${{ matrix.ruby-version }} =~ 2.[^7].* ]]; then  gem update --system 3.0.6 --force; echo "rubygems updated"; fi
 
