@@ -83,7 +83,8 @@ jobs:
 
       - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; echo "bundler configured"; fi
 
-      - run: bundle
+      - run: if [[ ${{ matrix.ruby-version }} =~ 2.[^7].* ]]; then bundle _1.17.3_ install; echo "bundler 1.17.3"; else bundle install; echo "bundler"; fi
+      
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
         with:
