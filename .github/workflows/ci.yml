@@ -39,7 +39,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true 
 
-      - if: ${{ matrix.ruby-version != 2.2.10 }}
+      - if: ${{ matrix.ruby-version != '2.2.10' }}
         run: gem install bundler:2.3.14
       - run: gem install --default bundler:1.17.3
 
