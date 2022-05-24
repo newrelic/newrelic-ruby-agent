@@ -962,6 +962,9 @@ Performance/CollectionLiteralInLoop:
   Enabled: false
 
 Performance/CompareWithBlock:
+  Enabled: false
+
+Performance/ConcurrentMonotonicTime:
   Enabled: true
 
 # Disabling for now
@@ -1068,6 +1071,9 @@ Performance/Squeeze:
 # Disabling for now
 Performance/StartWith:
   Enabled: false
+
+Performance/StringIdentifierArgument:
+  Enabled: true
 
 Performance/StringInclude:
   Enabled: false

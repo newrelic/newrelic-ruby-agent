@@ -46,7 +46,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_manual_start
     NewRelic::Agent.instance.expects(:connect).once
     NewRelic::Agent.instance.expects(:start_worker_thread).once
-    NewRelic::Agent.instance.instance_variable_set '@started', nil
+    NewRelic::Agent.instance.instance_variable_set :@started, nil
     NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
     NewRelic::Agent.shutdown
   end
