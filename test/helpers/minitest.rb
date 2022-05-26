@@ -29,18 +29,27 @@ class Minitest::Test
       @__threads = ruby_threads.map { |rt| Hometown.for(rt).backtrace[0] }
     end
 
-    # Rails 7 changes when active record loads and the threads get created.
-    # In order to keep the thread count consistent we need to wrap it in Rails.application.executor.wrap on rails 7+
-    if defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
-      Rails.application.executor.wrap do
-        set_threads.call
-      end
-    else
-      set_threads.call
-    end
+    wrap_call(set_threads)
+  end
+
+  # Rails 7 changes when active record loads and the threads get created.
+  # In order to keep the thread count consistent we need to wrap it in Rails.application.executor.wrap on rails 7+
+  def wrap_call(a_proc)
+    return a_proc.call unless defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
+
+    Rails.application.executor.wrap { a_proc.call }
   end
 
   def after_teardown
+    check_threads = Proc.new do
+      check_threads_after
+      super
+    end
+
+    wrap_call(check_threads)
+  end
+
+  def check_threads_after
     nr_unfreeze_time
     nr_unfreeze_process_time
 
@@ -54,8 +63,6 @@ class Minitest::Test
 
       fail "Thread count changed in this test from #{@__thread_count} to #{threads.count}\n#{backtraces}"
     end
-
-    super
   end
 
   # We only want to count threads that were spun up from Ruby (i.e.
