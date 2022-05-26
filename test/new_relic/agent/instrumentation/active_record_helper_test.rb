@@ -68,11 +68,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_product_operation_collection_for_handles_suffixes
-      mock = MiniTest::Mock.new
-      mock.expect('postgresql', [])
-      NewRelic::Agent::Instrumentation::ActiveRecordHelper.stub :map_product, mock do
-        product, operation, collection = ActiveRecordHelper.product_operation_collection_for(1, '', 'postgres_makara')
-      end
+      product, _operation, _collection = ActiveRecordHelper.product_operation_collection_for(1, '', 'postgresql_makara')
+      assert_equal 'Postgres', product
     end
 
     def test_suffixes_on_configuration_based_adapter_names_are_stripped_away
