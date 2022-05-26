@@ -153,16 +153,20 @@ module NewRelic
         PRODUCT_NAMES = {
           "mysql" => "MySQL",
           "mysql2" => "MySQL",
+          "mysql2_makara" => "MySQL",
 
           "postgresql" => "Postgres",
+          "postgresql_makara" => "Postgres",
 
           "sqlite3" => "SQLite",
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           "jdbcmysql" => "MySQL",
+          "jdbcmysql_makara" => "MySQL",
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           "jdbcpostgresql" => "Postgres",
+          "jdbcpostgresql_makara" => "Postgres",
 
           # https://rubygems.org/gems/activerecord-postgis-adapter
           "postgis" => "Postgres",
@@ -204,10 +208,14 @@ module NewRelic
           PRODUCT_SYMBOLS = {
             "mysql" => :mysql,
             "mysql2" => :mysql,
+            "mysql2_makara" => :mysql,
             "jdbcmysql" => :mysql,
+            "jdbcmysql_makara" => :mysql,
 
             "postgresql" => :postgres,
+            "postgresql_makara" => :postgres,
             "jdbcpostgresql" => :postgres,
+            "jdbcpostgresql_makara" => :postgres,
             "postgis" => :postgres
           }.freeze
 
