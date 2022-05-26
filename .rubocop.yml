@@ -962,7 +962,7 @@ Performance/CollectionLiteralInLoop:
   Enabled: false
 
 Performance/CompareWithBlock:
-  Enabled: false
+  Enabled: true
 
 Performance/ConcurrentMonotonicTime:
   Enabled: true
