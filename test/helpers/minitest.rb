@@ -18,56 +18,7 @@ class Minitest::Test
     end
 
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
-    setup_thread_tracking
 
     super
-  end
-
-  def setup_thread_tracking
-    set_threads = Proc.new do
-      @__thread_count = ruby_threads.count
-      @__threads = ruby_threads.map { |rt| Hometown.for(rt).backtrace[0] }
-    end
-
-    wrap_call(set_threads)
-  end
-
-  # Rails 7 changes when active record loads and the threads get created.
-  # In order to keep the thread count consistent we need to wrap it in Rails.application.executor.wrap on rails 7+
-  def wrap_call(a_proc)
-    return a_proc.call unless defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
-
-    Rails.application.executor.wrap { a_proc.call }
-  end
-
-  def after_teardown
-    check_threads = Proc.new do
-      check_threads_after
-      super
-    end
-
-    wrap_call(check_threads)
-  end
-
-  def check_threads_after
-    nr_unfreeze_time
-    nr_unfreeze_process_time
-
-    threads = ruby_threads
-    if @__thread_count != threads.count
-      puts "", "=" * 80, "originally: #{@__threads.inspect}", "=" * 80
-      backtraces = threads.map do |thread|
-        trace = Hometown.for(thread)
-        trace.backtrace.join("\n    ")
-      end.join("\n\n")
-
-      fail "Thread count changed in this test from #{@__thread_count} to #{threads.count}\n#{backtraces}"
-    end
-  end
-
-  # We only want to count threads that were spun up from Ruby (i.e.
-  # Thread.new) JRuby has system threads we don't care to track.
-  def ruby_threads
-    Thread.list.select { |t| Hometown.for(t) }
   end
 end

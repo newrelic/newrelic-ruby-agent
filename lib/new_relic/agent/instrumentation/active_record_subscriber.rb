@@ -101,7 +101,7 @@ module NewRelic
             # spec config instead.
             # https://github.com/newrelic/newrelic-ruby-agent/issues/507
             # thank you @lucasklaassen
-            # return handler.spec.config if use_spec_config?(handler)
+            return handler.spec.config if use_spec_config?(handler)
           end
 
           nil
