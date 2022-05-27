@@ -41,7 +41,7 @@ class StartUpTest < Minitest::Test
 
     expected_noise << JRUBY_9000_NOISE if jruby_9000
 
-    expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
+    expected_noise.flatten.each { |noise| output.gsub!(noise, NewRelic::EMPTY_STR) }
 
     assert_equal '', output.chomp
   end
@@ -124,7 +124,7 @@ RUBY
       expected_noise << JRUBY_9000_NOISE if jruby_9000
       expected_noise << BUNDLER_NOISE if bundler_rubygem_conflicts?
 
-      expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
+      expected_noise.flatten.each { |noise| output.gsub!(noise, NewRelic::EMPTY_STR) }
       output.strip!
 
       assert_equal NewRelic::VERSION::STRING, output
