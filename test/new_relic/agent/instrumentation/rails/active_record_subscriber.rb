@@ -183,7 +183,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     connection_handler, connection_pool_handler = mock(), mock()
     connection_pool_handler.expects(:connections).returns([@connection])
     connection_handler.expects(:connection_pool_list).returns([connection_pool_handler])
-    ActiveRecord::Base.stubs(:connection_handler).returns(connection_handler)
+    ::ActiveRecord::Base.stubs(:connection_handler).returns(connection_handler)
 
     expected_config = @connection.instance_variable_get(:@config)
 
