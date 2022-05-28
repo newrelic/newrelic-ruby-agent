@@ -94,7 +94,6 @@ module NewRelic
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
             connection = handler.connections.detect { |conn| conn.object_id == connection_id }
-
             return connection.instance_variable_get(:@config) if connection
 
             # when using makara, handler.connections will be empty, so use the
@@ -108,7 +107,10 @@ module NewRelic
         end
 
         def use_spec_config?(handler)
-          handler.spec && handler.spec.config && handler.spec.config[:adapter].end_with?('makara')
+          handler.respond_to?(:spec) &&
+            handler.spec &&
+            handler.spec.config &&
+            handler.spec.config[:adapter].end_with?('makara')
         end
 
         def start_segment(config, payload)

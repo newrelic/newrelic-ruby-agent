@@ -6,9 +6,6 @@ unless defined?(Minitest::Test)
   Minitest::Test = MiniTest::Unit::TestCase
 end
 
-# Set up a watcher for leaking agent threads out of tests.  It'd be nice to
-# disable the threads everywhere, but not all tests have newrelic.yml loaded to
-# us to rely on, so instead we'll just watch for it.
 class Minitest::Test
   def before_setup
     if self.respond_to?(:name)
@@ -19,6 +16,12 @@ class Minitest::Test
 
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
 
+    super
+  end
+
+  def after_teardown
+    nr_unfreeze_time
+    nr_unfreeze_process_time
     super
   end
 end
