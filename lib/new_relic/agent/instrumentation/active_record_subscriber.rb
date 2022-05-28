@@ -95,7 +95,7 @@ module NewRelic
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
             # RE: https://github.com/newrelic/newrelic-ruby-agent/issues/507
-            spec_config = handler.spec && handler.spec.config
+            spec_config = handler.respond_to?(:spec) && handler.spec && handler.spec.config
             return spec_config if using_makara?(spec_config)
 
             connection = handler.connections.detect do |conn|
