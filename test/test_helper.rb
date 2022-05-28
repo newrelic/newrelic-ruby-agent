@@ -19,11 +19,6 @@ require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
 require 'mocha/setup'
 
-require 'hometown'
-require_relative 'helpers/hometown_monkey_patch'
-
-Hometown.watch(::Thread)
-
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
 
 # We can speed things up in tests that don't need to load rails.
