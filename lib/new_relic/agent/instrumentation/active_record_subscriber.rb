@@ -91,21 +91,26 @@ module NewRelic
           end
 
           return unless connection_id = payload[:connection_id]
-          connection = nil
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
-            # RE: https://github.com/newrelic/newrelic-ruby-agent/issues/507
-            spec_config = handler.respond_to?(:spec) && handler.spec && handler.spec.config
-            return spec_config if using_makara?(spec_config)
+            connection = handler.connections.detect { |conn| conn.object_id == connection_id }
+            return connection.instance_variable_get(:@config) if connection
 
-            connection = handler.connections.detect do |conn|
-              conn.object_id == connection_id
-            end
-
-            break if connection
+            # when using makara, handler.connections will be empty, so use the
+            # spec config instead.
+            # https://github.com/newrelic/newrelic-ruby-agent/issues/507
+            # thank you @lucasklaassen
+            return handler.spec.config if use_spec_config?(handler)
           end
 
-          connection.instance_variable_get(:@config) if connection
+          nil
+        end
+
+        def use_spec_config?(handler)
+          handler.respond_to?(:spec) &&
+            handler.spec &&
+            handler.spec.config &&
+            handler.spec.config[:adapter].end_with?('makara')
         end
 
         def start_segment(config, payload)
@@ -135,14 +140,6 @@ module NewRelic
 
           segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
           segment
-        end
-
-        # https://github.com/instacart/makara
-        # This gem defines new database adapters and handles connection pooling config
-        # information differently than the default active_record adapters
-        # Config is returned within the same format
-        def using_makara?(spec_config)
-          spec_config && spec_config[:adapter].include?('makara')
         end
       end
     end
