@@ -216,6 +216,19 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
   end
 
+  def test_config_can_be_gleaned_from_handler_spec
+    payload = {connection_id: 1138}
+    config = {adapter: 'postgresql_makara'}
+    spec = MiniTest::Mock.new
+    3.times { spec.expect :config, config }
+    handler = MiniTest::Mock.new
+    handler.expect :connections, []
+    4.times { handler.expect :spec, spec }
+    ::ActiveRecord::Base.connection_handler.stub(:connection_pool_list, [handler]) do
+      assert_equal config, @subscriber.active_record_config(payload)
+    end
+  end
+
   private
 
   def simulate_query(duration = nil)
