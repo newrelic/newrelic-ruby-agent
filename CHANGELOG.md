@@ -4,7 +4,7 @@
 
   * **Support Makara database adapters with ActiveRecord**
 
-    Thanks to a community submission from @lucasklaassen with [PR #1177](https://github.com/newrelic/newrelic-ruby-agent/pull/1177), the Ruby agent will now correctly work well with the [Makara gem](https://github.com/instacart/makara). Functionality such as SQL obfuscation should now work when Makara database adapaters are used with ActiveRecord.
+    Thanks to a community submission from @lucasklaassen with [PR #1177](https://github.com/newrelic/newrelic-ruby-agent/pull/1177), the Ruby agent will now correctly work well with the [Makara gem](https://github.com/instacart/makara). Functionality such as SQL obfuscation should now work when Makara database adapaters are used with Active Record.
 
   * **Lowered the minimum payload size to compress**
 
