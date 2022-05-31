@@ -48,11 +48,11 @@ class ExconTest < Minitest::Test
   end
 
   def post_response
-    Excon.post(default_url, :body => NewRelic::EMPTY_STR)
+    Excon.post(default_url, :body => "")
   end
 
   def put_response
-    Excon.put(default_url, :body => NewRelic::EMPTY_STR)
+    Excon.put(default_url, :body => "")
   end
 
   def delete_response
