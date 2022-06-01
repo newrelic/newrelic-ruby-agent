@@ -183,7 +183,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     connection_handler, connection_pool_handler = mock(), mock()
     connection_pool_handler.expects(:connections).returns([@connection])
     connection_handler.expects(:connection_pool_list).returns([connection_pool_handler])
-    ActiveRecord::Base.stubs(:connection_handler).returns(connection_handler)
+    ::ActiveRecord::Base.stubs(:connection_handler).returns(connection_handler)
 
     expected_config = @connection.instance_variable_get(:@config)
 
@@ -213,6 +213,19 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
       assert_equal \
         'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
         txn.segments.last.name
+    end
+  end
+
+  def test_config_can_be_gleaned_from_handler_spec
+    payload = {connection_id: 1138}
+    config = {adapter: 'postgresql_makara'}
+    spec = MiniTest::Mock.new
+    3.times { spec.expect :config, config }
+    handler = MiniTest::Mock.new
+    handler.expect :connections, []
+    4.times { handler.expect :spec, spec }
+    ::ActiveRecord::Base.connection_handler.stub(:connection_pool_list, [handler]) do
+      assert_equal config, @subscriber.active_record_config(payload)
     end
   end
 

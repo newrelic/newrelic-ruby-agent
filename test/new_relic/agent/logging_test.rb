@@ -24,7 +24,7 @@ module NewRelic
 
           message = last_message
           # Should include the keys:
-          #  entity.name, entity.type, hostname, timestamp, message, log.level
+          #  entity.name, entity.type, hostname, timestamp, message, level
           assert_equal 'this is a test', message['message']
           assert_equal 'INFO', message['log.level']
 

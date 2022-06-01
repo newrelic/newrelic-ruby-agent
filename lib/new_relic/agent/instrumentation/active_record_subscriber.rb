@@ -91,17 +91,26 @@ module NewRelic
           end
 
           return unless connection_id = payload[:connection_id]
-          connection = nil
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
-            connection = handler.connections.detect do |conn|
-              conn.object_id == connection_id
-            end
+            connection = handler.connections.detect { |conn| conn.object_id == connection_id }
+            return connection.instance_variable_get(:@config) if connection
 
-            break if connection
+            # when using makara, handler.connections will be empty, so use the
+            # spec config instead.
+            # https://github.com/newrelic/newrelic-ruby-agent/issues/507
+            # thank you @lucasklaassen
+            return handler.spec.config if use_spec_config?(handler)
           end
 
-          connection.instance_variable_get(:@config) if connection
+          nil
+        end
+
+        def use_spec_config?(handler)
+          handler.respond_to?(:spec) &&
+            handler.spec &&
+            handler.spec.config &&
+            handler.spec.config[:adapter].end_with?('makara')
         end
 
         def start_segment(config, payload)
