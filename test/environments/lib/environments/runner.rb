@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../multiverse/lib/multiverse/bundler_patch', __FILE__
-require File.expand_path '../../../../multiverse/lib/multiverse/color', __FILE__
-require File.expand_path '../../../../multiverse/lib/multiverse/shell_utils', __FILE__
+require_relative '../../../multiverse/lib/multiverse/bundler_patch'
+require_relative '../../../multiverse/lib/multiverse/color'
+require_relative '../../../multiverse/lib/multiverse/shell_utils'
 
 module Environments
   class Runner
@@ -26,6 +26,7 @@ module Environments
 
       puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + "/", "") }.join("\n\t")}")
       env_file = ENV["file"]
+
       tests_to_run.each do |dir|
         Bundler.with_unbundled_env do
           ENV["file"] = env_file if env_file
@@ -51,15 +52,6 @@ module Environments
     end
 
     def tests_to_run
-      dirs = potential_directories
-
-      version = RUBY_VERSION
-      version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
-
-      dirs
-    end
-
-    def potential_directories
       original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib" }
 
       return original_dirs if envs.empty?
@@ -103,9 +95,10 @@ module Environments
     end
 
     def run(dir)
-      puts "Starting tests..."
+      puts "Starting tests for dir '#{dir}'..."
       cmd = "cd #{dir} && bundle exec rake"
       cmd << " file=#{ENV['file']}" if ENV["file"]
+
       IO.popen(cmd) do |io|
         until io.eof
           print io.read(1)

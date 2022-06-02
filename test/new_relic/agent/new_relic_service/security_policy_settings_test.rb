@@ -2,8 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../../test_helper', __FILE__)
-require File.expand_path(File.join(File.dirname(__FILE__), '../../..', 'test_helper'))
+require_relative '../../../test_helper'
 require 'new_relic/agent/new_relic_service/security_policy_settings'
 
 module NewRelic
@@ -54,7 +53,7 @@ module NewRelic
                 validator.validate_matching_agent_config!
                 settings = SecurityPolicySettings.preliminary_settings(policies)
                 assert_equal test_case['expected_connect_policies'], settings['security_policies']
-                test_case['validate_policies_not_in_connect'].keys.each do |key|
+                test_case['validate_policies_not_in_connect'].each do |key|
                   refute_includes settings['security_policies'].keys, key
                 end
               end

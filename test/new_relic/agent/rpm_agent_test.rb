@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 
 class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def setup
@@ -46,7 +46,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_manual_start
     NewRelic::Agent.instance.expects(:connect).once
     NewRelic::Agent.instance.expects(:start_worker_thread).once
-    NewRelic::Agent.instance.instance_variable_set '@started', nil
+    NewRelic::Agent.instance.instance_variable_set :@started, nil
     NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
     NewRelic::Agent.shutdown
   end

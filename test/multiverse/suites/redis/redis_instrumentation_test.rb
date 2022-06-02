@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'redis'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
+require_relative '../../../helpers/docker'
 
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
   class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test

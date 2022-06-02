@@ -819,9 +819,6 @@ Lint/UselessAccessModifier:
 Lint/UselessAssignment:
   Enabled: false
 
-Lint/UselessElseWithoutRescue:
-  Enabled: true
-
 Lint/UselessMethodDefinition:
   Enabled: false
 
@@ -967,6 +964,9 @@ Performance/CollectionLiteralInLoop:
 Performance/CompareWithBlock:
   Enabled: true
 
+Performance/ConcurrentMonotonicTime:
+  Enabled: true
+
 # Disabling for now
 Performance/ConstantRegexp:
   Enabled: false
@@ -1071,6 +1071,9 @@ Performance/Squeeze:
 # Disabling for now
 Performance/StartWith:
   Enabled: false
+
+Performance/StringIdentifierArgument:
+  Enabled: true
 
 Performance/StringInclude:
   Enabled: false

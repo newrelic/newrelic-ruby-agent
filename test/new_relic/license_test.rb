@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require_relative '../test_helper'
 
 # look through the source code to enforce some simple rules that help us keep
 # our license data up to date.
@@ -37,6 +37,7 @@ class LicenseTest < Minitest::Test
     ['/infinite_tracing/LICENSE', 'Apache'] => 6,
     ['/infinite_tracing/newrelic-infinite_tracing.gemspec', 'Apache'] => 1,
     ['/CHANGELOG.md', 'BSD'] => 3, # reference to BSD the operating system, not BSD the license
+    ['/lib/new_relic/agent/new_relic_service.rb', 'Apache'] => 1, # reference to Apache Tomcat in comments
     ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to the operating system, not the license
     ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to the operating system, not the license
   }

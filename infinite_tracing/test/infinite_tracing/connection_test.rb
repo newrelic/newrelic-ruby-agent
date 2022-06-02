@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
 
 module NewRelic
   module Agent
@@ -15,16 +15,14 @@ module NewRelic
         # begins it's connection handshake.
         def test_connection_initialized_before_connecting
           with_serial_lock do
-            timeout_cap do
-              with_config localhost_config do
-                connection = Connection.instance # instantiate before simulation
-                simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
-                  simulator.join # ensure our simulation happens!
-                  metadata = connection.send :metadata
+            with_config localhost_config do
+              connection = Connection.instance # instantiate before simulation
+              simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+                simulator.join # ensure our simulation happens!
+                metadata = connection.send :metadata
 
-                  assert_equal "swiss_cheese", metadata["license_key"]
-                  assert_equal "fiddlesticks", metadata["agent_run_token"]
-                end
+                assert_equal "swiss_cheese", metadata["license_key"]
+                assert_equal "fiddlesticks", metadata["agent_run_token"]
               end
             end
           end
@@ -34,16 +32,14 @@ module NewRelic
         # is instantiated.
         def test_connection_initialized_after_connecting
           with_serial_lock do
-            timeout_cap do
-              with_config localhost_config do
-                simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
-                  simulator.join # ensure our simulation happens!
-                  connection = Connection.instance # instantiate after simulated connection
-                  metadata = connection.send :metadata
+            with_config localhost_config do
+              simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
+                simulator.join # ensure our simulation happens!
+                connection = Connection.instance # instantiate after simulated connection
+                metadata = connection.send :metadata
 
-                  assert_equal "swiss_cheese", metadata["license_key"]
-                  assert_equal "fiddlesticks", metadata["agent_run_token"]
-                end
+                assert_equal "swiss_cheese", metadata["license_key"]
+                assert_equal "fiddlesticks", metadata["agent_run_token"]
               end
             end
           end
@@ -53,16 +49,14 @@ module NewRelic
         # the client is instantiated (via sleep 0.01 w/o explicit join).
         def test_connection_initialized_after_connecting_and_waiting
           with_serial_lock do
-            timeout_cap do
-              with_config localhost_config do
-                simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
-                  simulator.join # ensure our simulation happens!
-                  connection = Connection.instance
-                  metadata = connection.send :metadata
+            with_config localhost_config do
+              simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+                simulator.join # ensure our simulation happens!
+                connection = Connection.instance
+                metadata = connection.send :metadata
 
-                  assert_equal "swiss_cheese", metadata["license_key"]
-                  assert_equal "fiddlesticks", metadata["agent_run_token"]
-                end
+                assert_equal "swiss_cheese", metadata["license_key"]
+                assert_equal "fiddlesticks", metadata["agent_run_token"]
               end
             end
           end
@@ -72,22 +66,20 @@ module NewRelic
         # The metadata is expected to change since agent run token changes.
         def test_connection_reconnects
           with_serial_lock do
-            timeout_cap do
-              with_config localhost_config do
-                connection = Connection.instance
-                simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
-                  simulator.join
-                  metadata = connection.send :metadata
-                  assert_equal "swiss_cheese", metadata["license_key"]
-                  assert_equal "fiddlesticks", metadata["agent_run_token"]
+            with_config localhost_config do
+              connection = Connection.instance
+              simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
+                simulator.join
+                metadata = connection.send :metadata
+                assert_equal "swiss_cheese", metadata["license_key"]
+                assert_equal "fiddlesticks", metadata["agent_run_token"]
 
-                  simulate_reconnect_to_collector(reconnect_config)
+                simulate_reconnect_to_collector(reconnect_config)
 
-                  metadata = connection.send :metadata
+                metadata = connection.send :metadata
 
-                  assert_equal "swiss_cheese", metadata["license_key"]
-                  assert_equal "shazbat", metadata["agent_run_token"]
-                end
+                assert_equal "swiss_cheese", metadata["license_key"]
+                assert_equal "shazbat", metadata["agent_run_token"]
               end
             end
           end
@@ -95,84 +87,72 @@ module NewRelic
 
         def test_sending_spans_to_server
           with_serial_lock do
-            timeout_cap do
-              total_spans = 5
-              spans, segments = emulate_streaming_segments total_spans
-              assert_equal total_spans, segments.size
-              assert_equal total_spans, spans.size
-            end
+            total_spans = 5
+            spans, segments = emulate_streaming_segments total_spans
+            assert_equal total_spans, segments.size
+            assert_equal total_spans, spans.size
           end
         end
 
         def test_handling_unimplemented_server_response
           with_serial_lock do
-            timeout_cap do
-              total_spans = 5
-              active_client = nil
+            total_spans = 5
+            active_client = nil
 
-              spans, segments = emulate_streaming_to_unimplemented(total_spans) do |client, segments|
-                active_client = client
-              end
-              assert_kind_of SuspendedStreamingBuffer, active_client.buffer
-              assert active_client.suspended?, "expected client to be suspended."
+            spans, segments, active_client = emulate_streaming_to_unimplemented(total_spans)
 
-              assert_equal total_spans, segments.size
-              assert_equal 0, spans.size
+            assert_kind_of SuspendedStreamingBuffer, active_client.buffer
+            assert active_client.suspended?, "expected client to be suspended."
 
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+            assert_equal total_spans, segments.size
+            assert_equal 0, spans.size
 
-              assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
-              })
-            end
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+            })
           end
         end
 
         def test_handling_failed_precondition_server_response
           with_serial_lock do
-            timeout_cap do
-              total_spans = 5
-              active_client = nil
+            total_spans = 5
+            active_client = nil
 
-              spans, segments = emulate_streaming_to_failed_precondition(total_spans) do |client, segments|
-                active_client = client
-              end
-              refute_kind_of SuspendedStreamingBuffer, active_client.buffer
-              refute active_client.suspended?, "expected client to not be suspended."
+            spans, segments, active_client = emulate_streaming_to_failed_precondition(total_spans)
 
-              assert_equal total_spans, segments.size
-              assert_equal 0, spans.size
+            refute_kind_of SuspendedStreamingBuffer, active_client.buffer
+            refute active_client.suspended?, "expected client to not be suspended."
 
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+            assert_equal total_spans, segments.size
+            assert_equal 0, spans.size
 
-              assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
-              })
-            end
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
+            })
           end
         end
 
         def test_handling_ok_and_close_server_response
-          timeout_cap 5 do
-            with_detailed_trace do
-              total_spans = 5
-              expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
+          with_detailed_trace do
+            total_spans = 5
+            expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
 
-              spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments, server|
-                server.wait_for_notice
-              end
+            spans, segments = emulate_streaming_with_ok_close_response(total_spans)
 
-              assert_equal total_spans, segments.size
-              assert_equal total_spans, spans.size, "spans got dropped/discarded?"
+            assert_equal total_spans, segments.size
+            assert_equal total_spans, spans.size, "spans got dropped/discarded?"
 
-              refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+            refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
 
-              assert_metrics_recorded("Supportability/InfiniteTracing/Span/Sent")
-            end
+            assert_metrics_recorded("Supportability/InfiniteTracing/Span/Sent")
           end
         end
 
@@ -198,17 +178,15 @@ module NewRelic
 
         def test_metadata_includes_request_headers_map
           with_serial_lock do
-            timeout_cap do
-              with_config localhost_config do
-                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata" => "test_metadata"})
+            with_config localhost_config do
+              NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata" => "test_metadata"})
 
-                connection = Connection.instance # instantiate before simulation
-                simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
-                  simulator.join # ensure our simulation happens!
-                  metadata = connection.send :metadata
+              connection = Connection.instance # instantiate before simulation
+              simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+                simulator.join # ensure our simulation happens!
+                metadata = connection.send :metadata
 
-                  assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
-                end
+                assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
               end
             end
           end

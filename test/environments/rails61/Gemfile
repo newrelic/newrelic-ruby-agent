@@ -24,6 +24,5 @@ end
 
 gem 'newrelic_rpm', path: '../../..'
 
-gem 'hometown', '~> 0.2.5'
-gem 'pry', '~> 0.12.2'
+gem 'pry', '~> 0.14.1'
 gem 'pry-nav'

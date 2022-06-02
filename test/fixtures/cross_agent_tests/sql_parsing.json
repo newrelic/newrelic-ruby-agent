@@ -28,6 +28,8 @@
   {"input":"SELECT Name FROM `world`.`City` WHERE Population > ?",   "operation":"select", "table":"City"},
   {"input":"SELECT frok FROM `world`.`City` WHERE Population > ?",   "operation":"select", "table":"City"},
   {"input":"SELECT irom FROM `world`.`City` WHERE Population > ?",   "operation":"select", "table":"City"},
+  {"input":"SELECT\n\nirom\n\nFROM `world`.`City` WHERE Population > ?",   "operation":"select", "table":"City"},
+  {"input":"SELECT\n\t irom\n FROM `world`.`City` WHERE Population > ?",   "operation":"select", "table":"City"},
   {"input":"SELECT fromm FROM `world`.`City` WHERE Population > ?",  "operation":"select", "table":"City"},
   {"input":"SELECT * FROM foo,bar",                                  "operation":"select", "table":"foo"},
   {"input":"  \tSELECT * from \"foo\" WHERE a = b",                  "operation":"select", "table":"foo"},
@@ -38,6 +40,7 @@
   {"input":"SELECT ffrom from (\"frome\")",                          "operation":"select", "table":"frome"},
 
   {"input":"UPDATE abc SET x=1, y=2",                                "operation":"update", "table":"abc"},
+  {"input":"UPDATE\nabc\nSET x=1, y=2",                              "operation":"update", "table":"abc"},
   {"input":"    \tUPDATE abc SET ffrom='iinto'",                     "operation":"update", "table":"abc"},
   {"input":"    \tUPDATE 'abc' SET ffrom='iinto'",                   "operation":"update", "table":"abc"},
   {"input":"    \tUPDATE `abc` SET ffrom='iinto'",                   "operation":"update", "table":"abc"},
@@ -45,11 +48,20 @@
   {"input":"    \tUPDATE\r\tabc SET ffrom='iinto'",                  "operation":"update", "table":"abc"},
 
   {"input":"INSERT INTO foobar (x,y) VALUES (1,2)",                  "operation":"insert", "table":"foobar"},
+  {"input":"INSERT\nINTO\nfoobar (x,y) VALUES (1,2)",                "operation":"insert", "table":"foobar"},
   {"input":"INSERT INTO foobar(x,y) VALUES (1,2)",                   "operation":"insert", "table":"foobar"},
 
   {"input":" /* a */ SELECT * FROM alpha",                           "operation":"select", "table":"alpha"},
   {"input":"SELECT /* a */ * FROM alpha",                            "operation":"select", "table":"alpha"},
+  {"input":"SELECT\n/* a */ *\nFROM alpha",                          "operation":"select", "table":"alpha"},
   {"input":"SELECT * /* a */ FROM alpha",                            "operation":"select", "table":"alpha"},
   {"input":"SELECT * FROM /* a */ alpha",                            "operation":"select", "table":"alpha"},
-  {"input":"/* X */ SELECT /* Y */ foo/**/ FROM /**/alpha/**/",      "operation":"select", "table":"alpha"}
+  {"input":"/* X */ SELECT /* Y */ foo/**/ FROM /**/alpha/**/",      "operation":"select", "table":"alpha"},
+  
+  {"input":"mystoredprocedure'123'",                                 "operation":"other", "table":null},
+  {"input":"mystoredprocedure\t'123'",                               "operation":"other", "table":null},
+  {"input":"mystoredprocedure\r'123'",                               "operation":"other", "table":null},
+  {"input":"[mystoredprocedure]123",                                 "operation":"other", "table":null},
+  {"input":"\"mystoredprocedure\"abc",                               "operation":"other", "table":null},
+  {"input":"mystoredprocedure",                                      "operation":"other", "table":null}
 ]

@@ -93,9 +93,21 @@ module NewRelic
 
         ACTIVE_RECORD = "ActiveRecord".freeze
         OTHER = "other".freeze
+        MAKARA_SUFFIX = "_makara".freeze
+
+        # convert vendor (makara, etc.) wrapper names to their bare names
+        # ex: postgresql_makara -> postgresql
+        def bare_adapter_name(adapter_name)
+          # TODO: OLD RUBIES - RUBY_VERSION < 2.5
+          # With Ruby 2.5+ we could use #delete_suffix instead of #chomp for a
+          # potential speed boost
+          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name && adapter_name.end_with?(MAKARA_SUFFIX)
+
+          adapter_name
+        end
 
         def product_operation_collection_for name, sql, adapter_name
-          product = map_product(adapter_name)
+          product = map_product(bare_adapter_name(adapter_name))
           splits = split_name(name)
           model = model_from_splits(splits)
           operation = operation_from_splits(splits, sql)
@@ -194,8 +206,7 @@ module NewRelic
         ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
 
         def map_product(adapter_name)
-          PRODUCT_NAMES.fetch(adapter_name,
-            ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+          PRODUCT_NAMES.fetch(adapter_name, ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
         module InstanceIdentification
@@ -221,11 +232,16 @@ module NewRelic
           SLASH = "/".freeze
           LOCALHOST = "localhost".freeze
 
+          def adapter_from_config(config)
+            bare_name = NewRelic::Agent::Instrumentation::ActiveRecordHelper.bare_adapter_name(config[:adapter])
+            PRODUCT_SYMBOLS[bare_name]
+          end
+
           def host(config)
             return UNKNOWN unless config
 
             configured_value = config[:host]
-            adapter = PRODUCT_SYMBOLS[config[:adapter]]
+            adapter = adapter_from_config(config)
             if configured_value.nil? ||
                 postgres_unix_domain_socket_case?(configured_value, adapter)
 
@@ -243,7 +259,7 @@ module NewRelic
           def port_path_or_id(config)
             return UNKNOWN unless config
 
-            adapter = PRODUCT_SYMBOLS[config[:adapter]]
+            adapter = adapter_from_config(config)
             if config[:socket]
               config[:socket].empty? ? UNKNOWN : config[:socket]
             elsif postgres_unix_domain_socket_case?(config[:host], adapter) || mysql_default_case?(config, adapter)
@@ -263,7 +279,7 @@ module NewRelic
           SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze
 
           def supported_adapter? config
-            config && SUPPORTED_ADAPTERS.include?(PRODUCT_SYMBOLS[config[:adapter]])
+            config && SUPPORTED_ADAPTERS.include?(adapter_from_config(config))
           end
 
           private

@@ -2,7 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
+
 class NewRelic::Agent::SamplerTest < Minitest::Test
   require 'new_relic/agent/sampler'
 
@@ -25,7 +26,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   end
 
   def test_sampler_classes_should_be_an_array
-    sampler_classes = NewRelic::Agent::Sampler.instance_variable_get('@sampler_classes')
+    sampler_classes = NewRelic::Agent::Sampler.instance_variable_get(:@sampler_classes)
     assert(sampler_classes.is_a?(Array), 'Sampler classes should be saved as an array')
     assert(sampler_classes.include?(NewRelic::Agent::Samplers::CpuSampler), 'Sampler classes should include the CPU sampler')
   end

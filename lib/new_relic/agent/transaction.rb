@@ -124,7 +124,7 @@ module NewRelic
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.state = state
-        txn.start
+        txn.start(options)
         txn
       end
 
@@ -414,7 +414,7 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      def start
+      def start(options = {})
         return if !state.is_execution_traced?
 
         sql_sampler.on_start_transaction(state, request_path)
@@ -423,7 +423,7 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
-        create_initial_segment
+        create_initial_segment(options)
         Segment.merge_untrusted_agent_attributes \
           @filtered_params,
           :'request.parameters',
@@ -434,12 +434,12 @@ module NewRelic
         segments.first
       end
 
-      def create_initial_segment
-        segment = create_segment @default_name
+      def create_initial_segment(options = {})
+        segment = create_segment @default_name, options
         segment.record_scoped_metric = false
       end
 
-      def create_segment(name)
+      def create_segment(name, options = {})
         summary_metrics = nil
 
         if name.start_with?(MIDDLEWARE_PREFIX)
@@ -452,6 +452,10 @@ module NewRelic
           name: name,
           unscoped_metrics: summary_metrics
         )
+
+        # #code_information will glean the code info out of the options hash
+        # if it exists or noop otherwise
+        segment.code_information = options
 
         segment
       end
@@ -467,7 +471,8 @@ module NewRelic
 
         nest_initial_segment if segments.length == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        segment = create_segment nested_name
+
+        segment = create_segment nested_name, options
         set_default_transaction_name(options[:transaction_name], category)
         segment
       end

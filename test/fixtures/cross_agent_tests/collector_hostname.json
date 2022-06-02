@@ -1,38 +1,71 @@
 [
   {
     "name": "normal license key",
-    "key": "08a2ad66c637a29c3982469a3fe8d1982d002c4a",
+    "config_file_key": "08a2ad66c637a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.newrelic.com"
   },
   {
     "name": "region aware key with four character identifier",
-    "key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "config_file_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.eu01.nr-data.net"
   },
   {
     "name": "region aware key with five character identifier",
-    "key": "gov01x66c637a29c3982469a3fe8d1982d002c4a",
+    "config_file_key": "gov01x66c637a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.gov01.nr-data.net"
   },
   {
     "name": "region aware key with seven character identifier",
-    "key": "foo1234xc637a29c3982469a3fe8d1982d002c4a",
+    "config_file_key": "foo1234xc637a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.foo1234.nr-data.net"
   },
   {
     "name": "region aware key with abnormal identifier",
-    "key": "20foox66c637a29c3982469a3fe8d1982d002c4a",
+    "config_file_key": "20foox66c637a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.20foo.nr-data.net"
   },
   {
     "name": "region aware key with more than one identifier",
-    "key": "eu01xeu01x37a29c3982469a3fe8d1982d002c4a",
+    "config_file_key": "eu01xeu02x37a29c3982469a3fe8d1982d002c4a",
     "hostname": "collector.eu01.nr-data.net"
   },
   {
+    "name": "environment variable specified license key",
+    "env_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "hostname": "collector.eu01.nr-data.net"
+  },
+  {
+    "name": "env var host override",
+    "config_file_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "env_override_host": "other-collector.newrelic.com",
+    "hostname": "other-collector.newrelic.com"
+  },
+  {
     "name": "local config host override",
-    "key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
-    "override_host": "other-collector.nr-data.net",
-    "hostname": "other-collector.nr-data.net"
+    "config_file_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "config_override_host": "other-collector.newrelic.com",
+    "hostname": "other-collector.newrelic.com"
+  },
+  {
+    "name": "local config host override with env key",
+    "env_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "config_override_host": "other-collector.newrelic.com",
+    "hostname": "other-collector.newrelic.com"
+  },
+  {
+    "name": "env var host override with env key",
+    "env_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "env_override_host": "other-collector.newrelic.com",
+    "hostname": "other-collector.newrelic.com"
+  },
+  {
+    "name": "env var host override default with default env key",
+    "env_key": "eu01xx66c637a29c3982469a3fe8d1982d002c4a",
+    "env_override_host": "collector.newrelic.com",
+    "hostname": "collector.newrelic.com"
+  },
+  {
+    "name": "No specified key defaults to collector.newrelic.com",
+    "hostname": "collector.newrelic.com"
   }
 ]

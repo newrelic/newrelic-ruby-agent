@@ -11,15 +11,6 @@ task :test => ['test:newrelic']
 namespace :test do
   desc "Run all tests"
   task :all => %w[newrelic multiverse all_compatible_envs]
-
-  begin
-    require 'test_bisect'
-    TestBisect::BisectTask.new do |t|
-      t.test_task_name = 'test:newrelic'
-    end
-  rescue LoadError
-  end
-
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run agent performance tests"
@@ -116,24 +107,38 @@ task :update_ca_bundle do |t|
 end
 
 namespace :cross_agent_tests do
-  cross_agent_tests_upstream_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'cross_agent_tests'))
-  cross_agent_tests_local_path = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'fixtures', 'cross_agent_tests'))
+  CROSS_AGENT_TESTS_UPSTREAM_PATH = File.expand_path(File.join('..', 'cross_agent_tests')).freeze
+  CROSS_AGENT_TESTS_LOCAL_PATH = File.expand_path(File.join('test', 'fixtures', 'cross_agent_tests')).freeze
 
-  # Note: before you pull, make sure your local repo is on the correct, synced branch!
+  def prompt_to_continue(command, destination = 'local')
+    puts "The following rsync command will be executed to update the #{destination} copy of the specs:"
+    puts
+    puts command
+    puts
+    puts "CAUTION: Any unsaved changes that exist within the #{destination} content will be OVERWRITTEN!"
+    if destination.eql?('local')
+      puts 'CAUTION 2: Before continuing, make sure your local repo is on the correct, synced branch!'
+    end
+    puts
+    print "Do you wish to continue? ('y' to continue, return to cancel) [n] "
+    continue = STDIN.gets.chomp
+    if continue.downcase.eql?('y')
+      system(command)
+    else
+      puts 'Cancelled'
+    end
+  end
+
   desc 'Pull latest changes from cross_agent_tests repo'
   task :pull do
-    puts "Updating embedded cross_agent_tests from #{cross_agent_tests_upstream_path}..."
-    cmd = "rsync -avu --exclude .git #{cross_agent_tests_upstream_path}/ #{cross_agent_tests_local_path}/"
-    puts cmd
-    system(cmd)
+    command = "  rsync -av --exclude .git #{CROSS_AGENT_TESTS_UPSTREAM_PATH}/ #{CROSS_AGENT_TESTS_LOCAL_PATH}/"
+    prompt_to_continue(command)
   end
 
   desc 'Copy changes from embedded cross_agent_tests to official repo working copy'
   task :push do
-    puts "Copying changes from embedded cross_agent_tests to #{cross_agent_tests_upstream_path}..."
-    cmd = "rsync -avu #{cross_agent_tests_local_path}/ #{cross_agent_tests_upstream_path}/"
-    puts cmd
-    system(cmd)
+    command = "rsync -av #{CROSS_AGENT_TESTS_LOCAL_PATH}/ #{CROSS_AGENT_TESTS_UPSTREAM_PATH}/"
+    prompt_to_continue(command, 'remote (agent spec repo)')
   end
 end
 

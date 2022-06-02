@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
 
 module NewRelic
   module Agent
@@ -23,16 +23,6 @@ module NewRelic
             :'span_events.enabled' => true,
             :'infinite_tracing.trace_observer.host' => "https://example.com"
           }
-        end
-
-        def test_channel_is_insecure_for_local_host
-          with_config local_config do
-            channel = Channel.new
-            credentials = channel.send(:credentials)
-
-            assert_equal "localhost:80", channel.send(:host_and_port)
-            assert_equal :this_channel_is_insecure, credentials
-          end
         end
 
         def test_channel_is_secure_for_remote_host

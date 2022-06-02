@@ -58,14 +58,21 @@ module NewRelic
         end
 
         def self.run_in_trace(job, block, event)
-          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}") do
+          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}",
+            code_information: code_information_for_job(job)) do
             block.call
           end
         end
 
         def self.run_in_transaction(job, block)
+          options = code_information_for_job(job)
+          options = {} if options.frozen? # the hash will be added to later
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
-            category: :other, &block)
+            category: :other, options: options, &block)
+        end
+
+        def self.code_information_for_job(job)
+          NewRelic::Agent::MethodTracerHelpers.code_information(job.class, :perform)
         end
 
         def self.transaction_category

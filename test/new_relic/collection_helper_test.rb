@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require_relative '../test_helper'
 require 'ostruct'
-
 require 'new_relic/collection_helper'
+
 class NewRelic::CollectionHelperTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start

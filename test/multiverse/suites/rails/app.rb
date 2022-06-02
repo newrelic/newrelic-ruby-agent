@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../middlewares', __FILE__)
-require File.expand_path('../rails3_app/app_rails3_plus', __FILE__)
+require_relative 'middlewares'
+require_relative 'rails3_app/app_rails3_plus'
 
 # Rails 5 deprecated support for using non-keyword arguments with the request
 # helper methods(get, post, put, etc). The module below is prepended to

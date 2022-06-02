@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 class Insider
   def initialize(stats_engine)
@@ -52,23 +52,25 @@ module TestModuleWithLog
   end
 end
 
-class MyClass
-  def self.class_method
+with_config(:'code_level_metrics.enabled' => true) do
+  class MyClass
+    def self.class_method
+    end
+
+    class << self
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :class_method
+    end
   end
 
-  class << self
-    include NewRelic::Agent::MethodTracer
-    add_method_tracer :class_method
-  end
-end
+  module MyModule
+    def self.module_method
+    end
 
-module MyModule
-  def self.module_method
-  end
-
-  class << self
-    include NewRelic::Agent::MethodTracer
-    add_method_tracer :module_method
+    class << self
+      include NewRelic::Agent::MethodTracer
+      add_method_tracer :module_method
+    end
   end
 end
 
@@ -179,6 +181,18 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
+  def test_code_level_metrics_for_a_class_method
+    in_transaction do |txn|
+      MyClass.class_method
+
+      attributes = txn.segments.last.code_attributes
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal 'self.class_method', attributes['code.function']
+      assert_equal 57, attributes['code.lineno']
+      assert_equal 'MyClass', attributes['code.namespace']
+    end
+  end
+
   def test_add_module_method_tracer
     in_transaction do
       MyModule.module_method
@@ -188,12 +202,30 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
-  def test_add_anonymous_class_method_tracer
-    cls = Class.new do
-      def instance_method; end
-      include NewRelic::Agent::MethodTracer
-      add_method_tracer :instance_method
+  def test_code_level_metrics_for_a_module_method
+    in_transaction do |txn|
+      MyModule.module_method
+
+      attributes = txn.segments.last.code_attributes
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal 'self.module_method', attributes['code.function']
+      assert_equal 67, attributes['code.lineno']
+      assert_equal 'MyModule', attributes['code.namespace']
     end
+  end
+
+  def anonymous_class
+    with_config(:'code_level_metrics.enabled' => true) do
+      Class.new do
+        def instance_method; end
+        include NewRelic::Agent::MethodTracer
+        add_method_tracer :instance_method
+      end
+    end
+  end
+
+  def test_add_anonymous_class_method_tracer
+    cls = anonymous_class
 
     in_transaction do
       cls.new.instance_method
@@ -201,6 +233,20 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     metric = "Custom/AnonymousClass/instance_method"
     assert_metrics_recorded metric => {:call_count => 1}
+  end
+
+  def test_code_level_metrics_for_an_anonymous_method
+    cls = anonymous_class
+
+    in_transaction do |txn|
+      cls.new.instance_method
+
+      attributes = txn.segments.last.code_attributes
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal 'instance_method', attributes['code.function']
+      assert_equal 220, attributes['code.lineno']
+      assert_equal '(Anonymous)', attributes['code.namespace']
+    end
   end
 
   def test_add_method_tracer__reentry

@@ -5,8 +5,8 @@
 require 'fileutils'
 require 'timeout'
 require 'mongo'
-require File.expand_path(File.join(File.dirname(__FILE__), 'mongo_server'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
+require_relative 'mongo_server'
+require_relative '../../../../helpers/file_searching'
 
 class MongoReplicaSet
   include Mongo

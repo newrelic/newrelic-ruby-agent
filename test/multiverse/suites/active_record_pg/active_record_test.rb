@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
+require_relative 'app/models/models'
 
 class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers

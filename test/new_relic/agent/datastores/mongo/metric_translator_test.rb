@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/mongo/metric_translator'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
+require_relative '../../../../test_helper'
 
 class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   include ::NewRelic::TestHelpers::MongoMetricBuilder

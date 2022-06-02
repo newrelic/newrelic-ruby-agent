@@ -2,9 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
-
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
 require 'new_relic/agent/log_event_aggregator'
 
 module NewRelic::Agent
@@ -130,7 +129,7 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', nil)
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["log.level"]
+      assert_equal 'UNKNOWN', events[0][1]["level"]
       assert_metrics_recorded([
         "Logging/lines/UNKNOWN"
       ])
@@ -140,7 +139,7 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', '')
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["log.level"]
+      assert_equal 'UNKNOWN', events[0][1]["level"]
       assert_metrics_recorded([
         "Logging/lines/UNKNOWN"
       ])
@@ -287,7 +286,7 @@ module NewRelic::Agent
       event = events.first
 
       assert_equal({
-        'log.level' => "INFO",
+        'level' => "INFO",
         'message' => message,
         'timestamp' => t0
       },

@@ -9,7 +9,6 @@ require 'socket'
 require 'timeout'
 require 'ostruct'
 require 'fake_server'
-
 require 'json'
 
 module NewRelic
