@@ -86,7 +86,7 @@ jobs:
       - run: |
             if [[ ${{ env.rails }} =~ .*"4".* ]]; then \
             gem update --system 3.0.6 --force; \
-            gem install --default bundler:1.17.3; \
+            gem install --default bundler:1.17.3 --force; \
             gem list bundler; \
             bundle _1.17.3_ install; \
             echo "bundler 1.17.3"; \
