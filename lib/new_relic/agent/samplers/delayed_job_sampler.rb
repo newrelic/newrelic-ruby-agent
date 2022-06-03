@@ -87,7 +87,7 @@ module NewRelic
           all_count = 0
           queue_counts(column_name).each do |column_val, count|
             all_count += count
-            column_val = "default" if column_val.nil? || column_val == ""
+            column_val = "default" if column_val.nil? || column_val == NewRelic::EMPTY_STR
             metric = "Workers/DelayedJob/queue_length/#{metric_node}/#{column_val}"
             NewRelic::Agent.record_metric(metric, count)
           end
