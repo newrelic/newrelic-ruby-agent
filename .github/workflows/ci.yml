@@ -84,7 +84,7 @@ jobs:
 
 
       - run: |
-            if [[ ${{ matrix.ruby-version }} =~ 2.[^7].\d+ ]]; then \
+            if [[ ${{ env.rails }} =~ .*"4".* ]]; then \
             gem update --system 3.0.6 --force; \
             gem install --default bundler:1.17.3; \
             gem list bundler; \
