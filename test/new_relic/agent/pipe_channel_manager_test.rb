@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'timeout'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 require 'new_relic/agent/pipe_channel_manager'
 require 'new_relic/agent/transaction_event_primitive'
 
@@ -304,13 +304,40 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   end
 
   def test_blocking_error_rescued
-    listener = NewRelic::Agent::PipeChannelManager::Listener.new
-    error = -> { raise Errno::EWOULDBLOCK }
-    listener.stub(:start, error) do
-      NewRelic::Agent.logger.expects(:error).with do |messages|
-        messages.first.include? 'Issue while reading from the ready pipe'
+    desired_error_messages_seen = 0
+
+    wake_mock = MiniTest::Mock.new
+    out_mock = MiniTest::Mock.new
+    4.times { wake_mock.expect :out, out_mock }
+    error_stub = Proc.new { |msg| desired_error_messages_seen += 1 if msg =~ /^(?:Issue while|Ready pipes)/ }
+    ready_pipes_mock = MiniTest::Mock.new
+
+    ::IO.stub :select, [ready_pipes_mock] do
+      ready_pipes_mock.expect :each, nil
+      ready_pipes_mock.expect :map, []
+      ready_pipes_mock.expect :include?, true do
+        true
+      end
+
+      def out_mock.read_nonblock(num)
+        return unless num == 1
+
+        error = ::Class.new(::StandardError) do
+          include ::IO::WaitReadable
+        end
+
+        raise error
+      end
+
+      NewRelic::Agent.logger.stub :error, error_stub do
+        listener = NewRelic::Agent::PipeChannelManager::Listener.new
+        listener.instance_variable_set(:@wake, wake_mock)
+        listener.start
+        listener.instance_variable_get(:@thread).join
       end
     end
+
+    assert_equal 2, desired_error_messages_seen
   end
 
   def assert_lifetime_counts container, value
