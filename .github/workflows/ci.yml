@@ -95,6 +95,7 @@ jobs:
             echo "bundler"; \
             fi
 
+      - run: gem list bundler
 
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
