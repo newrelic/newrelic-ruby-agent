@@ -76,6 +76,7 @@ jobs:
               }
             }
 
+      - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ${{process.env.GITHUB_WORKSPACE}}/test/script/install_mysql55; echo "mysql55 installed"; fi
 
       - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; echo "bundler configured"; fi
 
