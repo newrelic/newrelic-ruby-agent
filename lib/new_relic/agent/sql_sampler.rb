@@ -196,7 +196,7 @@ module NewRelic
       end
 
       def harvest!
-        return [] unless enabled?
+        return NewRelic::EMPTY_ARRAY unless enabled?
 
         slowest = []
         @samples_lock.synchronize do

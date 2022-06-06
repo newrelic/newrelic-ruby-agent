@@ -86,7 +86,7 @@ module NewRelic
           if @log.send("#{level}?")
             msgs = Array(block.call)
           else
-            msgs = []
+            msgs = NewRelic::EMPTY_ARRAY
           end
         end
 

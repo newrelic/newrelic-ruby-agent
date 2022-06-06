@@ -62,7 +62,7 @@ module NewRelic
           ::Rake.application.top_level_tasks
         rescue => e
           ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping denylisted_rake_tasks check: #{e}")
-          []
+          NewRelic::EMPTY_ARRAY
         end
         !(tasks & ::NewRelic::Agent.config[:'autostart.denylisted_rake_tasks'].split(/\s*,\s*/)).empty?
       end
