@@ -82,15 +82,16 @@ jobs:
 
       - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; echo "bundler configured"; fi
 
+      - run: gem list bundler
 
       - run: |
             if [[ ${{ env.rails }} =~ .*"4".* ]]; then \
             gem update --system 3.0.6 --force; \
             gem install --default bundler:1.17.3 --force; \
             gem list bundler; \
-            bundle _1.17.3_ install; \
-            echo "bundler 1.17.3"; \
             gem uninstall bundler; \
+            bundle install; \
+            echo "bundler 1.17.3"; \
             else \
             bundle install; \
             echo "bundler"; \
