@@ -90,6 +90,7 @@ jobs:
             gem list bundler; \
             bundle _1.17.3_ install; \
             echo "bundler 1.17.3"; \
+            gem uninstall bundler; \
             else \
             bundle install; \
             echo "bundler"; \
