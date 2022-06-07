@@ -83,11 +83,9 @@ module NewRelic
       # Allows for passing exceptions in explicitly, which format with backtrace
       def format_and_send(level, *msgs, &block)
         if block
-          if @log.send("#{level}?")
-            msgs = Array(block.call)
-          else
-            msgs = NewRelic::EMPTY_ARRAY
-          end
+          return unless @log.send("#{level}?")
+
+          msgs = Array(block.call)
         end
 
         msgs.flatten.each do |item|
