@@ -76,7 +76,6 @@ jobs:
               }
             }
 
-      - run: pwd
 
       - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
 
@@ -89,15 +88,13 @@ jobs:
             gem update --system 3.0.6 --force; \
             gem install --default bundler:1.17.3 --force; \
             gem list bundler; \
-            gem uninstall bundler; \
-            bundle install; \
-            echo "bundler 1.17.3"; \
-            else \
-            bundle install; \
-            echo "bundler"; \
+            if [[ ${{ env.ruby-version }} != "2.2.10" ]]; then gem uninstall bundler; echo "did gem uninstall bundler" fi ; \
+            echo "use bundler 1.17.3"; \
             fi
 
       - run: gem list bundler
+
+      - run: bundle install
 
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
