@@ -88,7 +88,7 @@ jobs:
             gem update --system 3.0.6 --force; \
             gem install --default bundler:1.17.3 --force; \
             gem list bundler; \
-            if [[ ${{ env.ruby-version }} != "2.2.10" ]]; then gem uninstall bundler; echo "did gem uninstall bundler" fi ; \
+            if [[ ${{ matrix.ruby-version }} != "2.2.10" ]]; then gem uninstall bundler; echo "did gem uninstall bundler" fi ; \
             echo "use bundler 1.17.3"; \
             fi
 
