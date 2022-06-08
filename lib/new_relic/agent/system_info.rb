@@ -59,19 +59,19 @@ module NewRelic
 
       def processor_info_darwin
         @processor_info = {
-          num_physical_packages: sysctl_value('hw.packages').to_i,
-          num_physical_cores: sysctl_value('hw.physicalcpu_max').to_i,
-          num_logical_processors: sysctl_value('hw.logicalcpu_max').to_i
+          num_physical_packages: sysctl_value('hw.packages'),
+          num_physical_cores: sysctl_value('hw.physicalcpu_max'),
+          num_logical_processors: sysctl_value('hw.logicalcpu_max')
         }
         # in case those don't work, try backup values
         if @processor_info[:num_physical_cores] <= 0
-          @processor_info[:num_physical_cores] = sysctl_value('hw.physicalcpu').to_i
+          @processor_info[:num_physical_cores] = sysctl_value('hw.physicalcpu')
         end
         if @processor_info[:num_logical_processors] <= 0
-          @processor_info[:num_logical_processors] = sysctl_value('hw.logicalcpu').to_i
+          @processor_info[:num_logical_processors] = sysctl_value('hw.logicalcpu')
         end
         if @processor_info[:num_logical_processors] <= 0
-          @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
+          @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu')
         end
       end
 
@@ -84,7 +84,7 @@ module NewRelic
         @processor_info = {
           num_physical_packages: nil,
           num_physical_cores: nil,
-          num_logical_processors: sysctl_value('hw.ncpu').to_i
+          num_logical_processors: sysctl_value('hw.ncpu')
         }
       end
 
@@ -100,7 +100,7 @@ module NewRelic
 
       def self.sysctl_value(name)
         # make sure to redirect stderr so we don't spew if the name is unknown
-        `sysctl -n #{name} 2>/dev/null`
+        `sysctl -n #{name} 2>/dev/null`.to_i
       end
 
       def self.parse_cpuinfo(cpuinfo)
@@ -257,12 +257,12 @@ module NewRelic
 
       def self.ram_in_mib
         if darwin?
-          (sysctl_value('hw.memsize').to_i / (1024**2)).to_i
+          (sysctl_value('hw.memsize') / (1024**2))
         elsif linux?
           meminfo = proc_try_read('/proc/meminfo')
           parse_linux_meminfo_in_mib(meminfo)
         elsif bsd?
-          (sysctl_value('hw.realmem').to_i / (1024**2)).to_i
+          (sysctl_value('hw.realmem') / (1024**2))
         else
           ::NewRelic::Agent.logger.debug("Unable to determine ram_in_mib for host os: #{ruby_os_identifier}")
           nil
