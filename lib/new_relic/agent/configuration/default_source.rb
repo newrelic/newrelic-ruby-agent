@@ -242,7 +242,7 @@ module NewRelic
           case value
           when Array then value
           when String then value.split(SEMICOLON)
-          else []
+          else NewRelic::EMPTY_ARRAY
           end
         end
 
