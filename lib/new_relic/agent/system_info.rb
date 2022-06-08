@@ -39,49 +39,63 @@ module NewRelic
         @processor_info = nil
       end
 
-      def self.get_processor_info
-        if @processor_info.nil?
-          if darwin?
-            @processor_info = {
-              :num_physical_packages => sysctl_value('hw.packages').to_i,
-              :num_physical_cores => sysctl_value('hw.physicalcpu_max').to_i,
-              :num_logical_processors => sysctl_value('hw.logicalcpu_max').to_i
-            }
-            # in case those don't work, try backup values
-            if @processor_info[:num_physical_cores] <= 0
-              @processor_info[:num_physical_cores] = sysctl_value('hw.physicalcpu').to_i
-            end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = sysctl_value('hw.logicalcpu').to_i
-            end
-            if @processor_info[:num_logical_processors] <= 0
-              @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
-            end
+      def self.processor_info
+        return @processor_info if @processor_info
 
-          elsif linux?
-            cpuinfo = proc_try_read('/proc/cpuinfo')
-            @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : {}
-
-          elsif bsd?
-            @processor_info = {
-              :num_physical_packages => nil,
-              :num_physical_cores => nil,
-              :num_logical_processors => sysctl_value('hw.ncpu').to_i
-            }
-          end
-
-          # give nils for obviously wrong values
-          @processor_info.keys.each do |key|
-            value = @processor_info[key]
-            if value.is_a?(Numeric) && value <= 0
-              @processor_info[key] = nil
-            end
-          end
+        if darwin
+          processor_info_darwin
+        elsif linux?
+          processor_info_linux
+        elsif bsd?
+          processor_info_bsd
+        else
+          raise "Couldn't determine OS"
         end
 
-        @processor_info
+        remove_bad_values
       rescue
-        NewRelic::EMPTY_HASH
+        @processor_info = NewRelic::EMPTY_HASH
+      end
+
+      def processor_info_darwin
+        @processor_info = {
+          num_physical_packages: sysctl_value('hw.packages').to_i,
+          num_physical_cores: sysctl_value('hw.physicalcpu_max').to_i,
+          num_logical_processors: sysctl_value('hw.logicalcpu_max').to_i
+        }
+        # in case those don't work, try backup values
+        if @processor_info[:num_physical_cores] <= 0
+          @processor_info[:num_physical_cores] = sysctl_value('hw.physicalcpu').to_i
+        end
+        if @processor_info[:num_logical_processors] <= 0
+          @processor_info[:num_logical_processors] = sysctl_value('hw.logicalcpu').to_i
+        end
+        if @processor_info[:num_logical_processors] <= 0
+          @processor_info[:num_logical_processors] = sysctl_value('hw.ncpu').to_i
+        end
+      end
+
+      def processor_info_linux
+        cpuinfo = proc_try_read('/proc/cpuinfo')
+        @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : NewRelic::EMPTY_HASH
+      end
+
+      def processor_info_bsd
+        @processor_info = {
+          num_physical_packages: nil,
+          num_physical_cores: nil,
+          num_logical_processors: sysctl_value('hw.ncpu').to_i
+        }
+      end
+
+      def remove_bad_values
+        # give nils for obviously wrong values
+        @processor_info.keys.each do |key|
+          value = @processor_info[key]
+          if value.is_a?(Numeric) && value <= 0
+            @processor_info[key] = nil
+          end
+        end
       end
 
       def self.sysctl_value(name)
@@ -143,11 +157,11 @@ module NewRelic
         }
       end
 
-      def self.num_physical_packages; get_processor_info[:num_physical_packages] end
+      def self.num_physical_packages; processor_info[:num_physical_packages] end
 
-      def self.num_physical_cores; get_processor_info[:num_physical_cores] end
+      def self.num_physical_cores; processor_info[:num_physical_cores] end
 
-      def self.num_logical_processors; get_processor_info[:num_logical_processors] end
+      def self.num_logical_processors; processor_info[:num_logical_processors] end
 
       def self.processor_arch
         RbConfig::CONFIG['target_cpu']
