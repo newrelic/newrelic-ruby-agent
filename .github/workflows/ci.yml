@@ -76,25 +76,12 @@ jobs:
               }
             }
 
-
       - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
 
-      - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; echo "bundler configured"; fi
-
-      - run: gem list bundler
-
-      - run: |
-            if [[ ${{ env.rails }} =~ .*"4".* ]]; then \
-            gem update --system 3.0.6 --force; \
-            gem install --default bundler:1.17.3 --force; \
-            gem list bundler; \
-            if [[ ${{ matrix.ruby-version }} != "2.2.10" ]]; then gem uninstall bundler; echo "did gem uninstall bundler"; fi ;  \
-            echo "use bundler 1.17.3"; \
-            fi
-
-      - run: gem list bundler
-
-      - run: bundle install
+      - run: ./.github/workflows/scripts/setup_bundler
+        env: 
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+          RAILS_VERSION: ${{ env.rails }}
 
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [[ $RAILS_VERSION =~ .*"4".* ]]; then 
+  gem update --system 3.0.6 --force; 
+  gem install --default bundler:1.17.3 --force; 
+  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; 
+  gem list bundler; 
+  if [[ $RUBY_VERSION != "2.2.10" ]]; then 
+    gem uninstall bundler; 
+    echo "did gem uninstall bundler"; 
+  fi ;  
+  echo "use bundler 1.17.3"; 
+fi
+
+bundle install
