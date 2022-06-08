@@ -165,11 +165,11 @@ jobs:
 
       # - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
 
-      # - name: Setup bundler
-      #   run: ./.github/workflows/scripts/setup_bundler
-      #   env: 
-      #     RUBY_VERSION: ${{ matrix.ruby-version }}
-      #     RAILS_VERSION: ${{ env.rails }}
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler2
+        env: 
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+          # RAILS_VERSION: ${{ env.rails }}
 
       - run: bundle install
 
