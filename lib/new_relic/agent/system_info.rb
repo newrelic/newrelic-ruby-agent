@@ -81,7 +81,7 @@ module NewRelic
 
         @processor_info
       rescue
-        {}
+        NewRelic::EMPTY_HASH
       end
 
       def self.sysctl_value(name)
