@@ -190,6 +190,7 @@ jobs:
           MYSQL_HOST: 127.0.0.1
           POSTGRES_USERNAME: postgres
           POSTGRES_PASSWORD: password
+          SERIALIZE: 1
 
       - name: Annotate errors
         if: ${{ failure() }}
