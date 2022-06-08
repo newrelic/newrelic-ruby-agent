@@ -165,11 +165,13 @@ jobs:
 
       - run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
 
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env: 
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-          RAILS_VERSION: ${{ env.rails }}
+      # - name: Setup bundler
+      #   run: ./.github/workflows/scripts/setup_bundler
+      #   env: 
+      #     RUBY_VERSION: ${{ matrix.ruby-version }}
+      #     RAILS_VERSION: ${{ env.rails }}
+
+      - run: bundle install
 
       - name: Test MySQL
         run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
