@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script sets up the bundler versions we need for our older test suites
+# This script sets up the bundler versions we need for our older unit tests
 # and sets up the bundler config for when we are using the older mysql version
 
 if [[ $RAILS_VERSION =~ .*"4".* ]]; then 
