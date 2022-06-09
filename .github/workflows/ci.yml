@@ -166,13 +166,12 @@ jobs:
       - run: if [[ ${{ matrix.ruby-version }} == "2.2.10" || ${{ matrix.ruby-version }} == "2.3.8" ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
 
       - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler2
+        run: ./.github/workflows/scripts/setup_bundler_multiverse
         env: 
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Test MySQL
         run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
-
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
