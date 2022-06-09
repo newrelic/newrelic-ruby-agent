@@ -198,7 +198,7 @@ jobs:
 
 
   infinite_tracing:
-    needs: build-ruby
+    needs: run-rubocop
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -226,7 +226,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
-    needs: build-ruby
+    needs: run-rubocop
     runs-on: ubuntu-18.04
     services:
       mysql:
