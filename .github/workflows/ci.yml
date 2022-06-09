@@ -214,6 +214,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
+      - run: bundle install
+
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
         with:
@@ -286,6 +288,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: jruby-9.3.4.0
+
+      - run: bundle install
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
