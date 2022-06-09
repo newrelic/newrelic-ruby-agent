@@ -77,7 +77,7 @@ jobs:
             }
 
 
-      - if: ${{ matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' }}
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.4.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3
@@ -85,9 +85,9 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true'
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.4.0')
         name: Install mysql55
-        run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
+        run: sudo ./test/script/install_mysql55
 
       
 
@@ -225,12 +225,14 @@ jobs:
 
   #     - run: bundle install
 
-  #     - name: Run Multiverse Tests
-  #       uses: nick-invision/retry@v1.0.0
-  #       with:
-  #         timeout_minutes: 15
-  #         max_attempts: 1
-  #         command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+      # - name: Run Multiverse Tests
+      #   uses: nick-invision/retry@v1.0.0
+      #   with:
+      #     timeout_minutes: 15
+      #     max_attempts: 1
+      #     command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+      #   env:
+      #     SERIALIZE: 1
 
   #     - name: Annotate errors
   #       if: ${{ failure() }}
@@ -308,6 +310,7 @@ jobs:
   #         command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
   #       env:
   #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         SERIALIZE: 1
 
   #     - name: Annotate errors
   #       if: ${{ failure() }}
