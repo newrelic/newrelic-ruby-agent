@@ -85,7 +85,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: ${{ steps.mysql55-cache.outputs.cache-hit == 'false' }}
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true'
         name: Install mysql55
         run: if [[ ${{ env.rails }} =~ .*"4".* ]]; then sudo ./test/script/install_mysql55; echo "mysql55 installed"; fi
 
