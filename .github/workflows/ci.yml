@@ -31,7 +31,9 @@ jobs:
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.4.0]
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+
+      - name: Install required packages
+        run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -167,7 +169,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+
+      - name: Install required packages
+        run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -224,7 +228,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+      # - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -301,14 +305,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+      # - name: Install required packages
+      #   run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby jruby-9.3.4.0
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: jruby-9.3.4.0
 
-      - run: bundle install
+      - name: Bundle
+        run: bundle install
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
