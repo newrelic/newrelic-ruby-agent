@@ -170,13 +170,9 @@ jobs:
         env: 
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
-      - run: bundle install
-
       - name: Test MySQL
         run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
 
-      - run: gem install --default digest:3.1.0
-      - run: gem list digest
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0

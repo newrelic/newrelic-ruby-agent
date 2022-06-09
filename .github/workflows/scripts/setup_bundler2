@@ -8,9 +8,6 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
   gem update --system 3.0.6 --force; 
   # need to use bundler <2 for all rails 4 and below tests
   gem install --default bundler:1.17.3 --force; 
-  # add mysql specific config for bundler when we are using older mysql
-  if [[ $RUBY_VERSION =~ 2.[23] ]]; then  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; fi;
-
   gem list bundler; 
   if [[ $RUBY_VERSION != "2.2.10" ]]; then 
     # 2.2 does not install any 2+ bundler version, so nothing to uninstall
@@ -19,6 +16,18 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
     echo "did gem uninstall bundler"; 
   fi ;  
   echo "use bundler 1.17.3"; 
-fi
+fi;
+
+# add mysql specific config for bundler when we are using older mysql
+if [[ $RUBY_VERSION =~ 2.[23] ]]; then  
+  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config; 
+  echo "set bundler to use mysql55 for mysql2"
+fi;
+
+# for some reason, ruby 3.0 fails unless 3.1.0 is installed before it bundles for rails_prepend suite/rails 7
+if [[ $RUBY_VERSION =~ 3.0 ]]; then 
+  gem install --default digest:3.1.0
+  echo "installed digest 3.1.0"
+fi;
 
 bundle install
