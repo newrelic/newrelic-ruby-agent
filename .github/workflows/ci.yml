@@ -83,6 +83,7 @@ jobs:
           command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          JRUBY_OPTS: --dev -G
 
   multiverse:
     needs: run-rubocop
@@ -295,6 +296,8 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
+          JRUBY_OPTS: --dev -G
+
 
       - name: Annotate errors
         if: ${{ failure() }}
