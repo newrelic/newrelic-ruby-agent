@@ -1,23 +1,26 @@
 SIDEKIQ_VERSIONS = [
   nil,
-  ", '~>  6.4.0'",
-  ", '~> 6.3.1'",
-  ", '~> 6.2.2'",
-  ", '~> 6.1.3'",
-  ", '~> 6.1.0'",
-  ", '~> 6.0.0'",
-  ", '~> 5.0.3'",
-  ", '~> 4.2.0'"
+  "'~> 6.4.0'",
+  "'~> 6.3.1'",
+  "'~> 6.2.2'",
+  "'~> 6.1.3'",
+  "'~> 6.1.0'",
+  "'~> 6.0.0'",
+  "'~> 5.0.3'",
+  "'~> 4.2.0'"
 ]
+
+SIDEKIQ_VERSIONS << "git: 'https://github.com/mperham/sidekiq.git', branch: '7-0'" if RUBY_VERSION >= '2.7.0'
 
 # 5.x series requires >= Ruby 2.3
 # 6.x series requires >= Ruby 2.5
-def ruby2_compatible? sidekiq_version
-  # nil version == testing latest
+def ruby2_compatible?(sidekiq_version)
   return RUBY_VERSION >= '2.5.0' if sidekiq_version.nil?
 
   version = sidekiq_version.split(" ")[-1].to_f
-  if version >= 6.0
+  if version >= 7.0
+    RUBY_VERSION >= '2.7.0'
+  elsif version >= 6.0
     RUBY_VERSION >= '2.5.0'
   elsif version >= 5.0
     RUBY_VERSION >= '2.3.0'
@@ -26,10 +29,14 @@ def ruby2_compatible? sidekiq_version
   end
 end
 
+def concat_comma(version)
+  ', '.concat(version)
+end
+
 SIDEKIQ_VERSIONS.each do |sidekiq_version|
   next if RUBY_VERSION < "3.0.0" && !ruby2_compatible?(sidekiq_version)
   next if RUBY_PLATFORM == "java"
-
+  sidekiq_version = concat_comma(sidekiq_version) unless sidekiq_version.nil?
   # must use older gems for older Rubies
   gem_redis = RUBY_VERSION <= "2.3.0" ? "gem 'redis', '<= 4.1.0'" : ""
   gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
