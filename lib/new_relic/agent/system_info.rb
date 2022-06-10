@@ -42,7 +42,7 @@ module NewRelic
       def self.processor_info
         return @processor_info if @processor_info
 
-        if darwin
+        if darwin?
           processor_info_darwin
         elsif linux?
           processor_info_linux
@@ -51,13 +51,14 @@ module NewRelic
         else
           raise "Couldn't determine OS"
         end
-
         remove_bad_values
+
+        @processor_info
       rescue
         @processor_info = NewRelic::EMPTY_HASH
       end
 
-      def processor_info_darwin
+      def self.processor_info_darwin
         @processor_info = {
           num_physical_packages: sysctl_value('hw.packages'),
           num_physical_cores: sysctl_value('hw.physicalcpu_max'),
@@ -75,12 +76,12 @@ module NewRelic
         end
       end
 
-      def processor_info_linux
+      def self.processor_info_linux
         cpuinfo = proc_try_read('/proc/cpuinfo')
         @processor_info = cpuinfo ? parse_cpuinfo(cpuinfo) : NewRelic::EMPTY_HASH
       end
 
-      def processor_info_bsd
+      def self.processor_info_bsd
         @processor_info = {
           num_physical_packages: nil,
           num_physical_cores: nil,
@@ -88,7 +89,7 @@ module NewRelic
         }
       end
 
-      def remove_bad_values
+      def self.remove_bad_values
         # give nils for obviously wrong values
         @processor_info.keys.each do |key|
           value = @processor_info[key]
