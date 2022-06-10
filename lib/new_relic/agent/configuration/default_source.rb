@@ -1085,6 +1085,24 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.grpc_client' => {
+          :default => instrumentation_value_of(:disable_grpc_client),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of gRPC clients at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.grpc_server' => {
+          :default => instrumentation_value_of(:disable_grpc_server),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of gRPC servers at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
