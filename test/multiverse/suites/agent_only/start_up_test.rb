@@ -17,8 +17,8 @@ class StartUpTest < Minitest::Test
     %r{.*lib/ruby/site_ruby/2.3.0/rubygems.rb:261: warning: previous definition of find_spec_for_exe was here}
   ]
   NET_HTTP_NOISE = [
-    %r{.*ruby-2\.[1-2]\.\d+/lib/ruby/2\.[1-2]\.\d+/net/http\.rb:895: warning: instance variable @npn_protocols not initialized},
-    %r{.*ruby-2\.[1-2]\.\d+/lib/ruby/2\.[1-2]\.\d+/net/http\.rb:895: warning: instance variable @npn_select_cb not initialized}
+    %r{((.*ruby-2\.[1-2]\.\d+)|(/opt/hostedtoolcache/Ruby/2.2.10/x64))/lib/ruby/2\.[1-2]\.\d+/net/http\.rb:895: warning: instance variable @npn_protocols not initialized},
+    %r{((.*ruby-2\.[1-2]\.\d+)|(/opt/hostedtoolcache/Ruby/2.2.10/x64))/lib/ruby/2\.[1-2]\.\d+/net/http\.rb:895: warning: instance variable @npn_select_cb not initialized}
   ]
 
   include MultiverseHelpers

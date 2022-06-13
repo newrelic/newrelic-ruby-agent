@@ -119,7 +119,7 @@ module NewRelic
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
               File.expand_path(file) if File.exist? file
             end
-            found_path || ""
+            found_path || NewRelic::EMPTY_STR
           }
         end
 
@@ -242,7 +242,7 @@ module NewRelic
           case value
           when Array then value
           when String then value.split(SEMICOLON)
-          else []
+          else NewRelic::EMPTY_ARRAY
           end
         end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 source 'https://rubygems.org'
 
-gem 'rails', git: 'https://github.com/rails/rails.git'
+gem 'rails', git: 'https://github.com/rails/rails.git', branch: 'main'
 gem "bootsnap", ">= 1.4.4", require: false
 
 gem 'minitest', '5.2.3'
@@ -19,6 +19,5 @@ end
 
 gem 'newrelic_rpm', path: '../../..'
 
-gem 'hometown', '~> 0.2.5'
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'

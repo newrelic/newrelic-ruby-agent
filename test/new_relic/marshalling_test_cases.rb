@@ -179,7 +179,7 @@ module MarshallingTestCases
     logs = result.first.logs
     refute_empty logs
 
-    log = logs.find { |l| l["message"] == message && l["log.level"] == severity }
+    log = logs.find { |l| l["message"] == message && l["level"] == severity }
 
     refute_nil log
     assert_equal t0, log["timestamp"]

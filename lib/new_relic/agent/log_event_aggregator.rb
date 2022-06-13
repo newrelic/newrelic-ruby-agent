@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     class LogEventAggregator < EventAggregator
       # Per-message keys
-      LEVEL_KEY = "log.level".freeze
+      LEVEL_KEY = "level".freeze
       MESSAGE_KEY = "message".freeze
       TIMESTAMP_KEY = "timestamp".freeze
       PRIORITY_KEY = "priority".freeze

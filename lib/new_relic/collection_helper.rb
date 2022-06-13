@@ -46,7 +46,7 @@ module NewRelic
     def truncate(string, len = DEFAULT_TRUNCATION_SIZE)
       case string
       when Symbol then string
-      when nil then ""
+      when nil then EMPTY_STR
       when String
         real_string = flatten(string)
         if real_string.size > len
