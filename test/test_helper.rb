@@ -20,10 +20,6 @@ require 'minitest/stub_const'
 require 'mocha/setup'
 require 'simplecov'
 
-SimpleCov.start do
-  enable_coverage :branch
-end
-
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
 
 # We can speed things up in tests that don't need to load rails.
