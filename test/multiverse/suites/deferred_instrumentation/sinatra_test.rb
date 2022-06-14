@@ -6,6 +6,7 @@ require 'newrelic_rpm'
 require 'sinatra'
 require_relative '../sinatra/sinatra_test_cases'
 require_relative '../../../helpers/exceptions'
+SimpleCov.command_name "test:multiverse[deferred_instrumentation]"
 
 class DeferredSinatraTestApp < Sinatra::Base
   include NewRelic::TestHelpers::Exceptions

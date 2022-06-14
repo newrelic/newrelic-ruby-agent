@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'fake_rpm_site'
+SimpleCov.command_name "test:multiverse[capistrano2]"
 
 class DeploymentTest < Minitest::Test
   def setup

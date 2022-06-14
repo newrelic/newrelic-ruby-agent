@@ -9,6 +9,8 @@
 
 require 'multiverse_helpers'
 
+SimpleCov.command_name "test:multiverse[rack]"
+
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
   class BuilderMapTest < Minitest::Test

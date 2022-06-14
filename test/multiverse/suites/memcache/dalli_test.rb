@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require "./memcache_test_cases"
+SimpleCov.command_name "test:multiverse[memcache]"
 
 if defined?(Dalli)
 

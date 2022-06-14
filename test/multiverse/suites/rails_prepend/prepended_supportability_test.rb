@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require '../rails/app'
+SimpleCov.command_name "test:multiverse[rails_prepend]"
 
 class PrependedSupportabilityMetricsTest < Minitest::Test
   include MultiverseHelpers

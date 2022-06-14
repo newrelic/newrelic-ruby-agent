@@ -5,6 +5,8 @@
 
 require_relative '../test_helper'
 
+SimpleCov.command_name "test:multiverse[infinite_tracing]"
+
 module NewRelic
   module Agent
     module InfiniteTracing

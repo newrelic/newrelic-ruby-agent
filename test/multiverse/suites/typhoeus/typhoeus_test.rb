@@ -5,6 +5,7 @@
 require "typhoeus"
 require "newrelic_rpm"
 require "http_client_test_cases"
+SimpleCov.command_name "test:multiverse[typhoeus]"
 
 if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 

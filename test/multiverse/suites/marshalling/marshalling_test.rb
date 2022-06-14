@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marshalling_test_cases')
+SimpleCov.command_name "test:multiverse[marshalling]"
 
 # These tests are intended to exercise the basic marshalling functionality of
 # the agent in it's different permutations (Ruby and JSON)

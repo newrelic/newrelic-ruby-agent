@@ -4,6 +4,7 @@
 
 require_relative '../../../helpers/misc'
 require_relative '../../../helpers/docker'
+SimpleCov.command_name "test:multiverse[bunny]"
 
 class BunnyTest < Minitest::Test
   include MultiverseHelpers

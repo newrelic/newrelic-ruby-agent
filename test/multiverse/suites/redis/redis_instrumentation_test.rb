@@ -4,6 +4,7 @@
 
 require 'redis'
 require_relative '../../../helpers/docker'
+SimpleCov.command_name "test:multiverse[redis]"
 
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
   class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test

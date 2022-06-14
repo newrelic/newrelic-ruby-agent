@@ -5,6 +5,7 @@
 require 'sinatra'
 require_relative 'sinatra_test_cases'
 require_relative '../../../helpers/exceptions'
+SimpleCov.command_name "test:multiverse[sinatra]"
 
 include NewRelic::TestHelpers::Exceptions
 

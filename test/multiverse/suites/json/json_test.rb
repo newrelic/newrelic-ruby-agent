@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marshalling_test_cases')
+SimpleCov.command_name "test:multiverse[json]"
 
 # This is intended as a sanity check for our serialization to JSON via the
 # json gem across various Ruby versions.

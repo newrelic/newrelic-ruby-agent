@@ -5,6 +5,7 @@
 require "httpclient"
 require "newrelic_rpm"
 require "http_client_test_cases"
+SimpleCov.command_name "test:multiverse[httpclient]"
 
 class HTTPClientTest < Minitest::Test
   include HttpClientTestCases

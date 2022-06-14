@@ -16,7 +16,6 @@ require 'rake'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'mocha/setup'
-
 require 'newrelic_rpm'
 require 'infinite_tracing'
 

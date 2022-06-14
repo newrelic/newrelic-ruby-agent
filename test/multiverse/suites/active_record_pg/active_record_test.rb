@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative 'app/models/models'
+SimpleCov.command_name "test:multiverse[active_record_pg]"
 
 class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers

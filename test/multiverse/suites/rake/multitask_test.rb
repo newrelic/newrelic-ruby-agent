@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative 'rake_test_helper'
+SimpleCov.command_name "test:multiverse[rake]"
 
 if ::NewRelic::Agent::Instrumentation::Rake.should_install?
   class MultiTaskTest < Minitest::Test

@@ -5,6 +5,7 @@
 require "grape"
 require "newrelic_rpm"
 require './grape_test_api'
+SimpleCov.command_name "test:multiverse[grape]"
 
 class GrapeTest < Minitest::Test
   include Rack::Test::Methods

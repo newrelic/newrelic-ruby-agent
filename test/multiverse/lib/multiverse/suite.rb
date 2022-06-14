@@ -10,6 +10,7 @@ require 'rubygems'
 require 'base64'
 require 'fileutils'
 require 'digest'
+require 'simplecov'
 require_relative '../multiverse'
 require_relative 'shell_utils'
 

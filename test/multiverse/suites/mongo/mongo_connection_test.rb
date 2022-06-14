@@ -5,6 +5,7 @@
 require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
+SimpleCov.command_name "test:multiverse[mongo]"
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     !NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?

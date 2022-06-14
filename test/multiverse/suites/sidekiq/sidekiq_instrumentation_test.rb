@@ -6,6 +6,7 @@
 
 require File.join(File.dirname(__FILE__), "sidekiq_server")
 SidekiqServer.instance.run
+SimpleCov.command_name "test:multiverse[sidekiq]"
 
 # Important to require after Sidekiq server starts for middleware to install
 require 'newrelic_rpm'

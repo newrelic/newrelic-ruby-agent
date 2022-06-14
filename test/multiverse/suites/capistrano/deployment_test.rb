@@ -4,6 +4,7 @@
 
 require 'fake_rpm_site'
 require 'new_relic/cli/command'
+SimpleCov.command_name "test:multiverse[capistrano]"
 
 class DeploymentTest < Minitest::Test
   def setup

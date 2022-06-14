@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'sinatra'
+SimpleCov.command_name "test:multiverse[sinatra_agent]"
 
 class MiddlewareApp < Sinatra::Base
   get '/middle' do
