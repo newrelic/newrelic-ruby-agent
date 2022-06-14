@@ -113,7 +113,7 @@ module NewRelic
           end
         end
 
-        SUCCESS_RESULT = {}.freeze
+        SUCCESS_RESULT = NewRelic::EMPTY_HASH
         ERROR_KEY = "error"
 
         def success
