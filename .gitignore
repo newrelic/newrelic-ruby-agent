@@ -15,7 +15,7 @@ tags
 *.swp
 *.swo
 
-/coverage/
+coverage
 /doc/
 /log/
 /lerg/
