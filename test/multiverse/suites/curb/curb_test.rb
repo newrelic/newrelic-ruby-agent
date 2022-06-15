@@ -9,7 +9,6 @@ require 'newrelic_rpm'
 require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'
 
-
 class CurbTest < Minitest::Test
   #
   # Tests
