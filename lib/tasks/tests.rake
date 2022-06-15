@@ -31,7 +31,6 @@ if defined? Rake::TestTask
       t.libs << "#{agent_home}/test"
       t.libs << "#{agent_home}/lib"
       t.pattern = Array(file_pattern)
-      t.verbose = true
     end
   end
 end
