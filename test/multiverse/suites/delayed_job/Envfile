@@ -15,7 +15,7 @@ def bigdecimal
     "gem 'bigdecimal', '~> 3.0.0'"
   end
 
-  if RUBY_VERSION <= '2.5.0'
+  if RUBY_VERSION <= '2.5.0' && RUBY_VERSION >= '2.3.0'
     "gem 'bigdecimal', '~> 1.4.0'"
   end
 end
