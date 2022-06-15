@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require 'simplecov'
 require 'fileutils'
 
 module Multiverse
@@ -29,4 +30,3 @@ require 'multiverse/output_collector'
 require 'multiverse/runner'
 require 'multiverse/envfile'
 require 'multiverse/suite'
-require 'simplecov'
