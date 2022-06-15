@@ -22,3 +22,4 @@ end
 gem "newrelic_rpm", :path => "../../.."
 
 gem 'pry', '~> 0.9.12'
+gem 'simplecov'
