@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCov.command_name "test:multiverse[sinatra_agent_disabled]"
 require 'sinatra'
-SimpleCov.command_name "test:multiverse[sinatra_agent]"
 
 class MiddlewareApp < Sinatra::Base
   get '/middle' do

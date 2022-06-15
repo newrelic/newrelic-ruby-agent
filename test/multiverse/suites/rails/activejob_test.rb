@@ -6,7 +6,6 @@ require_relative 'app'
 require 'logger'
 require 'stringio'
 require 'minitest/mock'
-SimpleCov.command_name "test:multiverse[rails]"
 
 # ActiveJob is in Rails 4.2+, so make sure we're on an allowed version before
 # we try to load.

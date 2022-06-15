@@ -4,11 +4,11 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
+SimpleCov.command_name "test:multiverse[resque]"
 require 'resque'
 require 'logger'
 require 'newrelic_rpm'
 require 'fake_collector'
-SimpleCov.command_name "test:multiverse[resque]"
 
 class ResqueTest < Minitest::Test
   include MultiverseHelpers

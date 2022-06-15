@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCov.command_name "test:multiverse[capistrano]"
 require 'fake_rpm_site'
 require 'new_relic/cli/command'
-SimpleCov.command_name "test:multiverse[capistrano]"
 
 class DeploymentTest < Minitest::Test
   def setup

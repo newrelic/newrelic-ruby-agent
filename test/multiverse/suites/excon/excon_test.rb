@@ -3,10 +3,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+SimpleCov.command_name "test:multiverse[excon]"
 require "excon"
 require "newrelic_rpm"
 require "http_client_test_cases"
-SimpleCov.command_name "test:multiverse[excon]"
 
 class ExconTest < Minitest::Test
   include HttpClientTestCases

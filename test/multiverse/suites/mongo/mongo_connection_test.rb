@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCov.command_name "test:multiverse[mongo]"
 require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
-SimpleCov.command_name "test:multiverse[mongo]"
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     !NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?

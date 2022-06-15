@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCov.command_name "test:multiverse[httprb]"
 require "http"
 require "newrelic_rpm"
 require "http_client_test_cases"
-SimpleCov.command_name "test:multiverse[httprb]"
 
 class HTTPTest < Minitest::Test
   include HttpClientTestCases

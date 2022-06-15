@@ -4,7 +4,6 @@
 
 require File.join(File.dirname(__FILE__), 'database.rb')
 require File.join(File.dirname(__FILE__), 'sequel_helpers.rb')
-SimpleCov.command_name "test:multiverse[sequel]"
 
 if Sequel.const_defined?(:MAJOR) &&
     (Sequel::MAJOR > 3 ||
