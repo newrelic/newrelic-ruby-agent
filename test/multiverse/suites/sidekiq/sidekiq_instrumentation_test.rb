@@ -77,7 +77,11 @@ class SidekiqTest < Minitest::Test
       YAML.stubs(:load).raises(RuntimeError.new("Ouch"))
       run_delayed
       assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
-      assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
+      if RUBY_VERSION >= '3.0.0'
+        assert_metric_and_call_count(DELAYED_TRANSACTION_NAME, JOB_COUNT)
+      else
+        assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
+      end
     end
   end
 

@@ -18,7 +18,8 @@ rescue LoadError
   # Let it fail, might be working with another library
 end
 
-# Deprecated on some versions, required on others. Hurray!
+# TODO: Core Technology - guess_backend is deprecated on some versions,
+# required on others.
 Delayed::Worker.guess_backend
 
 if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
@@ -43,7 +44,7 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
     @connection = $db_connection
   end
 
-  class CreatePelicans < ActiveRecord::Migration
+  class CreatePelicans < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
     @connection = $db_connection
     def self.up
       create_table :pelicans do |t|
