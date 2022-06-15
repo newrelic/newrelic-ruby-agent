@@ -98,7 +98,6 @@ else
   dj4_with_active_record = <<-DJ
     gem 'delayed_job', '~> 4.0.4'
 
-    # 4.0.3 breaks 1.8.7 compatibility
     gem 'delayed_job_active_record', '= 4.0.2'
     #{boilerplate_gems}
   DJ
@@ -137,18 +136,6 @@ if RUBY_VERSION < '2.3.0'
     gemfile <<-RB
       gem 'activerecord', '~> 3.2.19'
       gem 'i18n', '~> 0.6.11'
-      #{dj}
-    RB
-
-    gemfile <<-RB
-      gem 'activerecord', '~> 3.1.12'
-      gem 'i18n', '~> 0.6.11'
-      #{dj}
-    RB
-
-    gemfile <<-RB
-      gem 'activerecord', '~> 3.0.20'
-      gem 'i18n', '~> 0.5.4'
       #{dj}
     RB
   end
