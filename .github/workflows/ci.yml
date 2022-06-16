@@ -304,18 +304,14 @@ jobs:
         uses: ./.github/actions/annotate
 
   simplecov:
-    needs:
-      - unit_tests
-      - multiverse
-      - infinite_tracing
-      - jruby_multiverse
+    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
     runs-on: ubuntu-20.04
+    if: ${{ always() }}
     steps:
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
         uses: actions/upload-artifact@master
-        if: always()
         with:
           name: coverage-report
           path: coverage
