@@ -74,7 +74,6 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
-
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
         with:
@@ -83,8 +82,14 @@ jobs:
           command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev
+          JRUBY_OPTS: --dev --debug
           COVERAGE: true
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report
+          path: coverage
 
   multiverse:
     needs: run_rubocop
@@ -197,6 +202,12 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report
+          path: coverage
+
   infinite_tracing:
     needs: run_rubocop
     runs-on: ubuntu-20.04
@@ -228,6 +239,12 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report
+          path: coverage
 
   jruby_multiverse:
     needs: run_rubocop
@@ -299,12 +316,18 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
-          JRUBY_OPTS: --dev
+          JRUBY_OPTS: --dev --debug
           COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report
+          path: coverage
 
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
@@ -323,3 +346,4 @@ jobs:
         with:
           name: coverage-report
           path: coverage
+
