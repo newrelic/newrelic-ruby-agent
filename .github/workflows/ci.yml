@@ -71,7 +71,7 @@ jobs:
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
-        env: 
+        env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
 
@@ -80,7 +80,7 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command: COVERAGE=true bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev
@@ -155,7 +155,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' 
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -169,7 +169,7 @@ jobs:
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler_multiverse
-        env: 
+        env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Test MySQL
@@ -180,7 +180,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: COVERAGE=true bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -218,7 +218,7 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: COVERAGE=true bundle exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
           SERIALIZE: 1
 
@@ -292,7 +292,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command: COVERAGE=true bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
@@ -302,3 +302,20 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+  simplecov:
+    needs:
+      - unit_tests
+      - multiverse
+      - infinite_tracing
+      - jruby_multiverse
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Collate Coverage Results
+        run: bundle exec rake coverage:report
+      - name: Upload coverage results
+        uses: actions/upload-artifact@master
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage
