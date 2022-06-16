@@ -98,7 +98,7 @@ jobs:
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
-        env: 
+        env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
 
@@ -182,7 +182,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' 
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -196,7 +196,7 @@ jobs:
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler_multiverse
-        env: 
+        env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Test MySQL
