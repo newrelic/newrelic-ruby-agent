@@ -80,10 +80,11 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command: COVERAGE=true bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev
+          COVERAGE: true
 
   multiverse:
     needs: run_rubocop
@@ -180,7 +181,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: COVERAGE=true bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -190,6 +191,7 @@ jobs:
           POSTGRES_USERNAME: postgres
           POSTGRES_PASSWORD: password
           SERIALIZE: 1
+          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -218,9 +220,10 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command: COVERAGE=true bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
           SERIALIZE: 1
+          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -292,12 +295,12 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: COVERAGE=true bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
-
+          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -308,6 +311,11 @@ jobs:
     runs-on: ubuntu-20.04
     if: ${{ always() }}
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+      - run: bundle
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
