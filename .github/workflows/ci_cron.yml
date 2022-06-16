@@ -9,7 +9,7 @@ on:
     - cron:  '0 9 * * *'
 
 jobs:
-  run-rubocop:
+  run_rubocop:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -19,8 +19,8 @@ jobs:
       - run: bundle
       - run: rubocop
 
-  unit-tests:
-    needs: run-rubocop
+  unit_tests:
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -113,7 +113,7 @@ jobs:
           JRUBY_OPTS: --dev
 
   multiverse:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -223,7 +223,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   infinite_tracing:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
@@ -254,7 +254,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-18.04
     services:
       mysql:

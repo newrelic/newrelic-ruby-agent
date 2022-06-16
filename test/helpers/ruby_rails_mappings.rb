@@ -9,7 +9,7 @@ CI_FILE = File.expand_path('../../../.github/workflows/ci.yml', __FILE__)
 def ruby_rails_versions_hash
   @versions_hash ||= begin
     ci = YAML.load_file(CI_FILE)
-    map_yaml = ci['jobs']['unit-tests']['steps'].detect do |hash|
+    map_yaml = ci['jobs']['unit_tests']['steps'].detect do |hash|
       hash.key?('with') && hash['with'].key?('map')
     end['with']['map']
     versions = YAML.load(map_yaml)
