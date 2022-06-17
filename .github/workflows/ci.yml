@@ -88,8 +88,8 @@ jobs:
       - name: Save coverage results
         uses: actions/upload-artifact@master
         with:
-          name: coverage-report
-          path: coverage
+          name: coverage-report-unit-tests
+          path: lib/coverage
 
   multiverse:
     needs: run_rubocop
@@ -205,8 +205,8 @@ jobs:
       - name: Save coverage results
         uses: actions/upload-artifact@master
         with:
-          name: coverage-report
-          path: coverage
+          name: coverage-report-multiverse
+          path: lib/coverage
 
   infinite_tracing:
     needs: run_rubocop
@@ -243,8 +243,8 @@ jobs:
       - name: Save coverage results
         uses: actions/upload-artifact@master
         with:
-          name: coverage-report
-          path: coverage
+          name: coverage-report-infinite-tracing
+          path: lib/coverage
 
   jruby_multiverse:
     needs: run_rubocop
@@ -326,8 +326,8 @@ jobs:
       - name: Save coverage results
         uses: actions/upload-artifact@master
         with:
-          name: coverage-report
-          path: coverage
+          name: coverage-report-jruby-multiverse
+          path: lib/coverage
 
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
@@ -339,11 +339,13 @@ jobs:
         with:
           ruby-version: '2.7'
       - run: bundle
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
         uses: actions/upload-artifact@master
         with:
-          name: coverage-report
-          path: coverage
+          name: coverage-report-combined
+          path: lib/coverage
 
