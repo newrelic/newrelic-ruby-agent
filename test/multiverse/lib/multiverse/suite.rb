@@ -578,7 +578,6 @@ module Multiverse
       # MiniTest 5.x
       ::MiniTest.class_eval do
         def self.autorun
-          puts "WTF&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
           # NO-OP
         end
       end
