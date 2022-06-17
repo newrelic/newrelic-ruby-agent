@@ -532,7 +532,6 @@ module Multiverse
         test_run = ::MiniTest::Unit.new.run(options)
       end
 
-      
       load @after_file if @after_file
       ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
 
