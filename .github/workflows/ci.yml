@@ -28,7 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.4.0]
+        # ruby-version: [2.2.10, 3.1.2, jruby-9.3.4.0]
+        ruby-version: [2.7.5]
     steps:
       - uses: actions/checkout@v2
 
@@ -149,7 +150,9 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 3.1.2]
+        # ruby-version: [2.2.10, 3.1.2]
+        ruby-version: [2.7.5]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -214,7 +217,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 3.1.2]
+        # ruby-version: [2.5.9, 3.1.2]
+        ruby-version: [2.7.5]
     steps:
       - uses: actions/checkout@v2
 
