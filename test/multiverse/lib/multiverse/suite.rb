@@ -532,7 +532,9 @@ module Multiverse
         test_run = ::MiniTest::Unit.new.run(options)
       end
 
+      
       load @after_file if @after_file
+      ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
 
       if test_run
         exit(test_run)
@@ -577,6 +579,7 @@ module Multiverse
       # MiniTest 5.x
       ::MiniTest.class_eval do
         def self.autorun
+          puts "WTF&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
           # NO-OP
         end
       end
