@@ -533,7 +533,11 @@ module Multiverse
       end
 
       load @after_file if @after_file
-      ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
+      begin
+        ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
+      rescue => e
+        puts "Error generating simplecov output: #{e.inspect}"
+      end
 
       if test_run
         exit(test_run)
