@@ -81,7 +81,9 @@ class LicenseTest < Minitest::Test
       # skip the artifacts directory
       path =~ %r{/artifacts/} ||
       # skip the changelog
-      path =~ %r{CHANGELOG.md}
+      path =~ %r{CHANGELOG.md} ||
+      # skip simplecov reports
+      path =~ %r{/coverage/}
     )
   end
 
