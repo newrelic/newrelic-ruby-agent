@@ -317,21 +317,14 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
-          JRUBY_OPTS: --dev --debug
-          COVERAGE: true
+          JRUBY_OPTS: --dev
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-      - name: Save coverage results
-        uses: actions/upload-artifact@master
-        with:
-          name: coverage-report-jruby-multiverse
-          path: lib/coverage
-
   simplecov:
-    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+    needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-20.04
     if: ${{ always() }}
     steps:
