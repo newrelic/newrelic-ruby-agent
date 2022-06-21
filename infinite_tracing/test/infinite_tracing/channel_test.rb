@@ -5,7 +5,7 @@
 
 require_relative '../test_helper'
 
-SimpleCov.command_name "test:multiverse[infinite_tracing]"
+require SimpleCov.command_name "test:multiverse[infinite_tracing]" if RUBY_VERSION >= '2.7.0'
 
 module NewRelic
   module Agent
