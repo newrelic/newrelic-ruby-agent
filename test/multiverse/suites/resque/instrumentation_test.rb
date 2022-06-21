@@ -4,7 +4,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
-require SimpleCov.command_name "test:multiverse[resque]" if RUBY_VERSION >= '2.7.0'
+SimpleCov.command_name "test:multiverse[resque]" if RUBY_VERSION >= '2.7.0'
 require 'resque'
 require 'logger'
 require 'newrelic_rpm'

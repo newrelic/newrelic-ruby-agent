@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require SimpleCov.command_name "test:multiverse[rails]" if RUBY_VERSION >= '2.7.0'
+SimpleCov.command_name "test:multiverse[rails]" if RUBY_VERSION >= '2.7.0'
 
 begin
   require 'action_cable'

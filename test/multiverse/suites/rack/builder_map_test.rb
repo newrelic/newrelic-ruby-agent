@@ -7,7 +7,7 @@
 # metrics. In internals changed across Rack versions, so it's important to
 # check as our middleware and Rack instrumentation has grown.
 
-require SimpleCov.command_name "test:multiverse[rack]" if RUBY_VERSION >= '2.7.0'
+SimpleCov.command_name "test:multiverse[rack]" if RUBY_VERSION >= '2.7.0'
 require 'multiverse_helpers'
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?

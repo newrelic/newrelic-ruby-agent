@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require SimpleCov.command_name "test:multiverse[excon]" if RUBY_VERSION >= '2.7.0'
+SimpleCov.command_name "test:multiverse[excon]" if RUBY_VERSION >= '2.7.0'
 require "excon"
 require "newrelic_rpm"
 require "http_client_test_cases"
