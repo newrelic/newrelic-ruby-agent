@@ -342,4 +342,10 @@ jobs:
         with:
           name: coverage-report-combined
           path: lib/coverage
+      - name: Simplecov Report
+        uses: aki77/simplecov-report-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          resultPath: coverage-report-combined/.last_run.json
+          failedThreshold: 62
 
