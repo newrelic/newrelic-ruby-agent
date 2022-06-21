@@ -6,7 +6,8 @@
 # This makes sure that the Multiverse environment loads with the gem
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
-require 'simplecov'
+
+require 'simplecov' if RUBY_VERSION >= '2.7.0'
 require 'rubygems'
 require 'base64'
 require 'fileutils'

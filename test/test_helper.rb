@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'simplecov'
+require 'simplecov' if RUBY_VERSION >= '2.7.0'
 
 # define special constant so DefaultSource.framework can return :test
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
