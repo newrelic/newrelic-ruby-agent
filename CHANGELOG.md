@@ -5,7 +5,7 @@
 
   * **Bugfix: Infinite Tracing hung on connection restart**
 
-    Previously when using infinite tracing, the agent would intermittently encounter a deadlock when attempting to restart the infinite tracing connection. This bug would prevent the agent from sending all data types, including non infinite tracing related data. This change reworks how we are restarting infinite tracing to prevent potential deadlocks.
+    Previously, when using infinite tracing, the agent would intermittently encounter a deadlock when attempting to restart the infinite tracing connection. This bug would prevent the agent from sending all data types, including non-infinite-tracing-related data. This change reworks how we restart infinite tracing to prevent potential deadlocks.
 
 
   ## v8.8.0
