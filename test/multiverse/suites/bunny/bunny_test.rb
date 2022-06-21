@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-SimpleCov.command_name "test:multiverse[bunny]"
+require SimpleCov.command_name "test:multiverse[bunny]" if RUBY_VERSION >= '2.7.0'
 require_relative '../../../helpers/misc'
 require_relative '../../../helpers/docker'
 

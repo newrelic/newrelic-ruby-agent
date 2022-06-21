@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-SimpleCov.command_name "test:multiverse[httpclient]"
+require SimpleCov.command_name "test:multiverse[httpclient]" if RUBY_VERSION >= '2.7.0'
 require "httpclient"
 require "newrelic_rpm"
 require "http_client_test_cases"

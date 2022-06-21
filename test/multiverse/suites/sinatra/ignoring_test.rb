@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-SimpleCov.command_name "test:multiverse[sinatra]"
+require SimpleCov.command_name "test:multiverse[sinatra]" if RUBY_VERSION >= '2.7.0'
 
 class SinatraIgnoreTestApp < Sinatra::Base
   get '/record' do request.path_info end

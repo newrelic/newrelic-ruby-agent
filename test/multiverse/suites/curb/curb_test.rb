@@ -2,9 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-SimpleCov.command_name "test:multiverse[curb]"
+require SimpleCov.command_name "test:multiverse[curb]" if RUBY_VERSION >= '2.7.0'
 require 'curb'
-
 require 'newrelic_rpm'
 require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'

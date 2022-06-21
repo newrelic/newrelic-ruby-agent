@@ -14,7 +14,7 @@
 # If this fails the agent will attempt to dial Lew Cirne's cell phone and ask
 # that he verbally describe how it should be configured.
 
-SimpleCov.command_name "test:multiverse[config_file_loading]"
+require SimpleCov.command_name "test:multiverse[config_file_loading]" if RUBY_VERSION >= '2.7.0'
 
 class ConfigFileLoadingTest < Minitest::Test
   include MultiverseHelpers
