@@ -30,7 +30,7 @@ module NewRelic::Agent
       sleep 30
     end
 
-    # Whenever we reconnect, close and restart?
+    # Whenever we reconnect, close and restart
     def close_infinite_tracer
       NewRelic::Agent.logger.debug "Closing infinite tracer threads"
       return unless @infinite_tracer_thread
