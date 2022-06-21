@@ -29,3 +29,7 @@ Include as many relevant details about your environment as possible including th
 
 ## Additional context
 Add any other context about the problem here. For example, relevant community posts or support tickets.
+
+## For Maintainers Only or Hero Triaging this bug
+*Suggested Priority (P1,P2,P3,P4,P5):*
+*Suggested T-Shirt size (S, M, L, XL, Unknown):*
