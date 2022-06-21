@@ -5,7 +5,7 @@
 # Let ActiveSupport's auto-loading make sure the testing gateway's there.
 # require complains of redefine on certain Rubies, (looking at you REE)
 
-SimpleCov.command_name "test:multiverse[activemerchant]" if RUBY_VERSION >= '2.7.0'
+SimpleCovHelper.command_name "test:multiverse[activemerchant]"
 
 ActiveMerchant::Billing::BogusGateway
 

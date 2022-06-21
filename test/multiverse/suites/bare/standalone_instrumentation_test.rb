@@ -8,7 +8,7 @@
 # See https://newrelic.atlassian.net/browse/RUBY-1116 for details on how this
 # was broken previously.
 
-SimpleCov.command_name "test:multiverse[bare]" if RUBY_VERSION >= '2.7.0'
+SimpleCovHelper.command_name "test:multiverse[bare]"
 require 'new_relic/agent/method_tracer'
 
 class StandaloneInstrumentationTest < Minitest::Test

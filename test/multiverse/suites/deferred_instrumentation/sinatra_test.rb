@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-SimpleCov.command_name "test:multiverse[deferred_instrumentation]" if RUBY_VERSION >= '2.7.0'
+SimpleCovHelper.command_name "test:multiverse[deferred_instrumentation]"
 require 'newrelic_rpm'
 require 'sinatra'
 require_relative '../sinatra/sinatra_test_cases'

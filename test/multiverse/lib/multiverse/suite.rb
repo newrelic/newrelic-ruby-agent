@@ -7,7 +7,7 @@
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
 
-require 'simplecov' if RUBY_VERSION >= '2.7.0'
+require_relative '../../../simplecov_test_helper'
 require 'rubygems'
 require 'base64'
 require 'fileutils'

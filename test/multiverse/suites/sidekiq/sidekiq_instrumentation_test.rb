@@ -4,7 +4,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-775
 
-SimpleCov.command_name "test:multiverse[sidekiq]" if RUBY_VERSION >= '2.7.0'
+SimpleCovHelper.command_name "test:multiverse[sidekiq]"
 require File.join(File.dirname(__FILE__), "sidekiq_server")
 SidekiqServer.instance.run
 

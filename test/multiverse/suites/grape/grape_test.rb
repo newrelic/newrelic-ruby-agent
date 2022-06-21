@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-SimpleCov.command_name "test:multiverse[grape]" if RUBY_VERSION >= '2.7.0'
+SimpleCovHelper.command_name "test:multiverse[grape]"
 require "grape"
 require "newrelic_rpm"
 require './grape_test_api'
