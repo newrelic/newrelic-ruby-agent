@@ -344,10 +344,13 @@ jobs:
         with:
           name: coverage-report-combined
           path: lib/coverage
+
+      # Make new rake task to get covered_percentage from HTML file & pass that to aki77 lib?
+
       - name: Simplecov Report
         uses: aki77/simplecov-report-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          resultPath: lib/coverage-report-combined/index.html
+          resultPath: coverage-report-combined/index.html
           failedThreshold: 62
 
