@@ -58,10 +58,18 @@ module NewRelic
               ::Dalli::Server
             end.class_eval do
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
-              alias_method :send_multiget_without_newrelic_trace, :send_multiget
 
-              def send_multiget keys
-                send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace keys }
+              # 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
+              if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
+                alias_method :pipelined_get_without_newrelic_trace, :pipelined_get
+                def pipelined_get keys
+                  send_multiget_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace keys }
+                end
+              else
+                alias_method :send_multiget_without_newrelic_trace, :send_multiget
+                def send_multiget keys
+                  send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace keys }
+                end
               end
             end
           end

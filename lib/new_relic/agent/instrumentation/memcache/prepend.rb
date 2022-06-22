@@ -85,8 +85,14 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def send_multiget keys
-            send_multiget_with_newrelic_tracing(keys) { super }
+          if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
+            def pipelined_get keys
+              send_multiget_with_newrelic_tracing(keys) { super }
+            end
+          else
+            def send_multiget keys
+              send_multiget_with_newrelic_tracing(keys) { super }
+            end
           end
         end
       end
