@@ -42,4 +42,3 @@ end
 # # Pass coverage percentage to aki77
 # const json = require(path.resolve(process.env.GITHUB_WORKSPACE!, resultPath)) as Result
 # const coveredPercent = json.result.covered_percent ?? json.result.line
-
