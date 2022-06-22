@@ -21,7 +21,7 @@ async function run(): Promise<void> {
     const failedThreshold: number = Number.parseInt(core.getInput('failedThreshold'), 10)
     core.debug(`failedThreshold ${failedThreshold}`)
 
-    const failedThresholdBranch: number = Number.parseInt(core.getInput('failedThresholdBranch'), 30)
+    const failedThresholdBranch: number = Number.parseInt(core.getInput('failedThresholdBranch'), 10)
     core.debug(`failedThresholdBranch ${failedThresholdBranch}`)
 
     const resultPath: string = core.getInput('resultPath')
@@ -41,7 +41,7 @@ async function run(): Promise<void> {
     if (coveredPercent < failedThreshold) {
       throw new Error(`Line coverage is less than ${failedThreshold}%. (${coveredPercent}%)`)
     }
-    if (coveredPercentBranch && coveredPercentBranch < failedThresholdBranch) {
+    if ((coveredPercentBranch !== undefined) && (coveredPercentBranch < failedThresholdBranch)) {
       throw new Error(`Branch coverage is less than ${failedThresholdBranch}%. (${coveredPercentBranch}%)`)
     }
   } catch (error) {
