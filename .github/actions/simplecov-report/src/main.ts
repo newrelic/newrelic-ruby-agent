@@ -21,7 +21,7 @@ async function run(): Promise<void> {
     const failedThreshold: number = Number.parseInt(core.getInput('failedThreshold'), 10)
     core.debug(`failedThreshold ${failedThreshold}`)
 
-    const failedThresholdBranch: number = Number.parseInt(core.getInput('failedThresholdBranch'), 10)
+    const failedThresholdBranch: number = Number.parseInt(core.getInput('failedThresholdBranch'), 30)
     core.debug(`failedThresholdBranch ${failedThresholdBranch}`)
 
     const resultPath: string = core.getInput('resultPath')

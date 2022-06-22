@@ -5,7 +5,7 @@
   "description": "Simplecov Report",
   "main": "lib/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --allowSyntheticDefaultImports",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",

@@ -6,8 +6,12 @@ branding:
   color: green
 inputs:
   failedThreshold:
-    description: Failed threshold
+    description: Failed threshold (line)
     default: "90"
+    required: false
+  failedThresholdBranch:
+    description: Failed threshold (branch)
+    default: "70"
     required: false
   resultPath:
     description: "json path"
