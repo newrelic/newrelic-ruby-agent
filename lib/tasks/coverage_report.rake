@@ -12,8 +12,11 @@ namespace :coverage do
         SimpleCov::Formatter::JSONFormatter,
         SimpleCov::Formatter::HTMLFormatter
       ])
+      refuse_coverage_drop
     end
   end
+end
+
 #   ############
 #   desc "Reports collated SimpleCov results to GitHub Actions"
 #   task :github_actions do
