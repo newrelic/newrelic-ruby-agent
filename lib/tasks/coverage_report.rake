@@ -7,11 +7,12 @@ namespace :coverage do
     end
     require 'simplecov'
     # FOR CI ONLY
-    SimpleCov.collate Dir["coverage*/.resultset.json"] do
-      formatter SimpleCov::Formatter::MultiFormatter.new([
-        SimpleCov::Formatter::JSONFormatter,
-        SimpleCov::Formatter::HTMLFormatter
-      ])
-    end
+    SimpleCov.collate Dir["coverage*/.resultset.json"]
+    # do
+    #   formatter SimpleCov::Formatter::MultiFormatter.new([
+    #     SimpleCov::Formatter::JSONFormatter,
+    #     SimpleCov::Formatter::HTMLFormatter
+    #   ])
+    # end
   end
 end
