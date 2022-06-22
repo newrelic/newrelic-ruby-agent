@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under new relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/license for complete details.
+# frozen_string_literal: true
+
 namespace :newrelic do
   namespace :config do
     desc "Describe available New Relic configuration settings."
