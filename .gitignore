@@ -34,6 +34,7 @@ infinite_tracing/test/new_relic/infinite_tracing/log
 test/fixtures/cross_agent_tests/*/README.md
 node_modules/
 yarn.lock
+package-lock.json
 errors.txt
 .history/
 vendor/

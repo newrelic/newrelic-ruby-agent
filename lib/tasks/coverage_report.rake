@@ -17,29 +17,3 @@ namespace :coverage do
     end
   end
 end
-
-#   ############
-#   desc "Reports collated SimpleCov results to GitHub Actions"
-#   task :github_actions do
-#     unless RUBY_VERSION >= '2.7.0'
-#       puts 'This task requires Ruby 2.7.0+'
-#       return
-#     end
-#     require 'simplecov'
-#     # FOR CI ONLY
-#     SimpleCov.collate Dir["coverage*/.resultset.json"] do
-#       formatter SimpleCov::Formatter::MultiFormatter.new([
-#         SimpleCov::Formatter::HTMLFormatter
-#       ])
-#     end
-#   end
-#   ###########
-# end
-
-# # Generate collated HTML results with HTMLFormatter
-# # Get covered percentage as string? As JavaScript, but maybe don't need since not on web?
-# percentage = document.getElementsByClassName('covered_percent')[0].innerText;
-
-# # Pass coverage percentage to aki77
-# const json = require(path.resolve(process.env.GITHUB_WORKSPACE!, resultPath)) as Result
-# const coveredPercent = json.result.covered_percent ?? json.result.line
