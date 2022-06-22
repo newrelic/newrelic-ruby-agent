@@ -39,3 +39,4 @@ errors.txt
 .history/
 vendor/
 Brewfile.lock.json
+.github/actions/simplecov-report/lib/
