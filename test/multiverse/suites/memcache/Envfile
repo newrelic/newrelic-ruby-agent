@@ -6,9 +6,9 @@ if RUBY_VERSION >= '2.6.0'
 #     gem 'dalli'
 #   RB
 
-  # gemfile <<-RB
-  #   gem 'dalli', '3.1.1'
-  # RB
+  gemfile <<-RB
+    gem 'dalli', '3.1.1'
+  RB
 
   gemfile <<-RB
     gem 'dalli', '3.1.0'
