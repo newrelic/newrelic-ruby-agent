@@ -347,7 +347,8 @@ jobs:
 
       # Make new rake task to get covered_percentage from HTML file & pass that to aki77 lib?
       - name: Simplecov Report
-        uses: aki77/simplecov-report-action@v1
+        # uses: aki77/simplecov-report-action@v1
+        uses: actions/simplecov-report
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage/.last_run.json
