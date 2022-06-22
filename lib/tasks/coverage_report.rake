@@ -6,6 +6,7 @@ namespace :coverage do
       return
     end
     require 'simplecov'
+    require 'simplecov_json_formatter'
     # FOR CI ONLY
     SimpleCov.collate Dir["coverage*/.resultset.json"] do
       formatter SimpleCov::Formatter::MultiFormatter.new([

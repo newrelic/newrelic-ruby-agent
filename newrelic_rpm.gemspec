@@ -62,4 +62,5 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'rubocop-performance'
   s.add_development_dependency 'simplecov'
+  s.add_development_dependency 'simplecov_json_formatter'
 end
