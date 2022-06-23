@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/license for complete details.
 # frozen_string_literal: true
 
+
 namespace :newrelic do
   desc "Install a default config/newrelic.yml file"
   task :install do
