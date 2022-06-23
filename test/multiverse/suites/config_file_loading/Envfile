@@ -1,5 +1,5 @@
 omit_collector!
-
+# only difference here is psych 3 and psych 4
 gemfile <<-RB
   # stub file system so we can test that newrelic.yml can be loaded from
   # various places.
