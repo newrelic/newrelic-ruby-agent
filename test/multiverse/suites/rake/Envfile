@@ -44,7 +44,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'rack'
     gem 'rake', '~> 12.3.3'
     gem 'rails', '~> 4.2.1'
-    gem 'minitest', '5.2.3'
   RB
 end
 

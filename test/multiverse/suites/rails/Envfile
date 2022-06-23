@@ -4,7 +4,6 @@ if RUBY_VERSION >= '2.7.0'
     gem 'rails'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
     #{ruby3_gem_webrick}
   RB
@@ -22,7 +21,6 @@ if RUBY_VERSION >= '2.5.0'
     gem 'rails', '~> 6.1.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
     #{ruby3_gem_webrick}
   RB
@@ -33,7 +31,6 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
     gem 'rails', '~> 6.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 end
@@ -43,7 +40,6 @@ if RUBY_VERSION < '3.0.0'
     gem 'rails', '~> 5.2.8'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 
@@ -51,14 +47,12 @@ if RUBY_VERSION < '3.0.0'
     gem 'rails', '~> 5.1.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 5.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
   RB
 end
 
@@ -67,7 +61,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'rails', '~> 4.2.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
   RB
 
   gemfile <<-RB
@@ -76,7 +69,6 @@ if RUBY_VERSION < '2.4.0'
     # now
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
   RB
 
   gemfile <<-RB
