@@ -61,6 +61,8 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'rubocop-performance'
-  s.add_development_dependency 'simplecov'
-  s.add_development_dependency 'simplecov_json_formatter'
+  if RUBY_VERSION >= '2.7.0'
+    s.add_development_dependency 'simplecov'
+    s.add_development_dependency 'simplecov_json_formatter'
+  end
 end
