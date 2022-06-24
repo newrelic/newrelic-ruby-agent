@@ -1,6 +1,7 @@
 SUPPORTED_UNICORN_VERSIONS = [
   nil,
-  ", '6.1.0'"
+  ", '6.1.0'",
+  ", '4.9.0'"
 ]
 
 SUPPORTED_UNICORN_VERSIONS << ", '5.3.0'" if RUBY_VERSION < '3.0.0'
