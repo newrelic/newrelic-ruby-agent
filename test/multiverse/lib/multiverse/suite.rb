@@ -270,7 +270,7 @@ module Multiverse
       if verbose?
         puts "Ruby: #{RUBY_VERSION}  Platform: #{RUBY_PLATFORM} RubyGems: #{Gem::VERSION}"
         puts yellow("Gemfile.#{env_index} set to:")
-        puts File.open(gemfile).read
+        puts File.read(gemfile)
       end
     end
 

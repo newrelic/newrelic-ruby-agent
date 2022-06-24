@@ -96,11 +96,11 @@ module NewRelic
               paths << File.join(NewRelic::Control.instance.root, "newrelic.yml.erb")
             end
 
-            if ENV["HOME"]
-              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
-              paths << File.join(ENV["HOME"], "newrelic.yml")
-              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml.erb")
-              paths << File.join(ENV["HOME"], "newrelic.yml.erb")
+            if Dir.home
+              paths << File.join(Dir.home, ".newrelic", "newrelic.yml")
+              paths << File.join(Dir.home, "newrelic.yml")
+              paths << File.join(Dir.home, ".newrelic", "newrelic.yml.erb")
+              paths << File.join(Dir.home, "newrelic.yml.erb")
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
