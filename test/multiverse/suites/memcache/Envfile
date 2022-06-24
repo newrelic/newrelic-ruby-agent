@@ -9,10 +9,12 @@ if RUBY_VERSION >= '2.6.0'
     gem 'dalli', '3.2.0'
   RB
 
+  # 3.1.1 to 3.1.6 behave similarly
   gemfile <<-RB
     gem 'dalli', '3.1.6'
   RB
 
+  # this version is a breaking change from the previous versions and also different from versions after it
   gemfile <<-RB
     gem 'dalli', '3.1.0'
   RB
