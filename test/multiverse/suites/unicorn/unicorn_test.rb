@@ -33,7 +33,6 @@ class UnicornTest < Minitest::Test
 
   def assert_logged(expected_message)
     messages = File.readlines('log/newrelic_agent.log')
-    messages.each { |msg| puts msg } # Remove this before merge
     assert(
       messages.any? { |message| message.include?(expected_message) },
       "Expected message not found: #{expected_message}"
