@@ -33,7 +33,7 @@ Bundler/InsecureProtocolSource:
 Bundler/OrderedGems:
   Enabled: false
 
-Gemspec/DateAssignment:
+Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
 Gemspec/DuplicatedAssignment:
