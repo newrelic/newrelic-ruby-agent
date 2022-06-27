@@ -63,7 +63,10 @@ module Multiverse
 
     def clean_gemfiles(env_index)
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
-      gemfiles.each { |f| File.delete(f) if File.exist?(f) }
+      gemfiles.each do |f|
+        next unless File.exist?(f)
+        File.delete(f)
+      end
     end
 
     def envfile_path
