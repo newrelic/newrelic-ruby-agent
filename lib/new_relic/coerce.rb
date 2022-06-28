@@ -43,7 +43,7 @@ module NewRelic
       String(value)
     rescue => error
       log_failure(value.class, String, context, error)
-      ""
+      EMPTY_STR
     end
 
     def scalar(val)

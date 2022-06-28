@@ -1,15 +1,26 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
 
-%w(2.7.6 2.7.8 2.7.11).each do |version|
-  gemfile <<-RB
-    gem 'dalli', '~> #{version}'
-  RB
-end
+# TODO: Adjust instrumentation/tests to support latest version of dalli
+# if RUBY_VERSION >= '2.6.0'
+#   gemfile <<-RB
+#     gem 'dalli'
+#   RB
+
+#   gemfile <<-RB
+#     gem 'dalli', '3.2.1'
+#   RB
+# end
 
 if RUBY_VERSION >= '2.5.0'
   # TODO: MAJOR VERSION - Bump lowest version to 3.2.1 in version 9.0.0
   gemfile <<-RB
     gem 'dalli', '~> 3.0.2'
+  RB
+end
+
+%w(2.7.6 2.7.8 2.7.11).each do |version|
+  gemfile <<-RB
+    gem 'dalli', '~> #{version}'
   RB
 end
 

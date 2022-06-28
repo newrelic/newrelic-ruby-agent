@@ -253,7 +253,7 @@ module NewRelic
           end
         rescue => e
           NewRelic::Agent.logger.error(PARSING_LABELS_FAILURE, e)
-          []
+          NewRelic::EMPTY_ARRAY
         end
 
         def parse_labels_from_string
@@ -293,7 +293,7 @@ module NewRelic
 
           unless valid_label_pairs?(pairs)
             NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels || pairs}")
-            return []
+            return NewRelic::EMPTY_ARRAY
           end
 
           pairs = limit_number_of_labels(pairs)

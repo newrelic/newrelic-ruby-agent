@@ -303,6 +303,43 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
   end
 
+  def test_blocking_error_rescued
+    desired_error_messages_seen = 0
+
+    wake_mock = MiniTest::Mock.new
+    out_mock = MiniTest::Mock.new
+    4.times { wake_mock.expect :out, out_mock }
+    error_stub = Proc.new { |msg| desired_error_messages_seen += 1 if msg =~ /^(?:Issue while|Ready pipes)/ }
+    ready_pipes_mock = MiniTest::Mock.new
+
+    ::IO.stub :select, [ready_pipes_mock] do
+      ready_pipes_mock.expect :each, nil
+      ready_pipes_mock.expect :map, []
+      ready_pipes_mock.expect :include?, true do
+        true
+      end
+
+      def out_mock.read_nonblock(num)
+        return unless num == 1
+
+        error = ::Class.new(::StandardError) do
+          include ::IO::WaitReadable
+        end
+
+        raise error
+      end
+
+      NewRelic::Agent.logger.stub :error, error_stub do
+        listener = NewRelic::Agent::PipeChannelManager::Listener.new
+        listener.instance_variable_set(:@wake, wake_mock)
+        listener.start
+        listener.instance_variable_get(:@thread).join
+      end
+    end
+
+    assert_equal 2, desired_error_messages_seen
+  end
+
   def assert_lifetime_counts container, value
     buffer = container.instance_variable_get :@buffer
     assert_equal value, buffer.captured_lifetime

@@ -3,8 +3,9 @@ _Before contributing, please read our [contributing guidelines](https://github.c
 # Overview
 Describe the changes present in the pull request
 
-# Related Github Issue
-Include a link to the related GitHub issue, if applicable
+Submitter Checklist:
+- [ ] Include a link to the related GitHub issue, if applicable
+- [ ] Include a security review link, if applicable
 
 # Testing
 The agent includes a suite of unit and functional tests which should be used to
