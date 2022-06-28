@@ -221,7 +221,7 @@ class AuditLoggerTest < Minitest::Test
 
   def capturing_stdout
     orig = $stdout.dup
-    output = +'' 
+    output = +''
     $stdout = StringIO.new(output)
     yield
     output
