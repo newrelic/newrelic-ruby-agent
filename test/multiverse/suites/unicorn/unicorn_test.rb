@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'logger'
 require 'unicorn'
 require 'newrelic_rpm'
 
@@ -11,8 +12,11 @@ class UnicornTest < Minitest::Test
   attr_accessor :server
 
   def setup
+    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
     @server = ::Unicorn::HttpServer.new(
-      Rack::Builder.app(lambda { [200, {'Content-Type' => 'text/html'}, ['OK']] })
+      Rack::Builder.app(
+        lambda { [200, {'Content-Type' => 'text/html'}, ['OK']] }
+      )
     )
     @server.start
     trigger_agent_reconnect
@@ -31,11 +35,11 @@ class UnicornTest < Minitest::Test
     assert_logged('Deferring startup of agent reporting thread because unicorn may fork.')
   end
 
-  def assert_logged(expected_message)
-    messages = File.readlines('log/newrelic_agent.log')
-    assert(
-      messages.any? { |message| message.include?(expected_message) },
-      "Expected message not found: #{expected_message}"
-    )
+  def assert_logged(expected)
+    logger = NewRelic::Agent.logger
+
+    flattened = logger.messages.flatten
+    found = flattened.any? { |msg| msg.to_s.include?(expected) }
+    assert(found, "Didn't see message '#{expected}'")
   end
 end
