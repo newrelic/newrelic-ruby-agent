@@ -96,11 +96,11 @@ bazbangbarn:
   end
 
   def test_config_loads_from_home_newrelic_yml
-    assert_config_read_from(Dir.home + "/newrelic.yml")
+    assert_config_read_from(ENV['HOME'] + "/newrelic.yml")
   end
 
   def test_config_loads_from_home_dot_newrelic_newrelic_yml
-    assert_config_read_from(Dir.home + "/.newrelic/newrelic.yml")
+    assert_config_read_from(ENV['HOME'] + "/.newrelic/newrelic.yml")
   end
 
   def test_config_loads_from_config_path_option_to_manual_start

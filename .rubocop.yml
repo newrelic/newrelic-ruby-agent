@@ -1320,6 +1320,12 @@ Style/EndBlock:
 Style/EndlessMethod:
   Enabled: false
 
+# The use of Dir.home should be preferred over ENV['HOME'], but as of
+# JRuby 9.3.3.0 the use of ENV['HOME'] is required to deliver the desired
+# functionality
+Style/EnvHome:
+  Enabled: false
+
 # Disabling for now
 Style/EvalWithLocation:
   Enabled: false
