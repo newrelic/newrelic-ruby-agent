@@ -1460,6 +1460,13 @@ Style/LineEndConcatenation:
   Enabled: false
   # SafeAutoCorrect: false
 
+# TODO: OLD RUBIES - enable this cop after support for Ruby <= 2.5 has been
+#                    dropped. NewRelic::Agent::InfiniteTracing::Transformer.hash_to_attributes
+#                    currently does `values.map {}.to_h`. Newer Rubies should
+#                    use `values.to_h {}` instead.
+Style/MapToHash:
+  Enabled: false
+
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 
@@ -1603,7 +1610,10 @@ Style/NumericPredicate:
 Style/OneLineConditional:
   Enabled: true
 
-# TODO: refactor the use of OpenStruct out of the unit tests and enable
+# TODO: UNIT TESTS - tests relying on OpenStruct should be refactored to not
+#                    do so, given that the use of OpenStruct instances can
+#                    give a false sense of security with their extreme
+#                    flexibility that may not match realistic code behavior.
 Style/OpenStructUse:
   Enabled: false
 

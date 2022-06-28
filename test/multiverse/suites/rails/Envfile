@@ -1,6 +1,6 @@
-# TODO: Determine the root cause of our compatibility issues with rack-test 2+.
-#       If rack-test is not specified in Gemfile, the rum tests fail because
-#       the JS header is always included, even when not desired.
+# TODO: UNIT TESTS - Determine the root cause of our compatibility issues with
+#       rack-test 2+. If rack-test is not specified in Gemfile, the rum tests
+#       fail because the JS header is always included, even when not desired.
 #       Once the compatibility issue is addressed, all "rack_test" lines from
 #       this file and this comment should be removed.
 pre2_rack_test = %Q{gem 'rack-test', '< 2'}
