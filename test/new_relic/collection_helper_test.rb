@@ -36,9 +36,9 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   def test_string__singleton
-    val = "This String"
+    val = +'This String'
     def val.hello; end
-    assert_equal "This String", normalize_params(val)
+    assert_equal 'This String', normalize_params(val)
     assert val.respond_to?(:hello)
     assert !normalize_params(val).respond_to?(:hello)
   end

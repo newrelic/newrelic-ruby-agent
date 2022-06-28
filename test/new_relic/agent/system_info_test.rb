@@ -274,7 +274,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     assert_metrics_recorded "Supportability/utilization/docker/error"
   end
 
-  VALID_UUID = 'eb26a240-5535-0135-e727-745c89b5accd'
+  VALID_UUID = +'eb26a240-5535-0135-e727-745c89b5accd'
 
   def test_valid_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
@@ -301,14 +301,14 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_non_ascii_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns('🐼')
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(+'🐼')
     assert_nil NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
 
   def test_empty_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns('')
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(+'')
     assert_nil NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end

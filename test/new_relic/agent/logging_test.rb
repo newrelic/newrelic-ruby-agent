@@ -99,7 +99,8 @@ module NewRelic
 
         def test_to_replace_ascii_8bit_chars
           message = 'message with an ASCII-8BIT character'
-          input = "#{message} #{"č".force_encoding(Encoding::ASCII_8BIT)}"
+          char = +'č'
+          input = "#{message} #{char.force_encoding(Encoding::ASCII_8BIT)}"
           expectation = "#{message} #{DecoratingFormatter::REPLACEMENT_CHAR}#{DecoratingFormatter::REPLACEMENT_CHAR}"
           logger = DecoratingLogger.new @output
 

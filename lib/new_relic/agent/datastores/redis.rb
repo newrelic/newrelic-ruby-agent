@@ -26,7 +26,7 @@ module NewRelic
 
         def self.format_command(command_with_args)
           if Agent.config[:'transaction_tracer.record_redis_arguments']
-            result = ""
+            result = +''
 
             append_command_with_args(result, command_with_args)
 
@@ -37,7 +37,7 @@ module NewRelic
         end
 
         def self.format_pipeline_commands(commands_with_args)
-          result = ""
+          result = +''
 
           commands_with_args.each do |command|
             if result.length >= MAXIMUM_COMMAND_LENGTH
