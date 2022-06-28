@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This class is used by NewRelic::Agent.set_sql_obfuscator to chain multiple
 # obfuscation blocks when not using the default :replace action
