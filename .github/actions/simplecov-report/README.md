@@ -1,6 +1,6 @@
 # Simplecov Report
 
-A GitHub Action that report simplecov coverage.
+A GitHub Action that reports SimpleCov coverage.
 
 ![Demo](https://i.gyazo.com/c4e572c91fe8048c95392ea3ddce79f5.png)
 

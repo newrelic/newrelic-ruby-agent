@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
-SimpleCov.command_name "test:multiverse[infinite_tracing]" if RUBY_VERSION >= '2.7.0'
+SimpleCovHelper.command_name "test:multiverse[infinite_tracing]"
 
 module NewRelic
   module Agent
