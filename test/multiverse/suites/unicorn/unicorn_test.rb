@@ -11,7 +11,6 @@ class UnicornTest < Minitest::Test
   attr_accessor :server
 
   def setup
-    File.truncate('log/newrelic_agent.log', 0)
     @server = ::Unicorn::HttpServer.new(
       Rack::Builder.app(lambda { [200, {'Content-Type' => 'text/html'}, ['OK']] })
     )
@@ -21,6 +20,7 @@ class UnicornTest < Minitest::Test
 
   def teardown
     @server.stop
+    File.unlink('log/newrelic_agent.log')
   end
 
   def test_unicorn_set_as_discovered_dispatcher
