@@ -25,7 +25,7 @@ module Multiverse
       key = [suite, env]
       @buffer_lock.synchronize do
         @buffers ||= {}
-        @buffers[key] ||= ""
+        @buffers[key] ||= +''
         @buffers[key]
       end
     end
@@ -47,7 +47,7 @@ module Multiverse
     end
 
     def self.overall_report
-      output("", "")
+      output('', '')
       if failing_output.empty?
         output(green("There were no test failures"))
       else
