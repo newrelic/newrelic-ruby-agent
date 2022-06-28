@@ -63,7 +63,10 @@ module Multiverse
 
     def clean_gemfiles(env_index)
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
-      gemfiles.each { |f| File.delete(f) if File.exist?(f) }
+      gemfiles.each do |f|
+        next unless File.exist?(f)
+        File.delete(f)
+      end
     end
 
     def envfile_path
@@ -270,7 +273,7 @@ module Multiverse
       if verbose?
         puts "Ruby: #{RUBY_VERSION}  Platform: #{RUBY_PLATFORM} RubyGems: #{Gem::VERSION}"
         puts yellow("Gemfile.#{env_index} set to:")
-        puts File.open(gemfile).read
+        puts File.read(gemfile)
       end
     end
 
