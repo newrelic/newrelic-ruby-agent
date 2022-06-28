@@ -1,11 +1,20 @@
+# TODO: Determine the root cause of our compatibility issues with rack-test 2+.
+#       If rack-test is not specified in Gemfile, the rum tests fail because
+#       the JS header is always included, even when not desired.
+#       Once the compatibility issue is addressed, all "rack_test" lines from
+#       this file and this comment should be removed.
+pre2_rack_test = %Q{gem 'rack-test', '< 2'}
+
 if RUBY_VERSION >= '2.7.0'
   # Runs the latest published version of Rails
   gemfile <<-RB
     gem 'rails'
+    gem 'rack-test', '< 2'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
     gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
+    #{pre2_rack_test}
     #{ruby3_gem_webrick}
   RB
 
@@ -13,6 +22,7 @@ if RUBY_VERSION >= '2.7.0'
     gem 'rails', '~> 7.0.2'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '2.0.0'
+    #{pre2_rack_test}
     #{ruby3_gem_webrick}
   RB
 end
@@ -24,6 +34,7 @@ if RUBY_VERSION >= '2.5.0'
     gem 'haml-rails', '~> 2.0'
     gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
+    #{pre2_rack_test}
     #{ruby3_gem_webrick}
   RB
 end
@@ -35,6 +46,7 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
     gem 'haml-rails', '~> 2.0'
     gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
+    #{pre2_rack_test}
   RB
 end
 
@@ -45,6 +57,7 @@ if RUBY_VERSION < '3.0.0'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
+    #{pre2_rack_test}
   RB
 
   gemfile <<-RB
@@ -52,6 +65,7 @@ if RUBY_VERSION < '3.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
+    #{pre2_rack_test}
   RB
 
   gemfile <<-RB
@@ -59,6 +73,7 @@ if RUBY_VERSION < '3.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
+    #{pre2_rack_test}
   RB
 end
 
@@ -68,21 +83,24 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
+    #{pre2_rack_test}
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 4.1.0'
-    # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
-    # now
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
+    # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
+    # now
     gem 'minitest', '5.2.3'
+    #{pre2_rack_test}
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 4.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
+    #{pre2_rack_test}
   RB
 
   gemfile <<-RB
@@ -90,6 +108,7 @@ if RUBY_VERSION < '2.4.0'
     gem 'i18n', '~> 0.6.11'
     gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
     gem 'minitest_tu_shim', :require => false
+    #{pre2_rack_test}
   RB
 
   gemfile <<-RB
@@ -98,5 +117,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'sinatra', '~> 1.4.5'
     gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
     gem 'minitest_tu_shim', :require => false
+    #{pre2_rack_test}
   RB
 end

@@ -2,9 +2,9 @@ require:
   - rubocop-performance
 
 AllCops:
-  # Prevent RuboCop from exploding when it finds an older-than-2.4 .ruby-version
   TargetRubyVersion: 2.7
   Exclude: []
+  NewCops: enable
 
 Bundler/DuplicatedGem:
   Enabled: true
@@ -33,7 +33,7 @@ Bundler/InsecureProtocolSource:
 Bundler/OrderedGems:
   Enabled: false
 
-Gemspec/DateAssignment:
+Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
 Gemspec/DuplicatedAssignment:
@@ -42,6 +42,9 @@ Gemspec/DuplicatedAssignment:
     - '**/*.gemspec'
 
 Gemspec/OrderedDependencies:
+  Enabled: false
+
+Gemspec/RequireMFA:
   Enabled: false
 
 Gemspec/RequiredRubyVersion:
@@ -238,7 +241,7 @@ Layout/IndentationStyle:
 Layout/IndentationWidth:
   Enabled: true
   Width: 2
-  IgnoredPatterns: []
+  AllowedPatterns: []
 
 Layout/InitialIndentation:
   Enabled: true
@@ -1317,6 +1320,12 @@ Style/EndBlock:
 Style/EndlessMethod:
   Enabled: false
 
+# The use of Dir.home should be preferred over ENV['HOME'], but as of
+# JRuby 9.3.3.0 the use of ENV['HOME'] is required to deliver the desired
+# functionality
+Style/EnvHome:
+  Enabled: false
+
 # Disabling for now
 Style/EvalWithLocation:
   Enabled: false
@@ -1331,6 +1340,11 @@ Style/ExplicitBlockArgument:
   Enabled: false
 
 Style/ExponentialNotation:
+  Enabled: false
+
+# TODO: MAJOR VERSION - Re-enalbe FetchEnvVar after dropping support for Ruby 2.2
+#                       Ruby 2.3+ allows for ENV.fetch('KEY') { default }
+Style/FetchEnvVar:
   Enabled: false
 
 Style/FloatDivision:
@@ -1588,6 +1602,10 @@ Style/NumericPredicate:
 
 Style/OneLineConditional:
   Enabled: true
+
+# TODO: refactor the use of OpenStruct out of the unit tests and enable
+Style/OpenStructUse:
+  Enabled: false
 
 Style/OptionHash:
   Enabled: false
