@@ -1,7 +1,9 @@
+name: Label community issues and pr
+
 on:
   issues:
     types: [opened]
-  pull_request:
+  pull_request_target:
     types: [opened]
 
 jobs:

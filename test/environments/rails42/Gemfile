@@ -25,4 +25,3 @@ gem "newrelic_rpm", :path => "../../.."
 
 gem 'pry', '~> 0.12.2'
 gem 'pry-nav'
-gem 'hometown', '~> 0.2.5'

@@ -48,7 +48,7 @@ module NewRelic
         NR_DO_NOT_TRACE_KEY = :'@do_not_trace'
         NR_IGNORE_APDEX_KEY = :'@ignore_apdex'
         NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser'
-        NR_DEFAULT_OPTIONS = {}.freeze
+        NR_DEFAULT_OPTIONS = NewRelic::EMPTY_HASH
 
         # @api public
         module ClassMethods

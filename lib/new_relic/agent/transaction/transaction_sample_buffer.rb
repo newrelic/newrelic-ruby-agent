@@ -9,7 +9,7 @@ module NewRelic
         attr_reader :samples
 
         SINGLE_BUFFER_MAX = 20
-        NO_SAMPLES = [].freeze
+        NO_SAMPLES = NewRelic::EMPTY_ARRAY
 
         def initialize
           @samples = []

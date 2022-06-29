@@ -6,6 +6,20 @@ BOILERPLATE
 
 if RUBY_VERSION >= '2.7.0'
   gemfile <<-RB
+    gem 'activerecord'
+    gem 'pg'
+    gem 'webrick'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 7.0'
+    gem 'pg'
+    gem 'webrick'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
     gem 'activerecord', '~> 6.1'
     gem 'pg'
     gem 'webrick'
@@ -14,13 +28,6 @@ if RUBY_VERSION >= '2.7.0'
 
   gemfile <<-RB
     gem 'activerecord', '~> 6.0'
-    gem 'pg'
-    gem 'webrick'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 7.0'
     gem 'pg'
     gem 'webrick'
     #{boilerplate_gems}

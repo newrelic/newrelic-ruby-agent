@@ -62,5 +62,20 @@ module NewRelic::Agent::Instrumentation
       assert_equal "other", operation
       assert_nil collection
     end
+
+    def test_suffixes_are_stripped_away_from_the_adapter_name
+      assert_equal 'postgresql', ActiveRecordHelper.bare_adapter_name('postgresql_makara')
+    end
+
+    def test_product_operation_collection_for_handles_suffixes
+      product, _operation, _collection = ActiveRecordHelper.product_operation_collection_for(1, '', 'postgresql_makara')
+      assert_equal 'Postgres', product
+    end
+
+    def test_suffixes_on_configuration_based_adapter_names_are_stripped_away
+      config = {adapter: 'postgresql_makara'}
+      adapter = NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.adapter_from_config(config)
+      assert_equal :postgres, adapter
+    end
   end
 end

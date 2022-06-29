@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative 'simplecov_test_helper'
+
 # define special constant so DefaultSource.framework can return :test
 module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 
@@ -18,11 +20,6 @@ require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
 require 'mocha/setup'
-
-require 'hometown'
-require_relative 'helpers/hometown_monkey_patch'
-
-Hometown.watch(::Thread)
 
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
 

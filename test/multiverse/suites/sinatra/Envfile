@@ -1,6 +1,14 @@
 instrumentation_methods :chain, :prepend
 
 if RUBY_VERSION >= '2.3.0'
+  # Testing latest Sinatra version
+  gemfile <<-RB
+    gem 'sinatra'
+    gem 'rack',    '~> 2.0.0'
+    gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
+    #{ruby3_gem_webrick}
+  RB
+
   gemfile <<-RB
     gem 'sinatra', '~> 2.2.0'
     gem 'rack',    '~> 2.2.0'
@@ -16,8 +24,8 @@ if RUBY_VERSION >= '2.3.0'
 end
 
 gemfile <<-RB
-  gem 'sinatra', '~> 2.0.0'
-  gem 'rack',    '~> 2.0.0'
+  gem 'sinatra',  '~> 1.4.0'
+  gem 'rack',    '~> 1.6.13'
   gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
   #{ruby3_gem_webrick}
 RB

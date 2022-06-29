@@ -1,15 +1,4 @@
-json_gems = ['~> 2.3.0', '~> 2.4.0', '~> 2.5.0']
-
-if RUBY_VERSION < '2.7.0'
-  json_gems += ['~> 2.2.0', '~> 1.8.6']
-end
-
-json_gems.each do |version|
-  gemfile <<-RB
-    gem 'rack'
-    gem 'json', '#{version}'
-    #{ruby3_gem_webrick}
-  RB
-end
-
-# vim: ft=ruby
+gemfile <<-RB
+  gem 'rack'
+  #{ruby3_gem_webrick}
+RB

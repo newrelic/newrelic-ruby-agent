@@ -41,7 +41,7 @@ module NewRelic
         # particular) that can't seralize to JSON. Cope with that here and
         # clear out so downstream code doesn't have to check again.
         def sanitize_environment_report(environment_report)
-          return [] unless @service.valid_to_marshal?(environment_report)
+          return NewRelic::EMPTY_ARRAY unless @service.valid_to_marshal?(environment_report)
           environment_report
         end
 

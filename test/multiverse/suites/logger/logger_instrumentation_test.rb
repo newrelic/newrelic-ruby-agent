@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCovHelper.command_name "test:multiverse[logger]"
+
 class LoggerInstrumentationTest < Minitest::Test
   include MultiverseHelpers
 
@@ -175,7 +177,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # We count on Logger calls but actually write metrics on harvest to
     # minimize impact in the hot path
     _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
-    logs_at_level = logs.select { |log| log.last["log.level"] == level }
+    logs_at_level = logs.select { |log| log.last["level"] == level }
     assert_equal count, logs_at_level.count
 
     assert_metrics_recorded_exclusive({

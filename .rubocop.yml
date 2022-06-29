@@ -2,9 +2,9 @@ require:
   - rubocop-performance
 
 AllCops:
-  # Prevent RuboCop from exploding when it finds an older-than-2.4 .ruby-version
   TargetRubyVersion: 2.7
   Exclude: []
+  NewCops: enable
 
 Bundler/DuplicatedGem:
   Enabled: true
@@ -33,7 +33,7 @@ Bundler/InsecureProtocolSource:
 Bundler/OrderedGems:
   Enabled: false
 
-Gemspec/DateAssignment:
+Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
 Gemspec/DuplicatedAssignment:
@@ -42,6 +42,9 @@ Gemspec/DuplicatedAssignment:
     - '**/*.gemspec'
 
 Gemspec/OrderedDependencies:
+  Enabled: false
+
+Gemspec/RequireMFA:
   Enabled: false
 
 Gemspec/RequiredRubyVersion:
@@ -238,7 +241,7 @@ Layout/IndentationStyle:
 Layout/IndentationWidth:
   Enabled: true
   Width: 2
-  IgnoredPatterns: []
+  AllowedPatterns: []
 
 Layout/InitialIndentation:
   Enabled: true
@@ -964,6 +967,9 @@ Performance/CollectionLiteralInLoop:
 Performance/CompareWithBlock:
   Enabled: true
 
+Performance/ConcurrentMonotonicTime:
+  Enabled: true
+
 # Disabling for now
 Performance/ConstantRegexp:
   Enabled: false
@@ -1068,6 +1074,9 @@ Performance/Squeeze:
 # Disabling for now
 Performance/StartWith:
   Enabled: false
+
+Performance/StringIdentifierArgument:
+  Enabled: true
 
 Performance/StringInclude:
   Enabled: false
@@ -1311,6 +1320,12 @@ Style/EndBlock:
 Style/EndlessMethod:
   Enabled: false
 
+# The use of Dir.home should be preferred over ENV['HOME'], but as of
+# JRuby 9.3.3.0 the use of ENV['HOME'] is required to deliver the desired
+# functionality
+Style/EnvHome:
+  Enabled: false
+
 # Disabling for now
 Style/EvalWithLocation:
   Enabled: false
@@ -1325,6 +1340,11 @@ Style/ExplicitBlockArgument:
   Enabled: false
 
 Style/ExponentialNotation:
+  Enabled: false
+
+# TODO: MAJOR VERSION - Re-enable FetchEnvVar after dropping support for Ruby 2.2
+#                       Ruby 2.3+ allows for ENV.fetch('KEY') { default }
+Style/FetchEnvVar:
   Enabled: false
 
 Style/FloatDivision:
@@ -1439,6 +1459,13 @@ Style/LambdaCall:
 Style/LineEndConcatenation:
   Enabled: false
   # SafeAutoCorrect: false
+
+# TODO: OLD RUBIES - enable this cop after support for Ruby <= 2.5 has been
+#                    dropped. NewRelic::Agent::InfiniteTracing::Transformer.hash_to_attributes
+#                    currently does `values.map {}.to_h`. Newer Rubies should
+#                    use `values.to_h {}` instead.
+Style/MapToHash:
+  Enabled: false
 
 Style/MethodCallWithArgsParentheses:
   Enabled: false
@@ -1582,6 +1609,13 @@ Style/NumericPredicate:
 
 Style/OneLineConditional:
   Enabled: true
+
+# TODO: UNIT TESTS - tests relying on OpenStruct should be refactored to not
+#                    do so, given that the use of OpenStruct instances can
+#                    give a false sense of security with their extreme
+#                    flexibility that may not match realistic code behavior.
+Style/OpenStructUse:
+  Enabled: false
 
 Style/OptionHash:
   Enabled: false

@@ -47,7 +47,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     spec = mock('metric_spec')
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
-    original_spec = md1.instance_variable_get('@original_spec')
+    original_spec = md1.instance_variable_get(:@original_spec)
     assert_nil(original_spec, "should start with a nil original spec, but was #{original_spec.inspect}")
     assert_equal(spec, md1.metric_spec, "should return the metric spec for original spec when original spec is nil, but was #{md1.original_spec}")
   end
@@ -55,13 +55,13 @@ class NewRelic::MetricDataTest < Minitest::Test
   def test_metric_spec_equal_should_not_set_original_spec_with_no_metric_spec
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(nil, stats)
-    original_spec = md1.instance_variable_get('@original_spec')
+    original_spec = md1.instance_variable_get(:@original_spec)
     assert_nil(original_spec, "should start with a nil original spec, but was #{original_spec.inspect}")
 
     new_spec = mock('new metric_spec')
     assert_equal(new_spec, md1.metric_spec = (new_spec), "should return the new spec")
 
-    new_original_spec = md1.instance_variable_get('@original_spec')
+    new_original_spec = md1.instance_variable_get(:@original_spec)
     assert_nil(new_original_spec, "should not set @original_spec, but was #{new_original_spec.inspect}")
   end
 
@@ -69,13 +69,13 @@ class NewRelic::MetricDataTest < Minitest::Test
     spec = mock('metric_spec')
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
-    original_spec = md1.instance_variable_get('@original_spec')
+    original_spec = md1.instance_variable_get(:@original_spec)
     assert_nil(original_spec, "should start with a nil original spec, but was #{original_spec.inspect}")
 
     new_spec = mock('new metric_spec')
     assert_equal(new_spec, md1.metric_spec = (new_spec), "should return the new spec")
 
-    new_original_spec = md1.instance_variable_get('@original_spec')
+    new_original_spec = md1.instance_variable_get(:@original_spec)
     assert_equal(spec, new_original_spec, "should set @original_spec to the existing metric_spec  but was #{new_original_spec.inspect}")
   end
 
@@ -83,7 +83,8 @@ class NewRelic::MetricDataTest < Minitest::Test
     spec = mock('metric_spec')
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
-    assert((spec.hash ^ stats.hash) == md1.hash, "expected #{spec.hash ^ stats.hash} to equal #{md1.hash}")
+    expected = [spec, stats].hash
+    assert(expected == md1.hash, "expected #{expected} to equal #{md1.hash}")
   end
 
   if {}.respond_to?(:to_json)

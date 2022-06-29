@@ -1,18 +1,24 @@
+# Testing latest resque version
+gemfile <<-RB
+  gem 'resque'
+  gem 'json'
+  #{ruby3_gem_webrick}
+RB
+
 if RUBY_VERSION >= '2.3.0'
+  ["'~> 2.2.0'", "'~> 2.1.0'"].each do |version|
+    gemfile <<-RB
+      gem 'resque', #{version}
+      gem 'json'
+      #{ruby3_gem_webrick}
+    RB
+  end
+end
+
+["'~> 1.27.0'", "'~> 1.23.0'", "'~> 1.22.0'"].each do |version|
   gemfile <<-RB
-    gem 'resque', '~> 2.2.0'
-    gem 'json'
-    #{ruby3_gem_webrick}
-  RB
-  gemfile <<-RB
-    gem 'resque', '~> 2.1.0'
+    gem 'resque', #{version}
     gem 'json'
     #{ruby3_gem_webrick}
   RB
 end
-
-gemfile <<-RB
-  gem 'resque', '~>1.27.4'
-  gem 'json'
-  #{ruby3_gem_webrick}
-RB
