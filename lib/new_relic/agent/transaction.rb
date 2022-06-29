@@ -124,7 +124,7 @@ module NewRelic
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.state = state
-        txn.start
+        txn.start(options)
         txn
       end
 
@@ -217,7 +217,8 @@ module NewRelic
 
       def initialize(category, options)
         @nesting_max_depth = 0
-        @current_segment = nil
+        @current_segment_by_thread = {}
+        @current_segment_lock = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -259,6 +260,25 @@ module NewRelic
         else
           @request_attributes = nil
         end
+      end
+
+      def parent_thread_id
+        ::Thread.current.nr_parent_thread_id if ::Thread.current.respond_to?(:nr_parent_thread_id)
+      end
+
+      def current_segment
+        current_thread_id = ::Thread.current.object_id
+        return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
+        return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
+        current_segment_by_thread[@starting_thread_id]
+      end
+
+      def set_current_segment(new_segment)
+        @current_segment_lock.synchronize { current_segment_by_thread[::Thread.current.object_id] = new_segment }
+      end
+
+      def remove_current_segment_by_thread_id(id)
+        @current_segment_lock.synchronize { current_segment_by_thread.delete(id) }
       end
 
       def distributed_tracer
@@ -392,7 +412,7 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      def start
+      def start(options = {})
         return if !state.is_execution_traced?
 
         sql_sampler.on_start_transaction(state, request_path)
@@ -401,7 +421,7 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
-        create_initial_segment
+        create_initial_segment(options)
         Segment.merge_untrusted_agent_attributes \
           @filtered_params,
           :'request.parameters',
@@ -412,12 +432,12 @@ module NewRelic
         segments.first
       end
 
-      def create_initial_segment
-        segment = create_segment @default_name
+      def create_initial_segment(options = {})
+        segment = create_segment @default_name, options
         segment.record_scoped_metric = false
       end
 
-      def create_segment(name)
+      def create_segment(name, options = {})
         summary_metrics = nil
 
         if name.start_with?(MIDDLEWARE_PREFIX)
@@ -430,6 +450,10 @@ module NewRelic
           name: name,
           unscoped_metrics: summary_metrics
         )
+
+        # #code_information will glean the code info out of the options hash
+        # if it exists or noop otherwise
+        segment.code_information = options
 
         segment
       end
@@ -445,7 +469,8 @@ module NewRelic
 
         nest_initial_segment if segments.length == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        segment = create_segment nested_name
+
+        segment = create_segment nested_name, options
         set_default_transaction_name(options[:transaction_name], category)
         segment
       end
@@ -717,9 +742,9 @@ module NewRelic
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options = {}) # :nodoc:
         # Only the last error is kept
-        if @current_segment
-          @current_segment.notice_error error, expected: options[:expected]
-          options[:span_id] = @current_segment.guid
+        if current_segment
+          current_segment.notice_error(error, expected: options[:expected])
+          options[:span_id] = current_segment.guid
         end
 
         if @exceptions[error]

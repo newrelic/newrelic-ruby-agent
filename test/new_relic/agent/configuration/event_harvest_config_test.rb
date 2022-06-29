@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/event_harvest_config'
 
 module NewRelic::Agent::Configuration
@@ -85,6 +85,24 @@ module NewRelic::Agent::Configuration
         :event_report_period => 5,
         :'application_logging.forwarding.max_samples_stored' => 833,
         :'event_report_period.log_event_data' => 5
+      }
+      assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
+    end
+
+    def test_to_config_hash_with_zero_response_for_log_event_data
+      connect_reply = {
+        'event_harvest_config' => {
+          'report_period_ms' => 5000,
+          'harvest_limits' => {
+            'log_event_data' => 0
+          }
+        }
+      }
+
+      expected = {
+        :'application_logging.forwarding.max_samples_stored' => 0,
+        :'event_report_period.log_event_data' => 5,
+        :event_report_period => 5
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end

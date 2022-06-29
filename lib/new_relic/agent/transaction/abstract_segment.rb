@@ -20,13 +20,14 @@ module NewRelic
         # after its parent. We will use the optimized exclusive duration
         # calculation in all other cases.
         #
-        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid
+        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_thread_id
         attr_accessor :name, :parent, :children_time, :transaction, :transaction_name
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
         def initialize name = nil, start_time = nil
           @name = name
+          @starting_thread_id = ::Thread.current.object_id
           @transaction_name = nil
           @transaction = nil
           @guid = NewRelic::Agent::GuidGenerator.generate_guid
@@ -45,6 +46,10 @@ module NewRelic
           @record_scoped_metric = true
           @record_on_finish = false
           @noticed_error = nil
+          @code_filepath = nil
+          @code_function = nil
+          @code_lineno = nil
+          @code_namespace = nil
         end
 
         def start
@@ -56,6 +61,7 @@ module NewRelic
         def finish
           @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = end_time - start_time
+
           return unless transaction
           run_complete_callbacks
           finalize if record_on_finish?
@@ -107,6 +113,28 @@ module NewRelic
 
         def concurrent_children?
           @concurrent_children
+        end
+
+        def code_information=(info = {})
+          return unless info[:filepath]
+
+          @code_filepath = info[:filepath]
+          @code_function = info[:function]
+          @code_lineno = info[:lineno]
+          @code_namespace = info[:namespace]
+        end
+
+        def all_code_information_present?
+          @code_filepath && @code_function && @code_lineno && @code_namespace
+        end
+
+        def code_attributes
+          return ::NewRelic::EMPTY_HASH unless all_code_information_present?
+
+          @code_attributes ||= {'code.filepath' => @code_filepath,
+                                'code.function' => @code_function,
+                                'code.lineno' => @code_lineno,
+                                'code.namespace' => @code_namespace}
         end
 
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze

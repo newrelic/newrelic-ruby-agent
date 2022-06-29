@@ -128,7 +128,7 @@ This will run the unit tests in standalone mode. You can run against a specific 
 by passing the version name (which should match the name of a subdirectory in test/environments)
 as an argument to the test:env rake task, like this:
 
-bundle exec rake test:env[rails60]
+bundle exec rake 'test:env[rails60]'
 
 These tests are setup to run automatically in
 [GitHub Actions](https://github.com/newrelic/newrelic-ruby-agent/actions) under several

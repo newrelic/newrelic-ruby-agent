@@ -101,6 +101,7 @@ class ErrorEventsTest < Minitest::Test
     assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics["timestamp"], 0.001
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "No Txn", intrinsics["error.message"]
+    assert intrinsics["priority"], "Priority is nil"
   end
 
   def test_error_events_during_txn_abide_by_custom_attributes_config

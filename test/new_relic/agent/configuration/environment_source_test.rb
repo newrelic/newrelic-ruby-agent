@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
@@ -128,6 +128,18 @@ module NewRelic::Agent::Configuration
       ENV['NEW_RELIC_TEST'] = 'true'
       @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
       assert_equal true, @environment_source[:enabled]
+    end
+
+    def test_set_key_by_type_converts_comma_lists_to_array
+      ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi,bye'
+      @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
+      assert_equal ['hi', 'bye'], @environment_source[:'attributes.include']
+    end
+
+    def test_set_key_by_type_converts_comma_lists_with_spaces_to_array
+      ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi, bye'
+      @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
+      assert_equal ['hi', 'bye'], @environment_source[:'attributes.include']
     end
 
     def test_set_key_with_new_relic_prefix

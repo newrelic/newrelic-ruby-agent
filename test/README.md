@@ -20,7 +20,7 @@ And to run a single test within that file (note that when using the -n argument,
 
 You can run against a specific Rails version only by passing the version name (which should match the name of a subdirectory in test/environments) as an argument to the test:env rake task, like this:
 
-    bundle exec rake test:env[rails51]
+    bundle exec rake 'test:env[rails51]'
 
 In CI, these unit tests are run against all supported major.minor versions of Rails (as well as with Rails absent entirely). The test/environments directory contains dummy Rails apps for each supported Rails versions. You can also locally run tests against all versions of Rails supported by your current Ruby version with:
 
@@ -30,7 +30,7 @@ In CI, these unit tests are run against all supported major.minor versions of Ra
 
 The file parameter can be added to the test:env invocation to run a specific unit file.  It can be exact file name, or a wildcard pattern.  Multiple file patterns can be specified by separating with a comma with no spaces surrounding:
 
-    bundle exec rake test:env[rails60] file=test/new_relic/agent/distributed_tracing/*  # everything in this folder
-    bundle exec rake test:env[rails60] file=test/new_relic/agent/tracer_state_test.rb   # single file
-    bundle exec rake test:env[rails60] file=test/new_relic/agent/*_test.rb              # all *_test.rb files in this folder
-    bundle exec rake test:env[rails60] file=test/new_relic/agent/distributed_tracing/*,test/new_relic/agent/datastores/*  # all files in two folders
+    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/distributed_tracing/*  # everything in this folder
+    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/tracer_state_test.rb   # single file
+    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/*_test.rb              # all *_test.rb files in this folder
+    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/distributed_tracing/*,test/new_relic/agent/datastores/*  # all files in two folders

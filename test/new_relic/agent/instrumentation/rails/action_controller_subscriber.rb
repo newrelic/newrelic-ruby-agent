@@ -14,6 +14,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       'test'
     end
 
+    # these need to exist for code level metrics to find them
+    def index; end
+    def child; end
+    def ignored_action; end
+    def ignored_apdex; end
+    def ignored_enduser; end
+
     newrelic_ignore :only => :ignored_action
     newrelic_ignore_apdex :only => :ignored_apdex
     newrelic_ignore_enduser :only => :ignored_enduser
@@ -192,7 +199,6 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     advance_process_time(1)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::TransactionTimeAggregator.harvest!
-
     assert_metrics_recorded('Instance/Busy' => {:call_count => 1, :total_call_time => 1.0})
   end
 
@@ -315,5 +321,20 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     assert_segment_noticed_error txn, /controller/i, exception_class.name, /Natural 1/i
+  end
+
+  def test_records_code_level_metrics
+    with_config(:'code_level_metrics.enabled' => true) do
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      txn = NewRelic::Agent::Transaction.tl_current
+      @subscriber.finish('process_action.action_controller', :id, @entry_payload)
+      attributes = txn.segments.first.code_attributes
+
+      assert_equal __FILE__, attributes['code.filepath']
+      assert_equal 'index', attributes['code.function']
+      assert_equal TestController.instance_method(:index).source_location.last, attributes['code.lineno']
+      assert_equal "NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest::TestController",
+        attributes['code.namespace']
+    end
   end
 end

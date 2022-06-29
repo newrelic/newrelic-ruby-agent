@@ -67,7 +67,7 @@ module NewRelic
 
       # Gather transaction traces that we'd like to transmit to the server.
       def harvest!
-        return [] unless enabled?
+        return NewRelic::EMPTY_ARRAY unless enabled?
 
         samples = @samples_lock.synchronize do
           @last_sample = nil

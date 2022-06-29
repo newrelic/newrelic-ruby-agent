@@ -6,7 +6,7 @@
 module NewRelic
   module VERSION # :nodoc:
     MAJOR = 8
-    MINOR = 6
+    MINOR = 8
     TINY = 0
 
     STRING = "#{MAJOR}.#{MINOR}.#{TINY}"

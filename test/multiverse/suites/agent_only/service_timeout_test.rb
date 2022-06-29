@@ -29,7 +29,7 @@ class ServiceTimeoutTest < Minitest::Test
     service = NewRelic::Agent::NewRelicService.new('deadbeef', server)
 
     assert_raises NewRelic::Agent::ServerConnectionException do
-      service.send('send_request',
+      service.send(:send_request,
         :uri => '/agent_listener/8/bd0e1d52adade840f7ca727d29a86249e89a6f1c/preconnect',
         :encoding => 'UTF-8', :collector => server, :data => 'blah')
     end

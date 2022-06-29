@@ -100,7 +100,7 @@ module NewRelic
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
-          ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_footer].freeze
+          ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_information, :code_footer].freeze
 
           DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => ""}.freeze
 
@@ -274,7 +274,8 @@ module NewRelic
 
           _nr_define_traced_method(method_name, scoped_metric: scoped_metric, unscoped_metrics: unscoped_metrics,
             code_header: options[:code_header], code_footer: options[:code_footer],
-            record_metrics: options[:metric], visibility: visibility)
+            record_metrics: options[:metric], visibility: visibility,
+            code_information: options[:code_information])
 
           prepend(_nr_traced_method_module)
 
@@ -298,7 +299,8 @@ module NewRelic
 
         def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
           code_header: nil, code_footer: nil, record_metrics: true,
-          visibility: :public)
+          visibility: :public, code_information: {})
+
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
@@ -325,7 +327,10 @@ module NewRelic
               # If tracing multiple metrics on this method, nest one unscoped trace inside the scoped trace.
               begin
                 if scoped_metric_eval
-                  ::NewRelic::Agent::MethodTracer.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_scoped(scoped_metric_eval,
+                    metric: record_metrics,
+                    internal: true,
+                    code_information: code_information) do
                     if unscoped_metrics_eval.empty?
                       super(*args, &block)
                     else

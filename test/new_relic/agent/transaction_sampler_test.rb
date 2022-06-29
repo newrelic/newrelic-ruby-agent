@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../test_helper', __FILE__
-require File.expand_path '../../data_container_tests', __FILE__
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
 
 module NewRelic::Agent
   class TransactionSamplerTest < Minitest::Test
@@ -112,7 +112,7 @@ module NewRelic::Agent
       assert_equal([], @sampler.harvest!)
 
       # make sure the samples have been cleared
-      assert_nil(@sampler.instance_variable_get('@last_sample'))
+      assert_nil(@sampler.instance_variable_get(:@last_sample))
     end
 
     def test_harvest_no_data

@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative '../test_helper'
 require 'resolv'
 require 'mocha/setup'
 
@@ -10,6 +11,6 @@ class LoadTest < Minitest::Test
     ::Resolv.expects(:getaddress).never
     ::IPSocket.expects(:getaddress).never
 
-    require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+    require_relative '../test_helper'
   end
 end

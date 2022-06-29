@@ -143,6 +143,8 @@ module NewRelic
     #
     def add_or_defer_method_tracer(receiver, method_name, metric_name, options)
       @tracer_lock.synchronize do
+        options[:code_information] = NewRelic::Agent::MethodTracerHelpers.code_information(receiver, method_name)
+
         if @agent
           receiver.send(:_nr_add_method_tracer_now, method_name, metric_name, options)
         else
@@ -756,7 +758,7 @@ module NewRelic
     def browser_timing_header(nonce = nil)
       record_api_supportability_metric(:browser_timing_header)
 
-      return "" unless agent
+      return EMPTY_STR unless agent
       agent.javascript_instrumentor.browser_timing_header(nonce)
     end
 

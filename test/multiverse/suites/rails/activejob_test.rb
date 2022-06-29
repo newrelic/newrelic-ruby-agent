@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(__FILE__, '..', 'app'))
-
+require_relative 'app'
 require 'logger'
 require 'stringio'
+require 'minitest/mock'
 
 # ActiveJob is in Rails 4.2+, so make sure we're on an allowed version before
 # we try to load.
@@ -72,6 +72,37 @@ if Rails::VERSION::STRING >= "4.2.0"
       end
 
       assert_metrics_recorded("#{ENQUEUE_PREFIX}/default")
+    end
+
+    def test_code_information_recorded_in_web_transaction
+      code_attributes = {}
+      with_config(:'code_level_metrics.enabled' => true) do
+        in_web_transaction do
+          MyJob.perform_later
+          txn = NewRelic::Agent::Transaction.tl_current
+          code_attributes = txn.segments.last.code_attributes
+        end
+      end
+
+      assert_equal __FILE__, code_attributes['code.filepath']
+      assert_equal 'perform', code_attributes['code.function']
+      assert_equal MyJob.instance_method(:perform).source_location.last, code_attributes['code.lineno']
+      assert_equal 'MyJob', code_attributes['code.namespace']
+    end
+
+    def test_code_information_recorded_with_new_transaction
+      with_config(:'code_level_metrics.enabled' => true) do
+        expected = {filepath: __FILE__,
+                    lineno: MyJob.instance_method(:perform).source_location.last,
+                    function: 'perform',
+                    namespace: 'MyJob'}
+        segment = MiniTest::Mock.new
+        segment.expect :code_information=, nil, [expected]
+        segment.expect :finish, []
+        NewRelic::Agent::Tracer.stub :start_segment, segment do
+          MyJob.perform_later
+        end
+      end
     end
 
     def test_record_enqueue_metrics_with_alternate_queue

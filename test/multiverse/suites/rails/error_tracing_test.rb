@@ -5,7 +5,7 @@
 # https://newrelic.atlassian.net/browse/RUBY-747
 require './app'
 require 'fake_collector'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
+require_relative '../../../helpers/exceptions'
 
 class ErrorController < ApplicationController
   include NewRelic::TestHelpers::Exceptions

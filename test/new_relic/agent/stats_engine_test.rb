@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
 
 class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def setup
@@ -178,22 +178,54 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     ])
   end
 
-  def test_record_scoped_and_unscoped_metrics_is_thread_safe
+  def test_record_scoped_and_unscoped_metrics_is_thread_safe_without_traced_threads
     threads = []
     nthreads = 25
     iterations = 100
 
-    nthreads.times do |tid|
-      threads << Thread.new do
-        iterations.times do
-          in_transaction('txn') do
-            @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
-            @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+    with_config(:'instrumentation.thread.tracing' => false) do
+      nthreads.times do |tid|
+        threads << Thread.new do
+          iterations.times do
+            in_transaction('txn') do
+              @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
+              @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+            end
           end
         end
+        threads.each { |t| t.join }
       end
     end
-    threads.each { |t| t.join }
+
+    expected = {:call_count => nthreads * iterations}
+    assert_metrics_recorded(
+      'm1' => expected,
+      'm2' => expected,
+      ['m1', 'txn'] => expected,
+      ['m2', 'txn'] => expected,
+      'm3' => expected,
+      'm4' => expected
+    )
+  end
+
+  def test_record_scoped_and_unscoped_metrics_is_thread_safe_with_traced_threads
+    threads = []
+    nthreads = 25
+    iterations = 100
+
+    with_config(:'instrumentation.thread.tracing' => true) do
+      in_transaction('txn') do
+        nthreads.times do |tid|
+          threads << Thread.new do
+            iterations.times do
+              @engine.tl_record_scoped_and_unscoped_metrics('m1', ['m3'], 1)
+              @engine.tl_record_scoped_and_unscoped_metrics('m2', ['m4'], 1)
+            end
+          end
+        end
+        threads.each { |t| t.join }
+      end
+    end
 
     expected = {:call_count => nthreads * iterations}
     assert_metrics_recorded(

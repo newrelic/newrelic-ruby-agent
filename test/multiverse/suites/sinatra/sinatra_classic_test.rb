@@ -3,8 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'sinatra'
-require File.expand_path(File.join(File.dirname(__FILE__), 'sinatra_test_cases'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
+require_relative 'sinatra_test_cases'
+require_relative '../../../helpers/exceptions'
 
 include NewRelic::TestHelpers::Exceptions
 

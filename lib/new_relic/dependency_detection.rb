@@ -146,7 +146,7 @@ module DependencyDetection
       !(disabled_configured? || deprecated_disabled_configured?)
     end
 
-    # TODO: Remove in 8.0
+    # TODO: MAJOR VERSION
     # will only return true if a disabled key is found and is truthy
     def deprecated_disabled_configured?
       return false if self.name.nil?
@@ -156,8 +156,8 @@ module DependencyDetection
 
       ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
       ::NewRelic::Agent.logger.debug \
-        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release." \
-        " Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
+        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release. " \
+        "Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
 
       return true
     end

@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 module NewRelic::Agent
   class CollectorHostname < Minitest::Test
@@ -21,7 +21,7 @@ module NewRelic::Agent
         # top of one another.
         #
         explicit_config = {}
-        explicit_config[:host] = test_case['override_host'] if test_case['override_host']
+        explicit_config[:host] = test_case['hostname'] if test_case['hostname']
         explicit_config = ::NewRelic::Agent::Configuration::DottedHash.new(explicit_config, true)
 
         implicit_config = {license_key: test_case['key']}

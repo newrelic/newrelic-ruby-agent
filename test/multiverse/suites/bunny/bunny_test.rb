@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "misc"))
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+require_relative '../../../helpers/misc'
+require_relative '../../../helpers/docker'
 
 class BunnyTest < Minitest::Test
   include MultiverseHelpers

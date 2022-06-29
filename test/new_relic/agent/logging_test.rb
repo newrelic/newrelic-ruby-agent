@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 require 'stringio'
 require 'json'
 
@@ -24,7 +24,7 @@ module NewRelic
 
           message = last_message
           # Should include the keys:
-          #  entity.name, entity.type, hostname, timestamp, message, log.level
+          #  entity.name, entity.type, hostname, timestamp, message, level
           assert_equal 'this is a test', message['message']
           assert_equal 'INFO', message['log.level']
 

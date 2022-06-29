@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 module NewRelic
   module Agent
@@ -280,6 +280,64 @@ module NewRelic
         assert_nil Tracer.current_segment
         Tracer.start_segment(name: "Custom/MyClass/myoperation")
         assert_nil Tracer.current_segment
+      end
+
+      def test_current_segment_in_nested_threads_with_traced_thread
+        assert_nil Tracer.current_segment
+
+        txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+        assert_equal txn.initial_segment, Tracer.current_segment
+        threads = []
+
+        threads << ::NewRelic::TracedThread.new do
+          segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+          assert_equal segment, Tracer.current_segment
+
+          threads << ::NewRelic::TracedThread.new do
+            segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
+            assert_equal segment2, Tracer.current_segment
+            segment2.finish
+          end
+
+          # make sure current segment is still the outer segment
+          assert_equal segment, Tracer.current_segment
+          segment.finish # finish thread segment
+        end
+
+        assert_equal txn.initial_segment, Tracer.current_segment
+        threads.each(&:join)
+        txn.finish
+        assert_nil Tracer.current_segment
+      end
+
+      def test_current_segment_in_nested_threads_auto
+        with_config(:'instrumentation.thread.tracing' => true) do
+          assert_nil Tracer.current_segment
+
+          txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+          assert_equal txn.initial_segment, Tracer.current_segment
+          threads = []
+
+          threads << ::Thread.new do
+            segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+            assert_equal segment, Tracer.current_segment
+
+            threads << Thread.new do
+              segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
+              assert_equal segment2, Tracer.current_segment
+              segment2.finish
+            end
+
+            # make sure current segment is still the outer segment
+            assert_equal segment, Tracer.current_segment
+            segment.finish # finish thread segment
+          end
+
+          assert_equal txn.initial_segment, Tracer.current_segment
+          threads.each(&:join)
+          txn.finish
+          assert_nil Tracer.current_segment
+        end
       end
 
       def test_start_segment

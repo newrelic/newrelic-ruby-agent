@@ -34,7 +34,7 @@ module NewRelic::Rack
       (status, headers, response) = result
 
       js_to_inject = NewRelic::Agent.browser_timing_header
-      if (js_to_inject != "") && should_instrument?(env, status, headers)
+      if (js_to_inject != NewRelic::EMPTY_STR) && should_instrument?(env, status, headers)
         response_string = autoinstrument_source(response, headers, js_to_inject)
         if headers.key?(CONTENT_LENGTH)
           content_length = response_string ? response_string.bytesize : 0

@@ -3,12 +3,14 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
 
 module NewRelic::Agent::InfiniteTracing
   class RecordStatusHandlerTest < Minitest::Test
-    def process_queue handler, queue
-      Thread.pass until queue.empty?
+    def process_queue handler, queue, expect_nil = false
+      # wait until the handler has pulled everything from the queue
+      # AND until the handler has finished processing, unless it's expected to be nil
+      Thread.pass until queue.empty? && (expect_nil || !handler.instance_variable_get(:@messages_seen).nil?)
       handler.stop
     end
 
@@ -36,7 +38,7 @@ module NewRelic::Agent::InfiniteTracing
       queue = EnumeratorQueue.new.preload(error_object)
 
       handler = build_handler queue
-      process_queue handler, queue
+      process_queue handler, queue, true
 
       assert_equal 0, handler.messages_seen
     end
@@ -45,7 +47,7 @@ module NewRelic::Agent::InfiniteTracing
       queue = EnumeratorQueue.new
 
       handler = build_handler queue
-      process_queue handler, queue
+      process_queue handler, queue, true
 
       assert_equal 0, handler.messages_seen
     end

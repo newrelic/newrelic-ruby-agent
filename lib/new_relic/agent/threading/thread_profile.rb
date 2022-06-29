@@ -122,8 +122,8 @@ module NewRelic
         end
 
         def to_log_description
-          "#<ThreadProfile:#{object_id} "\
-            "@profile_id: #{profile_id} "\
+          "#<ThreadProfile:#{object_id} " \
+            "@profile_id: #{profile_id} " \
             "@command_arguments=#{@command_arguments.inspect}>"
         end
       end

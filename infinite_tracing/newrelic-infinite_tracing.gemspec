@@ -33,7 +33,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.5.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch"]
+  s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch", "Hannah Ramadan"]
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS
 The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed
@@ -70,7 +70,6 @@ Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
 
   s.homepage = "https://github.com/newrelic/newrelic-ruby-agent/tree/main/infinite_tracing"
   s.require_paths = ["lib", "infinite_tracing"]
-  s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
@@ -85,7 +84,6 @@ Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
   s.add_development_dependency 'guard', '~> 2.16.0'
   s.add_development_dependency 'guard-minitest', '~> 2.4.0'
-  s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'bundler'
 
   s.add_development_dependency 'grpc-tools', "~> 1.14"

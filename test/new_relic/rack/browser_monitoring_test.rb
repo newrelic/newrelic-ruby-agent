@@ -9,8 +9,7 @@ rescue LoadError
 end
 
 if defined?(::Rack::Test)
-  require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
-    'test_helper'))
+  require_relative '../../test_helper'
   require 'new_relic/rack/browser_monitoring'
 
   ENV['RACK_ENV'] = 'test'

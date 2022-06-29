@@ -18,12 +18,11 @@ platforms :jruby do
 end
 
 platforms :ruby, :rbx do
-  gem "mysql2"
+  gem "mysql2", '>= 0.5.4'
   gem 'sqlite3', '~> 1.4'
 end
 
 gem "newrelic_rpm", :path => "../../.."
 
-gem 'pry', '~> 0.12.2'
+gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
-gem 'hometown', '~> 0.2.5'

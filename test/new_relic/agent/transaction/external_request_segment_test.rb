@@ -2,8 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
-
+require_relative '../../../test_helper'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/external_request_segment'
 
@@ -868,7 +867,7 @@ module NewRelic::Agent
         assert_empty last_span_events
       end
 
-      def test_non_sampled_segment_does_not_record_span_event
+      def test_ignored_segment_does_not_record_span_event
         in_transaction('wat') do |txn|
           txn.stubs(:ignore?).returns(true)
 

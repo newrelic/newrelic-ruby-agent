@@ -2,8 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
-
+require_relative '../../../test_helper'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/abstract_segment'
 
@@ -209,6 +208,55 @@ module NewRelic
           # Once transaction finishes, root segment should have transaction_name that matches transaction name
           assert root_segment.transaction_name, "Expected root segment to have a transaction_name"
           assert_equal transaction.best_name, root_segment.transaction_name
+        end
+
+        def clm_info
+          {filepath: '/home/lhollyfeld/src/laseralignment/lib/models/mirror.rb',
+           function: 'rotate',
+           lineno: 1985,
+           namespace: 'LaserAlignment::Mirror'}.freeze
+        end
+
+        def test_code_level_metrics_can_be_set
+          with_segment do |segment|
+            segment.code_information = clm_info
+            assert_equal segment.instance_variable_get(:@code_filepath), clm_info[:filepath]
+            assert_equal segment.instance_variable_get(:@code_function), clm_info[:function]
+            assert_equal segment.instance_variable_get(:@code_lineno), clm_info[:lineno]
+            assert_equal segment.instance_variable_get(:@code_namespace), clm_info[:namespace]
+          end
+        end
+
+        def test_code_info_setting_short_circuits_if_filepath_is_absent
+          with_segment do |segment|
+            segment.code_information = clm_info.merge(filepath: nil)
+            attributes = segment.code_attributes
+            assert_equal NewRelic::EMPTY_HASH, attributes
+          end
+        end
+
+        def test_code_level_metrics_attributes_are_exposed
+          with_segment do |segment|
+            segment.code_information = clm_info
+            attributes = segment.code_attributes
+            assert_equal attributes['code.filepath'], clm_info[:filepath]
+            assert_equal attributes['code.function'], clm_info[:function]
+            assert_equal attributes['code.lineno'], clm_info[:lineno]
+            assert_equal attributes['code.namespace'], clm_info[:namespace]
+          end
+        end
+
+        def test_code_level_metrics_attributes_are_empty_if_the_metrics_are_empty
+          with_segment do |segment|
+            assert_equal(segment.code_attributes, {})
+          end
+        end
+
+        def test_code_level_metrics_are_all_or_nothing
+          with_segment do |segment|
+            segment.code_information = clm_info.reject { |key| key == :namespace }
+            assert_equal(segment.code_attributes, {})
+          end
         end
       end
     end
