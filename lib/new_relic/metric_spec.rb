@@ -40,7 +40,7 @@ class NewRelic::MetricSpec
   end
 
   def hash
-    @name.hash ^ @scope.hash
+    [@name, @scope].hash
   end
 
   def to_s

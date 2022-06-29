@@ -97,11 +97,11 @@ module NewRelic
               paths << File.join(NewRelic::Control.instance.root, "newrelic.yml.erb")
             end
 
-            if ENV["HOME"]
-              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
-              paths << File.join(ENV["HOME"], "newrelic.yml")
-              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml.erb")
-              paths << File.join(ENV["HOME"], "newrelic.yml.erb")
+            if ENV['HOME']
+              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml")
+              paths << File.join(ENV['HOME'], "newrelic.yml")
+              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml.erb")
+              paths << File.join(ENV['HOME'], "newrelic.yml.erb")
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
@@ -518,9 +518,9 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
-          'This configuration option converts the Array to a RegEx list. If you\'d like '\
-          'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be '\
-          'instrumented unless they\'re added to this list. For more information, '\
+          'This configuration option converts the Array to a RegEx list. If you\'d like ' \
+          'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
+          'instrumented unless they\'re added to this list. For more information, ' \
           'visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].'
         },
         :'rake.connect_timeout' => {

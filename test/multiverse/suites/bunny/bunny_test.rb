@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+SimpleCovHelper.command_name "test:multiverse[bunny]"
 require_relative '../../../helpers/misc'
 require_relative '../../../helpers/docker'
 

@@ -157,8 +157,8 @@ module DependencyDetection
 
       ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
       ::NewRelic::Agent.logger.debug \
-        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release." \
-        " Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
+        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release. " \
+        "Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
 
       return true
     end

@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+SimpleCovHelper.command_name "test:multiverse[agent_only]"
+
 module NewRelic
   module Agent
     class AdaptiveSamplerTest < Minitest::Test

@@ -27,7 +27,7 @@ module NewRelic
   #
   # If the environment can't be determined, it will be set to nil.
   #
-  # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#env (via the NewRelic::Control singleton).
+  # NewRelic::LocalEnvironment should be accessed through NewRelic::Control#local_env (via the NewRelic::Control singleton).
   class LocalEnvironment
     def discovered_dispatcher
       discover_dispatcher unless @discovered_dispatcher

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+SimpleCovHelper.command_name "test:multiverse[httpclient]"
 require "httpclient"
 require "newrelic_rpm"
 require "http_client_test_cases"

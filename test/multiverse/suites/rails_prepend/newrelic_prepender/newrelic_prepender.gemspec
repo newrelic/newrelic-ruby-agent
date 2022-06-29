@@ -13,4 +13,5 @@ Gem::Specification.new do |spec|
     f.match(%r{^(test|spec|features)/})
   end
   spec.require_paths = ["lib"]
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

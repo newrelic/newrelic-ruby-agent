@@ -8,6 +8,7 @@
 # metrics. In internals changed across Rack versions, so it's important to
 # check as our middleware and Rack instrumentation has grown.
 
+SimpleCovHelper.command_name "test:multiverse[rack]"
 require 'multiverse_helpers'
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?

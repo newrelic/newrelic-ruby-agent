@@ -168,7 +168,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       }
     }
 
-    NewRelic::Agent.instance.service.stubs(:connect)\
+    NewRelic::Agent.instance.service.stubs(:connect) \
       # the stub connect service will return this canned response
       .returns({
         'agent_run_id' => 23,
@@ -181,7 +181,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
             'log_event_data' => 833
           }
         }
-      })\
+      }) \
       # every call to :connect should pass the same expected event_harvest_config payload
       .with { |value| value[:event_harvest_config] == expected_event_harvest_config_payload }
 
