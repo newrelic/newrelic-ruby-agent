@@ -198,9 +198,7 @@ module NewRelic
 
     # outputs a human-readable description
     def to_s
-      s = "LocalEnvironment["
-      s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
-      s << "]"
+      %Q(LocalEnvironment[#{";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher}])
     end
 
     def executable
