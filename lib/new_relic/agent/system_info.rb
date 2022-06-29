@@ -241,7 +241,7 @@ module NewRelic
       # for details on why we do it this way.
       def self.proc_try_read(path)
         return nil unless File.exist?(path)
-        content = +''
+        content = String.new('')
         File.open(path) do |f|
           loop do
             begin

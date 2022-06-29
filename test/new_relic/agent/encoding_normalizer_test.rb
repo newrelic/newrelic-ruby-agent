@@ -60,7 +60,7 @@ class EncodingNormalizerTest < Minitest::Test
     # Encoding::ConverterNotFoundError, which is what we're trying to
     # replicate for this test case.
     # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
-    string = +'Jyv+AOQ-skyl+AOQ-'
+    string = String.new('Jyv+AOQ-skyl+AOQ-')
     input = string.dup.force_encoding('UTF-7')
     assert input.valid_encoding?
     result = EncodingNormalizer.normalize_string(input)

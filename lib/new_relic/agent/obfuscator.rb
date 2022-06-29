@@ -34,7 +34,7 @@ module NewRelic
       def encode(text)
         return text unless key_bytes
 
-        encoded = +''
+        encoded = String.new('')
         encoded.force_encoding('binary') if encoded.respond_to?(:force_encoding)
         index = 0
         text.each_byte do |byte|

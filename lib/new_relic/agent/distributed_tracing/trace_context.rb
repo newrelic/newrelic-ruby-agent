@@ -203,7 +203,7 @@ module NewRelic
             @trace_state ||= join_trace_state trace_state_entry.size
             @trace_state_entries = nil
 
-            +trace_state_entry << @trace_state
+            trace_state_entry = "#{trace_state_entry}#{@trace_state}"
           end
 
           def trace_id

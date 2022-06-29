@@ -25,7 +25,7 @@ module Multiverse
       key = [suite, env]
       @buffer_lock.synchronize do
         @buffers ||= {}
-        @buffers[key] ||= +''
+        @buffers[key] ||= String.new('')
         @buffers[key]
       end
     end

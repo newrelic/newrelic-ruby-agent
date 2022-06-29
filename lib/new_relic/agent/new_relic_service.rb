@@ -400,7 +400,7 @@ module NewRelic
           # ruled out; see the initializer
         }
 
-        uri = +'/agent_listener/invoke_raw_method?'
+        uri = String.new('/agent_listener/invoke_raw_method?')
         uri << params.map do |k, v|
           next unless v
           "#{k}=#{v}"

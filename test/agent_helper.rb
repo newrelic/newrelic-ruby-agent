@@ -204,7 +204,7 @@ def _normalize_metric_expectations expectations
 end
 
 def dump_stats stats
-  str = "  Call count:           #{stats.call_count}\n"
+  str = String.new("  Call count:           #{stats.call_count}\n")
   str << "  Total call time:      #{stats.total_call_time}\n"
   str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
   str << "  Min call time:        #{stats.min_call_time}\n"

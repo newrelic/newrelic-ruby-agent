@@ -293,7 +293,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_should_cache_hostname
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-    hostname = +'cachey-mccaherson'
+    hostname = String.new('cachey-mccaherson')
     Socket.expects(:gethostname).once.returns(hostname)
     logger = create_basic_logger
     logger.warn('one')

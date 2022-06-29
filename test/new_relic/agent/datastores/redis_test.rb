@@ -58,7 +58,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = 'set ?'
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = +''
+      result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:set, 'foo', 'bar'])
       assert_equal expected, result
     end
@@ -68,7 +68,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = 'multi'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = +''
+      result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
       assert_equal expected, result
     end
@@ -78,7 +78,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     expected = 'multi'
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = +''
+      result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
       assert_equal expected, result
     end
