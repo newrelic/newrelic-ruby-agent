@@ -21,6 +21,9 @@ can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-fra
 You can also monitor non-web applications. Refer to the "Other
 Environments" section below.
 
+
+
+
 ## Installing and Using
 
 The latest released gem for the Ruby agent can be found at [Rubygems.org](https://rubygems.org/gems/newrelic_rpm)
