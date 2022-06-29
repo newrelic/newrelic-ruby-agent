@@ -1,0 +1,25 @@
+name: "Simplecov Report"
+description: "Simplecov Report"
+author: aki77
+branding:
+  icon: check-square
+  color: green
+inputs:
+  failedThreshold:
+    description: Failed threshold (line)
+    default: "90"
+    required: false
+  failedThresholdBranch:
+    description: Failed threshold (branch)
+    default: "70"
+    required: false
+  resultPath:
+    description: "json path"
+    default: "coverage/.last_run.json"
+    required: false
+  token:
+    description: "Github token"
+    required: true
+runs:
+  using: "node12"
+  main: "dist/index.js"

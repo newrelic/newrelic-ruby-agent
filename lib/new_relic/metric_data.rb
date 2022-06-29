@@ -33,7 +33,7 @@ module NewRelic
     end
 
     def hash
-      metric_spec.hash ^ stats.hash
+      [metric_spec, stats].hash
     end
 
     def to_json(*a)

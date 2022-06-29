@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  run-rubocop:
+  run_rubocop:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -14,8 +14,8 @@ jobs:
       - run: bundle
       - run: rubocop
 
-  unit-tests:
-    needs: run-rubocop
+  unit_tests:
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -28,12 +28,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.4.0]
+        ruby-version: [2.2.10, 3.1.2, jruby-9.3.6.0]
     steps:
       - uses: actions/checkout@v2
 
       - name: Install required packages
-        run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -52,12 +52,12 @@ jobs:
               "3.1.2": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.3.4.0": {
+              "jruby-9.3.6.0": {
                 "rails": "norails,rails61,rails52,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.4.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.6.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -65,7 +65,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.4.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.6.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -74,19 +74,25 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
-
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev
+          JRUBY_OPTS: --dev --debug
+          COVERAGE: true
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report-unit-tests
+          path: lib/coverage
 
   multiverse:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -144,11 +150,12 @@ jobs:
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.2.10, 3.1.2]
+
     steps:
       - uses: actions/checkout@v2
 
       - name: Install required packages
-        run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -180,7 +187,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -190,13 +197,20 @@ jobs:
           POSTGRES_USERNAME: postgres
           POSTGRES_PASSWORD: password
           SERIALIZE: 1
+          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report-multiverse
+          path: lib/coverage
+
   infinite_tracing:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -218,16 +232,23 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
           SERIALIZE: 1
+          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
+      - name: Save coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report-infinite-tracing
+          path: lib/coverage
+
   jruby_multiverse:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-18.04
     services:
       mysql:
@@ -279,10 +300,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Ruby jruby-9.3.4.0
+      - name: Install Ruby jruby-9.3.6.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.4.0
+          ruby-version: jruby-9.3.6.0
 
       - name: Bundle
         run: bundle install
@@ -292,13 +313,39 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
 
-
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+  simplecov:
+    needs: [unit_tests, multiverse, infinite_tracing]
+    runs-on: ubuntu-20.04
+    if: ${{ always() }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+      - run: bundle
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
+      - name: Collate Coverage Results
+        run: bundle exec rake coverage:report
+      - name: Upload coverage results
+        uses: actions/upload-artifact@master
+        with:
+          name: coverage-report-combined
+          path: lib/coverage
+      - name: Simplecov Report
+        uses: ./.github/actions/simplecov-report
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          resultPath: lib/coverage/.last_run.json
+          failedThreshold: 60
+          failedThresholdBranch: 30

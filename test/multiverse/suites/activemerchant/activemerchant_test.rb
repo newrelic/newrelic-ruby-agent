@@ -4,6 +4,9 @@
 
 # Let ActiveSupport's auto-loading make sure the testing gateway's there.
 # require complains of redefine on certain Rubies, (looking at you REE)
+
+SimpleCovHelper.command_name "test:multiverse[activemerchant]"
+
 ActiveMerchant::Billing::BogusGateway
 
 OPERATIONS = [:authorize, :purchase, :credit, :recurring, :capture, :update]
