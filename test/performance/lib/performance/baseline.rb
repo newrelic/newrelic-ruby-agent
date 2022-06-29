@@ -28,9 +28,7 @@ module Performance
     end
 
     def save!
-      File.open(PERSIST_PATH, "w") do |f|
-        f.write(JSON.dump(@results.map(&:to_h)))
-      end
+      File.write(PERSIST_PATH, JSON.dump(@results.map(&:to_h)))
     end
   end
 end
