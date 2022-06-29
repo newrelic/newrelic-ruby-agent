@@ -10,6 +10,7 @@ puma_versions.each do |puma_version|
   gemfile <<-RB
     #{"gem 'puma', '#{puma_version}'" if puma_version}
     gem 'rack', '#{rack_version}'
+    gem 'rack-test'
     #{ruby3_gem_webrick}
   RB
 end
