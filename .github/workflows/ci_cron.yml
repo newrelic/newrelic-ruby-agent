@@ -9,7 +9,7 @@ on:
     - cron:  '0 9 * * *'
 
 jobs:
-  run-rubocop:
+  run_rubocop:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -19,8 +19,8 @@ jobs:
       - run: bundle
       - run: rubocop
 
-  unit-tests:
-    needs: run-rubocop
+  unit_tests:
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -98,7 +98,7 @@ jobs:
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
-        env: 
+        env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
 
@@ -113,7 +113,7 @@ jobs:
           JRUBY_OPTS: --dev
 
   multiverse:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     services:
       mysql:
@@ -182,7 +182,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' 
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -196,7 +196,7 @@ jobs:
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler_multiverse
-        env: 
+        env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Test MySQL
@@ -223,7 +223,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   infinite_tracing:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
@@ -254,7 +254,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
-    needs: run-rubocop
+    needs: run_rubocop
     runs-on: ubuntu-18.04
     services:
       mysql:

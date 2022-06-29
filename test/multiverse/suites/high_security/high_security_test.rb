@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCovHelper.command_name "test:multiverse[high_security]"
 require 'fake_server'
 
 # These tests are designed to work in conjunction with a local newrelic.yml

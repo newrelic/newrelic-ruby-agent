@@ -85,6 +85,7 @@ Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'guard', '~> 2.16.0'
   s.add_development_dependency 'guard-minitest', '~> 2.4.0'
   s.add_development_dependency 'bundler'
+  s.add_development_dependency 'simplecov'
 
   s.add_development_dependency 'grpc-tools', "~> 1.14"
 end

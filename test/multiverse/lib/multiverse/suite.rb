@@ -6,6 +6,8 @@
 # This makes sure that the Multiverse environment loads with the gem
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
+
+require_relative '../../../simplecov_test_helper'
 require 'rubygems'
 require 'base64'
 require 'fileutils'
@@ -535,6 +537,11 @@ module Multiverse
       end
 
       load @after_file if @after_file
+      begin
+        ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
+      rescue => e
+        puts "Error: #{e.inspect}"
+      end
 
       if test_run
         exit(test_run)
