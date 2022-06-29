@@ -56,7 +56,7 @@ module NewRelic
           NewRelic::Agent::Agent.any_instance.stubs(:sleep).returns(0)
           inf_tracer = NewRelic::Agent.agent.infinite_tracer
 
-          assert NewRelic::Agent.agent.instance_variable_get(:@infinite_tracer_thread), ''
+          assert NewRelic::Agent.agent.instance_variable_get(:@infinite_tracer_thread), 'Expected infinite tracer thread to not be nil'
           NewRelic::Agent.agent.handle_force_restart(StandardError.new 'test')
         end
       end
