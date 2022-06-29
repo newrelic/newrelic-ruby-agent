@@ -164,7 +164,7 @@ module NewRelic
 
       def set_log_format!
         @hostname = NewRelic::Agent::Hostname.get
-        @prefix = '** [NewRelic]' if wants_stdout?
+        @prefix = wants_stdout? ? '** [NewRelic]' : ''
         @log.formatter = Proc.new do |severity, timestamp, progname, msg|
           "#{@prefix}[#{timestamp.strftime("%F %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
