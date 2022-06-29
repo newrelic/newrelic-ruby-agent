@@ -349,4 +349,3 @@ jobs:
           resultPath: lib/coverage/.last_run.json
           failedThreshold: 60
           failedThresholdBranch: 30
-        
