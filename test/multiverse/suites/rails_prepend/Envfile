@@ -3,7 +3,6 @@ if RUBY_VERSION >= '2.7.0'
     gem 'rails', '~> 7.0.2'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 end
@@ -13,7 +12,6 @@ if RUBY_VERSION >= '2.5.0'
     gem 'rails', '~> 6.1.0'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 
@@ -21,7 +19,6 @@ if RUBY_VERSION >= '2.5.0'
     gem 'rails', '~> 6.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
   RB
 end
 
@@ -30,7 +27,6 @@ if RUBY_VERSION < '3.0.0'
     gem 'rails', '~> 5.2.8'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 
@@ -38,14 +34,12 @@ if RUBY_VERSION < '3.0.0'
     gem 'rails', '~> 5.1.0'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 5.0.0'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
   RB
 end
 
@@ -54,7 +48,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'rails', '~> 4.2.0'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
     # are these thor errors still present?
     gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
   RB
@@ -65,7 +58,6 @@ if RUBY_VERSION < '2.4.0'
     # now
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
     gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
   RB
 

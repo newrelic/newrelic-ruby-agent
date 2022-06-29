@@ -71,7 +71,6 @@ if RUBY_VERSION < '2.5.0' && RUBY_PLATFORM != 'java'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 5.0.0'
     gem 'i18n', '~> 0.7.0'
-    gem 'minitest', '~> 5.1.0'
     #{boilerplate_gems}
   RB
 end
@@ -82,7 +81,6 @@ if RUBY_VERSION < '2.5.0'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 4.2.0'
     gem 'i18n', '~> 0.7.0'
-    gem 'minitest', '~> 5.1.0'
     #{boilerplate_gems}
   RB
 end
@@ -114,14 +112,12 @@ if RUBY_VERSION < '2.4.0'
     gem 'activerecord', '~> 4.2.0'
     gem 'i18n', '~> 0.7.0'
     #{dj4_with_active_record}
-    gem 'minitest', '~> 5.2.3'
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 4.1.6'
     gem 'i18n', '~> 0.6.11'
     #{dj4_with_active_record}
-    gem 'minitest', '~> 5.2.3'
   RB
 
   gemfile <<-RB
