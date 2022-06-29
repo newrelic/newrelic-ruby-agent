@@ -71,7 +71,7 @@ module NewRelic
         end
 
         def dump_string
-          result = "#<BacktraceRoot:#{object_id}>"
+          result = String.new("#<BacktraceRoot:#{object_id}>")
           child_results = @children.map { |c| c.dump_string(2) }.join("\n")
           result << "\n" unless child_results.empty?
           result << child_results
@@ -116,7 +116,9 @@ module NewRelic
 
         def dump_string(indent = 0)
           @file, @method, @line_no = parse_backtrace_frame(@raw_line)
-          result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
+          indentation = ' ' * indent
+          result = String.new("#{indentation}#<BacktraceNode:#{object_id} ) + \
+                              [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>")
           child_results = @children.map { |c| c.dump_string(indent + 2) }.join("\n")
           result << "\n" unless child_results.empty?
           result << child_results
