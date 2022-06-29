@@ -8,7 +8,7 @@ namespace :coverage do
     require 'simplecov'
     require 'simplecov_json_formatter'
     unless ENV['CI']
-      puts 'This task is intended to be run only on the CI'
+      puts 'This task is intended to be run only on the CI.'
       return
     end
     SimpleCov.collate Dir["coverage*/.resultset.json"] do
