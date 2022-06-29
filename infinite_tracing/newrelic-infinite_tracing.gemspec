@@ -70,7 +70,6 @@ Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
 
   s.homepage = "https://github.com/newrelic/newrelic-ruby-agent/tree/main/infinite_tracing"
   s.require_paths = ["lib", "infinite_tracing"]
-  s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING

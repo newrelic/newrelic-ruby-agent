@@ -45,7 +45,6 @@ https://github.com/newrelic/newrelic-ruby-agent/
 
   s.homepage = "https://github.com/newrelic/rpm"
   s.require_paths = ["lib"]
-  s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Ruby Agent"
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
