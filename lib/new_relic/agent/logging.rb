@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'json'
 require 'new_relic/agent/hostname'
@@ -41,7 +42,7 @@ module NewRelic
         end
 
         def call severity, time, progname, msg
-          message = '{'
+          message = String.new('{')
           if app_name
             add_key_value message, ENTITY_NAME_KEY, app_name
             message << COMMA

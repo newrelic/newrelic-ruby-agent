@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require 'stringio'
@@ -98,7 +99,8 @@ module NewRelic
 
         def test_to_replace_ascii_8bit_chars
           message = 'message with an ASCII-8BIT character'
-          input = "#{message} #{"č".force_encoding(Encoding::ASCII_8BIT)}"
+          char = String.new('č')
+          input = "#{message} #{char.force_encoding(Encoding::ASCII_8BIT)}"
           expectation = "#{message} #{DecoratingFormatter::REPLACEMENT_CHAR}#{DecoratingFormatter::REPLACEMENT_CHAR}"
           logger = DecoratingLogger.new @output
 

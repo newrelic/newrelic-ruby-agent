@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'set'
 require 'new_relic/version'
@@ -197,9 +198,7 @@ module NewRelic
 
     # outputs a human-readable description
     def to_s
-      s = "LocalEnvironment["
-      s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
-      s << "]"
+      %Q(LocalEnvironment[#{";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher}])
     end
 
     def executable

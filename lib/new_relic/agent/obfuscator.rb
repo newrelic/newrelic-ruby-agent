@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # require 'base64'
 
@@ -33,7 +34,7 @@ module NewRelic
       def encode(text)
         return text unless key_bytes
 
-        encoded = ""
+        encoded = String.new('')
         encoded.force_encoding('binary') if encoded.respond_to?(:force_encoding)
         index = 0
         text.each_byte do |byte|

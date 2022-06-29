@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/manager'
@@ -329,8 +330,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_parse_labels_from_string_with_hard_failure
-      bad_string = "baaaad"
-      bad_string.stubs(:strip).raises("Booom")
+      bad_string = String.new('baaaad')
+      bad_string.stubs(:strip).raises('Booom')
       @manager.add_config_for_testing(:labels => bad_string)
 
       assert_parsing_error

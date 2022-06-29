@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This is a simple TCP server that binds to an ephemeral port, accepts
 # incoming connections on that port, and then closes those connections

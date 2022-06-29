@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module is intended to provide access to information about the host OS and
 # [virtual] machine. It intentionally does no caching and maintains no state -
@@ -240,7 +241,7 @@ module NewRelic
       # for details on why we do it this way.
       def self.proc_try_read(path)
         return nil unless File.exist?(path)
-        content = ''
+        content = String.new('')
         File.open(path) do |f|
           loop do
             begin
