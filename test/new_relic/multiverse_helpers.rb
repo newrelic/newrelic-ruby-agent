@@ -206,6 +206,8 @@ module MultiverseHelpers
   end
 
   def single_event_posted
+    return 0 if $collector.calls_for("analytic_event_data").length == 0
+
     assert_equal 1, $collector.calls_for("analytic_event_data").length
     assert_equal 1, $collector.calls_for("analytic_event_data").first.events.length
 
