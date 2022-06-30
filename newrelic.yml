@@ -91,7 +91,7 @@ common: &default_settings
 # backport_fast_active_record_connection_lookup: false
 
 # If true, the agent captures attributes from browser monitoring.
-# browser_monitoring_attributes.enabled: false
+# browser_monitoring.attributes.enabled: false
 
 # Prefix of attributes to exclude from browser monitoring. Allows * as wildcard
 # at end.
