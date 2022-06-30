@@ -1,7 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-# frozen_string_literal: false
+# frozen_string_literal: true
 
 require 'webrick'
 require 'webrick/https'
@@ -108,7 +108,7 @@ module NewRelic
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       res.status = 403
-      res.body = ["Forbidden\n"]
+      res.body = [String.new("Forbidden\n")]
       res.finish
     end
 
