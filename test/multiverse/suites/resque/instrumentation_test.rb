@@ -158,7 +158,14 @@ class ResqueTest < Minitest::Test
   end
 
   def refute_attributes_on_events
-    transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
+    analytic_calls = $collector.calls_for('analytic_event_data')[0]
+
+    unless analytic_calls
+      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+    end
+
+    transaction_event_posts = analytic_calls.events
     span_event_posts = $collector.calls_for('span_event_data')[0].events
     events = transaction_event_posts + span_event_posts
 
