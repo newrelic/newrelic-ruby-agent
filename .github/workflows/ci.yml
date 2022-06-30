@@ -56,10 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Ruby jruby-9.3.5.0
+      - name: Install Ruby jruby-9.3.4.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.5.0
+          ruby-version: jruby-9.3.4.0
 
       - name: Bundle
         run: bundle install
