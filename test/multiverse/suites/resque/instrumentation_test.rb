@@ -152,10 +152,10 @@ class ResqueTest < Minitest::Test
     analytic_calls = $collector.calls_for('analytic_event_data')[0]
     span_calls = $collector.calls_for('span_event_data')[0]
 
-    unless analytic_calls && span_calls
-      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
-      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
-    end
+    # unless analytic_calls && span_calls
+    #   log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+    #   puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+    # end
 
     transaction_event_posts = analytic_calls.events
     span_event_posts = span_calls.events
@@ -169,10 +169,10 @@ class ResqueTest < Minitest::Test
     analytic_calls = $collector.calls_for('analytic_event_data')[0]
     span_calls = $collector.calls_for('span_event_data')[0]
 
-    unless analytic_calls && span_calls
-      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
-      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
-    end
+    # unless analytic_calls && span_calls
+    #   log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+    #   puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+    # end
 
     transaction_event_posts = analytic_calls.events
     span_event_posts = span_calls.events

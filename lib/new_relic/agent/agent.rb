@@ -616,6 +616,11 @@ module NewRelic
             log_remote_unavailable(endpoint, e)
             container.merge!(payload)
           rescue => e
+
+
+            puts "\n\n\nERROR: Unable to send #{endpoint} data, will try again later. \n\n#{e.class}: #{e.message}\n\n#{e.backtrace.join("\n")}\n\n"
+
+
             NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. \n\n#{e.class}: #{e.message}\n\n#{e.backtrace.join("\n")}\n\n Error: ", e)
             container.merge!(payload)
           end

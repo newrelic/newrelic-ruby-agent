@@ -214,8 +214,8 @@ class GrapeTest < Minitest::Test
         end
       end
 
-      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
-      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+      # log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+      # puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
 
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes
       assert_equal(expected, actual)
