@@ -58,51 +58,51 @@ class ResqueTest < Minitest::Test
     run_harvest
   end
 
-  def test_all_jobs_ran
-    run_jobs
-    assert_equal(JOB_COUNT, JobForTesting.count)
-  end
+  # def test_all_jobs_ran
+  #   run_jobs
+  #   assert_equal(JOB_COUNT, JobForTesting.count)
+  # end
 
-  def test_agent_posts_correct_metric_data
-    run_jobs
-    assert_metric_and_call_count('Instance/Busy', 1)
-    assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
-  end
+  # def test_agent_posts_correct_metric_data
+  #   run_jobs
+  #   assert_metric_and_call_count('Instance/Busy', 1)
+  #   assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
+  # end
 
-  def test_agent_still_running_after_inline_job
-    run_jobs
-    assert NewRelic::Agent.instance.started?
-  end
+  # def test_agent_still_running_after_inline_job
+  #   run_jobs
+  #   assert NewRelic::Agent.instance.started?
+  # end
 
-  def test_doesnt_capture_args_by_default
-    stub_for_span_collection
+  # def test_doesnt_capture_args_by_default
+  #   stub_for_span_collection
 
-    run_jobs
-    refute_attributes_on_transaction_traces
-    refute_attributes_on_events
-  end
+  #   run_jobs
+  #   refute_attributes_on_transaction_traces
+  #   refute_attributes_on_events
+  # end
 
-  def test_isnt_influenced_by_global_capture_params
-    stub_for_span_collection
+  # def test_isnt_influenced_by_global_capture_params
+  #   stub_for_span_collection
 
-    with_config(:capture_params => true) do
-      run_jobs
-    end
+  #   with_config(:capture_params => true) do
+  #     run_jobs
+  #   end
 
-    refute_attributes_on_transaction_traces
-    refute_attributes_on_events
-  end
+  #   refute_attributes_on_transaction_traces
+  #   refute_attributes_on_events
+  # end
 
-  def test_agent_posts_captured_args_to_job
-    stub_for_span_collection
+  # def test_agent_posts_captured_args_to_job
+  #   stub_for_span_collection
 
-    with_config(:'resque.capture_params' => true) do
-      run_jobs
-    end
+  #   with_config(:'resque.capture_params' => true) do
+  #     run_jobs
+  #   end
 
-    assert_attributes_on_transaction_traces
-    refute_attributes_on_events
-  end
+  #   assert_attributes_on_transaction_traces
+  #   refute_attributes_on_events
+  # end
 
   def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
     stub_for_span_collection
@@ -149,7 +149,14 @@ class ResqueTest < Minitest::Test
   end
 
   def assert_attributes_on_events
-    transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
+    analytic_calls = $collector.calls_for('analytic_event_data')[0]
+
+    unless analytic_calls
+      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+    end
+
+    transaction_event_posts = analytic_calls.events
     span_event_posts = $collector.calls_for('span_event_data')[0].events
     events = transaction_event_posts + span_event_posts
     events.each do |event|
