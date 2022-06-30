@@ -1,7 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-# frozen_string_literal: true
+# frozen_string_literal: false
 
 require 'rubygems'
 require 'rack'
@@ -153,7 +153,6 @@ module NewRelic
       query_params = req.GET
 
       # puts "\n\nDEBUG\n=====\nmethod = #{method}\n=====\n\n"
-      sleep 1
 
       @agent_data << AgentPost.create(:action => method,
         :body         => body,
