@@ -42,13 +42,10 @@ class SinatraParameterCaptureTest < Minitest::Test
       "request.parameters.bar" => "baz"
     }
 
+    log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+    puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
-
-    if actual == 0
-      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
-      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
-    end
-
     assert_equal(expected, actual)
   end
 
@@ -80,13 +77,11 @@ class SinatraParameterCaptureTest < Minitest::Test
       "request.headers.host" => last_request.host,
       "request.method" => last_request.request_method
     }
+
+    log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+    puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
+
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
-
-    if actual == 0
-      log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
-      puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
-    end
-
     assert_equal(expected, actual)
   end
 end
