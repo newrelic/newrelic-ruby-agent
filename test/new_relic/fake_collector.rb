@@ -152,7 +152,8 @@ module NewRelic
 
       query_params = req.GET
 
-      puts "\n\nDEBUG\n=====\nmethod = #{method}\n=====\n\n"
+      # puts "\n\nDEBUG\n=====\nmethod = #{method}\n=====\n\n"
+      sleep 1
 
       @agent_data << AgentPost.create(:action => method,
         :body         => body,
