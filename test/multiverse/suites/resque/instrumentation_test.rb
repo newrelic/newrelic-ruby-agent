@@ -150,14 +150,15 @@ class ResqueTest < Minitest::Test
 
   def assert_attributes_on_events
     analytic_calls = $collector.calls_for('analytic_event_data')[0]
+    span_calls = $collector.calls_for('span_event_data')[0]
 
-    unless analytic_calls
+    unless analytic_calls && span_calls
       log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
       puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
     end
 
     transaction_event_posts = analytic_calls.events
-    span_event_posts = $collector.calls_for('span_event_data')[0].events
+    span_event_posts = span_calls.events
     events = transaction_event_posts + span_event_posts
     events.each do |event|
       assert_includes event[2].keys, "job.resque.args.0"
@@ -166,14 +167,15 @@ class ResqueTest < Minitest::Test
 
   def refute_attributes_on_events
     analytic_calls = $collector.calls_for('analytic_event_data')[0]
+    span_calls = $collector.calls_for('span_event_data')[0]
 
-    unless analytic_calls
+    unless analytic_calls && span_calls
       log = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
       puts "\n\n\n\nLOG\n===\n#{log}\n===\n\n\n"
     end
 
     transaction_event_posts = analytic_calls.events
-    span_event_posts = $collector.calls_for('span_event_data')[0].events
+    span_event_posts = span_calls.events
     events = transaction_event_posts + span_event_posts
 
     events.each do |event|
