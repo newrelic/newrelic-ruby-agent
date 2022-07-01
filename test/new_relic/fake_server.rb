@@ -108,7 +108,8 @@ module NewRelic
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       res.status = 403
-      res.body = [String.new("Forbidden\n")]
+      # res.body = [String.new("Forbidden\n")]
+      res.body = ["Forbidden\n"]
       res.finish
     end
 
