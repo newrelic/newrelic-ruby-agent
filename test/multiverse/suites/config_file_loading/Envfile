@@ -1,41 +1,25 @@
 omit_collector!
 
-gemfile <<-RB
-  # stub file system so we can test that newrelic.yml can be loaded from
-  # various places.
-  if RUBY_VERSION >= '2.4.0'
-    gem 'fakefs', '1.4.1', :require => false
-  else
-    gem 'fakefs', '0.5.4', :require => false # 0.5.4 required for 1.8.7 compatibility.
-  end
+PSYCH_VERSIONS = [
+  [nil],
+  ['4.0.0', 2.4],
+  ['3.3.0', 2.4]
+]
 
-  # Because we delay the agent, order of jruby-openssl matters
-  gem 'jruby-openssl', '~> 0.11.0', :platforms => [:jruby]
+def gem_list(psych_version = nil)
+  <<-RB
+    # stub file system so we can test that newrelic.yml can be loaded from
+    # various places.
+    gem 'fakefs', :require => false
 
-  if RUBY_VERSION >= '2.4.0'
-    gem 'psych', '4.0.0'
-  end
+    # Because we delay the agent, order of jruby-openssl matters
+    gem 'jruby-openssl' if RUBY_PLATFORM == 'java'
 
-  # don't start the agent
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
+    gem 'psych'#{psych_version}
 
-gemfile <<-RB
-  # stub file system so we can test that newrelic.yml can be loaded from
-  # various places.
-  if RUBY_VERSION >= '2.4.0'
-    gem 'fakefs', '1.4.1', :require => false
-  else
-    gem 'fakefs', '0.5.4', :require => false # 0.5.4 required for 1.8.7 compatibility.
-  end
+    # don't start the agent
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+end
 
-  # Because we delay the agent, order of jruby-openssl matters
-  gem 'jruby-openssl', '~> 0.11.0', :platforms => [:jruby]
-
-  if RUBY_VERSION >= '2.4.0'
-    gem 'psych', '3.3.0'
-  end
-
-  # don't start the agent
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
+create_gemfiles(PSYCH_VERSIONS, gem_list)
