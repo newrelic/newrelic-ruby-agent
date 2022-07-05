@@ -13,6 +13,9 @@
 
     Previously, when using infinite tracing, the agent would intermittently encounter a deadlock when attempting to restart the infinite tracing connection. This bug would prevent the agent from sending all data types, including non-infinite-tracing-related data. This change reworks how we restart infinite tracing to prevent potential deadlocks.
 
+  * **Bugfix: Use read_nonblock instead of read on pipe**
+
+    Previously, our PipeChannelManager was using read which could cause resque jobs to get stuck in some versions. This change updates the PipeChannelManager to use read_nonblock instead to avoid this issue. 
 
     
   ## v8.8.0
