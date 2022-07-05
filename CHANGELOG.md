@@ -1,10 +1,18 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v8.9.0
 
+  ## v8.9.0
+  
+  
   * **Add support for Dalli 3.1.0 to Dalli 3.2.2**
 
     Dalli versions 3.1.0 and above include breaking changes where the agent previously hooked into the gem. We have updated our instrumentation to correctly hook into Dalli 3.1.0 and above. At this time, 3.2.2 is the latest Dalli version and is confirmed to be supported.
+
+
+  * **Bugfix: Infinite Tracing hung on connection restart**
+
+    Previously, when using infinite tracing, the agent would intermittently encounter a deadlock when attempting to restart the infinite tracing connection. This bug would prevent the agent from sending all data types, including non-infinite-tracing-related data. This change reworks how we restart infinite tracing to prevent potential deadlocks.
+
 
     
   ## v8.8.0

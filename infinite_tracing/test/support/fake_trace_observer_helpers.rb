@@ -58,6 +58,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             assert_only_one_subscription_notifier
             reset_infinite_tracer
             unstub_reconnection
+            mocha_teardown
             Connection.reset!
           end
 
