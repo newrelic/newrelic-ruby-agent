@@ -50,6 +50,15 @@ module NewRelic
           Connection.instance.unstub(:retry_connection_period)
           NewRelic::Agent.agent.infinite_tracer.stop
         end
+
+        def test_agent_restart_closes_infinite_tracing
+          NewRelic::Agent::Agent.any_instance.expects('close_infinite_tracer')
+          NewRelic::Agent::Agent.any_instance.stubs(:sleep).returns(0)
+          inf_tracer = NewRelic::Agent.agent.infinite_tracer
+
+          assert NewRelic::Agent.agent.instance_variable_get(:@infinite_tracer_thread), 'Expected infinite tracer thread to not be nil'
+          NewRelic::Agent.agent.handle_force_restart(StandardError.new 'test')
+        end
       end
     end
   end

@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+SimpleCovHelper.command_name "test:multiverse[active_record]"
 require_relative 'app/models/models'
 
 class ActiveRecordInstrumentationTest < Minitest::Test

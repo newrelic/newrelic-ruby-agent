@@ -50,7 +50,7 @@ module MemcacheTestCases
   end
 
   def assert_memcache_metrics_recorded(expected_metrics)
-    assert_metrics_recorded_exclusive expected_metrics, :filter => /^datastore.*/i
+    assert_metrics_recorded expected_metrics
   end
 
   def test_noticed_error_at_segment_and_txn_on_error
@@ -63,7 +63,7 @@ module MemcacheTestCases
     rescue StandardError
       # NOP -- allowing span and transaction to notice error
     end
-    assert_segment_noticed_error txn, /Memcached\/set$/, simulated_error_class.name, /No server available/i
+    assert_segment_noticed_error txn, /Memcached\/set(_cas)?$/, simulated_error_class.name, /No server available/i
     assert_transaction_noticed_error txn, simulated_error_class.name
   end
 
@@ -78,7 +78,7 @@ module MemcacheTestCases
       end
     end
 
-    assert_segment_noticed_error txn, /Memcached\/set$/, simulated_error_class.name, /No server available/i
+    assert_segment_noticed_error txn, /Memcached\/set(_cas)?$/, simulated_error_class.name, /No server available/i
     refute_transaction_noticed_error txn, simulated_error_class.name
   end
 

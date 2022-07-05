@@ -1,5 +1,7 @@
 instrumentation_methods :chain, :prepend
 
+# Net::HTTP is included in Ruby's standard library
+# It should not be explicitly listed here.
 gemfile <<-RB
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]

@@ -4,6 +4,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
+SimpleCovHelper.command_name "test:multiverse[infinite_tracing]"
 
 module NewRelic
   module Agent
