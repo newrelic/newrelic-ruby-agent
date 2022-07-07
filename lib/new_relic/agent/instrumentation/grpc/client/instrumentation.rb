@@ -19,13 +19,15 @@ module NewRelic
             instance
           end
 
-          def issue_request_with_tracing(*args, metadata: {})
+          def issue_request_with_tracing(method, requests, marshal, unmarshal,
+            deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
 
             response = nil
-            segment = request_segment(args.first) # args.first is the method
+            segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers request_wrapper
+
             metadata.merge! metadata, request_wrapper.instance_variable_get(:@newrelic_metadata)
 
             NewRelic::Agent.disable_all_tracing do

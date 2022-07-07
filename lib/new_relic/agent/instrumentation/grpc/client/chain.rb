@@ -19,33 +19,83 @@ module NewRelic::Agent::Instrumentation
             alias initialize_without_newrelic_trace initialize
             alias initialize initialize_with_newrelic_trace
 
-            def bidi_streamer_with_newrelic_trace(*args)
-              issue_request_with_tracing(*args)
+            def bidi_streamer_with_new_relic_trace(method, requests, marshal, unmarshal,
+              deadline: nil,
+              return_op: false,
+              parent: nil,
+              credentials: nil,
+              metadata: {},
+              &blk)
+
+              issue_request_with_tracing(method, requests, marshal, unmarshal,
+                deadline: deadline,
+                return_op: return_op,
+                parent: parent,
+                credentials: credentials,
+                metadata: metadata)
+
+              # TODO: gRPC - confirm that &blk is being invoked correctly
             end
 
             alias bidi_streamer_without_newrelic_trace bidi_streamer
-            alias bidi_streamer bidi_streamer_with_newrelic_tracer
+            alias bidi_streamer bidi_streamer_with_newrelic_trace
 
-            def client_streamer_with_newrelic_trace(*args)
-              issue_request_with_tracing(*args)
+            def client_streamer_with_newrelic_trace(method, requests, marshal, unmarshal,
+              deadline: nil,
+              return_op: false,
+              parent: nil,
+              credentials: nil,
+              metadata: {})
+
+              issue_request_with_tracing(method, requests, marshal, unmarshal,
+                deadline: deadline,
+                return_op: return_op,
+                parent: parent,
+                credentials: credentials,
+                metadata: metadata)
             end
 
             alias client_streamer_without_newrelic_trace client_streamer
-            alias client_streamer client_streamer_with_newrelic_tracer
+            alias client_streamer client_streamer_with_newrelic_trace
 
-            def request_response_with_newrelic_trace(*args)
-              issue_request_with_tracing(*args)
+            def request_response_with_newrelic_trace(method, req, marshal, unmarshal,
+              deadline: nil,
+              return_op: false,
+              parent: nil,
+              credentials: nil,
+              metadata: {})
+
+              issue_request_with_tracing(method, req, marshal, unmarshal,
+                deadline: deadline,
+                return_op: return_op,
+                parent: parent,
+                credentials: credentials,
+                metadata: metadata)
             end
 
             alias request_response_without_newrelic_trace request_response
-            alias request_response request_response_with_newrelic_tracer
+            alias request_response request_response_with_newrelic_trace
 
-            def server_streamer_with_newrelic_trace(*args)
-              issue_request_with_tracing(*args)
+            def server_streamer_with_newrelic_trace(method, req, marshal, unmarshal,
+              deadline: nil,
+              return_op: false,
+              parent: nil,
+              credentials: nil,
+              metadata: {},
+              &blk)
+
+              issue_request_with_tracing(method, req, marshal, unmarshal,
+                deadline: deadline,
+                return_op: return_op,
+                parent: parent,
+                credentials: credentials,
+                metadata: metadata)
+
+              # TODO: gRPC - confirm that &blk is being invoked correctly
             end
 
             alias server_streamer_without_newrelic_trace server_streamer
-            alias server_streamer server_streamer_with_newrelic_tracer
+            alias server_streamer server_streamer_with_newrelic_trace
           end
         end
       end
