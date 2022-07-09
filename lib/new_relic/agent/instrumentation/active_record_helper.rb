@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/constants'
 
 module NewRelic
   module Agent
