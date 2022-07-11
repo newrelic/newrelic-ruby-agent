@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require_relative '../data_container_tests'
@@ -25,7 +26,7 @@ module NewRelic
 
       def populate_container(aggregator, n)
         n.times do |i|
-          error = NewRelic::NoticedError.new 'path', 'yay errors'
+          error = NewRelic::NoticedError.new(String.new('path'), String.new('yay errors'))
           aggregator.add_to_error_queue error
         end
       end

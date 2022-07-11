@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require 'new_relic/agent/encoding_normalizer'
@@ -59,11 +60,12 @@ class EncodingNormalizerTest < Minitest::Test
     # Encoding::ConverterNotFoundError, which is what we're trying to
     # replicate for this test case.
     # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
-    string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
-    assert string.valid_encoding?
-    result = EncodingNormalizer.normalize_string(string)
-    refute_same(result, string)
+    string = String.new('Jyv+AOQ-skyl+AOQ-')
+    input = string.dup.force_encoding('UTF-7')
+    assert input.valid_encoding?
+    result = EncodingNormalizer.normalize_string(input)
+    refute_same(result, input)
     assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
-    assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
+    assert_equal(string.dup.force_encoding('ISO-8859-1'), result)
   end
 end

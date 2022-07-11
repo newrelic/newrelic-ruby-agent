@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require 'new_relic/agent/utilization_data'
@@ -140,7 +141,7 @@ module NewRelic::Agent
     def test_logged_when_docker_container_id_is_unrecognized
       NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
       NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
-      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns('whatever')
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns(String.new('whatever'))
       NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
 
       expects_logging(:debug, includes("YOLO"))

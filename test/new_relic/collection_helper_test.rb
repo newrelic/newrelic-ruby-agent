@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../test_helper'
 require 'ostruct'
@@ -35,9 +36,9 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   def test_string__singleton
-    val = "This String"
+    val = String.new('This String')
     def val.hello; end
-    assert_equal "This String", normalize_params(val)
+    assert_equal 'This String', normalize_params(val)
     assert val.respond_to?(:hello)
     assert !normalize_params(val).respond_to?(:hello)
   end

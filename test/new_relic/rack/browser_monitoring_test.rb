@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 begin
   require 'rack/test'
@@ -165,7 +166,7 @@ if defined?(::Rack::Test)
     end
 
     def test_with_invalid_us_ascii_encoding
-      response = "<html><body>Jürgen</body></html>"
+      response = String.new('<html><body>Jürgen</body></html>')
       response.force_encoding(Encoding.find("US-ASCII"))
       TestApp.next_response = Rack::Response.new(response)
 

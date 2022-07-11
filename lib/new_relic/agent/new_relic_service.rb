@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'zlib'
 require 'timeout'
@@ -399,7 +400,7 @@ module NewRelic
           # ruled out; see the initializer
         }
 
-        uri = "/agent_listener/invoke_raw_method?"
+        uri = String.new('/agent_listener/invoke_raw_method?')
         uri << params.map do |k, v|
           next unless v
           "#{k}=#{v}"
@@ -625,11 +626,10 @@ module NewRelic
       # the ruby version and also zlib version if available since
       # that may cause corrupt compression if there is a problem.
       def user_agent
-        ruby_description = ''
-        # note the trailing space!
-        ruby_description << "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
-        zlib_version = ''
-        zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
+        if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
+          ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " # note the trailing space!
+        end
+        zlib_version = "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
     end

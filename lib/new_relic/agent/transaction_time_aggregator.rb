@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module powers the Busy calculation for the Capacity report in
 # APM (https://rpm.newrelic.com/accounts/.../applications/.../optimize/capacity_analysis).

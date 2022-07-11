@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/datastores/redis'
 require_relative '../../../test_helper'
@@ -54,30 +55,30 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_append_command_in_pipeline_with_record_arguments_false
-    expected = "set ?"
+    expected = 'set ?'
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = ""
+      result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:set, 'foo', 'bar'])
       assert_equal expected, result
     end
   end
 
   def test_append_command_in_pipeline_with_record_arguments_and_no_args
-    expected = "multi"
+    expected = 'multi'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      result = ""
+      result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
       assert_equal expected, result
     end
   end
 
   def test_append_command_in_pipeline_with_record_arguments_false_and_no_args
-    expected = "multi"
+    expected = 'multi'
 
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
-      result = ""
+      result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
       assert_equal expected, result
     end
