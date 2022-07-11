@@ -7,6 +7,13 @@ instrumentation_methods :chain, :prepend
 if RUBY_VERSION >= '2.3'
   gemfile <<-RB
     gem 'rack'
+    gem 'bunny'
+    gem 'amq-protocol'
+    #{ruby3_gem_webrick}
+  RB
+
+  gemfile <<-RB
+    gem 'rack'
     gem 'bunny', '~>2.19.0'
     gem 'amq-protocol'
     #{ruby3_gem_webrick}

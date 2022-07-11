@@ -100,7 +100,7 @@ module NewRelic
 
         def decoded_id(request)
           encoded_id = request[NEWRELIC_ID_HEADER_KEY]
-          return "" if encoded_id.nil? || encoded_id.empty?
+          return NewRelic::EMPTY_STR if encoded_id.nil? || encoded_id.empty?
 
           obfuscator.deobfuscate(encoded_id)
         end

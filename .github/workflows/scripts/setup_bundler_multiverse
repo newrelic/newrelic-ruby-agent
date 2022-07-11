@@ -1,0 +1,33 @@
+#!/bin/bash
+# This script sets up the bundler versions we need for our older multiverse suites
+# and sets up the bundler config for when we are using the older mysql version
+
+if [[ $RUBY_VERSION =~ 2.[^67] ]]; then 
+  # Older rubies come with Ruby gems 2.5.x and we need 3.0.6 minimum to
+  # correctly install Bundler and do anything else within the multiverse test suite
+  gem update --system 3.0.6 --force
+  # need to use bundler <2 for all rails 4 and below tests
+  gem install --default bundler:1.17.3 --force
+  gem list bundler
+  if [[ $RUBY_VERSION != "2.2.10" ]]; then 
+    # 2.2 does not install any 2+ bundler version, so nothing to uninstall
+    # but we do need to remove higher bundler versions for when we're running rails 4 tests
+    gem uninstall bundler
+    echo "did gem uninstall bundler"
+  fi 
+  echo "use bundler 1.17.3"
+fi
+
+# add mysql specific config for bundler when we are using older mysql
+if [[ $RUBY_VERSION =~ 2.[23] ]]; then  
+  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
+  echo "set bundler to use mysql55 for mysql2"
+fi
+
+# for some reason, ruby 3.0 fails unless 3.1.0 is installed before it bundles for rails_prepend suite/rails 7
+if [[ $RUBY_VERSION =~ 3.0 ]]; then 
+  gem install --default digest:3.1.0
+  echo "installed digest 3.1.0"
+fi
+
+bundle install

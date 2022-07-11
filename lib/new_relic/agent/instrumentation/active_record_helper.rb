@@ -115,7 +115,7 @@ module NewRelic
         end
 
         SPACE = ' '.freeze
-        EMPTY = [].freeze
+        EMPTY = NewRelic::EMPTY_ARRAY
 
         def split_name(name)
           if name && name.respond_to?(:split)
