@@ -19,6 +19,42 @@ The performance testing specific content lives in the `test/performance`
 directory beneath the repository's root. That directory includes its own
 `Gemfile` which specifies dependencies needed for testing.
 
+#### Docker Recommendation
+
+When running performance tests, especially when making comparisons between two
+different git branches, it is recommended that the tests be ran within a Docker
+container. Due to the fixed resources nature of using a Docker container, we
+have found that we are able to obtain more consistent results that are not
+impacted by things being done on the host machine that can compete for
+resources.
+
+To launch a Docker container with shared write access to your present working
+directory, do the following:
+
+```shell
+docker run --rm -it --mount "type=bind,source=$(pwd),target=/app" ruby bash
+
+# • docker run: run a container, note that Docker Desktop must be running
+# • --rm: remove the container (but not the image) after exiting
+# • --it: run an interactive (--i ) session with a pseudo tty (--t)
+# • --mount : mount a volume (source = host path, target = container path)
+# • ruby: image name (can also contain a tag, such as ruby:latest or whatnot)
+# • bash: the command to run on the container. after this command finishes, the container will stop (and with --rm be removed)
+```
+
+Once the Docker container is running and you are at an interactive Bash prompt,
+change to the agent repository directory:
+
+```shell
+docker$ cd /app
+```
+
+You are now set to perform the any of the remaining commands mentioned below.
+When done running the container, simply type `exit` and hit return/enter to exit
+Bash. NOTE: the container will be discarded upon exiting Bash, so if you are
+testing two different branches, be sure to perform both sets of tests prior to
+exiting.
+
 #### Initial setup
 
 ```shell
