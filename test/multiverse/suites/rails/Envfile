@@ -18,7 +18,7 @@ if RUBY_VERSION >= '2.7.0'
   RB
 
   gemfile <<-RB
-    gem 'rails', '~> 7.0.2'
+    gem 'rails', '~> 7.0.3'
     gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '2.0.0'
     #{pre2_rack_test}
