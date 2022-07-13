@@ -4,6 +4,7 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/constants'
 
 module NewRelic
   module Agent
