@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative 'request_wrapper'
-require_relative 'response_wrapper'
 
 module NewRelic
   module Agent
@@ -36,8 +35,6 @@ module NewRelic
               end
             end
 
-            wrapped_response = NewRelic::Agent::Instrumentation::GRPC::Client::ResponseWrapper.new(response)
-            segment.process_response_headers wrapped_response
             response
           ensure
             segment.finish
