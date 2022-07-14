@@ -33,7 +33,6 @@ module NewRelic
                 yield
               end
             end
-
           ensure
             segment.finish
           end
