@@ -22,7 +22,6 @@ module NewRelic
             deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
 
-            response = nil
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers request_wrapper
@@ -30,12 +29,11 @@ module NewRelic
             metadata.merge! metadata, request_wrapper.instance_variable_get(:@newrelic_metadata)
 
             NewRelic::Agent.disable_all_tracing do
-              response = NewRelic::Agent::Tracer.capture_segment_error segment do
+              NewRelic::Agent::Tracer.capture_segment_error segment do
                 yield
               end
             end
 
-            response
           ensure
             segment.finish
           end
