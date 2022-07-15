@@ -70,14 +70,14 @@ module NewRelic
             return do_trace unless do_trace.nil?
 
             host ||= @host
-            return false unless host && !host_denylisted(host)
+            return false unless host && !host_denylisted?(host)
 
             true
           end
 
-          def host_denylisted(host)
+          def host_denylisted?(host)
             NewRelic::Agent.config[:'instrumentation.grpc.host_denylist'].any? do |regex|
-              host.match(regex)
+              host.match?(regex)
             end
           end
         end
