@@ -64,4 +64,5 @@ https://github.com/newrelic/newrelic-ruby-agent/
     s.add_development_dependency 'simplecov'
     s.add_development_dependency 'simplecov_json_formatter'
   end
+  s.add_development_dependency 'httparty'
 end
