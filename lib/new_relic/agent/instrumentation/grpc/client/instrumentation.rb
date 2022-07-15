@@ -29,6 +29,7 @@ module NewRelic
             segment.add_request_headers request_wrapper
 
             metadata.merge! metadata, request_wrapper.instance_variable_get(:@newrelic_metadata)
+            set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
               response = NewRelic::Agent::Tracer.capture_segment_error segment do
@@ -64,6 +65,12 @@ module NewRelic
             return method unless method.start_with?('/')
 
             method[1..-1]
+          end
+
+          def set_distributed_tracing_headers(metadata)
+            return unless ::NewRelic::Agent.config[:'distributed_tracing.enabled']
+
+            ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(metadata)
           end
 
           def trace_with_newrelic?(host = nil)

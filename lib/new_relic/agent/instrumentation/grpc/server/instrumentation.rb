@@ -7,33 +7,19 @@ module NewRelic
     module Instrumentation
       module GRPC
         module Server
-          def initialize_with_tracing(*args)
-            instance = yield
-            instance.instance_variable_set(:@trace_with_newrelic, trace_with_newrelic?(args.first))
-            instance
-          end
-
-          def handle_with_tracing(service)
+          def handle_with_tracing(active_call, mth, inter_ctx)
             return yield unless trace_with_newrelic?
 
-            yield
-          end
-
-          def run_with_tracing(signals, wait_interval)
-            return yield unless trace_with_newrelic?
-
+            trace_headers = active_call.metadata.delete(NewRelic::NEWRELIC_KEY)
+            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other') if ::NewRelic::Agent.config[:'distirbuted_tracing.enabled']
             yield
           end
 
           private
 
           def trace_with_newrelic?(host = nil)
-            return false if self.class.name.eql?('GRPC::InterceptorRegistry')
-
-            do_trace = instance_variable_get(:@trace_with_newrelic)
-            return do_trace unless do_trace.nil?
-
-            # TODO: preferred server filtration
+            hostname = ::NewRelic::Agent::Hostname.get
+            # TODO: check hostname against the configured denylist
 
             true
           end
