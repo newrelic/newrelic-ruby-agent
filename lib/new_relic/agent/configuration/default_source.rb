@@ -1095,7 +1095,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of gRPC clients at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.grpc.host_denylist' => {
-          :default => ['tracing\.(staging-)?edge\.nr-data'],
+          :default => ['tracing\.(?:staging-)?edge\.nr-data'],
           :public => true,
           :type => Array,
           :allowed_from_server => false,
