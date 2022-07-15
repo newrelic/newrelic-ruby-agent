@@ -27,7 +27,7 @@ class Minitest::Test
   end
 end
 
-class MiniTest::Unit
+MiniTest::Unit.prepend(Module.new do
   def puke klass, meth, e
     if fail_fast? && !e.is_a?(MiniTest::Skip)
       puke_fast klass, meth, e
@@ -35,6 +35,8 @@ class MiniTest::Unit
       super klass, meth, e
     end
   end
+
+  private
 
   def puke_fast klass, meth, e
     warn %Q(\n\nFailing fast.\n\n#{klass}:#{meth}\n\n#{e.message}\n\n#{e.backtrace.join("\n")}\n\n)
@@ -44,4 +46,4 @@ class MiniTest::Unit
   def fail_fast?
     ENV['MT_FAIL_FAST']
   end
-end
+end)
