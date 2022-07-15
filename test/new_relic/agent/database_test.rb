@@ -160,7 +160,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(expected_result[1][0].compact.sort, result[1][0].compact.sort, "Values don't match")
   end
 
-  def xtest_explain_sql_one_select_with_pg_explain_result
+  def test_explain_sql_one_select_with_pg_explain_result
     config = {:adapter => 'postgresql'}
     sql = 'select count(id) from blogs limit 1'
 
@@ -179,7 +179,6 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal expected_result, result
   end
 
-  # JAMES
   def test_explain_sql_one_select_with_pg_explain_string_result
     config = {:adapter => 'postgresql'}
     sql = 'select count(id) from blogs limit 1'
