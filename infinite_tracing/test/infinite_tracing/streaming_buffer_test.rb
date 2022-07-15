@@ -21,8 +21,8 @@ module NewRelic
         def test_streams_single_segment
           with_serial_lock do
             total_spans = 1
-            buffer, _segments = stream_segments total_spans
-            consume_spans buffer
+            buffer, _segments = stream_segments(total_spans)
+            consume_spans(buffer)
 
             refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
             assert_metrics_recorded({
@@ -35,10 +35,10 @@ module NewRelic
         def test_streams_single_segment_in_threads
           with_serial_lock do
             total_spans = 1
-            generator, buffer, _segments = prepare_to_stream_segments total_spans
+            generator, buffer, _segments = prepare_to_stream_segments(total_spans)
 
             # consumes the queue as it fills
-            _spans, consumer = prepare_to_consume_spans buffer
+            _spans, consumer = prepare_to_consume_spans(buffer)
 
             generator.join
             buffer.flush_queue
@@ -56,9 +56,9 @@ module NewRelic
         def test_streams_multiple_segments
           with_serial_lock do
             total_spans = 5
-            buffer, segments = stream_segments total_spans
+            buffer, segments = stream_segments(total_spans)
 
-            spans = consume_spans buffer
+            spans = consume_spans(buffer)
 
             assert_equal total_spans, spans.size
             spans.each_with_index do |span, index|
@@ -78,10 +78,10 @@ module NewRelic
         def test_streams_multiple_segments_in_threads
           with_serial_lock do
             total_spans = 5
-            generator, buffer, segments = prepare_to_stream_segments total_spans
+            generator, buffer, segments = prepare_to_stream_segments(total_spans)
 
             # consumes the queue as it fills
-            spans, consumer = prepare_to_consume_spans buffer
+            spans, consumer = prepare_to_consume_spans(buffer)
 
             generator.join
             buffer.flush_queue
@@ -108,10 +108,10 @@ module NewRelic
             max_queue_size = 4
 
             # generate all spans before we attempt to consume
-            buffer, segments = stream_segments total_spans, max_queue_size
+            buffer, segments = stream_segments(total_spans, max_queue_size)
 
             # consumes the queue after we've filled it
-            spans = consume_spans buffer
+            spans = consume_spans(buffer)
 
             assert_equal 1, spans.size
             assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
@@ -129,10 +129,10 @@ module NewRelic
         def test_can_close_an_empty_buffer
           with_serial_lock do
             total_spans = 10
-            generator, buffer, segments = prepare_to_stream_segments total_spans
+            generator, buffer, segments = prepare_to_stream_segments(total_spans)
 
             # consumes the queue as it fills
-            spans, consumer = prepare_to_consume_spans buffer
+            spans, consumer = prepare_to_consume_spans(buffer)
 
             # closes the streaming buffer after queue is emptied
             closed = false
@@ -195,7 +195,7 @@ module NewRelic
 
         # starts a watched thread that will generate segments asynchronously.
         def prepare_to_stream_segments count, max_buffer_size = 100_000
-          buffer = StreamingBuffer.new max_buffer_size
+          buffer = StreamingBuffer.new(max_buffer_size)
           segments = []
 
           # generates segments that are streamed as spans
@@ -218,7 +218,7 @@ module NewRelic
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
         def stream_segments count, max_buffer_size = 100_000
-          buffer = StreamingBuffer.new max_buffer_size
+          buffer = StreamingBuffer.new(max_buffer_size)
           segments = []
 
           # generates segments that are streamed as spans

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[bunny]"
+SimpleCovHelper.command_name("test:multiverse[bunny]")
 require_relative '../../../helpers/misc'
 require_relative '../../../helpers/docker'
 
@@ -22,7 +22,7 @@ class BunnyTest < Minitest::Test
 
   def test_metrics_recorded_for_produce_to_the_default_exchange
     with_queue do |queue|
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         queue.publish("test_msg")
       end
       assert_metrics_recorded [
@@ -34,9 +34,9 @@ class BunnyTest < Minitest::Test
 
   def test_metrics_recorded_for_consume_from_the_default_exchange
     with_queue do |queue|
-      queue.publish "test_msg"
+      queue.publish("test_msg")
 
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         queue.pop
       end
 
@@ -51,12 +51,12 @@ class BunnyTest < Minitest::Test
     cross_process_id = "321#123"
 
     with_queue do |queue|
-      with_config :"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => "abc" do
-        in_transaction "first_txn" do
-          queue.publish "test_msg"
+      with_config(:"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => "abc") do
+        in_transaction("first_txn") do
+          queue.publish("test_msg")
         end
 
-        in_transaction "test_txn" do
+        in_transaction("test_txn") do
           queue.pop
         end
 
@@ -74,9 +74,9 @@ class BunnyTest < Minitest::Test
   end
 
   def test_metrics_recorded_for_produce_to_a_named_exchange
-    x = Bunny::Exchange.new @chan, :fanout, "activity.events"
-    in_transaction "test_txn" do
-      x.publish "hi"
+    x = Bunny::Exchange.new(@chan, :fanout, "activity.events")
+    in_transaction("test_txn") do
+      x.publish("hi")
     end
     assert_metrics_recorded [
       ["MessageBroker/RabbitMQ/Exchange/Produce/Named/activity.events", "test_txn"],
@@ -85,16 +85,16 @@ class BunnyTest < Minitest::Test
   end
 
   def test_metrics_recorded_for_consume_from_a_named_exchange
-    x = @chan.fanout "activity.events"
+    x = @chan.fanout("activity.events")
 
     with_queue do |queue|
-      queue.bind x
+      queue.bind(x)
 
-      x.publish "howdy", {
+      x.publish("howdy", {
         routing_key: "red"
-      }
+      })
 
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         queue.pop
       end
 
@@ -107,18 +107,18 @@ class BunnyTest < Minitest::Test
 
   def test_segment_parameters_recorded_for_produce
     with_config(:'distributed_tracing.enabled' => false) do
-      x = @chan.fanout "activity.events"
+      x = @chan.fanout("activity.events")
       headers = {foo: "bar"}
-      in_transaction "test_txn" do
-        x.publish "howdy", {
+      in_transaction("test_txn") do
+        x.publish("howdy", {
           routing_key: "red",
           headers: headers,
           reply_to: "blue",
           correlation_id: "abc"
-        }
+        })
       end
 
-      node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
+      node = find_node_with_name_matching(last_transaction_trace, /^MessageBroker\//)
 
       assert_equal :fanout, node.params[:exchange_type]
       assert_equal "red", node.params[:routing_key]
@@ -132,17 +132,17 @@ class BunnyTest < Minitest::Test
     headers = {foo: "bar"}
 
     with_queue do |queue|
-      queue.publish "howdy", {
+      queue.publish("howdy", {
         headers: headers,
         reply_to: "blue",
         correlation_id: "abc"
-      }
+      })
 
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         queue.pop
       end
 
-      node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
+      node = find_node_with_name_matching(last_transaction_trace, /^MessageBroker\//)
 
       assert_equal :direct, node.params[:exchange_type]
       assert_equal queue.name, node.params[:routing_key]
@@ -154,7 +154,7 @@ class BunnyTest < Minitest::Test
 
   def test_pop_returns_original_message
     with_queue do |queue|
-      queue.publish "howdy"
+      queue.publish("howdy")
       msg = queue.pop
 
       assert Array === msg, "message was not an array"
@@ -168,11 +168,11 @@ class BunnyTest < Minitest::Test
     NewRelic::Agent::Messaging.stubs(:start_amqp_publish_segment).raises(StandardError.new("Boo"))
 
     with_queue do |queue|
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         # our instrumentation should error here, but not interfere with bunny
         queue.publish("test_msg")
         # this segment should be fine
-        segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
+        segment = NewRelic::Agent::Tracer.start_segment(name: "Custom/blah/method")
         segment.finish if segment
       end
 
@@ -190,7 +190,7 @@ class BunnyTest < Minitest::Test
     msg = nil
     exchange = @chan.direct('myDirectExchange')
 
-    with_config :'attributes.include' => ['message.exchangeType'] do
+    with_config(:'attributes.include' => ['message.exchangeType']) do
       with_queue do |queue|
         queue.bind(exchange, routing_key: 'some.key')
 
@@ -202,7 +202,7 @@ class BunnyTest < Minitest::Test
         end
 
         lock.synchronize do
-          exchange.publish "hi", routing_key: 'some.key'
+          exchange.publish("hi", routing_key: 'some.key')
           cond.wait(lock)
         end
 
@@ -214,7 +214,7 @@ class BunnyTest < Minitest::Test
 
         cycles = 0
         until (tt = last_transaction_trace) || cycles > 10
-          sleep 0.1
+          sleep(0.1)
           cycles += 1
         end
 
@@ -239,8 +239,8 @@ class BunnyTest < Minitest::Test
 
   def test_metrics_recorded_for_purge_with_server_named_queue
     with_queue do |queue|
-      in_transaction "test_txn" do
-        queue.publish "test"
+      in_transaction("test_txn") do
+        queue.publish("test")
         queue.purge
       end
 
@@ -249,9 +249,9 @@ class BunnyTest < Minitest::Test
   end
 
   def test_metrics_recorded_for_purge_with_named_queue
-    with_queue false do |queue|
-      in_transaction "test_txn" do
-        queue.publish "test"
+    with_queue(false) do |queue|
+      in_transaction("test_txn") do
+        queue.publish("test")
         queue.purge
       end
 
@@ -262,11 +262,11 @@ class BunnyTest < Minitest::Test
   def test_noticed_error_at_segment_and_txn_on_error
     txn = nil
     begin
-      with_queue false do |queue|
+      with_queue(false) do |queue|
         Bunny::Channel.any_instance.stubs("basic_get").raises(Timeout::Error)
         in_transaction do |msg_txn|
           txn = msg_txn
-          queue.publish "test"
+          queue.publish("test")
           queue.pop
         end
       end
@@ -282,12 +282,12 @@ class BunnyTest < Minitest::Test
 
   def test_noticed_error_only_at_segment_on_error
     txn = nil
-    with_queue false do |queue|
+    with_queue(false) do |queue|
       Bunny::Channel.any_instance.stubs("basic_get").raises(Timeout::Error)
       in_transaction do |msg_txn|
         begin
           txn = msg_txn
-          queue.publish "test"
+          queue.publish("test")
           queue.pop
         rescue StandardError => e
           # NOP -- allowing ONLY span to notice error
@@ -303,12 +303,12 @@ class BunnyTest < Minitest::Test
     with_queue do |queue|
       NewRelic::Agent::Tracer.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))
 
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         # This should error
-        queue.publish "test_msg"
+        queue.publish("test_msg")
 
         # this segment should be fine
-        segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
+        segment = NewRelic::Agent::Tracer.start_segment(name: "Custom/blah/method")
         segment.finish
       end
 
@@ -324,7 +324,7 @@ class BunnyTest < Minitest::Test
     NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
 
     with_queue do |queue|
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         queue.pop
       end
 
@@ -342,7 +342,7 @@ class BunnyTest < Minitest::Test
 
       assert_empty channel.exchanges
 
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         msg = queue.pop
         assert_equal "test_msg", msg[2]
       end
@@ -357,7 +357,7 @@ class BunnyTest < Minitest::Test
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
 
-    yield queue if block_given?
+    yield(queue) if block_given?
 
     @chan.queue(queue.name).purge
   end

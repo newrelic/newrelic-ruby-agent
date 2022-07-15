@@ -90,7 +90,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     tt = last_transaction_trace
 
-    node = find_node_with_name_matching tt, /^Datastore\//
+    node = find_node_with_name_matching(tt, /^Datastore\//)
 
     assert_equal(NewRelic::Agent::Hostname.get, node[:host])
     assert_equal('27017', node[:port_path_or_id])
@@ -106,7 +106,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
   def simulate_query
     @subscriber.started(@started_event)
-    advance_process_time @succeeded_event.duration
+    advance_process_time(@succeeded_event.duration)
     @subscriber.succeeded(@succeeded_event)
   end
 end

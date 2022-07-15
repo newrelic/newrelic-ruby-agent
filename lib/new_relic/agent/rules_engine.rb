@@ -37,7 +37,7 @@ module NewRelic
             # Build segment_rules in reverse order from which they're provided,
             # so that when we eliminate duplicates with #uniq!, we retain the last
             # instances of repeated rules.
-            segment_rules.unshift SegmentTermsRule.new(spec)
+            segment_rules.unshift(SegmentTermsRule.new(spec))
           end
         end
 

@@ -7,12 +7,12 @@ require './app'
 
 class ParameterCaptureController < ApplicationController
   def transaction
-    render body: 'hi!'
+    render(body: 'hi!')
   end
 
   def create
     raise 'problem' if params[:raise]
-    render body: 'created'
+    render(body: 'created')
   end
 
   def sql
@@ -35,21 +35,21 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_no_params_captured_on_errors_when_disabled
     with_config(:capture_params => false) do
-      get '/parameter_capture/error?other=1234&secret=4567'
+      get('/parameter_capture/error?other=1234&secret=4567')
       refute_contains_request_params(agent_attributes_for_single_error_posted)
     end
   end
 
   def test_no_params_captured_on_tts_when_disabled
     with_config(:capture_params => false) do
-      get '/parameter_capture/transaction?other=1234&secret=4567'
+      get('/parameter_capture/transaction?other=1234&secret=4567')
     end
     assert_equal({}, last_transaction_trace_request_params)
   end
 
   def test_uri_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
-      get '/parameter_capture/error?other=1234&secret=4567'
+      get('/parameter_capture/error?other=1234&secret=4567')
 
       assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
     end
@@ -57,15 +57,15 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_uri_on_traced_errors_never_contains_query_string_with_capture_params
     with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567'
+      get('/parameter_capture/error?other=1234&secret=4567')
       assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
     end
   end
 
   def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
-      get '/parameter_capture/error?other=1234&secret=4567',
-        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'}
+      get('/parameter_capture/error?other=1234&secret=4567',
+        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'})
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -73,8 +73,8 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_referrer_on_traced_errors_never_contains_query_string_even_with_capture_params
     with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567',
-        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'}
+      get('/parameter_capture/error?other=1234&secret=4567',
+        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'})
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -82,7 +82,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_controller_and_action_excluded_from_error_parameters
     with_config(:capture_params => true) do
-      get '/parameter_capture/error'
+      get('/parameter_capture/error')
       run_harvest
 
       refute_error_has_agent_attribute('request.parameters.controller')
@@ -92,7 +92,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_controller_and_action_excluded_from_transaction_trace_parameters
     with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
-      get '/parameter_capture/transaction'
+      get('/parameter_capture/transaction')
       run_harvest
 
       refute_transaction_trace_has_agent_attribute('request.parameters.controller')
@@ -102,14 +102,14 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_uri_on_tts_never_contains_query_string
     with_config(:capture_params => false) do
-      get '/parameter_capture/transaction?other=1234&secret=4567'
+      get('/parameter_capture/transaction?other=1234&secret=4567')
     end
 
     attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal('/parameter_capture/transaction', attributes[:'request.uri'])
 
     with_config(:capture_params => true) do
-      get '/parameter_capture/transaction?other=1234&secret=4567'
+      get('/parameter_capture/transaction?other=1234&secret=4567')
     end
 
     attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -118,7 +118,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_filters_parameters_on_traced_errors
     with_config(:capture_params => true) do
-      get '/parameter_capture/error?other=1234&secret=4567'
+      get('/parameter_capture/error?other=1234&secret=4567')
 
       captured_params = agent_attributes_for_single_error_posted
       assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
@@ -128,7 +128,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_filters_parameters_on_transaction_traces
     with_config(:capture_params => true) do
-      get '/parameter_capture/transaction?other=1234&secret=4567'
+      get('/parameter_capture/transaction?other=1234&secret=4567')
     end
 
     captured_params = last_transaction_trace_request_params
@@ -138,14 +138,14 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_no_traced_error_params_captured_when_bails_before_rails
     with_config(:capture_params => false) do
-      get '/middleware_error/before?other=1234&secret=4567'
+      get('/middleware_error/before?other=1234&secret=4567')
       refute_contains_request_params(agent_attributes_for_single_error_posted)
     end
   end
 
   def test_no_transaction_trace_params_captured_when_bails_before_rails
     with_config(:capture_params => false) do
-      get '/middleware_error/before?other=1234&secret=4567'
+      get('/middleware_error/before?other=1234&secret=4567')
     end
 
     assert_equal({}, last_transaction_trace_request_params)
@@ -153,21 +153,21 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_no_params_captured_on_error_when_bails_before_rails_even_when_enabled
     with_config(:capture_params => true) do
-      get '/middleware_error/before?other=1234&secret=4567'
+      get('/middleware_error/before?other=1234&secret=4567')
       refute_contains_request_params(agent_attributes_for_single_error_posted)
     end
   end
 
   def test_no_params_captured_on_tt_when_bails_before_rails_even_when_enabled
     with_config(:capture_params => true) do
-      get '/middleware_error/before?other=1234&secret=4567'
+      get('/middleware_error/before?other=1234&secret=4567')
     end
     assert_equal({}, last_transaction_trace_request_params)
   end
 
   def test_uri_on_tt_should_not_contain_query_string_with_capture_params_off
     with_config(:capture_params => false) do
-      get '/parameter_capture/transaction?param1=value1&param2=value2'
+      get('/parameter_capture/transaction?param1=value1&param2=value2')
     end
     attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal('/parameter_capture/transaction', attributes[:'request.uri'])
@@ -175,7 +175,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_uri_on_tt_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
-      get '/parameter_capture/transaction?param1=value1&param2=value2'
+      get('/parameter_capture/transaction?param1=value1&param2=value2')
     end
     attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_equal('/parameter_capture/transaction', attributes[:'request.uri'])
@@ -183,28 +183,28 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_off
     with_config(:capture_params => false) do
-      get '/parameter_capture/error?param1=value1&param2=value2'
+      get('/parameter_capture/error?param1=value1&param2=value2')
       assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
     end
   end
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
-      get '/parameter_capture/error?param1=value1&param2=value2'
+      get('/parameter_capture/error?param1=value1&param2=value2')
       assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
     end
   end
 
   def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_off
     with_config(:capture_params => false) do
-      get '/parameter_capture/sql?param1=value1&param2=value2'
+      get('/parameter_capture/sql?param1=value1&param2=value2')
     end
     assert_equal('/parameter_capture/sql', last_sql_trace.url)
   end
 
   def test_uri_on_sql_trace_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
-      get '/parameter_capture/sql?param1=value1&param2=value2'
+      get('/parameter_capture/sql?param1=value1&param2=value2')
     end
     assert_equal('/parameter_capture/sql', last_sql_trace.url)
   end
@@ -212,7 +212,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_parameters_attached_to_transaction_events_if_enabled
     with_config(:'attributes.include' => 'request.parameters.*',
       :'attributes.exclude' => ['request.*', 'response.*']) do
-      get '/parameter_capture/transaction?param1=value1&param2=value2'
+      get('/parameter_capture/transaction?param1=value1&param2=value2')
     end
 
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
@@ -224,7 +224,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_and_response_attributes_recorded_as_agent_attributes
-    get '/parameter_capture/transaction'
+    get('/parameter_capture/transaction')
 
     expected = {
       "response.headers.contentType" => "#{response.content_type}; charset=#{response.charset}",
@@ -257,7 +257,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_params_tts_should_be_filtered_when_serviced_by_rack_app
     params = {"secret" => "shhhhhhh", "name" => "name"}
     with_config(:capture_params => true) do
-      post '/filtering_test/', params: params
+      post('/filtering_test/', params: params)
     end
 
     expected = {
@@ -270,7 +270,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
     params = {"secret" => "shhhhhhh", "name" => "name"}
     with_config(:capture_params => true) do
-      post '/filtering_test?raise=1', params: params
+      post('/filtering_test?raise=1', params: params)
 
       expected = {
         "request.parameters.secret" => "[FILTERED]",
@@ -297,11 +297,11 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   if defined?(Sinatra)
     def test_params_tts_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
-        get '/sinatra_app/',
+        get('/sinatra_app/',
           params: {
             "secret" => "shhhhhhh",
             "name" => "name"
-          }
+          })
       end
 
       expected = {
@@ -313,11 +313,11 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
     def test_params_on_errors_should_be_filtered_when_serviced_by_sinatra_app
       with_config(:capture_params => true) do
-        get '/sinatra_app?raise=1',
+        get('/sinatra_app?raise=1',
           params: {
             "secret" => "shhhhhhh",
             "name" => "name"
-          }
+          })
         attributes = agent_attributes_for_single_error_posted
         assert_equal "[FILTERED]", attributes["request.parameters.secret"]
         assert_equal "name", attributes["request.parameters.name"]
@@ -327,10 +327,10 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
     def test_file_upload_params_are_replaced_with_placeholder
       with_config(:capture_params => true, :'transaction_tracer.transaction_threshold' => -10) do
-        post '/parameter_capture',
+        post('/parameter_capture',
           params: {
             file: Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
-          }
+          })
 
         run_harvest
 

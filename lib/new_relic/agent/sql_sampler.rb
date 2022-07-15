@@ -75,8 +75,8 @@ module NewRelic
         data.set_transaction_name(name)
         if data.sql_data.size > 0
           @samples_lock.synchronize do
-            ::NewRelic::Agent.logger.debug "Examining #{data.sql_data.size} slow transaction sql statement(s)"
-            save_slow_sql data
+            ::NewRelic::Agent.logger.debug("Examining #{data.sql_data.size} slow transaction sql statement(s)")
+            save_slow_sql(data)
           end
         end
       end
@@ -163,7 +163,7 @@ module NewRelic
         if transaction && transaction.distributed_tracer.distributed_trace_payload
           params = {}
           payload = transaction.distributed_tracer.distributed_trace_payload
-          DistributedTraceAttributes.copy_from_transaction transaction, payload, params
+          DistributedTraceAttributes.copy_from_transaction(transaction, payload, params)
           params[PRIORITY] = transaction.priority
         end
         params
@@ -177,7 +177,7 @@ module NewRelic
         if state.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            params = distributed_trace_attributes state
+            params = distributed_trace_attributes(state)
             data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace, params)
           end
         end
@@ -301,7 +301,7 @@ module NewRelic
         super()
         @params = slow_sql.base_params
         @sql_id = consistent_hash(normalized_query)
-        set_primary slow_sql, path, uri
+        set_primary(slow_sql, path, uri)
         record_data_point(float(slow_sql.duration))
       end
 
@@ -316,7 +316,7 @@ module NewRelic
 
       def aggregate(slow_sql, path, uri)
         if slow_sql.duration > max_call_time
-          set_primary slow_sql, path, uri
+          set_primary(slow_sql, path, uri)
         end
 
         record_data_point(float(slow_sql.duration))

@@ -123,7 +123,7 @@ namespace :newrelic do
     end
 
     def format_env_var(key)
-      return "None" if NON_ENV_CONFIGS.include? key
+      return "None" if NON_ENV_CONFIGS.include?(key)
       "NEW_RELIC_#{key.gsub(".", "_").upcase}"
     end
 

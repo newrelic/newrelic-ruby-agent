@@ -28,7 +28,7 @@ class TestWorker
   def self.run_jobs(count)
     reset(count)
     count.times do |i|
-      yield i
+      yield(i)
     end
     wait
   end

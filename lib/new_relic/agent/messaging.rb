@@ -125,24 +125,24 @@ module NewRelic
         txn = nil
 
         begin
-          txn_name = transaction_name library, destination_type, destination_name
+          txn_name = transaction_name(library, destination_type, destination_name)
 
-          txn = Tracer.start_transaction name: txn_name, category: :message
+          txn = Tracer.start_transaction(name: txn_name, category: :message)
 
           if headers
-            txn.distributed_tracer.consume_message_headers headers, state, RABBITMQ_TRANSPORT_TYPE
+            txn.distributed_tracer.consume_message_headers(headers, state, RABBITMQ_TRANSPORT_TYPE)
             CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
-              txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
+              txn.add_agent_attribute(:"message.headers.#{k}", v, AttributeFilter::DST_NONE) unless v.nil?
             end
           end
 
-          txn.add_agent_attribute :'message.routingKey', routing_key, ATTR_DESTINATION if routing_key
-          txn.add_agent_attribute :'message.exchangeType', exchange_type, AttributeFilter::DST_NONE if exchange_type
-          txn.add_agent_attribute :'message.correlationId', correlation_id, AttributeFilter::DST_NONE if correlation_id
-          txn.add_agent_attribute :'message.queueName', queue_name, ATTR_DESTINATION if queue_name
-          txn.add_agent_attribute :'message.replyTo', reply_to, AttributeFilter::DST_NONE if reply_to
+          txn.add_agent_attribute(:'message.routingKey', routing_key, ATTR_DESTINATION) if routing_key
+          txn.add_agent_attribute(:'message.exchangeType', exchange_type, AttributeFilter::DST_NONE) if exchange_type
+          txn.add_agent_attribute(:'message.correlationId', correlation_id, AttributeFilter::DST_NONE) if correlation_id
+          txn.add_agent_attribute(:'message.queueName', queue_name, ATTR_DESTINATION) if queue_name
+          txn.add_agent_attribute(:'message.replyTo', reply_to, AttributeFilter::DST_NONE) if reply_to
         rescue => e
-          NewRelic::Agent.logger.error "Error starting Message Broker consume transaction", e
+          NewRelic::Agent.logger.error("Error starting Message Broker consume transaction", e)
         end
 
         yield
@@ -150,7 +150,7 @@ module NewRelic
         begin
           txn.finish if txn
         rescue => e
-          NewRelic::Agent.logger.error "Error stopping Message Broker consume transaction", e
+          NewRelic::Agent.logger.error("Error stopping Message Broker consume transaction", e)
         end
       end
 
@@ -258,8 +258,8 @@ module NewRelic
 
         if segment_parameters_enabled?
           if message_properties[:headers] && !message_properties[:headers].empty?
-            non_cat_headers = CrossAppTracing.reject_messaging_cat_headers message_properties[:headers]
-            non_synth_headers = SyntheticsMonitor.reject_messaging_synthetics_header non_cat_headers
+            non_cat_headers = CrossAppTracing.reject_messaging_cat_headers(message_properties[:headers])
+            non_synth_headers = SyntheticsMonitor.reject_messaging_synthetics_header(non_cat_headers)
             segment.params[:headers] = non_synth_headers unless non_synth_headers.empty?
           end
 
@@ -308,7 +308,7 @@ module NewRelic
         queue_name: nil,
         &block
 
-        wrap_message_broker_consume_transaction library: library,
+        wrap_message_broker_consume_transaction(library: library,
           destination_type: :exchange,
           destination_name: Instrumentation::Bunny.exchange_name(destination_name),
           routing_key: delivery_info[:routing_key],
@@ -316,7 +316,7 @@ module NewRelic
           queue_name: queue_name,
           exchange_type: exchange_type,
           headers: message_properties[:headers],
-          correlation_id: message_properties[:correlation_id], &block
+          correlation_id: message_properties[:correlation_id], &block)
       end
 
       private

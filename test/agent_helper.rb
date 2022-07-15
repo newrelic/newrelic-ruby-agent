@@ -20,9 +20,9 @@ module MiniTest
     # Note: passing +msg+ caused two failure messages to be shown on failure
     # and was more confusing than patching here.
     def assert_match matcher, obj, msg = nil
-      msg = message(msg) { "Expected #{mu_pp obj} to match #{mu_pp matcher}" }
+      msg = message(msg) { "Expected #{mu_pp(obj)} to match #{mu_pp(matcher)}" }
       assert_respond_to matcher, :"=~"
-      matcher = Regexp.new Regexp.escape matcher if String === matcher
+      matcher = Regexp.new(Regexp.escape(matcher)) if String === matcher
       assert matcher =~ obj, msg
     end
   end
@@ -42,13 +42,13 @@ class ArrayLogDevice
 end
 
 def fake_guid length = 16
-  NewRelic::Agent::GuidGenerator.generate_guid length
+  NewRelic::Agent::GuidGenerator.generate_guid(length)
 end
 
 def assert_match matcher, obj, msg = nil
-  msg = message(msg) { "Expected #{mu_pp matcher} to match #{mu_pp obj}" }
+  msg = message(msg) { "Expected #{mu_pp(matcher)} to match #{mu_pp(obj)}" }
   assert_respond_to matcher, :"=~"
-  matcher = Regexp.new Regexp.escape matcher if String === matcher
+  matcher = Regexp.new(Regexp.escape(matcher)) if String === matcher
   assert matcher =~ obj, msg
 end
 
@@ -329,7 +329,7 @@ alias :refute_metrics_recorded :assert_metrics_not_recorded
 def assert_no_metrics_match regex
   matching_metrics = []
   NewRelic::Agent.instance.stats_engine.to_h.keys.map(&:to_s).each do |metric|
-    matching_metrics << metric if metric.match regex
+    matching_metrics << metric if metric.match(regex)
   end
 
   assert_equal(
@@ -399,7 +399,7 @@ def in_transaction *args, &blk
 
   NewRelic::Agent::Tracer.in_transaction(name: name, category: category, options: opts) do
     txn = state.current_transaction
-    yield state.current_transaction
+    yield(state.current_transaction)
   end
 
   txn
@@ -423,7 +423,7 @@ def with_segment *args, &blk
   segment = nil
   txn = in_transaction(*args) do |txn|
     segment = txn.current_segment
-    yield segment, txn
+    yield(segment, txn)
   end
   [segment, txn]
 end
@@ -446,7 +446,7 @@ def capture_segment_with_error
     end
   rescue Exception => exception
     assert segment_with_error, "expected to have a segment_with_error"
-    build_deferred_error_attributes segment_with_error
+    build_deferred_error_attributes(segment_with_error)
     return segment_with_error, exception
   end
 end
@@ -459,13 +459,13 @@ end
 # looks like we are in a web transaction
 def in_web_transaction name = 'dummy'
   in_transaction(name, :category => :controller, :request => stub(:path => '/')) do |txn|
-    yield txn
+    yield(txn)
   end
 end
 
 def in_background_transaction name = 'silly'
   in_transaction(name, :category => :task) do |txn|
-    yield txn
+    yield(txn)
   end
 end
 
@@ -523,7 +523,7 @@ end
 
 def find_node_with_name_matching transaction_sample, regex
   transaction_sample.root_node.each_node do |node|
-    if node.metric_name.match regex
+    if node.metric_name.match(regex)
       return node
     end
   end
@@ -537,7 +537,7 @@ def find_all_nodes_with_name_matching transaction_sample, regexes
 
   transaction_sample.root_node.each_node do |node|
     regexes.each do |regex|
-      if node.metric_name.match regex
+      if node.metric_name.match(regex)
         matching_nodes << node
       end
     end
@@ -559,7 +559,7 @@ def with_config config_hash, at_start = true
 end
 
 def with_server_source config_hash, at_start = true
-  with_config config_hash, at_start do
+  with_config(config_hash, at_start) do
     NewRelic::Agent.config.notify_server_source_added
     yield
   end
@@ -796,11 +796,11 @@ class EnvUpdater
   end
 
   def self.safe_update env
-    instance.safe_update env
+    instance.safe_update(env)
   end
 
   def self.safe_restore old_env
-    instance.safe_restore old_env
+    instance.safe_restore(old_env)
   end
 
   # Effectively saves current ENV settings for given env's key/values,
@@ -876,14 +876,14 @@ def load_cross_agent_test name
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
   data = ::JSON.load(data)
-  data.each { |testcase| testcase['testname'].gsub! ' ', '_' if String === testcase['testname'] }
+  data.each { |testcase| testcase['testname'].gsub!(' ', '_') if String === testcase['testname'] }
   data
 end
 
 def each_cross_agent_test options
   options = {:dir => nil, :pattern => "*"}.update(options)
-  path = File.join [cross_agent_tests_dir, options[:dir], options[:pattern]].compact
-  Dir.glob(path).each { |file| yield file }
+  path = File.join([cross_agent_tests_dir, options[:dir], options[:pattern]].compact)
+  Dir.glob(path).each { |file| yield(file) }
 end
 
 def assert_event_attributes event, test_name, expected_attributes, non_expected_attributes
@@ -919,7 +919,7 @@ def attributes_for sample, type
 end
 
 def uncache_trusted_account_key
-  NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+  NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set(:@trace_state_entry_key, nil)
 end
 
 def reset_buffers_and_caches
@@ -949,7 +949,7 @@ def mock_http_response headers, wrap_it = true
   status_code = (headers.delete("status_code") || 200).to_i
   net_http_resp = Net::HTTPResponse.new(1.0, status_code, message_for_status_code(status_code))
   headers.each do |key, value|
-    net_http_resp.add_field key.to_s, value
+    net_http_resp.add_field(key.to_s, value)
   end
   return net_http_resp unless wrap_it
   NewRelic::Agent::HTTPClients::NetHTTPResponse.new(net_http_resp)
@@ -996,12 +996,12 @@ def refute_raises *exp
     yield
   rescue MiniTest::Skip => e
     puts "SKIP REPORTS: #{e.inspect}"
-    return e if exp.include? MiniTest::Skip
+    return e if exp.include?(MiniTest::Skip)
     raise e
   rescue Exception => e
     puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"
     exp = exp.first if exp.size == 1
-    flunk msg || "unexpected exception raised: #{e}"
+    flunk(msg || "unexpected exception raised: #{e}")
   end
 end
 

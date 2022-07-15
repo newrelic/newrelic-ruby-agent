@@ -89,14 +89,14 @@ module DependencyDetection
 
     def log_and_instrument method, instrumenting_module, supportability_name
       supportability_name ||= extract_supportability_name(instrumenting_module)
-      NewRelic::Agent.logger.info "Installing New Relic supported #{supportability_name} instrumentation using #{method}"
+      NewRelic::Agent.logger.info("Installing New Relic supported #{supportability_name} instrumentation using #{method}")
       NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/#{method}", 0.0)
       yield
     end
 
     def prepend_instrument target_class, instrumenting_module, supportability_name = nil
       log_and_instrument("Prepend", instrumenting_module, supportability_name) do
-        target_class.send :prepend, instrumenting_module
+        target_class.send(:prepend, instrumenting_module)
       end
     end
 
@@ -107,9 +107,9 @@ module DependencyDetection
     end
 
     def chain_instrument_target target, instrumenting_module, supportability_name = nil
-      NewRelic::Agent.logger.info "Installing deferred #{target} instrumentation"
+      NewRelic::Agent.logger.info("Installing deferred #{target} instrumentation")
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
-        instrumenting_module.instrument! target
+        instrumenting_module.instrument!(target)
       end
     end
 
@@ -118,7 +118,7 @@ module DependencyDetection
         begin
           x.call
         rescue => err
-          NewRelic::Agent.logger.error "Error while installing #{self.name} instrumentation:", err
+          NewRelic::Agent.logger.error("Error while installing #{self.name} instrumentation:", err)
           break
         end
       end
@@ -156,9 +156,10 @@ module DependencyDetection
       return false unless ::NewRelic::Agent.config[key] == true
 
       ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
-      ::NewRelic::Agent.logger.debug \
+      ::NewRelic::Agent.logger.debug( \
         "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release. " \
         "Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
+      )
 
       return true
     end

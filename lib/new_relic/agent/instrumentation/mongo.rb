@@ -19,7 +19,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info 'Installing Mongo instrumentation'
+    NewRelic::Agent.logger.info('Installing Mongo instrumentation')
     install_mongo_command_subscriber
   end
 

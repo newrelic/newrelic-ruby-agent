@@ -29,8 +29,8 @@ module NewRelic
           priority: nil,
           timestamp: now_ms
 
-          new version, parent_type, parent_account_id, parent_app_id, id,
-            transaction_id, sampled, priority, timestamp
+          new(version, parent_type, parent_account_id, parent_app_id, id,
+            transaction_id, sampled, priority, timestamp)
         end
 
         include NewRelic::Coerce
@@ -38,7 +38,7 @@ module NewRelic
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
 
-          payload = create \
+          payload = create( \
             version: int!(attrs[0]),
             parent_type: int!(attrs[1]),
             parent_account_id: attrs[2],
@@ -48,10 +48,11 @@ module NewRelic
             sampled: value_or_nil(attrs[6]) ? boolean_int!(attrs[6]) == 1 : nil,
             priority: float!(attrs[7]),
             timestamp: int!(attrs[8])
-          handle_invalid_payload message: 'payload missing attributes' unless payload.valid?
+          )
+          handle_invalid_payload(message: 'payload missing attributes') unless payload.valid?
           payload
         rescue => e
-          handle_invalid_payload error: e
+          handle_invalid_payload(error: e)
           raise
         end
 
@@ -62,11 +63,11 @@ module NewRelic
         end
 
         def handle_invalid_payload error: nil, message: nil
-          NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
+          NewRelic::Agent.increment_metric(SUPPORTABILITY_PARSE_EXCEPTION)
           if error
-            NewRelic::Agent.logger.warn "Error parsing trace context payload", error
+            NewRelic::Agent.logger.warn("Error parsing trace context payload", error)
           elsif message
-            NewRelic::Agent.logger.warn "Error parsing trace context payload: #{message}"
+            NewRelic::Agent.logger.warn("Error parsing trace context payload: #{message}")
           end
         end
       end

@@ -10,7 +10,7 @@ require 'newrelic_rpm'
 NewRelic::Agent::Tracer.in_transaction(name: 'ponies', category: :controller) do
 end
 
-NewRelic::Agent.notice_error 'oops'
+NewRelic::Agent.notice_error('oops')
 
 NewRelic::Agent.instance.send(:transmit_data)
 

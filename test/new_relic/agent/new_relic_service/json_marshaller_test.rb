@@ -18,7 +18,7 @@ module NewRelic
 
         def test_default_encoder_is_identity_with_simple_compression_enabled
           marshaller = JsonMarshaller.new
-          with_config :simple_compression => true do
+          with_config(:simple_compression => true) do
             assert_equal Encoders::Identity, marshaller.default_encoder
           end
         end

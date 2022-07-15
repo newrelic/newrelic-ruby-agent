@@ -110,7 +110,7 @@ if defined?(::Rack::Test)
 
     def test_should_not_inject_javascript_when_transaction_ignored
       with_config(:'rules.ignore_url_regexes' => ['^/ignore/path']) do
-        get '/ignore/path'
+        get('/ignore/path')
 
         app.stubs(:should_instrument?).returns(true)
         app.expects(:autoinstrument_source).never
@@ -118,7 +118,7 @@ if defined?(::Rack::Test)
     end
 
     def test_insert_header_should_mark_environment
-      get '/'
+      get('/')
       assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
     end
 
@@ -160,7 +160,7 @@ if defined?(::Rack::Test)
       TestApp.next_response = Rack::Response.new("<html/>")
       TestApp.next_response.expects(:close)
 
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end
@@ -170,7 +170,7 @@ if defined?(::Rack::Test)
       response.force_encoding(Encoding.find("US-ASCII"))
       TestApp.next_response = Rack::Response.new(response)
 
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end
@@ -180,14 +180,14 @@ if defined?(::Rack::Test)
       TestApp.next_response.stubs(:respond_to?).with(:close).returns(false)
       TestApp.next_response.expects(:close).never
 
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end
 
     def test_should_not_throw_exception_on_empty_reponse
       TestApp.doc = ''
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end

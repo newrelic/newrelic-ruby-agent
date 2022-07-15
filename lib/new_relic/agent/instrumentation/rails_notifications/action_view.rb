@@ -19,7 +19,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info 'Installing notification based Action View instrumentation'
+    NewRelic::Agent.logger.info('Installing notification based Action View instrumentation')
   end
 
   executes do

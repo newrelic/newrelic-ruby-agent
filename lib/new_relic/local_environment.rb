@@ -38,8 +38,8 @@ module NewRelic
       # Extend self with any any submodules of LocalEnvironment.  These can override
       # the discover methods to discover new framworks and dispatchers.
       NewRelic::LocalEnvironment.constants.each do |const|
-        mod = NewRelic::LocalEnvironment.const_get const
-        self.extend mod if mod.instance_of? Module
+        mod = NewRelic::LocalEnvironment.const_get(const)
+        self.extend(mod) if mod.instance_of?(Module)
       end
 
       @discovered_dispatcher = nil
@@ -79,7 +79,7 @@ module NewRelic
       ]
       # TODO: MAJOR VERSION - remove rainbows
       while dispatchers.any? && @discovered_dispatcher.nil?
-        send 'check_for_' + (dispatchers.shift)
+        send('check_for_' + (dispatchers.shift))
       end
     end
 

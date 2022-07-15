@@ -13,7 +13,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveJob instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveJob instrumentation')
 
     ActiveSupport.on_load(:active_job) do
       ::ActiveJob::Base.around_enqueue do |job, block|

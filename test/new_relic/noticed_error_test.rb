@@ -211,7 +211,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_custom_attributes_sent_when_enabled
-    with_config :'error_collector.attributes.enabled' => true do
+    with_config(:'error_collector.attributes.enabled' => true) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
       attributes.merge_custom_attributes(custom_attrs)
@@ -224,7 +224,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_custom_attributes_not_sent_when_disabled
-    with_config :'error_collector.attributes.enabled' => false do
+    with_config(:'error_collector.attributes.enabled' => false) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
       attributes.merge_custom_attributes(custom_attrs)
@@ -237,9 +237,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_agent_attributes_sent_when_enabled
-    with_config :'error_collector.attributes.enabled' => true do
+    with_config(:'error_collector.attributes.enabled' => true) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
+      attributes.add_agent_attribute(:"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL)
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes
@@ -250,9 +250,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_agent_attributes_not_sent_when_disabled
-    with_config :'error_collector.attributes.enabled' => false do
+    with_config(:'error_collector.attributes.enabled' => false) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
+      attributes.add_agent_attribute(:"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL)
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes

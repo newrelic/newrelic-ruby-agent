@@ -53,7 +53,7 @@ class APISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_add_instrumentation_records_supportability_metric
-    NewRelic::Agent.add_instrumentation 'foo.rb'
+    NewRelic::Agent.add_instrumentation('foo.rb')
     assert_api_supportability_metric_recorded(:add_instrumentation)
   end
 
@@ -229,7 +229,7 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_process_request_metadata_records_supportability_metric
-    NewRelic::Agent::External.process_request_metadata ''
+    NewRelic::Agent::External.process_request_metadata('')
     assert_api_supportability_metric_recorded(:process_request_metadata)
   end
 
@@ -239,7 +239,7 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_process_response_metadata_records_supportability_metric
-    @segment.process_response_metadata ''
+    @segment.process_response_metadata('')
     assert_api_supportability_metric_recorded(:process_response_metadata)
   end
 end

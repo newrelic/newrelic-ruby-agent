@@ -51,14 +51,14 @@ module NewRelic::Agent::Instrumentation
     def _nr_hostname
       self.path ? LOCALHOST : self.host
     rescue => e
-      NewRelic::Agent.logger.debug "Failed to retrieve Redis host: #{e}"
+      NewRelic::Agent.logger.debug("Failed to retrieve Redis host: #{e}")
       UNKNOWN
     end
 
     def _nr_port_path_or_id
       self.path || self.port
     rescue => e
-      NewRelic::Agent.logger.debug "Failed to retrieve Redis port_path_or_id: #{e}"
+      NewRelic::Agent.logger.debug("Failed to retrieve Redis port_path_or_id: #{e}")
       UNKNOWN
     end
   end

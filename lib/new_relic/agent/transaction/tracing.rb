@@ -24,7 +24,7 @@ module NewRelic
         def add_segment segment, parent = nil
           segment.transaction = self
           segment.parent = parent || current_segment
-          set_current_segment segment
+          set_current_segment(segment)
           if @segments.length < segment_limit
             @segments << segment
           else
@@ -39,7 +39,7 @@ module NewRelic
           if segment.parent && segment.parent.starting_thread_id != ::Thread.current.object_id
             remove_current_segment_by_thread_id(::Thread.current.object_id)
           else
-            set_current_segment segment.parent
+            set_current_segment(segment.parent)
           end
         end
 
@@ -63,8 +63,8 @@ module NewRelic
             OTHER_TRANSACTION_TOTAL_TIME
           end
 
-          @metrics.record_unscoped total_time_metric, total_time
-          @metrics.record_unscoped "#{total_time_metric}/#{@frozen_name}", total_time
+          @metrics.record_unscoped(total_time_metric, total_time)
+          @metrics.record_unscoped("#{total_time_metric}/#{@frozen_name}", total_time)
         end
       end
     end

@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 INFINITE_TRACING_TEST_PATH = File.expand_path('../../../../infinite_tracing/test')
-$LOAD_PATH.unshift INFINITE_TRACING_TEST_PATH
+$LOAD_PATH.unshift(INFINITE_TRACING_TEST_PATH)
 
 require 'test_helper'
 

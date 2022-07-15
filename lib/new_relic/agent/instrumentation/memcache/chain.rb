@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
       extend Helper
 
       def self.instrument! target_class
-        instrument_methods target_class, client_methods
+        instrument_methods(target_class, client_methods)
       end
     end
   end

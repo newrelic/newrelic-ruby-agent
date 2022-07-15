@@ -26,7 +26,7 @@ module ::Excon
               procedure: wrapped_request.method
             )
 
-            segment.add_request_headers wrapped_request
+            segment.add_request_headers(wrapped_request)
 
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, segment)
           end
@@ -55,7 +55,7 @@ module ::Excon
 
             if datum[:response]
               wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
-              segment.process_response_headers wrapped_response
+              segment.process_response_headers(wrapped_response)
             end
           ensure
             segment.finish if segment

@@ -13,7 +13,7 @@ class EnumeratorQueue
   end
 
   def preload items
-    Array(items).each { |item| @queue.push item }
+    Array(items).each { |item| @queue.push(item) }
     self
   end
 
@@ -22,8 +22,8 @@ class EnumeratorQueue
     loop do
       value = @queue.pop
       break if value.nil?
-      fail value if value.is_a? Exception
-      yield value
+      fail value if value.is_a?(Exception)
+      yield(value)
     end
   end
 end

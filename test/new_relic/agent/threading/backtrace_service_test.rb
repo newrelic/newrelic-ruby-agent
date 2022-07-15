@@ -490,7 +490,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         # avoid method redefinition warnings
         class << @service
           begin
-            remove_method :adjust_polling_time
+            remove_method(:adjust_polling_time)
           rescue NameError
           end
         end

@@ -13,7 +13,7 @@ require 'bundler'
 unless Bundler.respond_to?(:with_unbundled_env)
   module Bundler
     def self.with_unbundled_env &block
-      Bundler.with_clean_env &block
+      Bundler.with_clean_env(&block)
     end
   end
 end

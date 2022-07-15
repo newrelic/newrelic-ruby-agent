@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[httprb]"
+SimpleCovHelper.command_name("test:multiverse[httprb]")
 require "http"
 require "newrelic_rpm"
 require "http_client_test_cases"
@@ -24,7 +24,7 @@ class HTTPTest < Minitest::Test
   end
 
   def get_wrapped_response url
-    NewRelic::Agent::HTTPClients::HTTPResponse.new get_response url
+    NewRelic::Agent::HTTPClients::HTTPResponse.new(get_response(url))
   end
 
   def head_response

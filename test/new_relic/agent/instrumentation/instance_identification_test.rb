@@ -123,8 +123,8 @@ module NewRelic
               NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
 
               in_transaction do
-                config = convert_test_case_to_config test
-                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil, config[:adapter]
+                config = convert_test_case_to_config(test)
+                product, operation, collection = ActiveRecordHelper.product_operation_collection_for("Blog Find", nil, config[:adapter])
                 host = ActiveRecordHelper::InstanceIdentification.host(config)
                 port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
@@ -156,7 +156,7 @@ module NewRelic
               end
               memo
             end
-            convert_product_to_adapter config
+            convert_product_to_adapter(config)
             config
           end
 

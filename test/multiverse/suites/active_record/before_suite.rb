@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 def redefine_mysql_primary_key const_str
-  const = Object.const_get const_str rescue return
+  const = Object.const_get(const_str) rescue return
   const[:primary_key] = "int(11) auto_increment PRIMARY KEY"
 end
 
@@ -20,7 +20,7 @@ if defined? ::Mysql2
 end
 
 begin
-  load 'Rakefile'
+  load('Rakefile')
   Rake::Task['db:create'].invoke
   Rake::Task['db:migrate'].invoke
 rescue => e

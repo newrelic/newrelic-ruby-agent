@@ -52,28 +52,29 @@ module NewRelic
           )
           return if header_data.nil?
 
-          accept_trace_context header_data
+          accept_trace_context(header_data)
         end
         private :accept_trace_context_incoming_request
 
         def insert_trace_context_header header, format = NewRelic::FORMAT_NON_RACK
           return unless Agent.config[:'distributed_tracing.enabled']
 
-          NewRelic::Agent::DistributedTracing::TraceContext.insert \
+          NewRelic::Agent::DistributedTracing::TraceContext.insert( \
             format: format,
             carrier: header,
             trace_id: transaction.trace_id.rjust(32, '0').downcase,
             parent_id: transaction.current_segment.guid,
             trace_flags: transaction.sampled? ? 0x1 : 0x0,
             trace_state: create_trace_state
+          )
 
           @trace_context_inserted = true
 
-          NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
+          NewRelic::Agent.increment_metric(CREATE_SUCCESS_METRIC)
           true
         rescue Exception => e
-          NewRelic::Agent.increment_metric CREATE_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to create trace context payload", e
+          NewRelic::Agent.increment_metric(CREATE_EXCEPTION_METRIC)
+          NewRelic::Agent.logger.warn("Failed to create trace context payload", e)
           false
         end
 
@@ -82,9 +83,10 @@ module NewRelic
           payload = create_trace_state_payload
 
           if payload
-            entry = NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry \
+            entry = NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry( \
               entry_key,
               payload.to_s
+            )
           else
             entry = NewRelic::EMPTY_STR
           end
@@ -94,30 +96,31 @@ module NewRelic
 
         def create_trace_state_payload
           unless Agent.config[:'distributed_tracing.enabled']
-            NewRelic::Agent.logger.warn "Not configured to create WC3 trace context payload"
+            NewRelic::Agent.logger.warn("Not configured to create WC3 trace context payload")
             return
           end
 
           span_guid = Agent.config[:'span_events.enabled'] ? transaction.current_segment.guid : nil
           transaction_guid = Agent.config[:'transaction_events.enabled'] ? transaction.guid : nil
 
-          TraceContextPayload.create \
+          TraceContextPayload.create( \
             parent_account_id: Agent.config[:account_id],
             parent_app_id: Agent.config[:primary_application_id],
             transaction_id: transaction_guid,
             sampled: transaction.sampled?,
             priority: float!(transaction.priority, NewRelic::PRIORITY_PRECISION),
             id: span_guid
+          )
         end
 
         def assign_trace_state_payload
           payload = @trace_context_header_data.trace_state_payload
           unless payload
-            NewRelic::Agent.increment_metric NO_NR_ENTRY_TRACESTATE_METRIC
+            NewRelic::Agent.increment_metric(NO_NR_ENTRY_TRACESTATE_METRIC)
             return false
           end
           unless payload.valid?
-            NewRelic::Agent.increment_metric INVALID_TRACESTATE_PAYLOAD_METRIC
+            NewRelic::Agent.increment_metric(INVALID_TRACESTATE_PAYLOAD_METRIC)
             return false
           end
           @trace_state_payload = payload
@@ -138,20 +141,20 @@ module NewRelic
             transaction.sampled = payload.sampled
             transaction.priority = payload.priority if payload.priority
           end
-          NewRelic::Agent.increment_metric ACCEPT_SUCCESS_METRIC
+          NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
         rescue => e
-          NewRelic::Agent.increment_metric ACCEPT_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to accept trace context payload", e
+          NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
+          NewRelic::Agent.logger.warn("Failed to accept trace context payload", e)
           false
         end
 
         def ignore_trace_context?
           if trace_context_header_data
-            NewRelic::Agent.increment_metric IGNORE_MULTIPLE_ACCEPT_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_MULTIPLE_ACCEPT_METRIC)
             return true
           elsif trace_context_inserted?
-            NewRelic::Agent.increment_metric IGNORE_ACCEPT_AFTER_CREATE_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_ACCEPT_AFTER_CREATE_METRIC)
             return true
           end
           false

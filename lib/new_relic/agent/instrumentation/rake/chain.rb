@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
       def self.instrument!
         ::Rake::Task.class_eval do
           include NewRelic::Agent::Instrumentation::Rake::Tracer
-          alias_method :invoke_without_newrelic, :invoke
+          alias_method(:invoke_without_newrelic, :invoke)
 
           def invoke(*args)
             invoke_with_newrelic_tracing(*args) { invoke_without_newrelic(*args) }

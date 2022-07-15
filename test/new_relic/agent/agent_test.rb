@@ -127,7 +127,7 @@ module NewRelic
           # for more likely for the purposes of this test.
           harvester = @agent.harvester
           def harvester.mark_started
-            sleep 0.01
+            sleep(0.01)
             super
           end
 
@@ -178,7 +178,7 @@ module NewRelic
             :truncate => 4000)
 
           @agent.transaction_sampler.stubs(:harvest!).returns([trace])
-          @agent.send :harvest_and_send_transaction_traces
+          @agent.send(:harvest_and_send_transaction_traces)
         end
       end
 
@@ -189,7 +189,7 @@ module NewRelic
         @agent.service.stubs(:transaction_sample_data).raises("wat")
         @agent.transaction_sampler.expects(:merge!).with(traces)
 
-        @agent.send :harvest_and_send_transaction_traces
+        @agent.send(:harvest_and_send_transaction_traces)
       end
 
       def test_harvest_and_send_errors_merges_back_on_failure
@@ -199,7 +199,7 @@ module NewRelic
         @agent.service.stubs(:error_data).raises('wat')
         @agent.error_collector.error_trace_aggregator.expects(:merge!).with(errors)
 
-        @agent.send :harvest_and_send_errors
+        @agent.send(:harvest_and_send_errors)
       end
 
       def test_harvest_and_send_logs_merges_back_on_failure
@@ -209,7 +209,7 @@ module NewRelic
         @agent.service.stubs(:log_event_data).raises('wat')
         @agent.log_event_aggregator.expects(:merge!).with(logs)
 
-        @agent.send :harvest_and_send_log_event_data
+        @agent.send(:harvest_and_send_log_event_data)
       end
 
       # This test asserts nothing about correctness of logging data from multiple
@@ -238,18 +238,18 @@ module NewRelic
 
       def test_handle_for_agent_commands
         @agent.service.expects(:get_agent_commands).returns([]).once
-        @agent.send :check_for_and_handle_agent_commands
+        @agent.send(:check_for_and_handle_agent_commands)
       end
 
       def test_check_for_and_handle_agent_commands_with_error
         @agent.service.expects(:get_agent_commands).raises('bad news')
-        @agent.send :check_for_and_handle_agent_commands
+        @agent.send(:check_for_and_handle_agent_commands)
       end
 
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
         @agent.agent_command_router.stubs(:harvest!).returns({:profile_data => [Object.new]})
-        @agent.send :harvest_and_send_for_agent_commands
+        @agent.send(:harvest_and_send_for_agent_commands)
       end
 
       def test_merge_data_for_endpoint_empty
@@ -765,7 +765,7 @@ module NewRelic
             gzip.byteslice(0..-2)
           ].join("\r\n")
 
-          server.accept.write headers.chomp
+          server.accept.write(headers.chomp)
         end
 
         @agent.unstub(:start_worker_thread)

@@ -12,7 +12,7 @@ module NewRelic::Agent::Instrumentation
         ::Thread.class_eval do
           include NewRelic::Agent::Instrumentation::MonitoredThread
 
-          alias_method :initialize_without_new_relic, :initialize
+          alias_method(:initialize_without_new_relic, :initialize)
 
           def initialize(*args, &block)
             traced_block = add_thread_tracing(*args, &block)

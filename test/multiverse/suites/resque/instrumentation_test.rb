@@ -5,7 +5,7 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
-SimpleCovHelper.command_name "test:multiverse[resque]"
+SimpleCovHelper.command_name("test:multiverse[resque]")
 require 'resque'
 require 'logger'
 require 'newrelic_rpm'
@@ -29,7 +29,7 @@ class ResqueTest < Minitest::Test
     end
 
     def self.perform(name, sleep_duration = 0)
-      sleep sleep_duration
+      sleep(sleep_duration)
       @count += 1
     end
 

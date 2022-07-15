@@ -60,10 +60,10 @@ module NewRelic
           attrs[DURATION_KEY] = payload[:duration]
           attrs[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)
           attrs[PRIORITY_KEY] = payload[:priority]
-          append_synthetics payload, attrs
-          append_cat payload, attrs
-          DistributedTraceAttributes.copy_to_hash payload, attrs
-          PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
+          append_synthetics(payload, attrs)
+          append_cat(payload, attrs)
+          DistributedTraceAttributes.copy_to_hash(payload, attrs)
+          PayloadMetricMapping.append_mapped_metrics(payload[:metrics], attrs)
         else
           attrs[PRIORITY_KEY] = rand.round(NewRelic::PRIORITY_PRECISION)
         end

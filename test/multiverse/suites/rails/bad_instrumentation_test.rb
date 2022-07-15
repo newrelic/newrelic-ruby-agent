@@ -12,8 +12,8 @@ class BadInstrumentationController < ApplicationController
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    NewRelic::Agent::Tracer.start_segment name: "Controller/BadInstrumentationController/failwhale"
-    render body: 'everything went great'
+    NewRelic::Agent::Tracer.start_segment(name: "Controller/BadInstrumentationController/failwhale")
+    render(body: 'everything went great')
   end
 end
 
@@ -22,7 +22,7 @@ class BadInstrumentationTest < ActionDispatch::IntegrationTest
   setup_and_teardown_agent
 
   def test_unbalanced_tt_stack_should_not_cause_request_to_fail
-    rsp = get '/bad_instrumentation/failwhale'
+    rsp = get('/bad_instrumentation/failwhale')
     assert_equal(200, rsp.to_i)
   end
 end

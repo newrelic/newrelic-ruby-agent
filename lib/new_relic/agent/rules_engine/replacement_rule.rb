@@ -37,7 +37,7 @@ module NewRelic
               segment.match(@match_expression)
             end
           else
-            string.match @match_expression
+            string.match(@match_expression)
           end
         end
 

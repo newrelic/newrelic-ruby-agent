@@ -90,12 +90,12 @@ RUBY
 
   if RUBY_PLATFORM != 'java'
     def test_after_fork_clears_existing_transactions
-      with_config clear_transaction_state_after_fork: true do
+      with_config(clear_transaction_state_after_fork: true) do
         read, write = IO.pipe
 
         NewRelic::Agent.manual_start(:app_name => 'my great app')
 
-        in_transaction "outer txn" do
+        in_transaction("outer txn") do
           pid = Process.fork do
             read.close
             NewRelic::Agent.after_fork

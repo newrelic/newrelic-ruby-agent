@@ -11,23 +11,23 @@ module NewRelic
       class ActiveStorageSubscriber < NotificationsSubscriber
         def start name, id, payload
           return unless state.is_execution_traced?
-          start_segment name, id, payload
+          start_segment(name, id, payload)
         rescue => e
-          log_notification_error e, name, 'start'
+          log_notification_error(e, name, 'start')
         end
 
         def finish name, id, payload
           return unless state.is_execution_traced?
-          finish_segment id, payload
+          finish_segment(id, payload)
         rescue => e
-          log_notification_error e, name, 'finish'
+          log_notification_error(e, name, 'finish')
         end
 
         def start_segment name, id, payload
-          segment = Tracer.start_segment name: metric_name(name, payload)
+          segment = Tracer.start_segment(name: metric_name(name, payload))
           segment.params[:key] = payload[:key]
-          segment.params[:exist] = payload[:exist] if payload.key? :exist
-          push_segment id, segment
+          segment.params[:exist] = payload[:exist] if payload.key?(:exist)
+          push_segment(id, segment)
         end
 
         def finish_segment id, payload
@@ -41,7 +41,7 @@ module NewRelic
 
         def metric_name name, payload
           service = payload[:service]
-          method = method_from_name name
+          method = method_from_name(name)
           "Ruby/ActiveStorage/#{service}Service/#{method}"
         end
 

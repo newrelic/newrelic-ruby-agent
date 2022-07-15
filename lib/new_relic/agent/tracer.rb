@@ -235,8 +235,8 @@ module NewRelic
           start_time: nil,
           parent: nil)
 
-          segment = Transaction::Segment.new name, unscoped_metrics, start_time
-          start_and_add_segment segment, parent
+          segment = Transaction::Segment.new(name, unscoped_metrics, start_time)
+          start_and_add_segment(segment, parent)
         rescue ArgumentError
           raise
         rescue => exception
@@ -293,8 +293,8 @@ module NewRelic
           product ||= UNKNOWN
           operation ||= OTHER
 
-          segment = Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
-          start_and_add_segment segment, parent
+          segment = Transaction::DatastoreSegment.new(product, operation, collection, host, port_path_or_id, database_name)
+          start_and_add_segment(segment, parent)
         rescue ArgumentError
           raise
         rescue => exception
@@ -334,8 +334,8 @@ module NewRelic
           start_time: nil,
           parent: nil)
 
-          segment = Transaction::ExternalRequestSegment.new library, uri, procedure, start_time
-          start_and_add_segment segment, parent
+          segment = Transaction::ExternalRequestSegment.new(library, uri, procedure, start_time)
+          start_and_add_segment(segment, parent)
         rescue ArgumentError
           raise
         rescue => exception
@@ -352,7 +352,7 @@ module NewRelic
           yield
         rescue => exception
           if segment && segment.is_a?(Transaction::AbstractSegment)
-            segment.notice_error exception
+            segment.notice_error(exception)
           end
           raise
         end
@@ -376,7 +376,7 @@ module NewRelic
             parameters: parameters,
             start_time: start_time
           )
-          start_and_add_segment segment, parent
+          start_and_add_segment(segment, parent)
         rescue ArgumentError
           raise
         rescue => exception
@@ -425,7 +425,7 @@ module NewRelic
           tracer_state = state
           if (txn = tracer_state.current_transaction) &&
               tracer_state.tracing_enabled?
-            txn.add_segment segment, parent
+            txn.add_segment(segment, parent)
           else
             segment.record_metrics = false
           end

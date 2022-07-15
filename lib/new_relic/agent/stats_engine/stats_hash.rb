@@ -77,11 +77,11 @@ module NewRelic
 
       def each
         @scoped.each do |k, v|
-          yield k, v
+          yield(k, v)
         end
         @unscoped.each do |k, v|
           spec = NewRelic::MetricSpec.new(k)
-          yield spec, v
+          yield(spec, v)
         end
       end
 

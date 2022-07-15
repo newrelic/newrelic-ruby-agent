@@ -21,7 +21,7 @@ module NewRelic
       enabled_key :'custom_insights_events.enabled'
 
       def record(type, attributes)
-        unless attributes.is_a? Hash
+        unless attributes.is_a?(Hash)
           raise ArgumentError, "Expected Hash but got #{attributes.class}"
         end
 
