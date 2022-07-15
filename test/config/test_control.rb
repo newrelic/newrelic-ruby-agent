@@ -43,11 +43,11 @@ class NewRelic::Control::Frameworks::Test < parent_class
       return if defined? draw_without_test_route
       def draw_with_test_route
         draw_without_test_route do |map|
-          map.connect ':controller/:action/:id'
-          yield map
+          map.connect(':controller/:action/:id')
+          yield(map)
         end
       end
-      alias_method_chain :draw, :test_route
+      alias_method_chain(:draw, :test_route)
     end
     # Force the routes to be reloaded
     ActionController::Routing::Routes.reload!

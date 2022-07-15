@@ -11,7 +11,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Sidekiq instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Sidekiq instrumentation')
   end
 
   executes do
@@ -82,16 +82,16 @@ DependencyDetection.defer do
 
     Sidekiq.configure_client do |config|
       config.client_middleware do |chain|
-        chain.add NewRelic::SidekiqInstrumentation::Client
+        chain.add(NewRelic::SidekiqInstrumentation::Client)
       end
     end
 
     Sidekiq.configure_server do |config|
       config.client_middleware do |chain|
-        chain.add NewRelic::SidekiqInstrumentation::Client
+        chain.add(NewRelic::SidekiqInstrumentation::Client)
       end
       config.server_middleware do |chain|
-        chain.add NewRelic::SidekiqInstrumentation::Server
+        chain.add(NewRelic::SidekiqInstrumentation::Server)
       end
 
       if config.respond_to?(:error_handlers)

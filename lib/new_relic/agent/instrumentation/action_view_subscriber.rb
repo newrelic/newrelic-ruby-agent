@@ -19,7 +19,7 @@ module NewRelic
           if state.is_execution_traced? && recordable?(name, metric_name)
             event.finishable = Tracer.start_segment(name: metric_name)
           end
-          push_segment id, event
+          push_segment(id, event)
         rescue => e
           log_notification_error(e, name, 'start')
         end
@@ -27,7 +27,7 @@ module NewRelic
         def finish(name, id, payload)
           if segment = pop_segment(id)
             if exception = exception_object(payload)
-              segment.notice_error exception
+              segment.notice_error(exception)
             end
             segment.finish
           end
@@ -104,7 +104,7 @@ module NewRelic
         end
 
         def notice_error error
-          @finishable.notice_error error if @finishable
+          @finishable.notice_error(error) if @finishable
         end
       end
     end

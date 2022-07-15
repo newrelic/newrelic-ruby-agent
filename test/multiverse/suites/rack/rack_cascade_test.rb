@@ -25,20 +25,20 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     def app
       Rack::Builder.app do
-        use NewRelic::Rack::AgentHooks
-        use NewRelic::Rack::BrowserMonitoring
-        use ResponseCodeMiddleware
-        run Rack::Cascade.new([FirstCascadeExampleApp.new, SecondCascadeExampleApp.new])
+        use(NewRelic::Rack::AgentHooks)
+        use(NewRelic::Rack::BrowserMonitoring)
+        use(ResponseCodeMiddleware)
+        run(Rack::Cascade.new([FirstCascadeExampleApp.new, SecondCascadeExampleApp.new]))
       end
     end
 
     def test_insert_js_does_not_fire_for_rack_cascade_404_responses
-      rsp = get '/', {'body' => '<html><head></head><body></body></html>', 'override-response-code' => 404}
+      rsp = get('/', {'body' => '<html><head></head><body></body></html>', 'override-response-code' => 404})
       refute(rsp.body.include?('script'), "\nExpected\n---\n#{rsp.body}\n---\nnot to include 'script'.")
     end
 
     def test_rack_cascade_transactions_are_named_for_the_last_app
-      rsp = get '/cascade'
+      rsp = get('/cascade')
       assert_metrics_recorded('Controller/SecondCascadeExampleApp/call')
     end
   end

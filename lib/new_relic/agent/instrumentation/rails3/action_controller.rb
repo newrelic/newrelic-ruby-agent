@@ -41,7 +41,7 @@ module NewRelic
                 "file"
               elsif identifier.nil?
                 ::NewRelic::Agent::UNKNOWN_METRIC
-              elsif identifier.include? '/' # this is a filepath
+              elsif identifier.include?('/') # this is a filepath
                 identifier.split('/')[-2..-1].join('/')
               else
                 identifier
@@ -75,7 +75,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 3 Controller instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Rails 3 Controller instrumentation')
   end
 
   executes do
@@ -102,7 +102,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 3.2 view instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Rails 3.2 view instrumentation')
   end
 
   executes do
@@ -112,10 +112,10 @@ DependencyDetection.defer do
 
       def render_with_newrelic(context, options)
         # This is needed for rails 3.2 compatibility
-        @details = extract_details(options) if respond_to? :extract_details, true
+        @details = extract_details(options) if respond_to?(:extract_details, true)
         identifier = determine_template(options) ? determine_template(options).identifier : nil
         scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
-        trace_execution_scoped scope_name do
+        trace_execution_scoped(scope_name) do
           render_without_newrelic(context, options)
         end
       end

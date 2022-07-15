@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[padrino]"
+SimpleCovHelper.command_name("test:multiverse[padrino]")
 # Shhhh
 Padrino::Logger::Config[:development][:stream] = :null
 
@@ -44,11 +44,11 @@ class PadrinoRoutesTest < Minitest::Test
   def test_tracing_is_involved
     klass = ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] == 'chain' ? ::PadrinoTestApp : ::Padrino::Application
     klass.any_instance.expects(:invoke_route_with_tracing)
-    get '/user/login'
+    get('/user/login')
   end
 
   def test_basic_route
-    get '/user/login'
+    get('/user/login')
     assert_equal 200, last_response.status
     assert_equal 'please log in', last_response.body
 
@@ -59,7 +59,7 @@ class PadrinoRoutesTest < Minitest::Test
   end
 
   def test_regex_route
-    get '/regexes'
+    get('/regexes')
     assert_equal 200, last_response.status
     assert_equal "with extra regexes please!", last_response.body
 

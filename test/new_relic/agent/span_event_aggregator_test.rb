@@ -17,7 +17,7 @@ module NewRelic
 
         nr_freeze_process_time
         events = NewRelic::Agent.instance.events
-        @event_aggregator = SpanEventAggregator.new events
+        @event_aggregator = SpanEventAggregator.new(events)
       end
 
       def teardown
@@ -59,7 +59,7 @@ module NewRelic
           {}
         ]
 
-        @event_aggregator.record event: event
+        @event_aggregator.record(event: event)
       end
 
       def last_events
@@ -81,7 +81,7 @@ module NewRelic
       include NewRelic::CommonAggregatorTests
 
       def test_supportability_metrics_for_span_events
-        with_config aggregator.class.capacity_key => 5 do
+        with_config(aggregator.class.capacity_key => 5) do
           12.times { generate_event }
         end
 

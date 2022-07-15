@@ -21,8 +21,8 @@ module NewRelic
           total_spans = 5
 
           spans = create_grpc_mock
-          with_config fake_server_config do
-            simulate_connect_to_collector fake_server_config do |simulator|
+          with_config(fake_server_config) do
+            simulate_connect_to_collector(fake_server_config) do |simulator|
               simulator.join
 
               # starts client and streams count segments
@@ -57,7 +57,7 @@ module NewRelic
           inf_tracer = NewRelic::Agent.agent.infinite_tracer
 
           assert NewRelic::Agent.agent.instance_variable_get(:@infinite_tracer_thread), 'Expected infinite tracer thread to not be nil'
-          NewRelic::Agent.agent.handle_force_restart(StandardError.new 'test')
+          NewRelic::Agent.agent.handle_force_restart(StandardError.new('test'))
         end
       end
     end

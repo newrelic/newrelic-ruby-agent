@@ -30,7 +30,7 @@ module NewRelic
       res.status = req.params["status"].to_i if req.params["status"]
 
       in_transaction('test') do
-        res.write STATUS_MESSAGE
+        res.write(STATUS_MESSAGE)
       end
       res.finish
     end

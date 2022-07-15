@@ -86,7 +86,7 @@ module NewRelic::Agent
     end
 
     def test_records_customer_metrics_when_enabled
-      with_config LogEventAggregator::METRICS_ENABLED_KEY => true do
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
         2.times { @aggregator.record("Are you counting this?", "DEBUG") }
         @aggregator.harvest!
       end
@@ -115,7 +115,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_record_customer_metrics_when_disabled
-      with_config LogEventAggregator::METRICS_ENABLED_KEY => false do
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => false) do
         @aggregator.record("Are you counting this?", "DEBUG")
         @aggregator.harvest!
       end
@@ -295,7 +295,7 @@ module NewRelic::Agent
     end
 
     def test_records_metrics_on_harvest
-      with_config CAPACITY_KEY => 5 do
+      with_config(CAPACITY_KEY => 5) do
         9.times { @aggregator.record("Are you counting this?", "DEBUG") }
         @aggregator.harvest!
 
@@ -311,7 +311,7 @@ module NewRelic::Agent
     end
 
     def test_high_security_mode
-      with_config CAPACITY_KEY => 5, :high_security => true do
+      with_config(CAPACITY_KEY => 5, :high_security => true) do
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 

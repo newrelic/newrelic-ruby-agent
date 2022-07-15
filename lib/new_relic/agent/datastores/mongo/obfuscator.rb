@@ -11,7 +11,7 @@ module NewRelic
           ALLOWLIST = [:operation].freeze
 
           def self.obfuscate_statement(source, allowlist = ALLOWLIST)
-            if source.is_a? Hash
+            if source.is_a?(Hash)
               obfuscated = {}
               source.each do |key, value|
                 if allowlist.include?(key)

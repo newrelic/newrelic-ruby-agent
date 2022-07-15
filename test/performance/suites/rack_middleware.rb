@@ -107,13 +107,13 @@ begin
       end
 
       @stack = Rack::Builder.new do
-        middlewares.each { |m| use m }
-        run TestApp.new
+        middlewares.each { |m| use(m) }
+        run(TestApp.new)
       end.to_app
 
       @stack_with_params = Rack::Builder.new do
-        middlewares.each { |m| use m }
-        run TestAppWithParams.new
+        middlewares.each { |m| use(m) }
+        run(TestAppWithParams.new)
       end.to_app
 
       @env = {

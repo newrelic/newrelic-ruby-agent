@@ -29,7 +29,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info 'Installing Redis Instrumentation'
+    NewRelic::Agent.logger.info('Installing Redis Instrumentation')
     if use_prepend?
       prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
     else

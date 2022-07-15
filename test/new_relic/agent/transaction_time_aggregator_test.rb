@@ -58,17 +58,17 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     worker = Thread.new do
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 27
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 47
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_start(t0 + 27)
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop(t0 + 47)
     end
 
     # main thread:
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start(t0 + 15)
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop(t0 + 35)
 
     worker.join
 
-    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! t0 + 60
+    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest!(t0 + 60)
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
@@ -76,16 +76,16 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     # main thread:
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start(t0 + 15)
     starting_thread_id = Thread.current.object_id
 
     worker = Thread.new do
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35, starting_thread_id
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop(t0 + 35, starting_thread_id)
     end
 
     worker.join
 
-    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! t0 + 60
+    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest!(t0 + 60)
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
@@ -118,7 +118,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
     workers = 100.times.map do
       Thread.new do
-        ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
+        ::NewRelic::Agent::TransactionTimeAggregator.transaction_start(t0 + 15)
         # thread dies before transaction completes
       end
     end

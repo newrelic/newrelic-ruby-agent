@@ -99,7 +99,7 @@ module NewRelic
               procedure: wrapped_request.method
             )
 
-            segment.add_request_headers wrapped_request
+            segment.add_request_headers(wrapped_request)
 
             # install all callbacks
             unless request._nr_instrumented
@@ -129,9 +129,9 @@ module NewRelic
             request._nr_header_str = nil
             request.on_header do |header_data|
               if original_callback
-                original_callback.call header_data
+                original_callback.call(header_data)
               else
-                wrapped_response.append_header_data header_data
+                wrapped_response.append_header_data(header_data)
                 header_data.length
               end
             end
@@ -143,7 +143,7 @@ module NewRelic
             request._nr_original_on_complete = original_callback
             request.on_complete do |finished_request|
               begin
-                segment.process_response_headers wrapped_response
+                segment.process_response_headers(wrapped_response)
               ensure
                 segment.finish if segment
                 # Make sure the existing completion callback is run, and restore the
@@ -167,8 +167,8 @@ module NewRelic
             request.on_failure do |failed_request, error|
               begin
                 if segment
-                  noticible_error = NewRelic::Agent::NoticibleError.new error[0].name, error[-1]
-                  segment.notice_error noticible_error
+                  noticible_error = NewRelic::Agent::NoticibleError.new(error[0].name, error[-1])
+                  segment.notice_error(noticible_error)
                 end
               ensure
                 original_callback.call(failed_request, error) if original_callback

@@ -104,15 +104,15 @@ module Performance
       }
 
       table = Table.new(rows, @options) do
-        column :name
-        column :before, &(FormattingHelpers.method(:format_duration))
-        column :after, &(FormattingHelpers.method(:format_duration))
-        column :delta, &format_percent_delta
-        column :allocs_before
-        column :allocs_after
-        column :allocs_delta, &format_percent_delta
-        column :retained
-        column :retained_delta, &format_percent_delta
+        column(:name)
+        column(:before, &(FormattingHelpers.method(:format_duration)))
+        column(:after, &(FormattingHelpers.method(:format_duration)))
+        column(:delta, &format_percent_delta)
+        column(:allocs_before)
+        column(:allocs_after)
+        column(:allocs_delta, &format_percent_delta)
+        column(:retained)
+        column(:retained_delta, &format_percent_delta)
       end
 
       puts table.render

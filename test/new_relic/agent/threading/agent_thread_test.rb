@@ -33,11 +33,11 @@ module NewRelic::Agent::Threading
       t = Thread.new do
         begin
           in_web_transaction do
-            q0.push 'unblock main thread'
+            q0.push('unblock main thread')
             q1.pop
           end
         rescue => e
-          q0.push 'unblock main thread'
+          q0.push('unblock main thread')
           fail e
         end
       end
@@ -45,7 +45,7 @@ module NewRelic::Agent::Threading
       q0.pop # wait until thread has had a chance to start up
       assert_equal :request, AgentThread.bucket_thread(t, DONT_CARE)
 
-      q1.push 'unblock background thread'
+      q1.push('unblock background thread')
       t.join
     end
 
@@ -56,11 +56,11 @@ module NewRelic::Agent::Threading
       t = ::Thread.new do
         begin
           in_transaction do
-            q0.push 'unblock main thread'
+            q0.push('unblock main thread')
             q1.pop
           end
         rescue => e
-          q0.push 'unblock main thread'
+          q0.push('unblock main thread')
           fail e
         end
       end
@@ -68,7 +68,7 @@ module NewRelic::Agent::Threading
       q0.pop # wait until thread pushes to q
       assert_equal :background, AgentThread.bucket_thread(t, DONT_CARE)
 
-      q1.push 'unblock background thread'
+      q1.push('unblock background thread')
       t.join
     end
 
@@ -120,12 +120,12 @@ module NewRelic::Agent::Threading
     end
 
     def with_thread_report_on_exception_disabled(&blk)
-      if Thread.respond_to? :report_on_exception
+      if Thread.respond_to?(:report_on_exception)
         report_on_exception_original_value = Thread.report_on_exception
         Thread.report_on_exception = false
       end
       blk.call
-      if Thread.respond_to? :report_on_exception
+      if Thread.respond_to?(:report_on_exception)
         Thread.report_on_exception = report_on_exception_original_value
       end
     end

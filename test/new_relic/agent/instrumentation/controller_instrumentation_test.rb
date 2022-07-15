@@ -257,19 +257,19 @@ module NewRelic::Agent::Instrumentation
     def test_add_transaction_tracer_should_not_double_instrument
       TestObject.expects(:alias_method).never
       TestObject.class_eval do
-        add_transaction_tracer :public_transaction
-        add_transaction_tracer :protected_transaction
-        add_transaction_tracer :private_transaction
+        add_transaction_tracer(:public_transaction)
+        add_transaction_tracer(:protected_transaction)
+        add_transaction_tracer(:private_transaction)
       end
       TestObject.new
     end
 
     def test_add_transaction_tracer_defines_with_method
-      assert TestObject.method_defined? :public_transaction_with_newrelic_transaction_trace
+      assert TestObject.method_defined?(:public_transaction_with_newrelic_transaction_trace)
     end
 
     def test_add_transaction_tracer_defines_without_method
-      assert TestObject.method_defined? :public_transaction_without_newrelic_transaction_trace
+      assert TestObject.method_defined?(:public_transaction_without_newrelic_transaction_trace)
     end
 
     def test_parse_punctuation

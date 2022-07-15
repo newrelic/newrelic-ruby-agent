@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[curb]"
+SimpleCovHelper.command_name("test:multiverse[curb]")
 require 'curb'
 require 'newrelic_rpm'
 require 'http_client_test_cases'
@@ -18,7 +18,7 @@ class CurbTest < Minitest::Test
 
   def test_shouldnt_clobber_existing_header_callback
     headers = []
-    Curl::Easy.http_get default_url do |handle|
+    Curl::Easy.http_get(default_url) do |handle|
       handle.on_header do |header|
         headers << header
         header.length
@@ -30,7 +30,7 @@ class CurbTest < Minitest::Test
 
   def test_shouldnt_clobber_existing_completion_callback
     completed = false
-    Curl::Easy.http_get default_url do |handle|
+    Curl::Easy.http_get(default_url) do |handle|
       handle.on_complete do
         completed = true
       end
@@ -78,7 +78,7 @@ class CurbTest < Minitest::Test
   def test_get_via_multi_preserves_header_str
     header_str = nil
 
-    Curl::Multi.get [default_url] do |easy|
+    Curl::Multi.get([default_url]) do |easy|
       header_str = easy.header_str
     end
 
@@ -104,7 +104,7 @@ class CurbTest < Minitest::Test
     other_url = "http://localhost:#{$fake_server.port}/"
 
     in_transaction("test") do
-      Curl::Multi.get [default_url, other_url] do |easy|
+      Curl::Multi.get([default_url, other_url]) do |easy|
         results << easy.body_str
       end
 
@@ -160,7 +160,7 @@ class CurbTest < Minitest::Test
   end
 
   def simulate_error_response
-    get_response "http://localhost:666/evil"
+    get_response("http://localhost:666/evil")
   end
 
   def get_response url = nil, headers = nil
@@ -175,23 +175,23 @@ class CurbTest < Minitest::Test
   end
 
   def get_wrapped_response url
-    NewRelic::Agent::HTTPClients::CurbResponse.new get_response url
+    NewRelic::Agent::HTTPClients::CurbResponse.new(get_response(url))
   end
 
   def head_response
-    Curl::Easy.http_head default_url
+    Curl::Easy.http_head(default_url)
   end
 
   def post_response
-    Curl::Easy.http_post default_url, ''
+    Curl::Easy.http_post(default_url, '')
   end
 
   def put_response
-    Curl::Easy.http_put default_url, ''
+    Curl::Easy.http_put(default_url, '')
   end
 
   def delete_response
-    Curl::Easy.http_delete default_url
+    Curl::Easy.http_delete(default_url)
   end
 
   def body res
@@ -205,7 +205,7 @@ class CurbTest < Minitest::Test
   def response_instance headers = {}
     res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new("http://localhost"))
     headers.each do |hdr, val|
-      res.append_header_data "#{hdr}: #{val}"
+      res.append_header_data("#{hdr}: #{val}")
     end
 
     return res

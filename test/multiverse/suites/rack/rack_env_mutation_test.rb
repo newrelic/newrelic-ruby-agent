@@ -38,14 +38,14 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     def app
       inner_app = BadApp.new
       Rack::Builder.app do
-        use NewRelic::Rack::AgentHooks
-        run inner_app
+        use(NewRelic::Rack::AgentHooks)
+        run(inner_app)
       end
     end
 
     def test_safe_from_iterations_over_rack_env_from_background_threads
       100.times do
-        get '/'
+        get('/')
       end
     end
   end

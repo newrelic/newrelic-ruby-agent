@@ -36,7 +36,7 @@ module NetHttpTestCases
   end
 
   def get_wrapped_response url
-    NewRelic::Agent::HTTPClients::NetHTTPResponse.new get_response url
+    NewRelic::Agent::HTTPClients::NetHTTPResponse.new(get_response(url))
   end
 
   def get_response_multi(url, n)
@@ -94,7 +94,7 @@ module NetHttpTestCases
     headers.each do |k, v|
       response[k] = v
     end
-    NewRelic::Agent::HTTPClients::NetHTTPResponse.new response
+    NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
   end
 
   #
@@ -105,7 +105,7 @@ module NetHttpTestCases
     return if use_ssl?
 
     in_transaction do
-      Net::HTTP.get default_uri
+      Net::HTTP.get(default_uri)
     end
 
     assert_metrics_recorded([

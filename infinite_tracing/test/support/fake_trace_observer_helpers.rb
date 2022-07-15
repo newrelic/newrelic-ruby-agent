@@ -113,11 +113,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # or set it up and continue with test scenario's flow.
           def simulate_connect_to_collector config, delay = 0.01
             thread = Thread.new do
-              sleep delay
+              sleep(delay)
               NewRelic::Agent.instance.stubs(:connected?).returns(true)
-              @response_handler.configure_agent config
+              @response_handler.configure_agent(config)
             end
-            yield thread
+            yield(thread)
           ensure
             thread.kill
             NewRelic::Agent.instance.unstub(:connected?)
@@ -127,15 +127,15 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # happens and a new agent run token is presented.
           def simulate_reconnect_to_collector config
             NewRelic::Agent.instance.stubs(:connected?).returns(true)
-            @response_handler.configure_agent config
+            @response_handler.configure_agent(config)
           end
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             client = nil
 
-            with_config fake_server_config do
-              simulate_connect_to_collector fake_server_config do |simulator|
+            with_config(fake_server_config) do
+              simulate_connect_to_collector(fake_server_config) do |simulator|
                 simulator.join
 
                 # starts client and streams count segments
@@ -175,7 +175,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def simulate_server_response_shutdown(response = GRPC::Ok.new)
             @server_response_enum << response
             # allow the test to handle the response before shutting down
-            sleep 0.1 if !@server_response_enum.empty?
+            sleep(0.1) if !@server_response_enum.empty?
             @mock_thread.kill
           end
 
@@ -223,12 +223,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           # This ensures that the mock grpc server has time to process what it has received before we being asserting
           def wait_for_mock_server_process
-            sleep 0.1 if !@server_response_enum.empty?
+            sleep(0.1) if !@server_response_enum.empty?
           end
 
           def emulate_streaming_segments count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size, &block
+            segments = emulate_streaming_with_tracer(nil, count, max_buffer_size, &block)
             join_grpc_mock
             return spans, segments
           end
@@ -236,8 +236,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_to_unimplemented count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock(simulate_broken_server: true)
             active_client = nil
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
-              simulate_server_response_shutdown GRPC::Unimplemented.new
+            segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
+              simulate_server_response_shutdown(GRPC::Unimplemented.new)
               active_client = client
             end
             join_grpc_mock
@@ -247,8 +247,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_to_failed_precondition count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock(simulate_broken_server: true)
             active_client = nil
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
-              simulate_server_response_shutdown GRPC::FailedPrecondition.new
+            segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
+              simulate_server_response_shutdown(GRPC::FailedPrecondition.new)
               active_client ||= client
             end
             join_grpc_mock
@@ -258,10 +258,10 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_with_initial_error count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock
             first = true
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
+            segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
               if first
                 # raise error only first time
-                simulate_server_response_shutdown GRPC::PermissionDenied.new(details = "denied")
+                simulate_server_response_shutdown(GRPC::PermissionDenied.new(details = "denied"))
                 first = false
               else
                 simulate_server_response
@@ -273,8 +273,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_ok_close_response count, max_buffer_size = 100_000, &block
             spans = create_grpc_mock
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, current_segments|
-              simulate_server_response GRPC::Ok.new
+            segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
+              simulate_server_response(GRPC::Ok.new)
             end
             join_grpc_mock
             return spans, segments
@@ -284,14 +284,14 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def generate_and_stream_segments(expect_mock: true)
             unstub_reconnection
             spans = create_grpc_mock(expect_mock: expect_mock)
-            with_config fake_server_config do
+            with_config(fake_server_config) do
               # Suppresses intermittent fails from server not ready to accept streaming
               # (the retry loop goes _much_ faster)
               Connection.instance.stubs(:retry_connection_period).returns(0.01)
               nr_freeze_time
               nr_freeze_process_time
 
-              simulate_connect_to_collector fake_server_config do |simulator|
+              simulate_connect_to_collector(fake_server_config) do |simulator|
                 simulator.join
                 yield
 

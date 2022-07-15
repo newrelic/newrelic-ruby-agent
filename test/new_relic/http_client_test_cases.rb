@@ -84,7 +84,7 @@ module HttpClientTestCases
   # This test is early warning an HTTP client's library
   # has made breaking changes on their Response objects
   def test_status_code_is_present
-    res = get_wrapped_response default_url
+    res = get_wrapped_response(default_url)
     assert_equal 200, res.status_code
   end
 
@@ -478,7 +478,7 @@ module HttpClientTestCases
     end
 
     last_node = find_last_transaction_node()
-    unless last_node.metric_name.start_with? "External"
+    unless last_node.metric_name.start_with?("External")
       refute last_node.params.key?(:uri)
     end
   end
@@ -561,7 +561,7 @@ module HttpClientTestCases
 
           in_transaction do |txn|
             txn_info = test_case['inboundPayload']
-            payload = NewRelic::Agent::CrossAppPayload.new 'someId', txn, txn_info
+            payload = NewRelic::Agent::CrossAppPayload.new('someId', txn, txn_info)
             txn.distributed_tracer.cross_app_payload = payload
             stub_transaction_guid(test_case['transactionGuid'])
             test_case['outboundRequests'].each do |req|
@@ -705,7 +705,7 @@ module HttpClientTestCases
   def simulate_server_error server_class, port
     server = server_class.new(port)
     server.run
-    get_response "http://localhost:#{port}"
+    get_response("http://localhost:#{port}")
   ensure
     server.stop
   end
@@ -716,7 +716,7 @@ module HttpClientTestCases
     in_transaction do |ext_txn|
       begin
         txn = ext_txn
-        response = simulate_server_error NewRelic::FakeForbiddenServer, 4403
+        response = simulate_server_error(NewRelic::FakeForbiddenServer, 4403)
       rescue StandardError => e
         # NOP
       end
@@ -734,7 +734,7 @@ module HttpClientTestCases
     in_transaction do |ext_txn|
       begin
         txn = ext_txn
-        response = simulate_server_error NewRelic::FakeInternalErrorServer, 5500
+        response = simulate_server_error(NewRelic::FakeInternalErrorServer, 5500)
       rescue StandardError => e
         # NOP
       end

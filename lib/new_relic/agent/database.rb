@@ -259,7 +259,7 @@ module NewRelic
           # between usage of mysql and mysql2. Obfuscation is the same, though.
           elsif adapter == MYSQL2_PREFIX
             :mysql2
-          elsif adapter.start_with? SQLITE_PREFIX
+          elsif adapter.start_with?(SQLITE_PREFIX)
             :sqlite
           else
             adapter.to_sym

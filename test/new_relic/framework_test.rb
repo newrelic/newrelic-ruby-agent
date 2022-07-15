@@ -18,7 +18,7 @@ class FrameworkTest < Minitest::Test
     NewRelic::Agent.reset_config
 
     # don't bomb out trying to load frameworks that don't exist.
-    NewRelic::Control.stubs(:new_instance).returns(stub :init_plugin => nil)
+    NewRelic::Control.stubs(:new_instance).returns(stub(:init_plugin => nil))
   end
 
   def teardown

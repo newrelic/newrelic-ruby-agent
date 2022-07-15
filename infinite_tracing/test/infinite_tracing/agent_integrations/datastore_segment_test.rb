@@ -32,7 +32,7 @@ module NewRelic
                 database_name: "calzone_zone"
               )
 
-              segment.notice_sql sql_statement
+              segment.notice_sql(sql_statement)
               advance_process_time(1)
               segment.finish
 

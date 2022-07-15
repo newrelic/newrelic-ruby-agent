@@ -1468,9 +1468,18 @@ Style/MapToHash:
   Enabled: false
 
 Style/MethodCallWithArgsParentheses:
-  Enabled: false
+  Enabled: true
+  IgnoredMethods:
+    - puts
+    - require
+    - raise
+    - include
+    - fail
+    - print
+    - add_dependency
+    - add_development_dependency
+  AllowedPatterns: [^assert, ^refute]
 
-# Disabling for now
 Style/MethodCallWithoutArgsParentheses:
   Enabled: false
   IgnoredMethods: []

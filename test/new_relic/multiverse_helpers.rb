@@ -232,7 +232,7 @@ module MultiverseHelpers
     raw_attributes = @js_data["atts"]
 
     if raw_attributes
-      attributes = ::JSON.load @instrumentor.obfuscator.deobfuscate(raw_attributes)
+      attributes = ::JSON.load(@instrumentor.obfuscator.deobfuscate(raw_attributes))
       @js_custom_attributes = attributes['u']
       @js_agent_attributes = attributes['a']
     end

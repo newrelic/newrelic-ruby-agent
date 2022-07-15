@@ -23,10 +23,10 @@ module NewRelic
           elsif platform =~ /linux/
             @sampler = ProcStatus.new
             if !@sampler.can_run?
-              ::NewRelic::Agent.logger.debug "Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead."
+              ::NewRelic::Agent.logger.debug("Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead.")
               @sampler = ShellPS.new("ps -o rsz")
             else
-              ::NewRelic::Agent.logger.debug "Using /proc/#{$$}/status for reading process memory."
+              ::NewRelic::Agent.logger.debug("Using /proc/#{$$}/status for reading process memory.")
             end
           elsif platform =~ /darwin9/ # 10.5
             @sampler = ShellPS.new("ps -o rsz")
@@ -85,12 +85,12 @@ module NewRelic
             begin
               m = get_memory
               if m.nil?
-                ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}.  Disabling memory sampler."
+                ::NewRelic::Agent.logger.warn("Unable to get the resident memory for process #{$$}.  Disabling memory sampler.")
                 @broken = true
               end
               return m
             rescue => e
-              ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}. Disabling memory sampler.", e
+              ::NewRelic::Agent.logger.warn("Unable to get the resident memory for process #{$$}. Disabling memory sampler.", e)
               @broken = true
               return nil
             end

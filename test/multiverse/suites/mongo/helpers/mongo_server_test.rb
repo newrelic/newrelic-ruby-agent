@@ -92,12 +92,12 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_pingable_returns_true_if_ping_is_ok
     ok_status = {"ok" => 1.0}
-    @server.stubs(:ping).returns ok_status
+    @server.stubs(:ping).returns(ok_status)
     assert @server.pingable?
   end
 
   def test_server_start_times_out_if_it_isnt_pingable
-    @server.stubs(:pingable?).returns false
+    @server.stubs(:pingable?).returns(false)
 
     assert_raise Timeout::Error do
       @server.start

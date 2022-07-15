@@ -35,14 +35,14 @@ module NewRelic::Agent
 
       def join timeout = nil
         return unless @worker_thread
-        NewRelic::Agent.logger.debug "joining worker #{@name} thread..."
-        @worker_thread.join timeout
+        NewRelic::Agent.logger.debug("joining worker #{@name} thread...")
+        @worker_thread.join(timeout)
       end
 
       def stop
         @lock.synchronize do
           return unless @worker_thread
-          NewRelic::Agent.logger.debug "stopping worker #{@name} thread..."
+          NewRelic::Agent.logger.debug("stopping worker #{@name} thread...")
           @worker_thread.kill
           @worker_thread = nil
         end
@@ -51,7 +51,7 @@ module NewRelic::Agent
       private
 
       def start_thread
-        NewRelic::Agent.logger.debug "starting worker #{@name} thread..."
+        NewRelic::Agent.logger.debug("starting worker #{@name} thread...")
         @worker_thread = Thread.new do
           catch(:exit) do
             begin
@@ -63,7 +63,7 @@ module NewRelic::Agent
           end
         end
         @worker_thread.abort_on_exception = true
-        if @worker_thread.respond_to? :report_on_exception
+        if @worker_thread.respond_to?(:report_on_exception)
           @worker_thread.report_on_exception = NewRelic::Agent.config[:log_level] == "debug"
         end
       end

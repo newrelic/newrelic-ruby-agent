@@ -30,7 +30,7 @@ module NewRelic::Agent
       # client (if any) and returns self (so we chain the call)
       def transfer previous_client
         return self unless previous_client
-        previous_client.buffer.transfer buffer
+        previous_client.buffer.transfer(buffer)
         self
       end
 
@@ -38,7 +38,7 @@ module NewRelic::Agent
       # client is currently suspended.
       def new_streaming_buffer
         buffer_class = suspended? ? SuspendedStreamingBuffer : StreamingBuffer
-        buffer_class.new Config.span_events_queue_size
+        buffer_class.new(Config.span_events_queue_size)
       end
 
       def buffer
@@ -63,17 +63,17 @@ module NewRelic::Agent
 
       # Reports AND logs general response metric along with a more specific error metric
       def record_error_metrics_and_log error
-        NewRelic::Agent.record_metric RESPONSE_ERROR_METRIC, 0.0
-        if error.is_a? GRPC::BadStatus
-          NewRelic::Agent.record_metric grpc_error_metric_name(error), 0.0
+        NewRelic::Agent.record_metric(RESPONSE_ERROR_METRIC, 0.0)
+        if error.is_a?(GRPC::BadStatus)
+          NewRelic::Agent.record_metric(grpc_error_metric_name(error), 0.0)
         else
-          NewRelic::Agent.record_metric GRPC_OTHER_ERROR_METRIC, 0.0
+          NewRelic::Agent.record_metric(GRPC_OTHER_ERROR_METRIC, 0.0)
         end
-        NewRelic::Agent.logger.warn "gRPC response error received.", error
+        NewRelic::Agent.logger.warn("gRPC response error received.", error)
       end
 
       def handle_error error
-        record_error_metrics_and_log error
+        record_error_metrics_and_log(error)
 
         case error
         when GRPC::Unavailable then restart
@@ -81,7 +81,7 @@ module NewRelic::Agent
         when GRPC::Unimplemented then suspend
         else
           # Set exponential backoff to false so we'll reconnect at periodic (15 second) intervals instead
-          start_streaming false
+          start_streaming(false)
         end
       end
 
@@ -95,8 +95,8 @@ module NewRelic::Agent
       # server and re-establish the gRPC bi-directional stream.  Useful for the server
       # to initiate a load-balancing scheme.
       def handle_close
-        NewRelic::Agent.logger.debug "The gRPC Trace Observer closed the stream with OK response. " \
-          "Restarting the stream."
+        NewRelic::Agent.logger.debug("The gRPC Trace Observer closed the stream with OK response. " \
+          "Restarting the stream.")
         start_streaming
       end
 
@@ -108,8 +108,8 @@ module NewRelic::Agent
         @lock.synchronize do
           @suspended = true
           @buffer = new_streaming_buffer
-          NewRelic::Agent.logger.warn "The Trace Observer host signaled to suspend streaming span events. " \
-            "No more span events will be sent during this session."
+          NewRelic::Agent.logger.warn("The Trace Observer host signaled to suspend streaming span events. " \
+            "No more span events will be sent during this session.")
         end
       end
 
@@ -123,7 +123,7 @@ module NewRelic::Agent
         @lock.synchronize do
           old_buffer = @buffer
           @buffer = new_streaming_buffer
-          old_buffer.transfer @buffer
+          old_buffer.transfer(@buffer)
         end
       end
 
@@ -144,15 +144,15 @@ module NewRelic::Agent
       def start_streaming exponential_backoff = true
         return if suspended?
         Connection.instance.wait_for_agent_connect
-        @lock.synchronize { @response_handler = record_spans exponential_backoff }
+        @lock.synchronize { @response_handler = record_spans(exponential_backoff) }
       end
 
       def record_spans exponential_backoff
-        RecordStatusHandler.new self, Connection.record_spans(self, buffer.enumerator, exponential_backoff)
+        RecordStatusHandler.new(self, Connection.record_spans(self, buffer.enumerator, exponential_backoff))
       end
 
       def record_span_batches exponential_backoff
-        RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator, exponential_backoff)
+        RecordStatusHandler.new(self, Connection.record_span_batches(self, buffer.batch_enumerator, exponential_backoff))
       end
     end
   end

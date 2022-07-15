@@ -13,8 +13,8 @@ module NewRelic
       class AbstractSegmentTest < Minitest::Test
         class BasicSegment < AbstractSegment
           def record_metrics
-            metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
-            metric_cache.record_unscoped "Basic/all", duration, exclusive_duration
+            metric_cache.record_scoped_and_unscoped(name, duration, exclusive_duration)
+            metric_cache.record_unscoped("Basic/all", duration, exclusive_duration)
           end
         end
 
@@ -28,22 +28,22 @@ module NewRelic
 
         def test_segment_notices_error
           with_segment do |segment|
-            segment.notice_error RuntimeError.new "notice me!"
+            segment.notice_error(RuntimeError.new("notice me!"))
             assert segment.noticed_error, "Expected an error to be noticed"
           end
         end
 
         def test_segment_keeps_most_recent_error
           with_segment do |segment|
-            segment.notice_error RuntimeError.new "notice me!"
-            segment.notice_error RuntimeError.new "no, notice me!"
+            segment.notice_error(RuntimeError.new("notice me!"))
+            segment.notice_error(RuntimeError.new("no, notice me!"))
             assert segment.noticed_error, "Expected an error to be noticed"
             assert_equal "no, notice me!", segment.noticed_error.message
           end
         end
 
         def test_segment_is_nameable
-          segment = BasicSegment.new "Custom/basic/segment"
+          segment = BasicSegment.new("Custom/basic/segment")
           assert_equal "Custom/basic/segment", segment.name
         end
 
@@ -51,12 +51,12 @@ module NewRelic
           segment = nil
 
           in_transaction do |txn|
-            segment = BasicSegment.new "Custom/basic/segment"
-            txn.add_segment segment
+            segment = BasicSegment.new("Custom/basic/segment")
+            txn.add_segment(segment)
             segment.start
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
 
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -67,10 +67,10 @@ module NewRelic
 
         def test_segment_records_metrics
           in_transaction do |txn|
-            segment = BasicSegment.new "Custom/basic/segment"
-            txn.add_segment segment
+            segment = BasicSegment.new("Custom/basic/segment")
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -78,11 +78,11 @@ module NewRelic
         end
 
         def test_segment_records_metrics_in_local_cache_if_part_of_transaction
-          segment = BasicSegment.new "Custom/basic/segment"
-          in_transaction "test_transaction" do |txn|
-            txn.add_segment segment
+          segment = BasicSegment.new("Custom/basic/segment")
+          in_transaction("test_transaction") do |txn|
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
 
             refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
@@ -97,11 +97,11 @@ module NewRelic
         # metrics
         def test_segments_will_not_record_metrics_when_turned_off
           in_transaction do |txn|
-            segment = BasicSegment.new "Custom/basic/segment"
-            txn.add_segment segment
+            segment = BasicSegment.new("Custom/basic/segment")
+            txn.add_segment(segment)
             segment.record_metrics = false
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -110,20 +110,20 @@ module NewRelic
 
         def test_segment_complete_callback_executes_when_segment_finished
           in_transaction do |txn|
-            segment = BasicSegment.new "Custom/basic/segment"
-            txn.add_segment segment
+            segment = BasicSegment.new("Custom/basic/segment")
+            txn.add_segment(segment)
             segment.expects(:segment_complete)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
         end
 
         def test_transaction_assigned_callback_executes_when_segment_added
           in_transaction do |txn|
-            segment = BasicSegment.new "Custom/basic/segment"
+            segment = BasicSegment.new("Custom/basic/segment")
             segment.expects(:transaction_assigned)
-            txn.add_segment segment
+            txn.add_segment(segment)
             segment.start
             advance_process_time(1.0)
             segment.finish
@@ -132,8 +132,8 @@ module NewRelic
 
         def test_segment_records_metrics_on_finish
           in_transaction do |txn|
-            segment = BasicSegment.new "Custom/basic/segment"
-            txn.add_segment segment
+            segment = BasicSegment.new("Custom/basic/segment")
+            txn.add_segment(segment)
             segment.start
             advance_process_time(1.0)
             segment.record_on_finish = true
@@ -144,9 +144,9 @@ module NewRelic
         end
 
         def test_params_are_checkable_and_lazy_initializable
-          segment = BasicSegment.new "Custom/basic/segment"
+          segment = BasicSegment.new("Custom/basic/segment")
           refute segment.params?
-          assert_nil segment.instance_variable_get :@params
+          assert_nil segment.instance_variable_get(:@params)
 
           segment.params[:foo] = "bar"
           assert segment.params?
@@ -155,7 +155,7 @@ module NewRelic
 
         def test_sets_start_time_from_constructor
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
-          segment = BasicSegment.new nil, t
+          segment = BasicSegment.new(nil, t)
           assert_equal t, segment.start_time
         end
 
@@ -168,24 +168,24 @@ module NewRelic
 
         def test_does_not_override_construction_start_time_when_started
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
-          segment = BasicSegment.new nil, t
+          segment = BasicSegment.new(nil, t)
           assert_equal t, segment.start_time
-          advance_process_time 1
+          advance_process_time(1)
           segment.start
           assert_equal t, segment.start_time
         end
 
         def test_parent_detects_concurrent_children
           in_transaction do |txn|
-            segment_a = BasicSegment.new "segment_a"
-            txn.add_segment segment_a
+            segment_a = BasicSegment.new("segment_a")
+            txn.add_segment(segment_a)
             segment_a.start
-            segment_b = BasicSegment.new "segment_b"
-            txn.add_segment segment_b
+            segment_b = BasicSegment.new("segment_b")
+            txn.add_segment(segment_b)
             segment_b.parent = segment_a
             segment_b.start
-            segment_c = BasicSegment.new "segment_c"
-            txn.add_segment segment_c, segment_a
+            segment_c = BasicSegment.new("segment_c")
+            txn.add_segment(segment_c, segment_a)
             segment_c.start
             segment_b.finish
             segment_c.finish

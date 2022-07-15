@@ -89,7 +89,7 @@ module Performance
       hash['measurements'].each do |key, value|
         result.measurements[key.to_sym] = value
       end
-      result.tags.merge! hash['tags']
+      result.tags.merge!(hash['tags'])
       result.exception = hash['exception']
       result.elapsed = elapsed
       result.iterations = hash['iterations']

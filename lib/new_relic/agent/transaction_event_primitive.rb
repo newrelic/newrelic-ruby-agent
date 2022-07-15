@@ -54,7 +54,7 @@ module NewRelic
 
         PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
-        DistributedTraceAttributes.copy_to_hash payload, intrinsics
+        DistributedTraceAttributes.copy_to_hash(payload, intrinsics)
 
         attributes = payload[:attributes]
 

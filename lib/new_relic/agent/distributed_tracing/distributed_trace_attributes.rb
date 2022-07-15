@@ -37,8 +37,8 @@ module NewRelic
       def copy_to_attributes transaction_payload, destination
         return unless enabled?
         INTRINSIC_KEYS.each do |key|
-          next unless transaction_payload.key? key
-          destination.add_intrinsic_attribute key, transaction_payload[key]
+          next unless transaction_payload.key?(key)
+          destination.add_intrinsic_attribute(key, transaction_payload[key])
         end
       end
 
@@ -53,18 +53,18 @@ module NewRelic
           destination[PARENT_SPAN_ID_KEY] = transaction.parent_span_id
         end
 
-        copy_parent_attributes transaction, trace_payload, destination
+        copy_parent_attributes(transaction, trace_payload, destination)
       end
 
       def copy_parent_attributes transaction, trace_payload, destination
         transport_type = transaction.distributed_tracer.caller_transport_type
-        destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from transport_type
+        destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from(transport_type)
 
         if trace_payload
           destination[PARENT_TYPE_KEY] = trace_payload.parent_type
           destination[PARENT_APP_KEY] = trace_payload.parent_app_id
           destination[PARENT_ACCOUNT_ID_KEY] = trace_payload.parent_account_id
-          destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration trace_payload
+          destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration(trace_payload)
 
           if parent_transaction_id = transaction.distributed_tracer.parent_transaction_id
             destination[PARENT_TRANSACTION_ID_KEY] = parent_transaction_id

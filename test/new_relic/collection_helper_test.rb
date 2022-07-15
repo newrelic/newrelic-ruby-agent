@@ -25,7 +25,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   def test_array
-    new_array = normalize_params [1000] * 2000
+    new_array = normalize_params([1000] * 2000)
     assert_equal 128, new_array.size
     assert_equal '1000', new_array[0]
   end
@@ -46,7 +46,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   class MyString < String; end
 
   def test_kind_of_string
-    s = MyString.new "This is a string"
+    s = MyString.new("This is a string")
     assert_equal "This is a string", s.to_s
     assert_equal MyString, s.class
     assert_equal String, s.to_s.class
@@ -96,13 +96,13 @@ class NewRelic::CollectionHelperTest < Minitest::Test
 
   def test_stringio
     # Verify StringIO works like this normally:
-    s = StringIO.new "start" + ("foo bar bat " * 1000)
+    s = StringIO.new("start" + ("foo bar bat " * 1000))
     val = nil
     s.each { |entry| val = entry; break }
     assert_match(/^startfoo bar/, val)
 
     # make sure stringios aren't affected by calling normalize_params:
-    s = StringIO.new "start" + ("foo bar bat " * 1000)
+    s = StringIO.new("start" + ("foo bar bat " * 1000))
     normalize_params({:foo => s.string})
     s.each { |entry| val = entry; break }
     assert_match(/^startfoo bar/, val)
@@ -112,7 +112,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     include Enumerable
 
     def each
-      yield "1"
+      yield("1")
     end
   end
 

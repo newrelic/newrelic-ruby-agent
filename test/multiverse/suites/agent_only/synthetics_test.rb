@@ -14,7 +14,7 @@ class SyntheticsTest < Minitest::Test
   setup_and_teardown_agent
 
   def app
-    Rack::Builder.app { run TestingApp.new }
+    Rack::Builder.app { run(TestingApp.new) }
   end
 
   def last_sent_analytics_event

@@ -17,11 +17,11 @@ class UnsupportedGrapeTest < Minitest::Test
     end
 
     def test_unsupported_version
-      get '/grape_ape'
-      get '/grape_ape/1'
-      post '/grape_ape', {}
-      put '/grape_ape/1', {}
-      delete '/grape_ape/1'
+      get('/grape_ape')
+      get('/grape_ape/1')
+      post('/grape_ape', {})
+      put('/grape_ape/1', {})
+      delete('/grape_ape/1')
 
       assert_no_metrics_match(/grape_ape/)
     end

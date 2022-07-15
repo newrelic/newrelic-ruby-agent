@@ -61,13 +61,13 @@ module NewRelic::Agent
     def test_adds_response_header
       Transaction.any_instance.stubs(:queue_time).returns(QUEUE_TIME)
 
-      when_request_runs for_id(REQUEST_CROSS_APP_ID), 'transaction', APP_TIME
+      when_request_runs(for_id(REQUEST_CROSS_APP_ID), 'transaction', APP_TIME)
 
       assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1, TRANSACTION_GUID, false], unpacked_response
     end
 
     def test_encodes_transaction_name
-      when_request_runs for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME
+      when_request_runs(for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME)
       assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 

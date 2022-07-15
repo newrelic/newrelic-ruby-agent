@@ -69,7 +69,7 @@ module NewRelic
       # Log the environment the app thinks it's running in.
       # Useful in debugging, as this is the key for config YAML lookups.
       def log_environment
-        ::NewRelic::Agent.logger.info "Environment: #{NewRelic::Control.instance.env}"
+        ::NewRelic::Agent.logger.info("Environment: #{NewRelic::Control.instance.env}")
       end
 
       # Logs the dispatcher to the log file to assist with
@@ -79,21 +79,21 @@ module NewRelic
         dispatcher_name = Agent.config[:dispatcher].to_s
 
         if dispatcher_name.empty?
-          ::NewRelic::Agent.logger.info 'No known dispatcher detected.'
+          ::NewRelic::Agent.logger.info('No known dispatcher detected.')
         else
-          ::NewRelic::Agent.logger.info "Dispatcher: #{dispatcher_name}"
+          ::NewRelic::Agent.logger.info("Dispatcher: #{dispatcher_name}")
         end
       end
 
       def log_app_name
-        ::NewRelic::Agent.logger.info "Application: #{Agent.config[:app_name].join(", ")}"
+        ::NewRelic::Agent.logger.info("Application: #{Agent.config[:app_name].join(", ")}")
       end
 
       def log_ignore_url_regexes
         regexes = NewRelic::Agent.config[:'rules.ignore_url_regexes']
 
         unless regexes.empty?
-          ::NewRelic::Agent.logger.info "Ignoring URLs that match the following regexes: #{regexes.map(&:inspect).join(", ")}."
+          ::NewRelic::Agent.logger.info("Ignoring URLs that match the following regexes: #{regexes.map(&:inspect).join(", ")}.")
         end
       end
 
@@ -101,7 +101,7 @@ module NewRelic
       # so we can disambiguate processes in the log file and make
       # sure they're running a reasonable version
       def log_version_and_pid
-        ::NewRelic::Agent.logger.debug "New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}"
+        ::NewRelic::Agent.logger.debug("New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}")
       end
 
       # Logs the configured application names
@@ -165,21 +165,21 @@ module NewRelic
         return false if already_started? || disabled?
 
         if defer_for_delayed_job?
-          ::NewRelic::Agent.logger.debug "Deferring startup for DelayedJob"
+          ::NewRelic::Agent.logger.debug("Deferring startup for DelayedJob")
           return false
         end
 
         if defer_for_resque?
-          ::NewRelic::Agent.logger.debug "Deferring startup for Resque in case it daemonizes"
+          ::NewRelic::Agent.logger.debug("Deferring startup for Resque in case it daemonizes")
           return false
         end
 
         unless app_name_configured?
-          NewRelic::Agent.logger.error "No application name configured.",
+          NewRelic::Agent.logger.error("No application name configured.",
             "The Agent cannot start without at least one. Please check your ",
             "newrelic.yml and ensure that it is valid and has at least one ",
             "value set for app_name in the #{NewRelic::Control.instance.env} ",
-            "environment."
+            "environment.")
           return false
         end
 

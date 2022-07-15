@@ -70,23 +70,23 @@ module NewRelic
         @stats_engine = StatsEngine.new
         @transaction_sampler = TransactionSampler.new
         @sql_sampler = SqlSampler.new
-        @agent_command_router = Commands::AgentCommandRouter.new @events
-        @monitors = Monitors.new @events
-        @error_collector = ErrorCollector.new @events
+        @agent_command_router = Commands::AgentCommandRouter.new(@events)
+        @monitors = Monitors.new(@events)
+        @error_collector = ErrorCollector.new(@events)
         @transaction_rules = RulesEngine.new
-        @harvest_samplers = SamplerCollection.new @events
+        @harvest_samplers = SamplerCollection.new(@events)
         @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
-        @javascript_instrumentor = JavascriptInstrumentor.new @events
+        @javascript_instrumentor = JavascriptInstrumentor.new(@events)
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
 
-        @harvester = Harvester.new @events
+        @harvester = Harvester.new(@events)
         @after_fork_lock = Mutex.new
 
-        @transaction_event_recorder = TransactionEventRecorder.new @events
-        @custom_event_aggregator = CustomEventAggregator.new @events
-        @span_event_aggregator = SpanEventAggregator.new @events
-        @log_event_aggregator = LogEventAggregator.new @events
+        @transaction_event_recorder = TransactionEventRecorder.new(@events)
+        @custom_event_aggregator = CustomEventAggregator.new(@events)
+        @span_event_aggregator = SpanEventAggregator.new(@events)
+        @log_event_aggregator = LogEventAggregator.new(@events)
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -210,7 +210,7 @@ module NewRelic
             disconnected? ||
             !control.security_settings_valid?
 
-          ::NewRelic::Agent.logger.debug "Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking."
+          ::NewRelic::Agent.logger.debug("Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking.")
 
           channel_id = options[:report_to_channel]
           install_pipe_service(channel_id) if channel_id
@@ -357,7 +357,7 @@ module NewRelic
           # to tell the user what happened, since this is not an error
           # we can handle gracefully.
           def log_error(error)
-            ::NewRelic::Agent.logger.error "Error establishing connection with New Relic Service at #{control.server}:", error
+            ::NewRelic::Agent.logger.error("Error establishing connection with New Relic Service at #{control.server}:", error)
           end
 
           # When the server sends us an error with the license key, we
@@ -400,26 +400,27 @@ module NewRelic
           # connects, then configures the agent using the response from
           # the connect service
           def connect_to_server
-            request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new \
+            request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new( \
               @service,
               Agent.config,
               event_harvest_config,
               environment_for_connect
-            connect_response = @service.connect request_builder.connect_payload
+            )
+            connect_response = @service.connect(request_builder.connect_payload)
 
             response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
             response_handler.configure_agent(connect_response)
 
-            log_connection connect_response if connect_response
+            log_connection(connect_response) if connect_response
             connect_response
           end
 
           # Logs when we connect to the server, for debugging purposes
           # - makes sure we know if an agent has not connected
           def log_connection(config_data)
-            ::NewRelic::Agent.logger.debug "Connected to NewRelic Service at #{@service.collector.name}"
-            ::NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
-            ::NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
+            ::NewRelic::Agent.logger.debug("Connected to NewRelic Service at #{@service.collector.name}")
+            ::NewRelic::Agent.logger.debug("Agent Run       = #{@service.agent_id}.")
+            ::NewRelic::Agent.logger.debug("Connection data = #{config_data.inspect}")
             if config_data['messages'] && config_data['messages'].any?
               log_collector_messages(config_data['messages'])
             end
@@ -483,7 +484,7 @@ module NewRelic
 
         def merge_data_for_endpoint(endpoint, data)
           if data && !data.empty?
-            container = container_for_endpoint endpoint
+            container = container_for_endpoint(endpoint)
             if container.respond_to?(:has_metadata?) && container.has_metadata?
               container_for_endpoint(endpoint).merge!(data, false)
             else
@@ -523,7 +524,7 @@ module NewRelic
 
           return unless should_connect?(opts[:force_reconnect])
 
-          ::NewRelic::Agent.logger.debug "Connecting Process to New Relic: #$0"
+          ::NewRelic::Agent.logger.debug("Connecting Process to New Relic: #$0")
           connect_to_server
           @connected_pid = $$
           @connect_state = :connected
@@ -542,12 +543,12 @@ module NewRelic
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
-            ::NewRelic::Agent.logger.info "Will re-attempt in #{connect_retry_period} seconds"
-            sleep connect_retry_period
+            ::NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
+            sleep(connect_retry_period)
             retry
           end
         rescue Exception => e
-          ::NewRelic::Agent.logger.error "Exception of unexpected type during Agent#connect():", e
+          ::NewRelic::Agent.logger.error("Exception of unexpected type during Agent#connect():", e)
 
           raise
         end
@@ -577,7 +578,7 @@ module NewRelic
         #
         def harvest_and_send_from_container(container, endpoint)
           payload = harvest_from_container(container, endpoint)
-          sample_count = harvest_size container, payload
+          sample_count = harvest_size(container, payload)
           if sample_count > 0
             NewRelic::Agent.logger.debug("Sending #{sample_count} items to #{endpoint}")
             send_data_to_endpoint(endpoint, payload, container)
@@ -658,7 +659,7 @@ module NewRelic
         end
 
         def harvest_and_send_error_event_data
-          harvest_and_send_from_container @error_collector.error_event_aggregator, :error_event_data
+          harvest_and_send_from_container(@error_collector.error_event_aggregator, :error_event_data)
         end
 
         def harvest_and_send_span_event_data
@@ -718,7 +719,7 @@ module NewRelic
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
           msg = "Sending #{supportability_name} data to New Relic Service"
-          ::NewRelic::Agent.logger.debug msg
+          ::NewRelic::Agent.logger.debug(msg)
 
           @service.session do # use http keep-alive
             self.send(harvest_method)
@@ -730,7 +731,7 @@ module NewRelic
 
         def transmit_data
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
+          ::NewRelic::Agent.logger.debug("Sending data to New Relic Service")
 
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
@@ -772,17 +773,17 @@ module NewRelic
               transmit_log_event_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-                ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
+                ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
                 @service.shutdown
               else
-                ::NewRelic::Agent.logger.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
+                ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
               end
-              ::NewRelic::Agent.logger.debug "Graceful disconnect complete"
+              ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
             rescue Timeout::Error, StandardError => e
-              ::NewRelic::Agent.logger.debug "Error when disconnecting #{e.class.name}: #{e.message}"
+              ::NewRelic::Agent.logger.debug("Error when disconnecting #{e.class.name}: #{e.message}")
             end
           else
-            ::NewRelic::Agent.logger.debug "Bypassing graceful disconnect - agent not connected"
+            ::NewRelic::Agent.logger.debug("Bypassing graceful disconnect - agent not connected")
           end
         end
       end

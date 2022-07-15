@@ -43,7 +43,7 @@ module NewRelic
         def set_dotted_alias(original_config_setting)
           config_setting = original_config_setting.to_s
 
-          if config_setting.include? '.'
+          if config_setting.include?('.')
             config_alias = config_setting.gsub(/\./, '_').to_sym
             self.alias_map[config_alias] = original_config_setting
           end

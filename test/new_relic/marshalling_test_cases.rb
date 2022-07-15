@@ -197,7 +197,7 @@ module MarshallingTestCases
 
     def break_it
       NewRelic::Agent.set_transaction_name("break_it", :category => "TestTransaction")
-      NewRelic::Agent.notice_error StandardError.new("Sorry!")
+      NewRelic::Agent.notice_error(StandardError.new("Sorry!"))
       NewRelic::Agent::Tracer.current_span_id
     end
 

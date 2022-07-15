@@ -9,7 +9,7 @@ require 'fileutils'
 module Multiverse
   # <ruby_agent>/test/multiverse
   #
-  ROOT = File.expand_path '../..', __FILE__
+  ROOT = File.expand_path('../..', __FILE__)
 
   # append <ruby_agent>/test/multiverse/lib to the load path
   #

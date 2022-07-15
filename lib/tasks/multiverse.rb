@@ -56,18 +56,18 @@ namespace :test do
     end
 
     def remove_generated_gemfiles
-      file_path = File.expand_path "test/multiverse/suites"
-      Dir.glob(File.join file_path, "**", "Gemfile*").each do |fn|
+      file_path = File.expand_path("test/multiverse/suites")
+      Dir.glob(File.join(file_path, "**", "Gemfile*")).each do |fn|
         puts "Removing #{fn.gsub(file_path, '.../suites')}"
-        FileUtils.rm fn
+        FileUtils.rm(fn)
       end
     end
 
     def remove_generated_gemfile_lockfiles
-      file_path = File.expand_path "test/environments"
-      Dir.glob(File.join file_path, "**", "Gemfile.lock").each do |fn|
+      file_path = File.expand_path("test/environments")
+      Dir.glob(File.join(file_path, "**", "Gemfile.lock")).each do |fn|
         puts "Removing #{fn.gsub(file_path, '.../environments')}"
-        FileUtils.rm fn
+        FileUtils.rm(fn)
       end
     end
 
@@ -84,7 +84,7 @@ namespace :test do
 
     desc "Clean cached gemfiles from Bundler.bundle_path"
     task :clean_gemfile_cache do
-      glob = File.expand_path 'multiverse-cache/Gemfile.*.lock', Bundler.bundle_path
+      glob = File.expand_path('multiverse-cache/Gemfile.*.lock', Bundler.bundle_path)
       File.delete(*Dir[glob])
     end
 

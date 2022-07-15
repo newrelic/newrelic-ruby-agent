@@ -76,8 +76,8 @@ def trace
       :start_streaming,
       :notice_span,
       :wait_for_notice
-    ].include? tp.method_id
-    p [tp.lineno, tp.defined_class, tp.method_id, tp.event]
+    ].include?(tp.method_id)
+    p([tp.lineno, tp.defined_class, tp.method_id, tp.event])
   end
 end
 

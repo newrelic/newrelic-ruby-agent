@@ -19,29 +19,29 @@ module NewRelic::Agent
       end
 
       def start_handler
-        Worker.new self.class.name do
+        Worker.new(self.class.name) do
           begin
             @enumerator.each do |response|
               break if response.nil? || response.is_a?(Exception)
               @lock.synchronize do
                 @messages_seen = response
-                NewRelic::Agent.logger.debug "gRPC Infinite Tracer Observer saw #{messages_seen} messages"
+                NewRelic::Agent.logger.debug("gRPC Infinite Tracer Observer saw #{messages_seen} messages")
               end
             end
-            NewRelic::Agent.logger.debug "gRPC Infinite Tracer Observer closed the stream"
+            NewRelic::Agent.logger.debug("gRPC Infinite Tracer Observer closed the stream")
             @client.handle_close
           rescue => error
-            @client.handle_error error
+            @client.handle_error(error)
           end
         end
       rescue => error
-        NewRelic::Agent.logger.error "gRPC Worker Error", error
+        NewRelic::Agent.logger.error("gRPC Worker Error", error)
       end
 
       def stop
         return if @worker.nil?
         @lock.synchronize do
-          NewRelic::Agent.logger.debug "gRPC Stopping Response Handler"
+          NewRelic::Agent.logger.debug("gRPC Stopping Response Handler")
           @worker.stop
           @worker = nil
         end

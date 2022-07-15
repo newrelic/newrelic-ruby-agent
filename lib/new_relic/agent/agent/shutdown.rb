@@ -10,7 +10,7 @@ module NewRelic
       # data.
       def shutdown
         return unless started?
-        ::NewRelic::Agent.logger.info "Starting Agent shutdown"
+        ::NewRelic::Agent.logger.info("Starting Agent shutdown")
 
         stop_event_loop
         trap_signals_for_litespeed
@@ -27,7 +27,7 @@ module NewRelic
             graceful_disconnect
           end
         rescue => e
-          ::NewRelic::Agent.logger.error e
+          ::NewRelic::Agent.logger.error(e)
         end
       end
     end

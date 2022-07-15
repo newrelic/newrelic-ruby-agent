@@ -27,11 +27,11 @@ module NewRelic
           instance_variable_names.each do |name|
             if notifier.instance_variable_defined?(name)
               subscribers = notifier.instance_variable_get(name)
-              if subscribers.is_a? Array
+              if subscribers.is_a?(Array)
                 # Rails 5 @subscribers, and Rails 6 @other_subscribers is a
                 # plain array of subscriber objects
                 all_subscribers += subscribers
-              elsif subscribers.is_a? Hash
+              elsif subscribers.is_a?(Hash)
                 # Rails 6 @string_subscribers is a Hash mapping the pattern
                 # string of a subscriber to an array of subscriber objects
                 subscribers.values.each { |array| all_subscribers += array }
@@ -56,7 +56,7 @@ module NewRelic
         end
 
         def push_segment(id, segment)
-          segment_stack[id].push segment
+          segment_stack[id].push(segment)
         end
 
         def pop_segment(id)
@@ -86,7 +86,7 @@ module NewRelic
             def exception_object(payload)
               exception_class, message = payload[:exception]
               return nil unless exception_class
-              NewRelic::Agent::NoticibleError.new exception_class, message
+              NewRelic::Agent::NoticibleError.new(exception_class, message)
             end
           else
             def exception_object(payload)

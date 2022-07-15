@@ -15,7 +15,7 @@ module NewRelic
           with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans
+            spans, segments = emulate_streaming_segments(total_spans)
 
             assert_equal total_spans, spans.size
             assert_equal total_spans, segments.size
@@ -36,7 +36,7 @@ module NewRelic
           with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans do |client, current_segments|
+            spans, segments = emulate_streaming_segments(total_spans) do |client, current_segments|
               if current_segments.size == 3
                 client.restart
               else
@@ -69,12 +69,12 @@ module NewRelic
             total_spans = 5
             leftover_spans = 2
 
-            spans, segments = emulate_streaming_segments total_spans do |client, current_segments|
+            spans, segments = emulate_streaming_segments(total_spans) do |client, current_segments|
               if current_segments.size == total_spans - leftover_spans
                 # we do this here instead of server_proc because we are testing that if
                 # the server restarts while the CLIENT is currently running, it
                 # behaves as expected (since we just testing the client behavior)
-                simulate_server_response GRPC::Ok.new
+                simulate_server_response(GRPC::Ok.new)
               else
                 # we need to do this so the client streaming helpers know when
                 # the mock server has done its thing
@@ -105,7 +105,7 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 2
-            emulate_streaming_with_initial_error total_spans
+            emulate_streaming_with_initial_error(total_spans)
 
             assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
             assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
@@ -123,9 +123,9 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 5
-            emulate_streaming_segments total_spans do |client, segments|
+            emulate_streaming_segments(total_spans) do |client, segments|
               if segments.size == 3
-                simulate_server_response_shutdown GRPC::Unimplemented.new("i dont exist")
+                simulate_server_response_shutdown(GRPC::Unimplemented.new("i dont exist"))
               else
                 simulate_server_response
               end

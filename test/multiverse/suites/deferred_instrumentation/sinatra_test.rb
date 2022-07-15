@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[deferred_instrumentation]"
+SimpleCovHelper.command_name("test:multiverse[deferred_instrumentation]")
 require 'newrelic_rpm'
 require 'sinatra'
 require_relative '../sinatra/sinatra_test_cases'

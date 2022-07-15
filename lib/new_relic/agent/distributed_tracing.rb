@@ -46,18 +46,18 @@ module NewRelic
         record_api_supportability_metric(:insert_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn "Not configured to insert distributed trace headers"
+          NewRelic::Agent.logger.warn("Not configured to insert distributed trace headers")
           return nil
         end
 
-        return unless valid_api_argument_class? headers, "headers", Hash
+        return unless valid_api_argument_class?(headers, "headers", Hash)
 
         return unless transaction = Transaction.tl_current
 
-        transaction.distributed_tracer.insert_headers headers
+        transaction.distributed_tracer.insert_headers(headers)
         transaction
       rescue => e
-        NewRelic::Agent.logger.error 'error during insert_distributed_trace_headers', e
+        NewRelic::Agent.logger.error('error during insert_distributed_trace_headers', e)
         nil
       end
 
@@ -100,18 +100,18 @@ module NewRelic
         record_api_supportability_metric(:accept_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn "Not configured to accept distributed trace headers"
+          NewRelic::Agent.logger.warn("Not configured to accept distributed trace headers")
           return nil
         end
 
-        return unless valid_api_argument_class? headers, "headers", Hash
-        return unless valid_api_argument_class? transport_type, "transport_type", String
+        return unless valid_api_argument_class?(headers, "headers", Hash)
+        return unless valid_api_argument_class?(transport_type, "transport_type", String)
 
         return unless transaction = Transaction.tl_current
 
         # assume we have Rack conforming keys when transport_type is HTTP(S)
         # otherwise, fish for key/value pairs regardless of prefix and case-sensitivity.
-        hdr = if transport_type.start_with? NewRelic::HTTP
+        hdr = if transport_type.start_with?(NewRelic::HTTP)
           headers
         else
           # start with the most common case first
@@ -122,16 +122,16 @@ module NewRelic
           }
 
           # when not found, search for any casing for trace context headers, ignoring potential prefixes
-          hdr[NewRelic::HTTP_TRACEPARENT_KEY] ||= variant_key_value headers, NewRelic::TRACEPARENT_KEY
-          hdr[NewRelic::HTTP_TRACESTATE_KEY] ||= variant_key_value headers, NewRelic::TRACESTATE_KEY
-          hdr[NewRelic::HTTP_NEWRELIC_KEY] ||= variant_key_value headers, NewRelic::CANDIDATE_NEWRELIC_KEYS
+          hdr[NewRelic::HTTP_TRACEPARENT_KEY] ||= variant_key_value(headers, NewRelic::TRACEPARENT_KEY)
+          hdr[NewRelic::HTTP_TRACESTATE_KEY] ||= variant_key_value(headers, NewRelic::TRACESTATE_KEY)
+          hdr[NewRelic::HTTP_NEWRELIC_KEY] ||= variant_key_value(headers, NewRelic::CANDIDATE_NEWRELIC_KEYS)
           hdr
         end
 
-        transaction.distributed_tracer.accept_incoming_request hdr, transport_type
+        transaction.distributed_tracer.accept_incoming_request(hdr, transport_type)
         transaction
       rescue => e
-        NewRelic::Agent.logger.error 'error during accept_distributed_trace_headers', e
+        NewRelic::Agent.logger.error('error during accept_distributed_trace_headers', e)
         nil
       end
 

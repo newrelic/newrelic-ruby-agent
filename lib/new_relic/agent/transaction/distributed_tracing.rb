@@ -40,7 +40,7 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless payload = request[NEWRELIC_TRACE_KEY]
 
-          accept_distributed_trace_payload payload
+          accept_distributed_trace_payload(payload)
         end
 
         def distributed_trace_payload_created?
@@ -51,12 +51,12 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
 
           @distributed_trace_payload_created = true
-          payload = DistributedTracePayload.for_transaction transaction
-          NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
+          payload = DistributedTracePayload.for_transaction(transaction)
+          NewRelic::Agent.increment_metric(CREATE_SUCCESS_METRIC)
           payload
         rescue => e
-          NewRelic::Agent.increment_metric CREATE_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to create distributed trace payload", e
+          NewRelic::Agent.increment_metric(CREATE_EXCEPTION_METRIC)
+          NewRelic::Agent.logger.warn("Failed to create distributed trace payload", e)
           nil
         end
 
@@ -72,11 +72,11 @@ module NewRelic
 
           assign_payload_and_sampling_params(payload)
 
-          NewRelic::Agent.increment_metric ACCEPT_SUCCESS_METRIC
+          NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
         rescue => e
-          NewRelic::Agent.increment_metric ACCEPT_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
+          NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
+          NewRelic::Agent.logger.warn("Failed to accept distributed trace payload", e)
           false
         end
 
@@ -84,10 +84,10 @@ module NewRelic
 
         def check_payload_ignored(payload)
           if distributed_trace_payload
-            NewRelic::Agent.increment_metric IGNORE_MULTIPLE_ACCEPT_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_MULTIPLE_ACCEPT_METRIC)
             return true
           elsif distributed_trace_payload_created?
-            NewRelic::Agent.increment_metric IGNORE_ACCEPT_AFTER_CREATE_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_ACCEPT_AFTER_CREATE_METRIC)
             return true
           end
           false
@@ -96,7 +96,7 @@ module NewRelic
         def check_payload_present(payload)
           # We might be passed a Ruby `nil` object _or_ the JSON "null"
           if payload.nil? || payload == NULL_PAYLOAD
-            NewRelic::Agent.increment_metric IGNORE_ACCEPT_NULL_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_ACCEPT_NULL_METRIC)
             return nil
           end
 
@@ -104,18 +104,18 @@ module NewRelic
         end
 
         def decode_payload(payload)
-          decoded = if payload.start_with? LBRACE
-            DistributedTracePayload.from_json payload
+          decoded = if payload.start_with?(LBRACE)
+            DistributedTracePayload.from_json(payload)
           else
-            DistributedTracePayload.from_http_safe payload
+            DistributedTracePayload.from_http_safe(payload)
           end
 
           return nil unless check_payload_present(decoded)
 
           decoded
         rescue => e
-          NewRelic::Agent.increment_metric ACCEPT_PARSE_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
+          NewRelic::Agent.increment_metric(ACCEPT_PARSE_EXCEPTION_METRIC)
+          NewRelic::Agent.logger.warn("Error parsing distributed trace payload", e)
           nil
         end
 
@@ -131,7 +131,7 @@ module NewRelic
 
             true
           else
-            NewRelic::Agent.increment_metric ACCEPT_PARSE_EXCEPTION_METRIC
+            NewRelic::Agent.increment_metric(ACCEPT_PARSE_EXCEPTION_METRIC)
             false
           end
         end
@@ -140,7 +140,7 @@ module NewRelic
           if DistributedTracePayload.major_version_matches?(payload)
             true
           else
-            NewRelic::Agent.increment_metric IGNORE_ACCEPT_MAJOR_VERSION_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_ACCEPT_MAJOR_VERSION_METRIC)
             false
           end
         end
@@ -148,7 +148,7 @@ module NewRelic
         def check_trusted_account(payload)
           compare_key = payload.trusted_account_key || payload.parent_account_id
           unless compare_key == NewRelic::Agent.config[:trusted_account_key]
-            NewRelic::Agent.increment_metric IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC
+            NewRelic::Agent.increment_metric(IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC)
             return false
           end
           true

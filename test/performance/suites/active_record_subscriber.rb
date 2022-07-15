@@ -48,7 +48,7 @@ unless defined?(ActiveSupport::Notifications::Event)
         end
 
         def parent_of?(event)
-          @children.include? event
+          @children.include?(event)
         end
       end
     end
@@ -68,7 +68,7 @@ class ActiveRecordSubscriberTest < Performance::TestCase
     }
 
     @subscriber = NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new
-    if @subscriber.respond_to? :active_record_config_for_event
+    if @subscriber.respond_to?(:active_record_config_for_event)
       @subscriber.class.send(:remove_method, :active_record_config_for_event)
       @subscriber.class.send(:define_method, :active_record_config_for_event) do |args|
         @config

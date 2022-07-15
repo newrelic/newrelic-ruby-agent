@@ -44,7 +44,7 @@ module NewRelic
 
             visibility = NewRelic::Helper.instance_method_visibility(klass, method_name)
 
-            alias_method method_name_without_newrelic, method_name
+            alias_method(method_name_without_newrelic, method_name)
 
             define_method(method_name) do |*args, &blk|
               segment = NewRelic::Agent::Tracer.start_datastore_segment(
@@ -58,8 +58,8 @@ module NewRelic
               end
             end
 
-            send visibility, method_name
-            send visibility, method_name_without_newrelic
+            send(visibility, method_name)
+            send(visibility, method_name_without_newrelic)
           end
         end
       end

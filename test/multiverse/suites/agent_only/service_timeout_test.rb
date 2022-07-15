@@ -13,7 +13,7 @@ class ServiceTimeoutTest < Minitest::Test
     Thread.new {
       client = hk.accept
       client.gets
-      sleep 4
+      sleep(4)
       client.close
       Thread.exit
     }

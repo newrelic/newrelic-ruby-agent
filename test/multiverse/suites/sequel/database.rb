@@ -14,23 +14,23 @@ if !defined?(DB)
 
   def create_tables(db)
     db.create_table(:authors) do
-      primary_key :id
-      string :name
-      string :login
+      primary_key(:id)
+      string(:name)
+      string(:login)
     end
 
     db.create_table(:posts) do
-      primary_key :id
-      string :title
-      string :content
-      time :created_at
+      primary_key(:id)
+      string(:title)
+      string(:content)
+      time(:created_at)
     end
 
     db.create_table(:users) do
-      primary_key :uid
-      string :login
-      string :firstname
-      string :lastname
+      primary_key(:uid)
+      string(:login)
+      string(:firstname)
+      string(:lastname)
     end
   end
 
@@ -52,14 +52,14 @@ if !defined?(DB)
   # Version 4.0 of Sequel moved update_except off to a plugin
   # So we can test that we still instrument it, it's got to be included
   if defined?(Sequel::MAJOR) && Sequel::MAJOR >= 4
-    Sequel::Model.plugin :blacklist_security
+    Sequel::Model.plugin(:blacklist_security)
   end
 
   # Version 5.0 of Sequel moved update_all and update_only to a plugin
   # So we can test that we still instrument those methods, it needs to
   # be included
   if defined?(Sequel::MAJOR) && Sequel::MAJOR >= 5
-    Sequel::Model.plugin :whitelist_security
+    Sequel::Model.plugin(:whitelist_security)
   end
 
   Post.strict_param_setting = false

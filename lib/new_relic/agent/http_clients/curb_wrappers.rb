@@ -48,7 +48,7 @@ module NewRelic
 
       class CurbResponse < AbstractResponse
         def initialize wrapped_response
-          super wrapped_response
+          super(wrapped_response)
           @headers = {}
         end
 
@@ -70,7 +70,7 @@ module NewRelic
         private
 
         def get_status_code
-          get_status_code_using :response_code
+          get_status_code_using(:response_code)
         end
       end
     end

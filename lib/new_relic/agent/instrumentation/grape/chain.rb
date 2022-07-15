@@ -10,14 +10,14 @@ module NewRelic::Agent::Instrumentation
         Grape::Instrumentation.instrumented_class.class_eval do
           def call_with_new_relic env
             begin
-              call_without_new_relic env
+              call_without_new_relic(env)
             ensure
-              Grape::Instrumentation.capture_transaction env, self
+              Grape::Instrumentation.capture_transaction(env, self)
             end
           end
 
-          alias_method :call_without_new_relic, :call
-          alias_method :call, :call_with_new_relic
+          alias_method(:call_without_new_relic, :call)
+          alias_method(:call, :call_with_new_relic)
         end
       end
     end

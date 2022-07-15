@@ -30,7 +30,7 @@ module NewRelic
 
             def self.encode(data, opts = nil)
               output = StringIO.new
-              output.set_encoding BINARY
+              output.set_encoding(BINARY)
               gz = Zlib::GzipWriter.new(output, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY)
               gz.write(data)
               gz.close

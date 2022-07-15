@@ -73,17 +73,17 @@ if !defined?(MyApp)
     if Rails::VERSION::STRING >= "7.0.0"
       config.action_controller.default_protect_from_forgery = true
     end
-    if config.respond_to? :hosts
+    if config.respond_to?(:hosts)
       config.hosts << "www.example.com"
     end
     initializer "install_error_middleware" do
-      config.middleware.use ErrorMiddleware
+      config.middleware.use(ErrorMiddleware)
     end
     initializer "install_middleware_by_name" do
-      config.middleware.use NamedMiddleware
+      config.middleware.use(NamedMiddleware)
     end
     initializer "install_middleware_instance" do
-      config.middleware.use InstanceMiddleware.new
+      config.middleware.use(InstanceMiddleware.new)
     end
   end
   MyApp.initialize!

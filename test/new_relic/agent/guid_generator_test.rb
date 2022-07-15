@@ -16,7 +16,7 @@ module NewRelic
       end
 
       def test_generate_guid_custom_length
-        guid = NewRelic::Agent::GuidGenerator.generate_guid 32
+        guid = NewRelic::Agent::GuidGenerator.generate_guid(32)
         # the result should be exactly 32 hexadecimal characters
         assert_match(/[a-f0-9]{32}/, guid)
       end

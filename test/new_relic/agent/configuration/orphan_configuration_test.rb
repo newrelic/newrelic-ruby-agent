@@ -32,7 +32,7 @@ class OrphanedConfigTest < Minitest::Test
   end
 
   def test_all_default_source_config_keys_are_used_in_the_agent
-    scan_and_remove_used_entries @default_keys, non_test_files
+    scan_and_remove_used_entries(@default_keys, non_test_files)
 
     # Remove any config keys that are annotated with the 'external' setting
     # This indicates that these keys are referenced and implemented in
@@ -66,6 +66,6 @@ class OrphanedConfigTest < Minitest::Test
   end
 
   def non_test_files
-    all_rb_files.reject { |filename| filename.include? 'test.rb' }
+    all_rb_files.reject { |filename| filename.include?('test.rb') }
   end
 end

@@ -22,15 +22,15 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     private :internal
 
-    NewRelic::Agent::Datastores.trace self, :find, "MyFirstDatabase"
-    NewRelic::Agent::Datastores.trace self, :save, "MyFirstDatabase", "create"
-    NewRelic::Agent::Datastores.trace self, :internal, "MyFirstDatabase"
+    NewRelic::Agent::Datastores.trace(self, :find, "MyFirstDatabase")
+    NewRelic::Agent::Datastores.trace(self, :save, "MyFirstDatabase", "create")
+    NewRelic::Agent::Datastores.trace(self, :internal, "MyFirstDatabase")
 
     def boom
       raise "haha"
     end
 
-    NewRelic::Agent::Datastores.trace self, :boom, "MyFirstDatabase", "boom"
+    NewRelic::Agent::Datastores.trace(self, :boom, "MyFirstDatabase", "boom")
   end
 
   def setup
@@ -68,7 +68,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def test_safe_to_reinstrument
     MyFirstDatabase.class_eval do
-      NewRelic::Agent::Datastores.trace self, :find, "MyFirstDatabase", "find"
+      NewRelic::Agent::Datastores.trace(self, :find, "MyFirstDatabase", "find")
     end
 
     assert_equal MyFirstDatabase::THE_OBJECT, MyFirstDatabase.new.find
@@ -150,7 +150,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
         collection: "SomeThing"
       )
       NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
-      advance_process_time elapsed
+      advance_process_time(elapsed)
       assert_equal segment, txn.current_segment
       segment.finish
       nr_unfreeze_process_time
@@ -171,7 +171,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
         collection: "key"
       )
       NewRelic::Agent::Datastores.notice_statement(query, elapsed)
-      advance_process_time elapsed
+      advance_process_time(elapsed)
       assert_equal segment, txn.current_segment
       segment.finish
       nr_unfreeze_process_time
