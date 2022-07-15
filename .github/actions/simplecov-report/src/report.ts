@@ -21,7 +21,7 @@ export async function report(coveredPercent: number, failedThreshold: number, co
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
     issue_number: pullRequestId,
-    body: `## Simplecov Report
+    body: `## SimpleCov Report
 ${summaryTable}
 `
   })
