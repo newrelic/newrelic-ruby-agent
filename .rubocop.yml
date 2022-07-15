@@ -1361,9 +1361,6 @@ Style/FormatString:
 Style/FormatStringToken:
   Enabled: false
 
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
 # Disabling for now
 Style/GlobalStdStream:
   Enabled: false
