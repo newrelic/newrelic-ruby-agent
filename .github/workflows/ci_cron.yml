@@ -338,7 +338,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: gem install httparty
       - name: Check for outdated gems 
-        run: ruby ./.github/workflows/scripts/slack_gem_notifications/notifications_script.rb ${{ env.gems }}
+        run: ruby .github/workflows/scripts/slack_gem_notifications/notifications_script.rb ${{ env.gems }}
         env:
           SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}
           gems:
