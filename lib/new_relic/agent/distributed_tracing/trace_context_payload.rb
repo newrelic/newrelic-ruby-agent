@@ -19,7 +19,7 @@ module NewRelic
       PARENT_TYPES = %w[App Browser Mobile].map(&:freeze).freeze
 
       class << self
-        def create version: VERSION,
+        def create(version: VERSION,
           parent_type: PARENT_TYPE,
           parent_account_id: nil,
           parent_app_id: nil,
@@ -27,7 +27,7 @@ module NewRelic
           transaction_id: nil,
           sampled: nil,
           priority: nil,
-          timestamp: now_ms
+          timestamp: now_ms)
 
           new(version, parent_type, parent_account_id, parent_app_id, id,
             transaction_id, sampled, priority, timestamp)
@@ -35,7 +35,7 @@ module NewRelic
 
         include NewRelic::Coerce
 
-        def from_s payload_string
+        def from_s(payload_string)
           attrs = payload_string.split(DELIMITER)
 
           payload = create( \
@@ -62,7 +62,7 @@ module NewRelic
           Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
         end
 
-        def handle_invalid_payload error: nil, message: nil
+        def handle_invalid_payload(error: nil, message: nil)
           NewRelic::Agent.increment_metric(SUPPORTABILITY_PARSE_EXCEPTION)
           if error
             NewRelic::Agent.logger.warn("Error parsing trace context payload", error)
@@ -84,8 +84,8 @@ module NewRelic
 
       alias_method :sampled?, :sampled
 
-      def initialize version, parent_type_id, parent_account_id, parent_app_id,
-        id, transaction_id, sampled, priority, timestamp
+      def initialize(version, parent_type_id, parent_account_id, parent_app_id,
+        id, transaction_id, sampled, priority, timestamp)
         @version = version
         @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id

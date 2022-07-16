@@ -353,7 +353,7 @@ class BunnyTest < Minitest::Test
     end
   end
 
-  def with_queue temp = true, exclusive = true, &block
+  def with_queue(temp = true, exclusive = true, &block)
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
 

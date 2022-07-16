@@ -24,17 +24,17 @@ module NewRelic::Agent
         }
       end
 
-      def exclude_newrelic_header_setting value
+      def exclude_newrelic_header_setting(value)
         distributed_tracing_enabled.merge(:'exclude_newrelic_header' => value)
       end
 
-      def build_trace_context_header env = {}
+      def build_trace_context_header(env = {})
         env['HTTP_TRACEPARENT'] = '00-12345678901234567890123456789012-1234567890123456-00'
         env['HTTP_TRACESTATE'] = ''
         return env
       end
 
-      def build_distributed_trace_header env = {}
+      def build_distributed_trace_header(env = {})
         begin
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           with_config(distributed_tracing_enabled) do

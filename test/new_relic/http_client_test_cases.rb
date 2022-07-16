@@ -702,7 +702,7 @@ module HttpClientTestCases
     refute_transaction_noticed_error txn, timeout_error_class.name
   end
 
-  def simulate_server_error server_class, port
+  def simulate_server_error(server_class, port)
     server = server_class.new(port)
     server.run
     get_response("http://localhost:#{port}")

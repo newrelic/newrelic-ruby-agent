@@ -13,7 +13,7 @@ module NewRelic
         LHOST = 'host'
         UHOST = 'Host'
 
-        def initialize curlobj
+        def initialize(curlobj)
           @curlobj = curlobj
         end
 
@@ -47,7 +47,7 @@ module NewRelic
       end
 
       class CurbResponse < AbstractResponse
-        def initialize wrapped_response
+        def initialize(wrapped_response)
           super(wrapped_response)
           @headers = {}
         end
@@ -60,7 +60,7 @@ module NewRelic
           @headers.dup
         end
 
-        def append_header_data data
+        def append_header_data(data)
           key, value = data.split(/:\s*/, 2)
           @headers[key.downcase] = value
           @wrapped_response._nr_header_str ||= String.new

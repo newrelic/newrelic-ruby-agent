@@ -12,7 +12,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'new_relic/version'
 
 Gem::Specification.new do |s|
-  def self.copy_files filelist
+  def self.copy_files(filelist)
     subfolder = File.expand_path(File.dirname(__FILE__))
 
     filelist.each do |filename|

@@ -35,7 +35,7 @@ class NewRelic::MetricSpec
     self.eql?(o)
   end
 
-  def eql? o
+  def eql?(o)
     @name == o.name && @scope == o.scope
   end
 

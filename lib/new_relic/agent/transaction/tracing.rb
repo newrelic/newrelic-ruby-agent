@@ -21,7 +21,7 @@ module NewRelic
 
         attr_writer :total_time
 
-        def add_segment segment, parent = nil
+        def add_segment(segment, parent = nil)
           segment.transaction = self
           segment.parent = parent || current_segment
           set_current_segment(segment)
@@ -34,7 +34,7 @@ module NewRelic
           segment.transaction_assigned
         end
 
-        def segment_complete segment
+        def segment_complete(segment)
           # if parent was in another thread, remove the current_segment entry for this thread
           if segment.parent && segment.parent.starting_thread_id != ::Thread.current.object_id
             remove_current_segment_by_thread_id(::Thread.current.object_id)

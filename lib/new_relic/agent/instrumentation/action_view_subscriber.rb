@@ -103,7 +103,7 @@ module NewRelic
           @finishable.finish if @finishable
         end
 
-        def notice_error error
+        def notice_error(error)
           @finishable.notice_error(error) if @finishable
         end
       end

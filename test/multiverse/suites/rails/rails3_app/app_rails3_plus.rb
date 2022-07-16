@@ -116,7 +116,7 @@ if !defined?(MyApp)
     # that converted to render :text for Rails versions that do not support
     # render :body.
     if Rails::VERSION::STRING < "4.1.0"
-      def render *args
+      def render(*args)
         options = args.first
         if Hash === options && options.key?(:body)
           options[:text] = options.delete(:body)

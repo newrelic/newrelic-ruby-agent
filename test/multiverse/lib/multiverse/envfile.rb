@@ -28,13 +28,34 @@ module Multiverse
       @condition = block
     end
 
-    def strip_leading_spaces content
-      content.split("\n").map(&:strip).join("\n") << "\n"
+    def create_gemfiles(versions, gem_list)
+      versions.each do |version|
+        if version.is_a?(Array)
+          version, first_supported_ruby_version, last_supported_ruby_version = version
+          next if unsupported_ruby_version?(
+            last_supported_ruby_version,
+            first_supported_ruby_version
+          )
+        end
+
+        version = add_twiddle_wakka(version)
+
+        gemfile(gem_list(version))
+      end
+    end
+
+    def unsupported_ruby_version?(last_supported_ruby_version, first_supported_ruby_version)
+      last_supported_ruby_version?(last_supported_ruby_version) ||
+        first_supported_ruby_version?(first_supported_ruby_version)
+    end
+
+    def strip_leading_spaces(content)
+      content.split("\n").map(&:strip).join("\n") << "\n" if content
     end
 
     def gemfile(content)
       content = strip_leading_spaces(content)
-      @gemfiles.push(content) unless content.empty?
+      @gemfiles.push(content) unless content.nil? || content.empty?
     end
 
     def ruby3_gem_webrick
@@ -49,7 +70,7 @@ module Multiverse
       @omit_collector = true
     end
 
-    def instrumentation_methods *args
+    def instrumentation_methods(*args)
       @instrumentation_permutations = args.map(&:to_s)
     end
 
@@ -84,6 +105,23 @@ module Multiverse
 
     def size
       @gemfiles.size * permutations
+    end
+
+    def add_twiddle_wakka(version)
+      return if version.nil?
+      ", '~> #{version}'"
+    end
+
+    private
+
+    def last_supported_ruby_version?(last_supported_ruby_version)
+      return false if last_supported_ruby_version.nil?
+      last_supported_ruby_version && RUBY_VERSION.to_f > last_supported_ruby_version
+    end
+
+    def first_supported_ruby_version?(first_supported_ruby_version)
+      return false if first_supported_ruby_version.nil?
+      RUBY_VERSION.to_f < first_supported_ruby_version
     end
   end
 end

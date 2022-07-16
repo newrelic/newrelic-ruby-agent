@@ -23,7 +23,7 @@ class HTTPTest < Minitest::Test
     HTTP.get(url || default_url, :headers => headers)
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::HTTPResponse.new(get_response(url))
   end
 

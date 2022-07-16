@@ -12,7 +12,7 @@ module NewRelic
           @buffer = Queue.new
         end
 
-        def << value
+        def <<(value)
           @buffer << value
         end
 

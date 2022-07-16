@@ -97,7 +97,7 @@ module NewRelic
           merged_settings.merge!(event_harvest_config)
         end
 
-        def event_harvest_config_is_valid connect_reply
+        def event_harvest_config_is_valid(connect_reply)
           event_harvest_config = connect_reply['event_harvest_config']
 
           if event_harvest_config.nil? \

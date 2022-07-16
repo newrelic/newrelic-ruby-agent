@@ -9,11 +9,11 @@ module NewRelic
   module Agent
     class EventAggregator
       class << self
-        def named named = nil
+        def named(named = nil)
           named ? @named = named.to_s.freeze : @named
         end
 
-        def capacity_key key = nil
+        def capacity_key(key = nil)
           key ? @capacity_key = key : @capacity_key
         end
 
@@ -21,7 +21,7 @@ module NewRelic
         # enabled. Multiple keys will be &&'d and the enabled status of the
         # aggregator will be reset when agent configuration changes.
 
-        def enabled_keys *keys
+        def enabled_keys(*keys)
           if keys.empty?
             @enabled_keys ||= []
           else
@@ -36,11 +36,11 @@ module NewRelic
         # control over whether an aggregator should be enabled. The enabled fn
         # will be reevaluated after configuration changes
 
-        def enabled_fn fn = nil
+        def enabled_fn(fn = nil)
           fn ? @enabled_fn = fn : @enabled_fn
         end
 
-        def buffer_class klass = nil
+        def buffer_class(klass = nil)
           if klass
             @buffer_class = klass
           else
@@ -49,7 +49,7 @@ module NewRelic
         end
       end
 
-      def initialize events
+      def initialize(events)
         @lock = Mutex.new
         @buffer = self.class.buffer_class.new(NewRelic::Agent.config[self.class.capacity_key])
         @enabled = self.class.enabled_fn ? self.class.enabled_fn.call : false
@@ -64,7 +64,7 @@ module NewRelic
       end
 
       # interface method for subclasses to override to provide post harvest functionality
-      def after_harvest metadata
+      def after_harvest(metadata)
       end
 
       def enabled?
@@ -91,7 +91,7 @@ module NewRelic
       # the buffer to ensure accuracy of buffer of metadata. We want to make sure not to
       # double count samples being merged back in from a failed harvest, yet we do not
       # want to under-count samples being merged from the PipeService.
-      def merge! payload, adjust_count = true
+      def merge!(payload, adjust_count = true)
         @lock.synchronize do
           _, samples = payload
 
@@ -111,7 +111,7 @@ module NewRelic
 
       private
 
-      def reservoir_metadata metadata
+      def reservoir_metadata(metadata)
         {
           :reservoir_size => metadata[:capacity],
           :events_seen => metadata[:seen]
@@ -127,7 +127,7 @@ module NewRelic
         end
       end
 
-      def register_enabled_callback events
+      def register_enabled_callback(events)
         events.subscribe(:server_source_configuration_added) {
           @enabled = self.class.enabled_fn.call
           reset! if @enabled == false

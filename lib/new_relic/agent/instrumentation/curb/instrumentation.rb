@@ -35,7 +35,7 @@ module NewRelic
           end
 
           # Hook the #http method to set the verb.
-          def http_with_tracing verb
+          def http_with_tracing(verb)
             self._nr_http_verb = verb.to_s.upcase
             yield
           end
@@ -48,7 +48,7 @@ module NewRelic
           end
 
           # Record the HTTP verb for future #perform calls
-          def method_with_tracing verb
+          def method_with_tracing(verb)
             self._nr_http_verb = verb.upcase
             yield
           end

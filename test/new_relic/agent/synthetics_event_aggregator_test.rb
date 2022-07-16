@@ -142,7 +142,7 @@ module NewRelic
         last_synthetics_events.first
       end
 
-      def generate_request name = 'Controller/whatever', options = {}
+      def generate_request(name = 'Controller/whatever', options = {})
         payload = {
           :name => name,
           :type => :controller,

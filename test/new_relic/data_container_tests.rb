@@ -30,7 +30,7 @@ module NewRelic
       self.respond_to?(:max_data_items) ? max_data_items : 5
     end
 
-    def harvest_size container, items
+    def harvest_size(container, items)
       if container.respond_to?(:has_metadata?) && container.has_metadata? && !items.empty?
         items.last.size
       else

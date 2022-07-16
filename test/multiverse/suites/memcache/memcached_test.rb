@@ -23,14 +23,14 @@ if defined?(Memcached)
       Memcached::ServerError
     end
 
-    def additional_web_metrics_for command
+    def additional_web_metrics_for(command)
       [
         "Datastore/operation/Memcached/#{command}",
         ["Datastore/operation/Memcached/#{command}", "Controller/#{self.class}/action"]
       ]
     end
 
-    def additional_bg_metrics_for command
+    def additional_bg_metrics_for(command)
       [
         "Datastore/operation/Memcached/#{command}",
         ["Datastore/operation/Memcached/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]

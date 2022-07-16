@@ -84,7 +84,7 @@ module NewRelic
 
         private
 
-        def assert_watched_threads_finished buffer
+        def assert_watched_threads_finished(buffer)
           @threads.each do |thread_name, thread|
             refute thread.alive?, "Thread #{thread_name} is still alive!"
           end
@@ -94,11 +94,11 @@ module NewRelic
           @threads.each(&:join)
         end
 
-        def watch_thread name, &block
+        def watch_thread(name, &block)
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer, sleep_delay = 0
+        def prepare_to_consume_spans(buffer, sleep_delay = 0)
           spans = []
           consumer = watch_thread(:consumer) { buffer.enumerator.each { |span| spans << span } }
 
@@ -106,12 +106,12 @@ module NewRelic
         end
 
         # pops all the serializable spans off the buffer and returns them.
-        def consume_spans buffer
+        def consume_spans(buffer)
           buffer.enumerator.map(&:itself)
         end
 
         # starts a watched thread that will generate segments asynchronously.
-        def prepare_to_stream_segments count, max_buffer_size = 100_000
+        def prepare_to_stream_segments(count, max_buffer_size = 100_000)
           buffer = SuspendedStreamingBuffer.new(max_buffer_size)
           segments = []
 
@@ -134,7 +134,7 @@ module NewRelic
         #
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
-        def stream_segments count, max_buffer_size = 100_000
+        def stream_segments(count, max_buffer_size = 100_000)
           buffer = SuspendedStreamingBuffer.new(max_buffer_size)
           segments = []
 

@@ -165,7 +165,7 @@ module NewRelic
       end
     end
 
-    def with_container_disabled &blk
+    def with_container_disabled(&blk)
       options = enabled_keys.inject({}) do |memo, opt|
         memo[opt] = false
         memo

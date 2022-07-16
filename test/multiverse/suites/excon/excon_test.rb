@@ -32,7 +32,7 @@ class ExconTest < Minitest::Test
     Excon.get(url || default_url, :headers => (headers || {}))
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(get_response(url))
   end
 

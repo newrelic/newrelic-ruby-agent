@@ -62,7 +62,7 @@ module NewRelic
         @items.to_a.dup
       end
 
-      def decrement_lifetime_counts_by n
+      def decrement_lifetime_counts_by(n)
         @captured_lifetime -= n
         @seen_lifetime -= n
       end

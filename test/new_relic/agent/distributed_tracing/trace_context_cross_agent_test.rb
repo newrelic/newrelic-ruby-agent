@@ -118,18 +118,18 @@ module NewRelic
           outbound_payloads
         end
 
-        def newrelic_key key
+        def newrelic_key(key)
           const_name = "NewRelic::Agent::DistributedTracePayload::#{key.upcase}_KEY"
           Object.const_get(const_name)
         end
 
-        def assign_not_nil_value headers, key, value
+        def assign_not_nil_value(headers, key, value)
           return if value.nil?
           headers[newrelic_key(key)] = value
         end
 
         # builds a dotted hash version of newrelic header from its parsed json payload
-        def add_newrelic_entries payload, newrelic_header
+        def add_newrelic_entries(payload, newrelic_header)
           return unless newrelic_header
           return unless newrelic_payload = DistributedTracePayload.from_http_safe(newrelic_header)
 
@@ -311,7 +311,7 @@ module NewRelic
           assert_metrics_recorded expected_metrics
         end
 
-        def object_to_hash object
+        def object_to_hash(object)
           object.instance_variables.inject({}) do |hash, variable_name|
             key = variable_name.to_s.sub(/^@/, '')
             hash[key] = object.instance_variable_get(variable_name)
@@ -319,7 +319,7 @@ module NewRelic
           end
         end
 
-        def trace_context_headers_to_hash carrier
+        def trace_context_headers_to_hash(carrier)
           entry_key = NewRelic::Agent::Transaction::TraceContext::AccountHelpers.trace_state_entry_key
           header_data = TraceContext.parse( \
             carrier: carrier,
@@ -352,7 +352,7 @@ module NewRelic
           }
         end
 
-        def rack_format test_case, carrier
+        def rack_format(test_case, carrier)
           carrier ||= {}
           rack_headers = {}
           rack_headers["HTTP_TRACEPARENT"] = carrier['traceparent'] if carrier['traceparent']

@@ -17,7 +17,7 @@ module NewRelic
       enabled_key :'transaction_events.enabled'
       buffer_class PrioritySampledBuffer
 
-      def record priority: nil, event: nil, &blk
+      def record(priority: nil, event: nil, &blk)
         unless event || priority && blk
           raise ArgumentError, "Expected priority and block, or event"
         end
@@ -32,7 +32,7 @@ module NewRelic
 
       private
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         return unless enabled?
         record_sampling_rate(metadata)
       end

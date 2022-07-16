@@ -158,7 +158,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
     # that requires puma only. Since we're only using the `get` method this is
     # easy enough replicate. If this becomes a problem in the future perhaps we
     # revisit how we verify that
-    def get path
+    def get(path)
       env = {
         "REQUEST_METHOD" => "GET",
         "PATH_INFO" => path,

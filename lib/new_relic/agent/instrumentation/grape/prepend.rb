@@ -6,7 +6,7 @@
 module NewRelic::Agent::Instrumentation
   module Grape
     module Prepend
-      def call env
+      def call(env)
         begin
           super(env)
         ensure

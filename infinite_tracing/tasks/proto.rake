@@ -7,7 +7,7 @@ namespace :proto do
   desc "Generate proto files"
 
   task :generate do
-    def extract_license_terms file_contents
+    def extract_license_terms(file_contents)
       text = []
       text << file_contents.shift while !file_contents.empty? && file_contents[0] =~ /^#/
       text << ""
@@ -16,7 +16,7 @@ namespace :proto do
 
     # adds the NewRelic License notice to the top of the generated files
     # Removes require lines since these are replicated in the proto.rb file.
-    def add_license_preamble_and_remove_requires output_path
+    def add_license_preamble_and_remove_requires(output_path)
       gemspec_path = File.expand_path(File.join(output_path, '..', '..', '..', '..', '..'))
       license_terms = extract_license_terms(File.readlines(File.join(gemspec_path, "Gemfile")))
       Dir.glob(File.join(output_path, "*.rb")) do |filename|

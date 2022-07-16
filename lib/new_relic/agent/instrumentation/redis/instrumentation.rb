@@ -12,14 +12,14 @@ module NewRelic::Agent::Instrumentation
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
 
-    def call_with_tracing command, &block
+    def call_with_tracing(command, &block)
       operation = command[0]
       statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
 
       with_tracing(operation, statement) { yield }
     end
 
-    def call_pipeline_with_tracing pipeline
+    def call_pipeline_with_tracing(pipeline)
       operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? MULTI_OPERATION : PIPELINE_OPERATION
       statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
 
@@ -32,7 +32,7 @@ module NewRelic::Agent::Instrumentation
 
     private
 
-    def with_tracing operation, statement = nil
+    def with_tracing(operation, statement = nil)
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
         operation: operation,

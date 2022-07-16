@@ -48,7 +48,7 @@ module NewRelic::Agent
       end
 
       # removes the scheme and port from a host entry.
-      def without_scheme_or_port url
+      def without_scheme_or_port(url)
         url.gsub(%r{^https?://|:\d+$}, '')
       end
 

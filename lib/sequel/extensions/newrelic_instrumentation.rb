@@ -65,7 +65,7 @@ module Sequel
     # the statements that come from the disable_all_tracing block into this node's
     # statement, otherwise we would end up ovewriting the sql statement with the
     # last one executed.
-    def notice_sql sql
+    def notice_sql(sql)
       return unless txn = NewRelic::Agent::Tracer.current_transaction
 
       current_segment = txn.current_segment
@@ -82,7 +82,7 @@ module Sequel
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
     ].freeze
 
-    def explainer_for sql
+    def explainer_for(sql)
       Proc.new do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[sql].explain

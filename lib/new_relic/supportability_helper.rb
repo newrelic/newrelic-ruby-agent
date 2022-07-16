@@ -69,7 +69,7 @@ module NewRelic
       end
     end
 
-    def valid_api_argument_class? arg, name, klass
+    def valid_api_argument_class?(arg, name, klass)
       return true if arg.is_a?(klass)
 
       caller_location = caller_locations.first.label

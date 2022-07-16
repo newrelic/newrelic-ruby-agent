@@ -358,7 +358,7 @@ module NewRelic
       assert_metrics_recorded 'OtherTransaction/Background/new_name'
     end
 
-    def setup_linking_metadata_stubs app_names, hostname, entity_guid = nil
+    def setup_linking_metadata_stubs(app_names, hostname, entity_guid = nil)
       NewRelic::Agent.config.reset_to_defaults
 
       yaml_source = NewRelic::Agent::Configuration::YamlSource.new('', 'test')

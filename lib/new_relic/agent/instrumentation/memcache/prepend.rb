@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
 
       module_function
 
-      def client_prepender client_class
+      def client_prepender(client_class)
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -45,7 +45,7 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def dalli_client_prepender supported_methods
+      def dalli_client_prepender(supported_methods)
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -58,7 +58,7 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def dalli_get_multi_prepender method_name
+      def dalli_get_multi_prepender(method_name)
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -74,7 +74,7 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def server_for_key key
+          def server_for_key(key)
             server_for_key_with_newrelic_tracing { super }
           end
         end
@@ -87,11 +87,11 @@ module NewRelic::Agent::Instrumentation
 
           # TODO: Dalli - 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
           if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
-            def pipelined_get keys
+            def pipelined_get(keys)
               send_multiget_with_newrelic_tracing(keys) { super }
             end
           else
-            def send_multiget keys
+            def send_multiget(keys)
               send_multiget_with_newrelic_tracing(keys) { super }
             end
           end

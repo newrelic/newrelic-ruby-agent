@@ -7,7 +7,7 @@ require_relative '../test_helper'
 
 module NewRelic::Agent::InfiniteTracing
   class RecordStatusHandlerTest < Minitest::Test
-    def process_queue handler, queue, expect_nil = false
+    def process_queue(handler, queue, expect_nil = false)
       # wait until the handler has pulled everything from the queue
       # AND until the handler has finished processing, unless it's expected to be nil
       Thread.pass until queue.empty? && (expect_nil || !handler.instance_variable_get(:@messages_seen).nil?)
@@ -55,12 +55,12 @@ module NewRelic::Agent::InfiniteTracing
     private
 
     class TestClient
-      def handle_error error
+      def handle_error(error)
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
       end
     end
 
-    def build_handler queue
+    def build_handler(queue)
       RecordStatusHandler.new(TestClient.new, queue.each_item)
     end
   end

@@ -628,7 +628,7 @@ module NewRelic
       # This method returns transport_duration in seconds. Transport duration
       # is stored in milliseconds on the payload, but it's needed in seconds
       # for metrics and intrinsics.
-      def calculate_transport_duration distributed_trace_payload
+      def calculate_transport_duration(distributed_trace_payload)
         return unless distributed_trace_payload
 
         duration = start_time - (distributed_trace_payload.timestamp / 1000.0)

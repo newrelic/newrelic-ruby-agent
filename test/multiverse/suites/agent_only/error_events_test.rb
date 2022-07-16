@@ -129,7 +129,7 @@ class ErrorEventsTest < Minitest::Test
     assert_equal({}, custom_attributes)
   end
 
-  def generate_errors num_errors = 1, options = {}
+  def generate_errors(num_errors = 1, options = {})
     in_transaction(:transaction_name => "Controller/blogs/index") do |t|
       num_errors.times { t.notice_error(RuntimeError.new("Big Controller"), options) }
     end

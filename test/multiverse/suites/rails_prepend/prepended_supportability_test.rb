@@ -52,7 +52,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
     })
   end
 
-  def metric_values_for val
+  def metric_values_for(val)
     {call_count: 1,
      max_call_time: val,
      min_call_time: val,

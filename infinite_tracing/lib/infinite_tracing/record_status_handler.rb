@@ -6,7 +6,7 @@
 module NewRelic::Agent
   module InfiniteTracing
     class RecordStatusHandler
-      def initialize client, enumerator
+      def initialize(client, enumerator)
         @client = client
         @enumerator = enumerator
         @messages_seen = nil

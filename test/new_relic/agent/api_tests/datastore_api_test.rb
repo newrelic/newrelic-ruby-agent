@@ -49,7 +49,7 @@ module NewRelic
         end
       end
 
-      def assert_expected_tt_segment_params segment_name, host, port_path_or_id, database_name
+      def assert_expected_tt_segment_params(segment_name, host, port_path_or_id, database_name)
         trace = last_transaction_trace
         segment = find_node_with_name(trace, segment_name)
 
@@ -70,7 +70,7 @@ module NewRelic
         end
       end
 
-      def assert_expected_slow_sql_params host, port_path_or_id, database_name
+      def assert_expected_slow_sql_params(host, port_path_or_id, database_name)
         sql_trace = last_sql_trace
 
         if host.nil?

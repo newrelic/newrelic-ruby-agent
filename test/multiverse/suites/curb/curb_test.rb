@@ -163,7 +163,7 @@ class CurbTest < Minitest::Test
     get_response("http://localhost:666/evil")
   end
 
-  def get_response url = nil, headers = nil
+  def get_response(url = nil, headers = nil)
     if @get_response_proc
       @get_response_proc.call(url)
     else
@@ -174,7 +174,7 @@ class CurbTest < Minitest::Test
     end
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::CurbResponse.new(get_response(url))
   end
 
@@ -194,7 +194,7 @@ class CurbTest < Minitest::Test
     Curl::Easy.http_delete(default_url)
   end
 
-  def body res
+  def body(res)
     res.body_str
   end
 
@@ -202,7 +202,7 @@ class CurbTest < Minitest::Test
     NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new("http://localhost"))
   end
 
-  def response_instance headers = {}
+  def response_instance(headers = {})
     res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new("http://localhost"))
     headers.each do |hdr, val|
       res.append_header_data("#{hdr}: #{val}")

@@ -121,7 +121,7 @@ module MultiverseHelpers
   #       net_http: <%= $instrumentation_method.value %>
 
   class InstrumentationMethod
-    def initialize instrumentation_method
+    def initialize(instrumentation_method)
       @value = instrumentation_method
       @emitted = false
     end
@@ -134,7 +134,7 @@ module MultiverseHelpers
       @value
     end
 
-    def value= new_value
+    def value=(new_value)
       @value = new_value
     end
 

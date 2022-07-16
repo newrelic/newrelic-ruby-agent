@@ -174,7 +174,7 @@ module NewRelic
         assert_equal "REFER", event_data["nr.referringTransactionGuid"]
       end
 
-      def generate_payload name = 'whatever', options = {}
+      def generate_payload(name = 'whatever', options = {})
         {
           :name => "Controller/#{name}",
           :type => :controller,

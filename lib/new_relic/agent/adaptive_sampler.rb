@@ -6,7 +6,7 @@
 module NewRelic
   module Agent
     class AdaptiveSampler
-      def initialize target_samples = 10, period_duration = 60
+      def initialize(target_samples = 10, period_duration = 60)
         @target = target_samples
         @seen = 0
         @seen_last = 0

@@ -6,7 +6,7 @@
 module NewRelic::Agent::Instrumentation
   module HTTPClient
     module Instrumentation
-      def with_tracing request, connection
+      def with_tracing(request, connection)
         wrapped_request = NewRelic::Agent::HTTPClients::HTTPClientRequest.new(request)
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: wrapped_request.type,

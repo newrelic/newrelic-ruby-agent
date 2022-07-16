@@ -134,25 +134,25 @@ module Multiverse
     end
 
     # Ensures we bundle will recognize an explicit version number on command line
-    def safe_explicit version
+    def safe_explicit(version)
       return version if version.to_s == ""
       test_version = `bundle #{version} --version` =~ /Could not find command/
       test_version ? "" : version
     end
 
-    def explicit_bundler_version dir
+    def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f < 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")
     end
 
-    def bundle_show_env bundle_cmd
+    def bundle_show_env(bundle_cmd)
       return unless ENV["BUNDLE_SHOW_ENV"]
       puts `#{bundle_cmd} env`
     end
 
-    def bundle_config dir, bundle_cmd
+    def bundle_config(dir, bundle_cmd)
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
@@ -175,7 +175,7 @@ module Multiverse
       $?
     end
 
-    def change_lock_version filepath, gemfile, new_version = Bundler::VERSION
+    def change_lock_version(filepath, gemfile, new_version = Bundler::VERSION)
       begin
         lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/, '')
       rescue => e
@@ -401,7 +401,7 @@ module Multiverse
       end
     end
 
-    def each_instrumentation_method &block
+    def each_instrumentation_method(&block)
       environments.instrumentation_permutations.each do |instrumentation_method|
         yield(instrumentation_method)
       end
@@ -413,7 +413,7 @@ module Multiverse
     # polluting the parent process with test dependencies.  JRuby doesn't
     # implement #fork so we resort to a hack.  We exec this lib file, which
     # loads a new JVM for the tests to run in.
-    def execute instrumentation_method
+    def execute(instrumentation_method)
       return unless check_environment_condition
       configure_instrumentation_method(instrumentation_method)
 
@@ -438,7 +438,7 @@ module Multiverse
       exit(1)
     end
 
-    def execute_serial instrumentation_method
+    def execute_serial(instrumentation_method)
       with_each_environment do |_, i|
         if debug
           execute_in_foreground(i, instrumentation_method)
@@ -448,7 +448,7 @@ module Multiverse
       end
     end
 
-    def execute_parallel instrumentation_method
+    def execute_parallel(instrumentation_method)
       threads = []
       with_each_environment do |_, i|
         threads << Thread.new { execute_in_background(i, instrumentation_method) }
@@ -610,7 +610,7 @@ module Multiverse
       ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] = "true" if environments.omit_collector
     end
 
-    def configure_instrumentation_method method
+    def configure_instrumentation_method(method)
       ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = $instrumentation_method = method
     end
 

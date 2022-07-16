@@ -294,7 +294,7 @@ module NewRelic::Agent
 
     # ---
 
-    def stub_aws_info response_code: '200', response_body: default_aws_response
+    def stub_aws_info(response_code: '200', response_body: default_aws_response)
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::AWS.stubs(:imds_token).returns('Alan Lee')
       Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
@@ -305,7 +305,7 @@ module NewRelic::Agent
       File.read(File.join(aws_fixture_path, "valid.json"))
     end
 
-    def stub_azure_info response_code: '200', response_body: default_azure_response
+    def stub_azure_info(response_code: '200', response_body: default_azure_response)
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::Azure.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
@@ -315,7 +315,7 @@ module NewRelic::Agent
       File.read(File.join(azure_fixture_path, 'valid.json'))
     end
 
-    def stub_gcp_info response_code: '200', response_body: default_gcp_response
+    def stub_gcp_info(response_code: '200', response_body: default_gcp_response)
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::GCP.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
@@ -325,7 +325,7 @@ module NewRelic::Agent
       File.read(File.join(aws_fixture_path, "valid.json"))
     end
 
-    def with_pcf_env vars, &blk
+    def with_pcf_env(vars, &blk)
       vars.each_pair { |k, v| ENV[k] = v }
       blk.call
       vars.keys.each { |k| ENV.delete(k) }
@@ -367,7 +367,7 @@ module NewRelic::Agent
       end
     end
 
-    def setup_cross_agent_test_stubs test_case
+    def setup_cross_agent_test_stubs(test_case)
       stub_utilization_inputs(test_case)
       stub_aws_inputs(test_case)
       stub_azure_inputs(test_case)
@@ -382,7 +382,7 @@ module NewRelic::Agent
       :input_full_hostname => :fqdn
     }
 
-    def stub_utilization_inputs test_case
+    def stub_utilization_inputs(test_case)
       test_case.keys.each do |key|
         if meth = UTILIZATION_INPUTS[key]
           UtilizationData.any_instance.stubs(meth).returns(test_case[key])
@@ -390,7 +390,7 @@ module NewRelic::Agent
       end
     end
 
-    def non_config_environment_variables test_case
+    def non_config_environment_variables(test_case)
       env_inputs = test_case.fetch(:input_environment_variables, {})
       env_inputs.inject({}) do |memo, (k, v)|
         k = k.to_s
@@ -407,7 +407,7 @@ module NewRelic::Agent
       input_aws_zone: :availabilityZone
     }
 
-    def stub_aws_inputs test_case
+    def stub_aws_inputs(test_case)
       resp = test_case.reduce({}) { |h, (k, v)| h[AWS_INPUTS[k]] = v if AWS_INPUTS[k]; h }
       stub_aws_info(response_body: JSON.dump(resp)) unless resp.empty?
     end
@@ -420,7 +420,7 @@ module NewRelic::Agent
 
     NUMERIC_ENV_OPTS = [:NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS, :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB]
 
-    def convert_env_to_config_options test_case
+    def convert_env_to_config_options(test_case)
       env_inputs = test_case.fetch(:input_environment_variables, {})
       env_inputs.keys.inject({}) do |memo, k|
         if k.to_s.start_with?('NEW_RELIC')
@@ -437,7 +437,7 @@ module NewRelic::Agent
       input_azure_size: :vmSize
     }
 
-    def stub_azure_inputs test_case
+    def stub_azure_inputs(test_case)
       resp = test_case.reduce({}) { |h, (k, v)| h[AZURE_INPUTS[k]] = v if AZURE_INPUTS[k]; h }
       stub_azure_info(response_body: JSON.dump(resp)) unless resp.empty?
     end
@@ -449,7 +449,7 @@ module NewRelic::Agent
       input_gcp_zone: :zone
     }
 
-    def stub_gcp_inputs test_case
+    def stub_gcp_inputs(test_case)
       resp = test_case.reduce({}) { |h, (k, v)| h[GCP_INPUTS[k]] = v if GCP_INPUTS[k]; h }
       stub_gcp_info(response_body: JSON.dump(resp)) unless resp.empty?
     end
@@ -460,7 +460,7 @@ module NewRelic::Agent
       input_pcf_mem_limit: 'MEMORY_LIMIT'
     }
 
-    def stub_pcf_env test_case
+    def stub_pcf_env(test_case)
       PCF_INPUTS.reduce({}) { |h, (k, v)| h[v] = test_case[k]; h }
     end
   end

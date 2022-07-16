@@ -18,7 +18,7 @@ module NewRelic::Agent
         @@curtime
       end
 
-      def self.mock_values= array
+      def self.mock_values=(array)
         @@values = array
         @@index = 0
       end

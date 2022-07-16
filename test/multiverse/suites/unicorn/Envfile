@@ -3,16 +3,15 @@ suite_condition("unicorn not supported for JRuby") do
 end
 
 SUPPORTED_UNICORN_VERSIONS = [
-  nil,
-  ", '6.1.0'",
-  ", '4.9.0'"
+  [nil, 2.2],
+  ['6.1.0', 2.2],
+  ['5.3.0', 2.2, 2.7],
+  ['4.9.0', 2.2]
 ]
 
-SUPPORTED_UNICORN_VERSIONS << ", '5.3.0'" if RUBY_VERSION < '3.0.0'
-
-SUPPORTED_UNICORN_VERSIONS.each do |version|
-  gemfile <<-RB
-    gem 'unicorn'#{version}
+def gem_list(unicorn_version = nil)
+  <<-RB
+    gem 'unicorn'#{unicorn_version}
     gem 'rack'
   RB
 end

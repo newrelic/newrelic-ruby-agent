@@ -42,7 +42,7 @@ module NewRelic
       #
       # @api public
       #
-      def insert_distributed_trace_headers headers = {}
+      def insert_distributed_trace_headers(headers = {})
         record_api_supportability_metric(:insert_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
@@ -96,7 +96,7 @@ module NewRelic
       #
       # @api public
       #
-      def accept_distributed_trace_headers headers, transport_type = NewRelic::HTTP
+      def accept_distributed_trace_headers(headers, transport_type = NewRelic::HTTP)
         record_api_supportability_metric(:accept_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
@@ -137,11 +137,11 @@ module NewRelic
 
       private
 
-      def has_variant_key? key, variants
+      def has_variant_key?(key, variants)
         key.to_s.downcase.end_with?(*Array(variants))
       end
 
-      def variant_key_value headers, variants
+      def variant_key_value(headers, variants)
         (headers.detect { |k, v| has_variant_key?(k, variants) } || NewRelic::EMPTY_ARRAY)[1]
       end
     end

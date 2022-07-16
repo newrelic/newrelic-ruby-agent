@@ -36,7 +36,7 @@ module NewRelic
 
         NEWRELIC_TRACE_KEY = "HTTP_NEWRELIC"
 
-        def accept_distributed_tracing_incoming_request request
+        def accept_distributed_tracing_incoming_request(request)
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless payload = request[NEWRELIC_TRACE_KEY]
 
@@ -60,7 +60,7 @@ module NewRelic
           nil
         end
 
-        def accept_distributed_trace_payload payload
+        def accept_distributed_trace_payload(payload)
           return unless Agent.config[:'distributed_tracing.enabled']
 
           return false if check_payload_ignored(payload)

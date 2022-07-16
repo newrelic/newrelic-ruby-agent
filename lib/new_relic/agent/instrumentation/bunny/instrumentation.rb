@@ -14,11 +14,11 @@ module NewRelic
         DEFAULT_TYPE = :direct
         SLASH = '/'
 
-        def exchange_name name
+        def exchange_name(name)
           name.empty? ? DEFAULT_NAME : name
         end
 
-        def exchange_type delivery_info, channel
+        def exchange_type(delivery_info, channel)
           if di_exchange = delivery_info[:exchange]
             return DEFAULT_TYPE if di_exchange.empty?
             return channel.exchanges[delivery_info[:exchange]].type if channel.exchanges[di_exchange]
@@ -28,7 +28,7 @@ module NewRelic
         module Exchange
           include Bunny
 
-          def publish_with_tracing payload, opts = {}
+          def publish_with_tracing(payload, opts = {})
             begin
               destination = exchange_name(name)
 
@@ -129,7 +129,7 @@ module NewRelic
         module Consumer
           include Bunny
 
-          def call_with_tracing *args
+          def call_with_tracing(*args)
             delivery_info, message_properties, _ = args
             queue_name = queue.respond_to?(:name) ? queue.name : queue
 

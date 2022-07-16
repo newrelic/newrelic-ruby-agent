@@ -48,7 +48,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       Typhoeus::Request.get(url || default_url, options)
     end
 
-    def get_wrapped_response url
+    def get_wrapped_response(url)
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(get_response(url))
     end
 

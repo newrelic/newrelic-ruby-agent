@@ -35,7 +35,7 @@ module NetHttpTestCases
     start(uri) { |http| http.get(path, headers) }
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::NetHTTPResponse.new(get_response(url))
   end
 

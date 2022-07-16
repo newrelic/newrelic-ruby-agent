@@ -101,7 +101,7 @@ class ExternalSegment < Performance::TestCase
     end
   end
 
-  def reply_with_cat_headers io_server
+  def reply_with_cat_headers(io_server)
     message = {
       :command => "add_headers",
       :payload => cat_response_headers
@@ -109,7 +109,7 @@ class ExternalSegment < Performance::TestCase
     io_server.puts message
   end
 
-  def stop_server io_server
+  def stop_server(io_server)
     message = {:command => "shutdown"}.to_json
     io_server.puts message
     Process.wait

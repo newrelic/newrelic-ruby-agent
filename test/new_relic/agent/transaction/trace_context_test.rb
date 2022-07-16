@@ -433,7 +433,7 @@ module NewRelic::Agent
           refute_nil txn.priority
         end
 
-        def make_trace_parent options
+        def make_trace_parent(options)
           {
             'version' => '00',
             'trace_id' => '',
@@ -442,10 +442,10 @@ module NewRelic::Agent
           }.update(options)
         end
 
-        def make_trace_context_header_data trace_parent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
+        def make_trace_context_header_data(trace_parent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
           trace_state_payload: nil,
           trace_state: ["other=asdf"],
-          trace_state_vendors: ''
+          trace_state_vendors: '')
           NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new(trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors)
         end
       end

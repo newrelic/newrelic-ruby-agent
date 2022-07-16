@@ -97,13 +97,13 @@ module NewRelic
         assert_equal expected, agent_attrs
       end
 
-      def create_event options = {}
+      def create_event(options = {})
         payload = generate_payload(options[:payload_options] || {})
         error = create_noticed_error(options[:error_options] || {})
         TransactionErrorPrimitive.create(error, payload, @span_id)
       end
 
-      def generate_payload options = {}
+      def generate_payload(options = {})
         {
           :name => "Controller/blogs/index",
           :type => :controller,
@@ -112,7 +112,7 @@ module NewRelic
         }.update(options)
       end
 
-      def create_noticed_error options = {}
+      def create_noticed_error(options = {})
         exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
         expected = options.fetch(:expected, false)
         txn_name = "Controller/blogs/index"

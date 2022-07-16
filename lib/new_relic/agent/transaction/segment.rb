@@ -16,7 +16,7 @@ module NewRelic
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics, :custom_transaction_attributes
 
-        def initialize name = nil, unscoped_metrics = nil, start_time = nil
+        def initialize(name = nil, unscoped_metrics = nil, start_time = nil)
           @unscoped_metrics = unscoped_metrics
           super(name, start_time)
         end
@@ -59,7 +59,7 @@ module NewRelic
           end
         end
 
-        def append_unscoped_metric metric
+        def append_unscoped_metric(metric)
           if @unscoped_metrics
             if Array === @unscoped_metrics
               if unscoped_metrics.frozen?

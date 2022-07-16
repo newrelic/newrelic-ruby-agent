@@ -45,7 +45,7 @@ module NewRelic
           incoming_payload.length == EXPECTED_PAYLOAD_LENGTH
         end
 
-        def reject_messaging_synthetics_header headers
+        def reject_messaging_synthetics_header(headers)
           headers.reject { |k, _| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER }
         end
       end

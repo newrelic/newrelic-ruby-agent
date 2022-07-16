@@ -23,7 +23,7 @@ module NewRelic
             end
           end
 
-          def instrument_multi_method method_name
+          def instrument_multi_method(method_name)
             visibility = NewRelic::Helper.instance_method_visibility(::Dalli::Client, method_name)
             method_name_without = :"#{method_name}_without_newrelic_trace"
 
@@ -45,7 +45,7 @@ module NewRelic
 
               alias_method(:server_for_key_without_newrelic_trace, :server_for_key)
 
-              def server_for_key key
+              def server_for_key(key)
                 server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace(key) }
               end
             end
@@ -62,12 +62,12 @@ module NewRelic
               # TODO: Dalli - 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
               if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
                 alias_method(:pipelined_get_without_newrelic_trace, :pipelined_get)
-                def pipelined_get keys
+                def pipelined_get(keys)
                   send_multiget_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace(keys) }
                 end
               else
                 alias_method(:send_multiget_without_newrelic_trace, :send_multiget)
-                def send_multiget keys
+                def send_multiget(keys)
                   send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace(keys) }
                 end
               end

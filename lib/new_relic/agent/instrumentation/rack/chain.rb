@@ -6,7 +6,7 @@
 module NewRelic::Agent::Instrumentation
   module Rack
     module Chain
-      def self.instrument! builder_class
+      def self.instrument!(builder_class)
         NewRelic::Agent::Instrumentation::RackBuilder.track_deferred_detection(builder_class)
 
         builder_class.class_eval do
@@ -43,7 +43,7 @@ module NewRelic::Agent::Instrumentation
 
     module URLMap
       module Chain
-        def self.instrument! url_map_class
+        def self.instrument!(url_map_class)
           url_map_class.class_eval do
             alias_method(:initialize_without_newrelic, :initialize)
 

@@ -21,7 +21,7 @@ module NewRelic::Agent
 
       attr_reader :queue
 
-      def initialize max_size = DEFAULT_QUEUE_SIZE
+      def initialize(max_size = DEFAULT_QUEUE_SIZE)
         @max_size = max_size
         @lock = Mutex.new
         @queue = Queue.new
@@ -30,7 +30,7 @@ module NewRelic::Agent
 
       # Dumps the contents of this streaming buffer onto
       # the given buffer and closes the queue
-      def transfer new_buffer
+      def transfer(new_buffer)
         @lock.synchronize do
           until @queue.empty? do new_buffer.push(@queue.pop) end
           @queue.close
@@ -45,7 +45,7 @@ module NewRelic::Agent
       # When a restart signal is received, the queue is
       # locked with a mutex, blocking the push until
       # the queue has restarted.
-      def << segment
+      def <<(segment)
         @lock.synchronize do
           clear_queue if @queue.size >= @max_size
           NewRelic::Agent.increment_metric(SPANS_SEEN_METRIC)
@@ -136,7 +136,7 @@ module NewRelic::Agent
 
       private
 
-      def span_event proc_or_segment
+      def span_event(proc_or_segment)
         if proc_or_segment.is_a?(Proc)
           proc_or_segment.call
         else
@@ -144,7 +144,7 @@ module NewRelic::Agent
         end
       end
 
-      def transform proc_or_segment
+      def transform(proc_or_segment)
         Span.new(Transformer.transform(span_event(proc_or_segment)))
       end
     end

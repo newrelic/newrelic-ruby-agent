@@ -78,7 +78,7 @@ module NewRelic
           end
 
           LETTERS = ('a'..'z').to_a
-          def random_text length
+          def random_text(length)
             letters = (0...length).map { LETTERS.sample }
             letters.join('')
           end

@@ -9,28 +9,28 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
     include MultiverseHelpers
 
     class ExampleApp
-      def call env
+      def call(env)
         [200, {'Content-Type' => 'text/html'}, ['Hello!']]
       end
     end
 
     class MiddlewareOne
-      def initialize app
+      def initialize(app)
         @app = app
       end
 
-      def call env
+      def call(env)
         env['MiddlewareOne'] = true
         @app.call(env)
       end
     end
 
     class MiddlewareTwo
-      def initialize app
+      def initialize(app)
         @app = app
       end
 
-      def call env
+      def call(env)
         env['MiddlewareTwo'] = true
         @app.call(env)
       end

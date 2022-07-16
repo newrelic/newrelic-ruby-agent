@@ -47,7 +47,7 @@ module NewRelic
 
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
-      def self.deprecated_description new_setting, description
+      def self.deprecated_description(new_setting, description)
         link_ref = new_setting.to_s.gsub(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
@@ -239,7 +239,7 @@ module NewRelic
         end
 
         SEMICOLON = ';'.freeze
-        def self.convert_to_list_on_semicolon value
+        def self.convert_to_list_on_semicolon(value)
           case value
           when Array then value
           when String then value.split(SEMICOLON)

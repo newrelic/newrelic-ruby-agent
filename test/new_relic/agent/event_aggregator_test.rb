@@ -17,7 +17,7 @@ module NewRelic
 
         attr_reader :buffer
 
-        def record item
+        def record(item)
           event = {'name' => "Event#{item}", 'priority' => rand}
           @buffer.append(event: [event])
           notify_if_full

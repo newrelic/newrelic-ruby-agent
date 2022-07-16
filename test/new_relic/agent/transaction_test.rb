@@ -791,7 +791,7 @@ module NewRelic::Agent
       assert_equal 0, txn.calculate_transport_duration(payload)
     end
 
-    def make_transport_duration_timestamps duration
+    def make_transport_duration_timestamps(duration)
       transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME)
       parent_timestamp = (transaction_start - duration) * 1000
 

@@ -17,7 +17,7 @@ module NewRelic::Agent
         Agent.config.reset_to_defaults
       end
 
-      def with_notify_after_config config
+      def with_notify_after_config(config)
         with_config(config) do
           @events.notify(:initial_configuration_complete)
           yield

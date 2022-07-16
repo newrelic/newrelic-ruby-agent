@@ -341,13 +341,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     assert_equal 2, desired_error_messages_seen
   end
 
-  def assert_lifetime_counts container, value
+  def assert_lifetime_counts(container, value)
     buffer = container.instance_variable_get(:@buffer)
     assert_equal value, buffer.captured_lifetime
     assert_equal value, buffer.seen_lifetime
   end
 
-  def reset_lifetime_counts! container
+  def reset_lifetime_counts!(container)
     buffer = container.instance_variable_get(:@buffer)
     buffer.instance_variable_set(:@captured_lifetime, 0)
     buffer.instance_variable_set(:@seen_lifetime, 0)
