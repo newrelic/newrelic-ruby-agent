@@ -19,7 +19,7 @@ module NewRelic
     end
 
     def eql?(o)
-      (metric_spec.eql? o.metric_spec) && (stats.eql? o.stats)
+      (metric_spec.eql?(o.metric_spec)) && (stats.eql?(o.stats))
     end
 
     def original_spec

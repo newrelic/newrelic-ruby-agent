@@ -19,7 +19,7 @@ module NewRelic::Agent
 
       # updates the seen metric and discards the segment
       def << segment
-        NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
+        NewRelic::Agent.increment_metric(SPANS_SEEN_METRIC)
       end
 
       def transfer new_buffer

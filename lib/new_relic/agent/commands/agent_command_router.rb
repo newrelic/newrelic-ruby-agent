@@ -78,16 +78,16 @@ module NewRelic
 
         def log_profiles(profiles)
           if profiles.empty?
-            ::NewRelic::Agent.logger.debug "No thread profiles with data found to send."
+            ::NewRelic::Agent.logger.debug("No thread profiles with data found to send.")
           else
             profile_descriptions = profiles.map { |p| p.to_log_description }
-            ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+            ::NewRelic::Agent.logger.debug("Sending thread profiles [#{profile_descriptions.join(", ")}]")
           end
         end
 
         def get_agent_commands
           commands = new_relic_service.get_agent_commands
-          NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
+          NewRelic::Agent.logger.debug("Received get_agent_commands = #{commands.inspect}")
           commands.map { |collector_command| AgentCommand.new(collector_command) }
         end
 

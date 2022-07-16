@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
       ::Logger.class_eval do
         include NewRelic::Agent::Instrumentation::Logger
 
-        alias_method :format_message_without_new_relic, :format_message
+        alias_method(:format_message_without_new_relic, :format_message)
 
         def format_message(severity, datetime, progname, msg)
           format_message_with_tracing(severity, datetime, progname, msg) do

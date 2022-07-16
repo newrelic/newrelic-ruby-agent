@@ -59,7 +59,7 @@ module NewRelic
                 txn.distributed_tracer.cross_app_payload = payload
               end
 
-              CrossAppTracing.assign_intrinsic_transaction_attributes state
+              CrossAppTracing.assign_intrinsic_transaction_attributes(state)
             end
           end
 

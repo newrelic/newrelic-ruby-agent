@@ -25,7 +25,7 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append priority: priority, event: event, &blk
+          @buffer.append(priority: priority, event: event, &blk)
           notify_if_full
         end
       end

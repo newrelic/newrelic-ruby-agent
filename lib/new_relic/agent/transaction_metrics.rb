@@ -44,11 +44,11 @@ module NewRelic
       end
 
       def each_unscoped
-        @lock.synchronize { @unscoped.each { |name, stats| yield name, stats } }
+        @lock.synchronize { @unscoped.each { |name, stats| yield(name, stats) } }
       end
 
       def each_scoped
-        @lock.synchronize { @scoped.each { |name, stats| yield name, stats } }
+        @lock.synchronize { @scoped.each { |name, stats| yield(name, stats) } }
       end
 
       def _record_metrics(names, value, aux, target, &blk)

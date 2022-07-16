@@ -27,9 +27,9 @@ module NewRelic
         dt = transaction.distributed_tracer
         payload = dt.distributed_trace_payload || dt.trace_state_payload
 
-        record_caller_by_duration_metrics transaction, payload
-        record_transport_duration_metrics transaction, payload
-        record_errors_by_caller_metrics transaction, payload
+        record_caller_by_duration_metrics(transaction, payload)
+        record_transport_duration_metrics(transaction, payload)
+        record_errors_by_caller_metrics(transaction, payload)
       end
 
       def prefix_for_metric name, transaction, payload
@@ -45,30 +45,30 @@ module NewRelic
       end
 
       def record_caller_by_duration_metrics transaction, payload
-        prefix = prefix_for_metric "DurationByCaller", transaction, payload
-        record_unscoped_metric transaction, prefix, transaction.duration
+        prefix = prefix_for_metric("DurationByCaller", transaction, payload)
+        record_unscoped_metric(transaction, prefix, transaction.duration)
       end
 
       def record_transport_duration_metrics transaction, payload
         return unless payload
 
-        prefix = prefix_for_metric "TransportDuration", transaction, payload
-        duration = transaction.calculate_transport_duration payload
-        record_unscoped_metric transaction, prefix, duration
+        prefix = prefix_for_metric("TransportDuration", transaction, payload)
+        duration = transaction.calculate_transport_duration(payload)
+        record_unscoped_metric(transaction, prefix, duration)
       end
 
       def record_errors_by_caller_metrics transaction, payload
         return unless transaction.exceptions.size > 0
 
-        prefix = prefix_for_metric "ErrorsByCaller", transaction, payload
-        record_unscoped_metric transaction, prefix, 1
+        prefix = prefix_for_metric("ErrorsByCaller", transaction, payload)
+        record_unscoped_metric(transaction, prefix, 1)
       end
 
       private
 
       def record_unscoped_metric transaction, prefix, duration
-        transaction.metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}", duration
-        transaction.metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", duration
+        transaction.metrics.record_unscoped("#{prefix}/#{ALL_SUFFIX}", duration)
+        transaction.metrics.record_unscoped("#{prefix}/#{transaction_type_suffix}", duration)
       end
     end
   end

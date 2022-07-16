@@ -9,4 +9,4 @@ unless defined?(Minitest::Test)
   Minitest::Test = MiniTest::Unit::TestCase
 end
 
-$:.unshift File.expand_path('../../../lib', __FILE__)
+$:.unshift(File.expand_path('../../../lib', __FILE__))

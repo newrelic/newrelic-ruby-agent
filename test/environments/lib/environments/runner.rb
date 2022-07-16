@@ -18,7 +18,7 @@ module Environments
     end
 
     def env_root
-      File.expand_path '../../..', __FILE__
+      File.expand_path('../../..', __FILE__)
     end
 
     def run_and_report
@@ -85,7 +85,7 @@ module Environments
       puts "Bundling in #{dir}..."
       bundler_version = explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
-      bundle_config dir, bundle_cmd
+      bundle_config(dir, bundle_cmd)
 
       command = "cd #{dir} && #{bundle_cmd} install"
       result = Multiverse::ShellUtils.try_command_n_times(command, 3)

@@ -34,7 +34,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def test_help
     begin
-      NewRelic::Cli::Deployments.new "-h"
+      NewRelic::Cli::Deployments.new("-h")
       fail "should have thrown"
     rescue NewRelic::Cli::Command::CommandFailure => c
       assert_match(/^Usage/, c.message)
@@ -44,7 +44,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def test_bad_command
     assert_raises NewRelic::Cli::Command::CommandFailure do
-      NewRelic::Cli::Deployments.new ["-foo", "bar"]
+      NewRelic::Cli::Deployments.new(["-foo", "bar"])
     end
     @deployment = nil
   end

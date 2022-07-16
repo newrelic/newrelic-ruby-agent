@@ -37,14 +37,14 @@ class SinatraMetricExplosionTest < Minitest::Test
   end
 
   def test_sinatra_returns_properly
-    get '/hello/world'
+    get('/hello/world')
     assert_equal 'hello world', last_response.body
   end
 
   def test_transaction_name_from_route
-    get '/hello/world'
+    get('/hello/world')
 
-    segment = if last_request.env.key? 'sinatra.route'
+    segment = if last_request.env.key?('sinatra.route')
       'GET /hello/:name'
     else
       'GET hello/([^/?#]+)'
@@ -56,7 +56,7 @@ class SinatraMetricExplosionTest < Minitest::Test
   end
 
   def test_transaction_name_from_path
-    get '/wrong'
+    get('/wrong')
     assert_metrics_recorded([
       'Controller/Sinatra/SinatraTestApp/GET (unknown)',
       'Apdex/Sinatra/SinatraTestApp/GET (unknown)'
@@ -64,11 +64,11 @@ class SinatraMetricExplosionTest < Minitest::Test
   end
 
   def test_transaction_name_does_not_explode
-    get '/hello/my%20darling'
-    get '/hello/my_honey'
-    get '/hello/my.ragtime.gal'
-    get '/hello/isitmeyourelookingfor?'
-    get '/another_controller'
+    get('/hello/my%20darling')
+    get('/hello/my_honey')
+    get('/hello/my.ragtime.gal')
+    get('/hello/isitmeyourelookingfor?')
+    get('/another_controller')
 
     metric_names = ::NewRelic::Agent.agent.stats_engine.to_h.keys.map(&:to_s)
     metric_names -= [
@@ -93,7 +93,7 @@ class SinatraMetricExplosionTest < Minitest::Test
   end
 
   def test_does_not_break_when_no_verb_matches
-    post '/some/garbage'
+    post('/some/garbage')
 
     assert_metrics_recorded([
       'Controller/Sinatra/SinatraTestApp/POST (unknown)',

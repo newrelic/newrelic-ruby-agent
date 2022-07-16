@@ -24,11 +24,11 @@ module NewRelic
           @sql_statement = nil
           @nosql_statement = nil
           @record_sql = true
-          set_instance_info host, port_path_or_id
+          set_instance_info(host, port_path_or_id)
           @database_name = database_name ? database_name.to_s : nil
-          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
+          super(Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 nil,
-                start_time
+                start_time)
         end
 
         def set_instance_info host = nil, port_path_or_id = nil
@@ -36,7 +36,7 @@ module NewRelic
           host_present = host && !host.empty?
           ppi_present = port_path_or_id && !port_path_or_id.empty?
 
-          host = NewRelic::Agent::Hostname.get_external host if host_present
+          host = NewRelic::Agent::Hostname.get_external(host) if host_present
 
           case
           when host_present && ppi_present
@@ -57,14 +57,14 @@ module NewRelic
         end
 
         def notice_sql sql
-          _notice_sql sql
+          _notice_sql(sql)
           nil
         end
 
         # @api private
         def _notice_sql sql, config = nil, explainer = nil, binds = nil, name = nil
           return unless record_sql?
-          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id, database_name
+          @sql_statement = Database::Statement.new(sql, config, explainer, binds, name, host, port_path_or_id, database_name)
         end
 
         # Method for simplifying attaching non-SQL data statements to a

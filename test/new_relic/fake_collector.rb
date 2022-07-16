@@ -124,13 +124,13 @@ module NewRelic
       uri = URI.parse(req.url)
       method = method_from_request(req)
 
-      if @mock.keys.include? method
+      if @mock.keys.include?(method)
         status, body = @mock[method].evaluate
         res.status = status
-        res.write ::JSON.dump(body)
+        res.write(::JSON.dump(body))
       else
         res.status = 500
-        res.write "Method not found"
+        res.write("Method not found")
       end
       run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
       req.body.rewind

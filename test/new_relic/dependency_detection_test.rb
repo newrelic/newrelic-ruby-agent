@@ -31,7 +31,7 @@ class DependencyDetectionTest < Minitest::Test
     key = nil
 
     DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { key = config_key }
     end
     DependencyDetection.detect!
@@ -43,8 +43,8 @@ class DependencyDetectionTest < Minitest::Test
     key = nil
 
     DependencyDetection.defer do
-      named :testing
-      configure_with :alternate
+      named(:testing)
+      configure_with(:alternate)
       executes { key = config_key }
     end
     DependencyDetection.detect!
@@ -83,7 +83,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
     DependencyDetection.detect!
@@ -95,7 +95,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
 
@@ -110,7 +110,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
 
@@ -125,7 +125,7 @@ class DependencyDetectionTest < Minitest::Test
     setting = nil
 
     DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { setting = config_value }
     end
     DependencyDetection.detect!
@@ -137,7 +137,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     dd = DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
 
@@ -174,7 +174,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     dd = DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
 
@@ -213,7 +213,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     dd = DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
 
@@ -239,7 +239,7 @@ class DependencyDetectionTest < Minitest::Test
     executed = false
 
     dd = DependencyDetection.defer do
-      named :testing
+      named(:testing)
       executes { executed = true }
     end
 
@@ -322,7 +322,7 @@ class DependencyDetectionTest < Minitest::Test
 
   def test_exception_during_depends_on_check_doesnt_propagate
     DependencyDetection.defer do
-      named :something_exceptional
+      named(:something_exceptional)
       depends_on { raise "Oops" }
     end
 
@@ -335,7 +335,7 @@ class DependencyDetectionTest < Minitest::Test
     ran_second_block = false
 
     DependencyDetection.defer do
-      named :something_exceptional
+      named(:something_exceptional)
       executes { raise "Ack!" }
       executes { ran_second_block = true }
     end
@@ -351,7 +351,7 @@ class DependencyDetectionTest < Minitest::Test
 
     2.times do
       DependencyDetection.defer do
-        named :foobar
+        named(:foobar)
         executes { run_count += 1 }
       end
     end

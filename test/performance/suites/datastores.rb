@@ -34,7 +34,7 @@ class DatastoresPerfTest < Performance::TestCase
 
     measure do
       in_transaction do
-        NewRelic::Agent::Datastores.wrap product, operation, collection do
+        NewRelic::Agent::Datastores.wrap(product, operation, collection) do
           FauxDB.query
         end
       end
@@ -51,10 +51,10 @@ class DatastoresPerfTest < Performance::TestCase
   end
 
   def test_segment_notice_sql
-    segment = NewRelic::Agent::Transaction::DatastoreSegment.new "MySQL", "select", "users"
+    segment = NewRelic::Agent::Transaction::DatastoreSegment.new("MySQL", "select", "users")
     conf = {:adapter => :mysql}
     measure do
-      segment._notice_sql SQL, conf
+      segment._notice_sql(SQL, conf)
     end
   end
 end

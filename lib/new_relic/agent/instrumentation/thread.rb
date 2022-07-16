@@ -10,7 +10,7 @@ DependencyDetection.defer do
   named :thread
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Thread Instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Thread Instrumentation')
 
     if use_prepend?
       prepend_instrument ::Thread, ::NewRelic::Agent::Instrumentation::MonitoredThread::Prepend

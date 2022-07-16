@@ -51,11 +51,11 @@ module NewRelic
 
       def initialize events
         @lock = Mutex.new
-        @buffer = self.class.buffer_class.new NewRelic::Agent.config[self.class.capacity_key]
+        @buffer = self.class.buffer_class.new(NewRelic::Agent.config[self.class.capacity_key])
         @enabled = self.class.enabled_fn ? self.class.enabled_fn.call : false
         @notified_full = false
         register_capacity_callback
-        register_enabled_callback events
+        register_enabled_callback(events)
         after_initialize
       end
 
@@ -79,11 +79,11 @@ module NewRelic
         metadata = nil
         samples = []
         @lock.synchronize do
-          samples.concat @buffer.to_a
+          samples.concat(@buffer.to_a)
           metadata = @buffer.metadata
           reset_buffer!
         end
-        after_harvest metadata
+        after_harvest(metadata)
         [reservoir_metadata(metadata), samples]
       end
 
@@ -96,10 +96,10 @@ module NewRelic
           _, samples = payload
 
           if adjust_count
-            @buffer.decrement_lifetime_counts_by samples.count
+            @buffer.decrement_lifetime_counts_by(samples.count)
           end
 
-          samples.each { |s| @buffer.append event: s }
+          samples.each { |s| @buffer.append(event: s) }
         end
       end
 
@@ -120,7 +120,7 @@ module NewRelic
 
       def register_capacity_callback
         NewRelic::Agent.config.register_callback(self.class.capacity_key) do |max_samples|
-          NewRelic::Agent.logger.debug "#{self.class.named} max_samples set to #{max_samples}"
+          NewRelic::Agent.logger.debug("#{self.class.named} max_samples set to #{max_samples}")
           @lock.synchronize do
             @buffer.capacity = max_samples
           end
@@ -131,13 +131,13 @@ module NewRelic
         events.subscribe(:server_source_configuration_added) {
           @enabled = self.class.enabled_fn.call
           reset! if @enabled == false
-          ::NewRelic::Agent.logger.debug "#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service."
+          ::NewRelic::Agent.logger.debug("#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service.")
         }
       end
 
       def notify_if_full
         return unless !@notified_full && @buffer.full?
-        NewRelic::Agent.logger.debug "#{self.class.named} capacity of #{@buffer.capacity} reached, beginning sampling"
+        NewRelic::Agent.logger.debug("#{self.class.named} capacity of #{@buffer.capacity} reached, beginning sampling")
         @notified_full = true
       end
 

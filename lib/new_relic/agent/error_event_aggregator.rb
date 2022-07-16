@@ -35,7 +35,7 @@ module NewRelic
       private
 
       def create_event noticed_error, transaction_payload, span_id
-        TransactionErrorPrimitive.create noticed_error, transaction_payload, span_id
+        TransactionErrorPrimitive.create(noticed_error, transaction_payload, span_id)
       end
     end
   end

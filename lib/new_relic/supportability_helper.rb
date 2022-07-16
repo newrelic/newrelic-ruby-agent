@@ -63,9 +63,9 @@ module NewRelic
     def record_api_supportability_metric(method_name)
       agent = NewRelic::Agent.agent or return
       if metric = API_SUPPORTABILITY_METRICS[method_name]
-        agent.stats_engine.tl_record_unscoped_metrics metric, &:increment_count
+        agent.stats_engine.tl_record_unscoped_metrics(metric, &:increment_count)
       else
-        NewRelic::Agent.logger.debug "API supportability metric not found for :#{method_name}"
+        NewRelic::Agent.logger.debug("API supportability metric not found for :#{method_name}")
       end
     end
 
@@ -77,7 +77,7 @@ module NewRelic
       message = "Bad argument passed to ##{caller_location}. " \
         "Expected #{klass} for `#{name}` but got #{arg.class}"
 
-      NewRelic::Agent.logger.warn message
+      NewRelic::Agent.logger.warn(message)
       nil
     end
   end

@@ -30,16 +30,16 @@ end
 MiniTest::Unit.prepend(Module.new do
   def puke klass, meth, e
     if fail_fast? && !e.is_a?(MiniTest::Skip)
-      puke_fast klass, meth, e
+      puke_fast(klass, meth, e)
     else
-      super klass, meth, e
+      super(klass, meth, e)
     end
   end
 
   private
 
   def puke_fast klass, meth, e
-    warn %Q(\n\nFailing fast.\n\n#{klass}:#{meth}\n\n#{e.message}\n\n#{e.backtrace.join("\n")}\n\n)
+    warn(%Q(\n\nFailing fast.\n\n#{klass}:#{meth}\n\n#{e.message}\n\n#{e.backtrace.join("\n")}\n\n))
     raise Interrupt # other exceptions will be caught by MiniTest
   end
 

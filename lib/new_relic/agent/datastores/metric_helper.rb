@@ -51,9 +51,9 @@ module NewRelic
 
         def self.scoped_metric_for product, operation, collection = nil
           if collection
-            statement_metric_for product, collection, operation
+            statement_metric_for(product, collection, operation)
           else
-            operation_metric_for product, operation
+            operation_metric_for(product, operation)
           end
         end
 
@@ -68,9 +68,9 @@ module NewRelic
           ]
 
           if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && host && port_path_or_id
-            metrics.unshift instance_metric_for(product, host, port_path_or_id)
+            metrics.unshift(instance_metric_for(product, host, port_path_or_id))
           end
-          metrics.unshift operation_metric_for(product, operation) if collection
+          metrics.unshift(operation_metric_for(product, operation)) if collection
 
           metrics
         end
@@ -91,7 +91,7 @@ module NewRelic
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
-          metrics.unshift scoped_metric_for(product, operation, collection)
+          metrics.unshift(scoped_metric_for(product, operation, collection))
 
           metrics
         end

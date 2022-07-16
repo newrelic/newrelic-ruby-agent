@@ -98,9 +98,9 @@ if Rails::VERSION::STRING >= "4.2.0"
                     function: 'perform',
                     namespace: 'MyJob'}
         segment = MiniTest::Mock.new
-        segment.expect :code_information=, nil, [expected]
-        segment.expect :finish, []
-        NewRelic::Agent::Tracer.stub :start_segment, segment do
+        segment.expect(:code_information=, nil, [expected])
+        segment.expect(:finish, [])
+        NewRelic::Agent::Tracer.stub(:start_segment, segment) do
           MyJob.perform_later
         end
       end

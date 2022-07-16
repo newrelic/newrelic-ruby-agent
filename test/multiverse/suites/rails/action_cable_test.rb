@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[rails]"
+SimpleCovHelper.command_name("test:multiverse[rails]")
 
 begin
   require 'action_cable'
@@ -25,7 +25,7 @@ if defined?(ActionCable::Channel)
       def initialize
         @transmissions = []
         @identifiers = []
-        @logger = Logger.new StringIO.new
+        @logger = Logger.new(StringIO.new)
       end
 
       def transmit data
@@ -33,13 +33,13 @@ if defined?(ActionCable::Channel)
       end
 
       def last_transmission
-        JSON.parse @transmissions.last
+        JSON.parse(@transmissions.last)
       end
     end
 
     class TestChannel < ActionCable::Channel::Base
       def test_action data
-        transmit data['content']
+        transmit(data['content'])
       end
 
       def boom data
@@ -49,7 +49,7 @@ if defined?(ActionCable::Channel)
 
     setup_and_teardown_agent do
       @connection = TestConnection.new
-      @channel = TestChannel.new @connection, "{id: 1}"
+      @channel = TestChannel.new(@connection, "{id: 1}")
     end
 
     def test_creates_trace

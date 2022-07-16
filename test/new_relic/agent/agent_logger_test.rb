@@ -287,7 +287,7 @@ class AgentLoggerTest < Minitest::Test
     end
   ensure
     Kernel.module_eval do
-      remove_method :debug
+      remove_method(:debug)
     end
   end
 
@@ -341,7 +341,7 @@ class AgentLoggerTest < Minitest::Test
 
     logger = create_basic_logger
     logger.log_formatter = log_formatter
-    logger.warn log_message
+    logger.warn(log_message)
 
     assert_logged log_message.reverse
   end

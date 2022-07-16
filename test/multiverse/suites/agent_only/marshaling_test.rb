@@ -21,7 +21,7 @@ class MarshalingTest < Minitest::Test
     in_transaction do
       trace_execution_scoped('a') do
         trace_execution_scoped('ab') do
-          advance_time 1
+          advance_time(1)
         end
       end
     end
@@ -42,8 +42,8 @@ class MarshalingTest < Minitest::Test
 
   def test_metric_data_marshalling
     metric = 'Custom/test/method'
-    NewRelic::Agent.record_metric metric, 1.0
-    NewRelic::Agent.record_metric metric, 2.0
+    NewRelic::Agent.record_metric(metric, 1.0)
+    NewRelic::Agent.record_metric(metric, 2.0)
 
     expected = [2, 3.0, 3.0, 1.0, 2.0, 5.0]
 

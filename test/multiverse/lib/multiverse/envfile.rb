@@ -16,9 +16,9 @@ module Multiverse
       @instrumentation_permutations = ["chain"]
       @gemfiles = []
       @mode = 'fork'
-      if File.exist? file_path
-        @text = File.read self.file_path
-        instance_eval @text
+      if File.exist?(file_path)
+        @text = File.read(self.file_path)
+        instance_eval(@text)
       end
       @gemfiles = [''] if @gemfiles.empty?
     end
@@ -84,7 +84,7 @@ module Multiverse
 
     def execute_mode(mode)
       valid_modes = %w[ fork spawn ]
-      unless valid_modes.member? mode
+      unless valid_modes.member?(mode)
         raise ArgumentError, "#{mode.inspect} is not a valid execute mode.  Valid modes: #{valid_modes.inspect}"
       end
       @mode = mode

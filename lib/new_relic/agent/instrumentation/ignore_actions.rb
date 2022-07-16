@@ -11,7 +11,7 @@ module NewRelic
           # We'll walk the superclass chain and see if
           # any class says 'yes, filter this one'.
 
-          while klass.respond_to? :newrelic_read_attr
+          while klass.respond_to?(:newrelic_read_attr)
             ignore_actions = klass.newrelic_read_attr(key)
 
             should_filter = case ignore_actions

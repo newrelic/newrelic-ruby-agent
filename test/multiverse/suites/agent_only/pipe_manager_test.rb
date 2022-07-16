@@ -21,9 +21,9 @@ class PipeManagerTest < Minitest::Test
   def test_old_pipes_are_cleaned_up_after_timeout
     @listener.timeout = 1
     NewRelic::Agent::PipeChannelManager.register_report_channel(:timeout_test)
-    sleep 2
+    sleep(2)
     @listener.start
-    sleep 0.5 # give the thread some time to start, and clean things up
+    sleep(0.5) # give the thread some time to start, and clean things up
     refute NewRelic::Agent::PipeChannelManager.channels[:timeout_test]
   end
 
@@ -32,11 +32,11 @@ class PipeManagerTest < Minitest::Test
     @listener.timeout = 2
     NewRelic::Agent::PipeChannelManager.register_report_channel(:select_test)
 
-    sleep 1.5
+    sleep(1.5)
     @listener.start
     assert NewRelic::Agent::PipeChannelManager.channels[:select_test]
 
-    sleep 1.5
+    sleep(1.5)
     refute NewRelic::Agent::PipeChannelManager.channels[:select_test]
   end
 end

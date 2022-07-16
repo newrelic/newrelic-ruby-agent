@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def from_json serialized_payload
-          raw_payload = JSON.parse serialized_payload
+          raw_payload = JSON.parse(serialized_payload)
           return raw_payload if raw_payload.nil?
           payload_data = raw_payload[DATA_KEY]
 
@@ -79,8 +79,8 @@ module NewRelic
         end
 
         def from_http_safe http_safe_payload
-          decoded_payload = Base64.strict_decode64 http_safe_payload
-          from_json decoded_payload
+          decoded_payload = Base64.strict_decode64(http_safe_payload)
+          from_json(decoded_payload)
         end
 
         def major_version_matches?(payload)
@@ -157,7 +157,7 @@ module NewRelic
       #
       # @api public
       def http_safe
-        Base64.strict_encode64 text
+        Base64.strict_encode64(text)
       end
     end
   end

@@ -24,24 +24,24 @@ module NewRelic::Agent::Instrumentation
       end
 
       def dalli_cas_prependers
-        yield ::Dalli::Client, dalli_client_prepender(dalli_cas_methods)
-        yield ::Dalli::Client, dalli_get_multi_prepender(:get_multi_cas)
+        yield(::Dalli::Client, dalli_client_prepender(dalli_cas_methods))
+        yield(::Dalli::Client, dalli_get_multi_prepender(:get_multi_cas))
       end
 
       def dalli_prependers
         if supports_datastore_instances?
-          yield ::Dalli::Client, dalli_client_prepender(dalli_methods)
-          yield ::Dalli::Client, dalli_get_multi_prepender(:get_multi)
+          yield(::Dalli::Client, dalli_client_prepender(dalli_methods))
+          yield(::Dalli::Client, dalli_get_multi_prepender(:get_multi))
 
           if supports_binary_protocol?
-            yield ::Dalli::Protocol::Binary, dalli_server_prepender
+            yield(::Dalli::Protocol::Binary, dalli_server_prepender)
           else
-            yield ::Dalli::Server, dalli_server_prepender
+            yield(::Dalli::Server, dalli_server_prepender)
           end
 
-          yield ::Dalli::Ring, dalli_ring_prepender
+          yield(::Dalli::Ring, dalli_ring_prepender)
         else
-          yield ::Dalli::Client, dalli_client_prepender(client_methods)
+          yield(::Dalli::Client, dalli_client_prepender(client_methods))
         end
       end
 

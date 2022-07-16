@@ -59,12 +59,12 @@ module NewRelic
 
           begin
             if response.code == SUCCESS
-              process_response prepare_response(response)
+              process_response(prepare_response(response))
             else
               false
             end
           rescue => e
-            NewRelic::Agent.logger.error "Error occurred detecting: #{vendor_name}", e
+            NewRelic::Agent.logger.error("Error occurred detecting: #{vendor_name}", e)
             record_supportability_metric
             false
           end
@@ -76,25 +76,25 @@ module NewRelic
           processed_headers = headers
           raise if processed_headers.values.include?(:error)
 
-          Timeout.timeout 1 do
+          Timeout.timeout(1) do
             response = nil
-            Net::HTTP.start endpoint.host, endpoint.port do |http|
-              req = Net::HTTP::Get.new endpoint, processed_headers
-              response = http.request req
+            Net::HTTP.start(endpoint.host, endpoint.port) do |http|
+              req = Net::HTTP::Get.new(endpoint, processed_headers)
+              response = http.request(req)
             end
             response
           end
         rescue
-          NewRelic::Agent.logger.debug "#{vendor_name} environment not detected"
+          NewRelic::Agent.logger.debug("#{vendor_name} environment not detected")
         end
 
         def prepare_response response
-          JSON.parse response.body
+          JSON.parse(response.body)
         end
 
         def process_response response
           keys.each do |key|
-            normalized = normalize response[key]
+            normalized = normalize(response[key])
             if normalized
               @metadata[transform_key(key)] = normalized
             else
@@ -112,11 +112,11 @@ module NewRelic
           value = value.to_s
           value = value.dup if value.frozen?
 
-          value.force_encoding Encoding::UTF_8
+          value.force_encoding(Encoding::UTF_8)
           value.strip!
 
-          return unless valid_length? value
-          return unless valid_chars? value
+          return unless valid_length?(value)
+          return unless valid_chars?(value)
 
           value
         end
@@ -125,7 +125,7 @@ module NewRelic
           if value.bytesize <= 255
             true
           else
-            NewRelic::Agent.logger.warn "Found invalid length value while detecting: #{vendor_name}"
+            NewRelic::Agent.logger.warn("Found invalid length value while detecting: #{vendor_name}")
             false
           end
         end
@@ -138,7 +138,7 @@ module NewRelic
             code_point = ch[0].ord # this works in Ruby 1.8.7 - 2.1.2
             next if code_point >= 0x80
 
-            NewRelic::Agent.logger.warn "Found invalid character while detecting: #{vendor_name}"
+            NewRelic::Agent.logger.warn("Found invalid character while detecting: #{vendor_name}")
             return false # it's in neither set of valid characters
           end
           true
@@ -150,7 +150,7 @@ module NewRelic
         end
 
         def record_supportability_metric
-          NewRelic::Agent.increment_metric "Supportability/utilization/#{vendor_name}/error"
+          NewRelic::Agent.increment_metric("Supportability/utilization/#{vendor_name}/error")
         end
       end
     end

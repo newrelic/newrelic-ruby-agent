@@ -69,7 +69,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_scoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
-        NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped unless options[:internal]
+        NewRelic::Agent.record_api_supportability_metric(:trace_execution_scoped) unless options[:internal]
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
           # Using an implicit block avoids object allocation for a &block param
           yield
@@ -85,7 +85,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_unscoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
-        NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped unless options[:internal]
+        NewRelic::Agent.record_api_supportability_metric(:trace_execution_unscoped) unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
@@ -164,7 +164,7 @@ module NewRelic
           # for testing only
           def _nr_clear_traced_methods!
             _nr_traced_method_module.module_eval do
-              self.instance_methods.each { |m| remove_method m }
+              self.instance_methods.each { |m| remove_method(m) }
             end
           end
 
@@ -269,7 +269,7 @@ module NewRelic
 
           options = _nr_validate_method_tracer_options(method_name, options)
 
-          visibility = NewRelic::Helper.instance_method_visibility self, method_name
+          visibility = NewRelic::Helper.instance_method_visibility(self, method_name)
 
           scoped_metric, unscoped_metrics = _nr_scoped_unscoped_metrics(metric_name, method_name, push_scope: options[:push_scope])
 
@@ -350,7 +350,7 @@ module NewRelic
               end
             end
 
-            send visibility, method_name
+            send(visibility, method_name)
             ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
           end
         end

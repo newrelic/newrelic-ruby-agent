@@ -67,7 +67,7 @@ module NewRelic
 
       def record(value = nil, aux = nil, &blk)
         if blk
-          yield self
+          yield(self)
         else
           case value
           when Numeric

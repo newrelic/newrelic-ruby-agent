@@ -11,8 +11,8 @@ class ErrorCollectorTests < Performance::TestCase
 
   def test_notice_error
     measure do
-      in_transaction :name => @txn_name do
-        NewRelic::Agent.notice_error StandardError.new @err_msg
+      in_transaction(:name => @txn_name) do
+        NewRelic::Agent.notice_error(StandardError.new(@err_msg))
       end
     end
   end
@@ -21,8 +21,8 @@ class ErrorCollectorTests < Performance::TestCase
     opts = {:custom_params => {:name => "Wes Mantooth", :channel => 9}}
 
     measure do
-      in_transaction :name => @txn_name do
-        NewRelic::Agent.notice_error StandardError.new(@err_msg), opts
+      in_transaction(:name => @txn_name) do
+        NewRelic::Agent.notice_error(StandardError.new(@err_msg), opts)
       end
     end
   end

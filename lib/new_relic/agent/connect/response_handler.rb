@@ -38,16 +38,16 @@ module NewRelic
 
         def add_server_side_config(config_data)
           if config_data['agent_config']
-            ::NewRelic::Agent.logger.debug "Using config from server"
+            ::NewRelic::Agent.logger.debug("Using config from server")
           end
 
-          ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
+          ::NewRelic::Agent.logger.debug("Server provided config: #{config_data.inspect}")
           server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, @config)
           @config.replace_or_add_config(server_config)
         end
 
         def add_security_policy_config(security_policies)
-          ::NewRelic::Agent.logger.info 'Installing security policies'
+          ::NewRelic::Agent.logger.info('Installing security policies')
           security_policy_source = NewRelic::Agent::Configuration::SecurityPolicySource.new(security_policies)
           @config.replace_or_add_config(security_policy_source)
           # drop data collected before applying security policies

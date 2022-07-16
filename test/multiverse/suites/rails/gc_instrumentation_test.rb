@@ -26,7 +26,7 @@ if !NewRelic::LanguageSupport.jruby?
         puts "Timed out waiting for GC..."
       end
 
-      render body: 'ha'
+      render(body: 'ha')
     end
   end
 
@@ -44,7 +44,7 @@ if !NewRelic::LanguageSupport.jruby?
 
     def test_records_accurate_time_for_gc_activity
       start = Process.clock_gettime(Process::CLOCK_REALTIME)
-      get :gc_action
+      get(:gc_action)
       elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
 
       stats_hash = NewRelic::Agent.instance.stats_engine.reset!
@@ -58,7 +58,7 @@ if !NewRelic::LanguageSupport.jruby?
 
     def test_records_transaction_param_for_gc_activity
       start = Process.clock_gettime(Process::CLOCK_REALTIME)
-      get :gc_action
+      get(:gc_action)
       elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
 
       trace = last_transaction_trace

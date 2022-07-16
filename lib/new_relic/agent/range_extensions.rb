@@ -13,7 +13,7 @@ module NewRelic
       end
 
       def merge r1, r2
-        return unless intersects? r1, r2
+        return unless intersects?(r1, r2)
         range_min = r1.begin < r2.begin ? r1.begin : r2.begin
         range_max = r1.end > r2.end ? r1.end : r2.end
         range_min..range_max
@@ -29,7 +29,7 @@ module NewRelic
             return ranges
           end
         end
-        ranges.push range
+        ranges.push(range)
       end
 
       # Computes the amount of overlap between range and an array of ranges.
@@ -37,7 +37,7 @@ module NewRelic
       # ranges in the ranges array.
       def compute_overlap range, ranges
         ranges.inject(0) do |memo, other|
-          next memo unless intersects? range, other
+          next memo unless intersects?(range, other)
           lower_bound = range.begin > other.begin ? range.begin : other.begin
           upper_bound = range.end < other.end ? range.end : other.end
           memo += upper_bound - lower_bound

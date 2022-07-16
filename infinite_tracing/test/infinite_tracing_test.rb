@@ -16,7 +16,7 @@ module NewRelic
         end
 
         def test_span_events_fixtures_load
-          span_event = span_event_fixture :single
+          span_event = span_event_fixture(:single)
           assert_kind_of Array, span_event
           assert_kind_of Hash, span_event[0]
           assert_kind_of Hash, span_event[1]

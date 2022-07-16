@@ -51,7 +51,7 @@ module NewRelic
         def default_sql_obfuscator(sql)
           stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
 
-          if stmt.sql.end_with? ELLIPSIS
+          if stmt.sql.end_with?(ELLIPSIS)
             return QUERY_TOO_LARGE_MESSAGE
           end
 

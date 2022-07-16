@@ -34,7 +34,7 @@ class SinatraParameterCaptureTest < Minitest::Test
         :foo => "bar",
         :bar => "baz"
       }
-      post '/capture_test', params
+      post('/capture_test', params)
     end
 
     expected = {
@@ -53,7 +53,7 @@ class SinatraParameterCaptureTest < Minitest::Test
         :title => "blah",
         :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
       }
-      post '/files', params
+      post('/files', params)
 
       expected = {
         "request.parameters.title" => "blah",
@@ -65,7 +65,7 @@ class SinatraParameterCaptureTest < Minitest::Test
   end
 
   def test_request_and_response_attributes_recorded_as_agent_attributes
-    post '/capture_test'
+    post('/capture_test')
 
     expected = {
       "response.headers.contentLength" => last_response.content_length.to_i,

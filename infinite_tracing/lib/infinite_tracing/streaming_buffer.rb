@@ -32,7 +32,7 @@ module NewRelic::Agent
       # the given buffer and closes the queue
       def transfer new_buffer
         @lock.synchronize do
-          until @queue.empty? do new_buffer.push @queue.pop end
+          until @queue.empty? do new_buffer.push(@queue.pop) end
           @queue.close
         end
       end
@@ -48,8 +48,8 @@ module NewRelic::Agent
       def << segment
         @lock.synchronize do
           clear_queue if @queue.size >= @max_size
-          NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
-          @queue.push segment
+          NewRelic::Agent.increment_metric(SPANS_SEEN_METRIC)
+          @queue.push(segment)
         end
       end
 
@@ -57,19 +57,19 @@ module NewRelic::Agent
       # supportability metric for the event.
       def clear_queue
         @queue.clear
-        NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
+        NewRelic::Agent.increment_metric(QUEUE_DUMPED_METRIC)
       end
 
       # Waits for the queue to be fully consumed or for the
       # waiting consumers to release.
       def flush_queue
-        @queue.num_waiting.times { @queue.push nil }
+        @queue.num_waiting.times { @queue.push(nil) }
         close_queue
 
         # Logs if we're throwing away spans because nothing's
         # waiting to take them off the queue.
         if @queue.num_waiting == 0 && !@queue.empty?
-          NewRelic::Agent.logger.warn "Discarding #{@queue.size} segments on Streaming Buffer"
+          NewRelic::Agent.logger.warn("Discarding #{@queue.size} segments on Streaming Buffer")
           return
         end
 
@@ -94,8 +94,8 @@ module NewRelic::Agent
         return enum_for(:enumerator) unless block_given?
         loop do
           if segment = @queue.pop(false)
-            NewRelic::Agent.increment_metric SPANS_SENT_METRIC
-            yield transform(segment)
+            NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
+            yield(transform(segment))
 
           else
             raise ClosedQueueError
@@ -120,15 +120,15 @@ module NewRelic::Agent
         return enum_for(:enumerator) unless block_given?
         loop do
           if proc_or_segment = @queue.pop(false)
-            NewRelic::Agent.increment_metric SPANS_SENT_METRIC
+            NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
             @batch << transform(proc_or_segment)
             if @batch.size >= BATCH_SIZE
-              yield SpanBatch.new(spans: @batch)
+              yield(SpanBatch.new(spans: @batch))
               @batch.clear
             end
 
           else
-            yield SpanBatch.new(spans: @batch) unless @batch.empty?
+            yield(SpanBatch.new(spans: @batch)) unless @batch.empty?
             raise ClosedQueueError
           end
         end
@@ -145,7 +145,7 @@ module NewRelic::Agent
       end
 
       def transform proc_or_segment
-        Span.new Transformer.transform(span_event proc_or_segment)
+        Span.new(Transformer.transform(span_event(proc_or_segment)))
       end
     end
   end

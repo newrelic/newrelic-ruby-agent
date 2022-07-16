@@ -13,12 +13,12 @@ require 'new_relic/version'
 
 Gem::Specification.new do |s|
   def self.copy_files filelist
-    subfolder = File.expand_path File.dirname(__FILE__)
+    subfolder = File.expand_path(File.dirname(__FILE__))
 
     filelist.each do |filename|
       source_full_filename = File.expand_path(filename)
       dest_full_filename = File.join(subfolder, File.basename(filename))
-      FileUtils.cp source_full_filename, dest_full_filename
+      FileUtils.cp(source_full_filename, dest_full_filename)
     end
   end
 
@@ -27,12 +27,12 @@ Gem::Specification.new do |s|
     "../CONTRIBUTING.md"
   ]
 
-  self.copy_files shared_files
+  self.copy_files(shared_files)
 
   s.name = "newrelic-infinite_tracing"
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.5.0'
-  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to?(:required_rubygems_version=)
   s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch", "Hannah Ramadan"]
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[datamapper]"
+SimpleCovHelper.command_name("test:multiverse[datamapper]")
 
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')

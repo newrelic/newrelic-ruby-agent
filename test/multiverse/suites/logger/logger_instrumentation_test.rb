@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[logger]"
+SimpleCovHelper.command_name("test:multiverse[logger]")
 
 class LoggerInstrumentationTest < Minitest::Test
   include MultiverseHelpers

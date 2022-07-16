@@ -10,37 +10,37 @@ class LoggingTest < Performance::TestCase
 
   def test_decorating_logger
     io = StringIO.new
-    logger = NewRelic::Agent::Logging::DecoratingLogger.new io
+    logger = NewRelic::Agent::Logging::DecoratingLogger.new(io)
     measure do
-      logger.info EXAMPLE_MESSAGE
+      logger.info(EXAMPLE_MESSAGE)
     end
   end
 
   def test_logger_instrumentation
     io = StringIO.new
-    logger = ::Logger.new io
+    logger = ::Logger.new(io)
     measure do
-      logger.info EXAMPLE_MESSAGE
+      logger.info(EXAMPLE_MESSAGE)
     end
   end
 
   def test_local_log_decoration
     io = StringIO.new
-    logger = ::Logger.new io
+    logger = ::Logger.new(io)
     measure do
       with_config(:'application_logging.local_decorating.enabled' => true) do
-        logger.info EXAMPLE_MESSAGE
+        logger.info(EXAMPLE_MESSAGE)
       end
     end
   end
 
   def test_local_log_decoration_in_transaction
     io = StringIO.new
-    logger = ::Logger.new io
+    logger = ::Logger.new(io)
     measure do
       with_config(:'application_logging.local_decorating.enabled' => true) do
         in_transaction do
-          logger.info EXAMPLE_MESSAGE
+          logger.info(EXAMPLE_MESSAGE)
         end
       end
     end
@@ -48,10 +48,10 @@ class LoggingTest < Performance::TestCase
 
   def test_logger_instrumentation_in_transaction
     io = StringIO.new
-    logger = ::Logger.new io
+    logger = ::Logger.new(io)
     measure do
       in_transaction do
-        logger.info EXAMPLE_MESSAGE
+        logger.info(EXAMPLE_MESSAGE)
       end
     end
   end

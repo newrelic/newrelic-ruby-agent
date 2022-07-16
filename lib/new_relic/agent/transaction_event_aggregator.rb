@@ -25,7 +25,7 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append priority: priority, event: event, &blk
+          @buffer.append(priority: priority, event: event, &blk)
           notify_if_full
         end
       end
@@ -34,7 +34,7 @@ module NewRelic
 
       def after_harvest metadata
         return unless enabled?
-        record_sampling_rate metadata
+        record_sampling_rate(metadata)
       end
 
       def record_sampling_rate(metadata) # THREAD_LOCAL_ACCESS

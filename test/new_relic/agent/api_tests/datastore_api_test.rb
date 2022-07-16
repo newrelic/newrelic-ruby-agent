@@ -32,7 +32,7 @@ module NewRelic
                 port_path_or_id: params['port_path_or_id'],
                 database_name: params['database_name']
               )
-              segment.notice_sql "select * from foo"
+              segment.notice_sql("select * from foo")
               advance_process_time 2.0
               segment.finish
             end
@@ -51,7 +51,7 @@ module NewRelic
 
       def assert_expected_tt_segment_params segment_name, host, port_path_or_id, database_name
         trace = last_transaction_trace
-        segment = find_node_with_name trace, segment_name
+        segment = find_node_with_name(trace, segment_name)
 
         if host.nil?
           assert_nil segment[:host]

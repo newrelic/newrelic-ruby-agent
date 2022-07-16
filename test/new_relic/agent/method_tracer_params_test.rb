@@ -123,7 +123,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   def assert_common_tracing_behavior traced_class
     assert_expected_results traced_class
     refute_deprecation_warnings traced_class
-    call_expecting_warning_after_ruby_26 traced_class
+    call_expecting_warning_after_ruby_26(traced_class)
   end
 
   [["untraced_methods", UntracedMethods],

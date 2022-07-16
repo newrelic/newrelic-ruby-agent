@@ -136,7 +136,7 @@ module NewRelic
             elsif !config[option].nil? && !is_boolean?(config[option])
               coerced_value = !!(config[option].to_s =~ /yes|on|true/i)
               if !coerced_value
-                log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}"
+                log_failure("Unexpected value (#{config[option]}) for '#{option}' in #{@path}")
               end
               config[option] = coerced_value
             end

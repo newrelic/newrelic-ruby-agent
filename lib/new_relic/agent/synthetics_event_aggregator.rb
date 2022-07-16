@@ -21,14 +21,14 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append event: event, priority: -event[0][TIMESTAMP]
+          @buffer.append(event: event, priority: -event[0][TIMESTAMP])
         end
       end
 
       private
 
       def after_harvest metadata
-        record_dropped_synthetics metadata
+        record_dropped_synthetics(metadata)
       end
 
       def record_dropped_synthetics metadata

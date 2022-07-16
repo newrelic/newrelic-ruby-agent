@@ -222,7 +222,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_initialize_uses_license_key_from_manual_start
     service = NewRelic::Agent::NewRelicService.new
-    NewRelic::Agent.manual_start :license_key => "geronimo"
+    NewRelic::Agent.manual_start(:license_key => "geronimo")
 
     assert_equal 'geronimo', service.send(:license_key)
     NewRelic::Agent.shutdown
@@ -427,9 +427,9 @@ class NewRelicServiceTest < Minitest::Test
     dummy_rsp = 'met rick date uhh'
     @http_handle.respond_to(:metric_data, dummy_rsp)
 
-    advance_process_time 10
+    advance_process_time(10)
     stats_hash = NewRelic::Agent::StatsHash.new
-    advance_process_time 1
+    advance_process_time(1)
     stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     @service.metric_data(stats_hash)
@@ -548,7 +548,7 @@ class NewRelicServiceTest < Minitest::Test
   def self.check_status_code_handling(expected_exceptions)
     expected_exceptions.each do |status_code, exception_type|
       method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
-      define_method method_name do
+      define_method(method_name) do
         @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
         assert_raises exception_type do
           stats_hash = NewRelic::Agent::StatsHash.new
@@ -1155,7 +1155,7 @@ class NewRelicServiceTest < Minitest::Test
         raise response if response.kind_of?(Exception)
         response
       else
-        create_response_mock 'not found', :code => 404
+        create_response_mock('not found', :code => 404)
       end
     end
 

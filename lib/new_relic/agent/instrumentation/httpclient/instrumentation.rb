@@ -16,17 +16,17 @@ module NewRelic::Agent::Instrumentation
 
         begin
           response = nil
-          segment.add_request_headers wrapped_request
+          segment.add_request_headers(wrapped_request)
 
-          NewRelic::Agent::Tracer.capture_segment_error segment do
+          NewRelic::Agent::Tracer.capture_segment_error(segment) do
             yield
           end
 
           response = connection.pop
-          connection.push response
+          connection.push(response)
 
           wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPClientResponse.new(response)
-          segment.process_response_headers wrapped_response
+          segment.process_response_headers(wrapped_response)
 
           response
         ensure

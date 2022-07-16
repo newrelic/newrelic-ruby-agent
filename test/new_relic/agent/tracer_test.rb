@@ -50,7 +50,7 @@ module NewRelic
       end
 
       def test_sampled?
-        with_config :'distributed_tracing.enabled' => true do
+        with_config(:'distributed_tracing.enabled' => true) do
           in_transaction do |txn|
             refute_nil Tracer.sampled?
           end
@@ -66,7 +66,7 @@ module NewRelic
           end
         end
 
-        with_config :'distributed_tracing.enabled' => false do
+        with_config(:'distributed_tracing.enabled' => false) do
           in_transaction do |txn|
             assert_nil Tracer.sampled?
           end
@@ -350,7 +350,7 @@ module NewRelic
         parent = Transaction::Segment.new("parent")
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
 
-        in_transaction 'test' do
+        in_transaction('test') do
           segment = Tracer.start_segment(
             name: name,
             unscoped_metrics: unscoped_metrics,
@@ -374,7 +374,7 @@ module NewRelic
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         parent = Transaction::Segment.new("parent")
 
-        in_transaction 'test' do
+        in_transaction('test') do
           segment = Tracer.start_datastore_segment(
             product: product,
             operation: operation,
@@ -399,7 +399,7 @@ module NewRelic
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         parent = Transaction::Segment.new("parent")
 
-        in_transaction 'test' do
+        in_transaction('test') do
           segment = Tracer.start_external_request_segment(
             library: library,
             uri: uri,

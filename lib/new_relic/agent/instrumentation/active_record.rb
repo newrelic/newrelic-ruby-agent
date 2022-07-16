@@ -22,8 +22,8 @@ module NewRelic
         def self.insert_instrumentation
           if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
             if ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
-              ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions
-              ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
+              ::ActiveRecord::Base.prepend(::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
+              ::ActiveRecord::Relation.prepend(::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
             else
               ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
             end
@@ -37,9 +37,9 @@ module NewRelic
         def self.included(instrumented_class)
           instrumented_class.class_eval do
             unless instrumented_class.method_defined?(:log_without_newrelic_instrumentation)
-              alias_method :log_without_newrelic_instrumentation, :log
-              alias_method :log, :log_with_newrelic_instrumentation
-              protected :log
+              alias_method(:log_without_newrelic_instrumentation, :log)
+              alias_method(:log, :log_with_newrelic_instrumentation)
+              protected(:log)
             end
           end
         end
@@ -81,7 +81,7 @@ module NewRelic
             segment._notice_sql(sql, @config, EXPLAINER)
 
             begin
-              NewRelic::Agent::Tracer.capture_segment_error segment do
+              NewRelic::Agent::Tracer.capture_segment_error(segment) do
                 log_without_newrelic_instrumentation(*args, &block)
               end
             ensure
@@ -125,7 +125,7 @@ module NewRelic
             segment._notice_sql(sql, @config, EXPLAINER)
 
             begin
-              NewRelic::Agent::Tracer.capture_segment_error segment do
+              NewRelic::Agent::Tracer.capture_segment_error(segment) do
                 log_without_newrelic_instrumentation(*args, **kwargs, &block)
               end
             ensure
@@ -152,7 +152,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveRecord instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveRecord instrumentation')
   end
 
   executes do

@@ -65,7 +65,7 @@ module NewRelic::Agent::Configuration
     def test_config_search_paths_include_application_root
       NewRelic::Control.instance.stubs(:root).returns('app_root')
       paths = DefaultSource.config_search_paths.call
-      assert paths.any? { |p| p.include? 'app_root' }
+      assert paths.any? { |p| p.include?('app_root') }
     end
 
     def fetch_config_value(key)

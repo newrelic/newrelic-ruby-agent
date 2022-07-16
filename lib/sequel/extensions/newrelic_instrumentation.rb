@@ -72,9 +72,9 @@ module Sequel
       return unless current_segment.is_a?(NewRelic::Agent::Transaction::DatastoreSegment)
 
       if current_segment.sql_statement
-        current_segment.sql_statement.append_sql sql
+        current_segment.sql_statement.append_sql(sql)
       else
-        current_segment._notice_sql sql, self.opts, explainer_for(sql)
+        current_segment._notice_sql(sql, self.opts, explainer_for(sql))
       end
     end
 
@@ -94,6 +94,6 @@ module Sequel
     end
   end # module NewRelicInstrumentation
 
-  NewRelic::Agent.logger.debug "Registering the :newrelic_instrumentation extension."
+  NewRelic::Agent.logger.debug("Registering the :newrelic_instrumentation extension.")
   Database.register_extension(:newrelic_instrumentation, NewRelicInstrumentation)
 end # module Sequel
