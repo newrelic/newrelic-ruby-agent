@@ -1,15 +1,18 @@
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
-  gem 'sinatra', '~> 1.4.8', :require => false
-  gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
-  #{ruby3_gem_webrick}
-RB
+SINATRA_VERSIONS = [
+  [nil, 2.3],
+  ['2.1.0', 2.3],
+  ['1.4.8']
+]
 
-if RUBY_VERSION >= '2.3.0'
-  gemfile <<-RB
-    gem 'sinatra', '~> 2.1.0', :require => false
+def gem_list(sinatra_version = nil)
+  <<-RB
+    gem 'sinatra'#{sinatra_version}, :require => false
     gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
     #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(SINATRA_VERSIONS, gem_list)
+
