@@ -4,8 +4,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-$:.unshift File.expand_path('../../../lib', __FILE__)
-$:.unshift File.expand_path('../..', __FILE__)
+$:.unshift(File.expand_path('../../../lib', __FILE__))
+$:.unshift(File.expand_path('../..', __FILE__))
 
 require 'newrelic_rpm'
 require 'agent_helper'
@@ -27,6 +27,6 @@ while message = JSON.parse(gets)
     server.stop
     exit(0)
   when "add_headers"
-    server.override_response_headers message["payload"]
+    server.override_response_headers(message["payload"])
   end
 end

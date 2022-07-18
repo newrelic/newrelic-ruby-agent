@@ -12,6 +12,6 @@ class LoadTest < Minitest::Test
     ::Resolv.expects(:getaddress).never
     ::IPSocket.expects(:getaddress).never
 
-    require_relative '../test_helper'
+    require_relative('../test_helper')
   end
 end

@@ -31,9 +31,9 @@ module NewRelic::Agent
     def test_payload_is_created_if_connected
       created_at, payload = nil, nil
 
-      in_transaction "test_txn" do |txn|
+      in_transaction("test_txn") do |txn|
         created_at = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
-        payload = DistributedTracePayload.for_transaction txn
+        payload = DistributedTracePayload.for_transaction(txn)
       end
 
       assert_equal "46954", payload.parent_app_id
@@ -46,8 +46,8 @@ module NewRelic::Agent
 
     def test_trusted_account_id_present_if_different_than_account_id
       payload = nil
-      in_transaction "test_txn" do |txn|
-        payload = DistributedTracePayload.for_transaction txn
+      in_transaction("test_txn") do |txn|
+        payload = DistributedTracePayload.for_transaction(txn)
       end
 
       assert_equal "trust_this!", payload.trusted_account_key
@@ -58,25 +58,25 @@ module NewRelic::Agent
     end
 
     def test_trusted_account_id_not_present_if_it_matches_account_id
-      with_config :trusted_account_key => "190" do
+      with_config(:trusted_account_key => "190") do
         payload = nil
-        in_transaction "test_txn" do |txn|
-          payload = DistributedTracePayload.for_transaction txn
+        in_transaction("test_txn") do |txn|
+          payload = DistributedTracePayload.for_transaction(txn)
         end
 
         assert_nil payload.trusted_account_key
 
         deserialized_payload = JSON.parse(payload.text)
 
-        refute deserialized_payload["d"].key? "tk"
+        refute deserialized_payload["d"].key?("tk")
       end
     end
 
     def test_attributes_are_copied_from_transaction
       payload = nil
 
-      transaction = in_transaction "test_txn" do |txn|
-        payload = DistributedTracePayload.for_transaction txn
+      transaction = in_transaction("test_txn") do |txn|
+        payload = DistributedTracePayload.for_transaction(txn)
       end
 
       assert_equal transaction.guid, payload.transaction_id
@@ -86,14 +86,14 @@ module NewRelic::Agent
 
     def test_sampled_flag_is_copied_from_transaction
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-      in_transaction "test_txn" do |txn|
-        payload = DistributedTracePayload.for_transaction txn
+      in_transaction("test_txn") do |txn|
+        payload = DistributedTracePayload.for_transaction(txn)
         assert_equal false, payload.sampled
       end
 
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-      in_transaction "test_txn2" do |txn|
-        payload = DistributedTracePayload.for_transaction txn
+      in_transaction("test_txn2") do |txn|
+        payload = DistributedTracePayload.for_transaction(txn)
         assert_equal true, payload.sampled
       end
     end
@@ -109,7 +109,7 @@ module NewRelic::Agent
         incoming_payload = txn.distributed_tracer.create_distributed_trace_payload
       end
 
-      payload = DistributedTracePayload.from_json incoming_payload.text
+      payload = DistributedTracePayload.from_json(incoming_payload.text)
 
       assert_equal DistributedTracePayload::VERSION, payload.version
       assert_equal "App", payload.parent_type
@@ -135,7 +135,7 @@ module NewRelic::Agent
         incoming_payload = txn.distributed_tracer.create_distributed_trace_payload
       end
 
-      payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
+      payload = DistributedTracePayload.from_http_safe(incoming_payload.http_safe)
 
       assert_equal DistributedTracePayload::VERSION, payload.version
       assert_equal "App", payload.parent_type
@@ -155,7 +155,7 @@ module NewRelic::Agent
       payload = nil
 
       in_transaction("test_txn") do |txn|
-        payload = DistributedTracePayload.for_transaction txn
+        payload = DistributedTracePayload.for_transaction(txn)
       end
 
       raw_payload = JSON.parse(payload.text)

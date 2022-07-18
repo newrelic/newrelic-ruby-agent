@@ -17,7 +17,7 @@ module NewRelic
       enabled_key :'transaction_events.enabled'
       buffer_class PrioritySampledBuffer
 
-      def record priority: nil, event: nil, &blk
+      def record(priority: nil, event: nil, &blk)
         unless event || priority && blk
           raise ArgumentError, "Expected priority and block, or event"
         end
@@ -25,16 +25,16 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append priority: priority, event: event, &blk
+          @buffer.append(priority: priority, event: event, &blk)
           notify_if_full
         end
       end
 
       private
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         return unless enabled?
-        record_sampling_rate metadata
+        record_sampling_rate(metadata)
       end
 
       def record_sampling_rate(metadata) # THREAD_LOCAL_ACCESS

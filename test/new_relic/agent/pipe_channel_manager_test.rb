@@ -85,39 +85,39 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         :request_params => {:x => 'y'})
       NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.error_trace_aggregator.harvest!)
 
-      errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get :@errors
+      errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
       assert_equal(1, errors.size)
 
       start_listener_with_pipe(668)
 
       run_child(668) do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
+        new_sampler = NewRelic::Agent::ErrorCollector.new(NewRelic::Agent.instance.events)
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
           :metric => 'path', :referer => 'test_referer',
           :request_params => {:x => 'y'})
         service = NewRelic::Agent::PipeService.new(668)
         service.error_data(new_sampler.error_trace_aggregator.harvest!)
       end
-      errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get :@errors
+      errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
       assert_equal(2, errors.size)
     end
 
     def test_listener_merges_analytics_events
       transaction_event_aggregator = NewRelic::Agent.agent.transaction_event_aggregator
-      reset_lifetime_counts! transaction_event_aggregator
+      reset_lifetime_counts!(transaction_event_aggregator)
 
       start_listener_with_pipe(699)
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
-        transaction_event_aggregator.record event: NewRelic::Agent::TransactionEventPrimitive.create({
+        transaction_event_aggregator.record(event: NewRelic::Agent::TransactionEventPrimitive.create({
           :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
           :name => 'whatever',
           :duration => 10,
           :type => :controller,
           :priority => 0.5
-        })
+        }))
         NewRelic::Agent.agent.send(:transmit_analytic_event_data)
       end
 
@@ -129,7 +129,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_error_events
       error_event_aggregator = NewRelic::Agent.agent.error_collector.error_event_aggregator
-      reset_lifetime_counts! error_event_aggregator
+      reset_lifetime_counts!(error_event_aggregator)
 
       sampler = NewRelic::Agent.agent.error_collector
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
@@ -140,7 +140,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       run_child(668) do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
+        new_sampler = NewRelic::Agent::ErrorCollector.new(NewRelic::Agent.instance.events)
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
           :metric => 'path', :referer => 'test_referer',
           :request_params => {:x => 'y'})
@@ -300,7 +300,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     Process.wait(pid)
     until pipe_finished?(channel_id)
-      sleep 0.01
+      sleep(0.01)
     end
   end
 
@@ -309,14 +309,14 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     wake_mock = MiniTest::Mock.new
     out_mock = MiniTest::Mock.new
-    4.times { wake_mock.expect :out, out_mock }
+    4.times { wake_mock.expect(:out, out_mock) }
     error_stub = Proc.new { |msg| desired_error_messages_seen += 1 if msg =~ /^(?:Issue while|Ready pipes)/ }
     ready_pipes_mock = MiniTest::Mock.new
 
-    ::IO.stub :select, [ready_pipes_mock] do
-      ready_pipes_mock.expect :each, nil
-      ready_pipes_mock.expect :map, []
-      ready_pipes_mock.expect :include?, true do
+    ::IO.stub(:select, [ready_pipes_mock]) do
+      ready_pipes_mock.expect(:each, nil)
+      ready_pipes_mock.expect(:map, [])
+      ready_pipes_mock.expect(:include?, true) do
         true
       end
 
@@ -330,7 +330,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         raise error
       end
 
-      NewRelic::Agent.logger.stub :error, error_stub do
+      NewRelic::Agent.logger.stub(:error, error_stub) do
         listener = NewRelic::Agent::PipeChannelManager::Listener.new
         listener.instance_variable_set(:@wake, wake_mock)
         listener.start
@@ -341,15 +341,15 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     assert_equal 2, desired_error_messages_seen
   end
 
-  def assert_lifetime_counts container, value
-    buffer = container.instance_variable_get :@buffer
+  def assert_lifetime_counts(container, value)
+    buffer = container.instance_variable_get(:@buffer)
     assert_equal value, buffer.captured_lifetime
     assert_equal value, buffer.seen_lifetime
   end
 
-  def reset_lifetime_counts! container
-    buffer = container.instance_variable_get :@buffer
-    buffer.instance_variable_set :@captured_lifetime, 0
-    buffer.instance_variable_set :@seen_lifetime, 0
+  def reset_lifetime_counts!(container)
+    buffer = container.instance_variable_get(:@buffer)
+    buffer.instance_variable_set(:@captured_lifetime, 0)
+    buffer.instance_variable_set(:@seen_lifetime, 0)
   end
 end

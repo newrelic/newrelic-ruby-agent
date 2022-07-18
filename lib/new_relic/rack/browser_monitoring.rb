@@ -108,7 +108,7 @@ module NewRelic::Rack
             js_to_inject <<
             source[insertion_index..-1]
         else
-          NewRelic::Agent.logger.debug "Skipping RUM instrumentation. Could not properly determine location to inject script."
+          NewRelic::Agent.logger.debug("Skipping RUM instrumentation. Could not properly determine location to inject script.")
         end
       else
         msg = "Skipping RUM instrumentation. Unable to find <body> tag in first #{SCAN_LIMIT} bytes of document."
@@ -118,7 +118,7 @@ module NewRelic::Rack
 
       source
     rescue => e
-      NewRelic::Agent.logger.debug "Skipping RUM instrumentation on exception.", e
+      NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception.", e)
       nil
     end
 

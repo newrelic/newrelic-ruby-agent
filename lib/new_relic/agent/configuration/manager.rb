@@ -23,7 +23,7 @@ module NewRelic
         end
 
         def has_key?(key)
-          @cache.has_key? key
+          @cache.has_key?(key)
         end
 
         def keys

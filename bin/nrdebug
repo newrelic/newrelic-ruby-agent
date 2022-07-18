@@ -179,10 +179,10 @@ class ProcessReport
   def open
     if @path
       File.open(@path, "w") do |f|
-        yield f
+        yield(f)
       end
     else
-      yield $stdout
+      yield($stdout)
     end
   end
 

@@ -22,7 +22,7 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
   def test_load_instrumentation_files_logs_errors_during_require
     @test_class.stubs(:require).raises('Instrumentation Test Error')
     expects_logging(:warn, includes("Error loading"), any_parameters)
-    @test_class.load_instrumentation_files '*'
+    @test_class.load_instrumentation_files('*')
   end
 
   def test_add_instrumentation_loads_the_instrumentation_files_if_instrumented

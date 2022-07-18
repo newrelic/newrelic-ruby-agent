@@ -22,8 +22,8 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              segment = Transaction::Segment.new 'Ummm'
-              txn.add_segment segment
+              segment = Transaction::Segment.new('Ummm')
+              txn.add_segment(segment)
               segment.start
               advance_process_time(1.0)
               segment.finish
@@ -61,8 +61,8 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(false)
 
-              segment = Transaction::Segment.new 'Ummm'
-              txn.add_segment segment
+              segment = Transaction::Segment.new('Ummm')
+              txn.add_segment(segment)
               segment.start
               advance_process_time(1.0)
               segment.finish
@@ -77,8 +77,8 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:ignore?).returns(true)
 
-              segment = Transaction::Segment.new 'Ummm'
-              txn.add_segment segment
+              segment = Transaction::Segment.new('Ummm')
+              txn.add_segment(segment)
               segment.start
               advance_process_time(1.0)
               segment.finish

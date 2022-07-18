@@ -21,12 +21,12 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
   # Will throw CommandFailed exception if there's any error.
   #
   attr_reader :dest_dir, :license_key, :generated_for_user, :quiet, :src_file, :app_name
-  def initialize command_line_args = {}
+  def initialize(command_line_args = {})
     @dest_dir = nil
-    super command_line_args
+    super(command_line_args)
     if @dest_dir.nil?
       # Install a newrelic.yml file into the local config directory.
-      if File.directory? "config"
+      if File.directory?("config")
         @dest_dir = "config"
       else
         @dest_dir = "."
@@ -71,13 +71,13 @@ Visit support.newrelic.com if you are experiencing installation issues.
   private
 
   def options
-    OptionParser.new "Usage: #{$0} #{self.class.command} [ OPTIONS] 'application name'", 40 do |o|
+    OptionParser.new("Usage: #{$0} #{self.class.command} [ OPTIONS] 'application name'", 40) do |o|
       o.on("-f", "--force", "Overwrite newrelic.yml if it exists") { |e| @force = true }
       o.on("-l", "--license_key=NAME", String,
         "Use the given license key") { |e| @license_key = e }
       o.on("-d", "--destdir=name", String,
         "Write the newrelic.yml to the given directory, default is '.'") { |e| @dest_dir = e }
-      yield o if block_given?
+      yield(o) if block_given?
     end
   end
 end

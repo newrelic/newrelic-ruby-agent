@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[datamapper]"
+SimpleCovHelper.command_name("test:multiverse[datamapper]")
 
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
@@ -369,8 +369,8 @@ class DataMapperTest < Minitest::Test
   # https://github.com/newrelic/newrelic-ruby-agent/pull/45
   def test_should_not_bomb_out_if_a_query_is_in_an_invalid_encoding
     db = DummyConnection.new
-    q = "select ICS95095010000000000083320000BS01030000004100+\xFF00000000000000000"
-    q.force_encoding 'UTF-8'
+    q = String.new("select ICS95095010000000000083320000BS01030000004100+\xFF00000000000000000")
+    q.force_encoding('UTF-8')
 
     msg = mock
     msg.stubs(:duration).returns(1)

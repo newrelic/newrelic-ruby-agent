@@ -17,7 +17,7 @@ task :console do
 end
 
 Rake::TestTask.new do |t|
-  ROOT = File.join File.dirname(__FILE__)
+  ROOT = File.join(File.dirname(__FILE__))
   $LOAD_PATH << ROOT
 
   file_pattern = "#{ROOT}/**/*_test.rb"

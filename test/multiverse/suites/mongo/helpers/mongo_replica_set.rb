@@ -44,10 +44,10 @@ class MongoReplicaSet
       yield
     rescue exception => e
       if message
-        raise e unless e.message.include? message
+        raise e unless e.message.include?(message)
       end
 
-      sleep 0.1
+      sleep(0.1)
       tries += 1
       retry unless tries > maximum_tries
       raise e
@@ -74,7 +74,7 @@ class MongoReplicaSet
     return nil unless running?
     self.servers.first.client['admin'].command({'replSetGetStatus' => 1})
   rescue Mongo::OperationFailure => e
-    raise e unless e.message.include? 'EMPTYCONFIG'
+    raise e unless e.message.include?('EMPTYCONFIG')
   end
 
   def config

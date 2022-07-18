@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[agent_only]"
+SimpleCovHelper.command_name("test:multiverse[agent_only]")
 
 module NewRelic
   module Agent
@@ -11,9 +11,9 @@ module NewRelic
       include MultiverseHelpers
 
       setup_and_teardown_agent do
-        NewRelic::Agent.config.add_config_for_testing :'distributed_tracing.enabled' => true
+        NewRelic::Agent.config.add_config_for_testing(:'distributed_tracing.enabled' => true)
         # hard reset on the adaptive_sampler
-        NewRelic::Agent.instance.instance_variable_set :@adaptive_sampler, AdaptiveSampler.new
+        NewRelic::Agent.instance.instance_variable_set(:@adaptive_sampler, AdaptiveSampler.new)
       end
 
       def test_adaptive_sampler_valid_stats_and_reset_after_harvest

@@ -11,7 +11,7 @@ module NewRelic
     class NoticibleError
       attr_reader :class_name, :message
 
-      def initialize class_name, message
+      def initialize(class_name, message)
         @class_name = class_name
         @message = message
       end

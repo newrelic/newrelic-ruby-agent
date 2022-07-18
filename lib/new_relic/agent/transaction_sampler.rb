@@ -33,9 +33,9 @@ module NewRelic
         Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
           if enabled
             threshold = Agent.config[:'transaction_tracer.transaction_threshold']
-            ::NewRelic::Agent.logger.debug "Transaction tracing threshold is #{threshold} seconds."
+            ::NewRelic::Agent.logger.debug("Transaction tracing threshold is #{threshold} seconds.")
           else
-            ::NewRelic::Agent.logger.debug "Transaction traces will not be sent to the New Relic service."
+            ::NewRelic::Agent.logger.debug("Transaction traces will not be sent to the New Relic service.")
           end
         end
 
@@ -114,7 +114,7 @@ module NewRelic
         result.uniq!
         result.map! do |sample|
           if Transaction === sample
-            Transaction::TraceBuilder.build_trace sample
+            Transaction::TraceBuilder.build_trace(sample)
           else
             sample
           end

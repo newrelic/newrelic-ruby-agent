@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[memcache]"
+SimpleCovHelper.command_name("test:multiverse[memcache]")
 require "./memcache_test_cases"
 
 if defined?(Dalli)
@@ -47,7 +47,7 @@ if defined?(Dalli)
             @cache.get_multi(key)
           end
           trace = last_transaction_trace
-          segment = find_node_with_name trace, 'Datastore/operation/Memcached/get_multi_request'
+          segment = find_node_with_name(trace, 'Datastore/operation/Memcached/get_multi_request')
           assert_equal "get_multi_request [\"#{key}\"]", segment[:statement]
         end
       end
@@ -55,28 +55,28 @@ if defined?(Dalli)
       def test_assign_instance_to_with_ip_and_port
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('127.0.0.1', 11211)
-        server = DALLI_SERVER_PROTOCOL.new '127.0.0.1:11211'
+        server = DALLI_SERVER_PROTOCOL.new('127.0.0.1:11211')
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_name_and_port
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('jonan.gummy_planet', 11211)
-        server = DALLI_SERVER_PROTOCOL.new 'jonan.gummy_planet:11211'
+        server = DALLI_SERVER_PROTOCOL.new('jonan.gummy_planet:11211')
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_unix_domain_socket
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('localhost', '/tmp/jonanfs.sock')
-        server = DALLI_SERVER_PROTOCOL.new '/tmp/jonanfs.sock'
+        server = DALLI_SERVER_PROTOCOL.new('/tmp/jonanfs.sock')
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_when_exception_raised
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('unknown', 'unknown')
-        server = DALLI_SERVER_PROTOCOL.new '/tmp/jonanfs.sock'
+        server = DALLI_SERVER_PROTOCOL.new('/tmp/jonanfs.sock')
         server.stubs(:hostname).raises("oops")
         DalliTracerHelper.assign_instance_to(segment, server)
       end
@@ -92,8 +92,8 @@ if defined?(Dalli)
       if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
         datastore_command = MULTI_OPERATIONS.include?(command) ? :get_multi_request : command
         metrics = super(datastore_command)
-        metrics.unshift instance_metric
-        metrics.unshift "Ruby/Memcached/Dalli/#{command}" if command != datastore_command
+        metrics.unshift(instance_metric)
+        metrics.unshift("Ruby/Memcached/Dalli/#{command}") if command != datastore_command
         metrics
       else
         super
@@ -104,8 +104,8 @@ if defined?(Dalli)
       if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
         datastore_command = MULTI_OPERATIONS.include?(command) ? :get_multi_request : command
         metrics = super(datastore_command)
-        metrics.unshift instance_metric
-        metrics.unshift "Ruby/Memcached/Dalli/#{command}" if command != datastore_command
+        metrics.unshift(instance_metric)
+        metrics.unshift("Ruby/Memcached/Dalli/#{command}") if command != datastore_command
         metrics
       else
         super

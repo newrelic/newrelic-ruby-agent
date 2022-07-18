@@ -11,7 +11,7 @@ class AddTimestampsToOrders < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveR
   end
 
   def self.down
-    remove_column :orders, :updated_at
-    remove_column :orders, :created_at
+    remove_column(:orders, :updated_at)
+    remove_column(:orders, :created_at)
   end
 end

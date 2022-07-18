@@ -51,7 +51,7 @@ module NewRelic
         end
 
         def create_node(time_since_start, metric_name = nil)
-          raise FinishedTraceError.new "Can't create additional node for finished trace." if self.finished
+          raise FinishedTraceError.new("Can't create additional node for finished trace.") if self.finished
           self.node_count += 1
           NewRelic::Agent::Transaction::TraceNode.new(metric_name, time_since_start)
         end
@@ -122,7 +122,7 @@ module NewRelic
           }
         end
 
-        def trace_tree attributes_hash
+        def trace_tree(attributes_hash)
           [
             NewRelic::Coerce.float(self.start_time),
             NewRelic::EMPTY_HASH,

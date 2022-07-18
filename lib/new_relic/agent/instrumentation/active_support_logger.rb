@@ -13,7 +13,7 @@ DependencyDetection.defer do
   depends_on { defined?(::ActiveSupport::Logger) }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveSupport::Logger instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveSupport::Logger instrumentation')
 
     if use_prepend?
       # the only method currently instrumented is a class method

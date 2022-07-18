@@ -18,7 +18,7 @@ DependencyDetection.defer do
   depends_on { Sinatra::Base.private_method_defined?(:route_eval) }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Sinatra instrumentation')
   end
 
   executes do

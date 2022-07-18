@@ -259,9 +259,9 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_harvest
     @engine.clear_stats
 
-    @engine.tl_record_unscoped_metrics "a", 10
-    @engine.tl_record_unscoped_metrics "c", 1
-    @engine.tl_record_unscoped_metrics "c", 3
+    @engine.tl_record_unscoped_metrics("a", 10)
+    @engine.tl_record_unscoped_metrics("c", 1)
+    @engine.tl_record_unscoped_metrics("c", 3)
 
     assert_metrics_recorded({
       "a" => {:call_count => 1, :total_call_time => 10},
@@ -321,14 +321,14 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   end
 
   def test_harvest_with_merge
-    @engine.tl_record_unscoped_metrics "a", 1
+    @engine.tl_record_unscoped_metrics("a", 1)
     assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 1}
 
     harvest = @engine.harvest!
 
     assert_metrics_not_recorded "a"
 
-    @engine.tl_record_unscoped_metrics "a", 2
+    @engine.tl_record_unscoped_metrics("a", 2)
     assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 2}
 
     # this should merge the contents of the previous harvest,
@@ -341,7 +341,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   end
 
   def test_merge_merges
-    @engine.tl_record_unscoped_metrics "foo", 1
+    @engine.tl_record_unscoped_metrics("foo", 1)
 
     other_stats_hash = NewRelic::Agent::StatsHash.new()
     other_stats_hash.record(NewRelic::MetricSpec.new('foo'), 1)

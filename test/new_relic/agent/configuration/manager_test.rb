@@ -306,7 +306,7 @@ module NewRelic::Agent::Configuration
     def test_high_security_source_addable
       refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
-      @manager.replace_or_add_config security_policy_source
+      @manager.replace_or_add_config(security_policy_source)
       assert @manager.config_classes_for_testing.include?(SecurityPolicySource)
     end
 

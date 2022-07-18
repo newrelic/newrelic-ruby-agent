@@ -3,8 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-def redefine_mysql_primary_key const_str
-  const = Object.const_get const_str rescue return
+def redefine_mysql_primary_key(const_str)
+  const = Object.const_get(const_str) rescue return
   const[:primary_key] = "int(11) auto_increment PRIMARY KEY"
 end
 
@@ -20,7 +20,7 @@ if defined? ::Mysql2
 end
 
 begin
-  load 'Rakefile'
+  load('Rakefile')
   Rake::Task['db:create'].invoke
   Rake::Task['db:migrate'].invoke
 rescue => e

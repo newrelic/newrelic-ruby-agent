@@ -34,9 +34,9 @@ module NewRelic
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
           external_segment = NewRelic::Agent::Tracer \
-            .start_external_request_segment library: "net/http",
+            .start_external_request_segment(library: "net/http",
               uri: "http://docs.newrelic.com",
-              procedure: "GET"
+              procedure: "GET")
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -51,14 +51,14 @@ module NewRelic
         external_segment = nil
         in_transaction('test_txn') do |txn|
           external_segment = NewRelic::Agent::Tracer \
-            .start_external_request_segment library: "net/http",
+            .start_external_request_segment(library: "net/http",
               uri: "http://docs.newrelic.com",
-              procedure: "GET"
+              procedure: "GET")
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         in_transaction('test_txn2') do |txn|
-          txn.distributed_tracer.accept_distributed_trace_payload payload.text
+          txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]

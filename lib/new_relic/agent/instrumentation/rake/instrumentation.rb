@@ -9,7 +9,7 @@ module NewRelic
       module Rake
         module Tracer
           def invoke_with_newrelic_tracing(*args)
-            unless NewRelic::Agent::Instrumentation::Rake.should_trace? name
+            unless NewRelic::Agent::Instrumentation::Rake.should_trace?(name)
               return yield
             end
 

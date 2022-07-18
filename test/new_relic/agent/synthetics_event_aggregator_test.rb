@@ -16,7 +16,7 @@ module NewRelic
         nr_freeze_process_time
         @attributes = nil
         events = NewRelic::Agent.instance.events
-        @synthetics_event_aggregator = SyntheticsEventAggregator.new events
+        @synthetics_event_aggregator = SyntheticsEventAggregator.new(events)
       end
 
       def teardown
@@ -58,7 +58,7 @@ module NewRelic
       def test_includes_custom_attributes
         attrs = {"user" => "Wes Mantooth", "channel" => 9}
 
-        attributes.merge_custom_attributes attrs
+        attributes.merge_custom_attributes(attrs)
 
         generate_request
 
@@ -68,7 +68,7 @@ module NewRelic
       end
 
       def test_does_not_record_supportability_metric_when_no_events_dropped
-        with_config :'synthetics.events_limit' => 20 do
+        with_config(:'synthetics.events_limit' => 20) do
           20.times do
             generate_request
           end
@@ -81,7 +81,7 @@ module NewRelic
       end
 
       def test_synthetics_event_dropped_records_supportability_metrics
-        with_config :'synthetics.events_limit' => 10 do
+        with_config(:'synthetics.events_limit' => 10) do
           20.times do
             generate_request
           end
@@ -94,8 +94,8 @@ module NewRelic
       end
 
       def test_lower_priority_events_discarded_in_favor_higher_priority_events
-        with_config aggregator.class.capacity_key => 5 do
-          10.times { |i| generate_event "event_#{i}" }
+        with_config(aggregator.class.capacity_key => 5) do
+          10.times { |i| generate_event("event_#{i}") }
           # Each event gets a timestamp, which is used to determine priority
           # (older events are higher priority)
 
@@ -108,8 +108,8 @@ module NewRelic
       end
 
       def test_includes_agent_attributes
-        attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
-        attributes.add_agent_attribute :'http.statusCode', 200, AttributeFilter::DST_TRANSACTION_EVENTS
+        attributes.add_agent_attribute(:'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS)
+        attributes.add_agent_attribute(:'http.statusCode', 200, AttributeFilter::DST_TRANSACTION_EVENTS)
 
         generate_request
 
@@ -120,7 +120,7 @@ module NewRelic
       end
 
       def test_aggregator_defers_synthetics_event_creation
-        with_config aggregator.class.capacity_key => 5 do
+        with_config(aggregator.class.capacity_key => 5) do
           5.times { generate_event }
           aggregator.expects(:create_event).never
 
@@ -130,7 +130,7 @@ module NewRelic
             :priority => 0.123
           }
 
-          aggregator.record TransactionEventPrimitive.create(payload)
+          aggregator.record(TransactionEventPrimitive.create(payload))
         end
       end
 
@@ -142,7 +142,7 @@ module NewRelic
         last_synthetics_events.first
       end
 
-      def generate_request name = 'Controller/whatever', options = {}
+      def generate_request(name = 'Controller/whatever', options = {})
         payload = {
           :name => name,
           :type => :controller,
@@ -154,7 +154,7 @@ module NewRelic
           :priority => rand
         }.merge(options)
 
-        @synthetics_event_aggregator.record TransactionEventPrimitive.create(payload)
+        @synthetics_event_aggregator.record(TransactionEventPrimitive.create(payload))
       end
 
       def attributes

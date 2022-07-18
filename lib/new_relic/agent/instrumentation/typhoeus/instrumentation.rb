@@ -32,8 +32,8 @@ module NewRelic
         end
 
         def with_tracing
-          segment = NewRelic::Agent::Tracer.start_segment name: HYDRA_SEGMENT_NAME
-          instance_variable_set :@__newrelic_hydra_segment, segment
+          segment = NewRelic::Agent::Tracer.start_segment(name: HYDRA_SEGMENT_NAME)
+          instance_variable_set(:@__newrelic_hydra_segment, segment)
           begin
             yield
           ensure
@@ -58,15 +58,15 @@ module NewRelic
             parent: parent
           )
 
-          segment.add_request_headers wrapped_request
+          segment.add_request_headers(wrapped_request)
 
           callback = Proc.new do
             wrapped_response = HTTPClients::TyphoeusHTTPResponse.new(request.response)
 
-            segment.process_response_headers wrapped_response
+            segment.process_response_headers(wrapped_response)
 
             if request.response.code == 0
-              segment.notice_error NoticibleError.new NOTICIBLE_ERROR_CLASS, response_message(request.response)
+              segment.notice_error(NoticibleError.new(NOTICIBLE_ERROR_CLASS, response_message(request.response)))
             end
 
             segment.finish if segment

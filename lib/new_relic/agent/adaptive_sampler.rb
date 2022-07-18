@@ -6,7 +6,7 @@
 module NewRelic
   module Agent
     class AdaptiveSampler
-      def initialize target_samples = 10, period_duration = 60
+      def initialize(target_samples = 10, period_duration = 60)
         @target = target_samples
         @seen = 0
         @seen_last = 0
@@ -85,7 +85,7 @@ module NewRelic
             end
           end
           if target_changed
-            NewRelic::Agent.logger.debug "Sampling target set to: #{target}"
+            NewRelic::Agent.logger.debug("Sampling target set to: #{target}")
           end
         end
       end
@@ -100,7 +100,7 @@ module NewRelic
             end
           end
           if period_changed
-            NewRelic::Agent.logger.debug "Sampling period set to: #{period_duration}"
+            NewRelic::Agent.logger.debug("Sampling period set to: #{period_duration}")
           end
         end
       end

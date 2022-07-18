@@ -3,4 +3,4 @@
 require 'fileutils'
 require_relative '../../multiverse/lib/multiverse/environment'
 
-Multiverse::Runner.run ARGV[0].to_s
+Multiverse::Runner.run(ARGV[0].to_s)

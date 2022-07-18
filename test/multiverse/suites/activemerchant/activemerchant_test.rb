@@ -6,7 +6,7 @@
 # Let ActiveSupport's auto-loading make sure the testing gateway's there.
 # require complains of redefine on certain Rubies, (looking at you REE)
 
-SimpleCovHelper.command_name "test:multiverse[activemerchant]"
+SimpleCovHelper.command_name("test:multiverse[activemerchant]")
 
 ActiveMerchant::Billing::BogusGateway
 
@@ -20,8 +20,8 @@ end
 
 class BadGateway < ActiveMerchant::Billing::BogusGateway
   def purchase(*args)
-    super *args
-    raise StandardError.new "whoops!"
+    super(*args)
+    raise StandardError.new("whoops!")
   end
 end
 

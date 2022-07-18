@@ -14,19 +14,19 @@ class ExclusiveTimeTest < Minitest::Test
       include NewRelic::Agent::MethodTracer
 
       def outer_a
-        advance_process_time 2
+        advance_process_time(2)
         outer_b
       end
       add_transaction_tracer :outer_a, :class_name => 'traced'
 
       def outer_b
-        advance_process_time 5
+        advance_process_time(5)
         inner
       end
       add_transaction_tracer :outer_b, :class_name => 'traced'
 
       def inner
-        advance_process_time 10
+        advance_process_time(10)
       end
       add_method_tracer :inner, 'inner'
     end
@@ -65,13 +65,13 @@ class ExclusiveTimeTest < Minitest::Test
       include NewRelic::Agent::MethodTracer
 
       def outer
-        advance_process_time 2
+        advance_process_time(2)
         inner
       end
       add_transaction_tracer :outer, :class_name => 'traced'
 
       def inner
-        advance_process_time 10
+        advance_process_time(10)
       end
       add_method_tracer :inner, 'inner'
     end

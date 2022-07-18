@@ -16,7 +16,7 @@ module NewRelic::Agent::Instrumentation
         defined?(::Grape::API::Instance) ? ::Grape::API::Instance : ::Grape::API
       end
 
-      def capture_transaction env, context
+      def capture_transaction(env, context)
         begin
           endpoint = env[API_ENDPOINT]
           version = env[API_VERSION]
@@ -30,10 +30,10 @@ module NewRelic::Agent::Instrumentation
 
       def prepare!
         if defined?(::Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("0.16.0")
-          send :remove_method, :name_for_transaction_deprecated
+          send(:remove_method, :name_for_transaction_deprecated)
         else
-          send :remove_method, :name_for_transaction
-          send :alias_method, :name_for_transaction, :name_for_transaction_deprecated
+          send(:remove_method, :name_for_transaction)
+          send(:alias_method, :name_for_transaction, :name_for_transaction_deprecated)
         end
       end
 

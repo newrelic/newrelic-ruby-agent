@@ -17,7 +17,7 @@ module NewRelic
       def setup
         nr_freeze_process_time
         events = NewRelic::Agent.instance.events
-        @event_aggregator = TransactionEventAggregator.new events
+        @event_aggregator = TransactionEventAggregator.new(events)
 
         @attributes = nil
       end
@@ -67,7 +67,7 @@ module NewRelic
       def test_block_is_not_executed_unless_buffer_admits_event
         event = nil
 
-        with_config :'transaction_events.max_samples_stored' => 5 do
+        with_config(:'transaction_events.max_samples_stored' => 5) do
           5.times { generate_request }
 
           payload = generate_payload
@@ -85,8 +85,8 @@ module NewRelic
       #
 
       def generate_request(name = 'Controller/whatever', options = {})
-        payload = generate_payload name, options
-        @event_aggregator.record event: TransactionEventPrimitive.create(payload)
+        payload = generate_payload(name, options)
+        @event_aggregator.record(event: TransactionEventPrimitive.create(payload))
       end
 
       def generate_payload(name = 'Controller/whatever', options = {})

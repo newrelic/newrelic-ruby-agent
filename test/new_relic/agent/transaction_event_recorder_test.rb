@@ -11,12 +11,12 @@ module NewRelic
     class TransactionEventRecorderTest < Minitest::Test
       def setup
         events = NewRelic::Agent.instance.events
-        @recorder = TransactionEventRecorder.new events
+        @recorder = TransactionEventRecorder.new(events)
         @attributes = nil
       end
 
       def test_synthetics_events_overflow_to_transaction_buffer
-        with_config :'synthetics.events_limit' => 10 do
+        with_config(:'synthetics.events_limit' => 10) do
           20.times do |i|
             generate_request("syn_#{i}", :synthetics_resource_id => 100)
           end
@@ -30,7 +30,7 @@ module NewRelic
       end
 
       def test_synthetics_events_timestamp_bumps_go_to_main_buffer
-        with_config :'synthetics.events_limit' => 10 do
+        with_config(:'synthetics.events_limit' => 10) do
           10.times do |i|
             generate_request("syn_#{i}", :timestamp => i + 10, :synthetics_resource_id => 100)
           end
@@ -47,9 +47,9 @@ module NewRelic
       end
 
       def test_normal_events_discarded_in_favor_sampled_events
-        with_config :'transaction_events.max_samples_stored' => 5 do
+        with_config(:'transaction_events.max_samples_stored' => 5) do
           5.times { generate_request }
-          5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
+          5.times { |i| generate_request("sampled_#{i}", :priority => rand + 1) }
 
           _, events = harvest_transaction_events!
 
@@ -60,8 +60,8 @@ module NewRelic
       end
 
       def test_sampled_events_not_discarded_in_favor_of_normal_events
-        with_config :'transaction_events.max_samples_stored' => 5 do
-          5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
+        with_config(:'transaction_events.max_samples_stored' => 5) do
+          5.times { |i| generate_request("sampled_#{i}", :priority => rand + 1) }
           5.times { generate_request }
 
           _, events = harvest_transaction_events!
@@ -72,7 +72,7 @@ module NewRelic
         end
       end
 
-      def generate_request name = 'whatever', options = {}
+      def generate_request(name = 'whatever', options = {})
         payload = {
           :name => "Controller/#{name}",
           :type => :controller,
@@ -83,7 +83,7 @@ module NewRelic
           :priority => options[:priority] || rand
         }.merge(options)
 
-        @recorder.record payload
+        @recorder.record(payload)
       end
 
       def attributes

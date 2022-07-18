@@ -1,4 +1,4 @@
-# Simplecov Report
+# SimpleCov Report
 
 A GitHub Action that reports SimpleCov coverage.
 
@@ -27,7 +27,7 @@ jobs:
       - name: Test
         run: bundle exec rspec
 
-      - name: Simplecov Report
+      - name: SimpleCov Report
         uses: aki77/simplecov-report-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

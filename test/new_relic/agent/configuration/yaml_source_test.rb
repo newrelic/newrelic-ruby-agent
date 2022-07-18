@@ -127,7 +127,7 @@ module NewRelic::Agent::Configuration
       define_method(method_name) do
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
-        source.send :booleanify_values, config, 'key'
+        source.send(:booleanify_values, config, 'key')
 
         assert source.failed?
         expected_message = "Unexpected value (#{value}) for 'key' in #{@test_yml_path}"
@@ -141,7 +141,7 @@ module NewRelic::Agent::Configuration
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         refute source.failed?
-        source.send :booleanify_values, config, 'key'
+        source.send(:booleanify_values, config, 'key')
 
         refute source.failed?
         assert_empty source.failures

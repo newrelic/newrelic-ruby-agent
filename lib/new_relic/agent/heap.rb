@@ -90,11 +90,11 @@ module NewRelic
         @priority_fn.call(@items[index])
       end
 
-      def parent_index_for child_index
+      def parent_index_for(child_index)
         (child_index - 1) / 2
       end
 
-      def left_child_index_for parent_index
+      def left_child_index_for(parent_index)
         2 * parent_index + 1
       end
 

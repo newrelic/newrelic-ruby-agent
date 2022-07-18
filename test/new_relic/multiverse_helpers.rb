@@ -121,7 +121,7 @@ module MultiverseHelpers
   #       net_http: <%= $instrumentation_method.value %>
 
   class InstrumentationMethod
-    def initialize instrumentation_method
+    def initialize(instrumentation_method)
       @value = instrumentation_method
       @emitted = false
     end
@@ -134,7 +134,7 @@ module MultiverseHelpers
       @value
     end
 
-    def value= new_value
+    def value=(new_value)
       @value = new_value
     end
 
@@ -232,7 +232,7 @@ module MultiverseHelpers
     raw_attributes = @js_data["atts"]
 
     if raw_attributes
-      attributes = ::JSON.load @instrumentor.obfuscator.deobfuscate(raw_attributes)
+      attributes = ::JSON.load(@instrumentor.obfuscator.deobfuscate(raw_attributes))
       @js_custom_attributes = attributes['u']
       @js_agent_attributes = attributes['a']
     end

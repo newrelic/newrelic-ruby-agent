@@ -41,7 +41,7 @@ DependencyDetection.defer do
   end
 
   def install_middleware_excon_instrumentation
-    ::NewRelic::Agent.logger.info 'Installing middleware-based Excon instrumentation'
+    ::NewRelic::Agent.logger.info('Installing middleware-based Excon instrumentation')
     require 'new_relic/agent/instrumentation/excon/middleware'
     defaults = Excon.defaults
 

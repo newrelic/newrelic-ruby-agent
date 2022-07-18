@@ -12,25 +12,25 @@ module NewRelic
         class TraceContextHeaderDataTest < Minitest::Test
           def test_tracestate_built_from_array
             other_entries = ['one', 'two']
-            header_data = HeaderData.new 'traceparent', 'tracestate_entry', other_entries, 0, ''
+            header_data = HeaderData.new('traceparent', 'tracestate_entry', other_entries, 0, '')
 
-            assert_nil header_data.instance_variable_get :@trace_state
-            refute_nil header_data.instance_variable_get :@trace_state_entries
+            assert_nil header_data.instance_variable_get(:@trace_state)
+            refute_nil header_data.instance_variable_get(:@trace_state_entries)
 
             assert_equal 'new_entry,one,two', header_data.trace_state('new_entry')
-            refute_nil header_data.instance_variable_get :@trace_state
-            assert_nil header_data.instance_variable_get :@trace_state_entries
+            refute_nil header_data.instance_variable_get(:@trace_state)
+            assert_nil header_data.instance_variable_get(:@trace_state_entries)
           end
 
           def test_trace_state_does_not_trim_unless_size_exceeds_512_bytes
             # Create a trace state array with 50 9 byte entries.  When joined
             # with a comma, this would be 499 bytes
             trace_state_array = (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-            header_data = HeaderData.new 'traceparent', 'payload', trace_state_array, 499, ''
+            header_data = HeaderData.new('traceparent', 'payload', trace_state_array, 499, '')
 
             # setting the entry size to something <= 12 shouldn't trim the trace state
             new_entry = 'a' * 12
-            trace_state = header_data.trace_state new_entry
+            trace_state = header_data.trace_state(new_entry)
             assert_equal 512, trace_state.length
           end
 
@@ -38,11 +38,11 @@ module NewRelic
             # Create a trace state array with 50 9 byte entries.  When joined
             # with a comma, this would be 499 bytes
             trace_state_array = (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-            header_data = HeaderData.new 'traceparent', 'payload', trace_state_array, 499, ''
+            header_data = HeaderData.new('traceparent', 'payload', trace_state_array, 499, '')
 
             # setting the entry size to something > 12 should result in a trimmed trace state
             new_entry = 'a' * 13
-            trace_state = header_data.trace_state new_entry
+            trace_state = header_data.trace_state(new_entry)
 
             expected_size = 499 - 9 + 13
             assert_equal expected_size, trace_state.bytesize
@@ -54,9 +54,9 @@ module NewRelic
             ]
             # also add 500 more bytes
             trace_state_array += (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-            header_data = HeaderData.new 'traceparent', 'payload', trace_state_array, 550, ''
+            header_data = HeaderData.new('traceparent', 'payload', trace_state_array, 550, '')
 
-            trace_state = header_data.trace_state 'new=entry'
+            trace_state = header_data.trace_state('new=entry')
             # if the big 133 byte entry gets dropped, the joined trace state
             # will be 50 nine byte entries plus 49 commas plus the new entry,
             # which is 9 more bytes, plus one more comma, so 50*9 + 49 + 9 + 1
@@ -70,15 +70,15 @@ module NewRelic
               "#{random_text(2)}=#{random_text(130)}", # 133 bytes
               'two=value'
             ]
-            header_data = HeaderData.new 'traceparent', 'payload', trace_state_array, 155, ''
+            header_data = HeaderData.new('traceparent', 'payload', trace_state_array, 155, '')
 
-            trace_state = header_data.trace_state 'new=entry'
+            trace_state = header_data.trace_state('new=entry')
             expected_trace_state = "new=entry,#{trace_state_array.join(',')}"
             assert_equal expected_trace_state, trace_state
           end
 
           LETTERS = ('a'..'z').to_a
-          def random_text length
+          def random_text(length)
             letters = (0...length).map { LETTERS.sample }
             letters.join('')
           end

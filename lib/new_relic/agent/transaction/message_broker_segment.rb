@@ -67,7 +67,7 @@ module NewRelic
           @destination_name = destination_name
           @headers = headers
           super(nil, nil, start_time)
-          params.merge! parameters if parameters
+          params.merge!(parameters) if parameters
         end
 
         def name
@@ -86,12 +86,12 @@ module NewRelic
 
         def transaction_assigned
           if headers && transaction && action == :produce && record_metrics?
-            transaction.distributed_tracer.insert_distributed_trace_header headers
-            transaction.distributed_tracer.insert_cat_headers headers
-            transaction.distributed_tracer.log_request_headers headers
+            transaction.distributed_tracer.insert_distributed_trace_header(headers)
+            transaction.distributed_tracer.insert_cat_headers(headers)
+            transaction.distributed_tracer.log_request_headers(headers)
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error during message header processing", e
+          NewRelic::Agent.logger.error("Error during message header processing", e)
         end
       end
     end

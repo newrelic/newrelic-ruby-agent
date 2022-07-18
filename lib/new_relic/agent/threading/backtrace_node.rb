@@ -19,7 +19,7 @@ module NewRelic
 
         def add_child_unless_present(child)
           child.depth = @depth + 1
-          @children << child unless @children.include? child
+          @children << child unless @children.include?(child)
         end
 
         def add_child(child)

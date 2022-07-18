@@ -339,7 +339,7 @@ module MemcacheTestCases
         @cache.get(key)
       end
       trace = last_transaction_trace
-      segment = find_node_with_name trace, 'Datastore/operation/Memcached/get'
+      segment = find_node_with_name(trace, 'Datastore/operation/Memcached/get')
       assert_equal "get \"#{key}\"", segment[:statement]
     end
   end

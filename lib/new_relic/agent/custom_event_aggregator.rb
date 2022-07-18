@@ -21,7 +21,7 @@ module NewRelic
       enabled_key :'custom_insights_events.enabled'
 
       def record(type, attributes)
-        unless attributes.is_a? Hash
+        unless attributes.is_a?(Hash)
           raise ArgumentError, "Expected Hash but got #{attributes.class}"
         end
 
@@ -58,19 +58,19 @@ module NewRelic
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
       end
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         dropped_count = metadata[:seen] - metadata[:captured]
         note_dropped_events(metadata[:seen], dropped_count)
         record_supportability_metrics(metadata[:seen], metadata[:captured], dropped_count)
       end
 
-      def note_dropped_events total_count, dropped_count
+      def note_dropped_events(total_count, dropped_count)
         if dropped_count > 0
           NewRelic::Agent.logger.warn("Dropped #{dropped_count} custom events out of #{total_count}.")
         end
       end
 
-      def record_supportability_metrics total_count, captured_count, dropped_count
+      def record_supportability_metrics(total_count, captured_count, dropped_count)
         engine = NewRelic::Agent.instance.stats_engine
         engine.tl_record_supportability_metric_count("Events/Customer/Seen", total_count)
         engine.tl_record_supportability_metric_count("Events/Customer/Sent", captured_count)

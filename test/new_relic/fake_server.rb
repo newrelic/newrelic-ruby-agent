@@ -66,7 +66,7 @@ module NewRelic
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)
-      @server.mount String.new('/'), ::Rack::Handler.get(:webrick), app
+      @server.mount(String.new('/'), ::Rack::Handler.get(:webrick), app)
 
       @thread = Thread.new(&self.method(:run_server)).tap { |t| t.abort_on_exception = true }
     end

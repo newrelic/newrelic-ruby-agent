@@ -150,9 +150,9 @@ module NewRelic::Agent
     end
 
     def test_append_with_zero_capacity
-      buffer = PrioritySampledBuffer.new 0
+      buffer = PrioritySampledBuffer.new(0)
 
-      buffer.append event: create_event
+      buffer.append(event: create_event)
 
       assert_equal 1, buffer.num_dropped
       assert_equal 0, buffer.size
@@ -193,8 +193,8 @@ module NewRelic::Agent
       }
 
       metadata = buffer.metadata
-      metadata.delete :captured_lifetime
-      metadata.delete :seen_lifetime
+      metadata.delete(:captured_lifetime)
+      metadata.delete(:seen_lifetime)
 
       assert_equal expected, metadata
     end

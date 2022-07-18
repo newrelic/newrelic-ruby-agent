@@ -12,7 +12,7 @@ namespace :coverage do
       puts 'This task is intended to be run only on the CI.'
       return
     end
-    SimpleCov.collate Dir["coverage*/.resultset.json"] do
+    SimpleCov.collate(Dir["coverage*/.resultset.json"]) do
       formatter SimpleCov::Formatter::MultiFormatter.new([
         SimpleCov::Formatter::JSONFormatter,
         SimpleCov::Formatter::HTMLFormatter

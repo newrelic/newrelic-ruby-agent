@@ -8,7 +8,7 @@ module NewRelic::Agent::Instrumentation
     module URLMap
       module Prepend
         def initialize(map = {})
-          super ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+          super(::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map))
         end
       end
     end
@@ -16,8 +16,8 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include ::NewRelic::Agent::Instrumentation::RackBuilder
 
-      def self.prepended builder_class
-        NewRelic::Agent::Instrumentation::RackBuilder.track_deferred_detection builder_class
+      def self.prepended(builder_class)
+        NewRelic::Agent::Instrumentation::RackBuilder.track_deferred_detection(builder_class)
       end
 
       def to_app

@@ -59,7 +59,7 @@ module NewRelic
                 txn.distributed_tracer.cross_app_payload = payload
               end
 
-              CrossAppTracing.assign_intrinsic_transaction_attributes state
+              CrossAppTracing.assign_intrinsic_transaction_attributes(state)
             end
           end
 
@@ -85,7 +85,7 @@ module NewRelic
           end
         end
 
-        def should_process_request? id
+        def should_process_request?(id)
           CrossAppTracing.cross_app_enabled? && CrossAppTracing.trusts?(id)
         end
 

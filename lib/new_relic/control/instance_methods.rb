@@ -64,8 +64,8 @@ module NewRelic
 
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
-        Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
-        Module.send :include, NewRelic::Agent::MethodTracer
+        Module.send(:include, NewRelic::Agent::MethodTracer::ClassMethods)
+        Module.send(:include, NewRelic::Agent::MethodTracer)
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
 
@@ -121,11 +121,11 @@ module NewRelic
       end
 
       def handle_invalid_security_settings
-        NewRelic::Agent.logger.error "Security Policies and High Security " \
+        NewRelic::Agent.logger.error("Security Policies and High Security " \
           "Mode cannot both be present in the agent configuration. If " \
           "Security Policies have been set for your account, please " \
           "ensure the security_policies_token is set but high_security is " \
-          "disabled (default)."
+          "disabled (default).")
         install_shim
       end
 

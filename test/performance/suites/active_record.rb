@@ -12,7 +12,7 @@ class ActiveRecordTest < Performance::TestCase
 
   def test_helper_by_name
     measure do
-      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for NAME, SQL, ADAPTER
+      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for(NAME, SQL, ADAPTER)
     end
   end
 
@@ -20,7 +20,7 @@ class ActiveRecordTest < Performance::TestCase
 
   def test_helper_by_sql
     measure do
-      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for UNKNOWN_NAME, SQL, ADAPTER
+      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for(UNKNOWN_NAME, SQL, ADAPTER)
     end
   end
 end

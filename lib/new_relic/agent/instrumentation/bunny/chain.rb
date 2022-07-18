@@ -9,25 +9,25 @@ module NewRelic::Agent::Instrumentation
       ::Bunny::Exchange.class_eval do
         include NewRelic::Agent::Instrumentation::Bunny::Exchange
 
-        alias_method :publish_without_new_relic, :publish
+        alias_method(:publish_without_new_relic, :publish)
 
-        def publish payload, opts = {}
-          publish_with_tracing(payload, opts) { publish_without_new_relic payload, opts }
+        def publish(payload, opts = {})
+          publish_with_tracing(payload, opts) { publish_without_new_relic(payload, opts) }
         end
       end
 
       ::Bunny::Queue.class_eval do
         include NewRelic::Agent::Instrumentation::Bunny::Queue
 
-        alias_method :pop_without_new_relic, :pop
+        alias_method(:pop_without_new_relic, :pop)
 
         def pop(opts = {:manual_ack => false}, &block)
-          pop_with_tracing { pop_without_new_relic opts, &block }
+          pop_with_tracing { pop_without_new_relic(opts, &block) }
         end
 
-        alias_method :purge_without_new_relic, :purge
+        alias_method(:purge_without_new_relic, :purge)
 
-        def purge *args
+        def purge(*args)
           purge_with_tracing { purge_without_new_relic(*args) }
         end
       end
@@ -35,9 +35,9 @@ module NewRelic::Agent::Instrumentation
       ::Bunny::Consumer.class_eval do
         include NewRelic::Agent::Instrumentation::Bunny::Consumer
 
-        alias_method :call_without_new_relic, :call
+        alias_method(:call_without_new_relic, :call)
 
-        def call *args
+        def call(*args)
           call_with_tracing(*args) { call_without_new_relic(*args) }
         end
       end

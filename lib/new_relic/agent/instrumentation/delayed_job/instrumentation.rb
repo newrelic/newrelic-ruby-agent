@@ -19,9 +19,9 @@ module NewRelic
           if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job) &&
               !(::Delayed::Job.method_defined?(:invoke_job_without_new_relic))
 
-            ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
+            ::NewRelic::Agent.logger.info('Installing DelayedJob instrumentation [part 2/2]')
             install_newrelic_job_tracer
-            NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
+            NewRelic::Control.instance.init_plugin(:dispatcher => :delayed_job)
           else
             NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
           end

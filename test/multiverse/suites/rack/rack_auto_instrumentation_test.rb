@@ -26,42 +26,42 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
 
     def app
       builder_class.app do
-        use MiddlewareOne
-        use MiddlewareTwo, 'the correct tag' do |headers|
+        use(MiddlewareOne)
+        use(MiddlewareTwo, 'the correct tag') do |headers|
           headers['MiddlewareTwoBlockTag'] = 'the block tag'
         end
-        use MiddlewareThree, tag: 'the correct tag'
-        use NewRelic::Rack::BrowserMonitoring
-        use NewRelic::Rack::AgentHooks
-        run ExampleApp.new
+        use(MiddlewareThree, tag: 'the correct tag')
+        use(NewRelic::Rack::BrowserMonitoring)
+        use(NewRelic::Rack::AgentHooks)
+        run(ExampleApp.new)
       end
     end
 
     def test_middleware_gets_used
-      get '/'
+      get('/')
       assert last_response.headers['MiddlewareOne']
       assert last_response.headers['MiddlewareTwo']
       assert last_response.headers['MiddlewareThree']
     end
 
     def test_status_code_is_preserved
-      get '/'
+      get('/')
       assert_equal 200, last_response.status
     end
 
     def test_header_is_preserved
-      get '/'
+      get('/')
       assert last_response.headers['ExampleApp']
     end
 
     def test_body_is_preserved
-      get '/'
+      get('/')
       assert_equal 'A barebones rack app.', last_response.body
     end
 
     def test_non_agent_middlewares_do_not_record_metrics_if_disabled_by_config
       with_config(:disable_middleware_instrumentation => true) do
-        get '/'
+        get('/')
       end
 
       assert_metrics_recorded_exclusive(
@@ -88,7 +88,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
 
     def test_middlewares_record_metrics
       NewRelic::Agent.agent.stats_engine.reset!
-      get '/'
+      get('/')
       assert_metrics_recorded_exclusive(
         [
           "Apdex",
@@ -123,7 +123,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
     def test_middlewares_record_queue_time
       t0 = nr_freeze_process_time
       advance_process_time(5.0)
-      get '/', {}, {'HTTP_X_REQUEST_START' => "t=#{t0.to_f}"}
+      get('/', {}, {'HTTP_X_REQUEST_START' => "t=#{t0.to_f}"})
 
       assert_metrics_recorded(
         'WebFrontend/QueueTime' => {:total_call_time => 5.0}
@@ -131,7 +131,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
     end
 
     def test_middleware_that_returns_early_records_middleware_rollup_metric
-      get '/?return-early=true'
+      get('/?return-early=true')
 
       assert_metrics_recorded_exclusive(
         [
@@ -156,19 +156,19 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
 
     def test_middleware_that_returns_early_middleware_all_has_correct_call_times
       nr_freeze_process_time
-      get '/?return-early=true'
+      get('/?return-early=true')
       assert_metrics_recorded('Middleware/all' => {:total_exclusive_time => 3.0, :call_count => 2})
     end
 
     def test_middleware_created_with_args_works
-      get '/'
+      get('/')
 
       assert_equal('the correct tag', last_response.headers['MiddlewareTwoTag'])
       assert_equal('the block tag', last_response.headers['MiddlewareTwoBlockTag'])
     end
 
     def test_middleware_created_with_kwargs_works
-      get '/'
+      get('/')
 
       assert_equal('the correct tag', last_response.headers['MiddlewareThreeTag'])
     end

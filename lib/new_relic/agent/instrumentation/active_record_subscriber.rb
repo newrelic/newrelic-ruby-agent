@@ -81,7 +81,7 @@ module NewRelic
               statement.binds)
           end
         rescue => e
-          NewRelic::Agent.logger.debug "Couldn't fetch the explain plan for #{statement} due to #{e}"
+          NewRelic::Agent.logger.debug("Couldn't fetch the explain plan for #{statement} due to #{e}")
         end
 
         def active_record_config(payload)
@@ -116,7 +116,7 @@ module NewRelic
         end
 
         def start_segment(config, payload)
-          sql = Helper.correctly_encoded payload[:sql]
+          sql = Helper.correctly_encoded(payload[:sql])
           product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
             payload[:name],
             sql,
@@ -140,7 +140,7 @@ module NewRelic
             port_path_or_id: port_path_or_id,
             database_name: database)
 
-          segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
+          segment._notice_sql(sql, config, @explainer, payload[:binds], payload[:name])
           segment
         end
       end

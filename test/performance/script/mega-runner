@@ -27,7 +27,7 @@ runner_options = {
 }
 commits = commits_between(start_commit, stop_commit, repo_path)
 
-Performance.logger.info "Testing #{commits.size} commits"
+Performance.logger.info("Testing #{commits.size} commits")
 commits.each_with_index do |commit, i|
   checkout_commit(commit, repo_path)
   runner_options[:tags][:sequence_number] = i

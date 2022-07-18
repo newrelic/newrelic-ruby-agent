@@ -16,29 +16,29 @@ module NewRelic
       attr_reader :transaction_event_aggregator
       attr_reader :synthetics_event_aggregator
 
-      def initialize events
-        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new events
-        @synthetics_event_aggregator = NewRelic::Agent::SyntheticsEventAggregator.new events
+      def initialize(events)
+        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(events)
+        @synthetics_event_aggregator = NewRelic::Agent::SyntheticsEventAggregator.new(events)
       end
 
-      def record payload
+      def record(payload)
         return unless NewRelic::Agent.config[:'transaction_events.enabled']
 
-        if synthetics_event? payload
-          event = create_event payload
-          result = synthetics_event_aggregator.record event
-          transaction_event_aggregator.record event: event if result.nil?
+        if synthetics_event?(payload)
+          event = create_event(payload)
+          result = synthetics_event_aggregator.record(event)
+          transaction_event_aggregator.record(event: event) if result.nil?
         else
           transaction_event_aggregator.record(priority: payload[:priority]) { create_event(payload) }
         end
       end
 
-      def create_event payload
-        TransactionEventPrimitive.create payload
+      def create_event(payload)
+        TransactionEventPrimitive.create(payload)
       end
 
-      def synthetics_event? payload
-        payload.key? :synthetics_resource_id
+      def synthetics_event?(payload)
+        payload.key?(:synthetics_resource_id)
       end
 
       def drop_buffered_data

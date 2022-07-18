@@ -19,7 +19,7 @@ module NewRelic
       PARENT_TYPES = %w[App Browser Mobile].map(&:freeze).freeze
 
       class << self
-        def create version: VERSION,
+        def create(version: VERSION,
           parent_type: PARENT_TYPE,
           parent_account_id: nil,
           parent_app_id: nil,
@@ -27,18 +27,18 @@ module NewRelic
           transaction_id: nil,
           sampled: nil,
           priority: nil,
-          timestamp: now_ms
+          timestamp: now_ms)
 
-          new version, parent_type, parent_account_id, parent_app_id, id,
-            transaction_id, sampled, priority, timestamp
+          new(version, parent_type, parent_account_id, parent_app_id, id,
+            transaction_id, sampled, priority, timestamp)
         end
 
         include NewRelic::Coerce
 
-        def from_s payload_string
+        def from_s(payload_string)
           attrs = payload_string.split(DELIMITER)
 
-          payload = create \
+          payload = create( \
             version: int!(attrs[0]),
             parent_type: int!(attrs[1]),
             parent_account_id: attrs[2],
@@ -48,10 +48,11 @@ module NewRelic
             sampled: value_or_nil(attrs[6]) ? boolean_int!(attrs[6]) == 1 : nil,
             priority: float!(attrs[7]),
             timestamp: int!(attrs[8])
-          handle_invalid_payload message: 'payload missing attributes' unless payload.valid?
+          )
+          handle_invalid_payload(message: 'payload missing attributes') unless payload.valid?
           payload
         rescue => e
-          handle_invalid_payload error: e
+          handle_invalid_payload(error: e)
           raise
         end
 
@@ -61,12 +62,12 @@ module NewRelic
           Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
         end
 
-        def handle_invalid_payload error: nil, message: nil
-          NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
+        def handle_invalid_payload(error: nil, message: nil)
+          NewRelic::Agent.increment_metric(SUPPORTABILITY_PARSE_EXCEPTION)
           if error
-            NewRelic::Agent.logger.warn "Error parsing trace context payload", error
+            NewRelic::Agent.logger.warn("Error parsing trace context payload", error)
           elsif message
-            NewRelic::Agent.logger.warn "Error parsing trace context payload: #{message}"
+            NewRelic::Agent.logger.warn("Error parsing trace context payload: #{message}")
           end
         end
       end
@@ -83,8 +84,8 @@ module NewRelic
 
       alias_method :sampled?, :sampled
 
-      def initialize version, parent_type_id, parent_account_id, parent_app_id,
-        id, transaction_id, sampled, priority, timestamp
+      def initialize(version, parent_type_id, parent_account_id, parent_app_id,
+        id, transaction_id, sampled, priority, timestamp)
         @version = version
         @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id

@@ -16,9 +16,9 @@ module NewRelic
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics, :custom_transaction_attributes
 
-        def initialize name = nil, unscoped_metrics = nil, start_time = nil
+        def initialize(name = nil, unscoped_metrics = nil, start_time = nil)
           @unscoped_metrics = unscoped_metrics
-          super name, start_time
+          super(name, start_time)
         end
 
         def attributes
@@ -33,7 +33,7 @@ module NewRelic
           if segment = NewRelic::Agent::Tracer.current_segment
             segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
           else
-            NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without segment"
+            NewRelic::Agent.logger.debug("Attempted to merge untrusted attributes without segment")
           end
         end
 
@@ -50,16 +50,16 @@ module NewRelic
 
         def record_metrics
           if record_scoped_metric?
-            metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
+            metric_cache.record_scoped_and_unscoped(name, duration, exclusive_duration)
           else
-            append_unscoped_metric name
+            append_unscoped_metric(name)
           end
           if unscoped_metrics
-            metric_cache.record_unscoped unscoped_metrics, duration, exclusive_duration
+            metric_cache.record_unscoped(unscoped_metrics, duration, exclusive_duration)
           end
         end
 
-        def append_unscoped_metric metric
+        def append_unscoped_metric(metric)
           if @unscoped_metrics
             if Array === @unscoped_metrics
               if unscoped_metrics.frozen?

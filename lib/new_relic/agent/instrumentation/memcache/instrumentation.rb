@@ -12,16 +12,17 @@ module NewRelic::Agent::Instrumentation
       MULTIGET_METRIC_NAME = "get_multi_request"
       MEMCACHED = "Memcached"
 
-      def with_newrelic_tracing operation, *args
-        segment = NewRelic::Agent::Tracer.start_datastore_segment \
+      def with_newrelic_tracing(operation, *args)
+        segment = NewRelic::Agent::Tracer.start_datastore_segment( \
           product: MEMCACHED,
           operation: operation
+        )
 
         begin
           NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         ensure
           if NewRelic::Agent.config[:capture_memcache_keys]
-            segment.notice_nosql_statement "#{operation} #{args.first.inspect}"
+            segment.notice_nosql_statement("#{operation} #{args.first.inspect}")
           end
           segment.finish if segment
         end
@@ -37,14 +38,15 @@ module NewRelic::Agent::Instrumentation
               end
             end
           rescue => e
-            ::NewRelic::Agent.logger.warn "Unable to set instance info on datastore segment: #{e.message}"
+            ::NewRelic::Agent.logger.warn("Unable to set instance info on datastore segment: #{e.message}")
           end
         end
       end
 
-      def get_multi_with_newrelic_tracing method_name
-        segment = NewRelic::Agent::Tracer.start_segment \
+      def get_multi_with_newrelic_tracing(method_name)
+        segment = NewRelic::Agent::Tracer.start_segment( \
           name: "Ruby/Memcached/Dalli/#{method_name}"
+        )
 
         begin
           NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -53,35 +55,36 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def send_multiget_with_newrelic_tracing keys
-        segment = ::NewRelic::Agent::Tracer.start_datastore_segment \
+      def send_multiget_with_newrelic_tracing(keys)
+        segment = ::NewRelic::Agent::Tracer.start_datastore_segment( \
           product: MEMCACHED,
           operation: MULTIGET_METRIC_NAME
+        )
 
         begin
           assign_instance_to(segment, self)
           NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         ensure
           if ::NewRelic::Agent.config[:capture_memcache_keys]
-            segment.notice_nosql_statement "#{MULTIGET_METRIC_NAME} #{keys.inspect}"
+            segment.notice_nosql_statement("#{MULTIGET_METRIC_NAME} #{keys.inspect}")
           end
           segment.finish if segment
         end
       end
 
-      def assign_instance_to segment, server
+      def assign_instance_to(segment, server)
         host = port_path_or_id = nil
-        if server.hostname.start_with? SLASH
+        if server.hostname.start_with?(SLASH)
           host = LOCALHOST
           port_path_or_id = server.hostname
         else
           host = server.hostname
           port_path_or_id = server.port
         end
-        segment.set_instance_info host, port_path_or_id
+        segment.set_instance_info(host, port_path_or_id)
       rescue => e
-        ::NewRelic::Agent.logger.debug "Failed to retrieve memcached instance info: #{e.message}"
-        segment.set_instance_info UNKNOWN, UNKNOWN
+        ::NewRelic::Agent.logger.debug("Failed to retrieve memcached instance info: #{e.message}")
+        segment.set_instance_info(UNKNOWN, UNKNOWN)
       end
     end
   end

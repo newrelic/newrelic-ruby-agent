@@ -31,13 +31,13 @@ RAILS_ENV = "test"
 RAILS_ROOT = File.join(db_dir, "..")
 
 ActiveRecord::Base.configurations = config_yml
-ActiveRecord::Base.establish_connection :test
+ActiveRecord::Base.establish_connection(:test)
 ActiveRecord::Base.logger = Logger.new(ENV["VERBOSE"] ? STDOUT : StringIO.new)
 
 begin
-  load 'active_record/railties/databases.rake'
+  load('active_record/railties/databases.rake')
 rescue LoadError, StandardError
-  load 'tasks/databases.rake'
+  load('tasks/databases.rake')
 end
 
 if defined?(ActiveRecord::Tasks)
@@ -79,6 +79,6 @@ else
   end
 
   Rake::Task.define_task("db:environment")
-  Rake::Task["db:load_config"].clear if Rake::Task.task_defined? "db:load_config"
+  Rake::Task["db:load_config"].clear if Rake::Task.task_defined?("db:load_config")
   Rake::Task.define_task("db:rails_env")
 end

@@ -32,19 +32,19 @@ module NewRelic
       end
 
       def test_event_includes_expected_errors
-        intrinsics, *_ = create_event :error_options => {
+        intrinsics, *_ = create_event(:error_options => {
           :expected => true
-        }
+        })
 
         assert intrinsics['error.expected']
       end
 
       def test_event_includes_synthetics
-        intrinsics, *_ = create_event :payload_options => {
+        intrinsics, *_ = create_event(:payload_options => {
           :synthetics_resource_id => 3,
           :synthetics_job_id => 4,
           :synthetics_monitor_id => 5
-        }
+        })
 
         assert_equal 3, intrinsics['nr.syntheticsResourceId']
         assert_equal 4, intrinsics['nr.syntheticsJobId']
@@ -53,12 +53,12 @@ module NewRelic
 
       def test_includes_mapped_metrics
         metrics = NewRelic::Agent::TransactionMetrics.new
-        metrics.record_unscoped 'Datastore/all', 10
-        metrics.record_unscoped 'GC/Transaction/all', 11
-        metrics.record_unscoped 'WebFrontend/QueueTime', 12
-        metrics.record_unscoped 'External/allWeb', 13
+        metrics.record_unscoped('Datastore/all', 10)
+        metrics.record_unscoped('GC/Transaction/all', 11)
+        metrics.record_unscoped('WebFrontend/QueueTime', 12)
+        metrics.record_unscoped('External/allWeb', 13)
 
-        intrinsics, *_ = create_event :payload_options => {:metrics => metrics}
+        intrinsics, *_ = create_event(:payload_options => {:metrics => metrics})
 
         assert_equal 10.0, intrinsics["databaseDuration"]
         assert_equal 1, intrinsics["databaseCallCount"]
@@ -69,7 +69,7 @@ module NewRelic
       end
 
       def test_includes_cat_attributes
-        intrinsics, *_ = create_event :payload_options => {:guid => "GUID", :referring_transaction_guid => "REFERRING_GUID"}
+        intrinsics, *_ = create_event(:payload_options => {:guid => "GUID", :referring_transaction_guid => "REFERRING_GUID"})
 
         assert_equal "GUID", intrinsics["nr.transactionGuid"]
         assert_equal "REFERRING_GUID", intrinsics["nr.referringTransactionGuid"]
@@ -79,31 +79,31 @@ module NewRelic
         attrs = {"user" => "Wes Mantooth", "channel" => 9}
 
         attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
-        attributes.merge_custom_attributes attrs
+        attributes.merge_custom_attributes(attrs)
 
-        _, custom_attrs, _ = create_event :error_options => {:attributes => attributes}
+        _, custom_attrs, _ = create_event(:error_options => {:attributes => attributes})
 
         assert_equal attrs, custom_attrs
       end
 
       def test_includes_agent_attributes
         attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
-        attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR
-        attributes.add_agent_attribute :'http.statusCode', 200, AttributeFilter::DST_ERROR_COLLECTOR
+        attributes.add_agent_attribute(:'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR)
+        attributes.add_agent_attribute(:'http.statusCode', 200, AttributeFilter::DST_ERROR_COLLECTOR)
 
-        _, _, agent_attrs = create_event :error_options => {:attributes => attributes}
+        _, _, agent_attrs = create_event(:error_options => {:attributes => attributes})
 
         expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
         assert_equal expected, agent_attrs
       end
 
-      def create_event options = {}
-        payload = generate_payload options[:payload_options] || {}
-        error = create_noticed_error options[:error_options] || {}
-        TransactionErrorPrimitive.create error, payload, @span_id
+      def create_event(options = {})
+        payload = generate_payload(options[:payload_options] || {})
+        error = create_noticed_error(options[:error_options] || {})
+        TransactionErrorPrimitive.create(error, payload, @span_id)
       end
 
-      def generate_payload options = {}
+      def generate_payload(options = {})
         {
           :name => "Controller/blogs/index",
           :type => :controller,
@@ -112,7 +112,7 @@ module NewRelic
         }.update(options)
       end
 
-      def create_noticed_error options = {}
+      def create_noticed_error(options = {})
         exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
         expected = options.fetch(:expected, false)
         txn_name = "Controller/blogs/index"

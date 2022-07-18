@@ -106,13 +106,13 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
       in_transaction { simulate_query(2) }
     end
     sample = last_transaction_trace
-    node = find_node_with_name_matching sample, /Datastore\//
+    node = find_node_with_name_matching(sample, /Datastore\//)
     refute node.params.key?(:database_name)
   end
 
   def test_records_unknown_unknown_when_error_gathering_instance_data
-    NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:postgres_unix_domain_socket_case?).raises StandardError.new
-    NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:mysql_default_case?).raises StandardError.new
+    NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:postgres_unix_domain_socket_case?).raises(StandardError.new)
+    NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:mysql_default_case?).raises(StandardError.new)
 
     config = {:adapter => 'mysql', :host => "127.0.0.1"}
     @subscriber.stubs(:active_record_config).returns(config)
@@ -204,11 +204,11 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_segment_created
-    in_transaction 'test' do
+    in_transaction('test') do
       txn = NewRelic::Agent::Tracer.current_transaction
       assert_equal 1, txn.segments.size
 
-      simulate_query 1
+      simulate_query(1)
       assert_equal 2, txn.segments.size
       assert txn.segments.last.finished?, "Segment '#{txn.segments.last.name}'' was never finished.  "
       assert_equal \
@@ -221,10 +221,10 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     payload = {connection_id: 1138}
     config = {adapter: 'postgresql_makara'}
     spec = MiniTest::Mock.new
-    3.times { spec.expect :config, config }
+    3.times { spec.expect(:config, config) }
     handler = MiniTest::Mock.new
-    handler.expect :connections, []
-    4.times { handler.expect :spec, spec }
+    handler.expect(:connections, [])
+    4.times { handler.expect(:spec, spec) }
     ::ActiveRecord::Base.connection_handler.stub(:connection_pool_list, [handler]) do
       assert_equal config, @subscriber.active_record_config(payload)
     end

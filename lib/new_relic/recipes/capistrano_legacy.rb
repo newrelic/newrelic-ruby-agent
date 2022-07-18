@@ -4,10 +4,10 @@
 # frozen_string_literal: true
 
 make_notify_task = Proc.new do
-  namespace :newrelic do
+  namespace(:newrelic) do
     # on all deployments, notify New Relic
-    desc "Record a deployment in New Relic (newrelic.com)"
-    task :notice_deployment, :roles => :app, :except => {:no_release => true} do
+    desc("Record a deployment in New Relic (newrelic.com)")
+    task(:notice_deployment, :roles => :app, :except => {:no_release => true}) do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
 
       require 'new_relic/cli/command'
@@ -37,22 +37,22 @@ make_notify_task = Proc.new do
           :license_key => license_key
         }
 
-        logger.debug "Uploading deployment to New Relic"
-        deployment = NewRelic::Cli::Deployments.new deploy_options
+        logger.debug("Uploading deployment to New Relic")
+        deployment = NewRelic::Cli::Deployments.new(deploy_options)
         deployment.run
-        logger.info "Uploaded deployment information to New Relic"
+        logger.info("Uploaded deployment information to New Relic")
       rescue NewRelic::Cli::Command::CommandFailure => e
-        logger.info e.message
+        logger.info(e.message)
       rescue Capistrano::CommandError
-        logger.info "Unable to notify New Relic of the deployment... skipping"
+        logger.info("Unable to notify New Relic of the deployment... skipping")
       rescue => e
-        logger.info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
+        logger.info("Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}")
       end
     end
 
     def lookup_changelog(changelog)
       if !changelog
-        logger.debug "Getting log of changes for New Relic Deployment details"
+        logger.debug("Getting log of changes for New Relic Deployment details")
         from_revision = source.next_revision(current_revision)
 
         if scm == :git
@@ -70,7 +70,7 @@ make_notify_task = Proc.new do
     def lookup_rev(rev)
       if rev.nil?
         rev = source.query_revision(source.head()) do |cmd|
-          logger.debug "executing locally: '#{cmd}'"
+          logger.debug("executing locally: '#{cmd}'")
           `#{cmd}`
         end
 

@@ -14,7 +14,7 @@ Bundler.require(*Rails.groups)
 module RpmTestApp
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults(7.0)
     config.eager_load = false
     config.filter_parameters += [:password]
   end

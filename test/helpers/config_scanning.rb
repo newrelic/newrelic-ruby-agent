@@ -15,7 +15,7 @@ module NewRelic
       NAMED_DEPENDENCY_PATTERN = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/
       EVENT_BUFFER_MACRO_PATTERN = /(capacity_key|enabled_key)\s+:['"]?([a-z\._]+)['"]?/
 
-      def scan_and_remove_used_entries default_keys, non_test_files
+      def scan_and_remove_used_entries(default_keys, non_test_files)
         non_test_files.each do |file|
           lines_in(file).each do |line|
             captures = []
@@ -27,7 +27,7 @@ module NewRelic
             captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
             captures.flatten.compact.each do |key|
-              default_keys.delete key.gsub("'", "").to_sym
+              default_keys.delete(key.gsub("'", "").to_sym)
             end
             # Remove any config keys that are annotated with the 'dynamic_name' setting
             # This indicates that the names of these keys are constructed dynamically at

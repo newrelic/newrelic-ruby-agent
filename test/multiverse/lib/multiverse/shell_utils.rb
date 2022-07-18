@@ -15,7 +15,7 @@ module Multiverse
         if $?.success?
           return result
         elsif count < n
-          sleep wait_time
+          sleep(wait_time)
           redo
         else
           puts "System command: #{cmd} failed #{n} times. Giving up..."

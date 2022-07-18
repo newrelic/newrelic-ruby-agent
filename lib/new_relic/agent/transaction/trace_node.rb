@@ -27,10 +27,10 @@ module NewRelic
           @parent_node = parent
         end
 
-        def select_allowed_params params
+        def select_allowed_params(params)
           return unless params
           params.select do |p|
-            NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_TRANSACTION_SEGMENTS
+            NewRelic::Agent.instance.attribute_filter.allows_key?(p, AttributeFilter::DST_TRANSACTION_SEGMENTS)
           end
         end
 
@@ -134,7 +134,7 @@ module NewRelic
         # call the provided block for this node and each
         # of the called nodes
         def each_node(&block)
-          block.call self
+          block.call(self)
 
           if @children
             @children.each do |node|
@@ -146,7 +146,7 @@ module NewRelic
         # call the provided block for this node and each
         # of the called nodes while keeping track of nested nodes
         def each_node_with_nest_tracking(&block)
-          summary = block.call self
+          summary = block.call(self)
           summary.current_nest_count += 1 if summary
 
           if @children

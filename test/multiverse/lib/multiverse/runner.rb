@@ -49,7 +49,7 @@ module Multiverse
     def run(filter = "", opts = {})
       execute_suites(filter, opts) do |suite|
         suite.each_instrumentation_method do |method|
-          suite.execute method
+          suite.execute(method)
         end
       end
     end
@@ -70,18 +70,18 @@ module Multiverse
 
         begin
           suite = Suite.new(full_path, opts)
-          yield suite
+          yield(suite)
         rescue => e
           puts red("Error when trying to run suite in #{full_path.inspect}")
           puts
           puts "#{e.class}: #{e}"
           puts(*e.backtrace)
-          notice_exit_status 1
+          notice_exit_status(1)
         end
       end
 
       OutputCollector.overall_report
-      exit exit_status
+      exit(exit_status)
     end
 
     GROUPS = {
@@ -100,17 +100,17 @@ module Multiverse
 
     # Would like to reinstate but requires investigation, see RUBY-1749
     if RUBY_VERSION < '2.3'
-      GROUPS['background_2'].delete 'rake'
+      GROUPS['background_2'].delete('rake')
     end
 
     if RUBY_PLATFORM == "java"
-      GROUPS['agent'].delete 'agent_only'
+      GROUPS['agent'].delete('agent_only')
     end
 
     if RUBY_VERSION >= '3.0'
       # this suite uses mysql2 which has issues on ruby 3.0+
       # a new suite, active_record_pg, has been added to run active record tests on ruby 3.0+
-      GROUPS['rails'].delete 'active_record'
+      GROUPS['rails'].delete('active_record')
     end
 
     def excluded?(suite)
@@ -136,7 +136,7 @@ module Multiverse
         # checks for malformed groups passed in
         if combined_groups.nil?
           puts red("Unrecognized groups in '#{filter}'. Stopping!")
-          exit 1
+          exit(1)
         end
 
         # This allows the "rest" group to be passed in as one of several groups that are ';' delimited

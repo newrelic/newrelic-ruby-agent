@@ -13,7 +13,7 @@ module NewRelic
           SINATRA_ROUTE = 'sinatra.route'
 
           def transaction_name_for_route(env, request)
-            if env.key? SINATRA_ROUTE
+            if env.key?(SINATRA_ROUTE)
               env[SINATRA_ROUTE]
             else
               name = route_for_sinatra(env)

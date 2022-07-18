@@ -20,9 +20,9 @@ module NewRelic
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
       # Returns a new error collector
-      def initialize events
+      def initialize(events)
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
-        @error_event_aggregator = ErrorEventAggregator.new events
+        @error_event_aggregator = ErrorEventAggregator.new(events)
 
         @error_filter = NewRelic::Agent::ErrorFilter.new
 
@@ -64,7 +64,7 @@ module NewRelic
         if block
           define_method(:ignore_filter_proc, &block)
         elsif method_defined?(:ignore_filter_proc)
-          remove_method :ignore_filter_proc
+          remove_method(:ignore_filter_proc)
         end
         @ignore_filter
       end
@@ -214,7 +214,7 @@ module NewRelic
       def notice_segment_error(segment, exception, options = {})
         return if skip_notice_error?(exception)
 
-        segment.set_noticed_error create_noticed_error(exception, options)
+        segment.set_noticed_error(create_noticed_error(exception, options))
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)

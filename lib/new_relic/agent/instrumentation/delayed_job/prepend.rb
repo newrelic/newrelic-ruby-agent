@@ -17,7 +17,7 @@ module NewRelic
           end
 
           def install_newrelic_job_tracer
-            Delayed::Job.send :prepend, ::NewRelic::Agent::Instrumentation::DelayedJobTracerPrepend
+            Delayed::Job.send(:prepend, ::NewRelic::Agent::Instrumentation::DelayedJobTracerPrepend)
           end
         end
       end

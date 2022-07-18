@@ -15,12 +15,12 @@ module NewRelic::Agent::Instrumentation
           procedure: wrapped_request.method
         )
 
-        segment.add_request_headers wrapped_request
+        segment.add_request_headers(wrapped_request)
 
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
 
-        wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
-        segment.process_response_headers wrapped_response
+        wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new(response)
+        segment.process_response_headers(wrapped_response)
 
         response
       ensure

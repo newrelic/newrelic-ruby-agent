@@ -17,10 +17,10 @@ module NewRelic
       attr_reader :synthetics_monitor
       attr_reader :distributed_tracing_monitor
 
-      def initialize events
-        @synthetics_monitor = NewRelic::Agent::SyntheticsMonitor.new events
-        @cross_app_monitor = NewRelic::Agent::DistributedTracing::CrossAppMonitor.new events
-        @distributed_tracing_monitor = NewRelic::Agent::DistributedTracing::Monitor.new events
+      def initialize(events)
+        @synthetics_monitor = NewRelic::Agent::SyntheticsMonitor.new(events)
+        @cross_app_monitor = NewRelic::Agent::DistributedTracing::CrossAppMonitor.new(events)
+        @distributed_tracing_monitor = NewRelic::Agent::DistributedTracing::Monitor.new(events)
       end
     end
   end

@@ -47,7 +47,7 @@ module NewRelic
 
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
-      def self.deprecated_description new_setting, description
+      def self.deprecated_description(new_setting, description)
         link_ref = new_setting.to_s.gsub(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
@@ -118,7 +118,7 @@ module NewRelic
         def self.config_path
           Proc.new {
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
-              File.expand_path(file) if File.exist? file
+              File.expand_path(file) if File.exist?(file)
             end
             found_path || NewRelic::EMPTY_STR
           }
@@ -135,7 +135,7 @@ module NewRelic
               when 4..7
                 :rails_notifications
               else
-                ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"
+                ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
                 :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
@@ -212,7 +212,7 @@ module NewRelic
 
         def self.api_host
           Proc.new do
-            if String(NewRelic::Agent.config[:license_key]).start_with? 'eu'
+            if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
               'rpm.eu.newrelic.com'
             else
               'rpm.newrelic.com'
@@ -239,7 +239,7 @@ module NewRelic
         end
 
         SEMICOLON = ';'.freeze
-        def self.convert_to_list_on_semicolon value
+        def self.convert_to_list_on_semicolon(value)
           case value
           when Array then value
           when String then value.split(SEMICOLON)

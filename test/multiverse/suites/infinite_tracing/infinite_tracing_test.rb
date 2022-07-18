@@ -4,14 +4,14 @@
 # frozen_string_literal: true
 
 INFINITE_TRACING_TEST_PATH = File.expand_path('../../../../infinite_tracing/test')
-$LOAD_PATH.unshift INFINITE_TRACING_TEST_PATH
+$LOAD_PATH.unshift(INFINITE_TRACING_TEST_PATH)
 
 require 'test_helper'
 
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   class InfiniteTracingTest < Minitest::Test
-    def self.load_test_files pattern
+    def self.load_test_files(pattern)
       Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each { |fn| require fn }
     end
 
