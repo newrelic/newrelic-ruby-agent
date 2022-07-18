@@ -1488,7 +1488,7 @@ Style/MethodCalledOnDoEndBlock:
   Enabled: false
 
 Style/MethodDefParentheses:
-  Enabled: false
+  Enabled: true
 
 Style/MinMax:
   Enabled: false

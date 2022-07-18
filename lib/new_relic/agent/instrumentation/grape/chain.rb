@@ -8,7 +8,7 @@ module NewRelic::Agent::Instrumentation
     module Chain
       def self.instrument!
         Grape::Instrumentation.instrumented_class.class_eval do
-          def call_with_new_relic env
+          def call_with_new_relic(env)
             begin
               call_without_new_relic(env)
             ensure

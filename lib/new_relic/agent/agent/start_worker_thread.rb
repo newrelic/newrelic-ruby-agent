@@ -53,7 +53,7 @@ module NewRelic
       # Certain event types may sometimes need to be on the same interval as metrics,
       # so we will check config assigned in EventHarvestConfig to determine the interval
       # on which to report them
-      def interval_for event_type
+      def interval_for(event_type)
         interval = Agent.config[:"event_report_period.#{event_type}"]
         :"#{interval}_second_harvest"
       end

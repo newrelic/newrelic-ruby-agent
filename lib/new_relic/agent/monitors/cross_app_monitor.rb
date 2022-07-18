@@ -85,7 +85,7 @@ module NewRelic
           end
         end
 
-        def should_process_request? id
+        def should_process_request?(id)
           CrossAppTracing.cross_app_enabled? && CrossAppTracing.trusts?(id)
         end
 

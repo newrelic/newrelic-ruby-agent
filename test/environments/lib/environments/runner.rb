@@ -64,20 +64,20 @@ module Environments
     end
 
     # Ensures we bundle will recognize an explicit version number on command line
-    def safe_explicit version
+    def safe_explicit(version)
       return version if version.to_s == ""
       test_version = `bundle #{version} --version` =~ /Could not find command/
       test_version ? "" : version
     end
 
-    def explicit_bundler_version dir
+    def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f <= 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")
     end
 
-    def bundle_config dir, bundle_cmd
+    def bundle_config(dir, bundle_cmd)
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 

@@ -87,7 +87,7 @@ module NewRelic
         end
       end
 
-      def custom_attributes attributes
+      def custom_attributes(attributes)
         if attributes
           result = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
@@ -96,7 +96,7 @@ module NewRelic
         end
       end
 
-      def agent_attributes attributes
+      def agent_attributes(attributes)
         if attributes
           result = attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze

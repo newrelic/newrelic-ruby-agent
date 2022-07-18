@@ -608,7 +608,7 @@ module NewRelic
     #
     # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
     # @api public
-    def add_custom_span_attributes params
+    def add_custom_span_attributes(params)
       record_api_supportability_metric(:add_custom_span_attributes)
 
       if params.is_a?(Hash)

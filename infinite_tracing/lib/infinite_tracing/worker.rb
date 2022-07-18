@@ -12,7 +12,7 @@ module NewRelic::Agent
     class Worker
       attr_reader :name, :error
 
-      def initialize name, &job
+      def initialize(name, &job)
         @name = name
         @job = job
         @error = nil
@@ -33,7 +33,7 @@ module NewRelic::Agent
         !!@error
       end
 
-      def join timeout = nil
+      def join(timeout = nil)
         return unless @worker_thread
         NewRelic::Agent.logger.debug("joining worker #{@name} thread...")
         @worker_thread.join(timeout)

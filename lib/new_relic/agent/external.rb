@@ -32,7 +32,7 @@ module NewRelic
       #
       # @api public
       #
-      def process_request_metadata request_metadata
+      def process_request_metadata(request_metadata)
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 

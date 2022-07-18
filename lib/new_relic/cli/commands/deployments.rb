@@ -28,7 +28,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   #
   # Will throw CommandFailed exception if there's any error.
   #
-  def initialize command_line_args
+  def initialize(command_line_args)
     @control = NewRelic::Control.instance
     @environment = nil
     @changelog = nil

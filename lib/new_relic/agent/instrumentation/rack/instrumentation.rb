@@ -7,7 +7,7 @@ module NewRelic
   module Agent
     module Instrumentation
       module RackBuilder
-        def self.track_deferred_detection builder_class
+        def self.track_deferred_detection(builder_class)
           class << builder_class
             attr_accessor :_nr_deferred_detection_ran
           end
@@ -48,12 +48,12 @@ module NewRelic
           ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
         end
 
-        def run_with_tracing app
+        def run_with_tracing(app)
           return yield(app) unless middleware_instrumentation_enabled?
           yield(::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true))
         end
 
-        def use_with_tracing middleware_class
+        def use_with_tracing(middleware_class)
           return if middleware_class.nil?
           return yield(middleware_class) unless middleware_instrumentation_enabled?
           yield(::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class))

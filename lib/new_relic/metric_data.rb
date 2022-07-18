@@ -28,7 +28,7 @@ module NewRelic
 
     # assigns a new metric spec, and retains the old metric spec as
     # @original_spec if it exists currently
-    def metric_spec= new_spec
+    def metric_spec=(new_spec)
       @original_spec = @metric_spec if @metric_spec
       @metric_spec = new_spec
     end

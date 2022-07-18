@@ -351,7 +351,7 @@ module NewRelic
     class ReservoirSampledContainerPost < AgentPost
       attr_reader :reservoir_metadata, :events
 
-      def initialize opts = {}
+      def initialize(opts = {})
         super
         @reservoir_metadata = body[1]
         @events = body[2]
@@ -402,7 +402,7 @@ module NewRelic
     class LogEventDataPost < AgentPost
       attr_reader :common, :logs
 
-      def initialize opts = {}
+      def initialize(opts = {})
         super
         @common = body.first["common"]
         @logs = body.first["logs"]

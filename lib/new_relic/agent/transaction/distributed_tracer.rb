@@ -26,7 +26,7 @@ module NewRelic
           end
         end
 
-        def accept_incoming_request request, transport_type = nil
+        def accept_incoming_request(request, transport_type = nil)
           accept_incoming_transport_type(request, transport_type)
           if trace_parent_header_present?(request)
             accept_trace_context_incoming_request(request)
@@ -39,11 +39,11 @@ module NewRelic
           @caller_transport_type ||= "Unknown"
         end
 
-        def accept_transport_type_from_api value
+        def accept_transport_type_from_api(value)
           @caller_transport_type = DistributedTraceTransportType.from(value)
         end
 
-        def accept_incoming_transport_type request, transport_type
+        def accept_incoming_transport_type(request, transport_type)
           if transport_type.to_s == NewRelic::EMPTY_STR
             @caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
           else
@@ -51,7 +51,7 @@ module NewRelic
           end
         end
 
-        def initialize transaction
+        def initialize(transaction)
           @transaction = transaction
         end
 
@@ -60,7 +60,7 @@ module NewRelic
           DistributedTraceMetrics.record_metrics_for_transaction(transaction)
         end
 
-        def append_payload payload
+        def append_payload(payload)
           append_cat_info(payload)
           DistributedTraceAttributes.copy_from_transaction( \
             transaction,
@@ -69,11 +69,11 @@ module NewRelic
           )
         end
 
-        def log_request_headers headers, direction = "OUTGOING"
+        def log_request_headers(headers, direction = "OUTGOING")
           NewRelic::Agent.logger.debug("#{direction} REQUEST HEADERS: #{headers}")
         end
 
-        def insert_headers headers
+        def insert_headers(headers)
           return unless NewRelic::Agent.agent.connected?
           insert_trace_context_header(headers)
           insert_distributed_trace_header(headers)
@@ -81,7 +81,7 @@ module NewRelic
           log_request_headers(headers)
         end
 
-        def consume_message_headers headers, tracer_state, transport_type
+        def consume_message_headers(headers, tracer_state, transport_type)
           log_request_headers(headers, "INCOMING")
           consume_message_distributed_tracing_headers(headers, transport_type)
           consume_message_cross_app_tracing_headers(headers, tracer_state)
@@ -98,14 +98,14 @@ module NewRelic
           end
         end
 
-        def insert_distributed_trace_header headers
+        def insert_distributed_trace_header(headers)
           return unless Agent.config[:'distributed_tracing.enabled']
           return if Agent.config[:'exclude_newrelic_header']
           payload = create_distributed_trace_payload
           headers[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
         end
 
-        def insert_cat_headers headers
+        def insert_cat_headers(headers)
           return unless CrossAppTracing.cross_app_enabled?
           @is_cross_app_caller = true
           insert_message_headers(headers,
@@ -117,7 +117,7 @@ module NewRelic
 
         private
 
-        def consume_message_synthetics_headers headers
+        def consume_message_synthetics_headers(headers)
           synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
           if synthetics_header and
               incoming_payload = ::JSON.load(deobfuscate(synthetics_header)) and
@@ -132,7 +132,7 @@ module NewRelic
           NewRelic::Agent.logger.error("Error in consume_message_synthetics_header", e)
         end
 
-        def consume_message_distributed_tracing_headers headers, transport_type
+        def consume_message_distributed_tracing_headers(headers, transport_type)
           return unless Agent.config[:'distributed_tracing.enabled']
 
           accept_incoming_transport_type(headers, transport_type)
@@ -145,7 +145,7 @@ module NewRelic
           accept_distributed_trace_payload(payload)
         end
 
-        def consume_message_cross_app_tracing_headers headers, tracer_state
+        def consume_message_cross_app_tracing_headers(headers, tracer_state)
           return unless CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.message_has_crossapp_request_header?(headers)
 
@@ -153,7 +153,7 @@ module NewRelic
           CrossAppTracing.assign_intrinsic_transaction_attributes(tracer_state)
         end
 
-        def accept_cross_app_payload headers, tracer_state
+        def accept_cross_app_payload(headers, tracer_state)
           encoded_id = headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER]
           decoded_id = encoded_id.nil? ? EMPTY_STRING : deobfuscate(encoded_id)
 
@@ -168,7 +168,7 @@ module NewRelic
           nil
         end
 
-        def deobfuscate message
+        def deobfuscate(message)
           CrossAppTracing.obfuscator.deobfuscate(message)
         end
       end

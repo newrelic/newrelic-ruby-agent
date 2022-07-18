@@ -13,15 +13,15 @@ module NewRelic::Agent
       class RequestWrapper
         attr_reader :headers
 
-        def initialize headers = {}
+        def initialize(headers = {})
           @headers = headers
         end
 
-        def [] key
+        def [](key)
           @headers[key]
         end
 
-        def []= key, value
+        def []=(key, value)
           @headers[key] = value
         end
 
@@ -421,7 +421,7 @@ module NewRelic::Agent
 
       # Can pass :status_code and any HTTP code in headers to alter
       # default 200 (OK) HTTP status code
-      def with_external_segment headers, config, segment_params
+      def with_external_segment(headers, config, segment_params)
         segment = nil
         http_response = nil
         with_config(config) do

@@ -40,12 +40,12 @@ module NewRelic
         SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
 
         class << self
-          def insert format: NewRelic::FORMAT_NON_RACK,
+          def insert(format: NewRelic::FORMAT_NON_RACK,
             carrier: nil,
             parent_id: nil,
             trace_id: nil,
             trace_flags: nil,
-            trace_state: nil
+            trace_state: nil)
 
             trace_parent_header = trace_parent_header_for_format(format)
             carrier[trace_parent_header] = format_trace_parent( \
@@ -58,9 +58,9 @@ module NewRelic
             carrier[trace_state_header] = trace_state if trace_state && !trace_state.empty?
           end
 
-          def parse format: NewRelic::FORMAT_NON_RACK,
+          def parse(format: NewRelic::FORMAT_NON_RACK,
             carrier: nil,
-            trace_state_entry_key: nil
+            trace_state_entry_key: nil)
             trace_parent = extract_traceparent(format, carrier)
             unless trace_parent_valid?(trace_parent)
               NewRelic::Agent.increment_metric(SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION)
@@ -78,15 +78,15 @@ module NewRelic
             end
           end
 
-          def create_trace_state_entry entry_key, payload
+          def create_trace_state_entry(entry_key, payload)
             "#{entry_key}=#{payload}".dup
           end
 
           private
 
-          def format_trace_parent trace_id: nil,
+          def format_trace_parent(trace_id: nil,
             parent_id: nil,
-            trace_flags: nil
+            trace_flags: nil)
             sprintf(TRACE_PARENT_FORMAT_STRING,
               VERSION,
               trace_id,
@@ -94,7 +94,7 @@ module NewRelic
               trace_flags)
           end
 
-          def extract_traceparent format, carrier
+          def extract_traceparent(format, carrier)
             header_name = trace_parent_header_for_format(format)
             return unless header = carrier[header_name]
             if matchdata = header.match(TRACE_PARENT_REGEX)
@@ -105,7 +105,7 @@ module NewRelic
             end
           end
 
-          def trace_parent_valid? trace_parent
+          def trace_parent_valid?(trace_parent)
             return false if trace_parent.nil?
             return false if trace_parent[TRACE_ID_KEY] == INVALID_TRACE_ID
             return false if trace_parent[PARENT_ID_KEY] == INVALID_PARENT_ID
@@ -115,7 +115,7 @@ module NewRelic
             true
           end
 
-          def trace_parent_header_for_format format
+          def trace_parent_header_for_format(format)
             if format == NewRelic::FORMAT_RACK
               NewRelic::HTTP_TRACEPARENT_KEY
             else
@@ -123,7 +123,7 @@ module NewRelic
             end
           end
 
-          def trace_state_header_for_format format
+          def trace_state_header_for_format(format)
             if format == NewRelic::FORMAT_RACK
               NewRelic::HTTP_TRACESTATE_KEY
             else
@@ -131,7 +131,7 @@ module NewRelic
             end
           end
 
-          def extract_tracestate format, carrier, trace_state_entry_key
+          def extract_tracestate(format, carrier, trace_state_entry_key)
             header_name = trace_state_header_for_format(format)
             header = carrier[header_name]
             return HeaderData.create if header.nil? || header.empty?
@@ -164,7 +164,7 @@ module NewRelic
               trace_state_vendors: trace_state_vendors)
           end
 
-          def decode_payload payload
+          def decode_payload(payload)
             TraceContextPayload.from_s(payload)
           rescue
             if payload
@@ -176,11 +176,11 @@ module NewRelic
 
         class HeaderData
           class << self
-            def create trace_parent: nil,
+            def create(trace_parent: nil,
               trace_state_payload: nil,
               trace_state_entries: nil,
               trace_state_size: 0,
-              trace_state_vendors: nil
+              trace_state_vendors: nil)
               new(trace_parent, \
                 trace_state_payload, \
                 trace_state_entries, \
@@ -189,7 +189,7 @@ module NewRelic
             end
           end
 
-          def initialize trace_parent, trace_state_payload, trace_state_entries, trace_state_size, trace_state_vendors
+          def initialize(trace_parent, trace_state_payload, trace_state_entries, trace_state_size, trace_state_vendors)
             @trace_parent = trace_parent
             @trace_state = nil
             @trace_state_entries = trace_state_entries
@@ -200,7 +200,7 @@ module NewRelic
 
           attr_accessor :trace_parent, :trace_state_payload, :trace_state_vendors
 
-          def trace_state trace_state_entry
+          def trace_state(trace_state_entry)
             @trace_state ||= join_trace_state(trace_state_entry.size)
             @trace_state_entries = nil
 
@@ -217,7 +217,7 @@ module NewRelic
 
           private
 
-          def join_trace_state trace_state_entry_size
+          def join_trace_state(trace_state_entry_size)
             return @trace_state || NewRelic::EMPTY_STR if @trace_state_entries.nil? || @trace_state_entries.empty?
 
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size

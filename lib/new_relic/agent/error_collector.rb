@@ -20,7 +20,7 @@ module NewRelic
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
       # Returns a new error collector
-      def initialize events
+      def initialize(events)
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
         @error_event_aggregator = ErrorEventAggregator.new(events)
 

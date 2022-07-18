@@ -41,7 +41,7 @@ module NewRelic
           end
         end
 
-        def call severity, time, progname, msg
+        def call(severity, time, progname, msg)
           message = String.new('{')
           if app_name
             add_key_value(message, ENTITY_NAME_KEY, app_name)
@@ -83,7 +83,7 @@ module NewRelic
           @app_name ||= Agent.config[:app_name][0]
         end
 
-        def add_key_value message, key, value
+        def add_key_value(message, key, value)
           message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
         end
 

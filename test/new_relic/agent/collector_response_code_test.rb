@@ -14,12 +14,12 @@ module NewRelic
         @errors = ["e1", "e2"]
       end
 
-      def stub_service response
+      def stub_service(response)
         conn = stub("http_connection", request: response)
         @agent.service.stubs(:http_connection).returns(conn)
       end
 
-      def self.check_discards *response_codes
+      def self.check_discards(*response_codes)
         response_codes.each do |response_code|
           define_method("test_#{response_code}_discards") do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
@@ -34,7 +34,7 @@ module NewRelic
         end
       end
 
-      def self.check_merges *response_codes
+      def self.check_merges(*response_codes)
         response_codes.each do |response_code|
           define_method("test_#{response_code}_merges") do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
@@ -49,7 +49,7 @@ module NewRelic
         end
       end
 
-      def self.check_restarts *response_codes
+      def self.check_restarts(*response_codes)
         response_codes.each do |response_code|
           define_method("test_#{response_code}_restarts") do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
@@ -68,7 +68,7 @@ module NewRelic
         end
       end
 
-      def self.check_disconnects *response_codes
+      def self.check_disconnects(*response_codes)
         response_codes.each do |response_code|
           define_method("test_#{response_code}_disconnects") do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]

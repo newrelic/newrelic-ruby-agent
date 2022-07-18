@@ -182,7 +182,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_not_recorded(["Errors/all"])
   end
 
-  def name_for_route path
+  def name_for_route(path)
     if last_request.env.key?('sinatra.route')
       "GET /#{path}"
     else

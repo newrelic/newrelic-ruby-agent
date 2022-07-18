@@ -28,7 +28,7 @@ if defined?(ActionCable::Channel)
         @logger = Logger.new(StringIO.new)
       end
 
-      def transmit data
+      def transmit(data)
         @transmissions << data
       end
 
@@ -38,11 +38,11 @@ if defined?(ActionCable::Channel)
     end
 
     class TestChannel < ActionCable::Channel::Base
-      def test_action data
+      def test_action(data)
         transmit(data['content'])
       end
 
-      def boom data
+      def boom(data)
         raise StandardError.new("Boom!")
       end
     end

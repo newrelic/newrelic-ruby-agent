@@ -17,7 +17,7 @@ module NewRelic
       enabled_key :'transaction_events.enabled'
       buffer_class TimestampSampledBuffer
 
-      def record event
+      def record(event)
         return unless enabled?
 
         @lock.synchronize do
@@ -27,11 +27,11 @@ module NewRelic
 
       private
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         record_dropped_synthetics(metadata)
       end
 
-      def record_dropped_synthetics metadata
+      def record_dropped_synthetics(metadata)
         num_dropped = metadata[:seen] - metadata[:captured]
         return unless num_dropped > 0
 

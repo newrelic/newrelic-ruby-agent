@@ -11,7 +11,7 @@ require 'test_helper'
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   class InfiniteTracingTest < Minitest::Test
-    def self.load_test_files pattern
+    def self.load_test_files(pattern)
       Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each { |fn| require fn }
     end
 

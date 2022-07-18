@@ -36,7 +36,7 @@ module NewRelic
       PRIORITY_KEY = 'pr'
 
       class << self
-        def for_transaction transaction
+        def for_transaction(transaction)
           return nil unless connected?
 
           payload = new
@@ -57,7 +57,7 @@ module NewRelic
           payload
         end
 
-        def from_json serialized_payload
+        def from_json(serialized_payload)
           raw_payload = JSON.parse(serialized_payload)
           return raw_payload if raw_payload.nil?
           payload_data = raw_payload[DATA_KEY]
@@ -78,7 +78,7 @@ module NewRelic
           payload
         end
 
-        def from_http_safe http_safe_payload
+        def from_http_safe(http_safe_payload)
           decoded_payload = Base64.strict_decode64(http_safe_payload)
           from_json(decoded_payload)
         end
@@ -89,7 +89,7 @@ module NewRelic
 
         private
 
-        def assign_trusted_account_key payload, account_id
+        def assign_trusted_account_key(payload, account_id)
           trusted_account_key = Agent.config[:trusted_account_key]
 
           if account_id != trusted_account_key

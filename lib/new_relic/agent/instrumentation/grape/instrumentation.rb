@@ -16,7 +16,7 @@ module NewRelic::Agent::Instrumentation
         defined?(::Grape::API::Instance) ? ::Grape::API::Instance : ::Grape::API
       end
 
-      def capture_transaction env, context
+      def capture_transaction(env, context)
         begin
           endpoint = env[API_ENDPOINT]
           version = env[API_VERSION]

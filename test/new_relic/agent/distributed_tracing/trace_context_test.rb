@@ -282,7 +282,7 @@ module NewRelic::Agent::DistributedTracing
       assert_false TraceContext.send(:trace_parent_valid?, invalid_trace_parent)
     end
 
-    def make_inbound_carrier options = {}
+    def make_inbound_carrier(options = {})
       {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
         NewRelic::TRACESTATE_KEY => "other=asdf"

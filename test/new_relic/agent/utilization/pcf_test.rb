@@ -52,7 +52,7 @@ module NewRelic
 
         # ---
 
-        def with_pcf_env vars, &blk
+        def with_pcf_env(vars, &blk)
           vars.each_pair { |k, v| ENV[k] = v }
           blk.call
           vars.keys.each { |k| ENV.delete(k) }

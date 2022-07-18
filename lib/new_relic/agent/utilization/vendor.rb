@@ -10,23 +10,23 @@ module NewRelic
     module Utilization
       class Vendor
         class << self
-          def vendor_name vendor_name = nil
+          def vendor_name(vendor_name = nil)
             vendor_name ? @vendor_name = vendor_name.freeze : @vendor_name
           end
 
-          def endpoint endpoint = nil
+          def endpoint(endpoint = nil)
             endpoint ? @endpoint = URI(endpoint) : @endpoint
           end
 
-          def headers headers = nil
+          def headers(headers = nil)
             headers ? @headers = headers.freeze : processed_headers
           end
 
-          def keys keys = nil
+          def keys(keys = nil)
             keys ? @keys = keys.freeze : @keys
           end
 
-          def key_transforms key_transforms = nil
+          def key_transforms(key_transforms = nil)
             key_transforms ? @key_transforms = Array(key_transforms).freeze : @key_transforms
           end
 
@@ -88,11 +88,11 @@ module NewRelic
           NewRelic::Agent.logger.debug("#{vendor_name} environment not detected")
         end
 
-        def prepare_response response
+        def prepare_response(response)
           JSON.parse(response.body)
         end
 
-        def process_response response
+        def process_response(response)
           keys.each do |key|
             normalized = normalize(response[key])
             if normalized
@@ -106,7 +106,7 @@ module NewRelic
           true
         end
 
-        def normalize value
+        def normalize(value)
           return if value.nil?
 
           value = value.to_s
@@ -121,7 +121,7 @@ module NewRelic
           value
         end
 
-        def valid_length? value
+        def valid_length?(value)
           if value.bytesize <= 255
             true
           else
@@ -132,7 +132,7 @@ module NewRelic
 
         VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/
 
-        def valid_chars? value
+        def valid_chars?(value)
           value.each_char do |ch|
             next if ch =~ VALID_CHARS
             code_point = ch[0].ord # this works in Ruby 1.8.7 - 2.1.2
@@ -144,7 +144,7 @@ module NewRelic
           true
         end
 
-        def transform_key key
+        def transform_key(key)
           return key unless key_transforms
           key_transforms.inject(key) { |memo, transform| memo.send(transform) }
         end

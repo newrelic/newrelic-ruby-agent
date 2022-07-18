@@ -111,13 +111,13 @@ module NewRelic
         # perfomance reasons. We have two implmentations of `thread_by_id`
         # based on ruby implementation.
         if RUBY_ENGINE == 'jruby'
-          def thread_by_id thread_id
+          def thread_by_id(thread_id)
             Thread.list.detect { |t| t.object_id == thread_id }
           end
         else
           require 'objspace'
 
-          def thread_by_id thread_id
+          def thread_by_id(thread_id)
             ObjectSpace._id2ref(thread_id)
           end
         end
@@ -132,7 +132,7 @@ module NewRelic
           @stats[thread_id].elapsed_transaction_time = 0.0
         end
 
-        def transaction_time_in_thread timestamp, thread_id, entry
+        def transaction_time_in_thread(timestamp, thread_id, entry)
           return entry.elapsed_transaction_time unless in_transaction?(thread_id)
 
           # Count the portion of the transaction that's elapsed so far,...

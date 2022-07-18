@@ -24,7 +24,7 @@ module NewRelic::Agent
       reset_buffers_and_caches
     end
 
-    def in_controller_transaction &blk
+    def in_controller_transaction(&blk)
       in_transaction("controller_txn", :category => :controller) do |txn|
         advance_process_time(1.0)
         yield(txn)

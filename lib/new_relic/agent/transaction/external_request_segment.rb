@@ -25,7 +25,7 @@ module NewRelic
         attr_reader :library, :uri, :procedure
         attr_reader :http_status_code
 
-        def initialize library, uri, procedure, start_time = nil # :nodoc:
+        def initialize(library, uri, procedure, start_time = nil) # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.obfuscated_uri(uri)
           @procedure = procedure
@@ -52,7 +52,7 @@ module NewRelic
         # object (must belong to a subclass of NewRelic::Agent::HTTPClients::AbstractRequest)
         #
         # @api public
-        def add_request_headers request
+        def add_request_headers(request)
           process_host_header(request)
           synthetics_header = transaction && transaction.raw_synthetics_header
           insert_synthetics_header(request, synthetics_header) if synthetics_header
@@ -71,7 +71,7 @@ module NewRelic
         # @param [Hash] response a hash of response headers
         #
         # @api public
-        def read_response_headers response
+        def read_response_headers(response)
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
           unless data = CrossAppTracing.extract_appdata(response)
@@ -156,7 +156,7 @@ module NewRelic
         #
         # @api public
         #
-        def process_response_metadata response_metadata
+        def process_response_metadata(response_metadata)
           NewRelic::Agent.record_api_supportability_metric(:process_response_metadata)
           if transaction
             app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
@@ -181,7 +181,7 @@ module NewRelic
           super
         end
 
-        def process_response_headers response # :nodoc:
+        def process_response_headers(response) # :nodoc:
           set_http_status_code(response)
           read_response_headers(response)
         end
@@ -189,7 +189,7 @@ module NewRelic
         private
 
         # Only sets the http_status_code if response.status_code is non-empty value
-        def set_http_status_code response
+        def set_http_status_code(response)
           if response.respond_to?(:status_code)
             @http_status_code = response.status_code if response.has_status_code?
           else
@@ -198,7 +198,7 @@ module NewRelic
           end
         end
 
-        def insert_synthetics_header request, header
+        def insert_synthetics_header(request, header)
           request[NR_SYNTHETICS_HEADER] = header
         end
 
@@ -211,7 +211,7 @@ module NewRelic
           super
         end
 
-        def process_host_header request
+        def process_host_header(request)
           if @host_header = request.host_from_header
             update_segment_name
           end

@@ -347,7 +347,7 @@ module NewRelic
         # if passed +segment+ is something that doesn't
         # respond to +notice_segment_error+ then this method
         # is effectively just a yield to the given &block
-        def capture_segment_error segment
+        def capture_segment_error(segment)
           return unless block_given?
           yield
         rescue => exception
@@ -421,7 +421,7 @@ module NewRelic
 
         private
 
-        def start_and_add_segment segment, parent = nil
+        def start_and_add_segment(segment, parent = nil)
           tracer_state = state
           if (txn = tracer_state.current_transaction) &&
               tracer_state.tracing_enabled?

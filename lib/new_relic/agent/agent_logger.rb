@@ -179,7 +179,7 @@ module NewRelic
         StartupLogger.instance.dump(self)
       end
 
-      def self.format_fatal_error message
+      def self.format_fatal_error(message)
         "** [NewRelic] FATAL : #{message}\n"
       end
     end

@@ -26,7 +26,7 @@ module NewRelic
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
-        def initialize name = nil, start_time = nil
+        def initialize(name = nil, start_time = nil)
           @name = name
           @starting_thread_id = ::Thread.current.object_id
           @transaction_name = nil
@@ -151,7 +151,7 @@ module NewRelic
         def transaction_assigned
         end
 
-        def set_noticed_error noticed_error
+        def set_noticed_error(noticed_error)
           if @noticed_error
             NewRelic::Agent.logger.debug( \
               "Segment: #{name} overwriting previously noticed " \
@@ -161,7 +161,7 @@ module NewRelic
           @noticed_error = noticed_error
         end
 
-        def notice_error exception, options = {}
+        def notice_error(exception, options = {})
           if Agent.config[:high_security]
             NewRelic::Agent.logger.debug( \
               "Segment: #{name} ignores notice_error for " \
@@ -185,14 +185,14 @@ module NewRelic
           @range_recorded
         end
 
-        def child_start segment
+        def child_start(segment)
           @active_children += 1
           @concurrent_children ||= @active_children > 1
 
           transaction.async = true if @concurrent_children
         end
 
-        def child_complete segment
+        def child_complete(segment)
           @active_children -= 1
           record_child_time(segment)
 
@@ -209,7 +209,7 @@ module NewRelic
         # we can stop the propagation. We pass along the direct child so we can
         # make any corrections needed for exclusive time calculation.
 
-        def descendant_complete child, descendant
+        def descendant_complete(child, descendant)
           RangeExtensions.merge_or_append(descendant.time_range,
             children_time_ranges)
           # If this child's time was previously added to this segment's
@@ -248,7 +248,7 @@ module NewRelic
         def segment_complete
         end
 
-        def record_child_time child
+        def record_child_time(child)
           if concurrent_children? || finished? && end_time < child.end_time
             record_child_time_as_range(child)
           else
@@ -256,13 +256,13 @@ module NewRelic
           end
         end
 
-        def record_child_time_as_range child
+        def record_child_time_as_range(child)
           RangeExtensions.merge_or_append(child.time_range,
             children_time_ranges)
           child.range_recorded = true
         end
 
-        def record_child_time_as_number child
+        def record_child_time_as_number(child)
           self.children_time += child.duration
         end
 

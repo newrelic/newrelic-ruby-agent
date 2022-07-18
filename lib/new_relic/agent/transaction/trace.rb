@@ -122,7 +122,7 @@ module NewRelic
           }
         end
 
-        def trace_tree attributes_hash
+        def trace_tree(attributes_hash)
           [
             NewRelic::Coerce.float(self.start_time),
             NewRelic::EMPTY_HASH,

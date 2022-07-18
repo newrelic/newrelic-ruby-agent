@@ -17,7 +17,7 @@ module NewRelic
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
         attr_accessor :database_name, :record_sql
 
-        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil
+        def initialize(product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil)
           @product = product
           @operation = operation
           @collection = collection
@@ -31,7 +31,7 @@ module NewRelic
                 start_time)
         end
 
-        def set_instance_info host = nil, port_path_or_id = nil
+        def set_instance_info(host = nil, port_path_or_id = nil)
           port_path_or_id = port_path_or_id.to_s if port_path_or_id
           host_present = host && !host.empty?
           ppi_present = port_path_or_id && !port_path_or_id.empty?
@@ -56,13 +56,13 @@ module NewRelic
           end
         end
 
-        def notice_sql sql
+        def notice_sql(sql)
           _notice_sql(sql)
           nil
         end
 
         # @api private
-        def _notice_sql sql, config = nil, explainer = nil, binds = nil, name = nil
+        def _notice_sql(sql, config = nil, explainer = nil, binds = nil, name = nil)
           return unless record_sql?
           @sql_statement = Database::Statement.new(sql, config, explainer, binds, name, host, port_path_or_id, database_name)
         end
@@ -84,7 +84,7 @@ module NewRelic
         #   please ensure all data passed to this method is safe to transmit to
         #   New Relic.
 
-        def notice_nosql_statement nosql_statement
+        def notice_nosql_statement(nosql_statement)
           return unless record_sql?
           @nosql_statement = Database.truncate_query(nosql_statement)
           nil

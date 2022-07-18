@@ -13,7 +13,7 @@ module NewRelic
       # This requires the files within a rescue block, so that any
       # errors within instrumentation files do not affect the overall
       # agent or application in which it runs.
-      def load_instrumentation_files pattern
+      def load_instrumentation_files(pattern)
         Dir.glob(pattern) do |file|
           begin
             require file.to_s
@@ -34,7 +34,7 @@ module NewRelic
       #
       # This happens after the agent has loaded and all dependencies
       # are ready to be instrumented
-      def add_instrumentation pattern
+      def add_instrumentation(pattern)
         if @instrumented
           load_instrumentation_files(pattern)
         else

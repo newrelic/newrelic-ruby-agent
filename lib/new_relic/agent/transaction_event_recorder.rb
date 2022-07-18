@@ -16,12 +16,12 @@ module NewRelic
       attr_reader :transaction_event_aggregator
       attr_reader :synthetics_event_aggregator
 
-      def initialize events
+      def initialize(events)
         @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new(events)
         @synthetics_event_aggregator = NewRelic::Agent::SyntheticsEventAggregator.new(events)
       end
 
-      def record payload
+      def record(payload)
         return unless NewRelic::Agent.config[:'transaction_events.enabled']
 
         if synthetics_event?(payload)
@@ -33,11 +33,11 @@ module NewRelic
         end
       end
 
-      def create_event payload
+      def create_event(payload)
         TransactionEventPrimitive.create(payload)
       end
 
-      def synthetics_event? payload
+      def synthetics_event?(payload)
         payload.key?(:synthetics_resource_id)
       end
 

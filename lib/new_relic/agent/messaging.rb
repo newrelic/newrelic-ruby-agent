@@ -300,13 +300,13 @@ module NewRelic
       #
       # @api public
       #
-      def wrap_amqp_consume_transaction library: nil,
+      def wrap_amqp_consume_transaction(library: nil,
         destination_name: nil,
         delivery_info: nil,
         message_properties: nil,
         exchange_type: nil,
         queue_name: nil,
-        &block
+        &block)
 
         wrap_message_broker_consume_transaction(library: library,
           destination_type: :exchange,
@@ -325,7 +325,7 @@ module NewRelic
         NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
       end
 
-      def transaction_name library, destination_type, destination_name
+      def transaction_name(library, destination_type, destination_name)
         transaction_name = Transaction::MESSAGE_PREFIX + library
         transaction_name << Transaction::MessageBrokerSegment::SLASH
         transaction_name << Transaction::MessageBrokerSegment::TYPES[destination_type]

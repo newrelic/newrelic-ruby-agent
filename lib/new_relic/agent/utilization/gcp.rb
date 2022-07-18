@@ -18,7 +18,7 @@ module NewRelic
         MACH_TYPE = 'machineType'.freeze
         ZONE = 'zone'.freeze
 
-        def prepare_response response
+        def prepare_response(response)
           body = JSON.parse(response.body)
           body[MACH_TYPE] = trim_leading(body[MACH_TYPE])
           body[ZONE] = trim_leading(body[ZONE])
@@ -27,7 +27,7 @@ module NewRelic
 
         SLASH = '/'.freeze
 
-        def trim_leading value
+        def trim_leading(value)
           value.split(SLASH).last
         end
       end

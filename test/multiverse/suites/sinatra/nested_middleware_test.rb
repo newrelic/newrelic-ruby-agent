@@ -38,7 +38,7 @@ class NestedMiddlewareTest < Minitest::Test
     assert_metrics_recorded(["Controller/Sinatra/MiddlewareApp/#{name_for_route('middle')}"])
   end
 
-  def name_for_route path
+  def name_for_route(path)
     if last_request.env.key?('sinatra.route')
       "GET /#{path}"
     else

@@ -108,7 +108,7 @@ module NewRelic
           adapter_name
         end
 
-        def product_operation_collection_for name, sql, adapter_name
+        def product_operation_collection_for(name, sql, adapter_name)
           product = map_product(bare_adapter_name(adapter_name))
           splits = split_name(name)
           model = model_from_splits(splits)
@@ -280,7 +280,7 @@ module NewRelic
 
           SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze
 
-          def supported_adapter? config
+          def supported_adapter?(config)
             config && SUPPORTED_ADAPTERS.include?(adapter_from_config(config))
           end
 

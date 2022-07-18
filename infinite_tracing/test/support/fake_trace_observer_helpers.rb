@@ -11,7 +11,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # This lets us peek into the Event Listener to see what events
       # are subscribed.
       class EventListener
-        def still_subscribed event
+        def still_subscribed(event)
           return [] if @events[event].nil?
           @events[event].select { |e| e.inspect =~ /infinite_tracing/ }
         end
@@ -111,7 +111,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # simulates applying a server-side config to the agent instance.
           # the sleep 0.01 allows us to choose whether to join and wait
           # or set it up and continue with test scenario's flow.
-          def simulate_connect_to_collector config, delay = 0.01
+          def simulate_connect_to_collector(config, delay = 0.01)
             thread = Thread.new do
               sleep(delay)
               NewRelic::Agent.instance.stubs(:connected?).returns(true)
@@ -125,12 +125,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           # Used to emulate when a force reconnect
           # happens and a new agent run token is presented.
-          def simulate_reconnect_to_collector config
+          def simulate_reconnect_to_collector(config)
             NewRelic::Agent.instance.stubs(:connected?).returns(true)
             @response_handler.configure_agent(config)
           end
 
-          def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
+          def emulate_streaming_with_tracer(tracer_class, count, max_buffer_size, &block)
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             client = nil
 
@@ -226,14 +226,14 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             sleep(0.1) if !@server_response_enum.empty?
           end
 
-          def emulate_streaming_segments count, max_buffer_size = 100_000, &block
+          def emulate_streaming_segments(count, max_buffer_size = 100_000, &block)
             spans = create_grpc_mock
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size, &block)
             join_grpc_mock
             return spans, segments
           end
 
-          def emulate_streaming_to_unimplemented count, max_buffer_size = 100_000, &block
+          def emulate_streaming_to_unimplemented(count, max_buffer_size = 100_000, &block)
             spans = create_grpc_mock(simulate_broken_server: true)
             active_client = nil
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
@@ -244,7 +244,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             return spans, segments, active_client
           end
 
-          def emulate_streaming_to_failed_precondition count, max_buffer_size = 100_000, &block
+          def emulate_streaming_to_failed_precondition(count, max_buffer_size = 100_000, &block)
             spans = create_grpc_mock(simulate_broken_server: true)
             active_client = nil
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
@@ -255,7 +255,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             return spans, segments, active_client
           end
 
-          def emulate_streaming_with_initial_error count, max_buffer_size = 100_000, &block
+          def emulate_streaming_with_initial_error(count, max_buffer_size = 100_000, &block)
             spans = create_grpc_mock
             first = true
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
@@ -271,7 +271,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             return spans, segments
           end
 
-          def emulate_streaming_with_ok_close_response count, max_buffer_size = 100_000, &block
+          def emulate_streaming_with_ok_close_response(count, max_buffer_size = 100_000, &block)
             spans = create_grpc_mock
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
               simulate_server_response(GRPC::Ok.new)

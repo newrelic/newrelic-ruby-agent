@@ -10,12 +10,12 @@ require_relative '../../.github/workflows/scripts/slack_gem_notifications/notifi
 class GemNotifications < Minitest::Test
   def invalid_gem_response
     response = MiniTest::Mock.new
-    response.expect :success?, false
+    response.expect(:success?, false)
   end
 
   def valid_gem_response
     response = MiniTest::Mock.new
-    response.expect :success?, true
+    response.expect(:success?, true)
   end
 
   def http_get_response
@@ -26,14 +26,14 @@ class GemNotifications < Minitest::Test
 
   def test_valid_gem_name
     response = valid_gem_response()
-    HTTParty.stub :get, response do
+    HTTParty.stub(:get, response) do
       assert verify_gem("puma!")
     end
   end
 
   def test_invalid_gem_name
     response = invalid_gem_response()
-    HTTParty.stub :get, response do
+    HTTParty.stub(:get, response) do
       assert_nil verify_gem("TrexRawr!")
     end
   end
@@ -56,7 +56,7 @@ class GemNotifications < Minitest::Test
   def test_send_bot_input_size
     assert_raises(ArgumentError) { send_bot() }
     assert_raises(ArgumentError) { send_bot("tyrannosaurus") }
-    HTTParty.stub :post, nil do
+    HTTParty.stub(:post, nil) do
       assert_nil send_bot("tyrannosaurus", [{"number" => "83.6"}, {"number" => "66.0"}])
     end
   end

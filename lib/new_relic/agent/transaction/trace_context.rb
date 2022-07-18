@@ -40,11 +40,11 @@ module NewRelic
         attr_accessor :trace_context_header_data
         attr_reader :trace_state_payload
 
-        def trace_parent_header_present? request
+        def trace_parent_header_present?(request)
           request[NewRelic::HTTP_TRACEPARENT_KEY]
         end
 
-        def accept_trace_context_incoming_request request
+        def accept_trace_context_incoming_request(request)
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::FORMAT_RACK,
             carrier: request,
@@ -56,7 +56,7 @@ module NewRelic
         end
         private :accept_trace_context_incoming_request
 
-        def insert_trace_context_header header, format = NewRelic::FORMAT_NON_RACK
+        def insert_trace_context_header(header, format = NewRelic::FORMAT_NON_RACK)
           return unless Agent.config[:'distributed_tracing.enabled']
 
           NewRelic::Agent::DistributedTracing::TraceContext.insert( \
@@ -126,7 +126,7 @@ module NewRelic
           @trace_state_payload = payload
         end
 
-        def accept_trace_context header_data
+        def accept_trace_context(header_data)
           return if ignore_trace_context?
 
           @trace_context_header_data = header_data

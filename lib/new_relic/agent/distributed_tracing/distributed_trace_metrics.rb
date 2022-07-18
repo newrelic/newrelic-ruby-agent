@@ -22,7 +22,7 @@ module NewRelic
         end
       end
 
-      def record_metrics_for_transaction transaction
+      def record_metrics_for_transaction(transaction)
         return unless Agent.config[:'distributed_tracing.enabled']
         dt = transaction.distributed_tracer
         payload = dt.distributed_trace_payload || dt.trace_state_payload
@@ -32,7 +32,7 @@ module NewRelic
         record_errors_by_caller_metrics(transaction, payload)
       end
 
-      def prefix_for_metric name, transaction, payload
+      def prefix_for_metric(name, transaction, payload)
         if payload
           "#{name}/" \
           "#{payload.parent_type}/" \
@@ -44,12 +44,12 @@ module NewRelic
         end
       end
 
-      def record_caller_by_duration_metrics transaction, payload
+      def record_caller_by_duration_metrics(transaction, payload)
         prefix = prefix_for_metric("DurationByCaller", transaction, payload)
         record_unscoped_metric(transaction, prefix, transaction.duration)
       end
 
-      def record_transport_duration_metrics transaction, payload
+      def record_transport_duration_metrics(transaction, payload)
         return unless payload
 
         prefix = prefix_for_metric("TransportDuration", transaction, payload)
@@ -57,7 +57,7 @@ module NewRelic
         record_unscoped_metric(transaction, prefix, duration)
       end
 
-      def record_errors_by_caller_metrics transaction, payload
+      def record_errors_by_caller_metrics(transaction, payload)
         return unless transaction.exceptions.size > 0
 
         prefix = prefix_for_metric("ErrorsByCaller", transaction, payload)
@@ -66,7 +66,7 @@ module NewRelic
 
       private
 
-      def record_unscoped_metric transaction, prefix, duration
+      def record_unscoped_metric(transaction, prefix, duration)
         transaction.metrics.record_unscoped("#{prefix}/#{ALL_SUFFIX}", duration)
         transaction.metrics.record_unscoped("#{prefix}/#{transaction_type_suffix}", duration)
       end

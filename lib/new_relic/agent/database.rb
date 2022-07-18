@@ -237,7 +237,7 @@ module NewRelic
 
         NEWLINE = "\n".freeze
 
-        def append_sql new_sql
+        def append_sql(new_sql)
           return if new_sql.empty?
           @sql = Database.truncate_query(@sql << NEWLINE << new_sql)
         end

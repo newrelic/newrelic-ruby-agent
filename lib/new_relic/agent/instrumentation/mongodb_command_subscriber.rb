@@ -60,7 +60,7 @@ module NewRelic
 
         private
 
-        def start_segment event
+        def start_segment(event)
           host = host_from_address(event.address)
           port_path_or_id = port_path_or_id_from_address(event.address)
           segment = NewRelic::Agent::Tracer.start_datastore_segment(

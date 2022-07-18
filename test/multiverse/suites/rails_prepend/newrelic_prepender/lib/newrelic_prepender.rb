@@ -7,7 +7,7 @@ require "newrelic_prepender/version"
 
 module NewRelic
   module Prepender
-    def self.do_prepend *bases
+    def self.do_prepend(*bases)
       bases.each { |b| b.__send__(:prepend, self) }
     end
   end

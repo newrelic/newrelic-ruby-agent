@@ -144,7 +144,7 @@ module NewRelic
         buffer.instance_variable_set(:@captured_lifetime, 0)
       end
 
-      def create_noticed_error txn_name, options = {}
+      def create_noticed_error(txn_name, options = {})
         exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
@@ -156,7 +156,7 @@ module NewRelic
         noticed_error
       end
 
-      def create_transaction_payload name, options = {}
+      def create_transaction_payload(name, options = {})
         {
           :name => name,
           :type => :controller,
@@ -166,7 +166,7 @@ module NewRelic
         }.update(options)
       end
 
-      def generate_error name = 'Controller/blogs/index', options = {}
+      def generate_error(name = 'Controller/blogs/index', options = {})
         error_options = options[:error_options] || {}
         error = create_noticed_error(name, error_options)
 
