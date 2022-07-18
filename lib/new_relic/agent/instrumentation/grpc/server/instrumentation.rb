@@ -10,7 +10,7 @@ module NewRelic
           def handle_with_tracing(active_call, mth, inter_ctx)
             return yield unless trace_with_newrelic?
             trace_headers = active_call.metadata.delete(NewRelic::NEWRELIC_KEY)
-            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other') if ::NewRelic::Agent.config[:'distirbuted_tracing.enabled']
+            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other') if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
 
             finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
               name: mth.original_name,
