@@ -26,19 +26,19 @@ module NewRelic
             response = nil
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
-            segment.add_request_headers request_wrapper
+            segment.add_request_headers(request_wrapper)
 
-            metadata.merge! metadata, request_wrapper.instance_variable_get(:@newrelic_metadata)
+            metadata.merge!(metadata, request_wrapper.instance_variable_get(:@newrelic_metadata))
             set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
-              response = NewRelic::Agent::Tracer.capture_segment_error segment do
+              response = NewRelic::Agent::Tracer.capture_segment_error(segment) do
                 yield
               end
             end
 
             wrapped_response = NewRelic::Agent::Instrumentation::GRPC::Client::ResponseWrapper.new(response)
-            segment.process_response_headers wrapped_response
+            segment.process_response_headers(wrapped_response)
             response
           ensure
             segment.finish
