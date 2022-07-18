@@ -10,23 +10,14 @@ module NewRelic
     module Instrumentation
       module GRPC
         module Server
-          module Prepend
+          module RpcServerPrepend
             include NewRelic::Agent::Instrumentation::GRPC::Server
-
-            def handle_request_response(*args)
-              handle_with_tracing(*args) { super }
+            def add_http2_port(*args)
+              add_http2_port_with_tracing(*args) { super }
             end
 
-            def handle_client_streamer(*args)
-              handle_with_tracing(*args) { super }
-            end
-
-            def handle_server_streamer(*args)
-              handle_with_tracing(*args) { super }
-            end
-
-            def handle_bidi_streamer(*args)
-              handle_with_tracing(*args) { super }
+            def run(*args)
+              run_with_tracing(*args) { super }
             end
           end
         end

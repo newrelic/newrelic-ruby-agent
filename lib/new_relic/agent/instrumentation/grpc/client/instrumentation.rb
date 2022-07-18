@@ -3,12 +3,15 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative 'request_wrapper'
+require_relative '../helper'
 
 module NewRelic
   module Agent
     module Instrumentation
       module GRPC
         module Client
+          include NewRelic::Agent::Instrumentation::GRPC::Helper
+
           def initialize_with_tracing(*args)
             instance = yield
             instance.instance_variable_set(:@trace_with_newrelic, trace_with_newrelic?(args.first))
@@ -50,12 +53,6 @@ module NewRelic
             return unless @host && method
 
             "grpc://#{@host}/#{method}"
-          end
-
-          def cleaned_method(method)
-            return method unless method.start_with?('/')
-
-            method[1..-1]
           end
 
           def set_distributed_tracing_headers(metadata)
