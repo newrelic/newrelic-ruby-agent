@@ -27,7 +27,7 @@ module NewRelic
             set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
-              NewRelic::Agent::Tracer.capture_segment_error segment do
+              NewRelic::Agent::Tracer.capture_segment_error(segment) do
                 yield
               end
             end
