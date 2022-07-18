@@ -1094,6 +1094,14 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of gRPC clients at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.grpc.host_denylist' => {
+          :default => ['tracing\.(?:staging-)?edge\.nr-data'],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => 'Define grpc connections you want the agent to ignore by specifying a list of patterns matching the URI of the hosts to be ignored'
+        },
         :'instrumentation.grpc_server' => {
           :default => instrumentation_value_of(:disable_grpc_server),
           :documentation_default => 'auto',
