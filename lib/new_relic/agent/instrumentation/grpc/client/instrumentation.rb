@@ -3,16 +3,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative 'request_wrapper'
-require_relative 'response_wrapper'
 
 module NewRelic
   module Agent
     module Instrumentation
       module GRPC
         module Client
-          # TODO: allow the blocklist to be set via config
-          HOST_BLOCKLIST_PATTERN = %r{\.newrelic\.com/}.freeze
-
           def initialize_with_tracing(*args)
             instance = yield
             instance.instance_variable_set(:@trace_with_newrelic, trace_with_newrelic?(args.first))
@@ -23,7 +19,6 @@ module NewRelic
             deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
 
-            response = nil
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers(request_wrapper)
@@ -32,14 +27,10 @@ module NewRelic
             set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
-              response = NewRelic::Agent::Tracer.capture_segment_error(segment) do
+              NewRelic::Agent::Tracer.capture_segment_error segment do
                 yield
               end
             end
-
-            wrapped_response = NewRelic::Agent::Instrumentation::GRPC::Client::ResponseWrapper.new(response)
-            segment.process_response_headers(wrapped_response)
-            response
           ensure
             segment.finish
           end
@@ -80,9 +71,15 @@ module NewRelic
             return do_trace unless do_trace.nil?
 
             host ||= @host
-            return false unless host && !host.match?(HOST_BLOCKLIST_PATTERN)
+            return false unless host && !host_denylisted?(host)
 
             true
+          end
+
+          def host_denylisted?(host)
+            NewRelic::Agent.config[:'instrumentation.grpc.host_denylist'].any? do |regex|
+              host.match?(regex)
+            end
           end
         end
       end
