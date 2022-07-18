@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../helpers/docker'
 
@@ -338,7 +339,7 @@ module MemcacheTestCases
         @cache.get(key)
       end
       trace = last_transaction_trace
-      segment = find_node_with_name trace, 'Datastore/operation/Memcached/get'
+      segment = find_node_with_name(trace, 'Datastore/operation/Memcached/get')
       assert_equal "get \"#{key}\"", segment[:statement]
     end
   end

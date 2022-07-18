@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'new_relic/agent/datastores/mongo/event_formatter'
 
 module NewRelic
@@ -13,7 +15,7 @@ module NewRelic
         def started(event)
           begin
             return unless NewRelic::Agent::Tracer.tracing_enabled?
-            segments[event.operation_id] = start_segment event
+            segments[event.operation_id] = start_segment(event)
           rescue Exception => e
             log_notification_error('started', e)
           end
@@ -40,12 +42,12 @@ module NewRelic
             if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
               attributes = event.reply[error_key][-1]
-              segment.notice_error Mongo::Error.new("%s (%s)" % [attributes["errmsg"], attributes["code"]])
+              segment.notice_error(Mongo::Error.new("%s (%s)" % [attributes["errmsg"], attributes["code"]]))
 
             # failing commands return a CommandFailed event with an error message
             # in the form of "% (%s)" for the message and code
-            elsif event.is_a? Mongo::Monitoring::Event::CommandFailed
-              segment.notice_error Mongo::Error.new(event.message)
+            elsif event.is_a?(Mongo::Monitoring::Event::CommandFailed)
+              segment.notice_error(Mongo::Error.new(event.message))
             end
             segment.finish
           rescue Exception => e
@@ -58,9 +60,9 @@ module NewRelic
 
         private
 
-        def start_segment event
-          host = host_from_address event.address
-          port_path_or_id = port_path_or_id_from_address event.address
+        def start_segment(event)
+          host = host_from_address(event.address)
+          port_path_or_id = port_path_or_id_from_address(event.address)
           segment = NewRelic::Agent::Tracer.start_datastore_segment(
             product: MONGODB,
             operation: operation(event.command_name),
@@ -107,31 +109,31 @@ module NewRelic
         LOCALHOST = "localhost".freeze
 
         def host_from_address(address)
-          if unix_domain_socket? address.host
+          if unix_domain_socket?(address.host)
             LOCALHOST
           else
             address.host
           end
         rescue => e
-          NewRelic::Agent.logger.debug "Failed to retrieve Mongo host: #{e}"
+          NewRelic::Agent.logger.debug("Failed to retrieve Mongo host: #{e}")
           UNKNOWN
         end
 
         def port_path_or_id_from_address(address)
-          if unix_domain_socket? address.host
+          if unix_domain_socket?(address.host)
             address.host
           else
             address.port
           end
         rescue => e
-          NewRelic::Agent.logger.debug "Failed to retrieve Mongo port_path_or_id: #{e}"
+          NewRelic::Agent.logger.debug("Failed to retrieve Mongo port_path_or_id: #{e}")
           UNKNOWN
         end
 
         SLASH = "/".freeze
 
         def unix_domain_socket?(host)
-          host.start_with? SLASH
+          host.start_with?(SLASH)
         end
       end
     end

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -26,10 +27,10 @@ module NewRelic
           @parent_node = parent
         end
 
-        def select_allowed_params params
+        def select_allowed_params(params)
           return unless params
           params.select do |p|
-            NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_TRANSACTION_SEGMENTS
+            NewRelic::Agent.instance.attribute_filter.allows_key?(p, AttributeFilter::DST_TRANSACTION_SEGMENTS)
           end
         end
 
@@ -57,16 +58,16 @@ module NewRelic
         end
 
         def to_s_compact
-          str = ""
+          str = String.new('')
           str << metric_name
           if children.any?
-            str << "{#{children.map { |cs| cs.to_s_compact }.join(",")}}"
+            str << "{#{children.map { |cs| cs.to_s_compact }.join(',')}}"
           end
           str
         end
 
         def to_debug_str(depth)
-          tab = "  " * depth
+          tab = String.new('  ') * depth
           s = tab.clone
           s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
           unless params.empty?
@@ -77,7 +78,7 @@ module NewRelic
           children.each do |cs|
             s << cs.to_debug_str(depth + 1)
           end
-          s << tab + "<< "
+          s << tab + '<< '
           s << case @exit_timestamp
           when nil then ' n/a'
           when Numeric then '%3i ms' % (@exit_timestamp * 1000)
@@ -133,7 +134,7 @@ module NewRelic
         # call the provided block for this node and each
         # of the called nodes
         def each_node(&block)
-          block.call self
+          block.call(self)
 
           if @children
             @children.each do |node|
@@ -145,7 +146,7 @@ module NewRelic
         # call the provided block for this node and each
         # of the called nodes while keeping track of nested nodes
         def each_node_with_nest_tracking(&block)
-          summary = block.call self
+          summary = block.call(self)
           summary.current_nest_count += 1 if summary
 
           if @children

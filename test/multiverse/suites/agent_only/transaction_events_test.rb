@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class TransactionEventsTest < Minitest::Test
   include MultiverseHelpers
@@ -18,8 +19,8 @@ class TransactionEventsTest < Minitest::Test
   end
 
   def test_transaction_event_error_flag_is_set
-    in_transaction :transaction_name => "Controller/blogs/index" do |t|
-      t.notice_error RuntimeError.new "Big Controller"
+    in_transaction(:transaction_name => "Controller/blogs/index") do |t|
+      t.notice_error(RuntimeError.new("Big Controller"))
     end
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
@@ -31,7 +32,7 @@ class TransactionEventsTest < Minitest::Test
 
   def test_transaction_events_abide_by_custom_attributes_config
     with_config(:'custom_attributes.enabled' => false) do
-      in_transaction :transaction_name => "Controller/blogs/index" do |t|
+      in_transaction(:transaction_name => "Controller/blogs/index") do |t|
         t.add_custom_attributes(:foo => "bar")
       end
     end

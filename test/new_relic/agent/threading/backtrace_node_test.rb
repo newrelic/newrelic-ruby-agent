@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/threading/backtrace_node'
@@ -19,7 +20,7 @@ module NewRelic::Agent::Threading
     end
 
     def assert_backtrace_trees_equal(a, b, original_a = a, original_b = b)
-      message = "Thread profiles did not match.\n\n"
+      message = String.new("Thread profiles did not match.\n\n")
       message << "Expected tree:\n#{original_a.dump_string}\n\n"
       message << "Actual tree:\n#{original_b.dump_string}\n"
       assert_equal(a, b, message)

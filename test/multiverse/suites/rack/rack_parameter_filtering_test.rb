@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'filtering_test_app'
 
@@ -14,7 +15,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     include Rack::Test::Methods
 
     def app
-      Rack::Builder.app { run FilteringTestApp.new }
+      Rack::Builder.app { run(FilteringTestApp.new) }
     end
 
     def test_file_upload_params_are_filtered
@@ -23,7 +24,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           :title => "blah",
           :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
         }
-        post '/', params
+        post('/', params)
 
         expected = {
           "request.parameters.title" => "blah",
@@ -36,7 +37,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     def test_apply_filters_returns_params_when_rails_is_not_present
       with_config(:capture_params => true) do
         params = {"name" => "name", "password" => "mypass"}
-        post '/', params
+        post('/', params)
 
         expected = {
           "request.parameters.name" => "name",

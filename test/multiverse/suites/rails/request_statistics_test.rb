@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # https://newrelic.atlassian.net/browse/RUBY-1096
 
@@ -8,18 +9,18 @@ require './app'
 
 class RequestStatsController < ApplicationController
   def stats_action
-    sleep 0.01
-    render body: 'some stuff'
+    sleep(0.01)
+    render(body: 'some stuff')
   end
 
   def cross_app_action
     ::NewRelic::Agent::Transaction.tl_current.distributed_tracer.is_cross_app_caller = true
-    render body: 'some stuff'
+    render(body: 'some stuff')
   end
 
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
-    render body: 'some stuff'
+    render(body: 'some stuff')
   end
 end
 
@@ -35,7 +36,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
   def test_doesnt_send_when_disabled
     with_config(:'analytics_events.enabled' => false) do
-      5.times { get '/request_stats/stats_action' }
+      5.times { get('/request_stats/stats_action') }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -45,7 +46,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
   def test_request_times_should_be_reported_if_enabled
     with_config(:'analytics_events.enabled' => true) do
-      5.times { get '/request_stats/stats_action' }
+      5.times { get('/request_stats/stats_action') }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -75,7 +76,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
   def test_request_should_include_guid_if_cross_app
     with_config(:'analytics_events.enabled' => true) do
-      5.times { get '/request_stats/cross_app_action' }
+      5.times { get('/request_stats/cross_app_action') }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -104,7 +105,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
         'HTTP_X_NEWRELIC_TRANSACTION' => Base64.encode64('["8badf00d",1]')
       }
 
-      get '/request_stats/cross_app_action', headers: rack_env
+      get('/request_stats/cross_app_action', headers: rack_env)
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -124,7 +125,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
   def test_custom_params_should_be_reported_with_events_and_coerced_to_safe_types
     with_config(:'analytics_events.enabled' => true) do
-      5.times { get '/request_stats/stats_action_with_custom_params' }
+      5.times { get('/request_stats/stats_action_with_custom_params') }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -155,7 +156,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
   def test_request_samples_should_be_preserved_upon_failure
     with_config(:'analytics_events.enabled' => true) do
-      5.times { get '/request_stats/stats_action' }
+      5.times { get('/request_stats/stats_action') }
 
       # fail once
       $collector.stub('analytic_event_data', {}, 503)

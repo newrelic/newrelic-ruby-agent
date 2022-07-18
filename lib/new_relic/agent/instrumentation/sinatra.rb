@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'sinatra/transaction_namer'
 require_relative 'sinatra/ignorer'
@@ -17,7 +18,7 @@ DependencyDetection.defer do
   depends_on { Sinatra::Base.private_method_defined?(:route_eval) }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Sinatra instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Sinatra instrumentation')
   end
 
   executes do

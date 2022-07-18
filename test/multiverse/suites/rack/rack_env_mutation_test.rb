@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
@@ -37,14 +38,14 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     def app
       inner_app = BadApp.new
       Rack::Builder.app do
-        use NewRelic::Rack::AgentHooks
-        run inner_app
+        use(NewRelic::Rack::AgentHooks)
+        run(inner_app)
       end
     end
 
     def test_safe_from_iterations_over_rack_env_from_background_threads
       100.times do
-        get '/'
+        get('/')
       end
     end
   end

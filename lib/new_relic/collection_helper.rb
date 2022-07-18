@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module CollectionHelper
@@ -39,7 +40,7 @@ module NewRelic
         when nil then ''
         when object.instance_of?(String) then object
         when String then String.new(object) # convert string subclasses to strings
-        else "#<#{object.class.to_s}>"
+        else String.new("#<#{object.class}>")
       end
     end
 

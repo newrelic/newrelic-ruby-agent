@@ -48,12 +48,12 @@ module NewRelic::Agent
       end
 
       # removes the scheme and port from a host entry.
-      def without_scheme_or_port url
+      def without_scheme_or_port(url)
         url.gsub(%r{^https?://|:\d+$}, '')
       end
 
       def trace_observer_host
-        without_scheme_or_port NewRelic::Agent.config[:'infinite_tracing.trace_observer.host']
+        without_scheme_or_port(NewRelic::Agent.config[:'infinite_tracing.trace_observer.host'])
       end
 
       # If the port is declared on the host entry, it overrides the port entry because otherwise
@@ -85,7 +85,7 @@ module NewRelic::Agent
         if trace_observer_configured?
           URI("#{trace_observer_scheme}://#{trace_observer_host_and_port}")
         else
-          NewRelic::Agent.logger.error TRACE_OBSERVER_NOT_CONFIGURED_ERROR
+          NewRelic::Agent.logger.error(TRACE_OBSERVER_NOT_CONFIGURED_ERROR)
           raise TRACE_OBSERVER_NOT_CONFIGURED_ERROR
         end
       end

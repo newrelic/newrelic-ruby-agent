@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module Multiverse
   # Reads an envfile.rb and converts it into gemfiles that can be used by
@@ -15,9 +16,9 @@ module Multiverse
       @instrumentation_permutations = ["chain"]
       @gemfiles = []
       @mode = 'fork'
-      if File.exist? file_path
-        @text = File.read self.file_path
-        instance_eval @text
+      if File.exist?(file_path)
+        @text = File.read(self.file_path)
+        instance_eval(@text)
       end
       @gemfiles = [''] if @gemfiles.empty?
     end
@@ -27,13 +28,34 @@ module Multiverse
       @condition = block
     end
 
-    def strip_leading_spaces content
-      content.split("\n").map(&:strip).join("\n") << "\n"
+    def create_gemfiles(versions, gem_list)
+      versions.each do |version|
+        if version.is_a?(Array)
+          version, first_supported_ruby_version, last_supported_ruby_version = version
+          next if unsupported_ruby_version?(
+            last_supported_ruby_version,
+            first_supported_ruby_version
+          )
+        end
+
+        version = add_twiddle_wakka(version)
+
+        gemfile(gem_list(version))
+      end
+    end
+
+    def unsupported_ruby_version?(last_supported_ruby_version, first_supported_ruby_version)
+      last_supported_ruby_version?(last_supported_ruby_version) ||
+        first_supported_ruby_version?(first_supported_ruby_version)
+    end
+
+    def strip_leading_spaces(content)
+      content.split("\n").map(&:strip).join("\n") << "\n" if content
     end
 
     def gemfile(content)
       content = strip_leading_spaces(content)
-      @gemfiles.push(content) unless content.empty?
+      @gemfiles.push(content) unless content.nil? || content.empty?
     end
 
     def ruby3_gem_webrick
@@ -48,7 +70,7 @@ module Multiverse
       @omit_collector = true
     end
 
-    def instrumentation_methods *args
+    def instrumentation_methods(*args)
       @instrumentation_permutations = args.map(&:to_s)
     end
 
@@ -62,7 +84,7 @@ module Multiverse
 
     def execute_mode(mode)
       valid_modes = %w[ fork spawn ]
-      unless valid_modes.member? mode
+      unless valid_modes.member?(mode)
         raise ArgumentError, "#{mode.inspect} is not a valid execute mode.  Valid modes: #{valid_modes.inspect}"
       end
       @mode = mode
@@ -83,6 +105,23 @@ module Multiverse
 
     def size
       @gemfiles.size * permutations
+    end
+
+    def add_twiddle_wakka(version)
+      return if version.nil?
+      ", '~> #{version}'"
+    end
+
+    private
+
+    def last_supported_ruby_version?(last_supported_ruby_version)
+      return false if last_supported_ruby_version.nil?
+      last_supported_ruby_version && RUBY_VERSION.to_f > last_supported_ruby_version
+    end
+
+    def first_supported_ruby_version?(first_supported_ruby_version)
+      return false if first_supported_ruby_version.nil?
+      RUBY_VERSION.to_f < first_supported_ruby_version
     end
   end
 end

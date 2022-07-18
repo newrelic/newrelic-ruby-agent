@@ -17,7 +17,7 @@ module NewRelic::Agent
         Agent.config.reset_to_defaults
       end
 
-      def with_notify_after_config config
+      def with_notify_after_config(config)
         with_config(config) do
           @events.notify(:initial_configuration_complete)
           yield
@@ -46,8 +46,8 @@ module NewRelic::Agent
       end
 
       def test_invokes_accept_incoming_request
-        with_notify_after_config distributed_tracing_enabled do
-          in_transaction "receiving_txn" do |receiving_txn|
+        with_notify_after_config(distributed_tracing_enabled) do
+          in_transaction("receiving_txn") do |receiving_txn|
             receiving_txn.distributed_tracer.expects(:accept_incoming_request).at_least_once
             @events.notify(:before_call, {})
           end
@@ -55,8 +55,8 @@ module NewRelic::Agent
       end
 
       def test_invokes_accept_incoming_request_when_cat_enabled_too
-        with_notify_after_config cat_and_distributed_tracing_enabled do
-          in_transaction "receiving_txn" do |receiving_txn|
+        with_notify_after_config(cat_and_distributed_tracing_enabled) do
+          in_transaction("receiving_txn") do |receiving_txn|
             receiving_txn.distributed_tracer.expects(:accept_incoming_request).at_least_once
             @events.notify(:before_call, {})
           end
@@ -64,8 +64,8 @@ module NewRelic::Agent
       end
 
       def test_skips_accept_incoming_request
-        with_notify_after_config distributed_tracing_disabled do
-          in_transaction "receiving_txn" do |receiving_txn|
+        with_notify_after_config(distributed_tracing_disabled) do
+          in_transaction("receiving_txn") do |receiving_txn|
             receiving_txn.distributed_tracer.expects(:accept_incoming_request).never
             @events.notify(:before_call, {})
           end

@@ -484,7 +484,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     table_name = 'a' * 17_000
     sql = "select * from #{table_name}"
     expected_sql = sql.dup
-    statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
+    statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
     refute_equal sql, statement.sql
     assert_equal expected_sql, sql
   end
@@ -492,43 +492,43 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   def test_append_sql_stops_at_limit
     table_name = 'a' * 1_000
     sql = "select * from #{table_name}"
-    statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
+    statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
 
     # grow the statement larger than the 16384 character limit
-    16.times { statement.append_sql sql }
+    16.times { statement.append_sql(sql) }
 
     assert_equal NewRelic::Agent::Database::MAX_QUERY_LENGTH, statement.sql.size
   end
 
   def test_safe_sql_obfuscates_when_set
-    NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
-    statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns(:obfuscated)
+    statement = NewRelic::Agent::Database::Statement.new("select * from mytable where name = '1337807';")
 
     assert_equal "select * from mytable where name = ?;", statement.safe_sql
   end
 
   def test_safe_sql_does_not_over_obfuscate_for_postgres
-    NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns(:obfuscated)
 
     conf = {:adapter => "postgresql", :encoding => "utf8", :pool => 10, :port => 5432, :prepared_statements => false, :ssl_mode => "require"}
     sql = "SELECT  \"users\".* FROM \"users\" WHERE \"users\".\"deleted_at\" IS NULL AND \"users\".\"id\" = 1602 LIMIT 1"
     expected_sql = "SELECT  \"users\".* FROM \"users\" WHERE \"users\".\"deleted_at\" IS ? AND \"users\".\"id\" = ? LIMIT ?"
 
-    stmt = NewRelic::Agent::Database::Statement.new sql, conf
+    stmt = NewRelic::Agent::Database::Statement.new(sql, conf)
 
     assert_equal expected_sql, stmt.safe_sql
   end
 
   def test_safe_sql_returns_raw_when_set
-    NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
-    statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns(:raw)
+    statement = NewRelic::Agent::Database::Statement.new("select * from mytable where name = '1337807';")
 
     assert_equal "select * from mytable where name = '1337807';", statement.safe_sql
   end
 
   def test_safe_sql_returns_nil_when_off
-    NewRelic::Agent::Database.stubs(:record_sql_method).returns :off
-    statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns(:off)
+    statement = NewRelic::Agent::Database::Statement.new("select * from mytable where name = '1337807';")
 
     assert_nil statement.safe_sql
   end

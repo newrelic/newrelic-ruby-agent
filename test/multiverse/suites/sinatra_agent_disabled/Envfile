@@ -1,26 +1,20 @@
-rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
+SINATRA_VERSIONS = [
+  [nil, 2.3],
+  ['2.1.0', 2.3],
+  ['2.0.0', 2.2],
+  ['1.4.8', 2.2]
+]
 
-if RUBY_VERSION >= '2.3.0'
-  gemfile <<-RB
-    gem 'sinatra', '~> 2.1.0'
-    gem 'rack',    '~> 2.2.0'
+def gem_list(sinatra_version = nil)
+  rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
+  <<-RB
+    gem 'sinatra'#{sinatra_version}
+    gem 'rack'
     gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
     #{ruby3_gem_webrick}
   RB
 end
 
-gemfile <<-RB
-  gem 'sinatra', '~> 2.0.0'
-  gem 'rack',    '~> 2.0.0'
-  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-  #{ruby3_gem_webrick}
-RB
-
-gemfile <<-RB
-  gem 'sinatra', '~> 1.4.8'
-  gem 'rack',    '~> 1.5.0'
-  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-  #{ruby3_gem_webrick}
-RB
+create_gemfiles(SINATRA_VERSIONS, gem_list)
 
 # vim: ft=ruby

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require './app'
 
@@ -14,7 +15,7 @@ if defined?(ActiveSupport::Logger)
       @logger = Logger.new(@output)
       @broadcasted_output = StringIO.new
       @broadcasted_logger = ActiveSupport::Logger.new(@broadcasted_output)
-      @logger.extend ActiveSupport::Logger.broadcast(@broadcasted_logger)
+      @logger.extend(ActiveSupport::Logger.broadcast(@broadcasted_logger))
 
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
       @aggregator.reset!
@@ -28,7 +29,7 @@ if defined?(ActiveSupport::Logger)
     def test_logs_not_forwarded_by_broadcasted_logger
       message = 'Can you hear me, Major Tom?'
 
-      @logger.add Logger::DEBUG, message
+      @logger.add(Logger::DEBUG, message)
 
       assert @output.string.include?(message)
       assert @broadcasted_output.string.include?(message)

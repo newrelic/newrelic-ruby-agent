@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/yaml_source'
@@ -126,7 +127,7 @@ module NewRelic::Agent::Configuration
       define_method(method_name) do
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
-        source.send :booleanify_values, config, 'key'
+        source.send(:booleanify_values, config, 'key')
 
         assert source.failed?
         expected_message = "Unexpected value (#{value}) for 'key' in #{@test_yml_path}"
@@ -140,7 +141,7 @@ module NewRelic::Agent::Configuration
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         refute source.failed?
-        source.send :booleanify_values, config, 'key'
+        source.send(:booleanify_values, config, 'key')
 
         refute source.failed?
         assert_empty source.failures

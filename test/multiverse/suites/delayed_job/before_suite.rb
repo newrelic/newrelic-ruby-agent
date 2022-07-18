@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'delayed_job'
 
@@ -47,8 +48,8 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
   class CreatePelicans < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
     @connection = $db_connection
     def self.up
-      create_table :pelicans do |t|
-        t.string :name
+      create_table(:pelicans) do |t|
+        t.string(:name)
       end
     end
   end

@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-SimpleCovHelper.command_name "test:multiverse[sequel]"
+SimpleCovHelper.command_name("test:multiverse[sequel]")
 require File.join(File.dirname(__FILE__), 'database.rb')
 require File.join(File.dirname(__FILE__), 'sequel_helpers.rb')
 
@@ -18,7 +19,7 @@ if Sequel.const_defined?(:MAJOR) &&
     def setup
       super
 
-      DB.extension :newrelic_instrumentation
+      DB.extension(:newrelic_instrumentation)
 
       @posts = DB[:posts]
 

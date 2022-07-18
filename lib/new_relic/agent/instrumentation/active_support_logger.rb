@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'active_support_logger/instrumentation'
 require_relative 'active_support_logger/chain'
@@ -12,7 +13,7 @@ DependencyDetection.defer do
   depends_on { defined?(::ActiveSupport::Logger) }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveSupport::Logger instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveSupport::Logger instrumentation')
 
     if use_prepend?
       # the only method currently instrumented is a class method

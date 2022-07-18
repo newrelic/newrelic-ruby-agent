@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'bundler'
 
@@ -11,8 +12,8 @@ require 'bundler'
 
 unless Bundler.respond_to?(:with_unbundled_env)
   module Bundler
-    def self.with_unbundled_env &block
-      Bundler.with_clean_env &block
+    def self.with_unbundled_env(&block)
+      Bundler.with_clean_env(&block)
     end
   end
 end

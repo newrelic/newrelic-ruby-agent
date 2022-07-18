@@ -11,7 +11,7 @@ module NewRelic
     module LinkingMetadata
       extend self
 
-      def append_service_linking_metadata metadata
+      def append_service_linking_metadata(metadata)
         raise ArgumentError, "Missing argument `metadata`" if metadata.nil?
 
         config = ::NewRelic::Agent.config
@@ -27,7 +27,7 @@ module NewRelic
         metadata
       end
 
-      def append_trace_linking_metadata metadata
+      def append_trace_linking_metadata(metadata)
         raise ArgumentError, "Missing argument `metadata`" if metadata.nil?
 
         if trace_id = Tracer.current_trace_id

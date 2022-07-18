@@ -27,11 +27,11 @@ module NewRelic
 
       RACK_URL_SCHEME = 'rack.url_scheme'
 
-      def from value
+      def from(value)
         ALLOWABLE_TRANSPORT_TYPES.include?(value) ? value : NewRelic::UNKNOWN
       end
 
-      def for_rack_request request
+      def for_rack_request(request)
         URL_SCHEMES[request[RACK_URL_SCHEME]]
       end
     end

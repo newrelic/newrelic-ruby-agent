@@ -8,15 +8,15 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::Redis
 
-      def call *args, &block
+      def call(*args, &block)
         call_with_tracing(args[0]) { super }
       end
 
-      def call_pipeline *args, &block
+      def call_pipeline(*args, &block)
         call_pipeline_with_tracing(args[0]) { super }
       end
 
-      def connect *args, &block
+      def connect(*args, &block)
         connect_with_tracing { super }
       end
     end

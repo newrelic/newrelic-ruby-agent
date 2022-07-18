@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'delayed_job/chain'
 require_relative 'delayed_job/prepend'
@@ -21,7 +22,7 @@ module NewRelic
           LEGACY_DJ_DEFAULT_CLASS = '(unknown class)'.freeze
 
           def name_from_payload(payload_object)
-            if payload_object.is_a? ::Delayed::PerformableMethod
+            if payload_object.is_a?(::Delayed::PerformableMethod)
               # payload_object contains a reference to an object
               # that received an asynchronous method call via .delay or .handle_asynchronously
               "#{object_name(payload_object)}#{delimiter(payload_object)}#{method_name(payload_object)}"
@@ -83,7 +84,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 1/2]'
+    ::NewRelic::Agent.logger.info('Installing DelayedJob instrumentation [part 1/2]')
   end
 
   executes do

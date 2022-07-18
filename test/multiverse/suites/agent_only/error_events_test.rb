@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class ErrorEventsTest < Minitest::Test
   include MultiverseHelpers
@@ -25,7 +26,7 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_error_events_honor_expected_option
-    txn = generate_errors 1, expected: true
+    txn = generate_errors(1, expected: true)
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
@@ -35,8 +36,8 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_records_supportability_metrics
-    with_config :'error_collector.max_event_samples_stored' => 10 do
-      generate_errors 15
+    with_config(:'error_collector.max_event_samples_stored' => 10) do
+      generate_errors(15)
 
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
@@ -48,9 +49,9 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_does_not_record_error_events_when_disabled
-    with_config :'error_collector.capture_events' => false do
+    with_config(:'error_collector.capture_events' => false) do
       NewRelic::Agent.config.notify_server_source_added
-      generate_errors 5
+      generate_errors(5)
 
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
       assert_equal(0, $collector.calls_for(:error_event_data).size)
@@ -58,10 +59,10 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_does_not_record_error_events_after_error_collector_disabled_from_server
-    with_config :'error_collector.enabled' => true do
-      generate_errors 5
+    with_config(:'error_collector.enabled' => true) do
+      generate_errors(5)
 
-      with_server_source :'error_collector.enabled' => false do
+      with_server_source(:'error_collector.enabled' => false) do
         NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
       end
     end
@@ -76,7 +77,7 @@ class ErrorEventsTest < Minitest::Test
     })
     trigger_agent_reconnect
 
-    generate_errors 5
+    generate_errors(5)
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
     assert_equal(0, $collector.calls_for(:error_event_data).size)
@@ -92,7 +93,7 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_error_events_created_outside_of_transaction
-    NewRelic::Agent.notice_error RuntimeError.new "No Txn"
+    NewRelic::Agent.notice_error(RuntimeError.new("No Txn"))
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
     intrinsics, _, _ = last_error_event
@@ -106,7 +107,7 @@ class ErrorEventsTest < Minitest::Test
 
   def test_error_events_during_txn_abide_by_custom_attributes_config
     with_config(:'custom_attributes.enabled' => false) do
-      generate_errors 1, {:foo => "bar"}
+      generate_errors(1, {:foo => "bar"})
     end
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
@@ -128,9 +129,9 @@ class ErrorEventsTest < Minitest::Test
     assert_equal({}, custom_attributes)
   end
 
-  def generate_errors num_errors = 1, options = {}
-    in_transaction :transaction_name => "Controller/blogs/index" do |t|
-      num_errors.times { t.notice_error RuntimeError.new("Big Controller"), options }
+  def generate_errors(num_errors = 1, options = {})
+    in_transaction(:transaction_name => "Controller/blogs/index") do |t|
+      num_errors.times { t.notice_error(RuntimeError.new("Big Controller"), options) }
     end
   end
 

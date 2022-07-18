@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class DatastoresPerfTest < Performance::TestCase
   class FauxDB
@@ -33,7 +34,7 @@ class DatastoresPerfTest < Performance::TestCase
 
     measure do
       in_transaction do
-        NewRelic::Agent::Datastores.wrap product, operation, collection do
+        NewRelic::Agent::Datastores.wrap(product, operation, collection) do
           FauxDB.query
         end
       end
@@ -50,10 +51,10 @@ class DatastoresPerfTest < Performance::TestCase
   end
 
   def test_segment_notice_sql
-    segment = NewRelic::Agent::Transaction::DatastoreSegment.new "MySQL", "select", "users"
+    segment = NewRelic::Agent::Transaction::DatastoreSegment.new("MySQL", "select", "users")
     conf = {:adapter => :mysql}
     measure do
-      segment._notice_sql SQL, conf
+      segment._notice_sql(SQL, conf)
     end
   end
 end

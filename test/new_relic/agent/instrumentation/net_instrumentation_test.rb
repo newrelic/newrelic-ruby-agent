@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'net/http'
 require_relative '../../../test_helper'
@@ -31,8 +32,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
     @socket.stubs(:write).raises('fake network error')
     @socket.stubs(:write_nonblock).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction "test" do
-        segment = NewRelic::Agent::Tracer.start_segment name: "dummy"
+      in_transaction("test") do
+        segment = NewRelic::Agent::Tracer.start_segment(name: "dummy")
         Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
         segment.finish
       end

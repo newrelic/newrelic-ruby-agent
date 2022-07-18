@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 
@@ -511,13 +512,13 @@ module NewRelic::Agent
       nr_freeze_process_time
 
       with_config(:apdex_t => 1.0) do
-        in_web_transaction { advance_process_time 0.5 }
+        in_web_transaction { advance_process_time(0.5) }
         assert_equal('S', apdex)
 
-        in_web_transaction { advance_process_time 1.5 }
+        in_web_transaction { advance_process_time(1.5) }
         assert_equal('T', apdex)
 
-        in_web_transaction { advance_process_time 4.5 }
+        in_web_transaction { advance_process_time(4.5) }
         assert_equal('F', apdex)
       end
     end
@@ -531,7 +532,7 @@ module NewRelic::Agent
       nr_freeze_process_time
 
       with_config(:apdex_t => 1.0) do
-        in_background_transaction { advance_process_time 0.5 }
+        in_background_transaction { advance_process_time(0.5) }
         assert_nil apdex
       end
     end
@@ -548,13 +549,13 @@ module NewRelic::Agent
       key_transactions = {txn_name => 1.0}
 
       with_config(:apdex_t => 1.0, :web_transactions_apdex => key_transactions) do
-        in_background_transaction(txn_name) { advance_process_time 0.5 }
+        in_background_transaction(txn_name) { advance_process_time(0.5) }
         assert_equal('S', apdex)
 
-        in_background_transaction(txn_name) { advance_process_time 1.5 }
+        in_background_transaction(txn_name) { advance_process_time(1.5) }
         assert_equal('T', apdex)
 
-        in_background_transaction(txn_name) { advance_process_time 4.5 }
+        in_background_transaction(txn_name) { advance_process_time(4.5) }
         assert_equal('F', apdex)
       end
     end
@@ -790,7 +791,7 @@ module NewRelic::Agent
       assert_equal 0, txn.calculate_transport_duration(payload)
     end
 
-    def make_transport_duration_timestamps duration
+    def make_transport_duration_timestamps(duration)
       transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME)
       parent_timestamp = (transaction_start - duration) * 1000
 
@@ -950,10 +951,10 @@ module NewRelic::Agent
     end
 
     def with_java_classes_loaded
-      Transaction.class_variable_set :@@java_classes_loaded, true
+      Transaction.class_variable_set(:@@java_classes_loaded, true)
       yield
     ensure
-      Transaction.class_variable_set :@@java_classes_loaded, false
+      Transaction.class_variable_set(:@@java_classes_loaded, false)
     end
 
     def test_cpu_burn_normal
@@ -1184,7 +1185,7 @@ module NewRelic::Agent
 
     def test_doesnt_record_scoped_queue_time_metric
       t0 = nr_freeze_process_time
-      advance_process_time 10.0
+      advance_process_time(10.0)
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
@@ -1483,7 +1484,7 @@ module NewRelic::Agent
 
     def test_error_recorded_predicate_true_when_error_recorded
       txn = in_transaction do |t|
-        t.notice_error StandardError.new "Sorry!"
+        t.notice_error(StandardError.new("Sorry!"))
       end
 
       assert txn.payload[:error], "Expected error to be recorded"
@@ -1494,9 +1495,9 @@ module NewRelic::Agent
         error.message == "Sorry!" ? nil : error
       end
 
-      with_ignore_error_filter filter do
+      with_ignore_error_filter(filter) do
         txn = in_transaction do |t|
-          t.notice_error StandardError.new "Sorry!"
+          t.notice_error(StandardError.new("Sorry!"))
         end
 
         refute txn.payload[:error], "Expected error to be apologetic"
@@ -1508,11 +1509,11 @@ module NewRelic::Agent
         error.message == "Sorry!" ? nil : error
       end
 
-      with_ignore_error_filter filter do
+      with_ignore_error_filter(filter) do
         txn = in_transaction do |t|
-          t.notice_error StandardError.new "Sorry!"
-          t.notice_error StandardError.new "Not Sorry!"
-          t.notice_error StandardError.new "Sorry!"
+          t.notice_error(StandardError.new("Sorry!"))
+          t.notice_error(StandardError.new("Not Sorry!"))
+          t.notice_error(StandardError.new("Sorry!"))
         end
 
         assert txn.payload[:error], "Expected error to be recorded"
@@ -1534,11 +1535,11 @@ module NewRelic::Agent
     end
 
     def test_set_transaction_name_for_nested_transactions
-      in_web_transaction "Controller/Framework/webby" do |t|
-        in_web_transaction "Controller/Framework/inner_1" do
-          in_web_transaction "Controller/Framework/inner_2" do
-            segment = Tracer.start_segment name: "Ruby/my_lib/my_meth"
-            NewRelic::Agent.set_transaction_name "RackFramework/action"
+      in_web_transaction("Controller/Framework/webby") do |t|
+        in_web_transaction("Controller/Framework/inner_1") do
+          in_web_transaction("Controller/Framework/inner_2") do
+            segment = Tracer.start_segment(name: "Ruby/my_lib/my_meth")
+            NewRelic::Agent.set_transaction_name("RackFramework/action")
             segment.finish
           end
         end

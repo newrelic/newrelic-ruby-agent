@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../test_helper'
 
@@ -17,7 +18,7 @@ class FrameworkTest < Minitest::Test
     NewRelic::Agent.reset_config
 
     # don't bomb out trying to load frameworks that don't exist.
-    NewRelic::Control.stubs(:new_instance).returns(stub :init_plugin => nil)
+    NewRelic::Control.stubs(:new_instance).returns(stub(:init_plugin => nil))
   end
 
   def teardown

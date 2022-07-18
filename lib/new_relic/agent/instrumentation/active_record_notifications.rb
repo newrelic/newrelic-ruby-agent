@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/instrumentation/active_record_prepend'
@@ -95,7 +96,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing notifications based Active Record instrumentation'
+    ::NewRelic::Agent.logger.info('Installing notifications based Active Record instrumentation')
   end
 
   executes do
@@ -149,7 +150,7 @@ DependencyDetection.defer do
         && ::ActiveRecord::VERSION::MINOR.to_i == 1 \
         && ::ActiveRecord::VERSION::TINY.to_i >= 6
 
-      ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516
+      ::ActiveRecord::Base.prepend(::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516)
     end
   end
 end

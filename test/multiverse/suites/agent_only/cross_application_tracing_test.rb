@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'rack/test'
 require 'fake_collector'
@@ -25,33 +26,33 @@ class CrossApplicationTracingTest < Minitest::Test
   include Rack::Test::Methods
 
   def app
-    Rack::Builder.app { run TestingApp.new }
+    Rack::Builder.app { run(TestingApp.new) }
   end
 
   def test_cross_app_doesnt_modify_without_header
-    get '/'
+    get('/')
     refute last_response.headers["X-NewRelic-App-Data"]
   end
 
   def test_cross_app_doesnt_modify_with_invalid_header
-    get '/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('otherjunk')}
+    get('/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('otherjunk')})
     refute last_response.headers["X-NewRelic-App-Data"]
   end
 
   def test_cross_app_writes_out_information
-    get '/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')}
+    get('/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
     refute_nil last_response.headers["X-NewRelic-App-Data"]
     assert_metrics_recorded(['ClientApplication/1#234/all'])
   end
 
   def test_cross_app_doesnt_modify_if_txn_is_ignored
-    get '/', {'transaction_name' => 'ignored_transaction'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')}
+    get('/', {'transaction_name' => 'ignored_transaction'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
     refute last_response.headers["X-NewRelic-App-Data"]
   end
 
   def test_cross_app_error_attaches_process_id_to_intrinsics
     assert_raises(RuntimeError) do
-      get '/', {'fail' => 'true'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')}
+      get('/', {'fail' => 'true'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
     end
 
     assert_includes attributes_for(last_traced_error, :intrinsic), :client_cross_process_id

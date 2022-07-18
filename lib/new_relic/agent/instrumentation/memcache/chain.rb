@@ -8,8 +8,8 @@ module NewRelic::Agent::Instrumentation
     module Chain
       extend Helper
 
-      def self.instrument! target_class
-        instrument_methods target_class, client_methods
+      def self.instrument!(target_class)
+        instrument_methods(target_class, client_methods)
       end
     end
   end

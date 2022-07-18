@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'typhoeus/instrumentation'
 require_relative 'typhoeus/chain'
@@ -18,7 +19,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Typhoeus instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Typhoeus instrumentation')
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/typhoeus_wrappers'
   end

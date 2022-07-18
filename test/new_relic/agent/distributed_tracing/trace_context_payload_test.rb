@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 
@@ -8,13 +9,14 @@ module NewRelic
   module Agent
     class TraceContextPayloadTest < Minitest::Test
       def test_to_s
-        payload = TraceContextPayload.create \
+        payload = TraceContextPayload.create( \
           parent_account_id: "12345",
           parent_app_id: "6789",
           id: "f85f42fd82a4cf1d",
           transaction_id: "164d3b4b0d09cb05",
           sampled: true,
           priority: 0.123
+        )
 
         assert_equal "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123000-#{payload.timestamp}", payload.to_s
       end
@@ -23,24 +25,26 @@ module NewRelic
         # The id field will be nil if span events are disabled or the transaction is not sampled,
         # and to_s should be able to deal with that.
 
-        payload = TraceContextPayload.create \
+        payload = TraceContextPayload.create( \
           parent_account_id: "12345",
           parent_app_id: "6789",
           transaction_id: "164d3b4b0d09cb05",
           sampled: true,
           priority: 0.123
+        )
 
         assert_equal "0-0-12345-6789--164d3b4b0d09cb05-1-0.123000-#{payload.timestamp}", payload.to_s
       end
 
       def test_to_s_does_not_convert_to_scientific_notation
-        payload = TraceContextPayload.create \
+        payload = TraceContextPayload.create( \
           parent_account_id: "12345",
           parent_app_id: "6789",
           id: "f85f42fd82a4cf1d",
           transaction_id: "164d3b4b0d09cb05",
           sampled: true,
           priority: 0.000012
+        )
 
         assert_equal "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.000012-#{payload.timestamp}", payload.to_s
       end
@@ -49,7 +53,7 @@ module NewRelic
         nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
 
         payload_str = "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-#{now_ms}"
-        payload = TraceContextPayload.from_s payload_str
+        payload = TraceContextPayload.from_s(payload_str)
 
         assert_equal 0, payload.version
         assert_equal 0, payload.parent_type_id
@@ -64,7 +68,7 @@ module NewRelic
 
       def test_from_s_browser_payload_no_sampled_priority_or_transaction_id
         payload_str = '0-1-212311-51424-0996096a36a1cd29----1482959525577'
-        payload = TraceContextPayload.from_s payload_str
+        payload = TraceContextPayload.from_s(payload_str)
 
         assert_equal 0, payload.version
         assert_equal 1, payload.parent_type_id
@@ -82,7 +86,7 @@ module NewRelic
         nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
 
         payload_str = "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-#{now_ms}-futureattr1"
-        payload = TraceContextPayload.from_s payload_str
+        payload = TraceContextPayload.from_s(payload_str)
 
         assert_equal 1, payload.version
         assert_equal 0, payload.parent_type_id
@@ -105,7 +109,7 @@ module NewRelic
         ]
 
         valid_payloads.each do |payload_str|
-          payload = TraceContextPayload.from_s payload_str
+          payload = TraceContextPayload.from_s(payload_str)
           assert payload.valid?, "Payload should be valid: '#{payload_str}'"
         end
 
@@ -118,7 +122,7 @@ module NewRelic
         ]
 
         invalid_payloads.each do |payload_str|
-          payload = TraceContextPayload.from_s payload_str
+          payload = TraceContextPayload.from_s(payload_str)
           refute payload.valid?, "Payload should be invalid: '#{payload_str}'"
         end
       end

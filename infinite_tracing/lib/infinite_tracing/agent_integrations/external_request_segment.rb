@@ -12,7 +12,7 @@ module NewRelic
           return if transaction.ignore?
 
           tracer = ::NewRelic::Agent.agent.infinite_tracer
-          tracer << Proc.new { SpanEventPrimitive.for_external_request_segment self }
+          tracer << Proc.new { SpanEventPrimitive.for_external_request_segment(self) }
         end
       end
     end

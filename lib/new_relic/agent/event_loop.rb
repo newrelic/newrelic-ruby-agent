@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'thread'
 
@@ -94,7 +95,7 @@ module NewRelic
       end
 
       def run
-        ::NewRelic::Agent.logger.debug "Running event loop"
+        ::NewRelic::Agent.logger.debug("Running event loop")
         while !stopped?
           run_once
         end
@@ -154,7 +155,7 @@ module NewRelic
         end
 
         if !errors.empty?
-          ::NewRelic::Agent.logger.error "#{errors.size} error(s) running task for event '#{event}' in Agent Event Loop:", *errors
+          ::NewRelic::Agent.logger.error("#{errors.size} error(s) running task for event '#{event}' in Agent Event Loop:", *errors)
         end
       end
 
@@ -172,20 +173,20 @@ module NewRelic
       end
 
       def fire_every(interval, event)
-        ::NewRelic::Agent.logger.debug "Firing event #{event} every #{interval} seconds."
+        ::NewRelic::Agent.logger.debug("Firing event #{event} every #{interval} seconds.")
         fire(:__add_timer, Timer.new(interval, event, true))
       end
 
       def fire_after(interval, event)
-        ::NewRelic::Agent.logger.debug "Firing event #{event} after #{interval} seconds."
+        ::NewRelic::Agent.logger.debug("Firing event #{event} after #{interval} seconds.")
         fire(:__add_timer, Timer.new(interval, event, false))
       end
 
       def wakeup
         begin
-          @self_pipe_wr.write_nonblock '.'
+          @self_pipe_wr.write_nonblock('.')
         rescue Errno::EAGAIN
-          ::NewRelic::Agent.logger.debug "Failed to wakeup event loop"
+          ::NewRelic::Agent.logger.debug("Failed to wakeup event loop")
         end
       end
     end

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
 
@@ -8,30 +9,30 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
     include MultiverseHelpers
 
     class ExampleApp
-      def call env
+      def call(env)
         [200, {'Content-Type' => 'text/html'}, ['Hello!']]
       end
     end
 
     class MiddlewareOne
-      def initialize app
+      def initialize(app)
         @app = app
       end
 
-      def call env
+      def call(env)
         env['MiddlewareOne'] = true
-        @app.call env
+        @app.call(env)
       end
     end
 
     class MiddlewareTwo
-      def initialize app
+      def initialize(app)
         @app = app
       end
 
-      def call env
+      def call(env)
         env['MiddlewareTwo'] = true
-        @app.call env
+        @app.call(env)
       end
     end
 
@@ -46,20 +47,20 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
 
     def build_app
       Puma::Rack::Builder.app do
-        use MiddlewareOne
-        use MiddlewareTwo
-        run ExampleApp.new
+        use(MiddlewareOne)
+        use(MiddlewareTwo)
+        run(ExampleApp.new)
       end
     end
 
     def test_middlewares_are_visited_with_puma_rack
-      @app.call @env
+      @app.call(@env)
       assert @env['MiddlewareOne'], 'Expected MiddlewareOne to be present and true in env'
       assert @env['MiddlewareTwo'], 'Expected MiddlewareTwo to be present and true in env'
     end
 
     def test_puma_rack_builder_is_auto_instrumented
-      @app.call @env
+      @app.call(@env)
 
       assert_metrics_recorded_exclusive(
         [

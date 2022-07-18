@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 
@@ -123,9 +124,9 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_processor_info_is_darwin
     info = 'darwin'
     info_stub = Proc.new { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
-    NewRelic::Agent::SystemInfo.stub :darwin?, true do
-      NewRelic::Agent::SystemInfo.stub :processor_info_darwin, info_stub do
-        NewRelic::Agent::SystemInfo.stub :remove_bad_values, nil do
+    NewRelic::Agent::SystemInfo.stub(:darwin?, true) do
+      NewRelic::Agent::SystemInfo.stub(:processor_info_darwin, info_stub) do
+        NewRelic::Agent::SystemInfo.stub(:remove_bad_values, nil) do
           assert_equal info, NewRelic::Agent::SystemInfo.processor_info
         end
       end
@@ -135,10 +136,10 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_processor_info_is_linux
     info = 'linux'
     info_stub = Proc.new { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
-    NewRelic::Agent::SystemInfo.stub :darwin?, false do
-      NewRelic::Agent::SystemInfo.stub :linux?, true do
-        NewRelic::Agent::SystemInfo.stub :processor_info_linux, info_stub do
-          NewRelic::Agent::SystemInfo.stub :remove_bad_values, nil do
+    NewRelic::Agent::SystemInfo.stub(:darwin?, false) do
+      NewRelic::Agent::SystemInfo.stub(:linux?, true) do
+        NewRelic::Agent::SystemInfo.stub(:processor_info_linux, info_stub) do
+          NewRelic::Agent::SystemInfo.stub(:remove_bad_values, nil) do
             assert_equal info, NewRelic::Agent::SystemInfo.processor_info
           end
         end
@@ -149,11 +150,11 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_processor_info_is_bsd
     info = 'bsd'
     info_stub = Proc.new { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
-    NewRelic::Agent::SystemInfo.stub :darwin?, false do
-      NewRelic::Agent::SystemInfo.stub :linux?, false do
-        NewRelic::Agent::SystemInfo.stub :bsd?, true do
-          NewRelic::Agent::SystemInfo.stub :processor_info_bsd, info_stub do
-            NewRelic::Agent::SystemInfo.stub :remove_bad_values, nil do
+    NewRelic::Agent::SystemInfo.stub(:darwin?, false) do
+      NewRelic::Agent::SystemInfo.stub(:linux?, false) do
+        NewRelic::Agent::SystemInfo.stub(:bsd?, true) do
+          NewRelic::Agent::SystemInfo.stub(:processor_info_bsd, info_stub) do
+            NewRelic::Agent::SystemInfo.stub(:remove_bad_values, nil) do
               assert_equal info, NewRelic::Agent::SystemInfo.processor_info
             end
           end
@@ -166,7 +167,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     mappings = {'hw.packages' => :num_physical_packages, 'hw.physicalcpu_max' => :num_physical_cores, 'hw.logicalcpu_max' => :num_logical_processors}
     counts = {'hw.packages' => 1, 'hw.physicalcpu_max' => 2, 'hw.logicalcpu_max' => 3}
     sysctl_stub = Proc.new { |param| counts[param] }
-    NewRelic::Agent::SystemInfo.stub :sysctl_value, sysctl_stub do
+    NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       counts.each do |key, value|
@@ -184,7 +185,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
               'hw.logicalcpu' => 0,
               'hw.ncpu' => 3}
     sysctl_stub = Proc.new { |param| counts[param] }
-    NewRelic::Agent::SystemInfo.stub :sysctl_value, sysctl_stub do
+    NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       assert_equal 2, info[:num_physical_packages]
@@ -194,8 +195,8 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   end
 
   def test_processor_info_linux_is_cpuinfo
-    NewRelic::Agent::SystemInfo.stub :proc_try_read, "T. Rex" do
-      NewRelic::Agent::SystemInfo.stub :parse_cpuinfo, "Rawr" do
+    NewRelic::Agent::SystemInfo.stub(:proc_try_read, "T. Rex") do
+      NewRelic::Agent::SystemInfo.stub(:parse_cpuinfo, "Rawr") do
         NewRelic::Agent::SystemInfo.processor_info_linux
         assert_equal "Rawr", NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       end
@@ -203,8 +204,8 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   end
 
   def test_processor_info_linux_is_empty
-    NewRelic::Agent::SystemInfo.stub :proc_try_read, nil do
-      NewRelic::Agent::SystemInfo.stub :parse_cpuinfo, "Rawr" do
+    NewRelic::Agent::SystemInfo.stub(:proc_try_read, nil) do
+      NewRelic::Agent::SystemInfo.stub(:parse_cpuinfo, "Rawr") do
         NewRelic::Agent::SystemInfo.processor_info_linux
         assert_equal NewRelic::EMPTY_HASH, NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       end
@@ -212,7 +213,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   end
 
   def test_processor_info_bsd
-    NewRelic::Agent::SystemInfo.stub :sysctl_value, 1 do
+    NewRelic::Agent::SystemInfo.stub(:sysctl_value, 1) do
       NewRelic::Agent::SystemInfo.processor_info_bsd
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       assert_equal nil, info[:num_physical_packages]
@@ -229,9 +230,9 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   end
 
   def test_processor_info_os_unknown
-    NewRelic::Agent::SystemInfo.stub :darwin?, false do
-      NewRelic::Agent::SystemInfo.stub :linux?, false do
-        NewRelic::Agent::SystemInfo.stub :bsd?, false do
+    NewRelic::Agent::SystemInfo.stub(:darwin?, false) do
+      NewRelic::Agent::SystemInfo.stub(:linux?, false) do
+        NewRelic::Agent::SystemInfo.stub(:bsd?, false) do
           NewRelic::Agent::SystemInfo.processor_info
           assert_equal NewRelic::EMPTY_HASH, NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
         end
@@ -265,7 +266,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_supportability_metric_recorded_when_docker_id_unavailable
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    cgroup_info = File.read File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt')
+    cgroup_info = File.read(File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt'))
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/cgroup').returns(cgroup_info)
     in_transaction('txn') do
       assert_nil NewRelic::Agent::SystemInfo.docker_container_id
@@ -273,7 +274,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     assert_metrics_recorded "Supportability/utilization/docker/error"
   end
 
-  VALID_UUID = 'eb26a240-5535-0135-e727-745c89b5accd'
+  VALID_UUID = String.new('eb26a240-5535-0135-e727-745c89b5accd')
 
   def test_valid_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
@@ -300,14 +301,16 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_non_ascii_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns('🐼')
+    panda = String.new('🐼')
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(panda)
     assert_nil NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
 
   def test_empty_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns('')
+    empty = String.new('')
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(empty)
     assert_nil NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
