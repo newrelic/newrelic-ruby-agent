@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 require_relative '../test_helper'
-SimpleCovHelper.command_name "test:multiverse[infinite_tracing]"
+SimpleCovHelper.command_name("test:multiverse[infinite_tracing]")
 
 module NewRelic
   module Agent
@@ -29,7 +29,7 @@ module NewRelic
         def test_channel_is_secure_for_remote_host
           Config.stubs(:test_framework?).returns(false)
 
-          with_config remote_config do
+          with_config(remote_config) do
             channel = Channel.new
             credentials = channel.send(:credentials)
 
@@ -47,7 +47,7 @@ module NewRelic
             :'infinite_tracing.trace_observer.host' => "http://example.com"
           })
 
-          with_config insecure_remote_config do
+          with_config(insecure_remote_config) do
             channel = Channel.new
             credentials = channel.send(:credentials)
 

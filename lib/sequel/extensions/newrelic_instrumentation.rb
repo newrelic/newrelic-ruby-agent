@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'sequel' unless defined?(Sequel)
 require 'newrelic_rpm' unless defined?(NewRelic)
@@ -64,16 +65,16 @@ module Sequel
     # the statements that come from the disable_all_tracing block into this node's
     # statement, otherwise we would end up ovewriting the sql statement with the
     # last one executed.
-    def notice_sql sql
+    def notice_sql(sql)
       return unless txn = NewRelic::Agent::Tracer.current_transaction
 
       current_segment = txn.current_segment
       return unless current_segment.is_a?(NewRelic::Agent::Transaction::DatastoreSegment)
 
       if current_segment.sql_statement
-        current_segment.sql_statement.append_sql sql
+        current_segment.sql_statement.append_sql(sql)
       else
-        current_segment._notice_sql sql, self.opts, explainer_for(sql)
+        current_segment._notice_sql(sql, self.opts, explainer_for(sql))
       end
     end
 
@@ -81,7 +82,7 @@ module Sequel
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool)
     ].freeze
 
-    def explainer_for sql
+    def explainer_for(sql)
       Proc.new do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[sql].explain
@@ -93,6 +94,6 @@ module Sequel
     end
   end # module NewRelicInstrumentation
 
-  NewRelic::Agent.logger.debug "Registering the :newrelic_instrumentation extension."
+  NewRelic::Agent.logger.debug("Registering the :newrelic_instrumentation extension.")
   Database.register_extension(:newrelic_instrumentation, NewRelicInstrumentation)
 end # module Sequel

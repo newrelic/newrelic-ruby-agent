@@ -52,7 +52,7 @@ module NewRelic
         result
       end
 
-      def insert_cross_app_header headers
+      def insert_cross_app_header(headers)
         return unless CrossAppTracing.cross_app_enabled?
 
         @is_cross_app_caller = true
@@ -60,17 +60,17 @@ module NewRelic
         trip_id = cat_trip_id
         path_hash = cat_path_hash
 
-        insert_request_headers headers, txn_guid, trip_id, path_hash
+        insert_request_headers(headers, txn_guid, trip_id, path_hash)
       end
 
-      def add_message_cat_headers headers
+      def add_message_cat_headers(headers)
         return unless CrossAppTracing.cross_app_enabled?
         @is_cross_app_caller = true
-        insert_message_headers headers,
+        insert_message_headers(headers,
           transaction.guid,
           cat_trip_id,
           cat_path_hash,
-          transaction.raw_synthetics_header
+          transaction.raw_synthetics_header)
       end
 
       def record_cross_app_metrics
@@ -90,7 +90,7 @@ module NewRelic
 
       private
 
-      def insert_message_headers headers, txn_guid, trip_id, path_hash, synthetics_header
+      def insert_message_headers(headers, txn_guid, trip_id, path_hash, synthetics_header)
         headers[NR_MESSAGE_BROKER_ID_HEADER] = obfuscator.obfuscate(Agent.config[:cross_process_id])
         headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
         headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
@@ -148,7 +148,7 @@ module NewRelic
         if Agent.config[:cross_process_id] && Agent.config[:cross_process_id].length > 0
           true
         else
-          NewRelic::Agent.logger.debug "No cross_process_id configured"
+          NewRelic::Agent.logger.debug("No cross_process_id configured")
           false
         end
       end
@@ -157,7 +157,7 @@ module NewRelic
         if Agent.config[:encoding_key] && Agent.config[:encoding_key].length > 0
           true
         else
-          NewRelic::Agent.logger.debug "No encoding_key set"
+          NewRelic::Agent.logger.debug("No encoding_key set")
           false
         end
       end
@@ -172,7 +172,7 @@ module NewRelic
         @obfuscator ||= NewRelic::Agent::Obfuscator.new(Agent.config[:encoding_key])
       end
 
-      def insert_request_headers request, txn_guid, trip_id, path_hash
+      def insert_request_headers(request, txn_guid, trip_id, path_hash)
         cross_app_id = NewRelic::Agent.config[:cross_process_id]
         txn_data = ::JSON.dump([txn_guid, false, trip_id, path_hash])
 
@@ -184,7 +184,7 @@ module NewRelic
         if !!response[NR_APPDATA_HEADER]
           true
         else
-          NewRelic::Agent.logger.debug "No #{NR_APPDATA_HEADER} header"
+          NewRelic::Agent.logger.debug("No #{NR_APPDATA_HEADER} header")
           false
         end
       end
@@ -214,27 +214,27 @@ module NewRelic
         !!(xp_id =~ /\A\d+#\d+\z/)
       end
 
-      def message_has_crossapp_request_header? headers
+      def message_has_crossapp_request_header?(headers)
         !!headers[NR_MESSAGE_BROKER_ID_HEADER]
       end
 
-      def reject_messaging_cat_headers headers
+      def reject_messaging_cat_headers(headers)
         headers.reject { |k, _| k == NR_MESSAGE_BROKER_ID_HEADER || k == NR_MESSAGE_BROKER_TXN_HEADER }
       end
 
-      def trusts? id
+      def trusts?(id)
         split_id = id.match(/(\d+)#\d+/)
         return false if split_id.nil?
 
-        NewRelic::Agent.config[:trusted_account_ids].include? split_id.captures.first.to_i
+        NewRelic::Agent.config[:trusted_account_ids].include?(split_id.captures.first.to_i)
       end
 
-      def trusted_valid_cross_app_id? id
+      def trusted_valid_cross_app_id?(id)
         valid_cross_app_id?(id) && trusts?(id)
       end
 
       # From inbound request headers
-      def assign_intrinsic_transaction_attributes state
+      def assign_intrinsic_transaction_attributes(state)
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
         return unless (txn = state.current_transaction)

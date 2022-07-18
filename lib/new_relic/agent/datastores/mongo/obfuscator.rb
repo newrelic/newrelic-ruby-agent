@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -10,7 +11,7 @@ module NewRelic
           ALLOWLIST = [:operation].freeze
 
           def self.obfuscate_statement(source, allowlist = ALLOWLIST)
-            if source.is_a? Hash
+            if source.is_a?(Hash)
               obfuscated = {}
               source.each do |key, value|
                 if allowlist.include?(key)

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'httprb/instrumentation'
 require_relative 'httprb/chain'
@@ -14,7 +15,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info "Installing http.rb Wrappers"
+    ::NewRelic::Agent.logger.info("Installing http.rb Wrappers")
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/http_rb_wrappers'
   end

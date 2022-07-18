@@ -75,7 +75,7 @@ DependencyDetection.defer do
   depends_on { ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS.should_instrument? }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Dalli CAS Client Memcache instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Dalli CAS Client Memcache instrumentation')
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_cas_prependers do |client_class, instrumenting_module|

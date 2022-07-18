@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -44,7 +45,7 @@ module NewRelic
           incoming_payload.length == EXPECTED_PAYLOAD_LENGTH
         end
 
-        def reject_messaging_synthetics_header headers
+        def reject_messaging_synthetics_header(headers)
           headers.reject { |k, _| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER }
         end
       end

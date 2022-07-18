@@ -9,8 +9,8 @@ module NewRelic
   module Agent
     module HTTPClients
       class ExconHTTPResponse < AbstractResponse
-        def initialize wrapped_response
-          super wrapped_response
+        def initialize(wrapped_response)
+          super(wrapped_response)
 
           # Since HTTP headers are case-insensitive, we normalize all of them to
           # upper case here, and then also in our [](key) implementation.
@@ -30,7 +30,7 @@ module NewRelic
 
         private
 
-        def get_attribute name
+        def get_attribute(name)
           if @wrapped_response.respond_to?(name)
             @wrapped_response.send(name)
           else
@@ -87,7 +87,7 @@ module NewRelic
 
         def uri
           url = "#{@scheme}://#{host}:#{@port}#{@path}"
-          URIUtil.parse_and_normalize_url url
+          URIUtil.parse_and_normalize_url(url)
         end
       end
     end

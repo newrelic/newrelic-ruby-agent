@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # These tests are for confirming that our direct support Rack::URLMap works
 # properly. Tests against the builder interface more commonly used (i.e. map)
@@ -49,31 +50,31 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
 
     def rack_app
       Rack::Builder.app do
-        use MiddlewareOne
-        use MiddlewareTwo
+        use(MiddlewareOne)
+        use(MiddlewareTwo)
 
-        run Rack::URLMap.new(
+        run(Rack::URLMap.new(
           '/prefix1' => PrefixAppOne.new,
           '/prefix2' => PrefixAppTwo.new
-        )
+        ))
       end
     end
 
     def puma_rack_app
       Puma::Rack::Builder.app do
-        use MiddlewareOne
-        use MiddlewareTwo
+        use(MiddlewareOne)
+        use(MiddlewareTwo)
 
-        run Puma::Rack::URLMap.new(
+        run(Puma::Rack::URLMap.new(
           '/prefix1' => PrefixAppOne.new,
           '/prefix2' => PrefixAppTwo.new
-        )
+        ))
       end
     end
 
     if defined?(Rack) && Rack::VERSION[1] >= 4
       def test_metrics_for_default_prefix
-        get '/'
+        get('/')
 
         assert_metrics_recorded_exclusive([
           'Apdex',
@@ -95,7 +96,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
     end
 
     def test_metrics_for_mapped_prefix
-      get '/prefix1'
+      get('/prefix1')
 
       assert_metrics_recorded_exclusive([
         'Apdex',
@@ -122,7 +123,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
     end
 
     def test_metrics_for_mapped_prefix_with_extra_middleware
-      get '/prefix2'
+      get('/prefix2')
 
       assert_metrics_recorded_exclusive([
         'Apdex',
@@ -157,14 +158,14 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
     # that requires puma only. Since we're only using the `get` method this is
     # easy enough replicate. If this becomes a problem in the future perhaps we
     # revisit how we verify that
-    def get path
+    def get(path)
       env = {
         "REQUEST_METHOD" => "GET",
         "PATH_INFO" => path,
         "SCRIPT_NAME" => ""
       }
 
-      app.call env
+      app.call(env)
     end
   end
 

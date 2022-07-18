@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'action_controller/railtie'
 require 'active_model'
@@ -72,17 +73,17 @@ if !defined?(MyApp)
     if Rails::VERSION::STRING >= "7.0.0"
       config.action_controller.default_protect_from_forgery = true
     end
-    if config.respond_to? :hosts
+    if config.respond_to?(:hosts)
       config.hosts << "www.example.com"
     end
     initializer "install_error_middleware" do
-      config.middleware.use ErrorMiddleware
+      config.middleware.use(ErrorMiddleware)
     end
     initializer "install_middleware_by_name" do
-      config.middleware.use NamedMiddleware
+      config.middleware.use(NamedMiddleware)
     end
     initializer "install_middleware_instance" do
-      config.middleware.use InstanceMiddleware.new
+      config.middleware.use(InstanceMiddleware.new)
     end
   end
   MyApp.initialize!
@@ -115,7 +116,7 @@ if !defined?(MyApp)
     # that converted to render :text for Rails versions that do not support
     # render :body.
     if Rails::VERSION::STRING < "4.1.0"
-      def render *args
+      def render(*args)
         options = args.first
         if Hash === options && options.key?(:body)
           options[:text] = options.delete(:body)

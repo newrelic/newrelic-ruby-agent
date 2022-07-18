@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -9,7 +10,7 @@ module NewRelic
       # data.
       def shutdown
         return unless started?
-        ::NewRelic::Agent.logger.info "Starting Agent shutdown"
+        ::NewRelic::Agent.logger.info("Starting Agent shutdown")
 
         stop_event_loop
         trap_signals_for_litespeed
@@ -26,7 +27,7 @@ module NewRelic
             graceful_disconnect
           end
         rescue => e
-          ::NewRelic::Agent.logger.error e
+          ::NewRelic::Agent.logger.error(e)
         end
       end
     end

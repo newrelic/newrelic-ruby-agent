@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 
@@ -31,7 +32,7 @@ class OrphanedConfigTest < Minitest::Test
   end
 
   def test_all_default_source_config_keys_are_used_in_the_agent
-    scan_and_remove_used_entries @default_keys, non_test_files
+    scan_and_remove_used_entries(@default_keys, non_test_files)
 
     # Remove any config keys that are annotated with the 'external' setting
     # This indicates that these keys are referenced and implemented in
@@ -65,6 +66,6 @@ class OrphanedConfigTest < Minitest::Test
   end
 
   def non_test_files
-    all_rb_files.reject { |filename| filename.include? 'test.rb' }
+    all_rb_files.reject { |filename| filename.include?('test.rb') }
   end
 end

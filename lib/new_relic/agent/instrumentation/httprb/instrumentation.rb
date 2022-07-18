@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
   module HTTPrb
@@ -14,12 +15,12 @@ module NewRelic::Agent::Instrumentation
           procedure: wrapped_request.method
         )
 
-        segment.add_request_headers wrapped_request
+        segment.add_request_headers(wrapped_request)
 
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
 
-        wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
-        segment.process_response_headers wrapped_response
+        wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new(response)
+        segment.process_response_headers(wrapped_response)
 
         response
       ensure

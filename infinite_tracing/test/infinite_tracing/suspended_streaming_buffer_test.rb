@@ -20,9 +20,9 @@ module NewRelic
 
         def test_streams_multiple_segments
           total_spans = 5
-          buffer, segments = stream_segments total_spans
+          buffer, segments = stream_segments(total_spans)
 
-          spans = consume_spans buffer
+          spans = consume_spans(buffer)
 
           assert_equal 0, spans.size
           spans.each_with_index do |span, index|
@@ -42,10 +42,10 @@ module NewRelic
 
         def test_can_close_an_empty_buffer
           total_spans = 10
-          generator, buffer, segments = prepare_to_stream_segments total_spans
+          generator, buffer, segments = prepare_to_stream_segments(total_spans)
 
           # consumes the queue as it fills
-          spans, consumer = prepare_to_consume_spans buffer
+          spans, consumer = prepare_to_consume_spans(buffer)
 
           # closes the streaming buffer after queue is emptied
           closed = false
@@ -84,7 +84,7 @@ module NewRelic
 
         private
 
-        def assert_watched_threads_finished buffer
+        def assert_watched_threads_finished(buffer)
           @threads.each do |thread_name, thread|
             refute thread.alive?, "Thread #{thread_name} is still alive!"
           end
@@ -94,11 +94,11 @@ module NewRelic
           @threads.each(&:join)
         end
 
-        def watch_thread name, &block
+        def watch_thread(name, &block)
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer, sleep_delay = 0
+        def prepare_to_consume_spans(buffer, sleep_delay = 0)
           spans = []
           consumer = watch_thread(:consumer) { buffer.enumerator.each { |span| spans << span } }
 
@@ -106,13 +106,13 @@ module NewRelic
         end
 
         # pops all the serializable spans off the buffer and returns them.
-        def consume_spans buffer
+        def consume_spans(buffer)
           buffer.enumerator.map(&:itself)
         end
 
         # starts a watched thread that will generate segments asynchronously.
-        def prepare_to_stream_segments count, max_buffer_size = 100_000
-          buffer = SuspendedStreamingBuffer.new max_buffer_size
+        def prepare_to_stream_segments(count, max_buffer_size = 100_000)
+          buffer = SuspendedStreamingBuffer.new(max_buffer_size)
           segments = []
 
           # generates segments that are streamed as spans
@@ -134,8 +134,8 @@ module NewRelic
         #
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
-        def stream_segments count, max_buffer_size = 100_000
-          buffer = SuspendedStreamingBuffer.new max_buffer_size
+        def stream_segments(count, max_buffer_size = 100_000)
+          buffer = SuspendedStreamingBuffer.new(max_buffer_size)
           segments = []
 
           # generates segments that are streamed as spans

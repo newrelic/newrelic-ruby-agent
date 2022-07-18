@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -11,9 +12,9 @@ module NewRelic
       EMPTY_ARRAY_STRING_LITERAL = "[]".freeze
 
       def flatten_and_coerce(object, prefix = nil, result = {}, &blk)
-        if object.is_a? Hash
+        if object.is_a?(Hash)
           flatten_and_coerce_hash(object, prefix, result, &blk)
-        elsif object.is_a? Array
+        elsif object.is_a?(Array)
           flatten_and_coerce_array(object, prefix, result, &blk)
         elsif prefix
           val = Coerce.scalar(object)
@@ -23,7 +24,7 @@ module NewRelic
             result[prefix] = val
           end
         else
-          NewRelic::Agent.logger.warn "Unexpected object: #{object.inspect} with nil prefix passed to NewRelic::Agent::AttributeProcessing.flatten_and_coerce"
+          NewRelic::Agent.logger.warn("Unexpected object: #{object.inspect} with nil prefix passed to NewRelic::Agent::AttributeProcessing.flatten_and_coerce")
         end
         result
       end

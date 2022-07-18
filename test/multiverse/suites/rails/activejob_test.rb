@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'app'
 require 'logger'
@@ -97,9 +98,9 @@ if Rails::VERSION::STRING >= "4.2.0"
                     function: 'perform',
                     namespace: 'MyJob'}
         segment = MiniTest::Mock.new
-        segment.expect :code_information=, nil, [expected]
-        segment.expect :finish, []
-        NewRelic::Agent::Tracer.stub :start_segment, segment do
+        segment.expect(:code_information=, nil, [expected])
+        segment.expect(:finish, [])
+        NewRelic::Agent::Tracer.stub(:start_segment, segment) do
           MyJob.perform_later
         end
       end

@@ -24,7 +24,7 @@ module NewRelic
         HOST = 'host'
         COLON = ':'
 
-        def initialize wrapped_request
+        def initialize(wrapped_request)
           @wrapped_request = wrapped_request
         end
 

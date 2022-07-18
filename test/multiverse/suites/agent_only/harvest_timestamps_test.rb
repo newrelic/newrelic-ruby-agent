@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'newrelic_rpm'
 
@@ -12,12 +13,12 @@ class HarvestTimestampsTest < Minitest::Test
   def test_resets_metric_data_timestamps_after_forking
     nr_freeze_process_time
 
-    t1 = advance_process_time 10
+    t1 = advance_process_time(10)
 
     simulate_fork
     NewRelic::Agent.after_fork
 
-    t2 = advance_process_time 10
+    t2 = advance_process_time(10)
     trigger_metric_data_post
 
     metric_data_post = $collector.calls_for('metric_data').first

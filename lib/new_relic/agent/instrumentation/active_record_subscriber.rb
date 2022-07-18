@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'new_relic/agent/instrumentation/active_record_helper'
 require 'new_relic/agent/instrumentation/notifications_subscriber'
 
@@ -79,7 +81,7 @@ module NewRelic
               statement.binds)
           end
         rescue => e
-          NewRelic::Agent.logger.debug "Couldn't fetch the explain plan for #{statement} due to #{e}"
+          NewRelic::Agent.logger.debug("Couldn't fetch the explain plan for #{statement} due to #{e}")
         end
 
         def active_record_config(payload)
@@ -114,7 +116,7 @@ module NewRelic
         end
 
         def start_segment(config, payload)
-          sql = Helper.correctly_encoded payload[:sql]
+          sql = Helper.correctly_encoded(payload[:sql])
           product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
             payload[:name],
             sql,
@@ -138,7 +140,7 @@ module NewRelic
             port_path_or_id: port_path_or_id,
             database_name: database)
 
-          segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
+          segment._notice_sql(sql, config, @explainer, payload[:binds], payload[:name])
           segment
         end
       end

@@ -10,7 +10,7 @@ module NewRelic
     module InfiniteTracing
       class TransformerTest < Minitest::Test
         def test_transforms_single_span_event
-          span_event = Transformer.transform span_event_fixture :single
+          span_event = Transformer.transform(span_event_fixture(:single))
           assert_kind_of Hash, span_event
           assert_equal "cb4925eee573c1f9c786fdb2b296459b", span_event["trace_id"]
           span_event["intrinsics"].each do |key, value|
@@ -22,7 +22,7 @@ module NewRelic
         end
 
         def test_transforms_single_full_span_event
-          span_event = Transformer.transform span_event_fixture :single_full_attributes
+          span_event = Transformer.transform(span_event_fixture(:single_full_attributes))
           assert_kind_of Hash, span_event
           assert_equal "cb4925eee573c1f9c786fdb2b296459b", span_event["trace_id"]
 

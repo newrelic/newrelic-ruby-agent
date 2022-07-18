@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/manager'
@@ -305,7 +306,7 @@ module NewRelic::Agent::Configuration
     def test_high_security_source_addable
       refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
-      @manager.replace_or_add_config security_policy_source
+      @manager.replace_or_add_config(security_policy_source)
       assert @manager.config_classes_for_testing.include?(SecurityPolicySource)
     end
 
@@ -329,8 +330,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_parse_labels_from_string_with_hard_failure
-      bad_string = "baaaad"
-      bad_string.stubs(:strip).raises("Booom")
+      bad_string = String.new('baaaad')
+      bad_string.stubs(:strip).raises('Booom')
       @manager.add_config_for_testing(:labels => bad_string)
 
       assert_parsing_error

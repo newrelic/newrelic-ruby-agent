@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require './app'
 
@@ -11,8 +12,8 @@ class BadInstrumentationController < ApplicationController
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    NewRelic::Agent::Tracer.start_segment name: "Controller/BadInstrumentationController/failwhale"
-    render body: 'everything went great'
+    NewRelic::Agent::Tracer.start_segment(name: "Controller/BadInstrumentationController/failwhale")
+    render(body: 'everything went great')
   end
 end
 
@@ -21,7 +22,7 @@ class BadInstrumentationTest < ActionDispatch::IntegrationTest
   setup_and_teardown_agent
 
   def test_unbalanced_tt_stack_should_not_cause_request_to_fail
-    rsp = get '/bad_instrumentation/failwhale'
+    rsp = get('/bad_instrumentation/failwhale')
     assert_equal(200, rsp.to_i)
   end
 end

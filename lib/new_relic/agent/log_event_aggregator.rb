@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/log_priority'
@@ -83,7 +84,7 @@ module NewRelic
         nil
       end
 
-      def record_batch txn, logs
+      def record_batch(txn, logs)
         # Ensure we have the same shared priority
         priority = LogPriority.priority_for(txn)
         logs.each do |log|
@@ -97,7 +98,7 @@ module NewRelic
         end
       end
 
-      def create_event priority, formatted_message, severity
+      def create_event(priority, formatted_message, severity)
         formatted_message = truncate_message(formatted_message)
 
         event = LinkingMetadata.append_trace_linking_metadata({
@@ -181,7 +182,7 @@ module NewRelic
         NewRelic::Agent.increment_metric(format % label)
       end
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         dropped_count = metadata[:seen] - metadata[:captured]
         note_dropped_events(metadata[:seen], dropped_count)
         record_supportability_metrics(metadata[:seen], metadata[:captured], dropped_count)
@@ -211,13 +212,13 @@ module NewRelic
         @line_metrics[severity] ||= "Logging/lines/#{severity}".freeze
       end
 
-      def note_dropped_events total_count, dropped_count
+      def note_dropped_events(total_count, dropped_count)
         if dropped_count > 0
           NewRelic::Agent.logger.warn("Dropped #{dropped_count} log events out of #{total_count}.")
         end
       end
 
-      def record_supportability_metrics total_count, captured_count, dropped_count
+      def record_supportability_metrics(total_count, captured_count, dropped_count)
         return unless total_count > 0
 
         NewRelic::Agent.increment_metric(DROPPED_METRIC, dropped_count)

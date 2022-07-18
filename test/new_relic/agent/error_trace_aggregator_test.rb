@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require_relative '../data_container_tests'
@@ -9,7 +10,7 @@ module NewRelic
   module Agent
     class ErrorTraceAggregatorTest < Minitest::Test
       def setup
-        @error_trace_aggregator = NewRelic::Agent::ErrorTraceAggregator.new ErrorCollector::MAX_ERROR_QUEUE_LENGTH
+        @error_trace_aggregator = NewRelic::Agent::ErrorTraceAggregator.new(ErrorCollector::MAX_ERROR_QUEUE_LENGTH)
       end
 
       def teardown
@@ -20,13 +21,13 @@ module NewRelic
       # Helpers for DataContainerTests
 
       def create_container
-        ErrorTraceAggregator.new ErrorCollector::MAX_ERROR_QUEUE_LENGTH
+        ErrorTraceAggregator.new(ErrorCollector::MAX_ERROR_QUEUE_LENGTH)
       end
 
       def populate_container(aggregator, n)
         n.times do |i|
-          error = NewRelic::NoticedError.new 'path', 'yay errors'
-          aggregator.add_to_error_queue error
+          error = NewRelic::NoticedError.new(String.new('path'), String.new('yay errors'))
+          aggregator.add_to_error_queue(error)
         end
       end
 
@@ -248,8 +249,8 @@ module NewRelic
       end
 
       def test_errors_not_noticed_when_disabled
-        with_config :'error_collector.enabled' => false do
-          notice_error StandardError.new "Red hands"
+        with_config(:'error_collector.enabled' => false) do
+          notice_error(StandardError.new("Red hands"))
           errors = error_trace_aggregator.harvest!
           assert_empty errors
         end
@@ -260,18 +261,18 @@ module NewRelic
           :'error_collector.enabled' => true,
           :'error_collector.capture_events' => false
         }
-        with_config config do
-          notice_error StandardError.new "Red hands"
+        with_config(config) do
+          notice_error(StandardError.new("Red hands"))
           errors = error_trace_aggregator.harvest!
           assert_equal 1, errors.size
         end
       end
 
       def test_errors_not_harvested_when_changing_from_enabled_to_disabled
-        with_config :'error_collector.enabled' => true do
-          notice_error StandardError.new "Red hands"
+        with_config(:'error_collector.enabled' => true) do
+          notice_error(StandardError.new("Red hands"))
 
-          with_config :'error_collector.enabled' => false do
+          with_config(:'error_collector.enabled' => false) do
             errors = error_trace_aggregator.harvest!
             assert_empty errors
           end
@@ -290,7 +291,7 @@ module NewRelic
 
       def notice_error(exception, options = {})
         error = create_noticed_error(exception, options)
-        @error_trace_aggregator.add_to_error_queue error
+        @error_trace_aggregator.add_to_error_queue(error)
       end
 
       def error_trace_aggregator

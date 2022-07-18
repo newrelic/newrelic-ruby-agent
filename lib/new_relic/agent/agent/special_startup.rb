@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -10,8 +11,8 @@ module NewRelic
       # before connecting, otherwise the parent process sends useless data
       def using_forking_dispatcher?
         # TODO: MAJOR VERSION - remove :rainbows
-        if [:puma, :passenger, :rainbows, :unicorn].include? Agent.config[:dispatcher]
-          ::NewRelic::Agent.logger.info "Deferring startup of agent reporting thread because #{Agent.config[:dispatcher]} may fork."
+        if [:puma, :passenger, :rainbows, :unicorn].include?(Agent.config[:dispatcher])
+          ::NewRelic::Agent.logger.info("Deferring startup of agent reporting thread because #{Agent.config[:dispatcher]} may fork.")
           true
         else
           false

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require_relative '../data_container_tests'
@@ -17,7 +18,7 @@ module NewRelic::Agent
         @@curtime
       end
 
-      def self.mock_values= array
+      def self.mock_values=(array)
         @@values = array
         @@index = 0
       end
@@ -192,18 +193,18 @@ module NewRelic::Agent
     # generally usefully so
 
     def test_sample__gc_stats
-      GC.extend MockGCStats
+      GC.extend(MockGCStats)
       # These are effectively Garbage Collects, detected each time GC.time is
       # called by the transaction sampler.  One time value in seconds for each call.
       MockGCStats.mock_values = [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-        in_transaction 'a' do
-          segment_b = Tracer.start_segment name: "b"
+        in_transaction('a') do
+          segment_b = Tracer.start_segment(name: "b")
           segment_b.finish
 
-          segment_c = Tracer.start_segment name: "c"
-          segment_d = Tracer.start_segment name: "d"
+          segment_c = Tracer.start_segment(name: "c")
+          segment_d = Tracer.start_segment(name: "d")
           segment_d.finish
           segment_c.finish
         end
@@ -222,30 +223,30 @@ module NewRelic::Agent
       nr_freeze_process_time
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
         in_transaction do
-          s = Tracer.start_segment name: 'first'
-          advance_process_time 0.1
+          s = Tracer.start_segment(name: 'first')
+          advance_process_time(0.1)
           s.finish
         end
         in_transaction do
-          s = Tracer.start_segment name: 'second'
-          advance_process_time 0.1
-          s.finish
-        end
-
-        in_transaction do
-          s = Tracer.start_segment name: 'two_seconds'
-          advance_process_time 2
+          s = Tracer.start_segment(name: 'second')
+          advance_process_time(0.1)
           s.finish
         end
 
         in_transaction do
-          s = Tracer.start_segment name: 'fourth'
-          advance_process_time 0.1
+          s = Tracer.start_segment(name: 'two_seconds')
+          advance_process_time(2)
+          s.finish
+        end
+
+        in_transaction do
+          s = Tracer.start_segment(name: 'fourth')
+          advance_process_time(0.1)
           s.finish
         end
         in_transaction do
-          s = Tracer.start_segment name: 'fifth'
-          advance_process_time 0.1
+          s = Tracer.start_segment(name: 'fifth')
+          advance_process_time(0.1)
           s.finish
         end
 
@@ -256,8 +257,8 @@ module NewRelic::Agent
 
         # 1 second duration
         in_transaction do
-          s = Tracer.start_segment name: 'one_second'
-          advance_process_time 1
+          s = Tracer.start_segment(name: 'one_second')
+          advance_process_time(1)
           s.finish
         end
         @sampler.merge!([slowest])
@@ -266,8 +267,8 @@ module NewRelic::Agent
 
         # 1 second duration
         in_transaction do
-          s = Tracer.start_segment name: 'ten_seconds'
-          advance_process_time 10
+          s = Tracer.start_segment(name: 'ten_seconds')
+          advance_process_time(10)
           s.finish
         end
 

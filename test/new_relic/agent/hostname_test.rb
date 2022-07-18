@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require 'new_relic/agent/hostname'
@@ -10,7 +11,7 @@ module NewRelic
     class HostnameTest < Minitest::Test
       def setup
         NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-        Socket.stubs(:gethostname).returns('Rivendell')
+        Socket.stubs(:gethostname).returns(String.new('Rivendell'))
       end
 
       def teardown
@@ -22,7 +23,8 @@ module NewRelic
       end
 
       def test_get_returns_socket_hostname_converted_to_utf8
-        Socket.stubs(:gethostname).returns('Elronds’s-Computer'.force_encoding(Encoding::ASCII_8BIT))
+        computer = String.new('Elronds’s-Computer')
+        Socket.stubs(:gethostname).returns(computer.force_encoding(Encoding::ASCII_8BIT))
         assert_equal 'Elronds’s-Computer', NewRelic::Agent::Hostname.get
       end
 
@@ -46,7 +48,7 @@ module NewRelic
 
       def test_does_not_shorten_if_not_using_dyno_names
         with_dyno_name('Imladris', :'heroku.use_dyno_names' => false, :'heroku.dyno_name_prefixes_to_shorten' => ['Rivendell']) do
-          Socket.stubs(:gethostname).returns('Rivendell.1')
+          Socket.stubs(:gethostname).returns(String.new('Rivendell.1'))
           assert_equal 'Rivendell.1', NewRelic::Agent::Hostname.get
         end
       end
@@ -126,7 +128,7 @@ module NewRelic
 
       # 'hostname -f' succeeds
       def test_get_fqdn_hostname_f
-        stubbed = 'Rivendell.Eriador.MiddleEarth'
+        stubbed = String.new('Rivendell.Eriador.MiddleEarth')
         NewRelic::Helper.stubs('run_command').with('hostname -f').returns(stubbed)
         fqdn = NewRelic::Agent::Hostname.get_fqdn
         assert_equal stubbed, fqdn
@@ -134,7 +136,7 @@ module NewRelic
 
       # 'hostname -f' fails, 'hostname' succeeds
       def test_get_fqdn_hostname
-        stubbed = 'Lauterbrunnen.Switzerland.Earth'
+        stubbed = String.new('Lauterbrunnen.Switzerland.Earth')
         NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandRunFailedError)
         NewRelic::Helper.stubs('run_command').with('hostname').returns(stubbed)
         fqdn = NewRelic::Agent::Hostname.get_fqdn

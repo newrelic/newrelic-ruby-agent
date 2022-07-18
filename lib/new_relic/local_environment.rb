@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'set'
 require 'new_relic/version'
@@ -37,8 +38,8 @@ module NewRelic
       # Extend self with any any submodules of LocalEnvironment.  These can override
       # the discover methods to discover new framworks and dispatchers.
       NewRelic::LocalEnvironment.constants.each do |const|
-        mod = NewRelic::LocalEnvironment.const_get const
-        self.extend mod if mod.instance_of? Module
+        mod = NewRelic::LocalEnvironment.const_get(const)
+        self.extend(mod) if mod.instance_of?(Module)
       end
 
       @discovered_dispatcher = nil
@@ -78,7 +79,7 @@ module NewRelic
       ]
       # TODO: MAJOR VERSION - remove rainbows
       while dispatchers.any? && @discovered_dispatcher.nil?
-        send 'check_for_' + (dispatchers.shift)
+        send('check_for_' + (dispatchers.shift))
       end
     end
 
@@ -197,9 +198,7 @@ module NewRelic
 
     # outputs a human-readable description
     def to_s
-      s = "LocalEnvironment["
-      s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
-      s << "]"
+      %Q(LocalEnvironment[#{";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher}])
     end
 
     def executable

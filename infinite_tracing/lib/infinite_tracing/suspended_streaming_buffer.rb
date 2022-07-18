@@ -13,16 +13,16 @@ module NewRelic::Agent
       extend Forwardable
       def_delegators :@empty_buffer, :empty?, :push
 
-      def initialize max_size = DEFAULT_QUEUE_SIZE
+      def initialize(max_size = DEFAULT_QUEUE_SIZE)
         @empty_buffer = NewRelic::EMPTY_ARRAY
       end
 
       # updates the seen metric and discards the segment
-      def << segment
-        NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
+      def <<(segment)
+        NewRelic::Agent.increment_metric(SPANS_SEEN_METRIC)
       end
 
-      def transfer new_buffer
+      def transfer(new_buffer)
         # NOOP
       end
 

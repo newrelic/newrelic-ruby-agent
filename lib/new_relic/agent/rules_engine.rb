@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/rules_engine/replacement_rule'
 require 'new_relic/agent/rules_engine/segment_terms_rule'
@@ -36,7 +37,7 @@ module NewRelic
             # Build segment_rules in reverse order from which they're provided,
             # so that when we eliminate duplicates with #uniq!, we retain the last
             # instances of repeated rules.
-            segment_rules.unshift SegmentTermsRule.new(spec)
+            segment_rules.unshift(SegmentTermsRule.new(spec))
           end
         end
 

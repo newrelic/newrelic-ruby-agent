@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction/trace_node'
 
@@ -50,7 +51,7 @@ module NewRelic
         end
 
         def create_node(time_since_start, metric_name = nil)
-          raise FinishedTraceError.new "Can't create additional node for finished trace." if self.finished
+          raise FinishedTraceError.new("Can't create additional node for finished trace.") if self.finished
           self.node_count += 1
           NewRelic::Agent::Transaction::TraceNode.new(metric_name, time_since_start)
         end
@@ -121,7 +122,7 @@ module NewRelic
           }
         end
 
-        def trace_tree attributes_hash
+        def trace_tree(attributes_hash)
           [
             NewRelic::Coerce.float(self.start_time),
             NewRelic::EMPTY_HASH,

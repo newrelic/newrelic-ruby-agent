@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/agent'
@@ -18,7 +19,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     events = NewRelic::Agent.instance.events
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
     @sql_sampler = NewRelic::Agent::SqlSampler.new
-    @error_collector = NewRelic::Agent::ErrorCollector.new events
+    @error_collector = NewRelic::Agent::ErrorCollector.new(events)
     @stats_engine = NewRelic::Agent::StatsEngine.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)

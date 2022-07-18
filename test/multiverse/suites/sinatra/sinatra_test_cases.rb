@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module brings the base test cases that should run against both classic and
 # module Sinatra apps. The sinatra_class_test and sinatra_modular_test files
@@ -61,66 +62,66 @@ module SinatraTestCases
 
   # https://support.newrelic.com/tickets/24779
   def test_lower_priority_route_conditions_arent_applied_to_higher_priority_routes
-    get '/user/login'
+    get('/user/login')
     assert_equal 200, last_response.status
     assert_equal 'please log in', last_response.body
   end
 
   def test_conditions_are_applied_to_an_action_that_uses_them
-    get '/user/1'
+    get('/user/1')
     assert_equal 404, last_response.status
   end
 
   def test_queue_time_headers_are_passed_to_agent
-    get '/user/login', {}, {'HTTP_X_REQUEST_START' => 't=1360973845'}
+    get('/user/login', {}, {'HTTP_X_REQUEST_START' => 't=1360973845'})
     assert_metrics_recorded(["WebFrontend/QueueTime"])
   end
 
   def test_shown_errors_get_caught
-    get '/raise'
+    get('/raise')
     errors = harvest_error_traces!
     assert_equal 1, errors.size
   end
 
   def test_does_not_break_pass
-    get '/pass'
+    get('/pass')
     assert_equal 200, last_response.status
     assert_equal "I'm not a teapot.", last_response.body
   end
 
   def test_does_not_break_error_handling
-    get '/error'
+    get('/error')
     assert_equal 200, last_response.status
     assert_equal "nothing happened", last_response.body
   end
 
   def test_sees_handled_error
-    get '/error'
+    get('/error')
     errors = harvest_error_traces!
     assert_equal 1, errors.size
   end
 
   def test_correct_pattern
-    get '/route/match'
+    get('/route/match')
     assert_equal 'first route', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{route_name_segment}"])
   end
 
   def test_finds_second_route
-    get '/route/no_match'
+    get('/route/no_match')
     assert_equal 'second route', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{route_no_match_segment}"])
   end
 
   def test_with_regex_pattern
-    get '/regexes'
+    get('/regexes')
     assert_equal "Yeah, regex's!", last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{regex_segment}"])
   end
 
   # https://support.newrelic.com/tickets/31061
   def test_precondition_not_over_called
-    get '/precondition'
+    get('/precondition')
 
     assert_equal 200, last_response.status
     assert_equal 'precondition only happened once', last_response.body
@@ -128,14 +129,14 @@ module SinatraTestCases
   end
 
   def test_filter
-    get '/filtered'
+    get('/filtered')
 
     assert_equal 200, last_response.status
     assert_equal 'got filtered', last_response.body
   end
 
   def test_ignores_route_metrics
-    get '/ignored'
+    get('/ignored')
 
     assert_equal 200, last_response.status
     assert_metrics_not_recorded(["Controller/Sinatra/#{app_name}/#{ignored_segment}"])
@@ -144,7 +145,7 @@ module SinatraTestCases
   def test_rack_request_params_errors_are_swallowed
     trigger_error_on_params
 
-    get '/pass'
+    get('/pass')
 
     expected_status = Gem::Version.new(Sinatra::VERSION).segments[0] < 2 ? 200 : 400
 
@@ -157,7 +158,7 @@ module SinatraTestCases
 
     trigger_error_on_params
 
-    get '/pass'
+    get('/pass')
   end
 
   def test_injects_middleware
@@ -184,7 +185,7 @@ module SinatraTestCases
     def trigger_error_on_params
       Sinatra::Request.any_instance
         .stubs(:params).returns({})
-        .then.raises(StandardError.new "Rack::Request#params error")
+        .then.raises(StandardError.new("Rack::Request#params error"))
     end
   else
     def trigger_error_on_params
@@ -195,7 +196,7 @@ module SinatraTestCases
   end
 
   def test_root_path_naming
-    get '/'
+    get('/')
 
     assert_metrics_recorded ["Controller/Sinatra/#{app_name}/GET /"]
     refute_metrics_recorded ["Controller/Sinatra/#{app_name}/GET "]

@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'newrelic_rpm' unless defined?(NewRelic)
 require 'new_relic/agent' unless defined?(NewRelic::Agent)
@@ -16,7 +17,7 @@ module NewRelic
       enabled_key :'transaction_events.enabled'
       buffer_class PrioritySampledBuffer
 
-      def record priority: nil, event: nil, &blk
+      def record(priority: nil, event: nil, &blk)
         unless event || priority && blk
           raise ArgumentError, "Expected priority and block, or event"
         end
@@ -24,16 +25,16 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append priority: priority, event: event, &blk
+          @buffer.append(priority: priority, event: event, &blk)
           notify_if_full
         end
       end
 
       private
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         return unless enabled?
-        record_sampling_rate metadata
+        record_sampling_rate(metadata)
       end
 
       def record_sampling_rate(metadata) # THREAD_LOCAL_ACCESS

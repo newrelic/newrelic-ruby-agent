@@ -1,20 +1,17 @@
 instrumentation_methods :chain, :prepend
 
-# Testing latest version of redis
-if RUBY_VERSION >= '2.4.0'
-  gemfile <<-RB
+REDIS_VERSIONS = [
+  [nil, 2.4],
+  ['4.7.1', 2.4],
+  ['3.3.0']
+]
+
+def gem_list(redis_version = nil)
+  <<-RB
     gem 'rack'
-    gem 'redis'
+    gem 'redis'#{redis_version}
     #{ruby3_gem_webrick}
   RB
 end
 
-REDIS_VERSIONS = ["'~> 4'", "'~> 3.3.0'"]
-
-REDIS_VERSIONS.each do |version|
-  gemfile <<-RB
-    gem 'rack'
-    gem 'redis', #{version}
-    #{ruby3_gem_webrick}
-  RB
-end
+create_gemfiles(REDIS_VERSIONS, gem_list)

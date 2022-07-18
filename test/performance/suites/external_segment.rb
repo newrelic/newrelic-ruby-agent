@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'net/http'
 require 'new_relic/agent/obfuscator'
@@ -36,7 +37,7 @@ class ExternalSegment < Performance::TestCase
         Net::HTTP.get(TEST_URI)
       end
     end
-    stop_server io_server
+    stop_server(io_server)
   end
 
   def test_external_request_in_thread
@@ -47,20 +48,20 @@ class ExternalSegment < Performance::TestCase
         thread.join
       end
     end
-    stop_server io_server
+    stop_server(io_server)
   end
 
   def test_external_cat_request
     NewRelic::Agent.config.add_config_for_testing(CAT_CONFIG)
 
     io_server = start_server
-    reply_with_cat_headers io_server
+    reply_with_cat_headers(io_server)
     measure do
       in_transaction do
         Net::HTTP.get(TEST_URI)
       end
     end
-    stop_server io_server
+    stop_server(io_server)
   end
 
   def test_external_trace_context_request
@@ -72,7 +73,7 @@ class ExternalSegment < Performance::TestCase
         Net::HTTP.get(TEST_URI)
       end
     end
-    stop_server io_server
+    stop_server(io_server)
   end
 
   def test_external_trace_context_request_within_thread
@@ -85,7 +86,7 @@ class ExternalSegment < Performance::TestCase
         thread.join
       end
     end
-    stop_server io_server
+    stop_server(io_server)
   end
 
   SERVER_SCRIPT_PATH = File.expand_path('../../../script/external_server.rb', __FILE__)
@@ -100,7 +101,7 @@ class ExternalSegment < Performance::TestCase
     end
   end
 
-  def reply_with_cat_headers io_server
+  def reply_with_cat_headers(io_server)
     message = {
       :command => "add_headers",
       :payload => cat_response_headers
@@ -108,14 +109,14 @@ class ExternalSegment < Performance::TestCase
     io_server.puts message
   end
 
-  def stop_server io_server
+  def stop_server(io_server)
     message = {:command => "shutdown"}.to_json
     io_server.puts message
     Process.wait
   end
 
   def cat_response_headers
-    obfuscator = NewRelic::Agent::Obfuscator.new NewRelic::Agent.config[:encoding_key]
+    obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
     app_data = obfuscator.obfuscate(["1#1884", "txn-name", 2, 8, 0, 'BEC1BC64675138B9'].to_json) + "\n"
     {'X-NewRelic-App-Data' => app_data}
   end

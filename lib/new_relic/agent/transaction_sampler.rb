@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
@@ -32,9 +33,9 @@ module NewRelic
         Agent.config.register_callback(:'transaction_tracer.enabled') do |enabled|
           if enabled
             threshold = Agent.config[:'transaction_tracer.transaction_threshold']
-            ::NewRelic::Agent.logger.debug "Transaction tracing threshold is #{threshold} seconds."
+            ::NewRelic::Agent.logger.debug("Transaction tracing threshold is #{threshold} seconds.")
           else
-            ::NewRelic::Agent.logger.debug "Transaction traces will not be sent to the New Relic service."
+            ::NewRelic::Agent.logger.debug("Transaction traces will not be sent to the New Relic service.")
           end
         end
 
@@ -113,7 +114,7 @@ module NewRelic
         result.uniq!
         result.map! do |sample|
           if Transaction === sample
-            Transaction::TraceBuilder.build_trace sample
+            Transaction::TraceBuilder.build_trace(sample)
           else
             sample
           end
