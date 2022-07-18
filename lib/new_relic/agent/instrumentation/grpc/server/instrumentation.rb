@@ -18,8 +18,8 @@ module NewRelic
           private
 
           def trace_with_newrelic?(host = nil)
-            hostname = ::NewRelic::Agent::Hostname.get
             # TODO: check hostname against the configured denylist
+            # hostname = ::NewRelic::Agent::Hostname.get
 
             true
           end
