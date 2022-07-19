@@ -10,6 +10,8 @@ development:
   host: localhost
   api_host: localhost
   port: <%= $collector && $collector.port %>
+  instrumentation:
+    grpc_client: <%= $instrumentation_method %>
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
