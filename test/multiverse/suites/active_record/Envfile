@@ -43,3 +43,5 @@ def gem_list(activerecord_version = nil)
     #{mysql_gem(activerecord_version)}
   RB
 end
+
+create_gemfiles(RAILS_VERSIONS, gem_list)

@@ -12,3 +12,5 @@ def gem_list(tilt_version = nil)
     #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(TILT_VERSIONS, gem_list)
