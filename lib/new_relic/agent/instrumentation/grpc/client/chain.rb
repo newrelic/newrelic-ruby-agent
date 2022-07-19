@@ -13,7 +13,8 @@ module NewRelic::Agent::Instrumentation
             include NewRelic::Agent::Instrumentation::GRPC::Client
 
             def initialize_with_newrelic_trace(*args)
-              initialize_with_tracing(*args)
+              @trace_with_newrelic = trace_with_newrelic?(args.first)
+              initialize_without_newrelic_trace(*args)
             end
 
             alias initialize_without_newrelic_trace initialize
