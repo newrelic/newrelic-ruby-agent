@@ -104,8 +104,51 @@ module NewRelic
           @start_time.to_f..@end_time.to_f
         end
 
+        # A class to manage time ranges.
+        # Children time ranges can overlap. We need to merge the overlappings.
+        # To speed up the merging process, this class merges them lazily.
+        class LazyMergeTimeRanges
+          def initialize
+            @ranges = []
+            @compacted = nil
+          end
+
+          def append(range)
+            @ranges.append(range)
+            @compacted = nil # reset
+          end
+
+          def compacted
+            @compacted ||= compact
+          end
+
+          private
+
+          def compact
+            return [] if @ranges.empty?
+
+            first = @ranges[0]
+            # We can assume all ranges have `begin` and `end`.
+            chunks = [{begin: first.begin, end: first.end}]
+            @ranges.sort_by! { |e| [e.begin, e.end] }
+            @ranges.each do |e|
+              l = chunks.last
+              if l[:end] < e.begin
+                chunks << {begin: e.begin, end: e.end}
+              else
+                # merge
+                l[:end] = e.end
+              end
+            end
+
+            chunks.map do |h|
+              h[:begin]..h[:end]
+            end
+          end
+        end
+
         def children_time_ranges
-          @children_time_ranges ||= []
+          @children_time_ranges ||= LazyMergeTimeRanges.new
         end
 
         def children_time_ranges?
@@ -210,8 +253,7 @@ module NewRelic
         # make any corrections needed for exclusive time calculation.
 
         def descendant_complete(child, descendant)
-          RangeExtensions.merge_or_append(descendant.time_range,
-            children_time_ranges)
+          children_time_ranges.append(descendant.time_range)
           # If this child's time was previously added to this segment's
           # aggregate children time, we need to re-record it using a time range
           # for proper exclusive time calculation
@@ -257,8 +299,6 @@ module NewRelic
         end
 
         def record_child_time_as_range(child)
-          RangeExtensions.merge_or_append(child.time_range,
-            children_time_ranges)
           child.range_recorded = true
         end
 
@@ -268,7 +308,7 @@ module NewRelic
 
         def record_exclusive_duration
           overlapping_duration = if children_time_ranges?
-            RangeExtensions.compute_overlap(time_range, children_time_ranges)
+            RangeExtensions.compute_overlap(time_range, children_time_ranges.compacted)
           else
             0.0
           end

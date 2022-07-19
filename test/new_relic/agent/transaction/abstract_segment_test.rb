@@ -259,6 +259,20 @@ module NewRelic
             assert_equal(segment.code_attributes, {})
           end
         end
+
+        class LazyMergeTimeRangesTest < Minitest::Test
+          def test_compacted
+            ranges = NewRelic::Agent::Transaction::AbstractSegment::LazyMergeTimeRanges.new
+            ranges.append(1.0..2.0)
+            assert_equal(ranges.compacted, [1.0..2.0])
+            ranges.append(3.0..4.0)
+            assert_equal(ranges.compacted, [1.0..2.0, 3.0..4.0])
+            ranges.append(3.5..4.5)
+            assert_equal(ranges.compacted, [1.0..2.0, 3.0..4.5]) # 3.5..4.5 is merged into 3.0..4.0
+            ranges.append(1.5..3.1)
+            assert_equal(ranges.compacted, [1.0..4.5]) # 1.5..3.1 joins 1.0..2.0 and 3.0..4.5, and results in a big range.
+          end
+        end
       end
     end
   end
