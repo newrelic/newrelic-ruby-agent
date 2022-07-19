@@ -51,16 +51,18 @@ class GrpcTest < Minitest::Test
     end
   end
 
-  # Test issue_request_with_tracing
+  # Tests for issue_request_with_tracing
+  def test_falsey_trace_with_newrelic_does_not_create_segment
+    grpc_client_stub = ::GRPC::ClientStub.new('0.0.0.0', :this_channel_is_insecure)
 
-  # test_blocklist_stops_newrelic_traffic
-
-
-  # test_intiailize_with_tracing_returns_instance
+    Fiber.stub(:yield, 4) do
+      grpc_client_stub.instance_variable_set(TRACE_WITH_NEWRELIC, false)
+      result = grpc_client_stub.issue_request_with_tracing(nil, nil, nil, nil, deadline: nil, return_op: nil, parent: nil, credentials: nil, metadata: nil) { 'hi' }
+      assert_equal 'fake', result
+    end
+  end
 
   # test_issue_request_with_tracing_captures_error
-
-  # test_issue_request_with_tracing_adds_request_headers
 
   # test_issue_request_with_tracing_adds_request_headers
 

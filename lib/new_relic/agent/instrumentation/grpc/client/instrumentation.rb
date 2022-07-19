@@ -32,7 +32,7 @@ module NewRelic
               end
             end
           ensure
-            segment.finish
+            segment.finish if segment
           end
 
           private
