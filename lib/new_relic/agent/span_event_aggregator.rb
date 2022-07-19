@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'newrelic_rpm' unless defined?(NewRelic)
 require 'new_relic/agent' unless defined?(NewRelic::Agent)
@@ -24,7 +25,7 @@ module NewRelic
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append priority: priority, event: event, &blk
+          @buffer.append(priority: priority, event: event, &blk)
           notify_if_full
         end
       end

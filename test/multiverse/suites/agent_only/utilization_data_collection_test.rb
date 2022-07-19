@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'newrelic_rpm'
 require 'fake_instance_metadata_service'
@@ -36,7 +37,7 @@ class UtilizationDataCollectionTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ip_addresses).returns(["127.0.0.1"])
 
     aws_fixture_path = File.expand_path('../../../../fixtures/utilization/aws', __FILE__)
-    fixture = File.read File.join(aws_fixture_path, "valid.json")
+    fixture = File.read(File.join(aws_fixture_path, "valid.json"))
 
     with_fake_metadata_service do |service|
       NewRelic::Agent::Utilization::AWS.stubs(:imds_token).returns('J.R.R.')
@@ -84,7 +85,7 @@ class UtilizationDataCollectionTest < Minitest::Test
 
     redirect_link_local_address(metadata_service.port)
 
-    yield metadata_service
+    yield(metadata_service)
   ensure
     metadata_service.stop if metadata_service
     unredirect_link_local_address

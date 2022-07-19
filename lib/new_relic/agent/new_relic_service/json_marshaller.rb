@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'json'
 require 'new_relic/agent/new_relic_service/marshaller'
@@ -20,11 +21,11 @@ module NewRelic
           if defined?(::Yajl)
             require 'yajl/version'
             if Gem::Version.new(::Yajl::VERSION) < OK_YAJL_VERSION
-              ::NewRelic::Agent.logger.warn "Detected yajl-ruby version #{::Yajl::VERSION} which can cause segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available."
+              ::NewRelic::Agent.logger.warn("Detected yajl-ruby version #{::Yajl::VERSION} which can cause segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available.")
             end
           end
         rescue => err
-          ::NewRelic::Agent.logger.warn "Failed trying to watch for problematic yajl-ruby version.", err
+          ::NewRelic::Agent.logger.warn("Failed trying to watch for problematic yajl-ruby version.", err)
         end
 
         def dump(ruby, opts = {})
@@ -44,7 +45,7 @@ module NewRelic
 
           return_value(::JSON.load(data))
         rescue => e
-          ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
+          ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} encountered loading collector response: #{data}")
           raise
         end
 

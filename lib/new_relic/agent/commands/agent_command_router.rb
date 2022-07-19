@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This class is the central point for dispatching get_agent_commands messages
 # to the various components that actually process them.
@@ -77,16 +78,16 @@ module NewRelic
 
         def log_profiles(profiles)
           if profiles.empty?
-            ::NewRelic::Agent.logger.debug "No thread profiles with data found to send."
+            ::NewRelic::Agent.logger.debug("No thread profiles with data found to send.")
           else
             profile_descriptions = profiles.map { |p| p.to_log_description }
-            ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+            ::NewRelic::Agent.logger.debug("Sending thread profiles [#{profile_descriptions.join(", ")}]")
           end
         end
 
         def get_agent_commands
           commands = new_relic_service.get_agent_commands
-          NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
+          NewRelic::Agent.logger.debug("Received get_agent_commands = #{commands.inspect}")
           commands.map { |collector_command| AgentCommand.new(collector_command) }
         end
 

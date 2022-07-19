@@ -12,7 +12,7 @@ module NewRelic
           @buffer = Queue.new
         end
 
-        def << value
+        def <<(value)
           @buffer << value
         end
 
@@ -28,7 +28,7 @@ module NewRelic
               if return_value.is_a?(GRPC::BadStatus) && !return_value.is_a?(GRPC::Ok)
                 raise return_value
               end
-              yield return_value
+              yield(return_value)
             end
           end
         end

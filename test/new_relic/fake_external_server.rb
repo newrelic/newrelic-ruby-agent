@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'rack'
 require 'new_relic/fake_server'
@@ -29,7 +30,7 @@ module NewRelic
       res.status = req.params["status"].to_i if req.params["status"]
 
       in_transaction('test') do
-        res.write STATUS_MESSAGE
+        res.write(STATUS_MESSAGE)
       end
       res.finish
     end

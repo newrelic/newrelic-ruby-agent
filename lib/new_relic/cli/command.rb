@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'optparse'
 
@@ -15,8 +16,8 @@ module NewRelic
       # Capture a failure to execute the command.
       class CommandFailure < StandardError
         attr_reader :options
-        def initialize message, opt_parser = nil
-          super message
+        def initialize(message, opt_parser = nil)
+          super(message)
           @options = opt_parser
         end
       end
@@ -33,7 +34,7 @@ module NewRelic
         if Hash === command_line_args
           # command line args is an options hash
           command_line_args.each do |key, value|
-            instance_variable_set "@#{key}", value.to_s if value
+            instance_variable_set("@#{key}", value.to_s) if value
           end
         else
           # parse command line args.  Throw an exception on a bad arg.
@@ -65,7 +66,7 @@ module NewRelic
             script_name = 'newrelic'
           end
           opts.banner = "Usage: #{script_name} [ #{@command_names.join(" | ")} ] [options]"
-          opts.separator "use '#{script_name} <command> -h' to see detailed command options"
+          opts.separator("use '#{script_name} <command> -h' to see detailed command options")
           opts
         end
         extra = options.order!

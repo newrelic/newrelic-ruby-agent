@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'rack/test'
 require 'new_relic/rack/agent_hooks'
@@ -13,7 +14,7 @@ class SyntheticsTest < Minitest::Test
   setup_and_teardown_agent
 
   def app
-    Rack::Builder.app { run TestingApp.new }
+    Rack::Builder.app { run(TestingApp.new) }
   end
 
   def last_sent_analytics_event

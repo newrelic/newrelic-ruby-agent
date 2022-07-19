@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/transaction'
@@ -31,7 +32,7 @@ module NewRelic
                 port_path_or_id: params['port_path_or_id'],
                 database_name: params['database_name']
               )
-              segment.notice_sql "select * from foo"
+              segment.notice_sql("select * from foo")
               advance_process_time 2.0
               segment.finish
             end
@@ -48,9 +49,9 @@ module NewRelic
         end
       end
 
-      def assert_expected_tt_segment_params segment_name, host, port_path_or_id, database_name
+      def assert_expected_tt_segment_params(segment_name, host, port_path_or_id, database_name)
         trace = last_transaction_trace
-        segment = find_node_with_name trace, segment_name
+        segment = find_node_with_name(trace, segment_name)
 
         if host.nil?
           assert_nil segment[:host]
@@ -69,7 +70,7 @@ module NewRelic
         end
       end
 
-      def assert_expected_slow_sql_params host, port_path_or_id, database_name
+      def assert_expected_slow_sql_params(host, port_path_or_id, database_name)
         sql_trace = last_sql_trace
 
         if host.nil?

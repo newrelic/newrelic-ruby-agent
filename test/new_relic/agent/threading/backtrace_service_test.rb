@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/threading/backtrace_service'
@@ -489,7 +490,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         # avoid method redefinition warnings
         class << @service
           begin
-            remove_method :adjust_polling_time
+            remove_method(:adjust_polling_time)
           rescue NameError
           end
         end

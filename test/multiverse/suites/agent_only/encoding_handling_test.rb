@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class EncodingHandlingTest < Minitest::Test
   include MultiverseHelpers
@@ -72,7 +73,7 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def test_handles_mis_encoded_strings_in_environment_report
-    NewRelic::Agent.instance.instance_variable_set :@environment_report, nil
+    NewRelic::Agent.instance.instance_variable_set(:@environment_report, nil)
     $collector.reset
     ::NewRelic::EnvironmentReport.report_on('Dummy') do
       bad_string

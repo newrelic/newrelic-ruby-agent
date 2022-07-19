@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'capistrano/framework'
 
@@ -52,14 +53,14 @@ namespace :newrelic do
         :license_key => license_key
       }
 
-      debug "Uploading deployment to New Relic"
-      deployment = NewRelic::Cli::Deployments.new deploy_options
+      debug("Uploading deployment to New Relic")
+      deployment = NewRelic::Cli::Deployments.new(deploy_options)
       deployment.run
-      info "Uploaded deployment information to New Relic"
+      info("Uploaded deployment information to New Relic")
     rescue NewRelic::Cli::Command::CommandFailure => e
-      info e.message
+      info(e.message)
     rescue => e
-      info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
+      info("Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}")
     end
   end
 
@@ -68,7 +69,7 @@ namespace :newrelic do
     current_revision = fetch(:current_revision)
     return unless current_revision && previous_revision
 
-    debug "Retrieving changelog for New Relic Deployment details"
+    debug("Retrieving changelog for New Relic Deployment details")
 
     if Rake::Task.task_defined?("git:check")
       log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +

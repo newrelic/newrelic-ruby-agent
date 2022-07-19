@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'base64'
 require 'json'
@@ -56,25 +57,25 @@ module NewRelic
           true
         end
       rescue => e
-        ::NewRelic::Agent.logger.debug "Failure during 'js_enabled_and_ready?'", e
+        ::NewRelic::Agent.logger.debug("Failure during 'js_enabled_and_ready?'", e)
         false
       end
 
       def insert_js?(state)
         if !state.current_transaction
-          ::NewRelic::Agent.logger.debug "Not in transaction. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug("Not in transaction. Skipping browser instrumentation.")
           false
         elsif !state.is_execution_traced?
-          ::NewRelic::Agent.logger.debug "Execution is not traced. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug("Execution is not traced. Skipping browser instrumentation.")
           false
         elsif state.current_transaction.ignore_enduser?
-          ::NewRelic::Agent.logger.debug "Ignore end user for this transaction is set. Skipping browser instrumentation."
+          ::NewRelic::Agent.logger.debug("Ignore end user for this transaction is set. Skipping browser instrumentation.")
           false
         else
           true
         end
       rescue => e
-        ::NewRelic::Agent.logger.debug "Failure during insert_js", e
+        ::NewRelic::Agent.logger.debug("Failure during insert_js", e)
         false
       end
 
@@ -95,7 +96,7 @@ module NewRelic
 
         bt_config + browser_timing_loader(nonce)
       rescue => e
-        ::NewRelic::Agent.logger.debug "Failure during RUM browser_timing_header construction", e
+        ::NewRelic::Agent.logger.debug("Failure during RUM browser_timing_header construction", e)
         ''
       end
 

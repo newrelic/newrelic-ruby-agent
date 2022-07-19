@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 brew 'imagemagick'
 brew 'memcached'
 tap 'mongodb/brew'

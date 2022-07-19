@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # A Hash-like class for storing metric data.
 #
@@ -76,11 +77,11 @@ module NewRelic
 
       def each
         @scoped.each do |k, v|
-          yield k, v
+          yield(k, v)
         end
         @unscoped.each do |k, v|
           spec = NewRelic::MetricSpec.new(k)
-          yield spec, v
+          yield(spec, v)
         end
       end
 

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # https://newrelic.atlassian.net/browse/RUBY-927
 
@@ -9,13 +10,13 @@ require './app'
 class QueueController < ApplicationController
   def queued
     respond_to do |format|
-      format.html { render body: "<html><head></head><body>Queued</body></html>" }
+      format.html { render(body: "<html><head></head><body>Queued</body></html>") }
     end
   end
 
   def nested
     nested_transaction
-    render body: 'whatever'
+    render(body: 'whatever')
   end
 
   def nested_transaction; end

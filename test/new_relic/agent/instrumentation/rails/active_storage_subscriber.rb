@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../../test_helper'
 
@@ -31,9 +32,9 @@ module NewRelic
             "service_url.active_storage" => "url".freeze
           }
 
-          in_transaction 'test' do
+          in_transaction('test') do
             method_name_mapping.keys.each do |event_name|
-              generate_event event_name
+              generate_event(event_name)
             end
           end
 
@@ -43,24 +44,24 @@ module NewRelic
         end
 
         def test_metric_will_recorded_for_new_event_names
-          in_transaction 'test' do
-            generate_event 'service_new_method.active_storage'
+          in_transaction('test') do
+            generate_event('service_new_method.active_storage')
           end
 
           assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/new_method'
         end
 
         def test_failsafe_if_event_does_not_match_expected_pattern
-          in_transaction 'test' do
-            generate_event 'wat?'
+          in_transaction('test') do
+            generate_event('wat?')
           end
 
           assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/unknown'
         end
 
         def test_key_recorded_as_attribute_on_traces
-          in_transaction 'test' do
-            generate_event 'service_upload.active_storage', key: 'mykey'
+          in_transaction('test') do
+            generate_event('service_upload.active_storage', key: 'mykey')
           end
 
           trace = last_transaction_trace
@@ -70,23 +71,23 @@ module NewRelic
         end
 
         def test_exist_recorded_as_attribute_on_traces
-          in_transaction 'test' do
-            generate_event 'service_exist.active_storage', exist: false
+          in_transaction('test') do
+            generate_event('service_exist.active_storage', exist: false)
           end
 
           trace = last_transaction_trace
           tt_node = find_node_with_name(trace, "Ruby/ActiveStorage/DiskService/exist")
 
-          assert tt_node.params.key? :exist
+          assert tt_node.params.key?(:exist)
           assert_equal false, tt_node.params[:exist]
         end
 
         def test_segment_created
-          in_transaction 'test' do
+          in_transaction('test') do
             txn = NewRelic::Agent::Tracer.current_transaction
             assert_equal 1, txn.segments.size
 
-            generate_event 'service_exist.active_storage', exist: false
+            generate_event('service_exist.active_storage', exist: false)
             assert_equal 2, txn.segments.size
             assert_equal 'Ruby/ActiveStorage/DiskService/exist', txn.segments.last.name
             assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
@@ -104,7 +105,7 @@ module NewRelic
 
           in_transaction do |test_txn|
             txn = test_txn
-            generate_event 'service_upload.active_storage', params
+            generate_event('service_upload.active_storage', params)
           end
 
           assert_segment_noticed_error txn, /upload/i, exception_class.name, /Natural 1/i
@@ -115,9 +116,9 @@ module NewRelic
         def generate_event(event_name, attributes = {})
           defaults = {key: fake_guid(32), service: "Disk"}
           payload = defaults.merge(attributes)
-          @subscriber.start event_name, @id, payload
+          @subscriber.start(event_name, @id, payload)
           yield if block_given?
-          @subscriber.finish event_name, @id, payload
+          @subscriber.finish(event_name, @id, payload)
         end
       end
     end

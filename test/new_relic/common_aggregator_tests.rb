@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # To use this module to test your aggregator, implement the following
 # methods before including it:
@@ -61,7 +62,7 @@ module NewRelic
     end
 
     def test_respects_max_samples_stored
-      with_config aggregator.class.capacity_key => 5 do
+      with_config(aggregator.class.capacity_key => 5) do
         10.times { generate_event }
       end
 
@@ -94,9 +95,9 @@ module NewRelic
     end
 
     def test_lower_priority_events_discarded_in_favor_higher_priority_events
-      with_config aggregator.class.capacity_key => 5 do
-        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand }
-        5.times { |i| generate_event "sampled_#{i}", :priority => rand + 1 }
+      with_config(aggregator.class.capacity_key => 5) do
+        5.times { |i| generate_event("totally_not_sampled_#{i}", :priority => rand) }
+        5.times { |i| generate_event("sampled_#{i}", :priority => rand + 1) }
 
         _, events = aggregator.harvest!
 
@@ -107,9 +108,9 @@ module NewRelic
     end
 
     def test_higher_priority_events_not_discarded_in_favor_of_lower_priority_events
-      with_config aggregator.class.capacity_key => 5 do
-        5.times { |i| generate_event "sampled_#{i}", :priority => rand + 1 }
-        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand }
+      with_config(aggregator.class.capacity_key => 5) do
+        5.times { |i| generate_event("sampled_#{i}", :priority => rand + 1) }
+        5.times { |i| generate_event("totally_not_sampled_#{i}", :priority => rand) }
 
         _, events = aggregator.harvest!
 
@@ -130,8 +131,8 @@ module NewRelic
     end
 
     def test_sample_counts_are_correct_after_merge
-      with_config aggregator.class.capacity_key => 5 do
-        buffer = aggregator.instance_variable_get :@buffer
+      with_config(aggregator.class.capacity_key => 5) do
+        buffer = aggregator.instance_variable_get(:@buffer)
 
         4.times { generate_event }
         last_harvest = aggregator.harvest!
@@ -141,7 +142,7 @@ module NewRelic
         assert_equal 4, last_harvest[0][:events_seen]
 
         4.times { generate_event }
-        aggregator.merge! last_harvest
+        aggregator.merge!(last_harvest)
 
         reservoir_stats, samples = aggregator.harvest!
 
@@ -153,7 +154,7 @@ module NewRelic
     end
 
     def test_resets_limits_on_harvest
-      with_config aggregator.class.capacity_key => 100 do
+      with_config(aggregator.class.capacity_key => 100) do
         50.times { generate_event }
         events_before = last_events
         assert_equal 50, events_before.size
@@ -164,7 +165,7 @@ module NewRelic
       end
     end
 
-    def with_container_disabled &blk
+    def with_container_disabled(&blk)
       options = enabled_keys.inject({}) do |memo, opt|
         memo[opt] = false
         memo

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require "./memcache_test_cases"
 
@@ -22,14 +23,14 @@ if defined?(Memcached)
       Memcached::ServerError
     end
 
-    def additional_web_metrics_for command
+    def additional_web_metrics_for(command)
       [
         "Datastore/operation/Memcached/#{command}",
         ["Datastore/operation/Memcached/#{command}", "Controller/#{self.class}/action"]
       ]
     end
 
-    def additional_bg_metrics_for command
+    def additional_bg_metrics_for(command)
       [
         "Datastore/operation/Memcached/#{command}",
         ["Datastore/operation/Memcached/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 DependencyDetection.defer do
   named :excon
@@ -40,7 +41,7 @@ DependencyDetection.defer do
   end
 
   def install_middleware_excon_instrumentation
-    ::NewRelic::Agent.logger.info 'Installing middleware-based Excon instrumentation'
+    ::NewRelic::Agent.logger.info('Installing middleware-based Excon instrumentation')
     require 'new_relic/agent/instrumentation/excon/middleware'
     defaults = Excon.defaults
 

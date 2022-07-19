@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require 'new_relic/agent/agent_logger'
@@ -286,18 +287,19 @@ class AgentLoggerTest < Minitest::Test
     end
   ensure
     Kernel.module_eval do
-      remove_method :debug
+      remove_method(:debug)
     end
   end
 
   def test_should_cache_hostname
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-    Socket.expects(:gethostname).once.returns('cachey-mccaherson')
+    hostname = String.new('cachey-mccaherson')
+    Socket.expects(:gethostname).once.returns(hostname)
     logger = create_basic_logger
-    logger.warn("one")
-    logger.warn("two")
-    logger.warn("three")
-    host_regex = /cachey-mccaherson/
+    logger.warn('one')
+    logger.warn('two')
+    logger.warn('three')
+    host_regex = /#{hostname}/
     assert_logged(host_regex, host_regex, host_regex)
   end
 
@@ -339,7 +341,7 @@ class AgentLoggerTest < Minitest::Test
 
     logger = create_basic_logger
     logger.log_formatter = log_formatter
-    logger.warn log_message
+    logger.warn(log_message)
 
     assert_logged log_message.reverse
   end

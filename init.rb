@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This is the initialization for the New Relic Ruby Agent when used as
 # a plugin
@@ -24,7 +25,7 @@ begin
     Rails.configuration
   end
 
-  NewRelic::Control.instance.init_plugin :config => current_config
+  NewRelic::Control.instance.init_plugin(:config => current_config)
 rescue => e
-  ::NewRelic::Agent.logger.error "Error initializing New Relic plugin. Agent is disabled.", e
+  ::NewRelic::Agent.logger.error("Error initializing New Relic plugin. Agent is disabled.", e)
 end

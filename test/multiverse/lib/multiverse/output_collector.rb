@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module is responsible for intercepting output made through various stdlib
 # calls (i.e. puts, print, etc.) and printing summary information (e.g. a list
@@ -24,7 +25,7 @@ module Multiverse
       key = [suite, env]
       @buffer_lock.synchronize do
         @buffers ||= {}
-        @buffers[key] ||= ""
+        @buffers[key] ||= String.new('')
         @buffers[key]
       end
     end
@@ -46,7 +47,7 @@ module Multiverse
     end
 
     def self.overall_report
-      output("", "")
+      output('', '')
       if failing_output.empty?
         output(green("There were no test failures"))
       else

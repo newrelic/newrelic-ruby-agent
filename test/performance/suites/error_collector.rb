@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class ErrorCollectorTests < Performance::TestCase
   def setup
@@ -10,8 +11,8 @@ class ErrorCollectorTests < Performance::TestCase
 
   def test_notice_error
     measure do
-      in_transaction :name => @txn_name do
-        NewRelic::Agent.notice_error StandardError.new @err_msg
+      in_transaction(:name => @txn_name) do
+        NewRelic::Agent.notice_error(StandardError.new(@err_msg))
       end
     end
   end
@@ -20,8 +21,8 @@ class ErrorCollectorTests < Performance::TestCase
     opts = {:custom_params => {:name => "Wes Mantooth", :channel => 9}}
 
     measure do
-      in_transaction :name => @txn_name do
-        NewRelic::Agent.notice_error StandardError.new(@err_msg), opts
+      in_transaction(:name => @txn_name) do
+        NewRelic::Agent.notice_error(StandardError.new(@err_msg), opts)
       end
     end
   end

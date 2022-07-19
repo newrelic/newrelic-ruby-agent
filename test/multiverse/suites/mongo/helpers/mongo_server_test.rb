@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'mongo_server'
 require_relative '../../../../helpers/file_searching'
@@ -91,12 +92,12 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_pingable_returns_true_if_ping_is_ok
     ok_status = {"ok" => 1.0}
-    @server.stubs(:ping).returns ok_status
+    @server.stubs(:ping).returns(ok_status)
     assert @server.pingable?
   end
 
   def test_server_start_times_out_if_it_isnt_pingable
-    @server.stubs(:pingable?).returns false
+    @server.stubs(:pingable?).returns(false)
 
     assert_raise Timeout::Error do
       @server.start

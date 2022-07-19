@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/heap'
 require 'new_relic/agent/event_buffer'
@@ -61,7 +62,7 @@ module NewRelic
         @items.to_a.dup
       end
 
-      def decrement_lifetime_counts_by n
+      def decrement_lifetime_counts_by(n)
         @captured_lifetime -= n
         @seen_lifetime -= n
       end

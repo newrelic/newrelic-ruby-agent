@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class SinatraErrorTracingTestApp < Sinatra::Base
   configure do
@@ -29,7 +30,7 @@ class SinatraErrorTracingTest < Minitest::Test
   end
 
   def test_traps_errors
-    get '/will_boom'
+    get('/will_boom')
     assert_equal 500, last_response.status
     assert_equal 'We are sorry', last_response.body
 
@@ -38,7 +39,7 @@ class SinatraErrorTracingTest < Minitest::Test
   end
 
   def test_ignores_notfound_errors_by_default
-    get '/ignored_boom'
+    get('/ignored_boom')
     assert_equal 404, last_response.status
     assert_match %r{Sinatra doesn(&rsquo;|’)t know this ditty\.}, last_response.body
     errors = harvest_error_traces!

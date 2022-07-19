@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This class represents a set of metrics that were recorded during a single
 # transaction. Since the name of the transaction is not known until its end, we
@@ -43,11 +44,11 @@ module NewRelic
       end
 
       def each_unscoped
-        @lock.synchronize { @unscoped.each { |name, stats| yield name, stats } }
+        @lock.synchronize { @unscoped.each { |name, stats| yield(name, stats) } }
       end
 
       def each_scoped
-        @lock.synchronize { @scoped.each { |name, stats| yield name, stats } }
+        @lock.synchronize { @scoped.each { |name, stats| yield(name, stats) } }
       end
 
       def _record_metrics(names, value, aux, target, &blk)

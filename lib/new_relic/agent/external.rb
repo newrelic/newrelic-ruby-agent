@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/distributed_tracing/cross_app_tracing'
@@ -31,13 +32,13 @@ module NewRelic
       #
       # @api public
       #
-      def process_request_metadata request_metadata
+      def process_request_metadata(request_metadata)
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::Tracer.state
         if transaction = state.current_transaction
-          rmd = ::JSON.parse obfuscator.deobfuscate(request_metadata)
+          rmd = ::JSON.parse(obfuscator.deobfuscate(request_metadata))
 
           # handle/check ID
           #
@@ -48,24 +49,24 @@ module NewRelic
               payload = CrossAppPayload.new(id, transaction, txn_info)
               transaction.distributed_tracer.cross_app_payload = payload
 
-              CrossAppTracing.assign_intrinsic_transaction_attributes state
+              CrossAppTracing.assign_intrinsic_transaction_attributes(state)
             end
 
             # handle synthetics
             #
             if synth = rmd[NON_HTTP_CAT_SYNTHETICS_HEADER]
               transaction.synthetics_payload = synth
-              transaction.raw_synthetics_header = obfuscator.obfuscate ::JSON.dump(synth)
+              transaction.raw_synthetics_header = obfuscator.obfuscate(::JSON.dump(synth))
             end
 
           else
-            NewRelic::Agent.logger.error "error processing request metadata: invalid/non-trusted ID: '#{id}'"
+            NewRelic::Agent.logger.error("error processing request metadata: invalid/non-trusted ID: '#{id}'")
           end
 
           nil
         end
       rescue => e
-        NewRelic::Agent.logger.error 'error during process_request_metadata', e
+        NewRelic::Agent.logger.error('error during process_request_metadata', e)
       end
 
       # Obtain an obfuscated +String+ suitable for delivery across public networks that carries transaction
@@ -94,10 +95,10 @@ module NewRelic
 
           # obfuscate the generated response metadata JSON
           #
-          obfuscator.obfuscate ::JSON.dump(rmd)
+          obfuscator.obfuscate(::JSON.dump(rmd))
         end
       rescue => e
-        NewRelic::Agent.logger.error "error during get_response_metadata", e
+        NewRelic::Agent.logger.error("error during get_response_metadata", e)
       end
 
       private

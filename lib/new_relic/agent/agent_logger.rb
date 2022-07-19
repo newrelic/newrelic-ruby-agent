@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'thread'
 require 'logger'
@@ -178,7 +179,7 @@ module NewRelic
         StartupLogger.instance.dump(self)
       end
 
-      def self.format_fatal_error message
+      def self.format_fatal_error(message)
         "** [NewRelic] FATAL : #{message}\n"
       end
     end

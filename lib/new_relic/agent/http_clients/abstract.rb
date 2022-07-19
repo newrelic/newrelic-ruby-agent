@@ -72,7 +72,7 @@ module NewRelic
         # Override this method to memoize a non-zero Integer representation
         # of HTTP status code from the response object
         def get_status_code
-          get_status_code_using :code
+          get_status_code_using(:code)
         end
       end
     end

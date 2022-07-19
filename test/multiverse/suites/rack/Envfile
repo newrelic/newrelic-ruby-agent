@@ -1,16 +1,38 @@
 instrumentation_methods :chain, :prepend
 
-puma_versions = [nil, '~> 3.12.6', '~> 4.3.12', '~> 5.6.4']
-ruby_rack_versions = {'2.3.0' => '~> 2.2.3', '2.2.2' => '~> 2.0.3'}
+# The Rack suite also tests Puma::Rack::Builder
+# Which is why we also control Puma tested versions here
+PUMA_VERSIONS = [
+  nil,
+  '5.6.4',
+  '4.3.12',
+  '3.12.6'
+]
 
-# TODO: OLD RUBIES - stop checking once Ruby 2.2 is no longer supported
-rack_version = RUBY_VERSION >= '2.3.0' ? '~> 2.2.3' : '~> 2.1.4'
-
-puma_versions.each do |puma_version|
-  gemfile <<-RB
-    #{"gem 'puma', '#{puma_version}'" if puma_version}
+def gem_list(puma_version = nil)
+  rack_version = RUBY_VERSION >= '2.3.0' ? '~> 2.2.3' : '~> 2.1.4'
+  <<-RB
+    gem 'puma'#{puma_version}
     gem 'rack', '#{rack_version}'
     gem 'rack-test'
     #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(PUMA_VERSIONS, gem_list)
+
+RACK_VERSIONS = [
+  [nil],
+  ['2.2.4', 2.3],
+  ['1.6.13']
+]
+
+def gem_list(rack_version = nil)
+  <<-RB
+    gem 'rack'#{rack_version}
+    gem 'rack-test'
+    #{ruby3_gem_webrick}
+  RB
+end
+
+create_gemfiles(RACK_VERSIONS, gem_list)

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'middlewares'
 require_relative 'rails3_app/app_rails3_plus'
@@ -22,7 +23,7 @@ module RequestHelpersCompatibility
 end
 
 if Rails::VERSION::MAJOR.to_i < 5
-  ActionDispatch::Integration::Session.send :prepend, RequestHelpersCompatibility
+  ActionDispatch::Integration::Session.send(:prepend, RequestHelpersCompatibility)
 end
 
 # a basic active model compliant model we can render

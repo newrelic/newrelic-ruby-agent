@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class RulesEngineTests < Performance::TestCase
   def setup
@@ -27,9 +28,9 @@ class RulesEngineTests < Performance::TestCase
   def test_rules_engine_rename_transaction_rules
     measure do
       rules_engine = NewRelic::Agent::RulesEngine.create_transaction_rules(@basic_rule_specs)
-      rules_engine.rename "WebTransaction/Uri/one/two/seven/user/nine/account"
-      rules_engine.rename "WebTransaction/Custom/one/two/seven/user/nine/account"
-      rules_engine.rename "WebTransaction/Other/one/two/foo/bar"
+      rules_engine.rename("WebTransaction/Uri/one/two/seven/user/nine/account")
+      rules_engine.rename("WebTransaction/Custom/one/two/seven/user/nine/account")
+      rules_engine.rename("WebTransaction/Other/one/two/foo/bar")
     end
   end
 end

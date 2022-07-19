@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -48,15 +49,15 @@ module NewRelic
           end
         end
 
-        def self.scoped_metric_for product, operation, collection = nil
+        def self.scoped_metric_for(product, operation, collection = nil)
           if collection
-            statement_metric_for product, collection, operation
+            statement_metric_for(product, collection, operation)
           else
-            operation_metric_for product, operation
+            operation_metric_for(product, operation)
           end
         end
 
-        def self.unscoped_metrics_for product, operation, collection = nil, host = nil, port_path_or_id = nil
+        def self.unscoped_metrics_for(product, operation, collection = nil, host = nil, port_path_or_id = nil)
           suffix = all_suffix
 
           metrics = [
@@ -67,14 +68,14 @@ module NewRelic
           ]
 
           if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled'] && host && port_path_or_id
-            metrics.unshift instance_metric_for(product, host, port_path_or_id)
+            metrics.unshift(instance_metric_for(product, host, port_path_or_id))
           end
-          metrics.unshift operation_metric_for(product, operation) if collection
+          metrics.unshift(operation_metric_for(product, operation)) if collection
 
           metrics
         end
 
-        def self.product_operation_collection_for product, operation, collection = nil, generic_product = nil
+        def self.product_operation_collection_for(product, operation, collection = nil, generic_product = nil)
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)
               operation = overrides[0] || operation
@@ -90,7 +91,7 @@ module NewRelic
           # Order of these metrics matters--the first metric in the list will
           # be treated as the scoped metric in a bunch of different cases.
           metrics = unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
-          metrics.unshift scoped_metric_for(product, operation, collection)
+          metrics.unshift(scoped_metric_for(product, operation, collection))
 
           metrics
         end

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 # executes one of the commands in the new_relic/commands directory
 # pass the name of the command as an argument
 
@@ -9,5 +10,5 @@ begin
 rescue NewRelic::Cli::Command::CommandFailure => failure
   STDERR.puts failure.message
   STDERR.puts failure.options if failure.options
-  exit 1
+  exit(1)
 end

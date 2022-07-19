@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/active_storage_subscriber'
 
@@ -13,7 +14,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveStorage instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveStorage instrumentation')
   end
 
   executes do

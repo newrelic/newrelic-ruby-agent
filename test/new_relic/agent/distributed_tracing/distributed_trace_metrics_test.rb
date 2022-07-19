@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 
@@ -23,10 +24,10 @@ module NewRelic::Agent
       reset_buffers_and_caches
     end
 
-    def in_controller_transaction &blk
-      in_transaction "controller_txn", :category => :controller do |txn|
+    def in_controller_transaction(&blk)
+      in_transaction("controller_txn", :category => :controller) do |txn|
         advance_process_time(1.0)
-        yield txn
+        yield(txn)
       end
     end
 
@@ -38,33 +39,33 @@ module NewRelic::Agent
     end
 
     def test_transaction_type_suffix
-      in_transaction "test_txn" do |txn|
+      in_transaction("test_txn") do |txn|
         txn.distributed_tracer.create_trace_state_payload
         assert_equal "allOther", DistributedTraceMetrics.transaction_type_suffix
       end
 
-      in_transaction "controller", :category => :controller do |txn|
+      in_transaction("controller", :category => :controller) do |txn|
         assert_equal "allWeb", DistributedTraceMetrics.transaction_type_suffix
       end
     end
 
     def test_prefix_for_metric
-      in_transaction "test_txn", :category => :controller do |txn|
+      in_transaction("test_txn", :category => :controller) do |txn|
         payload = txn.distributed_tracer.create_trace_state_payload
         assert payload, "payload should not be nil"
 
-        prefix = DistributedTraceMetrics.prefix_for_metric "Test", txn, payload
+        prefix = DistributedTraceMetrics.prefix_for_metric("Test", txn, payload)
         assert_equal "Test/App/190/46954/Unknown", prefix
       end
     end
 
     def test_record_metrics_for_transaction
-      in_transaction "test_txn", :category => :controller do |txn|
+      in_transaction("test_txn", :category => :controller) do |txn|
         advance_process_time(1.0)
         payload = txn.distributed_tracer.create_trace_state_payload
         assert payload, "payload should not be nil"
 
-        DistributedTraceMetrics.record_metrics_for_transaction txn
+        DistributedTraceMetrics.record_metrics_for_transaction(txn)
       end
 
       assert_metrics_recorded([
@@ -74,10 +75,10 @@ module NewRelic::Agent
     end
 
     def test_record_metrics_for_transaction_with_payload
-      in_transaction "controller_txn", :category => :controller do |txn|
+      in_transaction("controller_txn", :category => :controller) do |txn|
         advance_process_time(1.0)
-        DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
-        DistributedTraceMetrics.record_metrics_for_transaction txn
+        DistributedTracing.accept_distributed_trace_headers(valid_trace_context_headers, NewRelic::HTTP)
+        DistributedTraceMetrics.record_metrics_for_transaction(txn)
       end
 
       assert_metrics_recorded([
@@ -95,10 +96,10 @@ module NewRelic::Agent
     end
 
     def test_record_metrics_for_transaction_with_garbage_transport_type
-      in_transaction "controller_txn", :category => :controller do |txn|
+      in_transaction("controller_txn", :category => :controller) do |txn|
         advance_process_time(1.0)
-        DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, "garbage"
-        DistributedTraceMetrics.record_metrics_for_transaction txn
+        DistributedTracing.accept_distributed_trace_headers(valid_trace_context_headers, "garbage")
+        DistributedTraceMetrics.record_metrics_for_transaction(txn)
       end
 
       assert_metrics_recorded([
@@ -116,14 +117,14 @@ module NewRelic::Agent
     end
 
     def test_record_metrics_for_transaction_with_exception_handling
-      in_transaction "controller_txn", :category => :controller do |txn|
+      in_transaction("controller_txn", :category => :controller) do |txn|
         begin
           advance_process_time(1.0)
-          DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
+          DistributedTracing.accept_distributed_trace_headers(valid_trace_context_headers, NewRelic::HTTP)
           raise "oops"
         rescue Exception => e
           Transaction.notice_error(e)
-          DistributedTraceMetrics.record_metrics_for_transaction txn
+          DistributedTraceMetrics.record_metrics_for_transaction(txn)
         end
       end
 

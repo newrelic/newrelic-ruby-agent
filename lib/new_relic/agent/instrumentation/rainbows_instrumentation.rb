@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 DependencyDetection.defer do
   @name = :rainbows
@@ -10,8 +11,8 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rainbows instrumentation'
-    ::NewRelic::Agent.logger.info 'Detected Rainbows, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data'
+    ::NewRelic::Agent.logger.info('Installing Rainbows instrumentation')
+    ::NewRelic::Agent.logger.info('Detected Rainbows, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data')
 
     deprecation_msg = 'The dispatcher rainbows is deprecated. It will be removed ' \
      'in version 9.0.0. Please use a supported dispatcher instead. ' \
