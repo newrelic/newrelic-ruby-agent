@@ -9,9 +9,6 @@ module NewRelic
     module Instrumentation
       module GRPC
         module Client
-          # TODO: allow the blocklist to be set via config
-          HOST_BLOCKLIST_PATTERN = %r{\.newrelic\.com/}.freeze
-
           def initialize_with_tracing(*args)
             instance = yield
             # TODO - find out whether we should set the variable on instance or self
@@ -68,9 +65,15 @@ module NewRelic
             return do_trace unless do_trace.nil?
 
             host ||= @host
-            return false unless host && !host.match?(HOST_BLOCKLIST_PATTERN)
+            return false unless host && !host_denylisted?(host)
 
             true
+          end
+
+          def host_denylisted?(host)
+            NewRelic::Agent.config[:'instrumentation.grpc.host_denylist'].any? do |regex|
+              host.match?(regex)
+            end
           end
         end
       end
