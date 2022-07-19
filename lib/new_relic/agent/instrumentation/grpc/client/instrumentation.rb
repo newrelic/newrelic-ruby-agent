@@ -3,12 +3,15 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require_relative 'request_wrapper'
+require_relative '../helper'
 
 module NewRelic
   module Agent
     module Instrumentation
       module GRPC
         module Client
+          include NewRelic::Agent::Instrumentation::GRPC::Helper
+
           def initialize_with_tracing(*args)
             instance = yield
             # TODO - find out whether we should set the variable on instance or self
@@ -24,10 +27,11 @@ module NewRelic
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers(request_wrapper)
 
-            metadata.merge! metadata, request_wrapper.instance_variable_get(:@newrelic_metadata)
+            metadata.merge!(metadata, request_wrapper.instance_variable_get(:@newrelic_metadata))
+            set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
-              NewRelic::Agent::Tracer.capture_segment_error segment do
+              NewRelic::Agent::Tracer.capture_segment_error(segment) do
                 yield
               end
             end
@@ -52,10 +56,10 @@ module NewRelic
             "grpc://#{@host}/#{method}"
           end
 
-          def cleaned_method(method)
-            return method unless method.start_with?('/')
+          def set_distributed_tracing_headers(metadata)
+            return unless ::NewRelic::Agent.config[:'distributed_tracing.enabled']
 
-            method[1..-1]
+            ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(metadata)
           end
 
           def trace_with_newrelic?(host = nil)
