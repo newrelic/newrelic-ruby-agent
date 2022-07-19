@@ -306,8 +306,7 @@ module Multiverse
 
     def require_minitest
       require 'minitest'
-    rescue LoadError
-      require 'minitest/unit'
+      require 'minitest/mock'
     end
 
     def print_environment
