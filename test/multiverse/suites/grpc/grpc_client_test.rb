@@ -15,13 +15,46 @@ class GrpcTest < Minitest::Test
   def teardown
   end
 
+  # Helpers
+  def assert_trace_with_newrelic_present(grpc_client_stub)
+    assert grpc_client_stub.instance_variables.include?(TRACE_WITH_NEWRELIC), "Instance variable #{TRACE_WITH_NEWRELIC} not found"
+  end
+
   # Tests
+  # SimpleCov for this test file only
+
+  TRACE_WITH_NEWRELIC = :@trace_with_newrelic
+
   # Test initialize_with_tracing
+  def test_initialize_with_tracing_sets_trace_with_new_relic_true_when_host_present
+    skip("check instance variable assignment on initialize after issue_request_with_tracing tests are written")
+    grpc_client_stub = ::GRPC::ClientStub.new('0.0.0.0', :this_channel_is_insecure)
+    assert_trace_with_newrelic_present(grpc_client_stub)
+    assert grpc_client_stub.instance_variable_get(TRACE_WITH_NEWRELIC)
+  end
+
+  def test_initialize_with_tracing_sets_trace_with_new_relic_false_with_blocked_host
+    skip("check instance variable assignment on initialize after issue_request_with_tracing tests are written")
+
+    grpc_client_stub = ::GRPC::ClientStub.new('observer.newrelic.com', :this_channel_is_insecure)
+    assert_trace_with_newrelic_present(grpc_client_stub)
+    refute grpc_client_stub.instance_variable_get(TRACE_WITH_NEWRELIC)
+  end
+
+  def test_initialize_with_tracing_sets_trace_with_new_relic_without_host
+    skip("check instance variable assignment on initialize after issue_request_with_tracing tests are written")
+
+    ::GRPC::ClientStub.stub(:name, 'GRPC::InterceptorRegistry') do
+      grpc_client_stub = ::GRPC::ClientStub.new('', :this_channel_is_insecure)
+      assert_trace_with_newrelic_present(grpc_client_stub)
+      refute grpc_client_stub.instance_variable_get(TRACE_WITH_NEWRELIC)
+    end
+  end
+
   # Test issue_request_with_tracing
 
   # test_blocklist_stops_newrelic_traffic
 
-  # test_initialize_with_tracing_sets_trace_with_new_relic
 
   # test_intiailize_with_tracing_returns_instance
 

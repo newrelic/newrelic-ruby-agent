@@ -14,6 +14,7 @@ module NewRelic
 
           def initialize_with_tracing(*args)
             instance = yield
+            # TODO - find out whether we should set the variable on instance or self
             instance.instance_variable_set(:@trace_with_newrelic, trace_with_newrelic?(args.first))
             instance
           end
@@ -24,7 +25,7 @@ module NewRelic
 
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
-            segment.add_request_headers request_wrapper
+            segment.add_request_headers(request_wrapper)
 
             metadata.merge! metadata, request_wrapper.instance_variable_get(:@newrelic_metadata)
 
