@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,12 +13,6 @@ module NewRelic
         module Client
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
-          def initialize_with_tracing(*args)
-            instance = yield
-            instance.instance_variable_set(:@trace_with_newrelic, trace_with_newrelic?(args.first))
-            instance
-          end
-
           def issue_request_with_tracing(method, requests, marshal, unmarshal,
             deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
@@ -27,7 +22,9 @@ module NewRelic
             segment.add_request_headers(request_wrapper)
 
             metadata.merge!(metadata, request_wrapper.instance_variable_get(:@newrelic_metadata))
-            set_distributed_tracing_headers(metadata)
+
+            # TODO: isn't #add_request_headers already setting the DT metadata?
+            # set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
               NewRelic::Agent::Tracer.capture_segment_error(segment) do
@@ -35,7 +32,7 @@ module NewRelic
               end
             end
           ensure
-            segment.finish
+            segment.finish if segment
           end
 
           private
@@ -55,11 +52,12 @@ module NewRelic
             "grpc://#{@host}/#{method}"
           end
 
-          def set_distributed_tracing_headers(metadata)
-            return unless ::NewRelic::Agent.config[:'distributed_tracing.enabled']
+          # TODO: isn't #add_request_headers already setting the DT metadata?
+          # def set_distributed_tracing_headers(metadata)
+          #   return unless ::NewRelic::Agent.config[:'distributed_tracing.enabled']
 
-            ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(metadata)
-          end
+          #   ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(metadata)
+          # end
 
           def trace_with_newrelic?(host = nil)
             return false if self.class.name.eql?('GRPC::InterceptorRegistry')

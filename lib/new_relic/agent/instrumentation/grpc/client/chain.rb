@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +14,8 @@ module NewRelic::Agent::Instrumentation
             include NewRelic::Agent::Instrumentation::GRPC::Client
 
             def initialize_with_newrelic_trace(*args)
-              initialize_with_tracing(*args)
+              @trace_with_newrelic = trace_with_newrelic?(args.first)
+              initialize_without_newrelic_trace(*args)
             end
 
             alias initialize_without_newrelic_trace initialize

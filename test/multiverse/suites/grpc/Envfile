@@ -1,0 +1,19 @@
+suite_condition("gRPC not compatible with Ruby < 2.5") do
+  RUBY_VERSION >= '2.5.0'
+end
+
+instrumentation_methods(:chain, :prepend)
+
+GRPC_VERSIONS = [
+  nil
+]
+
+def gem_list(grpc_version = nil)
+  <<-RB
+    gem 'grpc'#{grpc_version}
+  RB
+end
+
+create_gemfiles(GRPC_VERSIONS, gem_list)
+
+# vim: ft=ruby

@@ -296,18 +296,22 @@ module Multiverse
     end
 
     def minitest_version
-      case
-      when RUBY_VERSION >= '2.4'
-        '5.10.1'
+      if RUBY_VERSION >= '2.6'
+        '5.16.2'
+      elsif RUBY_VERSION >= '2.4'
+        '5.15.0'
       else
         '4.7.5'
       end
     end
 
     def require_minitest
-      require 'minitest'
-    rescue LoadError
-      require 'minitest/unit'
+      begin
+        require 'minitest'
+      rescue LoadError
+        require 'minitest/unit'
+      end
+      require 'minitest/mock'
     end
 
     def print_environment
