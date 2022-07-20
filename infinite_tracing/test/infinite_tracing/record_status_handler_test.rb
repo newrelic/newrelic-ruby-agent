@@ -3,20 +3,22 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
 
 module NewRelic::Agent::InfiniteTracing
   class RecordStatusHandlerTest < Minitest::Test
-    def process_queue handler, queue
-      Thread.pass until queue.empty?
+    def process_queue(handler, queue, expect_nil = false)
+      # wait until the handler has pulled everything from the queue
+      # AND until the handler has finished processing, unless it's expected to be nil
+      Thread.pass until queue.empty? && (expect_nil || !handler.instance_variable_get(:@messages_seen).nil?)
       handler.stop
     end
 
     def test_processes_single_item_and_stops
       queue = EnumeratorQueue.new.preload(RecordStatus.new(messages_seen: 12))
 
-      handler = build_handler queue
-      process_queue handler, queue
+      handler = build_handler(queue)
+      process_queue(handler, queue)
 
       assert_equal 12, handler.messages_seen
     end
@@ -25,8 +27,8 @@ module NewRelic::Agent::InfiniteTracing
       items = 5.times.map { |i| RecordStatus.new(messages_seen: i + 1) }
       queue = EnumeratorQueue.new.preload(items)
 
-      handler = build_handler queue
-      process_queue handler, queue
+      handler = build_handler(queue)
+      process_queue(handler, queue)
 
       assert_equal 5, handler.messages_seen
     end
@@ -35,8 +37,8 @@ module NewRelic::Agent::InfiniteTracing
       error_object = RuntimeError.new("oops")
       queue = EnumeratorQueue.new.preload(error_object)
 
-      handler = build_handler queue
-      process_queue handler, queue
+      handler = build_handler(queue)
+      process_queue(handler, queue, true)
 
       assert_equal 0, handler.messages_seen
     end
@@ -44,8 +46,8 @@ module NewRelic::Agent::InfiniteTracing
     def test_processes_nil_on_queue
       queue = EnumeratorQueue.new
 
-      handler = build_handler queue
-      process_queue handler, queue
+      handler = build_handler(queue)
+      process_queue(handler, queue, true)
 
       assert_equal 0, handler.messages_seen
     end
@@ -53,13 +55,13 @@ module NewRelic::Agent::InfiniteTracing
     private
 
     class TestClient
-      def handle_error error
-        NewRelic::Agent.record_metric "Supportability/InfiniteTracing/Span/Response/Error", 0.0
+      def handle_error(error)
+        NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
       end
     end
 
-    def build_handler queue
-      RecordStatusHandler.new TestClient.new, queue.each_item
+    def build_handler(queue)
+      RecordStatusHandler.new(TestClient.new, queue.each_item)
     end
   end
 end

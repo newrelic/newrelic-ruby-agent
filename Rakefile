@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'rubygems'
 require 'rake/testtask'
 require 'yard'
@@ -11,15 +16,6 @@ task :test => ['test:newrelic']
 namespace :test do
   desc "Run all tests"
   task :all => %w[newrelic multiverse all_compatible_envs]
-
-  begin
-    require 'test_bisect'
-    TestBisect::BisectTask.new do |t|
-      t.test_task_name = 'test:newrelic'
-    end
-  rescue LoadError
-  end
-
   agent_home = File.expand_path(File.dirname(__FILE__))
 
   desc "Run agent performance tests"

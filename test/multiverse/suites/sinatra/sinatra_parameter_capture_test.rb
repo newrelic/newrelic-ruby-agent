@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class SinatraParameterCaptureTestApp < Sinatra::Base
   post "/capture_test" do
@@ -33,7 +34,7 @@ class SinatraParameterCaptureTest < Minitest::Test
         :foo => "bar",
         :bar => "baz"
       }
-      post '/capture_test', params
+      post('/capture_test', params)
     end
 
     expected = {
@@ -52,7 +53,7 @@ class SinatraParameterCaptureTest < Minitest::Test
         :title => "blah",
         :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
       }
-      post '/files', params
+      post('/files', params)
 
       expected = {
         "request.parameters.title" => "blah",
@@ -64,7 +65,7 @@ class SinatraParameterCaptureTest < Minitest::Test
   end
 
   def test_request_and_response_attributes_recorded_as_agent_attributes
-    post '/capture_test'
+    post('/capture_test')
 
     expected = {
       "response.headers.contentLength" => last_response.content_length.to_i,

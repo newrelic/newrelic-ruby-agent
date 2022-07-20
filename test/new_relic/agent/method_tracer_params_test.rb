@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   METRIC = "metric"
@@ -36,11 +37,11 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
       {foo: {bar: "foobar"}}
     end
 
-    def last_arg_expects_a_hash foo, bar = {}
+    def last_arg_expects_a_hash(foo, bar = {})
       {foo => bar}
     end
 
-    def last_arg_is_a_keyword foo, bar:
+    def last_arg_is_a_keyword(foo, bar:)
       {foo => bar}
     end
 
@@ -48,11 +49,11 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
       {foo => bar}
     end
 
-    def wildcard_args *args
+    def wildcard_args(*args)
       {args[0] => args[1]}
     end
 
-    def args_and_kwargs *args, **kwargs
+    def args_and_kwargs(*args, **kwargs)
       {args[0] => kwargs}
     end
 
@@ -119,10 +120,10 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     capture_io { yield }
   end
 
-  def assert_common_tracing_behavior traced_class
+  def assert_common_tracing_behavior(traced_class)
     assert_expected_results traced_class
     refute_deprecation_warnings traced_class
-    call_expecting_warning_after_ruby_26 traced_class
+    call_expecting_warning_after_ruby_26(traced_class)
   end
 
   [["untraced_methods", UntracedMethods],

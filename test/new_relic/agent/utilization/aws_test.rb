@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path('../../../../test_helper', __FILE__)
+require_relative '../../../test_helper'
 require 'new_relic/agent/utilization/aws'
 
 module NewRelic
@@ -20,7 +21,7 @@ module NewRelic
         # ---
 
         def test_generates_expected_collector_hash_for_valid_response
-          fixture = File.read File.join(aws_fixture_path, "valid.json")
+          fixture = File.read(File.join(aws_fixture_path, "valid.json"))
 
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
@@ -36,7 +37,7 @@ module NewRelic
         end
 
         def test_fails_when_response_contains_invalid_chars
-          fixture = File.read File.join(aws_fixture_path, "invalid_chars.json")
+          fixture = File.read(File.join(aws_fixture_path, "invalid_chars.json"))
 
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
@@ -46,7 +47,7 @@ module NewRelic
         end
 
         def test_fails_when_response_is_missing_required_value
-          fixture = File.read File.join(aws_fixture_path, "missing_value.json")
+          fixture = File.read(File.join(aws_fixture_path, "missing_value.json"))
 
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
@@ -56,7 +57,7 @@ module NewRelic
         end
 
         def test_fails_based_on_response_code
-          fixture = File.read File.join(aws_fixture_path, "valid.json")
+          fixture = File.read(File.join(aws_fixture_path, "valid.json"))
 
           mock_response = stub(code: '404', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
@@ -81,15 +82,18 @@ module NewRelic
         # ---
 
         load_cross_agent_test("utilization_vendor_specific/aws").each do |test_case|
-          test_case = symbolize_keys_in_object test_case
+          test_case = symbolize_keys_in_object(test_case)
 
           define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
             NewRelic::Agent::Utilization::AWS.stubs(:imds_token).returns('John Howe')
-            uri_obj = test_case[:uri][:'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document']
+            uri_obj_key = test_case[:uri].keys.detect do |key|
+              key =~ %r{http://169.254.169.254/(?:2016-09-02|latest)/dynamic/instance-identity/document}
+            end
+            uri_obj = test_case[:uri][uri_obj_key]
             if uri_obj[:timeout]
               @vendor.stubs(:request_metadata).returns(nil)
             else
-              response = mock code: '200', body: ::JSON.dump(uri_obj[:response])
+              response = mock(code: '200', body: ::JSON.dump(uri_obj[:response]))
               @vendor.stubs(:request_metadata).returns(response)
             end
 

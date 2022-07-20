@@ -1,9 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
-
+require_relative '../../../test_helper'
 require 'new_relic/agent/transaction/segment'
 
 module NewRelic
@@ -92,32 +92,32 @@ module NewRelic
         end
 
         def test_assigns_unscoped_metrics
-          segment = Segment.new "Custom/simple/segment", "Segment/all"
+          segment = Segment.new("Custom/simple/segment", "Segment/all")
           assert_equal "Custom/simple/segment", segment.name
           assert_equal "Segment/all", segment.unscoped_metrics
         end
 
         def test_assigns_unscoped_metrics_as_array
-          segment = Segment.new "Custom/simple/segment", ["Segment/all", "Other/all"]
+          segment = Segment.new("Custom/simple/segment", ["Segment/all", "Other/all"])
           assert_equal "Custom/simple/segment", segment.name
           assert_equal ["Segment/all", "Other/all"], segment.unscoped_metrics
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Segment.new "Custom/simple/segment", "Segment/all"
+          segment = Segment.new("Custom/simple/segment", "Segment/all")
           segment.start
-          advance_process_time 1.0
+          advance_process_time(1.0)
           segment.finish
 
           refute_metrics_recorded ["Custom/simple/segment", "Segment/all"]
         end
 
         def test_segment_records_metrics
-          in_transaction "test" do |txn|
-            segment = Segment.new "Custom/simple/segment", "Segment/all"
-            txn.add_segment segment
+          in_transaction("test") do |txn|
+            segment = Segment.new("Custom/simple/segment", "Segment/all")
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -136,10 +136,10 @@ module NewRelic
 
         def test_segment_records_metrics_when_given_as_array
           in_transaction do |txn|
-            segment = Segment.new "Custom/simple/segment", ["Segment/all", "Other/all"]
-            txn.add_segment segment
+            segment = Segment.new("Custom/simple/segment", ["Segment/all", "Other/all"])
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -148,11 +148,11 @@ module NewRelic
 
         def test_segment_can_disable_scoped_metric_recording
           in_transaction('test') do |txn|
-            segment = Segment.new "Custom/simple/segment", "Segment/all"
+            segment = Segment.new("Custom/simple/segment", "Segment/all")
             segment.record_scoped_metric = false
-            txn.add_segment segment
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -171,11 +171,11 @@ module NewRelic
 
         def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array
           in_transaction('test') do |txn|
-            segment = Segment.new "Custom/simple/segment", ["Segment/all", "Segment/allOther"].freeze
+            segment = Segment.new("Custom/simple/segment", ["Segment/all", "Segment/allOther"].freeze)
             segment.record_scoped_metric = false
-            txn.add_segment segment
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -196,10 +196,10 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(false)
 
-            segment = Segment.new 'Ummm'
-            txn.add_segment segment
+            segment = Segment.new('Ummm')
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -211,10 +211,10 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:ignore?).returns(true)
 
-            segment = Segment.new 'Ummm'
-            txn.add_segment segment
+            segment = Segment.new('Ummm')
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
 
@@ -232,10 +232,10 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-            segment = Segment.new 'Ummm'
-            txn.add_segment segment
+            segment = Segment.new('Ummm')
+            txn.add_segment(segment)
             segment.start
-            advance_process_time 1.0
+            advance_process_time(1.0)
             segment.finish
 
             timestamp = Integer(segment.start_time * 1000.0)
@@ -267,7 +267,7 @@ module NewRelic
 
         def test_sets_start_time_from_constructor
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
-          segment = Segment.new nil, nil, t
+          segment = Segment.new(nil, nil, t)
           assert_equal t, segment.start_time
         end
 
@@ -286,7 +286,7 @@ module NewRelic
             assert_raises(Errno::EIO, Errno::EMFILE, Errno::ENFILE) do
               while true
                 file_descriptors << IO.sysopen(__FILE__)
-                Segment.new "Test #{file_descriptors[-1]}"
+                Segment.new("Test #{file_descriptors[-1]}")
               end
             end
           ensure
@@ -370,7 +370,7 @@ module NewRelic
           rescue Exception => exception
             segment_with_error.finish
             assert segment_with_error, "expected to have a segment_with_error"
-            build_deferred_error_attributes segment_with_error
+            build_deferred_error_attributes(segment_with_error)
             refute_equal parent_segment, segment_with_error
             return segment_with_error, parent_segment, exception
           end

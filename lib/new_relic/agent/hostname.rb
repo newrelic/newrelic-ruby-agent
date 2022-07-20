@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'socket'
 require 'new_relic/helper'
 
@@ -56,11 +58,11 @@ module NewRelic
         ::
       ].freeze
 
-      def self.local? host_or_ip
+      def self.local?(host_or_ip)
         LOCALHOST.include?(host_or_ip)
       end
 
-      def self.get_external host_or_ip
+      def self.get_external(host_or_ip)
         local?(host_or_ip) ? get : host_or_ip
       end
     end

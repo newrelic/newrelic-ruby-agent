@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/datastores'
 require 'new_relic/agent/datastores/redis'
@@ -28,7 +29,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info 'Installing Redis Instrumentation'
+    NewRelic::Agent.logger.info('Installing Redis Instrumentation')
     if use_prepend?
       prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
     else

@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require_relative '../../../test_helper'
 require 'new_relic/cli/command'
 require 'new_relic/cli/commands/deployments'
 
@@ -33,7 +34,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def test_help
     begin
-      NewRelic::Cli::Deployments.new "-h"
+      NewRelic::Cli::Deployments.new("-h")
       fail "should have thrown"
     rescue NewRelic::Cli::Command::CommandFailure => c
       assert_match(/^Usage/, c.message)
@@ -43,7 +44,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def test_bad_command
     assert_raises NewRelic::Cli::Command::CommandFailure do
-      NewRelic::Cli::Deployments.new ["-foo", "bar"]
+      NewRelic::Cli::Deployments.new(["-foo", "bar"])
     end
     @deployment = nil
   end

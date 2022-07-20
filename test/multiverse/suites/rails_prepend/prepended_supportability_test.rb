@@ -1,7 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
+SimpleCovHelper.command_name("test:multiverse[rails_prepend]")
 require '../rails/app'
 
 class PrependedSupportabilityMetricsTest < Minitest::Test
@@ -50,7 +52,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
     })
   end
 
-  def metric_values_for val
+  def metric_values_for(val)
     {call_count: 1,
      max_call_time: val,
      min_call_time: val,

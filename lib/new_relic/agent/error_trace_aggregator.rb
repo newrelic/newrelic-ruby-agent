@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -92,7 +93,7 @@ module NewRelic
       def register_config_callbacks
         Agent.config.register_callback(:'error_collector.enabled') do |enabled|
           reset! if enabled == false
-          ::NewRelic::Agent.logger.debug "Error traces will #{enabled ? '' : 'not '}be sent to the New Relic service."
+          ::NewRelic::Agent.logger.debug("Error traces will #{enabled ? '' : 'not '}be sent to the New Relic service.")
         end
       end
     end

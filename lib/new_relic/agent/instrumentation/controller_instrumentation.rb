@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
@@ -48,7 +49,7 @@ module NewRelic
         NR_DO_NOT_TRACE_KEY = :'@do_not_trace'
         NR_IGNORE_APDEX_KEY = :'@ignore_apdex'
         NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser'
-        NR_DEFAULT_OPTIONS = {}.freeze
+        NR_DEFAULT_OPTIONS = NewRelic::EMPTY_HASH
 
         # @api public
         module ClassMethods
@@ -81,9 +82,9 @@ module NewRelic
 
           def newrelic_ignore_aspect(property, specifiers = {}) # :nodoc:
             if specifiers.empty?
-              self.newrelic_write_attr property, true
+              self.newrelic_write_attr(property, true)
             elsif !(Hash === specifiers)
-              ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
+              ::NewRelic::Agent.logger.error("newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')")
             else
               # symbolize the incoming values
               specifiers = specifiers.inject({}) do |memo, (key, values)|
@@ -94,7 +95,7 @@ module NewRelic
                 end
                 memo
               end
-              self.newrelic_write_attr property, specifiers
+              self.newrelic_write_attr(property, specifiers)
             end
           end
 
@@ -165,10 +166,6 @@ module NewRelic
           def add_transaction_tracer(method, options = {})
             NewRelic::Agent.record_api_supportability_metric(:add_transaction_tracer)
 
-            # The metric path:
-            options[:name] ||= method.to_s
-
-            argument_list = generate_argument_list(options)
             traced_method, punctuation = parse_punctuation(method)
             with_method_name, without_method_name = build_method_names(traced_method, punctuation)
 
@@ -177,7 +174,13 @@ module NewRelic
               return
             end
 
-            class_eval <<-EOC
+            # The metric path:
+            options[:name] ||= method.to_s
+
+            code_info = NewRelic::Agent::MethodTracerHelpers.code_information(self, method)
+            argument_list = generate_argument_list(options.merge(code_info))
+
+            class_eval(<<-EOC)
               def #{with_method_name}(*args, &block)
                 perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
                   #{without_method_name}(*args, &block)
@@ -186,12 +189,12 @@ module NewRelic
               ruby2_keywords(:#{with_method_name}) if respond_to?(:ruby2_keywords, true)
             EOC
 
-            visibility = NewRelic::Helper.instance_method_visibility self, method
+            visibility = NewRelic::Helper.instance_method_visibility(self, method)
 
-            alias_method without_method_name, method.to_s
-            alias_method method.to_s, with_method_name
-            send visibility, method
-            send visibility, with_method_name
+            alias_method(without_method_name, method.to_s)
+            alias_method(method.to_s, with_method_name)
+            send(visibility, method)
+            send(visibility, with_method_name)
             ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
 
@@ -441,6 +444,9 @@ module NewRelic
           txn_options[:apdex_start_time] = queue_start_time
           txn_options[:ignore_apdex] = ignore_apdex?
           txn_options[:ignore_enduser] = ignore_enduser?
+          NewRelic::Agent::MethodTracerHelpers::SOURCE_CODE_INFORMATION_PARAMETERS.each do |parameter|
+            txn_options[parameter] = trace_options[parameter]
+          end
           txn_options
         end
 

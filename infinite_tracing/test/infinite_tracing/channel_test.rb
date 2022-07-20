@@ -3,7 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
+SimpleCovHelper.command_name("test:multiverse[infinite_tracing]")
 
 module NewRelic
   module Agent
@@ -25,20 +26,10 @@ module NewRelic
           }
         end
 
-        def test_channel_is_insecure_for_local_host
-          with_config local_config do
-            channel = Channel.new
-            credentials = channel.send(:credentials)
-
-            assert_equal "localhost:80", channel.send(:host_and_port)
-            assert_equal :this_channel_is_insecure, credentials
-          end
-        end
-
         def test_channel_is_secure_for_remote_host
           Config.stubs(:test_framework?).returns(false)
 
-          with_config remote_config do
+          with_config(remote_config) do
             channel = Channel.new
             credentials = channel.send(:credentials)
 
@@ -56,7 +47,7 @@ module NewRelic
             :'infinite_tracing.trace_observer.host' => "http://example.com"
           })
 
-          with_config insecure_remote_config do
+          with_config(insecure_remote_config) do
             channel = Channel.new
             credentials = channel.send(:credentials)
 

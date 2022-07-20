@@ -1,12 +1,13 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 require 'helpers/mongo_metric_builder'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
+require_relative '../../../helpers/docker'
 
 def mongo_host
   docker? ? 'mongodb' : NewRelic::Agent::Hostname.get
@@ -318,7 +319,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
           def test_batched_queries
             25.times do |i|
-              @collection.insert_one :name => "test-#{i}", :active => true
+              @collection.insert_one(:name => "test-#{i}", :active => true)
             end
             NewRelic::Agent.drop_buffered_data
 
@@ -351,10 +352,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
           def test_batched_queries_have_node_per_query
             25.times do |i|
-              @collection.insert_one :name => "test-#{i}", :active => true
+              @collection.insert_one(:name => "test-#{i}", :active => true)
             end
             NewRelic::Agent.drop_buffered_data
-            in_transaction "webby" do
+            in_transaction("webby") do
               @collection.find(:active => true).batch_size(10).to_a
             end
 
@@ -367,21 +368,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             trace = last_transaction_trace
             actual = []
             trace.each_node do |n|
-              actual << n.metric_name if n.metric_name.start_with? "Datastore/statement/MongoDB"
+              actual << n.metric_name if n.metric_name.start_with?("Datastore/statement/MongoDB")
             end
 
             assert_equal expected, actual
           end
 
           def test_trace_nodes_have_instance_attributes
-            @collection.insert_one :name => "test", :active => true
+            @collection.insert_one(:name => "test", :active => true)
             NewRelic::Agent.drop_buffered_data
-            in_transaction "webby" do
+            in_transaction("webby") do
               @collection.find(:active => true).to_a
             end
 
             trace = last_transaction_trace
-            node = find_node_with_name_matching trace, /^Datastore\//
+            node = find_node_with_name_matching(trace, /^Datastore\//)
 
             assert_equal mongo_host, node[:host]
             assert_equal '27017', node[:port_path_or_id]

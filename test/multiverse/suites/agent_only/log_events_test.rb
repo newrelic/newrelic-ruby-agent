@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class LogEventsTest < Minitest::Test
   include MultiverseHelpers
@@ -23,7 +24,7 @@ class LogEventsTest < Minitest::Test
 
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
-    assert_equal "FATAL", last_log["log.level"]
+    assert_equal "FATAL", last_log["level"]
     assert_equal trace_id, last_log["trace.id"]
     assert_equal span_id, last_log["span.id"]
 
@@ -41,7 +42,7 @@ class LogEventsTest < Minitest::Test
 
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
-    assert_equal "FATAL", last_log["log.level"]
+    assert_equal "FATAL", last_log["level"]
     assert_equal nil, last_log["trace.id"]
     assert_equal nil, last_log["span.id"]
 

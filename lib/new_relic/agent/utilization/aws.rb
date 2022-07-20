@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/utilization/vendor'
 
@@ -25,15 +26,15 @@ module NewRelic
               '',
               {'X-aws-ec2-metadata-token-ttl-seconds' => IMDS_TOKEN_TTL_SECS})
             unless response.code == Vendor::SUCCESS
-              NewRelic::Agent.logger.debug 'Failed to obtain an AWS token for use with IMDS - encountered ' \
+              NewRelic::Agent.logger.debug('Failed to obtain an AWS token for use with IMDS - encountered ' \
                                            "#{response.class} with HTTP response code #{response.code} - " \
-                                           'assuming non AWS'
+                                           'assuming non AWS')
               return
             end
 
             response.body
           rescue Net::OpenTimeout
-            NewRelic::Agent.logger.debug 'Timed out waiting for AWS IMDS - assuming non AWS'
+            NewRelic::Agent.logger.debug('Timed out waiting for AWS IMDS - assuming non AWS')
           end
         end
 

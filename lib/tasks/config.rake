@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 namespace :newrelic do
   namespace :config do
     desc "Describe available New Relic configuration settings."
@@ -118,7 +123,7 @@ namespace :newrelic do
     end
 
     def format_env_var(key)
-      return "None" if NON_ENV_CONFIGS.include? key
+      return "None" if NON_ENV_CONFIGS.include?(key)
       "NEW_RELIC_#{key.gsub(".", "_").upcase}"
     end
 

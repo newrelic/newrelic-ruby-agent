@@ -1,10 +1,12 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # TODO: Address intermittent failure where "after_fork" Supportability Metric appears
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
+require_relative '../../../../test_helper'
+
 class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   require 'new_relic/agent/method_tracer'
   include NewRelic::Agent::MethodTracer

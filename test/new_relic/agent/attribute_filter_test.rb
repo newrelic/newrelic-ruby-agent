@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 require 'new_relic/agent/attribute_filter'
 require 'pp'
@@ -23,7 +24,7 @@ module NewRelic::Agent
           expected_destinations = to_bitfield(test_case['expected_destinations'])
 
           assert_equal(to_names(expected_destinations), to_names(actual_destinations),
-            PP.pp(test_case, "") + PP.pp(filter.rules, ""))
+            PP.pp(test_case, String.new('')) + PP.pp(filter.rules, String.new('')))
         end
       end
     end
@@ -69,7 +70,7 @@ module NewRelic::Agent
     def test_capture_params_false_adds_exclude_rule_for_request_parameters
       with_config(:capture_params => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'request.parameters.muggle', AttributeFilter::DST_NONE
+        result = filter.apply('request.parameters.muggle', AttributeFilter::DST_NONE)
 
         assert_destinations [], result
       end
@@ -78,7 +79,7 @@ module NewRelic::Agent
     def test_capture_params_true_allows_request_params_for_traces_and_errors
       with_config(:capture_params => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'request.parameters.muggle', AttributeFilter::DST_NONE
+        result = filter.apply('request.parameters.muggle', AttributeFilter::DST_NONE)
 
         assert_destinations ['transaction_tracer', 'error_collector'], result
       end
@@ -87,7 +88,7 @@ module NewRelic::Agent
     def test_resque_capture_params_false_adds_exclude_rule_for_request_parameters
       with_config(:'resque.capture_params' => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'job.resque.args.*', AttributeFilter::DST_NONE
+        result = filter.apply('job.resque.args.*', AttributeFilter::DST_NONE)
 
         assert_destinations [], result
       end
@@ -96,7 +97,7 @@ module NewRelic::Agent
     def test_resque_capture_params_true_allows_request_params_for_traces_and_errors
       with_config(:'resque.capture_params' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'job.resque.args.*', AttributeFilter::DST_NONE
+        result = filter.apply('job.resque.args.*', AttributeFilter::DST_NONE)
 
         assert_destinations ['transaction_tracer', 'error_collector'], result
       end
@@ -105,7 +106,7 @@ module NewRelic::Agent
     def test_sidekiq_capture_params_false_adds_exclude_rule_for_request_parameters
       with_config(:'sidekiq.capture_params' => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'job.sidekiq.args.*', AttributeFilter::DST_NONE
+        result = filter.apply('job.sidekiq.args.*', AttributeFilter::DST_NONE)
 
         assert_destinations [], result
       end
@@ -114,7 +115,7 @@ module NewRelic::Agent
     def test_sidekiq_capture_params_true_allows_request_params_for_traces_errors
       with_config(:'sidekiq.capture_params' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'job.sidekiq.args.*', AttributeFilter::DST_NONE
+        result = filter.apply('job.sidekiq.args.*', AttributeFilter::DST_NONE)
 
         assert_destinations ['transaction_tracer', 'error_collector'], result
       end
@@ -123,7 +124,7 @@ module NewRelic::Agent
     def test_datastore_tracer_instance_reporting_disabled_adds_exclude_rule
       with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'host', AttributeFilter::DST_NONE
+        result = filter.apply('host', AttributeFilter::DST_NONE)
 
         assert_destinations [], result
       end
@@ -132,7 +133,7 @@ module NewRelic::Agent
     def test_datastore_tracer_instance_reporting_enabled_allows_instance_params
       with_config(:'datastore_tracer.instance_reporting.enabled' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'host', AttributeFilter::DST_NONE
+        result = filter.apply('host', AttributeFilter::DST_NONE)
 
         assert_destinations ['transaction_segments'], result
       end
@@ -141,7 +142,7 @@ module NewRelic::Agent
     def test_database_name_reporting_disabled_adds_exclude_rule
       with_config(:'datastore_tracer.database_name_reporting.enabled' => false) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'database_name', AttributeFilter::DST_NONE
+        result = filter.apply('database_name', AttributeFilter::DST_NONE)
 
         assert_destinations [], result
       end
@@ -150,7 +151,7 @@ module NewRelic::Agent
     def test_database_name_reporting_enabled_allows_database_name
       with_config(:'datastore_tracer.database_name_reporting.enabled' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        result = filter.apply 'database_name', AttributeFilter::DST_NONE
+        result = filter.apply('database_name', AttributeFilter::DST_NONE)
 
         assert_destinations ['transaction_segments'], result
       end
@@ -215,7 +216,7 @@ module NewRelic::Agent
         :'attributes.exclude' => ['request.headers.*']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
-        result = filter.apply 'request.headers.contentType', AttributeFilter::DST_ALL
+        result = filter.apply('request.headers.contentType', AttributeFilter::DST_ALL)
 
         expected_destinations = [
           'transaction_events',
@@ -234,7 +235,7 @@ module NewRelic::Agent
         :'span_events.attributes.exclude' => ['request.headers.*']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
-        result = filter.apply 'request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS
+        result = filter.apply('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)
 
         expected_destinations = ['span_events']
 
@@ -244,8 +245,8 @@ module NewRelic::Agent
 
     def test_key_cache_global_include_exclude
       with_all_enabled do
-        with_config :'attributes.include' => ['request.headers.contentType'],
-          :'attributes.exclude' => ['request.headers.*'] do
+        with_config(:'attributes.include' => ['request.headers.contentType'],
+          :'attributes.exclude' => ['request.headers.*']) do
           filter = AttributeFilter.new(NewRelic::Agent.config)
 
           assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_ALL)
@@ -255,8 +256,8 @@ module NewRelic::Agent
     end
 
     def test_key_cache_span_include_exclude
-      with_config :'span_events.attributes.include' => ['request.headers.contentType'],
-        :'span_events.attributes.exclude' => ['request.headers.*'] do
+      with_config(:'span_events.attributes.include' => ['request.headers.contentType'],
+        :'span_events.attributes.exclude' => ['request.headers.*']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)
@@ -265,7 +266,7 @@ module NewRelic::Agent
     end
 
     def test_excluding_url_attribute_excludes_all
-      with_config :'attributes.exclude' => ['request.uri'] do
+      with_config(:'attributes.exclude' => ['request.uri']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         refute filter.allows_key?('uri', AttributeFilter::DST_ALL)

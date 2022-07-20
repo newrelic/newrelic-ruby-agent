@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path '../../../../test_helper', __FILE__
+require_relative '../../../test_helper'
 
 module NewRelic::Agent
   module DistributedTracing
@@ -32,19 +33,19 @@ module NewRelic::Agent
         Agent.config.reset_to_defaults
       end
 
-      def after_notify_event rack_scheme = nil
+      def after_notify_event(rack_scheme = nil)
         payload = nil
 
-        in_transaction "referring_txn" do |txn|
+        in_transaction("referring_txn") do |txn|
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = {NEWRELIC_TRACE_KEY => payload.http_safe}
         env['rack.url_scheme'] = rack_scheme if rack_scheme
 
-        in_transaction "receiving_txn" do |txn|
+        in_transaction("receiving_txn") do |txn|
           @events.notify(:before_call, env)
-          yield txn
+          yield(txn)
         end
       end
 
@@ -55,13 +56,13 @@ module NewRelic::Agent
       end
 
       def test_sets_transport_type_for_http_scheme
-        after_notify_event 'http' do |txn|
+        after_notify_event('http') do |txn|
           assert_equal 'HTTP', txn.distributed_tracer.caller_transport_type
         end
       end
 
       def test_sets_transport_type_for_https_scheme
-        after_notify_event 'https' do |txn|
+        after_notify_event('https') do |txn|
           assert_equal 'HTTPS', txn.distributed_tracer.caller_transport_type
         end
       end

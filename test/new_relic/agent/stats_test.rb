@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 class NewRelic::Agent::StatsTest < Minitest::Test
   def mock_plusequals(first, second, method, first_value, second_value)
@@ -29,7 +30,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     b = NewRelic::Agent::Stats.new
     a.reset
     b.reset
-    yield a, b
+    yield(a, b)
     a.merge(b)
   end
 
@@ -48,19 +49,19 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
   def test_simple
     stats = NewRelic::Agent::Stats.new
-    validate stats, 0, 0, 0, 0
+    validate(stats, 0, 0, 0, 0)
 
     assert_equal stats.call_count, 0
-    stats.trace_call 10
-    stats.trace_call 20
-    stats.trace_call 30
+    stats.trace_call(10)
+    stats.trace_call(20)
+    stats.trace_call(30)
 
-    validate stats, 3, (10 + 20 + 30), 10, 30
+    validate(stats, 3, (10 + 20 + 30), 10, 30)
   end
 
   def test_to_s
     s1 = NewRelic::Agent::Stats.new
-    s1.trace_call 10
+    s1.trace_call(10)
     assert_equal("[ 1 calls 10.0000s / 10.0000s ex]", s1.to_s)
   end
 
@@ -82,19 +83,19 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s1 = NewRelic::Agent::Stats.new
     s2 = NewRelic::Agent::Stats.new
 
-    s1.trace_call 10
-    s2.trace_call 20
+    s1.trace_call(10)
+    s2.trace_call(20)
     s2.freeze
 
-    validate s2, 1, 20, 20, 20
-    s3 = s1.merge s2
-    validate s3, 2, (10 + 20), 10, 20
-    validate s1, 1, 10, 10, 10
-    validate s2, 1, 20, 20, 20
+    validate(s2, 1, 20, 20, 20)
+    s3 = s1.merge(s2)
+    validate(s3, 2, (10 + 20), 10, 20)
+    validate(s1, 1, 10, 10, 10)
+    validate(s2, 1, 20, 20, 20)
 
-    s1.merge! s2
-    validate s1, 2, (10 + 20), 10, 20
-    validate s2, 1, 20, 20, 20
+    s1.merge!(s2)
+    validate(s1, 2, (10 + 20), 10, 20)
+    validate(s2, 1, 20, 20, 20)
   end
 
   def test_merge_with_exclusive
@@ -102,45 +103,45 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
     s2 = NewRelic::Agent::Stats.new
 
-    s1.trace_call 10, 5
-    s2.trace_call 20, 10
+    s1.trace_call(10, 5)
+    s2.trace_call(20, 10)
     s2.freeze
 
-    validate s2, 1, 20, 20, 20, 10
-    s3 = s1.merge s2
-    validate s3, 2, (10 + 20), 10, 20, (10 + 5)
-    validate s1, 1, 10, 10, 10, 5
-    validate s2, 1, 20, 20, 20, 10
+    validate(s2, 1, 20, 20, 20, 10)
+    s3 = s1.merge(s2)
+    validate(s3, 2, (10 + 20), 10, 20, (10 + 5))
+    validate(s1, 1, 10, 10, 10, 5)
+    validate(s2, 1, 20, 20, 20, 10)
 
-    s1.merge! s2
-    validate s1, 2, (10 + 20), 10, 20, (5 + 10)
-    validate s2, 1, 20, 20, 20, 10
+    s1.merge!(s2)
+    validate(s1, 2, (10 + 20), 10, 20, (5 + 10))
+    validate(s2, 1, 20, 20, 20, 10)
   end
 
   def test_freeze
     s1 = NewRelic::Agent::Stats.new
 
-    s1.trace_call 10
+    s1.trace_call(10)
     s1.freeze
 
     begin
       # the following should throw an exception because s1 is frozen
-      s1.trace_call 20
+      s1.trace_call(20)
       assert false
     rescue StandardError
       assert s1.frozen?
-      validate s1, 1, 10, 10, 10
+      validate(s1, 1, 10, 10, 10)
     end
   end
 
   def test_sum_of_squares_merge
     s1 = NewRelic::Agent::Stats.new
-    s1.trace_call 4
-    s1.trace_call 7
+    s1.trace_call(4)
+    s1.trace_call(7)
 
     s2 = NewRelic::Agent::Stats.new
-    s2.trace_call 13
-    s2.trace_call 16
+    s2.trace_call(13)
+    s2.trace_call(16)
 
     s3 = s1.merge(s2)
 
@@ -150,8 +151,8 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
   def test_to_json_enforces_float_values
     s1 = NewRelic::Agent::Stats.new
-    s1.trace_call 3.to_r
-    s1.trace_call 7.to_r
+    s1.trace_call(3.to_r)
+    s1.trace_call(7.to_r)
 
     assert_equal 3.0, JSON.load(s1.to_json)['min_call_time']
   end

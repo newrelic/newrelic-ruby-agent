@@ -1,9 +1,13 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # Let ActiveSupport's auto-loading make sure the testing gateway's there.
 # require complains of redefine on certain Rubies, (looking at you REE)
+
+SimpleCovHelper.command_name("test:multiverse[activemerchant]")
+
 ActiveMerchant::Billing::BogusGateway
 
 OPERATIONS = [:authorize, :purchase, :credit, :recurring, :capture, :update]
@@ -16,8 +20,8 @@ end
 
 class BadGateway < ActiveMerchant::Billing::BogusGateway
   def purchase(*args)
-    super *args
-    raise StandardError.new "whoops!"
+    super(*args)
+    raise StandardError.new("whoops!")
   end
 end
 

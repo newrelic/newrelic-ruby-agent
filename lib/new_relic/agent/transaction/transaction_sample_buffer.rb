@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -9,7 +10,7 @@ module NewRelic
         attr_reader :samples
 
         SINGLE_BUFFER_MAX = 20
-        NO_SAMPLES = [].freeze
+        NO_SAMPLES = NewRelic::EMPTY_ARRAY
 
         def initialize
           @samples = []

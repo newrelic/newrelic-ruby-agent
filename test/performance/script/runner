@@ -3,12 +3,12 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'optparse'
 require 'rubygems'
 require 'json'
-
-require File.expand_path('../../lib/performance', __FILE__)
+require_relative '../lib/performance'
 $: << File.expand_path('../../../../lib', __FILE__)
 
 options = {}

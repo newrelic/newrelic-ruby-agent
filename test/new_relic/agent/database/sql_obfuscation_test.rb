@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require_relative '../../../test_helper'
 
 module NewRelic::Agent::Database
   class SqlObfuscationTest < Minitest::Test
@@ -13,7 +14,7 @@ module NewRelic::Agent::Database
     end
 
     def build_failure_message(statement, acceptable_outputs, actual_output)
-      msg = "Failed to obfuscate #{statement.adapter} query correctly.\n"
+      msg = String.new("Failed to obfuscate #{statement.adapter} query correctly.\n")
       msg << "Input:    #{statement.inspect}\n"
       if acceptable_outputs.size == 1
         msg << "Expected: #{acceptable_outputs.first}\n"

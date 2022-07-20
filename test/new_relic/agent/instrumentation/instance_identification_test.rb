@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path '../../../../test_helper', __FILE__
+require_relative '../../../test_helper'
 require 'new_relic/agent/instrumentation/active_record_helper'
 
 module NewRelic
@@ -122,8 +123,8 @@ module NewRelic
               NewRelic::Agent::Hostname.stubs(:get).returns(test['system_hostname'])
 
               in_transaction do
-                config = convert_test_case_to_config test
-                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil, config[:adapter]
+                config = convert_test_case_to_config(test)
+                product, operation, collection = ActiveRecordHelper.product_operation_collection_for("Blog Find", nil, config[:adapter])
                 host = ActiveRecordHelper::InstanceIdentification.host(config)
                 port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
@@ -148,14 +149,14 @@ module NewRelic
             "product" => :adapter
           }
 
-          def convert_test_case_to_config test_case
+          def convert_test_case_to_config(test_case)
             config = test_case.inject({}) do |memo, (k, v)|
               if config_key = CONFIG_NAMES[k]
                 memo[config_key] = v
               end
               memo
             end
-            convert_product_to_adapter config
+            convert_product_to_adapter(config)
             config
           end
 
@@ -165,7 +166,7 @@ module NewRelic
             "SQLite" => "sqlite3"
           }
 
-          def convert_product_to_adapter config
+          def convert_product_to_adapter(config)
             config[:adapter] = PRODUCT_TO_ADAPTER_NAMES[config[:adapter]]
           end
         end

@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path '../../../test_helper', __FILE__
+require_relative '../../test_helper'
 require 'new_relic/agent/priority_sampled_buffer'
 
 module NewRelic::Agent
@@ -149,9 +150,9 @@ module NewRelic::Agent
     end
 
     def test_append_with_zero_capacity
-      buffer = PrioritySampledBuffer.new 0
+      buffer = PrioritySampledBuffer.new(0)
 
-      buffer.append event: create_event
+      buffer.append(event: create_event)
 
       assert_equal 1, buffer.num_dropped
       assert_equal 0, buffer.size
@@ -192,8 +193,8 @@ module NewRelic::Agent
       }
 
       metadata = buffer.metadata
-      metadata.delete :captured_lifetime
-      metadata.delete :seen_lifetime
+      metadata.delete(:captured_lifetime)
+      metadata.delete(:seen_lifetime)
 
       assert_equal expected, metadata
     end

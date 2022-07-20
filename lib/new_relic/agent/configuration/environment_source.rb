@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -42,7 +43,7 @@ module NewRelic
         def set_dotted_alias(original_config_setting)
           config_setting = original_config_setting.to_s
 
-          if config_setting.include? '.'
+          if config_setting.include?('.')
             config_alias = config_setting.gsub(/\./, '_').to_sym
             self.alias_map[config_alias] = original_config_setting
           end

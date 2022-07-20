@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'singleton'
 require 'new_relic/agent/database/explain_plan_helpers'
@@ -131,15 +132,15 @@ module NewRelic
         'execute',
         'call'
       ]
-
+      OTHER_OPERATION = 'other'.freeze
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
 
       def parse_operation_from_query(sql)
         sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, NewRelic::EMPTY_STR)
-        if sql =~ /(\w+)/
-          op = $1.downcase
-          return op if KNOWN_OPERATIONS.include?(op)
-        end
+        return unless sql =~ /(\w+)/
+
+        op = Regexp.last_match(1).downcase
+        KNOWN_OPERATIONS.include?(op) ? op : OTHER_OPERATION
       end
 
       class ConnectionManager
@@ -236,7 +237,7 @@ module NewRelic
 
         NEWLINE = "\n".freeze
 
-        def append_sql new_sql
+        def append_sql(new_sql)
           return if new_sql.empty?
           @sql = Database.truncate_query(@sql << NEWLINE << new_sql)
         end
@@ -258,7 +259,7 @@ module NewRelic
           # between usage of mysql and mysql2. Obfuscation is the same, though.
           elsif adapter == MYSQL2_PREFIX
             :mysql2
-          elsif adapter.start_with? SQLITE_PREFIX
+          elsif adapter.start_with?(SQLITE_PREFIX)
             :sqlite
           else
             adapter.to_sym

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/configuration/dotted_hash'
 
@@ -135,7 +136,7 @@ module NewRelic
             elsif !config[option].nil? && !is_boolean?(config[option])
               coerced_value = !!(config[option].to_s =~ /yes|on|true/i)
               if !coerced_value
-                log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}"
+                log_failure("Unexpected value (#{config[option]}) for '#{option}' in #{@path}")
               end
               config[option] = coerced_value
             end

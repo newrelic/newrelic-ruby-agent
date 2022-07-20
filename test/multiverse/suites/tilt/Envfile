@@ -1,22 +1,14 @@
 instrumentation_methods :chain, :prepend
 
-# Tests latest Tilt version
-if RUBY_VERSION >= '3.0.0'
-  gemfile <<-RB
-    gem 'tilt'
-    gem 'webrick'
-    gem 'haml'
-  RB
-else
-  gemfile <<-RB
-    gem 'tilt'
-    gem 'haml'
-  RB
-end
+TILT_VERSIONS = [
+  [nil, 2.2],
+  ['1.4.1', 2.2, 2.7]
+]
 
-if RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'tilt', '1.4.1'
+def gem_list(tilt_version = nil)
+  <<-RB
+    gem 'tilt'#{tilt_version}
     gem 'haml'
+    #{ruby3_gem_webrick}
   RB
 end

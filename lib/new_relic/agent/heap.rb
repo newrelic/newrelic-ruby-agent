@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -89,11 +90,11 @@ module NewRelic
         @priority_fn.call(@items[index])
       end
 
-      def parent_index_for child_index
+      def parent_index_for(child_index)
         (child_index - 1) / 2
       end
 
-      def left_child_index_for parent_index
+      def left_child_index_for(parent_index)
         2 * parent_index + 1
       end
 

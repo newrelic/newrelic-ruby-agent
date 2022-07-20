@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
@@ -33,25 +34,25 @@ module NewRelic::Agent
 
       def test_accept_distributed_trace_headers_api
         carrier = {'HTTP_TRACEPARENT' => 'pretend_this_is_valid'}
-        in_transaction "test_txn" do |txn|
+        in_transaction("test_txn") do |txn|
           txn.distributed_tracer.expects(:accept_incoming_request)
-          DistributedTracing.accept_distributed_trace_headers carrier, "HTTP"
+          DistributedTracing.accept_distributed_trace_headers(carrier, "HTTP")
         end
       end
 
       def test_accept_distributed_trace_headers_api_with_non_rack
         carrier = {'tRaCePaReNt' => 'pretend_this_is_valid'}
-        in_transaction "test_txn" do |txn|
+        in_transaction("test_txn") do |txn|
           txn.distributed_tracer.expects(:accept_trace_context_incoming_request)
-          DistributedTracing.accept_distributed_trace_headers carrier, "Kafka"
+          DistributedTracing.accept_distributed_trace_headers(carrier, "Kafka")
         end
       end
 
       def test_insert_distributed_trace_headers_api
         carrier = {}
-        in_transaction "test_txn" do |txn|
+        in_transaction("test_txn") do |txn|
           txn.distributed_tracer.expects(:insert_headers)
-          DistributedTracing.insert_distributed_trace_headers carrier
+          DistributedTracing.insert_distributed_trace_headers(carrier)
         end
       end
 
@@ -61,8 +62,8 @@ module NewRelic::Agent
           'trAceSTatE' => "190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
         }
         trace_context_header_data = nil
-        in_transaction "test_txn" do |txn|
-          DistributedTracing.accept_distributed_trace_headers carrier, "Kafka"
+        in_transaction("test_txn") do |txn|
+          DistributedTracing.accept_distributed_trace_headers(carrier, "Kafka")
           trace_context_header_data = txn.distributed_tracer.trace_context_header_data
         end
 

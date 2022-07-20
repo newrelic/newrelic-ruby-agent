@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require File.join(File.dirname(__FILE__), 'database.rb')
 require File.join(File.dirname(__FILE__), 'sequel_helpers.rb')
@@ -220,7 +221,7 @@ if Sequel.const_defined?(:MAJOR) &&
         expected_metric_name = "Datastore/statement/#{product_name}/Post/all"
         recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
 
-        assert recorded_metric_names.include? expected_metric_name
+        assert recorded_metric_names.include?(expected_metric_name)
       end
     end
   end

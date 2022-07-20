@@ -1,11 +1,12 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'fileutils'
 require 'timeout'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'docker'))
+require_relative '../../../../helpers/file_searching'
+require_relative '../../../../helpers/docker'
 
 class MongoServer
   extend NewRelic::TestHelpers::FileSearching
@@ -109,7 +110,7 @@ class MongoServer
 
   def wait_until(seconds = 10)
     Timeout.timeout(seconds) do
-      sleep 0.1 until yield
+      sleep(0.1) until yield
     end
   end
 
@@ -195,7 +196,7 @@ class MongoServer
   end
 
   def pid
-    File.read(pid_path).to_i if File.exist? pid_path
+    File.read(pid_path).to_i if File.exist?(pid_path)
   end
 
   def next_available_port
@@ -236,10 +237,10 @@ class MongoServer
       yield
     rescue exception => e
       if message
-        raise e unless e.message.include? message
+        raise e unless e.message.include?(message)
       end
 
-      sleep 0.1
+      sleep(0.1)
       tries += 1
       retry unless tries > maximum_tries
       raise e
@@ -247,7 +248,7 @@ class MongoServer
   end
 
   def release_port
-    FileUtils.rm port_lock_path, :force => true
+    FileUtils.rm(port_lock_path, :force => true)
     self.port = nil
   end
 

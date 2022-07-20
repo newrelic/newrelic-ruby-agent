@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "agent_helper"))
+require_relative '../agent_helper'
 
 class Minitest::Test
   def after_teardown
@@ -120,7 +121,7 @@ module MultiverseHelpers
   #       net_http: <%= $instrumentation_method.value %>
 
   class InstrumentationMethod
-    def initialize instrumentation_method
+    def initialize(instrumentation_method)
       @value = instrumentation_method
       @emitted = false
     end
@@ -133,7 +134,7 @@ module MultiverseHelpers
       @value
     end
 
-    def value= new_value
+    def value=(new_value)
       @value = new_value
     end
 
@@ -231,7 +232,7 @@ module MultiverseHelpers
     raw_attributes = @js_data["atts"]
 
     if raw_attributes
-      attributes = ::JSON.load @instrumentor.obfuscator.deobfuscate(raw_attributes)
+      attributes = ::JSON.load(@instrumentor.obfuscator.deobfuscate(raw_attributes))
       @js_custom_attributes = attributes['u']
       @js_agent_attributes = attributes['a']
     end

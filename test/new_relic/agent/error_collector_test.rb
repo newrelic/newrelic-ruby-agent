@@ -1,9 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
 require 'new_relic/agent/internal_agent_error'
 
 module NewRelic::Agent
@@ -17,7 +18,7 @@ module NewRelic::Agent
         NewRelic::Agent.config.add_config_for_testing(@test_config)
 
         events = NewRelic::Agent.instance.events
-        @error_collector = NewRelic::Agent::ErrorCollector.new events
+        @error_collector = NewRelic::Agent::ErrorCollector.new(events)
         @error_collector.stubs(:enabled).returns(true)
 
         NewRelic::Agent::Tracer.clear_state
@@ -44,7 +45,7 @@ module NewRelic::Agent
 
       def test_records_error_outside_of_transaction
         in_transaction do
-          @error_collector.notice_error StandardError.new
+          @error_collector.notice_error(StandardError.new)
         end
         traces = harvest_error_traces
         events = harvest_error_events
@@ -120,7 +121,7 @@ module NewRelic::Agent
           nil
         end
 
-        new_error_collector = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
+        new_error_collector = NewRelic::Agent::ErrorCollector.new(NewRelic::Agent.instance.events)
         new_error_collector.notice_error(StandardError.new("message"))
 
         assert_empty new_error_collector.error_trace_aggregator.harvest!
@@ -310,7 +311,7 @@ module NewRelic::Agent
           :'error_collector.enabled' => false,
           :'error_collector.capture_events' => false
         }
-        with_server_source server_source do
+        with_server_source(server_source) do
           assert @error_collector.skip_notice_error?(error)
         end
       end
@@ -492,7 +493,7 @@ module NewRelic::Agent
 
           # now, let's build and see the error attributes
           segment.noticed_error.build_error_attributes
-          recorded_error_attributes = SpanEventPrimitive.error_attributes segment
+          recorded_error_attributes = SpanEventPrimitive.error_attributes(segment)
 
           expected_error_attributes = {
             "error.message" => "Oops!",
@@ -515,7 +516,7 @@ module NewRelic::Agent
 
           # now, let's build and see the error attributes
           segment.noticed_error.build_error_attributes
-          recorded_error_attributes = SpanEventPrimitive.error_attributes segment
+          recorded_error_attributes = SpanEventPrimitive.error_attributes(segment)
 
           expected_error_attributes = {
             "error.message" => "Oops!",
@@ -531,7 +532,7 @@ module NewRelic::Agent
 
       def test_segment_error_attributes_for_tx_notice_error_api_call
         with_segment do |segment|
-          NewRelic::Agent::Transaction.notice_error StandardError.new("Oops!"), {expected: true}
+          NewRelic::Agent::Transaction.notice_error(StandardError.new("Oops!"), {expected: true})
           assert segment.noticed_error, "expected segment.noticed_error to not be nil"
 
           # we defer building the error attributes until segments are turned into spans!
@@ -539,7 +540,7 @@ module NewRelic::Agent
 
           # now, let's build and see the error attributes
           segment.noticed_error.build_error_attributes
-          recorded_error_attributes = SpanEventPrimitive.error_attributes segment
+          recorded_error_attributes = SpanEventPrimitive.error_attributes(segment)
 
           expected_error_attributes = {
             "error.message" => "Oops!",
@@ -589,7 +590,7 @@ module NewRelic::Agent
 
       def wrapped_filter_proc
         Proc.new do |e|
-          if e.is_a? IOError
+          if e.is_a?(IOError)
             return nil
           else
             return e

@@ -1,13 +1,5 @@
 instrumentation_methods :chain, :prepend
 
-unless RUBY_PLATFORM == 'java'
-  gemfile <<-RB
-    gem 'http'
-    gem 'rack'
-    #{ruby3_gem_webrick}
-  RB
-end
-
 # NOTE, some versions of HTTP gem implements body with
 # String.new("").force_encoding(@encoding) which won't work
 # with Ruby 2.7 and it's automatic freezing of string literals.
@@ -15,27 +7,26 @@ end
 
 # Either just the gem version or Array of gem version and last and supported Ruby versions
 HTTPRB_VERSIONS = [
-  ['5.0.1', 2.5],
+  [nil, 2.6],
+  ['5.1.0', 2.6], # !jruby as of 2022/07
+  ['5.0.1', 2.5], # !jruby as of 2022/07
   ['4.4.0', 2.3, 2.6],
   ['4.3.0', 2.3, 2.6],
   ['4.2.0', 2.3, 2.6],
-  '3.0.0',
-  '2.2.2'
+  ['3.0.0'],
+  ['2.2.2']
 ]
 
-HTTPRB_VERSIONS.each do |httprb_version|
-  if httprb_version.is_a?(Array)
-    httprb_version, first_supported_ruby_version, last_supported_ruby_version = httprb_version
-    next if httprb_version =~ /^5.0/ && RUBY_PLATFORM == 'java'
-    next if last_supported_ruby_version && RUBY_VERSION.to_f > last_supported_ruby_version
-    next if RUBY_VERSION.to_f < first_supported_ruby_version
-  end
-
-  gemfile <<-RB
-    gem 'http', '~> #{httprb_version}'
+def gem_list(httprb_version = nil)
+  return if (httprb_version && httprb_version.include?('5') && RUBY_PLATFORM.eql?('java')) ||
+    (RUBY_PLATFORM.eql?('java') && httprb_version.nil?)
+  <<-RB
+    gem 'http'#{httprb_version}
     gem 'rack'
     #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(HTTPRB_VERSIONS, gem_list)
 
 # vim: ft=ruby

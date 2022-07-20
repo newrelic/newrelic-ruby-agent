@@ -52,20 +52,20 @@ module NewRelic
 
       # Builds a Hash of error attributes as well as the Span ID when
       # an error is present.  Otherwise, returns nil when no error present.
-      def error_attributes segment
+      def error_attributes(segment)
         return if Agent.config[:high_security] || !segment.noticed_error
         segment.noticed_error.build_error_attributes
         segment.noticed_error_attributes
       end
 
-      def for_segment segment
+      def for_segment(segment)
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
         [intrinsics, custom_attributes(segment), agent_attributes(segment)]
       end
 
-      def for_external_request_segment segment
+      def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY] = segment.library
@@ -83,7 +83,7 @@ module NewRelic
         [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
-      def for_datastore_segment segment
+      def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY] = segment.product
@@ -113,7 +113,7 @@ module NewRelic
 
       private
 
-      def intrinsics_for segment
+      def intrinsics_for(segment)
         intrinsics = {
           TYPE_KEY => EVENT_TYPE,
           TRACE_ID_KEY => segment.transaction.trace_id,
@@ -155,7 +155,7 @@ module NewRelic
         intrinsics
       end
 
-      def custom_attributes segment
+      def custom_attributes(segment)
         attributes = segment.attributes
         if attributes
           result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
@@ -165,21 +165,24 @@ module NewRelic
         end
       end
 
-      def merge_and_freeze_attributes agent_attributes, error_attributes
-        return agent_attributes.freeze unless error_attributes
-        return error_attributes.freeze if agent_attributes.equal?(NewRelic::EMPTY_HASH)
-        agent_attributes.merge!(error_attributes).freeze
+      def merge_hashes(hash1, hash2)
+        return hash1 if hash2.nil? || hash2.empty?
+        return hash2 if hash1.nil? || hash1.empty?
+
+        hash1.merge!(hash2)
       end
 
-      def agent_attributes segment
+      def agent_attributes(segment)
         agent_attributes = segment.attributes
           .agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
         error_attributes = error_attributes(segment)
-        return NewRelic::EMPTY_HASH unless agent_attributes || error_attributes
-        merge_and_freeze_attributes(agent_attributes, error_attributes)
+        code_attributes = segment.code_attributes
+        agent_attributes = merge_hashes(agent_attributes, error_attributes)
+        agent_attributes = merge_hashes(agent_attributes, code_attributes)
+        agent_attributes.freeze
       end
 
-      def parent_guid segment
+      def parent_guid(segment)
         if segment.parent
           segment.parent.guid
         elsif txn = segment.transaction
@@ -187,11 +190,11 @@ module NewRelic
         end
       end
 
-      def milliseconds_since_epoch segment
+      def milliseconds_since_epoch(segment)
         Integer(segment.start_time.to_f * 1000.0)
       end
 
-      def truncate value, max_size = 255
+      def truncate(value, max_size = 255)
         value = value.to_s
         if value.bytesize > max_size
           value.byteslice(0, max_size - 2).chop! << ELLIPSIS
@@ -200,7 +203,7 @@ module NewRelic
         end
       end
 
-      def allowed? key
+      def allowed?(key)
         NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN_EVENTS)
       end
     end

@@ -2,8 +2,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require_relative '../../../test_helper'
 require 'new_relic/agent/samplers/cpu_sampler'
 
 class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
@@ -18,13 +19,13 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
 
   def test_correctly_detecting_jruby_support_for_correct_cpu_sampling
     if defined?(JRuby)
-      set_jruby_version_constant '1.6.8'
+      set_jruby_version_constant('1.6.8')
       refute_supported_on_platform
 
-      set_jruby_version_constant '1.7.0'
+      set_jruby_version_constant('1.7.0')
       assert_supported_on_platform
 
-      set_jruby_version_constant '1.7.4'
+      set_jruby_version_constant('1.7.4')
       assert_supported_on_platform
     else
       assert_supported_on_platform
@@ -45,7 +46,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
 
   def set_jruby_version_constant(string)
     Object.send(:remove_const, 'JRUBY_VERSION') if defined?(JRUBY_VERSION)
-    Object.const_set('JRUBY_VERSION', string)
+    Object.const_set(:JRUBY_VERSION, string)
   end
 
   def test_cpu_sampler_records_user_and_system_time

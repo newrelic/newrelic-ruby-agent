@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'thread'
 require 'logger'
@@ -83,11 +84,9 @@ module NewRelic
       # Allows for passing exceptions in explicitly, which format with backtrace
       def format_and_send(level, *msgs, &block)
         if block
-          if @log.send("#{level}?")
-            msgs = Array(block.call)
-          else
-            msgs = []
-          end
+          return unless @log.send("#{level}?")
+
+          msgs = Array(block.call)
         end
 
         msgs.flatten.each do |item|
@@ -180,7 +179,7 @@ module NewRelic
         StartupLogger.instance.dump(self)
       end
 
-      def self.format_fatal_error message
+      def self.format_fatal_error(message)
         "** [NewRelic] FATAL : #{message}\n"
       end
     end

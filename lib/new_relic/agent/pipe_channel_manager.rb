@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'base64'
 
@@ -185,13 +186,18 @@ module NewRelic
                   merge_data_from_pipe(pipe) unless pipe == wake.out
                 end
 
-                wake.out.read(1) if ready_pipes.include?(wake.out)
+                begin
+                  wake.out.read_nonblock(1) if ready_pipes.include?(wake.out)
+                rescue IO::WaitReadable
+                  NewRelic::Agent.logger.error('Issue while reading from the ready pipe')
+                  NewRelic::Agent.logger.error("Ready pipes: #{ready_pipes.map(&:to_s)}, wake.out pipe: #{wake.out}")
+                end
               end
 
               break unless should_keep_listening?
             end
           end
-          sleep 0.001 # give time for the thread to spawn
+          sleep(0.001) # give time for the thread to spawn
         end
 
         def stop_listener_thread
@@ -248,8 +254,8 @@ module NewRelic
         def unmarshal(data)
           Marshal.load(data)
         rescue StandardError => e
-          ::NewRelic::Agent.logger.error "Failure unmarshalling message from Resque child process", e
-          ::NewRelic::Agent.logger.debug Base64.encode64(data)
+          ::NewRelic::Agent.logger.error("Failure unmarshalling message from Resque child process", e)
+          ::NewRelic::Agent.logger.debug(Base64.encode64(data))
           nil
         end
 

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'rubygems'
 require 'rack'
@@ -9,7 +10,6 @@ require 'socket'
 require 'timeout'
 require 'ostruct'
 require 'fake_server'
-
 require 'json'
 
 module NewRelic
@@ -124,13 +124,13 @@ module NewRelic
       uri = URI.parse(req.url)
       method = method_from_request(req)
 
-      if @mock.keys.include? method
+      if @mock.keys.include?(method)
         status, body = @mock[method].evaluate
         res.status = status
-        res.write ::JSON.dump(body)
+        res.write(::JSON.dump(body))
       else
         res.status = 500
-        res.write "Method not found"
+        res.write("Method not found")
       end
       run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
       req.body.rewind
@@ -351,7 +351,7 @@ module NewRelic
     class ReservoirSampledContainerPost < AgentPost
       attr_reader :reservoir_metadata, :events
 
-      def initialize opts = {}
+      def initialize(opts = {})
         super
         @reservoir_metadata = body[1]
         @events = body[2]
@@ -402,7 +402,7 @@ module NewRelic
     class LogEventDataPost < AgentPost
       attr_reader :common, :logs
 
-      def initialize opts = {}
+      def initialize(opts = {})
         super
         @common = body.first["common"]
         @logs = body.first["logs"]

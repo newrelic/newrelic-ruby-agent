@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module Performance
   class Baseline
@@ -28,9 +29,7 @@ module Performance
     end
 
     def save!
-      File.open(PERSIST_PATH, "w") do |f|
-        f.write(JSON.dump(@results.map(&:to_h)))
-      end
+      File.write(PERSIST_PATH, JSON.dump(@results.map(&:to_h)))
     end
   end
 end

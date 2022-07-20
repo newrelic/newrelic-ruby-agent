@@ -124,7 +124,7 @@ module NewRelic
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.state = state
-        txn.start
+        txn.start(options)
         txn
       end
 
@@ -181,7 +181,7 @@ module NewRelic
         if txn = tl_current
           txn.add_agent_attribute(key, value, default_destinations)
         else
-          NewRelic::Agent.logger.debug "Attempted to add agent attribute: #{key} without transaction"
+          NewRelic::Agent.logger.debug("Attempted to add agent attribute: #{key} without transaction")
         end
       end
 
@@ -194,7 +194,7 @@ module NewRelic
         if txn = tl_current
           txn.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         else
-          NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without transaction"
+          NewRelic::Agent.logger.debug("Attempted to merge untrusted attributes without transaction")
         end
       end
 
@@ -208,8 +208,8 @@ module NewRelic
       if defined? JRuby
         begin
           require 'java'
-          java_import 'java.lang.management.ManagementFactory'
-          java_import 'com.sun.management.OperatingSystemMXBean'
+          java_import('java.lang.management.ManagementFactory')
+          java_import('com.sun.management.OperatingSystemMXBean')
           @@java_classes_loaded = true
         rescue
         end
@@ -256,7 +256,7 @@ module NewRelic
         merge_request_parameters(@filtered_params)
 
         if request = options[:request]
-          @request_attributes = RequestAttributes.new request
+          @request_attributes = RequestAttributes.new(request)
         else
           @request_attributes = nil
         end
@@ -294,7 +294,7 @@ module NewRelic
       end
 
       def trace_id
-        @trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid 32
+        @trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid(32)
       end
 
       def trace_id=(value)
@@ -414,7 +414,7 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      def start
+      def start(options = {})
         return if !state.is_execution_traced?
 
         sql_sampler.on_start_transaction(state, request_path)
@@ -423,23 +423,24 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
-        create_initial_segment
-        Segment.merge_untrusted_agent_attributes \
+        create_initial_segment(options)
+        Segment.merge_untrusted_agent_attributes( \
           @filtered_params,
           :'request.parameters',
           AttributeFilter::DST_SPAN_EVENTS
+        )
       end
 
       def initial_segment
         segments.first
       end
 
-      def create_initial_segment
-        segment = create_segment @default_name
+      def create_initial_segment(options = {})
+        segment = create_segment(@default_name, options)
         segment.record_scoped_metric = false
       end
 
-      def create_segment(name)
+      def create_segment(name, options = {})
         summary_metrics = nil
 
         if name.start_with?(MIDDLEWARE_PREFIX)
@@ -453,6 +454,10 @@ module NewRelic
           unscoped_metrics: summary_metrics
         )
 
+        # #code_information will glean the code info out of the options hash
+        # if it exists or noop otherwise
+        segment.code_information = options
+
         segment
       end
 
@@ -462,18 +467,19 @@ module NewRelic
           merge_request_parameters(options[:filtered_params])
         end
 
-        @ignore_apdex = options[:ignore_apdex] if options.key? :ignore_apdex
-        @ignore_enduser = options[:ignore_enduser] if options.key? :ignore_enduser
+        @ignore_apdex = options[:ignore_apdex] if options.key?(:ignore_apdex)
+        @ignore_enduser = options[:ignore_enduser] if options.key?(:ignore_enduser)
 
         nest_initial_segment if segments.length == 1
-        nested_name = self.class.nested_transaction_name options[:transaction_name]
-        segment = create_segment nested_name
+        nested_name = self.class.nested_transaction_name(options[:transaction_name])
+
+        segment = create_segment(nested_name, options)
         set_default_transaction_name(options[:transaction_name], category)
         segment
       end
 
       def nest_initial_segment
-        self.initial_segment.name = self.class.nested_transaction_name initial_segment.name
+        self.initial_segment.name = self.class.nested_transaction_name(initial_segment.name)
         initial_segment.record_scoped_metric = true
       end
 
@@ -563,8 +569,8 @@ module NewRelic
       def assign_segment_dt_attributes
         dt_payload = distributed_tracer.trace_state_payload || distributed_tracer.distributed_trace_payload
         parent_attributes = {}
-        DistributedTraceAttributes.copy_parent_attributes self, dt_payload, parent_attributes
-        parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v }
+        DistributedTraceAttributes.copy_parent_attributes(self, dt_payload, parent_attributes)
+        parent_attributes.each { |k, v| initial_segment.add_agent_attribute(k, v) }
       end
 
       def assign_agent_attributes
@@ -585,7 +591,7 @@ module NewRelic
         end
 
         if @request_attributes
-          @request_attributes.assign_agent_attributes self
+          @request_attributes.assign_agent_attributes(self)
         end
 
         display_host = Agent.config[:'process_host.display_name']
@@ -622,7 +628,7 @@ module NewRelic
       # This method returns transport_duration in seconds. Transport duration
       # is stored in milliseconds on the payload, but it's needed in seconds
       # for metrics and intrinsics.
-      def calculate_transport_duration distributed_trace_payload
+      def calculate_transport_duration(distributed_trace_payload)
         return unless distributed_trace_payload
 
         duration = start_time - (distributed_trace_payload.timestamp / 1000.0)
@@ -730,7 +736,7 @@ module NewRelic
           options[:metric] = best_name
           options[:attributes] = @attributes
 
-          span_id = options.delete :span_id
+          span_id = options.delete(:span_id)
           error_recorded = !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
         end
         payload[:error] = error_recorded if payload
@@ -745,18 +751,18 @@ module NewRelic
         end
 
         if @exceptions[error]
-          @exceptions[error].merge! options
+          @exceptions[error].merge!(options)
         else
           @exceptions[error] = options
         end
       end
 
       def record_transaction_event
-        agent.transaction_event_recorder.record payload
+        agent.transaction_event_recorder.record(payload)
       end
 
       def record_log_events
-        agent.log_event_aggregator.record_batch self, @logs.to_a
+        agent.log_event_aggregator.record_batch(self, @logs.to_a)
       end
 
       def queue_time

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/configuration/dotted_hash'
 
@@ -26,9 +27,10 @@ module NewRelic
           def change_setting(policies, option, new_value)
             current_value = Agent.config[option]
             unless current_value == new_value
-              NewRelic::Agent.logger.info \
+              NewRelic::Agent.logger.info( \
                 "Setting changed: {#{option}: from #{current_value} " \
                 "to #{new_value}}. Source: SecurityPolicySource"
+              )
             end
             policies[option] = new_value
           end
@@ -218,15 +220,17 @@ module NewRelic
                   end
                 else
                   config_source = Agent.config.source(policy[:option]).class.name.split(COLON_COLON).last
-                  NewRelic::Agent.logger.info \
+                  NewRelic::Agent.logger.info( \
                     "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
                     "Source: #{config_source}"
+                  )
                 end
               else
                 settings[policy[:option]] = policy[:disabled_value]
-                NewRelic::Agent.logger.info \
+                NewRelic::Agent.logger.info( \
                   "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
                   "Source: SecurityPolicySource"
+                )
               end
             end
             settings

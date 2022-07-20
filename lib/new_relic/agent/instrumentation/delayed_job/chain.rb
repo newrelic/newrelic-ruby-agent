@@ -22,7 +22,7 @@ module NewRelic::Agent::Instrumentation
             Delayed::Job.class_eval do
               include NewRelic::Agent::Instrumentation::DelayedJobTracer
 
-              alias_method :invoke_job_without_new_relic, :invoke_job
+              alias_method(:invoke_job_without_new_relic, :invoke_job)
 
               def invoke_job(*args, &block)
                 invoke_job_with_tracing { invoke_job_without_new_relic(*args, &block) }

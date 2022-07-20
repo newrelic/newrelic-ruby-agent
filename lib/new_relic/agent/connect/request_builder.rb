@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/environment_report'
 require 'new_relic/agent/configuration/event_harvest_config'
@@ -41,7 +42,7 @@ module NewRelic
         # particular) that can't seralize to JSON. Cope with that here and
         # clear out so downstream code doesn't have to check again.
         def sanitize_environment_report(environment_report)
-          return [] unless @service.valid_to_marshal?(environment_report)
+          return NewRelic::EMPTY_ARRAY unless @service.valid_to_marshal?(environment_report)
           environment_report
         end
 

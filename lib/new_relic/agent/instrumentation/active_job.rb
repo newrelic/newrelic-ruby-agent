@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/prepend_supportability'
 
@@ -12,7 +13,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveJob instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveJob instrumentation')
 
     ActiveSupport.on_load(:active_job) do
       ::ActiveJob::Base.around_enqueue do |job, block|
@@ -58,14 +59,21 @@ module NewRelic
         end
 
         def self.run_in_trace(job, block, event)
-          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}") do
+          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}",
+            code_information: code_information_for_job(job)) do
             block.call
           end
         end
 
         def self.run_in_transaction(job, block)
+          options = code_information_for_job(job)
+          options = {} if options.frozen? # the hash will be added to later
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
-            category: :other, &block)
+            category: :other, options: options, &block)
+        end
+
+        def self.code_information_for_job(job)
+          NewRelic::Agent::MethodTracerHelpers.code_information(job.class, :perform)
         end
 
         def self.transaction_category

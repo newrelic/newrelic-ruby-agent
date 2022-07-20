@@ -1,9 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
-
+require_relative '../../test_helper'
 require 'new_relic/agent/messaging'
 require 'new_relic/agent/transaction'
 
@@ -19,7 +19,7 @@ module NewRelic
       end
 
       def test_metrics_recorded_for_amqp_publish
-        in_transaction "test_txn" do
+        in_transaction("test_txn") do
           segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
             library: "RabbitMQ",
             destination_name: "Default",
@@ -35,7 +35,7 @@ module NewRelic
       end
 
       def test_metrics_recorded_for_amqp_consume
-        in_transaction "test_txn" do
+        in_transaction("test_txn") do
           segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
             library: "RabbitMQ",
             destination_name: "Default",
@@ -53,7 +53,7 @@ module NewRelic
       end
 
       def test_segment_parameters_recorded_for_publish
-        in_transaction "test_txn" do
+        in_transaction("test_txn") do
           headers = {foo: "bar"}
           segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
             library: "RabbitMQ",
@@ -75,7 +75,7 @@ module NewRelic
 
       def test_segment_params_not_recorded_for_publish_with_segment_params_disabled
         with_config(:'message_tracer.segment_parameters.enabled' => false) do
-          in_transaction "test_txn" do
+          in_transaction("test_txn") do
             headers = {foo: "bar"}
             segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
               library: "RabbitMQ",
@@ -97,7 +97,7 @@ module NewRelic
       end
 
       def test_segment_parameters_recorded_for_consume
-        in_transaction "test_txn" do
+        in_transaction("test_txn") do
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
           delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
@@ -121,7 +121,7 @@ module NewRelic
 
       def test_segment_params_not_recorded_for_consume_with_segment_params_disabled
         with_config(:'message_tracer.segment_parameters.enabled' => false) do
-          in_transaction "test_txn" do
+          in_transaction("test_txn") do
             message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
             delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
@@ -144,8 +144,8 @@ module NewRelic
       end
 
       def test_wrap_message_broker_consume_transaction
-        tap = mock 'tap'
-        tap.expects :tap
+        tap = mock('tap')
+        tap.expects(:tap)
 
         NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
           library: "AwesomeBunniez",
@@ -166,8 +166,8 @@ module NewRelic
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
         NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
 
-        tap = mock 'tap'
-        tap.expects :tap
+        tap = mock('tap')
+        tap.expects(:tap)
 
         NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
           library: "RabbitMQ",
@@ -189,9 +189,9 @@ module NewRelic
       end
 
       def test_header_attributes_assigned_for_generic_wrap_consume_transaction
-        with_config :"attributes.include" => "message.headers.*" do
-          tap = mock 'tap'
-          tap.expects :tap
+        with_config(:"attributes.include" => "message.headers.*") do
+          tap = mock('tap')
+          tap.expects(:tap)
 
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
@@ -207,9 +207,9 @@ module NewRelic
       end
 
       def test_cat_headers_removed_when_headers_assigned_as_attributes
-        with_config :"attributes.include" => "message.headers.*" do
-          tap = mock 'tap'
-          tap.expects :tap
+        with_config(:"attributes.include" => "message.headers.*") do
+          tap = mock('tap')
+          tap.expects(:tap)
 
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
@@ -225,8 +225,8 @@ module NewRelic
       end
 
       def test_header_attributes_not_assigned_when_headers_not_included_in_consume_transaction
-        tap = mock 'tap'
-        tap.expects :tap
+        tap = mock('tap')
+        tap.expects(:tap)
 
         NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
           library: "RabbitMQ",
@@ -244,7 +244,7 @@ module NewRelic
         NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
 
-        in_transaction "test_txn" do
+        in_transaction("test_txn") do
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
           delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
@@ -375,9 +375,9 @@ module NewRelic
         NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
 
-        with_config :"attributes.include" => ["message.headers.*", "message.replyTo", "message.correlationId", "message.exchangeType"] do
-          tap = mock 'tap'
-          tap.expects :tap
+        with_config(:"attributes.include" => ["message.headers.*", "message.replyTo", "message.correlationId", "message.exchangeType"]) do
+          tap = mock('tap')
+          tap.expects(:tap)
 
           NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
             library: "AwesomeBunniez",
@@ -409,7 +409,7 @@ module NewRelic
       end
 
       def test_segment_records_proper_metrics_for_consume
-        in_transaction "test_txn" do |txn|
+        in_transaction("test_txn") do |txn|
           segment = NewRelic::Agent::Messaging.start_message_broker_segment(
             action: :consume,
             library: "RabbitMQ",
@@ -433,18 +433,18 @@ module NewRelic
         raw_txn_info = nil
         obfuscated_txn_info = nil
 
-        tap = mock 'tap'
-        tap.expects :tap
+        tap = mock('tap')
+        tap.expects(:tap)
 
-        with_config :"cross_application_tracer.enabled" => true,
+        with_config(:"cross_application_tracer.enabled" => true,
           :cross_process_id => cross_process_id,
           :'distributed_tracing.enabled' => false,
           :trusted_account_ids => [321],
-          :encoding_key => "abc" do
+          :encoding_key => "abc") do
           in_transaction do |txn|
-            obfuscated_id = obfuscator.obfuscate cross_process_id
+            obfuscated_id = obfuscator.obfuscate(cross_process_id)
             raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
-            obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
+            obfuscated_txn_info = obfuscator.obfuscate(raw_txn_info.to_json)
           end
 
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
@@ -472,18 +472,18 @@ module NewRelic
         raw_txn_info = nil
         obfuscated_txn_info = nil
 
-        tap = mock 'tap'
-        tap.expects :tap
+        tap = mock('tap')
+        tap.expects(:tap)
 
-        with_config :"cross_application_tracer.enabled" => true,
+        with_config(:"cross_application_tracer.enabled" => true,
           :cross_process_id => cross_process_id,
           :'distributed_tracing.enabled' => false,
           :trusted_account_ids => [321],
-          :encoding_key => "abc" do
-          in_transaction "test_txn" do |txn|
-            obfuscated_id = obfuscator.obfuscate cross_process_id
+          :encoding_key => "abc") do
+          in_transaction("test_txn") do |txn|
+            obfuscated_id = obfuscator.obfuscate(cross_process_id)
             raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
-            obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
+            obfuscated_txn_info = obfuscator.obfuscate(raw_txn_info.to_json)
           end
 
           Messaging.wrap_message_broker_consume_transaction(

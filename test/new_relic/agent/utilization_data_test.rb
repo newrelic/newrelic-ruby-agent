@@ -1,17 +1,18 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 require 'new_relic/agent/utilization_data'
 require 'new_relic/agent/utilization/aws'
 
 module NewRelic::Agent
   class UtilizationDataTest < Minitest::Test
     def setup
-      stub_aws_info response_code: '404'
-      stub_gcp_info response_code: '404'
-      stub_azure_info response_code: '404'
+      stub_aws_info(response_code: '404')
+      stub_gcp_info(response_code: '404')
+      stub_azure_info(response_code: '404')
     end
 
     def teardown
@@ -91,9 +92,9 @@ module NewRelic::Agent
     def test_pcf_information_is_included_when_available
       utilization_data = UtilizationData.new
 
-      with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
+      with_pcf_env("CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
         "CF_INSTANCE_IP"   => "101.1.149.48",
-        "MEMORY_LIMIT"     => "2048m" do
+        "MEMORY_LIMIT"     => "2048m") do
         expected = {
           :cf_instance_guid => "ab326c0e-123e-47a1-65cc-45f6",
           :cf_instance_ip => "101.1.149.48",
@@ -107,9 +108,9 @@ module NewRelic::Agent
     def test_pcf_information_is_omitted_when_available_but_disabled_by_config
       with_config(:'utilization.detect_pcf' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
-        with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
+        with_pcf_env("CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
           "CF_INSTANCE_IP"   => "101.1.149.48",
-          "MEMORY_LIMIT"     => "2048m" do
+          "MEMORY_LIMIT"     => "2048m") do
           assert_nil utilization_data.to_collector_hash[:vendors]
         end
       end
@@ -140,7 +141,7 @@ module NewRelic::Agent
     def test_logged_when_docker_container_id_is_unrecognized
       NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
       NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
-      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns('whatever')
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns(String.new('whatever'))
       NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
 
       expects_logging(:debug, includes("YOLO"))
@@ -271,7 +272,7 @@ module NewRelic::Agent
     end
 
     def test_kubernetes_information_is_present_if_available
-      with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
+      with_environment('KUBERNETES_SERVICE_HOST' => '10.96.0.1') do
         utilization_data = UtilizationData.new
 
         assert_equal({kubernetes_service_host: '10.96.0.1'},
@@ -280,9 +281,9 @@ module NewRelic::Agent
     end
 
     def test_kubernetes_information_is_omitted_if_disabled
-      with_config :'utilization.detect_kubernetes' => false,
-        :'utilization.detect_docker' => false do
-        with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
+      with_config(:'utilization.detect_kubernetes' => false,
+        :'utilization.detect_docker' => false) do
+        with_environment('KUBERNETES_SERVICE_HOST' => '10.96.0.1') do
           utilization_data = UtilizationData.new
 
           collector_hash = utilization_data.to_collector_hash
@@ -293,7 +294,7 @@ module NewRelic::Agent
 
     # ---
 
-    def stub_aws_info response_code: '200', response_body: default_aws_response
+    def stub_aws_info(response_code: '200', response_body: default_aws_response)
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::AWS.stubs(:imds_token).returns('Alan Lee')
       Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
@@ -301,39 +302,39 @@ module NewRelic::Agent
 
     def default_aws_response
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
-      File.read File.join(aws_fixture_path, "valid.json")
+      File.read(File.join(aws_fixture_path, "valid.json"))
     end
 
-    def stub_azure_info response_code: '200', response_body: default_azure_response
+    def stub_azure_info(response_code: '200', response_body: default_azure_response)
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::Azure.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
 
     def default_azure_response
       azure_fixture_path = File.expand_path('../../../fixtures/utilization/azure', __FILE__)
-      File.read File.join(azure_fixture_path, 'valid.json')
+      File.read(File.join(azure_fixture_path, 'valid.json'))
     end
 
-    def stub_gcp_info response_code: '200', response_body: default_gcp_response
+    def stub_gcp_info(response_code: '200', response_body: default_gcp_response)
       stubbed_response = stub(code: response_code, body: response_body)
       Utilization::GCP.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
 
     def default_gcp_response
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/gcp', __FILE__)
-      File.read File.join(aws_fixture_path, "valid.json")
+      File.read(File.join(aws_fixture_path, "valid.json"))
     end
 
-    def with_pcf_env vars, &blk
+    def with_pcf_env(vars, &blk)
       vars.each_pair { |k, v| ENV[k] = v }
       blk.call
-      vars.keys.each { |k| ENV.delete k }
+      vars.keys.each { |k| ENV.delete(k) }
     end
 
     # ---
 
     load_cross_agent_test("utilization/utilization_json").each do |test_case|
-      test_case = symbolize_keys_in_object test_case
+      test_case = symbolize_keys_in_object(test_case)
 
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
@@ -356,7 +357,7 @@ module NewRelic::Agent
         with_environment env do
           with_config options do
             test = -> { assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
-            if PCF_INPUTS.keys.all? { |k| test_case.key? k }
+            if PCF_INPUTS.keys.all? { |k| test_case.key?(k) }
               with_pcf_env stub_pcf_env(test_case), &test
             else
               test[]
@@ -366,9 +367,9 @@ module NewRelic::Agent
       end
     end
 
-    def setup_cross_agent_test_stubs test_case
-      stub_utilization_inputs test_case
-      stub_aws_inputs test_case
+    def setup_cross_agent_test_stubs(test_case)
+      stub_utilization_inputs(test_case)
+      stub_aws_inputs(test_case)
       stub_azure_inputs(test_case)
       stub_gcp_inputs(test_case)
     end
@@ -381,7 +382,7 @@ module NewRelic::Agent
       :input_full_hostname => :fqdn
     }
 
-    def stub_utilization_inputs test_case
+    def stub_utilization_inputs(test_case)
       test_case.keys.each do |key|
         if meth = UTILIZATION_INPUTS[key]
           UtilizationData.any_instance.stubs(meth).returns(test_case[key])
@@ -389,11 +390,11 @@ module NewRelic::Agent
       end
     end
 
-    def non_config_environment_variables test_case
-      env_inputs = test_case.fetch :input_environment_variables, {}
+    def non_config_environment_variables(test_case)
+      env_inputs = test_case.fetch(:input_environment_variables, {})
       env_inputs.inject({}) do |memo, (k, v)|
         k = k.to_s
-        unless k.start_with? 'NEW_RELIC'
+        unless k.start_with?('NEW_RELIC')
           memo[k] = v
         end
         memo
@@ -406,9 +407,9 @@ module NewRelic::Agent
       input_aws_zone: :availabilityZone
     }
 
-    def stub_aws_inputs test_case
+    def stub_aws_inputs(test_case)
       resp = test_case.reduce({}) { |h, (k, v)| h[AWS_INPUTS[k]] = v if AWS_INPUTS[k]; h }
-      stub_aws_info response_body: JSON.dump(resp) unless resp.empty?
+      stub_aws_info(response_body: JSON.dump(resp)) unless resp.empty?
     end
 
     ENV_TO_OPTIONS = {
@@ -419,10 +420,10 @@ module NewRelic::Agent
 
     NUMERIC_ENV_OPTS = [:NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS, :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB]
 
-    def convert_env_to_config_options test_case
-      env_inputs = test_case.fetch :input_environment_variables, {}
+    def convert_env_to_config_options(test_case)
+      env_inputs = test_case.fetch(:input_environment_variables, {})
       env_inputs.keys.inject({}) do |memo, k|
-        if k.to_s.start_with? 'NEW_RELIC'
+        if k.to_s.start_with?('NEW_RELIC')
           memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
         end
         memo
@@ -436,9 +437,9 @@ module NewRelic::Agent
       input_azure_size: :vmSize
     }
 
-    def stub_azure_inputs test_case
+    def stub_azure_inputs(test_case)
       resp = test_case.reduce({}) { |h, (k, v)| h[AZURE_INPUTS[k]] = v if AZURE_INPUTS[k]; h }
-      stub_azure_info response_body: JSON.dump(resp) unless resp.empty?
+      stub_azure_info(response_body: JSON.dump(resp)) unless resp.empty?
     end
 
     GCP_INPUTS = {
@@ -448,9 +449,9 @@ module NewRelic::Agent
       input_gcp_zone: :zone
     }
 
-    def stub_gcp_inputs test_case
+    def stub_gcp_inputs(test_case)
       resp = test_case.reduce({}) { |h, (k, v)| h[GCP_INPUTS[k]] = v if GCP_INPUTS[k]; h }
-      stub_gcp_info response_body: JSON.dump(resp) unless resp.empty?
+      stub_gcp_info(response_body: JSON.dump(resp)) unless resp.empty?
     end
 
     PCF_INPUTS = {
@@ -459,7 +460,7 @@ module NewRelic::Agent
       input_pcf_mem_limit: 'MEMORY_LIMIT'
     }
 
-    def stub_pcf_env test_case
+    def stub_pcf_env(test_case)
       PCF_INPUTS.reduce({}) { |h, (k, v)| h[v] = test_case[k]; h }
     end
   end

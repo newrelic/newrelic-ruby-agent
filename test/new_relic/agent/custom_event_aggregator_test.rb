@@ -1,11 +1,11 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
-
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
+require_relative '../common_aggregator_tests'
 require 'new_relic/agent/custom_event_aggregator'
 
 module NewRelic::Agent
@@ -13,7 +13,7 @@ module NewRelic::Agent
     def setup
       nr_freeze_process_time
       events = NewRelic::Agent.instance.events
-      @aggregator = NewRelic::Agent::CustomEventAggregator.new events
+      @aggregator = NewRelic::Agent::CustomEventAggregator.new(events)
     end
 
     # Helpers for DataContainerTests
@@ -39,7 +39,7 @@ module NewRelic::Agent
     def generate_request(name = 'Controller/whatever', options = {})
       payload = options.merge(:name => name)
 
-      @aggregator.record :custom, payload
+      @aggregator.record(:custom, payload)
     end
 
     def last_events
@@ -120,7 +120,7 @@ module NewRelic::Agent
     end
 
     def test_records_supportability_metrics_after_harvest
-      with_config :'custom_insights_events.max_samples_stored' => 5 do
+      with_config(:'custom_insights_events.max_samples_stored' => 5) do
         engine = NewRelic::Agent.instance.stats_engine
         engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Seen", 9)
         engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Sent", 5)
@@ -132,7 +132,7 @@ module NewRelic::Agent
     end
 
     def test_aggregator_defers_custom_event_creation
-      with_config aggregator.class.capacity_key => 5 do
+      with_config(aggregator.class.capacity_key => 5) do
         5.times { generate_event }
         aggregator.expects(:create_event).never
         aggregator.record('ImpossibleEvent', {priority: -999.0})

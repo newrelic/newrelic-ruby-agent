@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'json'
 require 'new_relic/agent/hostname'
@@ -35,42 +36,42 @@ module NewRelic
         REPLACEMENT_CHAR = '�'
 
         def initialize
-          Agent.config.register_callback :app_name do
+          Agent.config.register_callback(:app_name) do
             @app_name = nil
           end
         end
 
-        def call severity, time, progname, msg
-          message = '{'
+        def call(severity, time, progname, msg)
+          message = String.new('{')
           if app_name
-            add_key_value message, ENTITY_NAME_KEY, app_name
+            add_key_value(message, ENTITY_NAME_KEY, app_name)
             message << COMMA
           end
-          add_key_value message, ENTITY_TYPE_KEY, ENTITY_TYPE
+          add_key_value(message, ENTITY_TYPE_KEY, ENTITY_TYPE)
           message << COMMA
-          add_key_value message, HOSTNAME_KEY, Hostname.get
+          add_key_value(message, HOSTNAME_KEY, Hostname.get)
 
           if entity_guid = Agent.config[:entity_guid]
             message << COMMA
-            add_key_value message, ENTITY_GUID_KEY, entity_guid
+            add_key_value(message, ENTITY_GUID_KEY, entity_guid)
           end
 
           if trace_id = Tracer.trace_id
             message << COMMA
-            add_key_value message, TRACE_ID_KEY, trace_id
+            add_key_value(message, TRACE_ID_KEY, trace_id)
           end
           if span_id = Tracer.span_id
             message << COMMA
-            add_key_value message, SPAN_ID_KEY, span_id
+            add_key_value(message, SPAN_ID_KEY, span_id)
           end
 
           message << COMMA
           message << QUOTE << MESSAGE_KEY << QUOTE << COLON << escape(msg)
           message << COMMA
-          add_key_value message, LOG_LEVEL_KEY, severity
+          add_key_value(message, LOG_LEVEL_KEY, severity)
           if progname
             message << COMMA
-            add_key_value message, LOG_NAME_KEY, progname
+            add_key_value(message, LOG_NAME_KEY, progname)
           end
 
           message << COMMA
@@ -82,7 +83,7 @@ module NewRelic
           @app_name ||= Agent.config[:app_name][0]
         end
 
-        def add_key_value message, key, value
+        def add_key_value(message, key, value)
           message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
         end
 

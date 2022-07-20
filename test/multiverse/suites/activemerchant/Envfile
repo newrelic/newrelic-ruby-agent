@@ -1,58 +1,23 @@
-if RUBY_VERSION >= '3.0.0'
-  gemfile <<-RB
-    gem 'activemerchant'
-    gem 'rack'
-    gem 'rexml'
-    gem 'webrick'
+ACTIVEMERCHANT_VERSIONS = [
+  [nil, 3.0],
+  ['1.121.0', 2.5, 3.0],
+  ['1.106.0', 2.3, 3.0],
+  ['1.65.0', 2.2, 2.3]
+]
 
-    gem 'activesupport', '~> 4.2.0'
+def gem_list(activemerchant_version = nil)
+  <<-RB
+    gem 'activemerchant'#{activemerchant_version}
+    gem 'rack'
+    gem 'rexml' if RUBY_VERSION >= '3.0.0'
+    #{ruby3_gem_webrick}
+    gem 'activesupport'
     gem 'nokogiri'
-    gem 'minitest', '~> 5.1.0'
+    gem 'minitest', '~> 5.1.0' if RUBY_VERSION > '2.2.0'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
 end
 
-if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'activemerchant', '~>1.121.0'
-    gem 'rack'
-
-    gem 'activesupport', '~> 4.2.0'
-    gem 'nokogiri'
-    gem 'minitest', '~> 5.1.0'
-
-    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-end
-
-if RUBY_VERSION >= '2.3.0' && RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'activemerchant', '~>1.106.0'
-    gem 'rack'
-
-    gem 'activesupport', '~> 4.2.0'
-    gem 'nokogiri'
-    gem 'minitest', '~> 5.1.0'
-
-    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-
-
-end
-
-if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
-    gem 'activemerchant', '~>1.65.0'
-    gem 'rack'
-
-    gem 'activesupport', '~>4.0.4'
-    gem 'nokogiri', '~>1.6.1'
-
-    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-end
+create_gemfiles(ACTIVEMERCHANT_VERSIONS, gem_list)

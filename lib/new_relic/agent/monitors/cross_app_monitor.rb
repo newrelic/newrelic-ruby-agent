@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'digest'
 require 'json'
@@ -58,7 +59,7 @@ module NewRelic
                 txn.distributed_tracer.cross_app_payload = payload
               end
 
-              CrossAppTracing.assign_intrinsic_transaction_attributes state
+              CrossAppTracing.assign_intrinsic_transaction_attributes(state)
             end
           end
 
@@ -84,7 +85,7 @@ module NewRelic
           end
         end
 
-        def should_process_request? id
+        def should_process_request?(id)
           CrossAppTracing.cross_app_enabled? && CrossAppTracing.trusts?(id)
         end
 
@@ -100,7 +101,7 @@ module NewRelic
 
         def decoded_id(request)
           encoded_id = request[NEWRELIC_ID_HEADER_KEY]
-          return "" if encoded_id.nil? || encoded_id.empty?
+          return NewRelic::EMPTY_STR if encoded_id.nil? || encoded_id.empty?
 
           obfuscator.deobfuscate(encoded_id)
         end

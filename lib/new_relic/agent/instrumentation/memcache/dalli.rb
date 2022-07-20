@@ -15,7 +15,7 @@ module NewRelic
           def instrument!
             if supports_datastore_instances?
               instrument_methods(::Dalli::Client, dalli_methods)
-              instrument_multi_method :get_multi
+              instrument_multi_method(:get_multi)
               instrument_send_multiget
               instrument_server_for_key
             else
@@ -23,19 +23,19 @@ module NewRelic
             end
           end
 
-          def instrument_multi_method method_name
-            visibility = NewRelic::Helper.instance_method_visibility ::Dalli::Client, method_name
+          def instrument_multi_method(method_name)
+            visibility = NewRelic::Helper.instance_method_visibility(::Dalli::Client, method_name)
             method_name_without = :"#{method_name}_without_newrelic_trace"
 
             ::Dalli::Client.class_eval do
-              alias_method method_name_without, method_name
+              alias_method(method_name_without, method_name)
 
-              define_method method_name do |*args, &block|
-                get_multi_with_newrelic_tracing(method_name) { __send__ method_name_without, *args, &block }
+              define_method(method_name) do |*args, &block|
+                get_multi_with_newrelic_tracing(method_name) { __send__(method_name_without, *args, &block) }
               end
 
-              __send__ visibility, method_name
-              __send__ visibility, method_name_without
+              __send__(visibility, method_name)
+              __send__(visibility, method_name_without)
             end
           end
 
@@ -43,10 +43,10 @@ module NewRelic
             ::Dalli::Ring.class_eval do
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-              alias_method :server_for_key_without_newrelic_trace, :server_for_key
+              alias_method(:server_for_key_without_newrelic_trace, :server_for_key)
 
-              def server_for_key key
-                server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace key }
+              def server_for_key(key)
+                server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace(key) }
               end
             end
           end
@@ -58,10 +58,18 @@ module NewRelic
               ::Dalli::Server
             end.class_eval do
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
-              alias_method :send_multiget_without_newrelic_trace, :send_multiget
 
-              def send_multiget keys
-                send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace keys }
+              # TODO: Dalli - 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
+              if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
+                alias_method(:pipelined_get_without_newrelic_trace, :pipelined_get)
+                def pipelined_get(keys)
+                  send_multiget_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace(keys) }
+                end
+              else
+                alias_method(:send_multiget_without_newrelic_trace, :send_multiget)
+                def send_multiget(keys)
+                  send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace(keys) }
+                end
               end
             end
           end
@@ -78,8 +86,8 @@ module NewRelic
           end
 
           def instrument!
-            instrument_methods ::Dalli::Client, dalli_cas_methods
-            instrument_multi_method :get_multi_cas
+            instrument_methods(::Dalli::Client, dalli_cas_methods)
+            instrument_multi_method(:get_multi_cas)
           end
         end
       end

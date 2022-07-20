@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require_relative '../test_helper'
 
 module NewRelic::Agent::InfiniteTracing
   class ResponseHandlerTest < Minitest::Test
@@ -12,7 +12,7 @@ module NewRelic::Agent::InfiniteTracing
     end
 
     def test_processes_simple_task
-      worker = Worker.new "simple" do
+      worker = Worker.new("simple") do
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Worker", 0.0)
       end
       assert_equal "run", worker.status
@@ -26,7 +26,7 @@ module NewRelic::Agent::InfiniteTracing
     end
 
     def test_worker_handles_errors
-      worker = Worker.new "error" do
+      worker = Worker.new("error") do
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Worker", 0.0)
         raise "Oops!"
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Error", 0.0)

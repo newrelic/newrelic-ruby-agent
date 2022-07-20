@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 module NewRelic
   module Agent
@@ -101,16 +102,16 @@ module NewRelic
           payload = nil
           external_segment = nil
           in_transaction('test_txn') do |txn|
-            external_segment = NewRelic::Agent::Tracer\
-              .start_external_request_segment library: "net/http",
+            external_segment = NewRelic::Agent::Tracer \
+              .start_external_request_segment(library: "net/http",
                 uri: "http://docs.newrelic.com",
-                procedure: "GET"
+                procedure: "GET")
             payload = txn.distributed_tracer.create_distributed_trace_payload
           end
 
           in_transaction('test_txn2') do |txn|
             incoming_payload = payload.text
-            txn.distributed_tracer.accept_distributed_trace_payload incoming_payload
+            txn.distributed_tracer.accept_distributed_trace_payload(incoming_payload)
           end
 
           last_span_event = NewRelic::Agent.agent.span_event_aggregator.harvest![-1][-1]
@@ -125,8 +126,8 @@ module NewRelic
         def test_empty_error_message_can_override_previous_error_message_attribute
           begin
             with_segment do |segment|
-              segment.notice_error RuntimeError.new "oops!"
-              segment.notice_error StandardError.new
+              segment.notice_error(RuntimeError.new("oops!"))
+              segment.notice_error(StandardError.new)
               error_attributes = SpanEventPrimitive::error_attributes(segment)
               assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
               assert_equal "StandardError", error_attributes["error.class"]
@@ -139,7 +140,7 @@ module NewRelic
         def test_includes_custom_attributes_in_event
           in_transaction do |txn|
             txn.current_segment.attributes.merge_custom_attributes('bing' => 2)
-            _, custom_attrs, _ = SpanEventPrimitive.for_segment txn.current_segment
+            _, custom_attrs, _ = SpanEventPrimitive.for_segment(txn.current_segment)
             assert_equal 2, custom_attrs['bing']
           end
         end
@@ -148,7 +149,7 @@ module NewRelic
           with_config('span_events.attributes.enabled' => false) do
             with_segment do |segment|
               segment.attributes.merge_custom_attributes('bing' => 2)
-              _, custom_attrs, _ = SpanEventPrimitive.for_segment segment
+              _, custom_attrs, _ = SpanEventPrimitive.for_segment(segment)
               assert_empty custom_attrs
             end
           end
@@ -157,7 +158,7 @@ module NewRelic
         def test_custom_attributes_in_event_cant_override_reserved_attributes
           with_segment do |segment|
             segment.attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
-            event, custom_attrs, _ = SpanEventPrimitive.for_segment segment
+            event, custom_attrs, _ = SpanEventPrimitive.for_segment(segment)
 
             assert_equal 'Span', event['type']
             assert_equal 0.0, event['duration']
@@ -184,9 +185,9 @@ module NewRelic
               :error => false,
               :priority => 0.123
             }
-            _, custom_txn_attrs, _ = TransactionEventPrimitive.create payload
+            _, custom_txn_attrs, _ = TransactionEventPrimitive.create(payload)
 
-            _, custom_span_attrs, _ = SpanEventPrimitive.for_segment segment
+            _, custom_span_attrs, _ = SpanEventPrimitive.for_segment(segment)
 
             assert_empty custom_txn_attrs
             assert_equal expected_span_attrs, custom_span_attrs
@@ -276,6 +277,36 @@ module NewRelic
 
             assert_equal({:foo => "bar"}, span_agent_attributes)
             assert_equal transaction_agent_attributes, span_agent_attributes
+          end
+        end
+
+        def test_code_level_metrics_added_to_span_events
+          filepath = '/path/to/file.rb'
+          function = 'test'
+          lineno = 1138
+          namespace = 'The::Example'
+
+          in_transaction do |txn|
+            txn.current_segment.code_information = {filepath: filepath,
+                                                    function: function,
+                                                    lineno: lineno,
+                                                    namespace: namespace}
+            _intrinsics, _custom, agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
+            assert_equal [filepath, function, lineno, namespace],
+              agent_attributes.values_at('code.filepath',
+                'code.function',
+                'code.lineno',
+                'code.namespace')
+          end
+        end
+
+        def test_code_level_metrics_absent_if_unset
+          in_transaction do |txn|
+            _intrinsics, _custom, agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
+            existence = %w[code.filepath code.function code.lineno code.namespace].map do |attribute|
+              agent_attributes.key?(attribute)
+            end
+            assert_equal [false, false, false, false], existence
           end
         end
       end

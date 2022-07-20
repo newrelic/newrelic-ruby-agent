@@ -1,9 +1,11 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # https://newrelic.atlassian.net/browse/RUBY-775
 
+SimpleCovHelper.command_name("test:multiverse[sidekiq]")
 require File.join(File.dirname(__FILE__), "sidekiq_server")
 SidekiqServer.instance.run
 
@@ -59,7 +61,7 @@ class SidekiqTest < Minitest::Test
   def run_and_transmit
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       TestWorker.run_jobs(JOB_COUNT) do |i|
-        yield i
+        yield(i)
       end
     end
 
@@ -77,7 +79,11 @@ class SidekiqTest < Minitest::Test
       YAML.stubs(:load).raises(RuntimeError.new("Ouch"))
       run_delayed
       assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
-      assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
+      if RUBY_VERSION >= '3.0.0'
+        assert_metric_and_call_count(DELAYED_TRANSACTION_NAME, JOB_COUNT)
+      else
+        assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
+      end
     end
   end
 
@@ -98,7 +104,7 @@ class SidekiqTest < Minitest::Test
     NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     NewRelic::Agent.config.add_config_for_testing(@config)
 
-    in_transaction 'test_txn' do |t|
+    in_transaction('test_txn') do |t|
       run_jobs
     end
 
@@ -194,7 +200,7 @@ class SidekiqTest < Minitest::Test
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
 
         actual = sample.agent_attributes.keys.to_set
-        expected = Set.new ["job.sidekiq.args.0", "job.sidekiq.args.1"]
+        expected = Set.new(["job.sidekiq.args.0", "job.sidekiq.args.1"])
         assert_equal expected, actual
       end
     end

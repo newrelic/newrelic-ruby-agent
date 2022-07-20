@@ -1,12 +1,16 @@
 [
   {
     "testname":"replace first",
-    "rules":[{"match_expression":"(psi)", "replacement":"gamma", "ignore":false, "eval_order":0}],
+    "rules":[{"match_expression":"(psi)",                         "replacement":"gamma",                         "ignore":false, "eval_order":0},
+             {"match_expression":"^/userid/.*/folderid",          "replacement":"/userid/*/folderid/*",          "ignore":false, "eval_order":1},
+             {"match_expression":"/need_not_be_first_segment/.*", "replacement":"*/need_not_be_first_segment/*", "ignore":false, "eval_order":2}],
     "tests":
     [
-      {"input":"/alpha/psi/beta", "expected":"/alpha/gamma/beta"},
-      {"input":"/psi/beta",       "expected":"/gamma/beta"},
-      {"input":"/alpha/psi",      "expected":"/alpha/gamma"}
+      {"input":"/alpha/psi/beta",                       "expected":"/alpha/gamma/beta"},
+      {"input":"/psi/beta",                             "expected":"/gamma/beta"},
+      {"input":"/alpha/psi",                            "expected":"/alpha/gamma"},
+      {"input":"/userid/123abc/folderid/qwerty8855",    "expected":"/userid/*/folderid/*/qwerty8855"},
+      {"input":"/first/need_not_be_first_segment/uiop", "expected":"/first*/need_not_be_first_segment/*"}
     ]
   },
   {
@@ -16,16 +20,6 @@
     [
       {"input":"/test/dude/flower.jpg", "expected":"/test/dude/*.jpg"},
       {"input":"/DUDE.ICO",             "expected":"/*.ICO"}
-    ]
-  },
-  {
-    "testname":"replace segment",
-    "rules":[{"match_expression":"^/userid/.*/folderid",          "replacement":"/userid/*/folderid/*",          "ignore":false, "eval_order":1},
-             {"match_expression":"/need_not_be_first_segment/.*", "replacement":"*/need_not_be_first_segment/*", "ignore":false, "eval_order":2}],
-    "tests":
-    [
-      {"input":"/userid/123abc/folderid/qwerty8855",    "expected":"/userid/*/folderid/*/qwerty8855"},
-      {"input":"/first/need_not_be_first_segment/uiop", "expected":"/first*/need_not_be_first_segment/*"}
     ]
   },
   {
@@ -85,7 +79,9 @@
       {"match_expression":"^/blah/(.*)",                                          "replacement":"/\\1",                  "ignore":false, "eval_order":2,  "each_segment":false, "terminate_chain":true},
       {"match_expression":"/.*(dude|man)",                                        "replacement":"/*.\\1",                "ignore":false, "eval_order":3,  "each_segment":false, "terminate_chain":true},
       {"match_expression":"^/(bob)",                                              "replacement":"/\\1ert/\\1/\\1ertson", "ignore":false, "eval_order":4,  "each_segment":false, "terminate_chain":true},
-      {"match_expression":"/foo(.*)",                                                                                    "ignore":true,  "eval_order":5,  "each_segment":false, "terminate_chain":true}
+      {"match_expression":"/foo(.*)",                                                                                    "ignore":true,  "eval_order":5,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"^/(keep)(/)(me)",                                      "replacement":"/\\1\\2\\3",            "ignore":false, "eval_order":6,  "each_segment":false, "terminate_chain":true},
+      {"match_expression":"^/(keep)(/)(me)",                                      "replacement":"/you_werent_kept",      "ignore":false, "eval_order":7,  "each_segment":false, "terminate_chain":true}
     ],
     "tests":
     [
@@ -98,7 +94,8 @@
       {"input":"/oh/hey.dude",                  "expected":"/*.dude"},
       {"input":"/oh/hey/what/up.man",           "expected":"/*.man"},
       {"input":"/foo",                          "expected":null},
-      {"input":"/foo/foobar",                   "expected":null}
+      {"input":"/foo/foobar",                   "expected":null},
+      {"input":"/keep/me",                      "expected":"/keep/me"}
     ]
   },
   {

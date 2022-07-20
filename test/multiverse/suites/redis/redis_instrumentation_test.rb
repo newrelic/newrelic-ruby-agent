@@ -1,9 +1,11 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
+SimpleCovHelper.command_name("test:multiverse[redis]")
 require 'redis'
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
+require_relative '../../../helpers/docker'
 
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
   class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test
@@ -29,7 +31,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_metrics_for_connect
       redis = Redis.new(:host => redis_host)
 
-      in_transaction "test_txn" do
+      in_transaction("test_txn") do
         redis.get("foo")
       end
 
@@ -70,7 +72,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_metrics_for_set
       in_transaction do
-        @redis.set 'time', 'walk'
+        @redis.set('time', 'walk')
       end
 
       expected = {
@@ -86,7 +88,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_metrics_for_get_in_web_transaction
       in_web_transaction do
-        @redis.set 'prodigal', 'sorcerer'
+        @redis.set('prodigal', 'sorcerer')
       end
 
       expected = {
@@ -102,7 +104,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_metrics_for_get_in_background_txn
       in_background_transaction do
-        @redis.get 'mox sapphire'
+        @redis.get('mox sapphire')
       end
 
       expected = {
@@ -118,7 +120,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_tt_node_for_get
       in_transaction do
-        @redis.get 'mox sapphire'
+        @redis.get('mox sapphire')
       end
 
       tt = last_transaction_trace
@@ -128,7 +130,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_does_not_record_statement_on_individual_command_node_by_default
       in_transaction do
-        @redis.get 'mox sapphire'
+        @redis.get('mox sapphire')
       end
 
       tt = last_transaction_trace
@@ -140,7 +142,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_metrics_for_set_in_web_transaction
       in_web_transaction do
-        @redis.get 'timetwister'
+        @redis.get('timetwister')
       end
 
       expected = {
@@ -155,10 +157,10 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_metrics_for_pipelined_commands
-      in_transaction 'test_txn' do
+      in_transaction('test_txn') do
         @redis.pipelined do
-          @redis.get 'great log'
-          @redis.get 'late log'
+          @redis.get('great log')
+          @redis.get('late log')
         end
       end
 
@@ -182,8 +184,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_commands_without_args_in_pipelined_block_by_default
       in_transaction do
         @redis.pipelined do
-          @redis.set 'late log', 'goof'
-          @redis.get 'great log'
+          @redis.set('late log', 'goof')
+          @redis.get('great log')
         end
       end
 
@@ -194,10 +196,10 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_metrics_for_multi_blocks
-      in_transaction 'test_txn' do
+      in_transaction('test_txn') do
         @redis.multi do
-          @redis.get 'darkpact'
-          @redis.get 'chaos orb'
+          @redis.get('darkpact')
+          @redis.get('chaos orb')
         end
       end
 
@@ -221,8 +223,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_commands_without_args_in_tt_node_for_multi_blocks
       in_transaction do
         @redis.multi do
-          @redis.set 'darkpact', 'sorcery'
-          @redis.get 'chaos orb'
+          @redis.set('darkpact', 'sorcery')
+          @redis.get('chaos orb')
         end
       end
 
@@ -236,8 +238,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       with_config(:'transaction_tracer.record_redis_arguments' => true) do
         in_transaction do
           @redis.multi do
-            @redis.set 'darkpact', 'sorcery'
-            @redis.get 'chaos orb'
+            @redis.set('darkpact', 'sorcery')
+            @redis.get('chaos orb')
           end
         end
       end
@@ -310,7 +312,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
       redis = Redis.new(:host => redis_host)
-      redis.send(client).stubs(:path).raises StandardError.new
+      redis.send(client).stubs(:path).raises(StandardError.new)
       in_transaction do
         redis.get("foo")
       end
@@ -325,7 +327,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def simulate_read_error
       redis = Redis.new(:host => redis_host)
       redis.send(client).stubs("establish_connection").raises(simulated_error_class, "Error connecting to Redis")
-      redis.get "foo"
+      redis.get("foo")
     ensure
     end
 

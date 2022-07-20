@@ -1,12 +1,14 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # These tests confirm functionality when using the Rack::Builder class. In
 # particular, combinations of map, use and run should result in the right
 # metrics. In internals changed across Rack versions, so it's important to
 # check as our middleware and Rack instrumentation has grown.
 
+SimpleCovHelper.command_name("test:multiverse[rack]")
 require 'multiverse_helpers'
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
@@ -46,29 +48,29 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     def app
       Rack::Builder.app do
-        use MiddlewareOne
-        use MiddlewareTwo
+        use(MiddlewareOne)
+        use(MiddlewareTwo)
 
-        map '/prefix1' do
-          run PrefixAppOne.new
+        map('/prefix1') do
+          run(PrefixAppOne.new)
         end
 
-        map '/prefix2' do
-          use MiddlewareThree
-          run PrefixAppTwo.new
+        map('/prefix2') do
+          use(MiddlewareThree)
+          run(PrefixAppTwo.new)
         end
 
         # Rack versions prior to 1.4 did not support combining map and run at the
         # top-level in the same Rack::Builder.
         if Rack::VERSION[1] >= 4
-          run ExampleApp.new
+          run(ExampleApp.new)
         end
       end
     end
 
     if Rack::VERSION[1] >= 4
       def test_metrics_for_default_prefix
-        get '/'
+        get('/')
 
         assert_metrics_recorded_exclusive([
           'Apdex',
@@ -88,7 +90,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     def test_metrics_for_mapped_prefix
-      get '/prefix1'
+      get('/prefix1')
 
       assert_metrics_recorded([
         'Apdex',
@@ -108,7 +110,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     def test_metrics_for_mapped_prefix_with_extra_middleware
-      get '/prefix2'
+      get('/prefix2')
 
       assert_metrics_recorded([
         'Apdex',

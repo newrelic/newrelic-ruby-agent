@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 source 'https://rubygems.org'
 
 gem 'rake', '~> 12.3.3'
@@ -10,6 +11,6 @@ gem 'rack-test', '< 0.8.0'
 
 gem 'newrelic_rpm', :path => '../../..'
 
-gem 'pry', '~> 0.9.12'
+gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
-gem 'hometown', '~> 0.2.5'
+gem 'simplecov'

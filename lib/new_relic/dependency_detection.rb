@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module DependencyDetection
   module_function
@@ -75,40 +76,40 @@ module DependencyDetection
       !executed and check_dependencies
     end
 
-    def source_location_for klass, method_name
+    def source_location_for(klass, method_name)
       Object.instance_method(:method).bind(klass.allocate).call(method_name).source_location.to_s
     end
 
     # Extracts the instrumented library name from the instrumenting module's name
     # Given "NewRelic::Agent::Instrumentation::NetHTTP::Prepend"
     # Will extract "NetHTTP" which is in the 2nd to last spot
-    def extract_supportability_name instrumenting_module
+    def extract_supportability_name(instrumenting_module)
       instrumenting_module.to_s.split("::")[-2]
     end
 
-    def log_and_instrument method, instrumenting_module, supportability_name
+    def log_and_instrument(method, instrumenting_module, supportability_name)
       supportability_name ||= extract_supportability_name(instrumenting_module)
-      NewRelic::Agent.logger.info "Installing New Relic supported #{supportability_name} instrumentation using #{method}"
+      NewRelic::Agent.logger.info("Installing New Relic supported #{supportability_name} instrumentation using #{method}")
       NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/#{method}", 0.0)
       yield
     end
 
-    def prepend_instrument target_class, instrumenting_module, supportability_name = nil
+    def prepend_instrument(target_class, instrumenting_module, supportability_name = nil)
       log_and_instrument("Prepend", instrumenting_module, supportability_name) do
-        target_class.send :prepend, instrumenting_module
+        target_class.send(:prepend, instrumenting_module)
       end
     end
 
-    def chain_instrument instrumenting_module, supportability_name = nil
+    def chain_instrument(instrumenting_module, supportability_name = nil)
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
         instrumenting_module.instrument!
       end
     end
 
-    def chain_instrument_target target, instrumenting_module, supportability_name = nil
-      NewRelic::Agent.logger.info "Installing deferred #{target} instrumentation"
+    def chain_instrument_target(target, instrumenting_module, supportability_name = nil)
+      NewRelic::Agent.logger.info("Installing deferred #{target} instrumentation")
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
-        instrumenting_module.instrument! target
+        instrumenting_module.instrument!(target)
       end
     end
 
@@ -117,7 +118,7 @@ module DependencyDetection
         begin
           x.call
         rescue => err
-          NewRelic::Agent.logger.error "Error while installing #{self.name} instrumentation:", err
+          NewRelic::Agent.logger.error("Error while installing #{self.name} instrumentation:", err)
           break
         end
       end
@@ -138,7 +139,7 @@ module DependencyDetection
       end
     end
 
-    def depends_on &block
+    def depends_on(&block)
       @dependencies << block if block_given?
     end
 
@@ -155,9 +156,10 @@ module DependencyDetection
       return false unless ::NewRelic::Agent.config[key] == true
 
       ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
-      ::NewRelic::Agent.logger.debug \
-        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release." \
-        " Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
+      ::NewRelic::Agent.logger.debug( \
+        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release. " \
+        "Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
+      )
 
       return true
     end
@@ -178,7 +180,7 @@ module DependencyDetection
 
     # returns only a valid value for instrumentation configuration
     # If user uses "enabled" it's converted to "auto"
-    def valid_config_value retrieved_value
+    def valid_config_value(retrieved_value)
       VALID_CONFIG_VALUES.include?(retrieved_value) ? retrieved_value : AUTO_CONFIG_VALUE
     end
 
@@ -203,11 +205,11 @@ module DependencyDetection
       self.config_name = new_config_name
     end
 
-    def executes &block
+    def executes(&block)
       @executes << block if block_given?
     end
 
-    def conflicts_with_prepend &block
+    def conflicts_with_prepend(&block)
       @prepend_conflicts << block if block_given?
     end
 

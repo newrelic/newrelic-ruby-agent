@@ -1,9 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path '../../../../test_helper', __FILE__
-
+require_relative '../../../test_helper'
 require 'json'
 
 module NewRelic::Agent
@@ -78,13 +78,13 @@ module NewRelic::Agent
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
           carrier = {"HTTP_NEWRELIC" => payload}
-          DistributedTracing.accept_distributed_trace_headers carrier, test_case['transport_type']
+          DistributedTracing.accept_distributed_trace_headers(carrier, test_case['transport_type'])
         end
       end
 
       def raise_exception(test_case)
         if test_case['raises_exception']
-          e = StandardError.new 'ouchies'
+          e = StandardError.new('ouchies')
           ::NewRelic::Agent.notice_error(e)
         end
       end
@@ -147,18 +147,18 @@ module NewRelic::Agent
       ALLOWED_EVENT_TYPES = %w[ Transaction TransactionError Span ]
 
       def intrinsics_for_event(test_case, event_type)
-        unless ALLOWED_EVENT_TYPES.include? event_type
+        unless ALLOWED_EVENT_TYPES.include?(event_type)
           raise %Q(Test fixture refers to unexpected event type "#{event_type}")
         end
 
         return {} unless (intrinsics = test_case['intrinsics'])
         target_events = intrinsics['target_events'] || []
-        return {} unless target_events.include? event_type
+        return {} unless target_events.include?(event_type)
 
         common_intrinsics = intrinsics['common'] || {}
         event_intrinsics = intrinsics[event_type.to_sym] || {}
 
-        merge_intrinsics [common_intrinsics, event_intrinsics]
+        merge_intrinsics([common_intrinsics, event_intrinsics])
       end
 
       def verify_attributes(test_case_attributes, actual_attributes, event_type)
@@ -183,7 +183,7 @@ module NewRelic::Agent
         return if test_case_intrinsics.empty?
 
         actual_intrinsics, *_ = last_transaction_event
-        verify_attributes test_case_intrinsics, actual_intrinsics, 'Transaction'
+        verify_attributes(test_case_intrinsics, actual_intrinsics, 'Transaction')
       end
 
       def verify_error_intrinsics(test_case)
@@ -193,7 +193,7 @@ module NewRelic::Agent
         return if test_case_intrinsics.empty?
 
         actual_intrinsics, *_ = last_error_event
-        verify_attributes test_case_intrinsics, actual_intrinsics, 'TransactionError'
+        verify_attributes(test_case_intrinsics, actual_intrinsics, 'TransactionError')
       end
 
       def verify_span_intrinsics(test_case)
@@ -205,7 +205,7 @@ module NewRelic::Agent
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
         actual_intrinsics = last_span_events[0][0]
 
-        verify_attributes test_case_intrinsics, actual_intrinsics, 'Span'
+        verify_attributes(test_case_intrinsics, actual_intrinsics, 'Span')
       end
 
       def verify_outbound_payloads(test_case, actual_payloads)
@@ -218,7 +218,7 @@ module NewRelic::Agent
               JSON.parse(actual.text)
             )
           )
-          verify_attributes test_case_data, actual, 'Payload'
+          verify_attributes(test_case_data, actual, 'Payload')
         end
       end
 

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'thread'
 
@@ -88,7 +89,7 @@ module NewRelic
             raise
           rescue => e
             # Don't blow out the stack for anything that hasn't already propagated
-            ::NewRelic::Agent.logger.error "Error running task in Agent Worker Loop:", e
+            ::NewRelic::Agent.logger.error("Error running task in Agent Worker Loop:", e)
           end
         end
       end

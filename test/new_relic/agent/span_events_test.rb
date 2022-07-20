@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
@@ -32,10 +33,10 @@ module NewRelic
         payload = nil
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Tracer\
-            .start_external_request_segment library: "net/http",
+          external_segment = NewRelic::Agent::Tracer \
+            .start_external_request_segment(library: "net/http",
               uri: "http://docs.newrelic.com",
-              procedure: "GET"
+              procedure: "GET")
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -49,15 +50,15 @@ module NewRelic
         payload = nil
         external_segment = nil
         in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Tracer\
-            .start_external_request_segment library: "net/http",
+          external_segment = NewRelic::Agent::Tracer \
+            .start_external_request_segment(library: "net/http",
               uri: "http://docs.newrelic.com",
-              procedure: "GET"
+              procedure: "GET")
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         in_transaction('test_txn2') do |txn|
-          txn.distributed_tracer.accept_distributed_trace_payload payload.text
+          txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]

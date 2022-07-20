@@ -1,12 +1,12 @@
 
-# NOTE:  Effective July, 2020, all the older versions of Rake prior to 12.3.3 are 
-#        eliminated from the test suite due to security vulnerability.  Because of 
+# NOTE:  Effective July, 2020, all the older versions of Rake prior to 12.3.3 are
+#        eliminated from the test suite due to security vulnerability.  Because of
 #        this and the fact that rake 12.3.3 supports Rubies going back to 2.0.0
 #        users are encouraged to upgrade their rake version to 12.3.3 rather than
-#        continue to rely on older versions of rake.  
+#        continue to rely on older versions of rake.
 #
 # NOTE:  older versions of rake going back to 10.0.0 are presumed to continue to work
-#        as no code changes were made to deprecate.  However, do be aware that over 
+#        as no code changes were made to deprecate.  However, do be aware that over
 #        time these versions may cease to work if we change instrumentation around rake
 #        in the future.
 
@@ -24,32 +24,30 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 13.0.0'
-  #{ruby3_gem_webrick}
-RB
+RAKE_VERSIONS = [
+  nil,
+  '13.0.0',
+  '12.3.3'
+]
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 12.3.3'
-  #{ruby3_gem_webrick}
-RB
-
-# No single Rails version works everywhere, so split it up
-if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
+def gem_list(rake_version = nil)
+  <<-RB
     gem 'rack'
-    gem 'rake', '~> 12.3.3'
-    gem 'rails', '~> 4.2.1'
+    gem 'rake'
+    #{ruby3_gem_webrick}
+  RB
+end
+
+create_gemfiles(RAKE_VERSIONS, gem_list)
+
+def gem_list(rake_version = nil)
+  <<-RB
+    gem 'rack'
+    gem 'rake'#{rake_version}
+    #{ruby3_gem_webrick}
+    gem 'rails'
     gem 'minitest', '5.2.3'
   RB
 end
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 12.3.3'
-  gem 'newrelic-rake', :require => false # Can't coexist with third-party instrumentation
-  #{ruby3_gem_webrick}
-RB
-
+create_gemfiles(RAKE_VERSIONS, gem_list)

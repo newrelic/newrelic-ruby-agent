@@ -97,9 +97,9 @@ The first time you run this command on a new Ruby installation, it will take qui
 
 Multiverse tests live in the test/multiverse directory and are organized into 'suites'. Generally speaking, a suite is a group of tests that share a common 3rd-party dependency (or set of dependencies). You can run one or more specific suites by providing a comma delimited list of suite names as parameters to the rake task:
 
-    rake test:multiverse[agent_only]
+    rake 'test:multiverse[agent_only]'
     # or
-    rake test:multiverse[rails,net_http]
+    rake 'test:multiverse[rails,net_http]'
 
 You can pass these additional parameters to the test:multiverse rake task to control how tests are run:
 
@@ -109,7 +109,7 @@ You can pass these additional parameters to the test:multiverse rake task to con
 - `debug` environments for each suite will be executed in serial rather than parallel (the default), and the pry gem will be automatically included, so that you can use it to help debug tests.
 
 ```
-rake test:multiverse[agent_only,name=test_resets_event_report_period_on_reconnect,env=0,debug]
+rake 'test:multiverse[agent_only,name=test_resets_event_report_period_on_reconnect,env=0,debug]'
 ```
 
 

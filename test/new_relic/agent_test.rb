@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
+require_relative '../test_helper'
 require 'ostruct'
 
 module NewRelic
@@ -357,12 +358,12 @@ module NewRelic
       assert_metrics_recorded 'OtherTransaction/Background/new_name'
     end
 
-    def setup_linking_metadata_stubs app_names, hostname, entity_guid = nil
+    def setup_linking_metadata_stubs(app_names, hostname, entity_guid = nil)
       NewRelic::Agent.config.reset_to_defaults
 
-      yaml_source = NewRelic::Agent::Configuration::YamlSource.new '', 'test'
+      yaml_source = NewRelic::Agent::Configuration::YamlSource.new('', 'test')
       yaml_source[:app_name] = app_names
-      NewRelic::Agent.config.replace_or_add_config yaml_source
+      NewRelic::Agent.config.replace_or_add_config(yaml_source)
 
       if entity_guid
         response_handler = NewRelic::Agent::Connect::ResponseHandler.new(Agent.instance, Agent.config)
@@ -373,7 +374,7 @@ module NewRelic
     end
 
     def test_linking_metadata_before_connect
-      setup_linking_metadata_stubs 'AppName', 'HostName'
+      setup_linking_metadata_stubs('AppName', 'HostName')
       expected = {
         'entity.name' => 'AppName',
         'entity.type' => 'SERVICE',
@@ -384,7 +385,7 @@ module NewRelic
     end
 
     def test_linking_metadata_after_connect
-      setup_linking_metadata_stubs 'AppName', 'HostName', 'EntityGUID'
+      setup_linking_metadata_stubs('AppName', 'HostName', 'EntityGUID')
 
       trace_id = nil
       span_id = nil
@@ -406,7 +407,7 @@ module NewRelic
     end
 
     def test_linking_metadata_no_transaction
-      setup_linking_metadata_stubs 'AppName', 'HostName', 'EntityGuid'
+      setup_linking_metadata_stubs('AppName', 'HostName', 'EntityGuid')
 
       expected = {
         'entity.name' => 'AppName',
@@ -482,12 +483,12 @@ module NewRelic
 
       loop do
         visited << a = stack.pop
-        if a.respond_to? :name
+        if a.respond_to?(:name)
           assert_equal a, Kernel.const_get(a.name)
         end
 
-        if a.respond_to? :constants
-          consts = (a.constants - DEPRECATED_CONSTANTS).map { |c| a.const_get c }.select do |c|
+        if a.respond_to?(:constants)
+          consts = (a.constants - DEPRECATED_CONSTANTS).map { |c| a.const_get(c) }.select do |c|
             if valid.include?(c.class) && !c.ancestors.include?(Minitest::Test)
               assert_instance_of String, c.name
               c.name.start_with?(a.name)
@@ -495,7 +496,7 @@ module NewRelic
               false
             end
           end
-          stack.concat (consts - visited)
+          stack.concat(consts - visited)
         end
 
         break if stack.empty?

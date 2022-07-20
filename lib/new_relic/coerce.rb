@@ -43,7 +43,7 @@ module NewRelic
       String(value)
     rescue => error
       log_failure(value.class, String, context, error)
-      ""
+      EMPTY_STR
     end
 
     def scalar(val)
@@ -61,7 +61,7 @@ module NewRelic
       end
     end
 
-    def int! value
+    def int!(value)
       return nil unless value_or_nil(value)
       Integer(value)
     end
@@ -69,16 +69,16 @@ module NewRelic
     # Use when you plan to perform a boolean check using the integer 1
     # for true and the integer 0 for false
     # String values will be converted to 0
-    def boolean_int! value
+    def boolean_int!(value)
       value.to_i
     end
 
-    def float! value, precision = NewRelic::PRIORITY_PRECISION
+    def float!(value, precision = NewRelic::PRIORITY_PRECISION)
       return nil unless value_or_nil(value)
       value.to_f.round(precision)
     end
 
-    def value_or_nil value
+    def value_or_nil(value)
       return nil if value.nil? || (value.respond_to?(:empty?) && value.empty?)
       value
     end

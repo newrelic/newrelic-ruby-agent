@@ -1,12 +1,13 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
+SimpleCovHelper.command_name("test:multiverse[deferred_instrumentation]")
 require 'newrelic_rpm'
 require 'sinatra'
-
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'sinatra', 'sinatra_test_cases'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'exceptions'))
+require_relative '../sinatra/sinatra_test_cases'
+require_relative '../../../helpers/exceptions'
 
 class DeferredSinatraTestApp < Sinatra::Base
   include NewRelic::TestHelpers::Exceptions

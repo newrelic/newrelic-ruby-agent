@@ -1,8 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
+SimpleCovHelper.command_name("test:multiverse[active_record]")
+require_relative 'app/models/models'
 
 class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers
@@ -138,11 +140,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     minor_version = active_record_minor_version
     Order.class_eval do
       if major_version >= 4
-        scope :jeffs, lambda { where(:name => 'Jeff') }
+        scope(:jeffs, lambda { where(:name => 'Jeff') })
       elsif major_version == 3 && minor_version >= 1
-        scope :jeffs, :conditions => {:name => 'Jeff'}
+        scope(:jeffs, :conditions => {:name => 'Jeff'})
       else
-        named_scope :jeffs, :conditions => {:name => 'Jeff'}
+        named_scope(:jeffs, :conditions => {:name => 'Jeff'})
       end
     end
 
@@ -453,7 +455,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     # Let's trigger an active record SQL StatemntInvalid error
     assert_raises ::ActiveRecord::StatementInvalid do
       in_web_transaction do
-        Order.connection.select_rows "select * from askdjfhkajsdhflkjh"
+        Order.connection.select_rows("select * from askdjfhkajsdhflkjh")
       end
     end
 

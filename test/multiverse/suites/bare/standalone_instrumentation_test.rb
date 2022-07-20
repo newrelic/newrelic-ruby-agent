@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This test is based on the example code at:
 # https://docs.newrelic.com/docs/ruby/ruby-custom-metric-collection#example_class
@@ -8,6 +9,7 @@
 # See https://newrelic.atlassian.net/browse/RUBY-1116 for details on how this
 # was broken previously.
 
+SimpleCovHelper.command_name("test:multiverse[bare]")
 require 'new_relic/agent/method_tracer'
 
 class StandaloneInstrumentationTest < Minitest::Test

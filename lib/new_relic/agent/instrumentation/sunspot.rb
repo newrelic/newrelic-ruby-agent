@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 DependencyDetection.defer do
   @name = :sunspot
@@ -10,9 +11,9 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails Sunspot instrumentation'
-    deprecation_msg = 'The instrumentation for Sunspot is deprecated.' \
-      ' It will be removed in version 9.0.0.' \
+    ::NewRelic::Agent.logger.info('Installing Rails Sunspot instrumentation')
+    deprecation_msg = 'The instrumentation for Sunspot is deprecated. ' \
+      'It will be removed in version 9.0.0.'
 
     ::NewRelic::Agent.logger.log_once(
       :warn,

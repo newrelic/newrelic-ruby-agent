@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/sampler'
 require 'new_relic/delayed_job_injection'
@@ -87,7 +88,7 @@ module NewRelic
           all_count = 0
           queue_counts(column_name).each do |column_val, count|
             all_count += count
-            column_val = "default" if column_val.nil? || column_val == ""
+            column_val = "default" if column_val.nil? || column_val == NewRelic::EMPTY_STR
             metric = "Workers/DelayedJob/queue_length/#{metric_node}/#{column_val}"
             NewRelic::Agent.record_metric(metric, count)
           end

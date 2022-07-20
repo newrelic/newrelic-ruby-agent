@@ -1,10 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
-
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
 require 'new_relic/agent/log_event_aggregator'
 
 module NewRelic::Agent
@@ -86,7 +86,7 @@ module NewRelic::Agent
     end
 
     def test_records_customer_metrics_when_enabled
-      with_config LogEventAggregator::METRICS_ENABLED_KEY => true do
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
         2.times { @aggregator.record("Are you counting this?", "DEBUG") }
         @aggregator.harvest!
       end
@@ -115,7 +115,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_record_customer_metrics_when_disabled
-      with_config LogEventAggregator::METRICS_ENABLED_KEY => false do
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => false) do
         @aggregator.record("Are you counting this?", "DEBUG")
         @aggregator.harvest!
       end
@@ -130,7 +130,7 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', nil)
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["log.level"]
+      assert_equal 'UNKNOWN', events[0][1]["level"]
       assert_metrics_recorded([
         "Logging/lines/UNKNOWN"
       ])
@@ -140,7 +140,7 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', '')
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["log.level"]
+      assert_equal 'UNKNOWN', events[0][1]["level"]
       assert_metrics_recorded([
         "Logging/lines/UNKNOWN"
       ])
@@ -287,7 +287,7 @@ module NewRelic::Agent
       event = events.first
 
       assert_equal({
-        'log.level' => "INFO",
+        'level' => "INFO",
         'message' => message,
         'timestamp' => t0
       },
@@ -295,7 +295,7 @@ module NewRelic::Agent
     end
 
     def test_records_metrics_on_harvest
-      with_config CAPACITY_KEY => 5 do
+      with_config(CAPACITY_KEY => 5) do
         9.times { @aggregator.record("Are you counting this?", "DEBUG") }
         @aggregator.harvest!
 
@@ -311,7 +311,7 @@ module NewRelic::Agent
     end
 
     def test_high_security_mode
-      with_config CAPACITY_KEY => 5, :high_security => true do
+      with_config(CAPACITY_KEY => 5, :high_security => true) do
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 

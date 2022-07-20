@@ -1,13 +1,17 @@
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis'
-  #{ruby3_gem_webrick}
-RB
+REDIS_VERSIONS = [
+  [nil, 2.4],
+  ['4.7.1', 2.4],
+  ['3.3.0']
+]
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis', '~>4.0.1'
-  #{ruby3_gem_webrick}
-RB
+def gem_list(redis_version = nil)
+  <<-RB
+    gem 'rack'
+    gem 'redis'#{redis_version}
+    #{ruby3_gem_webrick}
+  RB
+end
+
+create_gemfiles(REDIS_VERSIONS, gem_list)

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+SimpleCovHelper.command_name("test:multiverse[excon]")
 require "excon"
 require "newrelic_rpm"
 require "http_client_test_cases"
@@ -15,7 +16,7 @@ class ExconTest < Minitest::Test
   end
 
   def new_timeout_error_class
-    Excon::Errors::Timeout.new 'read timeout reached'
+    Excon::Errors::Timeout.new('read timeout reached')
   end
 
   def timeout_error_class
@@ -31,8 +32,8 @@ class ExconTest < Minitest::Test
     Excon.get(url || default_url, :headers => (headers || {}))
   end
 
-  def get_wrapped_response url
-    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new get_response url
+  def get_wrapped_response(url)
+    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(get_response(url))
   end
 
   def get_response_multi(url, n)
@@ -68,7 +69,7 @@ class ExconTest < Minitest::Test
       :path => "",
       :headers => {}
     }
-    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new params
+    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(params)
   end
 
   def response_instance(headers = {})

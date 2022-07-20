@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # These tests are intended to exercise the basic marshalling functionality of
 # the agent in it's different permutations (Ruby and JSON)
@@ -179,7 +180,7 @@ module MarshallingTestCases
     logs = result.first.logs
     refute_empty logs
 
-    log = logs.find { |l| l["message"] == message && l["log.level"] == severity }
+    log = logs.find { |l| l["message"] == message && l["level"] == severity }
 
     refute_nil log
     assert_equal t0, log["timestamp"]
@@ -196,7 +197,7 @@ module MarshallingTestCases
 
     def break_it
       NewRelic::Agent.set_transaction_name("break_it", :category => "TestTransaction")
-      NewRelic::Agent.notice_error StandardError.new("Sorry!")
+      NewRelic::Agent.notice_error(StandardError.new("Sorry!"))
       NewRelic::Agent::Tracer.current_span_id
     end
 

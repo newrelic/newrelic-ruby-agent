@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'forwardable'
 
@@ -46,7 +47,7 @@ module NewRelic
 
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
-      def self.deprecated_description new_setting, description
+      def self.deprecated_description(new_setting, description)
         link_ref = new_setting.to_s.gsub(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
@@ -96,11 +97,11 @@ module NewRelic
               paths << File.join(NewRelic::Control.instance.root, "newrelic.yml.erb")
             end
 
-            if ENV["HOME"]
-              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
-              paths << File.join(ENV["HOME"], "newrelic.yml")
-              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml.erb")
-              paths << File.join(ENV["HOME"], "newrelic.yml.erb")
+            if ENV['HOME']
+              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml")
+              paths << File.join(ENV['HOME'], "newrelic.yml")
+              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml.erb")
+              paths << File.join(ENV['HOME'], "newrelic.yml.erb")
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
@@ -117,9 +118,9 @@ module NewRelic
         def self.config_path
           Proc.new {
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
-              File.expand_path(file) if File.exist? file
+              File.expand_path(file) if File.exist?(file)
             end
-            found_path || ""
+            found_path || NewRelic::EMPTY_STR
           }
         end
 
@@ -134,7 +135,7 @@ module NewRelic
               when 4..7
                 :rails_notifications
               else
-                ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"
+                ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
                 :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
@@ -211,7 +212,7 @@ module NewRelic
 
         def self.api_host
           Proc.new do
-            if String(NewRelic::Agent.config[:license_key]).start_with? 'eu'
+            if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
               'rpm.eu.newrelic.com'
             else
               'rpm.newrelic.com'
@@ -238,11 +239,11 @@ module NewRelic
         end
 
         SEMICOLON = ';'.freeze
-        def self.convert_to_list_on_semicolon value
+        def self.convert_to_list_on_semicolon(value)
           case value
           when Array then value
           when String then value.split(SEMICOLON)
-          else []
+          else NewRelic::EMPTY_ARRAY
           end
         end
 
@@ -517,9 +518,9 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
-          'This configuration option converts the Array to a RegEx list. If you\'d like '\
-          'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be '\
-          'instrumented unless they\'re added to this list. For more information, '\
+          'This configuration option converts the Array to a RegEx list. If you\'d like ' \
+          'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
+          'instrumented unless they\'re added to this list. For more information, ' \
           'visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].'
         },
         :'rake.connect_timeout' => {
@@ -2009,6 +2010,13 @@ A map of error classes to a list of messages. When an error of one of the classe
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
+        },
+        :'code_level_metrics.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent will report source code level metrics for traced methods.'
         },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),

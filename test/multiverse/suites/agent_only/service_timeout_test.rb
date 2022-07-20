@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'socket'
 
@@ -12,7 +13,7 @@ class ServiceTimeoutTest < Minitest::Test
     Thread.new {
       client = hk.accept
       client.gets
-      sleep 4
+      sleep(4)
       client.close
       Thread.exit
     }
@@ -29,7 +30,7 @@ class ServiceTimeoutTest < Minitest::Test
     service = NewRelic::Agent::NewRelicService.new('deadbeef', server)
 
     assert_raises NewRelic::Agent::ServerConnectionException do
-      service.send('send_request',
+      service.send(:send_request,
         :uri => '/agent_listener/8/bd0e1d52adade840f7ca727d29a86249e89a6f1c/preconnect',
         :encoding => 'UTF-8', :collector => server, :data => 'blah')
     end

@@ -1,28 +1,29 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 require 'new_relic/agent/heap'
 
 module NewRelic
   module Agent
     class HeapTest < Minitest::Test
       def test_items_inserted_in_proper_order
-        heap = Heap.new [12, 5, 4, 8]
+        heap = Heap.new([12, 5, 4, 8])
 
         assert_equal [4, 8, 5, 12], heap.to_a
       end
 
       def test_tree_rebalanced_on_pop
-        heap = Heap.new [12, 5, 4, 8]
+        heap = Heap.new([12, 5, 4, 8])
         heap.pop
 
         assert_equal [5, 8, 12], heap.to_a
       end
 
       def test_items_can_be_modified_by_accessors
-        heap = Heap.new [12, 5, 4, 8]
+        heap = Heap.new([12, 5, 4, 8])
 
         assert_equal 5, heap[2]
 
@@ -32,7 +33,7 @@ module NewRelic
       end
 
       def test_fix_bubbles_up
-        heap = Heap.new [12, 5, 4, 8, 30, 7]
+        heap = Heap.new([12, 5, 4, 8, 30, 7])
 
         heap[1] = 1
         heap.fix(1)
@@ -65,7 +66,7 @@ module NewRelic
       end
 
       def test_fix_bubbles_down
-        heap = Heap.new [12, 5, 4, 8, 30, 7]
+        heap = Heap.new([12, 5, 4, 8, 30, 7])
 
         heap[1] = 50
         heap.fix(1)
@@ -97,7 +98,7 @@ module NewRelic
       end
 
       def test_fix_leaves_item_if_heap_rule_satisfied
-        heap = Heap.new [12, 5, 4, 8, 30, 7]
+        heap = Heap.new([12, 5, 4, 8, 30, 7])
 
         heap[1] = 9
         heap.fix(1)
@@ -115,7 +116,7 @@ module NewRelic
       end
 
       def test_items_are_popped_in_ascending_order
-        heap = Heap.new [12, 5, 4, 8, 30, 7]
+        heap = Heap.new([12, 5, 4, 8, 30, 7])
 
         ordered_items = []
 

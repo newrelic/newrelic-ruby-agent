@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/null_logger'
 
@@ -66,7 +67,7 @@ class AuditLoggerTest < Minitest::Test
 
   def test_log_formatter
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-    Socket.stubs(:gethostname).returns('dummyhost')
+    Socket.stubs(:gethostname).returns(String.new('dummyhost'))
     formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
     time = '2012-01-01 00:00:00'
     msg = 'hello'
@@ -78,7 +79,7 @@ class AuditLoggerTest < Minitest::Test
   def test_log_formatter_to_stdout
     with_config(:'audit_log.path' => "STDOUT") do
       NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-      Socket.stubs(:gethostname).returns('dummyhost')
+      Socket.stubs(:gethostname).returns(String.new('dummyhost'))
       formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
       time = '2012-01-01 00:00:00'
       msg = 'hello'
@@ -156,12 +157,13 @@ class AuditLoggerTest < Minitest::Test
 
   def test_should_cache_hostname
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-    Socket.expects(:gethostname).once.returns('cachey-mccaherson')
+    hostname = String.new('cachey-mccaherson')
+    Socket.expects(:gethostname).once.returns(hostname)
     setup_fake_logger
     3.times do
       @logger.log_request(@uri, @dummy_data, @marshaller)
     end
-    assert_log_contains_string('cachey-mccaherson')
+    assert_log_contains_string(hostname)
   end
 
   TRAPPABLE_ERRORS = [
@@ -186,7 +188,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_writes_to_stdout
-    with_config(:'audit_log.path' => "STDOUT") do
+    with_config(:'audit_log.path' => 'STDOUT') do
       output = capturing_stdout do
         @logger = NewRelic::Agent::AuditLogger.new
         @logger.log_request(@uri, @dummy_data, @marshaller)
@@ -219,7 +221,7 @@ class AuditLoggerTest < Minitest::Test
 
   def capturing_stdout
     orig = $stdout.dup
-    output = ""
+    output = String.new('')
     $stdout = StringIO.new(output)
     yield
     output

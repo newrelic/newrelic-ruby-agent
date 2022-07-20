@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && defined? ::Rack
 
@@ -29,13 +30,13 @@ if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && def
 
     def app
       Rack::Builder.app do
-        use SimpleMiddleware
-        run ExampleApp.new
+        use(SimpleMiddleware)
+        run(ExampleApp.new)
       end
     end
 
     def test_no_instrumentation_when_not_supported
-      get '/'
+      get('/')
       assert_metrics_recorded_exclusive([], :ignore_filter => /^(Supportability|Logging)/)
     end
   end

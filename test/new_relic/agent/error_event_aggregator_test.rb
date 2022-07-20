@@ -1,10 +1,11 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
+require_relative '../../test_helper'
+require_relative '../data_container_tests'
+require_relative '../common_aggregator_tests'
 require 'new_relic/agent/error_event_aggregator'
 require 'new_relic/agent/guid_generator'
 
@@ -17,7 +18,7 @@ module NewRelic
 
         events = NewRelic::Agent.instance.events
         @span_id = NewRelic::Agent::GuidGenerator.generate_guid
-        @error_event_aggregator = ErrorEventAggregator.new events
+        @error_event_aggregator = ErrorEventAggregator.new(events)
       end
 
       def teardown
@@ -33,10 +34,10 @@ module NewRelic
 
       def populate_container(sampler, n)
         n.times do
-          error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
+          error = NewRelic::NoticedError.new("Controller/blogs/index", RuntimeError.new("Big Controller"))
           payload = in_transaction {}.payload
 
-          @error_event_aggregator.record error, payload, @span_id
+          @error_event_aggregator.record(error, payload, @span_id)
         end
       end
 
@@ -65,7 +66,7 @@ module NewRelic
       # Tests specific to ErrorEventAggregator
 
       def test_generates_event_without_payload
-        aggregator.record create_noticed_error('blogs/index'), nil, @span_id
+        aggregator.record(create_noticed_error('blogs/index'), nil, @span_id)
 
         intrinsics, *_ = last_error_event
 
@@ -90,7 +91,7 @@ module NewRelic
       end
 
       def test_errors_not_noticed_when_disabled
-        with_server_source :'error_collector.capture_events' => false do
+        with_server_source(:'error_collector.capture_events' => false) do
           generate_error
           errors = last_error_events
           assert_empty errors
@@ -102,7 +103,7 @@ module NewRelic
           :'error_collector.enabled' => false,
           :'error_collector.capture_events' => true
         }
-        with_server_source config do
+        with_server_source(config) do
           generate_error
           errors = last_error_events
           assert_empty errors
@@ -111,12 +112,12 @@ module NewRelic
 
       class ImpossibleError < NoticedError
         def initialize
-          super 'nowhere.rb', RuntimeError.new('Impossible')
+          super('nowhere.rb', RuntimeError.new('Impossible'))
         end
       end
 
       def test_aggregator_defers_error_event_creation
-        with_config aggregator.class.capacity_key => 5 do
+        with_config(aggregator.class.capacity_key => 5) do
           5.times { generate_event }
           aggregator.expects(:create_event).never
           aggregator.record(ImpossibleError.new, {priority: -999.0}, @span_id)
@@ -138,12 +139,12 @@ module NewRelic
       def reset_error_event_buffer_state
         # this is not ideal, but we need to reset these counts to clear out state
         # between tests
-        buffer = aggregator.instance_variable_get :@buffer
-        buffer.instance_variable_set :@seen_lifetime, 0
-        buffer.instance_variable_set :@captured_lifetime, 0
+        buffer = aggregator.instance_variable_get(:@buffer)
+        buffer.instance_variable_set(:@seen_lifetime, 0)
+        buffer.instance_variable_set(:@captured_lifetime, 0)
       end
 
-      def create_noticed_error txn_name, options = {}
+      def create_noticed_error(txn_name, options = {})
         exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
@@ -155,7 +156,7 @@ module NewRelic
         noticed_error
       end
 
-      def create_transaction_payload name, options = {}
+      def create_transaction_payload(name, options = {})
         {
           :name => name,
           :type => :controller,
@@ -165,15 +166,15 @@ module NewRelic
         }.update(options)
       end
 
-      def generate_error name = 'Controller/blogs/index', options = {}
+      def generate_error(name = 'Controller/blogs/index', options = {})
         error_options = options[:error_options] || {}
-        error = create_noticed_error name, error_options
+        error = create_noticed_error(name, error_options)
 
         payload_options = options[:payload_options] || {}
         payload_options[:priority] = options[:priority] if options[:priority]
-        payload = create_transaction_payload name, payload_options
+        payload = create_transaction_payload(name, payload_options)
 
-        @error_event_aggregator.record error, payload, @span_id
+        @error_event_aggregator.record(error, payload, @span_id)
       end
     end
   end

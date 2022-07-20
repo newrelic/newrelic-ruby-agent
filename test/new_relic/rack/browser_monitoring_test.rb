@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 begin
   require 'rack/test'
@@ -9,8 +10,7 @@ rescue LoadError
 end
 
 if defined?(::Rack::Test)
-  require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
-    'test_helper'))
+  require_relative '../../test_helper'
   require 'new_relic/rack/browser_monitoring'
 
   ENV['RACK_ENV'] = 'test'
@@ -110,7 +110,7 @@ if defined?(::Rack::Test)
 
     def test_should_not_inject_javascript_when_transaction_ignored
       with_config(:'rules.ignore_url_regexes' => ['^/ignore/path']) do
-        get '/ignore/path'
+        get('/ignore/path')
 
         app.stubs(:should_instrument?).returns(true)
         app.expects(:autoinstrument_source).never
@@ -118,7 +118,7 @@ if defined?(::Rack::Test)
     end
 
     def test_insert_header_should_mark_environment
-      get '/'
+      get('/')
       assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
     end
 
@@ -160,17 +160,17 @@ if defined?(::Rack::Test)
       TestApp.next_response = Rack::Response.new("<html/>")
       TestApp.next_response.expects(:close)
 
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end
 
     def test_with_invalid_us_ascii_encoding
-      response = "<html><body>Jürgen</body></html>"
+      response = String.new('<html><body>Jürgen</body></html>')
       response.force_encoding(Encoding.find("US-ASCII"))
       TestApp.next_response = Rack::Response.new(response)
 
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end
@@ -180,14 +180,14 @@ if defined?(::Rack::Test)
       TestApp.next_response.stubs(:respond_to?).with(:close).returns(false)
       TestApp.next_response.expects(:close).never
 
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end
 
     def test_should_not_throw_exception_on_empty_reponse
       TestApp.doc = ''
-      get '/'
+      get('/')
 
       assert last_response.ok?
     end

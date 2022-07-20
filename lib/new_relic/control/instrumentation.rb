@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   class Control
@@ -12,12 +13,12 @@ module NewRelic
       # This requires the files within a rescue block, so that any
       # errors within instrumentation files do not affect the overall
       # agent or application in which it runs.
-      def load_instrumentation_files pattern
+      def load_instrumentation_files(pattern)
         Dir.glob(pattern) do |file|
           begin
             require file.to_s
           rescue => e
-            ::NewRelic::Agent.logger.warn "Error loading instrumentation file '#{file}':", e
+            ::NewRelic::Agent.logger.warn("Error loading instrumentation file '#{file}':", e)
           end
         end
       end
@@ -33,9 +34,9 @@ module NewRelic
       #
       # This happens after the agent has loaded and all dependencies
       # are ready to be instrumented
-      def add_instrumentation pattern
+      def add_instrumentation(pattern)
         if @instrumented
-          load_instrumentation_files pattern
+          load_instrumentation_files(pattern)
         else
           @instrumentation_files << pattern
         end
@@ -60,11 +61,11 @@ module NewRelic
         @instrumentation_files <<
           File.join(instrumentation_path, '*.rb') <<
           File.join(instrumentation_path, app.to_s, '*.rb')
-        @instrumentation_files.each { |pattern| load_instrumentation_files pattern }
+        @instrumentation_files.each { |pattern| load_instrumentation_files(pattern) }
         DependencyDetection.detect!
         ruby_22_deprecation
         rails_32_deprecation
-        ::NewRelic::Agent.logger.info "Finished instrumentation"
+        ::NewRelic::Agent.logger.info("Finished instrumentation")
       end
     end
 

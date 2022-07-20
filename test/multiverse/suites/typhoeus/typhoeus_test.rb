@@ -1,7 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
+SimpleCovHelper.command_name("test:multiverse[typhoeus]")
 require "typhoeus"
 require "newrelic_rpm"
 require "http_client_test_cases"
@@ -36,7 +38,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def simulate_error_response
-      get_response "http://localhost:666/evil"
+      get_response("http://localhost:666/evil")
     end
 
     # We use the Typhoeus::Request rather than right on Typhoeus to support
@@ -46,8 +48,8 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       Typhoeus::Request.get(url || default_url, options)
     end
 
-    def get_wrapped_response url
-      NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new get_response url
+    def get_wrapped_response(url)
+      NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(get_response(url))
     end
 
     def head_response
@@ -150,7 +152,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       trace = last_transaction_trace
 
-      hydra = find_node_with_name trace, "External/Multiple/Typhoeus::Hydra/run"
+      hydra = find_node_with_name(trace, "External/Multiple/Typhoeus::Hydra/run")
 
       assert_equal 5, hydra.children.size
 

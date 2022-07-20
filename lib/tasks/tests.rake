@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 begin
   require 'rake/testtask'
 rescue LoadError
@@ -31,7 +36,6 @@ if defined? Rake::TestTask
       t.libs << "#{agent_home}/test"
       t.libs << "#{agent_home}/lib"
       t.pattern = Array(file_pattern)
-      t.verbose = true
     end
   end
 end

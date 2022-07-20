@@ -13,10 +13,9 @@ $LOAD_PATH << agent_test_path
 
 require 'rubygems'
 require 'rake'
-
 require 'minitest/autorun'
+require 'minitest/pride' unless ENV['CI']
 require 'mocha/setup'
-
 require 'newrelic_rpm'
 require 'infinite_tracing'
 
@@ -37,13 +36,13 @@ require File.join(agent_helper_path, 'exceptions.rb')
 
 Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 
-def timeout_cap duration = 1.0
+def timeout_cap(duration = 1.0)
   Timeout::timeout(duration) { yield }
 rescue Timeout::Error => error
   raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject { |r| r =~ /gems\/minitest/ }.join("\n")}"
 end
 
-def deferred_span segment
+def deferred_span(segment)
   Proc.new { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
 end
 
@@ -55,9 +54,7 @@ CLIENT_MUTEX = Mutex.new
 
 # Prevent parallel runs against the client in this test suite
 def with_serial_lock
-  timeout_cap(15) do
-    CLIENT_MUTEX.synchronize { yield }
-  end
+  CLIENT_MUTEX.synchronize { yield }
 end
 
 TRACE_POINT_ENABLED = false
@@ -79,8 +76,8 @@ def trace
       :start_streaming,
       :notice_span,
       :wait_for_notice
-    ].include? tp.method_id
-    p [tp.lineno, tp.defined_class, tp.method_id, tp.event]
+    ].include?(tp.method_id)
+    p([tp.lineno, tp.defined_class, tp.method_id, tp.event])
   end
 end
 

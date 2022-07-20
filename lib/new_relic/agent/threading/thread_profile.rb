@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'set'
 require 'new_relic/agent/worker_loop'
@@ -122,8 +123,8 @@ module NewRelic
         end
 
         def to_log_description
-          "#<ThreadProfile:#{object_id} "\
-            "@profile_id: #{profile_id} "\
+          "#<ThreadProfile:#{object_id} " \
+            "@profile_id: #{profile_id} " \
             "@command_arguments=#{@command_arguments.inspect}>"
         end
       end

@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path '../../../../test_helper', __FILE__
+require_relative '../../../test_helper'
 
 module NewRelic::Agent
   class InboundRequestMonitorTest < Minitest::Test

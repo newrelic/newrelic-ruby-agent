@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'zlib'
 require 'timeout'
@@ -22,8 +23,15 @@ module NewRelic
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
 
       # Don't perform compression on the payload unless its uncompressed size is
-      # greater than this number of bytes
-      MIN_BYTE_SIZE_TO_COMPRESS = 64 * 1024
+      # greater than or equal to this number of bytes. In testing with
+      # Ruby 2.2 - 3.1, we determined an absolute minimum value for ASCII to be
+      # 535 bytes to obtain at least a 10% savings in size. It is recommended
+      # that this value be kept above that 535 number. It is also important to
+      # consider the CPU cost involved with performing compression and to find
+      # a balance between CPU cycles spent and bandwidth saved. A good
+      # reasonable default here is 2048 bytes, which is a tried and true Apache
+      # Tomcat default (as of v8.5.78)
+      MIN_BYTE_SIZE_TO_COMPRESS = 2048
 
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
@@ -191,12 +199,9 @@ module NewRelic
         response
       end
 
-      # We do not compress if content is smaller than 64kb.  There are
-      # problems with bugs in Ruby in some versions that expose us
-      # to a risk of segfaults if we compress aggressively.
       def compress_request_if_needed(data, endpoint)
         encoding = 'identity'
-        if data.size > MIN_BYTE_SIZE_TO_COMPRESS
+        if data.size >= MIN_BYTE_SIZE_TO_COMPRESS
           encoding = Agent.config[:compressed_content_encoding]
           data = if encoding == 'deflate'
             Encoders::Compressed::Deflate.encode(data)
@@ -347,7 +352,7 @@ module NewRelic
         start_connection(conn)
         conn
       rescue Timeout::Error
-        ::NewRelic::Agent.logger.info ("Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.")
+        ::NewRelic::Agent.logger.info("Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.")
         raise
       end
 
@@ -355,7 +360,7 @@ module NewRelic
       # connection if verify_peer is enabled
       def cert_file_path
         if path_override = NewRelic::Agent.config[:ca_bundle_path]
-          NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist? path_override
+          NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist?(path_override)
           path_override
         end
       end
@@ -395,7 +400,7 @@ module NewRelic
           # ruled out; see the initializer
         }
 
-        uri = "/agent_listener/invoke_raw_method?"
+        uri = String.new('/agent_listener/invoke_raw_method?')
         uri << params.map do |k, v|
           next unless v
           "#{k}=#{v}"
@@ -494,7 +499,7 @@ module NewRelic
       # than the limit configured in the control object
       def check_post_size(post_string, endpoint)
         return if post_string.size < Agent.config[:max_payload_size_in_bytes]
-        ::NewRelic::Agent.logger.debug "Tried to send too much data: #{post_string.size} bytes"
+        ::NewRelic::Agent.logger.debug("Tried to send too much data: #{post_string.size} bytes")
         NewRelic::Agent.increment_metric("Supportability/Agent/Collector/#{endpoint}/MaxPayloadSizeLimit")
         raise UnrecoverableServerException.new('413 Request Entity Too Large')
       end
@@ -534,7 +539,7 @@ module NewRelic
         begin
           attempts += 1
           conn = http_connection
-          ::NewRelic::Agent.logger.debug "Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}"
+          ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}")
           Timeout.timeout(@request_timeout) do
             response = conn.request(request)
           end
@@ -593,7 +598,7 @@ module NewRelic
       end
 
       def log_response(response)
-        ::NewRelic::Agent.logger.debug "Received response, status: #{response.code}, encoding: '#{response['content-encoding']}'"
+        ::NewRelic::Agent.logger.debug("Received response, status: #{response.code}, encoding: '#{response['content-encoding']}'")
       end
 
       # Per protocol 17, this metric should be recorded for all error response codes
@@ -621,11 +626,10 @@ module NewRelic
       # the ruby version and also zlib version if available since
       # that may cause corrupt compression if there is a problem.
       def user_agent
-        ruby_description = ''
-        # note the trailing space!
-        ruby_description << "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
-        zlib_version = ''
-        zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
+        if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
+          ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " # note the trailing space!
+        end
+        zlib_version = "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
     end

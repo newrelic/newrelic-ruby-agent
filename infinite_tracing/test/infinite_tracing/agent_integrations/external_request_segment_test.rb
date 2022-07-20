@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require_relative '../../test_helper'
 
 module NewRelic
   module Agent
@@ -23,12 +23,13 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              segment = Transaction::ExternalRequestSegment.new \
+              segment = Transaction::ExternalRequestSegment.new( \
                 "Typhoeus",
                 "http://remotehost.com/blogs/index",
                 "GET"
+              )
 
-              txn.add_segment segment
+              txn.add_segment(segment)
               segment.start
               advance_process_time(1.0)
               segment.finish
@@ -71,12 +72,13 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(false)
 
-              segment = Transaction::ExternalRequestSegment.new \
+              segment = Transaction::ExternalRequestSegment.new( \
                 "Typhoeus",
                 "http://remotehost.com/blogs/index",
                 "GET"
+              )
 
-              txn.add_segment segment
+              txn.add_segment(segment)
               segment.start
               advance_process_time(1.0)
               segment.finish
@@ -91,12 +93,13 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:ignore?).returns(true)
 
-              segment = Transaction::ExternalRequestSegment.new \
+              segment = Transaction::ExternalRequestSegment.new( \
                 "Typhoeus",
                 "http://remotehost.com/blogs/index",
                 "GET"
+              )
 
-              txn.add_segment segment
+              txn.add_segment(segment)
               segment.start
               advance_process_time(1.0)
               segment.finish

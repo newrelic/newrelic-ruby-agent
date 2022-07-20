@@ -54,7 +54,7 @@ module NewRelic
 
         PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
-        DistributedTraceAttributes.copy_to_hash payload, intrinsics
+        DistributedTraceAttributes.copy_to_hash(payload, intrinsics)
 
         attributes = payload[:attributes]
 
@@ -87,7 +87,7 @@ module NewRelic
         end
       end
 
-      def custom_attributes attributes
+      def custom_attributes(attributes)
         if attributes
           result = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
@@ -96,7 +96,7 @@ module NewRelic
         end
       end
 
-      def agent_attributes attributes
+      def agent_attributes(attributes)
         if attributes
           result = attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze

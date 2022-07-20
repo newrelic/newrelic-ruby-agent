@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module powers the Busy calculation for the Capacity report in
 # APM (https://rpm.newrelic.com/accounts/.../applications/.../optimize/capacity_analysis).
@@ -12,13 +13,13 @@
 module NewRelic
   module Agent
     module TransactionTimeAggregator
-      TransactionStats = Struct.new :transaction_started_at, :elapsed_transaction_time
+      TransactionStats = Struct.new(:transaction_started_at, :elapsed_transaction_time)
 
       @lock = Mutex.new
       @harvest_cycle_started_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
       @stats = Hash.new do |h, k|
-        h[k] = TransactionStats.new nil, 0.0
+        h[k] = TransactionStats.new(nil, 0.0)
       end
 
       def reset!(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME))
@@ -28,14 +29,14 @@ module NewRelic
 
       def transaction_start(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME))
         @lock.synchronize do
-          set_transaction_start_time timestamp
+          set_transaction_start_time(timestamp)
         end
       end
 
       def transaction_stop(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME), starting_thread_id = current_thread)
         @lock.synchronize do
-          record_elapsed_transaction_time_until timestamp, starting_thread_id
-          set_transaction_start_time nil, starting_thread_id
+          record_elapsed_transaction_time_until(timestamp, starting_thread_id)
+          set_transaction_start_time(nil, starting_thread_id)
         end
       end
 
@@ -100,7 +101,7 @@ module NewRelic
         end
 
         def thread_is_alive?(thread_id)
-          thread = thread_by_id thread_id
+          thread = thread_by_id(thread_id)
           thread && thread.alive?
         rescue StandardError
           false
@@ -110,13 +111,13 @@ module NewRelic
         # perfomance reasons. We have two implmentations of `thread_by_id`
         # based on ruby implementation.
         if RUBY_ENGINE == 'jruby'
-          def thread_by_id thread_id
+          def thread_by_id(thread_id)
             Thread.list.detect { |t| t.object_id == thread_id }
           end
         else
           require 'objspace'
 
-          def thread_by_id thread_id
+          def thread_by_id(thread_id)
             ObjectSpace._id2ref(thread_id)
           end
         end
@@ -131,14 +132,14 @@ module NewRelic
           @stats[thread_id].elapsed_transaction_time = 0.0
         end
 
-        def transaction_time_in_thread timestamp, thread_id, entry
-          return entry.elapsed_transaction_time unless in_transaction? thread_id
+        def transaction_time_in_thread(timestamp, thread_id, entry)
+          return entry.elapsed_transaction_time unless in_transaction?(thread_id)
 
           # Count the portion of the transaction that's elapsed so far,...
-          elapsed = record_elapsed_transaction_time_until timestamp, thread_id
+          elapsed = record_elapsed_transaction_time_until(timestamp, thread_id)
 
           # ...then readjust the transaction start time to the next harvest
-          split_transaction_at_harvest timestamp, thread_id
+          split_transaction_at_harvest(timestamp, thread_id)
 
           elapsed
         end

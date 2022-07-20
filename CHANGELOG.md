@@ -1,6 +1,36 @@
 # New Relic Ruby Agent Release Notes #
 
+
+  ## v8.9.0
+  
+  
+  * **Add support for Dalli 3.1.0 to Dalli 3.2.2**
+
+    Dalli versions 3.1.0 and above include breaking changes where the agent previously hooked into the gem. We have updated our instrumentation to correctly hook into Dalli 3.1.0 and above. At this time, 3.2.2 is the latest Dalli version and is confirmed to be supported.
+
+
+  * **Bugfix: Infinite Tracing hung on connection restart**
+
+    Previously, when using infinite tracing, the agent would intermittently encounter a deadlock when attempting to restart the infinite tracing connection. This bug would prevent the agent from sending all data types, including non-infinite-tracing-related data. This change reworks how we restart infinite tracing to prevent potential deadlocks.
+
+  * **Bugfix: Use read_nonblock instead of read on pipe**
+
+    Previously, our PipeChannelManager was using read which could cause Resque jobs to get stuck in some versions. This change updates the PipeChannelManager to use read_nonblock instead. This method can leverage error handling to allow the instrumentation to gracefully log a message and exit the stuck Resque job. 
+
+    
   ## v8.8.0
+
+  * **Support Makara database adapters with ActiveRecord**
+
+    Thanks to a community submission from @lucasklaassen with [PR #1177](https://github.com/newrelic/newrelic-ruby-agent/pull/1177), the Ruby agent will now correctly work well with the [Makara gem](https://github.com/instacart/makara). Functionality such as SQL obfuscation should now work when Makara database adapters are used with Active Record.
+
+  * **Lowered the minimum payload size to compress**
+
+    Previously the Ruby agent used a particularly large payload size threshold of 64KiB that would need to be met before the agent would compress data en route to New Relic's collector. The original value stems from segfault issues that very old Rubies (< 2.2) used to encounter when compressing smaller payloads. This value has been lowered to 2KiB (2048 bytes), which should provide a more optimal balance between the CPU cycles spent on compression and the bandwidth savings gained from it.
+
+  * **Provide Code Level Metrics for New Relic CodeStream**
+
+    For Ruby on Rails applications and/or those with manually traced methods, the agent is now capable of reporting metrics with Ruby method-level granularity. When the new `code_level_metrics.enabled` configuration parameter is set to a `true` value, the agent will associate source-code-related metadata with the metrics for things such as Rails controller methods. Then, when the corresponding Ruby class file that defines the methods is loaded up in a [New Relic CodeStream](https://www.codestream.com/)-powered IDE, [the four golden signals](https://sre.google/sre-book/monitoring-distributed-systems/) for each method will be presented to the developer directly.
 
   * **Supportability Metrics will always report uncompressed payload size**
 

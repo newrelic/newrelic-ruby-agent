@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
@@ -34,12 +35,12 @@ class NewRelic::MetricSpec
     self.eql?(o)
   end
 
-  def eql? o
+  def eql?(o)
     @name == o.name && @scope == o.scope
   end
 
   def hash
-    @name.hash ^ @scope.hash
+    [@name, @scope].hash
   end
 
   def to_s

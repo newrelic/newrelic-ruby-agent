@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'forwardable'
 require 'new_relic/agent/configuration/mask_defaults'
@@ -22,7 +23,7 @@ module NewRelic
         end
 
         def has_key?(key)
-          @cache.has_key? key
+          @cache.has_key?(key)
         end
 
         def keys
@@ -253,7 +254,7 @@ module NewRelic
           end
         rescue => e
           NewRelic::Agent.logger.error(PARSING_LABELS_FAILURE, e)
-          []
+          NewRelic::EMPTY_ARRAY
         end
 
         def parse_labels_from_string
@@ -293,7 +294,7 @@ module NewRelic
 
           unless valid_label_pairs?(pairs)
             NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels || pairs}")
-            return []
+            return NewRelic::EMPTY_ARRAY
           end
 
           pairs = limit_number_of_labels(pairs)

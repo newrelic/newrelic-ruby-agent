@@ -42,6 +42,9 @@ common: &default_settings
 # If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.
 # application_logging.local_decorating.enabled: false
 
+# If `true`, the agent will report source code level metrics for traced methods
+# code_level_metrics.enabled: false
+
 # If true, enables transaction event sampling.
 # transaction_events.enabled: true
 
@@ -88,7 +91,7 @@ common: &default_settings
 # backport_fast_active_record_connection_lookup: false
 
 # If true, the agent captures attributes from browser monitoring.
-# browser_monitoring_attributes.enabled: false
+# browser_monitoring.attributes.enabled: false
 
 # Prefix of attributes to exclude from browser monitoring. Allows * as wildcard
 # at end.

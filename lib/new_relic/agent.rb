@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'forwardable'
 
@@ -143,6 +144,8 @@ module NewRelic
     #
     def add_or_defer_method_tracer(receiver, method_name, metric_name, options)
       @tracer_lock.synchronize do
+        options[:code_information] = NewRelic::Agent::MethodTracerHelpers.code_information(receiver, method_name)
+
         if @agent
           receiver.send(:_nr_add_method_tracer_now, method_name, metric_name, options)
         else
@@ -417,7 +420,7 @@ module NewRelic
     #
     def add_instrumentation(file_pattern)
       record_api_supportability_metric(:add_instrumentation)
-      NewRelic::Control.instance.add_instrumentation file_pattern
+      NewRelic::Control.instance.add_instrumentation(file_pattern)
     end
 
     # Require agent testing helper methods
@@ -513,8 +516,8 @@ module NewRelic
     # @api public
     #
     def disable_transaction_tracing
-      Deprecator.deprecate :disable_transaction_tracing,
-        'disable_all_tracing or ignore_transaction'
+      Deprecator.deprecate(:disable_transaction_tracing,
+        'disable_all_tracing or ignore_transaction')
       record_api_supportability_metric(:disable_transaction_tracing)
       yield
     end
@@ -577,7 +580,7 @@ module NewRelic
     def add_custom_attributes(params) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:add_custom_attributes)
 
-      if params.is_a? Hash
+      if params.is_a?(Hash)
         txn = Transaction.tl_current
         txn.add_custom_attributes(params) if txn
 
@@ -605,15 +608,15 @@ module NewRelic
     #
     # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
     # @api public
-    def add_custom_span_attributes params
-      record_api_supportability_metric :add_custom_span_attributes
+    def add_custom_span_attributes(params)
+      record_api_supportability_metric(:add_custom_span_attributes)
 
-      if params.is_a? Hash
+      if params.is_a?(Hash)
         if segment = NewRelic::Agent::Tracer.current_segment
-          segment.add_custom_attributes params
+          segment.add_custom_attributes(params)
         end
       else
-        ::NewRelic::Agent.logger.warn "Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}"
+        ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}")
       end
     end
 
@@ -696,7 +699,7 @@ module NewRelic
     def notify(event_type, *args)
       agent.events.notify(event_type, *args)
     rescue
-      NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
+      NewRelic::Agent.logger.debug("Ignoring exception during %p event notification" % [event_type])
     end
 
     # @!group Trace and Entity metadata
@@ -756,7 +759,7 @@ module NewRelic
     def browser_timing_header(nonce = nil)
       record_api_supportability_metric(:browser_timing_header)
 
-      return "" unless agent
+      return EMPTY_STR unless agent
       agent.javascript_instrumentor.browser_timing_header(nonce)
     end
 

@@ -1,13 +1,14 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
   module Bunny::Prepend
     module Exchange
       include NewRelic::Agent::Instrumentation::Bunny::Exchange
 
-      def publish payload, opts = {}
+      def publish(payload, opts = {})
         publish_with_tracing(payload, opts) { super }
       end
     end
@@ -19,7 +20,7 @@ module NewRelic::Agent::Instrumentation
         pop_with_tracing { super }
       end
 
-      def purge *args
+      def purge(*args)
         purge_with_tracing { super }
       end
     end
@@ -27,7 +28,7 @@ module NewRelic::Agent::Instrumentation
     module Consumer
       include NewRelic::Agent::Instrumentation::Bunny::Consumer
 
-      def call *args
+      def call(*args)
         call_with_tracing(*args) { super }
       end
     end

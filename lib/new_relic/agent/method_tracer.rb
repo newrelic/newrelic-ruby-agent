@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This file may be independently required to set up method tracing prior to
 # the full agent loading. In those cases, we do need at least this require to
@@ -68,7 +69,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_scoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
-        NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped unless options[:internal]
+        NewRelic::Agent.record_api_supportability_metric(:trace_execution_scoped) unless options[:internal]
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
           # Using an implicit block avoids object allocation for a &block param
           yield
@@ -84,7 +85,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_unscoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
-        NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped unless options[:internal]
+        NewRelic::Agent.record_api_supportability_metric(:trace_execution_unscoped) unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
@@ -100,7 +101,7 @@ module NewRelic
       module ClassMethods
         # contains methods refactored out of the #add_method_tracer method
         module AddMethodTracer
-          ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_footer].freeze
+          ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_information, :code_footer].freeze
 
           DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => ""}.freeze
 
@@ -163,7 +164,7 @@ module NewRelic
           # for testing only
           def _nr_clear_traced_methods!
             _nr_traced_method_module.module_eval do
-              self.instance_methods.each { |m| remove_method m }
+              self.instance_methods.each { |m| remove_method(m) }
             end
           end
 
@@ -268,13 +269,14 @@ module NewRelic
 
           options = _nr_validate_method_tracer_options(method_name, options)
 
-          visibility = NewRelic::Helper.instance_method_visibility self, method_name
+          visibility = NewRelic::Helper.instance_method_visibility(self, method_name)
 
           scoped_metric, unscoped_metrics = _nr_scoped_unscoped_metrics(metric_name, method_name, push_scope: options[:push_scope])
 
           _nr_define_traced_method(method_name, scoped_metric: scoped_metric, unscoped_metrics: unscoped_metrics,
             code_header: options[:code_header], code_footer: options[:code_footer],
-            record_metrics: options[:metric], visibility: visibility)
+            record_metrics: options[:metric], visibility: visibility,
+            code_information: options[:code_information])
 
           prepend(_nr_traced_method_module)
 
@@ -298,7 +300,8 @@ module NewRelic
 
         def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
           code_header: nil, code_footer: nil, record_metrics: true,
-          visibility: :public)
+          visibility: :public, code_information: {})
+
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
@@ -325,7 +328,10 @@ module NewRelic
               # If tracing multiple metrics on this method, nest one unscoped trace inside the scoped trace.
               begin
                 if scoped_metric_eval
-                  ::NewRelic::Agent::MethodTracer.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_scoped(scoped_metric_eval,
+                    metric: record_metrics,
+                    internal: true,
+                    code_information: code_information) do
                     if unscoped_metrics_eval.empty?
                       super(*args, &block)
                     else
@@ -344,7 +350,7 @@ module NewRelic
               end
             end
 
-            send visibility, method_name
+            send(visibility, method_name)
             ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
           end
         end

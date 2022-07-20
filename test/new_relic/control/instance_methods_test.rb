@@ -1,8 +1,9 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 require 'new_relic/control/instance_methods'
 require 'new_relic/agent/configuration/yaml_source'
 
@@ -62,10 +63,10 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   end
 
   def refute_has_config(clazz)
-    refute NewRelic::Agent.config.config_classes_for_testing.include? clazz
+    refute NewRelic::Agent.config.config_classes_for_testing.include?(clazz)
   end
 
   def assert_has_config(clazz)
-    assert NewRelic::Agent.config.config_classes_for_testing.include? clazz
+    assert NewRelic::Agent.config.config_classes_for_testing.include?(clazz)
   end
 end

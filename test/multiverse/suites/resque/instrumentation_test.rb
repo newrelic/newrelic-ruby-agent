@@ -1,9 +1,11 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # https://newrelic.atlassian.net/browse/RUBY-669
 
+SimpleCovHelper.command_name("test:multiverse[resque]")
 require 'resque'
 require 'logger'
 require 'newrelic_rpm'
@@ -27,7 +29,7 @@ class ResqueTest < Minitest::Test
     end
 
     def self.perform(name, sleep_duration = 0)
-      sleep sleep_duration
+      sleep(sleep_duration)
       @count += 1
     end
 

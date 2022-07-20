@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'resque/instrumentation'
 require_relative 'resque/chain'
@@ -19,12 +20,12 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Resque instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Resque instrumentation')
   end
 
   executes do
     if NewRelic::Agent.config[:'resque.use_ruby_dns'] && NewRelic::Agent.config[:dispatcher] == :resque
-      ::NewRelic::Agent.logger.info 'Requiring resolv-replace'
+      ::NewRelic::Agent.logger.info('Requiring resolv-replace')
       require 'resolv'
       require 'resolv-replace'
     end
