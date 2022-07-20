@@ -17,7 +17,7 @@ end
 
 def gem_list_empty(watched_gems)
   if watched_gems.empty?
-    abort "Nothing to see here! The 'watched_gems' array cannot be empty"
+    abort("Nothing to see here! The 'watched_gems' array cannot be empty")
   end
 end
 
@@ -39,10 +39,22 @@ def gem_updated?(versions)
   Time.now.utc - Time.parse(versions[0]['created_at']) < 24 * 60 * 60
 end
 
+def github_diff(gem_name, newest, previous)
+  diff = HTTParty.get("https://github.com/#{gem_name}/#{gem_name}/compare/v#{previous}...v#{newest}")
+
+  diff.success?
+end
+
 def send_bot(gem_name, versions)
-  abort "Expected exactly 2 version numbers in the 'versions' array" unless versions.size == 2
+  abort("Expected exactly 2 version numbers in the 'versions' array") unless versions.size == 2
   newest, previous = versions[0]['number'], versions[1]['number']
-  HTTParty.post(ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK'],
-    headers: {'Content-Type' => 'application/json'},
-    body: {text: "A new gem version is out! Gem: #{gem_name}, #{previous} -> #{newest}."}.to_json)
+  if github_diff(gem_name, newest, previous)
+    HTTParty.post(ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK'],
+      headers: {'Content-Type' => 'application/json'},
+      body: {text: "A new gem version is out :sparkles: <https://rubygems.org/gems/#{gem_name}|*#{gem_name}*>, #{previous} -> #{newest}\n\n<https://github.com/#{gem_name}/#{gem_name}/compare/v#{previous}...v#{newest}|Check out the git diff>"}.to_json)
+  else
+    HTTParty.post(ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK'],
+      headers: {'Content-Type' => 'application/json'},
+      body: {text: "A new gem version is out :sparkles: <https://rubygems.org/gems/#{gem_name}|*#{gem_name}*>, #{previous} -> #{newest}\n\nCheck it out with gem-compare:\n`gem compare #{gem_name} #{previous} #{newest} --diff`"}.to_json)
+  end
 end
