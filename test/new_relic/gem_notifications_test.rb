@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require 'minitest/autorun'
 require_relative '../../.github/workflows/scripts/slack_gem_notifications/notifications_methods'
 
 class GemNotifications < Minitest::Test
