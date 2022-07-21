@@ -75,6 +75,7 @@ module NewRelic
 
         def insert_headers(headers)
           return unless NewRelic::Agent.agent.connected?
+          return unless dt_enabled?
           insert_trace_context_header(headers)
           insert_distributed_trace_header(headers)
           insert_cross_app_header(headers)
@@ -91,7 +92,7 @@ module NewRelic
         end
 
         def assign_intrinsics
-          if Agent.config[:'distributed_tracing.enabled']
+          if dt_enabled?
             DistributedTraceAttributes.copy_to_attributes(transaction.payload, transaction.attributes)
           elsif is_cross_app?
             assign_cross_app_intrinsics
@@ -99,7 +100,7 @@ module NewRelic
         end
 
         def insert_distributed_trace_header(headers)
-          return unless Agent.config[:'distributed_tracing.enabled']
+          return unless dt_enabled?
           return if Agent.config[:'exclude_newrelic_header']
           payload = create_distributed_trace_payload
           headers[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
@@ -117,6 +118,10 @@ module NewRelic
 
         private
 
+        def dt_enabled?
+          Agent.config[:'distributed_tracing.enabled']
+        end
+
         def consume_message_synthetics_headers(headers)
           synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
           if synthetics_header and
@@ -133,7 +138,7 @@ module NewRelic
         end
 
         def consume_message_distributed_tracing_headers(headers, transport_type)
-          return unless Agent.config[:'distributed_tracing.enabled']
+          return unless dt_enabled?
 
           accept_incoming_transport_type(headers, transport_type)
 
