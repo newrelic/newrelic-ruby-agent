@@ -40,7 +40,7 @@ def gem_updated?(versions)
 end
 
 def github_diff(gem_name, newest, previous)
-  diff = HTTParty.get(interpolate_github__url(gem_name, newest, previous))
+  diff = HTTParty.get(interpolate_github_url(gem_name, newest, previous))
 
   diff.success?
 end
@@ -55,19 +55,19 @@ def send_bot(gem_name, versions)
   HTTParty.post(path, options)
 end
 
-def interpolate_github__url(gem_name, newest, previous)
+def interpolate_github_url(gem_name, newest, previous)
   "https://github.com/#{gem_name}/#{gem_name}/compare/v#{previous}...v#{newest}"
 end
 
-def interpolate_rubygems__url(gem_name)
+def interpolate_rubygems_url(gem_name)
   "https://rubygems.org/gems/#{gem_name}"
 end
 
 def bot_message(gem_name, versions)
   newest, previous = versions[0]['number'], versions[1]['number']
-  alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems__url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
+  alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
   if github_diff(gem_name, newest, previous)
-    action_message = "<#{interpolate_github__url(gem_name, newest, previous)}|See what's new.>"
+    action_message = "<#{interpolate_github_url(gem_name, newest, previous)}|See what's new.>"
   else
     action_message = "See what's new with gem-compare:\n`gem compare #{gem_name} #{previous} #{newest} --diff`"
   end

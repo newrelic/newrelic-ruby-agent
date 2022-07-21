@@ -73,4 +73,17 @@ class GemNotifications < Minitest::Test
       assert_nil send_bot("tyrannosaurus", [{"number" => "83.6"}, {"number" => "66.0"}])
     end
   end
+
+  def test_interpolate_github_url
+    gem_name = "stegosaurus"
+    assert_raises(ArgumentError) { interpolate_github_url(gem_name) }
+    gem_name, newest, previous = "stegosaurus", "2.0", "1.0"
+    assert_kind_of String, interpolate_github_url(gem_name, newest, previous)
+  end
+
+  def test_interpolate_rubygems_url
+    assert_raises(ArgumentError) { interpolate_rubygems_url() }
+    gem_name = "velociraptor"
+    assert_kind_of String, interpolate_rubygems_url(gem_name)
+  end
 end
