@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This script runs on a 24 hour cycle via ci_cron.yml and sends slack updates for new gem version releases.
+# This script runs on a 24 hour cycle via gem_notifications.yml and sends slack updates for new gem version releases.
 
 require_relative 'notifications_methods'
 
