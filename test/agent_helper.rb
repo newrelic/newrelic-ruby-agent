@@ -295,6 +295,15 @@ def assert_metrics_recorded_exclusive(expected, options = {})
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
 
+def assert_newrelic_metdata_present(metadata)
+  assert_includes metadata.keys, 'newrelic'
+  refute_nil metadata['newrelic']
+end
+
+def assert_distributed_tracing_payload_created_for_transaction(transaction)
+  assert transaction.distributed_tracer.instance_variable_get(:@distributed_trace_payload_created)
+end
+
 # The clear_metrics! method prevents metrics from "leaking" between tests by resetting
 # the @stats_hash instance variable in the current instance of NewRelic::Agent::StatsEngine.
 

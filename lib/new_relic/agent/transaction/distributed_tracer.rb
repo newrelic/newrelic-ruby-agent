@@ -75,7 +75,6 @@ module NewRelic
 
         def insert_headers(headers)
           return unless NewRelic::Agent.agent.connected?
-          return unless dt_enabled?
           insert_trace_context_header(headers)
           insert_distributed_trace_header(headers)
           insert_cross_app_header(headers)

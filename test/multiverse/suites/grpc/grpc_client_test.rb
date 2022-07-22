@@ -124,9 +124,8 @@ class GrpcTest < Minitest::Test
       successful_grpc_client_issue_request_with_tracing(metadata)
     end
 
-    assert_includes metadata.keys, 'newrelic'
-    refute_nil metadata['newrelic']
-    assert transaction.distributed_tracer.instance_variable_get(:@distributed_trace_payload_created)
+    assert_newrelic_metdata_present(metadata)
+    assert_distributed_tracing_payload_created_for_transaction(transaction)
   end
 
   def test_span_attributes_added
@@ -190,15 +189,4 @@ class GrpcTest < Minitest::Test
     grpc_client.instance_variable_set(:@host, 'a host')
     assert_nil grpc_client.send(:method_uri, nil)
   end
-
-  # # test_issue_request_with_tracing_captures_error
-
-  # # test_method_has_cleaned_name
-
-  # # test_request_not_traced_if_class_interceptor
-
-  # # test_bidi_streaming
-  # # test_request_response
-  # # test_server_streaming
-  # # test_client_streaming
 end
