@@ -20,11 +20,7 @@ module NewRelic
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers(request_wrapper)
-
             metadata.merge!(metadata, request_wrapper.instance_variable_get(:@newrelic_metadata))
-
-            # TODO: isn't #add_request_headers already setting the DT metadata?
-            # set_distributed_tracing_headers(metadata)
 
             NewRelic::Agent.disable_all_tracing do
               NewRelic::Agent::Tracer.capture_segment_error(segment) do
@@ -51,13 +47,6 @@ module NewRelic
 
             "grpc://#{@host}/#{method}"
           end
-
-          # TODO: isn't #add_request_headers already setting the DT metadata?
-          # def set_distributed_tracing_headers(metadata)
-          #   return unless ::NewRelic::Agent.config[:'distributed_tracing.enabled']
-
-          #   ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(metadata)
-          # end
 
           def trace_with_newrelic?(host = nil)
             return false if self.class.name.eql?('GRPC::InterceptorRegistry')
