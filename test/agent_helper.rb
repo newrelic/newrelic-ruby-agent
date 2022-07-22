@@ -296,7 +296,7 @@ def assert_metrics_recorded_exclusive(expected, options = {})
 end
 
 def assert_newrelic_metdata_present(metadata)
-  assert_includes metadata.keys, 'newrelic'
+  assert metadata.key?('newrelic')
   refute_nil metadata['newrelic']
 end
 
