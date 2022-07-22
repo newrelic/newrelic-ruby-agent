@@ -16,7 +16,7 @@ class GrpcTest < Minitest::Test
   METHOD = 'routeguide.RouteGuide/GetFeature'
 
   def exception_class
-    GRPC::Unknown
+    ::GRPC::Unknown
   end
 
   def basic_grpc_client
