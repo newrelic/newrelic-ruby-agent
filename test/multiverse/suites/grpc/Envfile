@@ -2,6 +2,10 @@ suite_condition("gRPC not compatible with Ruby < 2.5") do
   RUBY_VERSION >= '2.5.0'
 end
 
+suite_condition("gRPC not compatible with JRuby") do
+  RUBY_PLATFORM != 'java'
+end
+
 instrumentation_methods(:chain, :prepend)
 
 GRPC_VERSIONS = [
