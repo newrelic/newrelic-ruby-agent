@@ -413,6 +413,14 @@ common: &default_settings
 # May be one of [auto|prepend|chain|disabled].
 # instrumentation.grpc_server: auto
 
+# Specifies a list of hostname patterns separated by commas
+# for gRPC hosts to not trace requests for
+# By default, New Relic's own infinite tracing servers are
+# listed with this pattern: 'tracing\.(?:staging-)?edge\.nr-data'
+# It is recommended that that pattern be kept and added to if
+# additional host patterns need to be defined.
+# instrumentation.grpc.host_denylist: ""
+
 # A dictionary of label names and values that will be applied to the data sent
 # from this agent. May also be expressed asa semicolon-delimited ; string of
 # colon-separated : pairs.

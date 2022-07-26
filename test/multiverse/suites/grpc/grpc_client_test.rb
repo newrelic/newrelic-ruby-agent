@@ -6,7 +6,7 @@
 require 'grpc'
 require 'newrelic_rpm'
 
-class GrpcTest < Minitest::Test
+class GrpcClientTest < Minitest::Test
   include MultiverseHelpers
 
   # Helpers

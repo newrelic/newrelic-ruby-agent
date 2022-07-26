@@ -18,6 +18,7 @@ module NewRelic
 
           def handle_with_tracing(active_call, mth, inter_ctx)
             return yield unless trace_with_newrelic?
+
             trace_headers = active_call.metadata.delete(NewRelic::NEWRELIC_KEY)
             ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other') if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
 
@@ -38,18 +39,23 @@ module NewRelic
 
           def run_with_tracing(*args)
             set_host_and_port_and_method_info_on_desc
-
             yield
           end
 
           private
 
-          def set_host_and_port_on_server_instace(host_string)
+          def host_and_port_from_host_string(host_string)
+            return [nil, nil] unless host_string
+
             info = host_string.split(':')
 
-            # TODO:
-            # raise if info.size != 2
+            return [nil, nil] unless info.size == 2
 
+            info
+          end
+
+          def set_host_and_port_on_server_instace(host_string)
+            info = host_and_port_from_host_string(host_string)
             instance_variable_set(INSTANCE_VAR_HOST, info[0])
             instance_variable_set(INSTANCE_VAR_PORT, info[1])
           end
@@ -75,11 +81,14 @@ module NewRelic
             }
           end
 
-          def trace_with_newrelic?(host = nil)
-            # TODO: check hostname against the configured denylist
-            # hostname = ::NewRelic::Agent::Hostname.get
+          def trace_with_newrelic?
+            do_trace = instance_variable_get(:@trace_with_newrelic)
+            return do_trace if do_trace
 
-            true
+            do_trace = !host_denylisted?(::NewRelic::Agent::Hostname.get)
+            instance_variable_set(:@trace_with_newrelic, do_trace)
+
+            do_trace
           end
         end
       end

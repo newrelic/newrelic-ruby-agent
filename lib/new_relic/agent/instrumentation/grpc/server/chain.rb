@@ -10,10 +10,10 @@ module NewRelic::Agent::Instrumentation
     module Server
       module Chain
         def self.instrument!
+          # BEGIN RpcServer
           ::GRPC::RpcServer.class_eval do
             include NewRelic::Agent::Instrumentation::GRPC::Server
 
-            # BEGIN RpcServer
             def add_http2_port_with_newrelic_trace(*args)
               add_http2_port_with_tracing(*args) { add_http2_port_without_newrelic_trace(*args) }
             end
@@ -28,8 +28,12 @@ module NewRelic::Agent::Instrumentation
             alias run_without_newrelic_trace run
             alias run run_with_newrelic_trace
             # END RpcServer
+          end
 
-            # BEGIN RpcDesc
+          # BEGIN RpcDesc
+          ::GRPC::RpcDesc.class_eval do
+            include NewRelic::Agent::Instrumentation::GRPC::Server
+
             def handle_request_response_with_newrelic_trace(*args)
               handle_with_tracing(*args) { handle_request_response_without_newrelic_trace(*args) }
             end

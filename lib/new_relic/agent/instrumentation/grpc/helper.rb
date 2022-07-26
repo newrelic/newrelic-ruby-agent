@@ -14,6 +14,12 @@ module NewRelic
 
             method[1..-1]
           end
+
+          def host_denylisted?(host)
+            NewRelic::Agent.config[:'instrumentation.grpc.host_denylist'].any? do |regex|
+              host.match?(regex)
+            end
+          end
         end
       end
     end
