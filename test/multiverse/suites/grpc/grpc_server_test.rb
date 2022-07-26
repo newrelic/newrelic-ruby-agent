@@ -81,11 +81,11 @@ class GrpcServerTest < Minitest::Test
 
   def test_host_and_port_from_host_string_when_string_is_nil
     results = basic_grpc_server.send(:host_and_port_from_host_string, nil)
-    assert_equal [nil, nil], results
+    assert_nil results
   end
 
   def test_host_and_port_from_host_string_when_string_is_invalid
     results = basic_grpc_server.send(:host_and_port_from_host_string, 'string_without_a_colon')
-    assert_equal [nil, nil], results
+    assert_nil results
   end
 end

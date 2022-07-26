@@ -8,6 +8,8 @@ module NewRelic
     module Instrumentation
       module GRPC
         module Helper
+          NR_8T_HOST_PATTERN = %r{tracing\.(?:staging-)?edge\.nr-data}.freeze
+
           def cleaned_method(method)
             method = method.to_s unless method.is_a?(String)
             return method unless method.start_with?('/')
@@ -16,9 +18,11 @@ module NewRelic
           end
 
           def host_denylisted?(host)
-            NewRelic::Agent.config[:'instrumentation.grpc.host_denylist'].any? do |regex|
-              host.match?(regex)
-            end
+            ignore_patterns.any? { |regex| host.match?(regex) }
+          end
+
+          def ignore_patterns
+            ([NR_8T_HOST_PATTERN] + NewRelic::Agent.config[:'instrumentation.grpc.host_denylist']).freeze
           end
         end
       end

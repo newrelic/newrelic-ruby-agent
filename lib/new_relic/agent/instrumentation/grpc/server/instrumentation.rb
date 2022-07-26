@@ -45,19 +45,20 @@ module NewRelic
           private
 
           def host_and_port_from_host_string(host_string)
-            return [nil, nil] unless host_string
+            return unless host_string
 
-            info = host_string.split(':')
-
-            return [nil, nil] unless info.size == 2
+            info = host_string.split(':').freeze
+            return unless info.size == 2
 
             info
           end
 
           def set_host_and_port_on_server_instace(host_string)
             info = host_and_port_from_host_string(host_string)
-            instance_variable_set(INSTANCE_VAR_HOST, info[0])
-            instance_variable_set(INSTANCE_VAR_PORT, info[1])
+            return unless info
+
+            instance_variable_set(INSTANCE_VAR_HOST, info.first)
+            instance_variable_set(INSTANCE_VAR_PORT, info.last)
           end
 
           def set_host_and_port_and_method_info_on_desc
