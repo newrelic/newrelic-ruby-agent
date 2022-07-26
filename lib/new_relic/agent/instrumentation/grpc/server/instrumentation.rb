@@ -86,7 +86,10 @@ module NewRelic
             do_trace = instance_variable_get(:@trace_with_newrelic)
             return do_trace unless do_trace.nil? # check for nil, not falsey
 
-            do_trace = !host_denylisted?(::NewRelic::Agent::Hostname.get)
+            host = instance_variable_get(INSTANCE_VAR_HOST)
+            return true unless host
+
+            do_trace = !host_denylisted?(host)
             instance_variable_set(:@trace_with_newrelic, do_trace)
 
             do_trace

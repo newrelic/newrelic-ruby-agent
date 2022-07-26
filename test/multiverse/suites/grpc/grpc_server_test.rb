@@ -88,4 +88,45 @@ class GrpcServerTest < Minitest::Test
     results = basic_grpc_server.send(:host_and_port_from_host_string, 'string_without_a_colon')
     assert_nil results
   end
+
+  def test_trace_with_newrelic_leverages_an_instance_var_set_to_true
+    desc = basic_grpc_desc
+    desc.instance_variable_set(:@trace_with_newrelic, true)
+    assert desc.send(:trace_with_newrelic?)
+  end
+
+  def test_trace_with_newrelic_leverages_an_instance_var_set_to_false
+    desc = basic_grpc_desc
+    desc.instance_variable_set(:@trace_with_newrelic, false)
+    refute desc.send(:trace_with_newrelic?)
+  end
+
+  def test_trace_with_newrelic_if_the_host_is_unknown
+    desc = basic_grpc_desc
+    assert desc.send(:trace_with_newrelic?)
+  end
+
+  def test_trace_with_newrelic_if_the_host_is_denylisted
+    host = 'unwanted.host.net'
+    unwanted_host_patterns = [/unwanted/]
+    desc = basic_grpc_desc
+    desc.instance_variable_set(host_var, host)
+    mock = MiniTest::Mock.new
+    mock.expect(:[], unwanted_host_patterns, [:'instrumentation.grpc.host_denylist'])
+    NewRelic::Agent.stub(:config, mock) do
+      refute desc.send(:trace_with_newrelic?)
+    end
+  end
+
+  def test_trace_with_newrelic_if_the_host_is_not_denylisted
+    host = 'unwanted.host.net'
+    unwanted_host_patterns = [/unwanted/]
+    desc = basic_grpc_desc
+    desc.instance_variable_set(host_var, 'wanted.host.net')
+    mock = MiniTest::Mock.new
+    mock.expect(:[], unwanted_host_patterns, [:'instrumentation.grpc.host_denylist'])
+    NewRelic::Agent.stub(:config, mock) do
+      assert desc.send(:trace_with_newrelic?)
+    end
+  end
 end
