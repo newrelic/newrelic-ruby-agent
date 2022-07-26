@@ -3,19 +3,18 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# require_relative '../test_helper'
 require 'minitest/autorun'
 require_relative '../../.github/workflows/scripts/slack_gem_notifications/notifications_methods'
 
 class GemNotifications < Minitest::Test
-  def invalid_gem_response
-    response = MiniTest::Mock.new
-    response.expect(:success?, false)
-  end
-
-  def valid_gem_response
+  def successful_http_response
     response = MiniTest::Mock.new
     response.expect(:success?, true)
+  end
+
+  def unsuccessful_http_response
+    response = MiniTest::Mock.new
+    response.expect(:success?, false)
   end
 
   def http_get_response
@@ -25,16 +24,30 @@ class GemNotifications < Minitest::Test
   end
 
   def test_valid_gem_name
-    response = valid_gem_response()
+    response = successful_http_response()
     HTTParty.stub(:get, response) do
       assert verify_gem("puma!")
     end
   end
 
   def test_invalid_gem_name
-    response = invalid_gem_response()
+    response = unsuccessful_http_response()
     HTTParty.stub(:get, response) do
       assert_nil verify_gem("TrexRawr!")
+    end
+  end
+
+  def test_valid_github_diff
+    response = successful_http_response()
+    HTTParty.stub(:get, response) do
+      assert_equal true, github_diff('valid_git_diff', '1.2', '1.1')
+    end
+  end
+
+  def test_invalid_github_diff
+    response = unsuccessful_http_response()
+    HTTParty.stub(:get, response) do
+      assert_equal false, github_diff('invalid_git_diff', '1.2', '1.1')
     end
   end
 
@@ -59,5 +72,18 @@ class GemNotifications < Minitest::Test
     HTTParty.stub(:post, nil) do
       assert_nil send_bot("tyrannosaurus", [{"number" => "83.6"}, {"number" => "66.0"}])
     end
+  end
+
+  def test_interpolate_github_url
+    gem_name = "stegosaurus"
+    assert_raises(ArgumentError) { interpolate_github_url(gem_name) }
+    gem_name, newest, previous = "stegosaurus", "2.0", "1.0"
+    assert_kind_of String, interpolate_github_url(gem_name, newest, previous)
+  end
+
+  def test_interpolate_rubygems_url
+    assert_raises(ArgumentError) { interpolate_rubygems_url() }
+    gem_name = "velociraptor"
+    assert_kind_of String, interpolate_rubygems_url(gem_name)
   end
 end

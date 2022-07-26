@@ -543,10 +543,16 @@ module Multiverse
       end
 
       load(@after_file) if @after_file
-      begin
-        ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
-      rescue => e
-        puts "Error: #{e.inspect}"
+
+      if RUBY_VERSION >= '2.7.0'
+        # This is only used for SimpleCov at this time,
+        # an error will be raised on Ruby versions that do not run
+        # SimpleCov without this condition
+        begin
+          ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
+        rescue NameError => e
+          puts "NameError: #{e.inspect}"
+        end
       end
 
       if test_run
