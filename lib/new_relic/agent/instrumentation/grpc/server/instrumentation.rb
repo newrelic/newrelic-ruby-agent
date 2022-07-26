@@ -33,7 +33,7 @@ module NewRelic
           end
 
           def add_http2_port_with_tracing(*args)
-            set_host_and_port_on_server_instace(args.first)
+            set_host_and_port_on_server_instance(args.first)
             yield
           end
 
