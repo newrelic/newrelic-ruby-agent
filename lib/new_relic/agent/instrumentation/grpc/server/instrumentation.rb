@@ -53,7 +53,7 @@ module NewRelic
             info
           end
 
-          def set_host_and_port_on_server_instace(host_string)
+          def set_host_and_port_on_server_instance(host_string)
             info = host_and_port_from_host_string(host_string)
             return unless info
 
