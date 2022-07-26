@@ -29,7 +29,7 @@ module NewRelic
             )
             yield
           ensure
-            finishable.finish
+            finishable.finish if finishable
           end
 
           def add_http2_port_with_tracing(*args)
@@ -83,7 +83,7 @@ module NewRelic
 
           def trace_with_newrelic?
             do_trace = instance_variable_get(:@trace_with_newrelic)
-            return do_trace if do_trace
+            return do_trace unless do_trace.nil? # check for nil, not falsey
 
             do_trace = !host_denylisted?(::NewRelic::Agent::Hostname.get)
             instance_variable_set(:@trace_with_newrelic, do_trace)

@@ -52,7 +52,7 @@ module NewRelic
             return false if self.class.name.eql?('GRPC::InterceptorRegistry')
 
             do_trace = instance_variable_get(:@trace_with_newrelic)
-            return do_trace unless do_trace.nil?
+            return do_trace unless do_trace.nil? # check for nil, not falsey
 
             host ||= @host
             return false unless host && !host_denylisted?(host)
