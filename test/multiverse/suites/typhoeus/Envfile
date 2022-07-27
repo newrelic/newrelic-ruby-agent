@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 instrumentation_methods :chain, :prepend
 
 TYPHOEUS_VERSIONS = [
@@ -17,4 +22,3 @@ def gem_list(typhoeus_version = nil)
 end
 
 create_gemfiles(TYPHOEUS_VERSIONS, gem_list)
-# vim: ft=ruby

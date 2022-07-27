@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 suite_condition("unicorn not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
@@ -15,6 +20,3 @@ def gem_list(unicorn_version = nil)
     gem 'rack'
   RB
 end
-
-# vim: ft=ruby
-
