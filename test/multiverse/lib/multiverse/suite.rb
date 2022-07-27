@@ -265,10 +265,11 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
-        f.puts "gem 'mocha', '~> 1.9.0', :require => false"
+        f.puts "gem 'mocha', '~> 1.9.0', require: false"
+        f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
         if debug
-          f.puts "gem 'pry', '~> 0.10.0'"
+          f.puts "gem 'pry', '~> 0.14'"
           f.puts "gem 'pry-nav'"
           f.puts "gem 'pry-stack_explorer', platforms: :mri"
         end

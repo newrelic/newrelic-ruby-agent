@@ -4,6 +4,7 @@
 # frozen_string_literal: true
 
 require_relative '../agent_helper'
+require 'minitest/stub_const'
 
 class Minitest::Test
   def after_teardown

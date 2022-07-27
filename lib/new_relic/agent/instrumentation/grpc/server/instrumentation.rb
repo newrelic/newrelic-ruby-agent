@@ -18,6 +18,7 @@ module NewRelic
 
           def handle_with_tracing(active_call, mth, inter_ctx)
             return yield unless trace_with_newrelic?
+
             trace_headers = active_call.metadata.delete(NewRelic::NEWRELIC_KEY)
             ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other') if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
 
@@ -28,30 +29,36 @@ module NewRelic
             )
             yield
           ensure
-            finishable.finish
+            finishable.finish if finishable
           end
 
           def add_http2_port_with_tracing(*args)
-            set_host_and_port_on_server_instace(args.first)
+            set_host_and_port_on_server_instance(args.first)
             yield
           end
 
           def run_with_tracing(*args)
             set_host_and_port_and_method_info_on_desc
-
             yield
           end
 
           private
 
-          def set_host_and_port_on_server_instace(host_string)
-            info = host_string.split(':')
+          def host_and_port_from_host_string(host_string)
+            return unless host_string
 
-            # TODO:
-            # raise if info.size != 2
+            info = host_string.split(':').freeze
+            return unless info.size == 2
 
-            instance_variable_set(INSTANCE_VAR_HOST, info[0])
-            instance_variable_set(INSTANCE_VAR_PORT, info[1])
+            info
+          end
+
+          def set_host_and_port_on_server_instance(host_string)
+            info = host_and_port_from_host_string(host_string)
+            return unless info
+
+            instance_variable_set(INSTANCE_VAR_HOST, info.first)
+            instance_variable_set(INSTANCE_VAR_PORT, info.last)
           end
 
           def set_host_and_port_and_method_info_on_desc
@@ -75,11 +82,17 @@ module NewRelic
             }
           end
 
-          def trace_with_newrelic?(host = nil)
-            # TODO: check hostname against the configured denylist
-            # hostname = ::NewRelic::Agent::Hostname.get
+          def trace_with_newrelic?
+            do_trace = instance_variable_get(:@trace_with_newrelic)
+            return do_trace unless do_trace.nil? # check for nil, not falsey
 
-            true
+            host = instance_variable_get(INSTANCE_VAR_HOST)
+            return true unless host
+
+            do_trace = !host_denylisted?(host)
+            instance_variable_set(:@trace_with_newrelic, do_trace)
+
+            do_trace
           end
         end
       end
