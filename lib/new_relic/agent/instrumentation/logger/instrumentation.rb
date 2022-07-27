@@ -25,12 +25,12 @@ module NewRelic
         end
 
         def mark_skip_instrumenting
-          return if self.frozen?
+          return if frozen?
           @skip_instrumenting = true
         end
 
         def clear_skip_instrumenting
-          return if self.frozen?
+          return if frozen?
           @skip_instrumenting = false
         end
 
