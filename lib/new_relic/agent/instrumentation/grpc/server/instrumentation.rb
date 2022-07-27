@@ -18,13 +18,14 @@ module NewRelic
 
           def handle_with_tracing(active_call, mth, _inter_ctx)
             return yield unless trace_with_newrelic?
+            metadata = metadata_for_call(active_call)
 
             finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
               name: mth.original_name,
               category: :web,
-              options: server_options(active_call.metadata)
+              options: server_options(metadata)
             )
-            process_distributed_tracing_headers(active_call)
+            process_distributed_tracing_headers(metadata)
 
             begin
               yield
@@ -48,10 +49,16 @@ module NewRelic
 
           private
 
-          def process_distributed_tracing_headers(active_call)
-            return unless active_call.metadata
+          def metadata_for_call(active_call)
+            return NewRelic::EMPTY_HASH unless active_call && active_call.metadata
 
-            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(active_call.metadata, 'Other')
+            active_call.metadata
+          end
+
+          def process_distributed_tracing_headers(metadata)
+            return unless metadata && !metadata.empty?
+
+            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(metadata, 'Other')
           end
 
           def host_and_port_from_host_string(host_string)
