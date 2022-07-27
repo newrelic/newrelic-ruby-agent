@@ -25,8 +25,18 @@ class GrpcServerTest < Minitest::Test
     '1138'
   end
 
-  def method
+  def method_name
     'hologram'
+  end
+
+  def metadata_hash
+    {well: "I slipped on a T5 transfer this morning. It's never happened before."}
+  end
+
+  def method
+    m = MiniTest::Mock.new
+    m.expect(:original_name, method_name)
+    m
   end
 
   def host_var
@@ -41,8 +51,12 @@ class GrpcServerTest < Minitest::Test
     ::NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD
   end
 
+  def return_value
+    'I like to remember things my own way.'
+  end
+
+  # shortcircuit out of #handle_with_tracing early (hit the first yield)
   def test_hosts_are_not_traced_if_on_the_denylist
-    return_value = 'I like to remember things my own way.'
     desc = basic_grpc_desc
     desc.instance_variable_set(:@trace_with_newrelic, false)
     in_transaction('grpc test') do |txn|
@@ -57,6 +71,105 @@ class GrpcServerTest < Minitest::Test
     end
   end
 
+  # make it all the way through #handle_with_tracing successfully (happy path)
+  def test_request_is_handled_with_tracing
+    desc = basic_grpc_desc
+    def desc.trace_with_newrelic?; true; end # force a true response from this method
+    def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
+    def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
+    in_transaction('grpc test') do |txn|
+      # the 'active_call' and 'method' mocks used here will verify
+      # (with expectations) to have methods called on them and return
+      # appropriate responses
+      result = desc.handle_with_tracing(nil, method, nil) { return_value }
+      assert_equal return_value, result
+      assert_equal 2, txn.segments.count
+    end
+  end
+
+  # make it all the way to the final yield in #handle_with_tracing, then
+  # verify that raised execptions are noticed
+  def test_errors_from_handled_requests_are_noticed
+    desc = basic_grpc_desc
+    def desc.trace_with_newrelic?; true; end # force a true response from this method
+    def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
+    def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
+    raised_error = RuntimeError.new
+    received_error = nil
+    in_transaction('grpc test') do |txn|
+      notice_stub = Proc.new { |e| received_error = e }
+      NewRelic::Agent.stub(:notice_error, notice_stub) do
+        assert_raises(RuntimeError) do
+          result = desc.handle_with_tracing(nil, method, nil) { raise raised_error }
+        end
+        assert_equal raised_error, received_error
+        assert_equal 2, txn.segments.count
+      end
+    end
+  end
+
+  # in the #handle_with_tracing ensure block, make sure #finish isn't called
+  # unless a segment was successfully created
+  def test_do_not_call_finish_on_an_absent_segment
+    desc = basic_grpc_desc
+    def desc.trace_with_newrelic?; true; end # force a true response from this method
+    def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
+    def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
+    # force finishable to be nil
+    NewRelic::Agent::Tracer.stub(:start_transaction_or_segment, nil) do
+      result = desc.handle_with_tracing(nil, method, nil) { return_value }
+      assert_equal return_value, result
+      # MiniTest does not have a wont_raise, but this test would fail if
+      # finishable called #finish when nil
+    end
+  end
+
+  def test_use_empty_metadata_if_an_active_call_is_absent
+    desc = basic_grpc_desc
+    assert_equal NewRelic::EMPTY_HASH, desc.send(:metadata_for_call, nil)
+  end
+
+  def test_use_empty_metadata_if_an_active_call_has_none
+    desc = basic_grpc_desc
+    active_call = MiniTest::Mock.new
+    active_call.expect(:metadata, nil)
+    assert_equal NewRelic::EMPTY_HASH, desc.send(:metadata_for_call, active_call)
+  end
+
+  def test_glean_metadata_from_an_active_call
+    desc = basic_grpc_desc
+    active_call = MiniTest::Mock.new
+    active_call.expect(:metadata, metadata_hash)
+    active_call.expect(:metadata, metadata_hash) # #metadata is called twice
+    assert_equal metadata_hash, desc.send(:metadata_for_call, active_call)
+  end
+
+  def test_bypass_distributed_tracing_if_metadata_is_not_present
+    desc = basic_grpc_desc
+    # if the early return doesn't happen, #metadata will be called on nil
+    # and error out
+    refute desc.send(:process_distributed_tracing_headers, nil)
+  end
+
+  def test_bypass_distributed_tracing_if_metadata_is_empty
+    desc = basic_grpc_desc
+    bad_active_call = MiniTest::Mock.new
+    bad_active_call.expect(:metadata, NewRelic::EMPTY_HASH)
+    # if the early return doesn't happen, the bad_active_call mock will error
+    # out when a second #metadata call is invoked upon it
+    refute desc.send(:process_distributed_tracing_headers, nil)
+  end
+
+  def test_process_distributed_tracing_if_metadata_is_present
+    desc = basic_grpc_desc
+    received_args = nil
+    dt_stub = Proc.new { |hash, type| received_args = [hash, type] }
+    NewRelic::Agent::DistributedTracing.stub(:accept_distributed_trace_headers, dt_stub) do
+      desc.send(:process_distributed_tracing_headers, metadata_hash)
+    end
+    assert_equal [metadata_hash, 'Other'], received_args
+  end
+
   def test_host_and_port_are_added_on_the_server_instance
     server = basic_grpc_server
     server.add_http2_port_with_tracing("#{host}:#{port}", :this_port_is_insecure) {}
@@ -64,14 +177,21 @@ class GrpcServerTest < Minitest::Test
     assert_equal(server.instance_variable_get(port_var), port)
   end
 
+  def test_host_and_port_are_not_added_if_info_is_not_available
+    server = basic_grpc_server
+    server.add_http2_port_with_tracing('bogus_host', :this_port_is_insecure) {}
+    refute server.instance_variables.include?(host_var)
+    refute server.instance_variables.include?(port_var)
+  end
+
   def test_host_and_port_and_method_are_added_on_the_desc
     server = basic_grpc_server
     server.instance_variable_set(host_var, host)
     server.instance_variable_set(port_var, port)
     desc = basic_grpc_desc
-    server.instance_variable_set(:@rpc_descs, method => desc)
+    server.instance_variable_set(:@rpc_descs, method_name => desc)
     server.run_with_tracing {}
-    assert_equal desc.instance_variable_get(method_var), method
+    assert_equal desc.instance_variable_get(method_var), method_name
   end
 
   def test_host_and_port_from_host_string_when_string_is_valid
