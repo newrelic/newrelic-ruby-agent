@@ -7,14 +7,13 @@ require 'time'
 require 'feedjira'
 require 'httparty'
 
-# limiting to 5 checks since more than 5 security concerns in 24 hours is unlikely. 
 def check_for_cves
   xml = HTTParty.get('https://rubysec.com/atom.xml').body
   feed = Feedjira.parse(xml)
-  feed.entries.take(5).each do |entry|
-    if Time.now.utc - entry.updated < 24 * 60 * 60
-      cve_send_bot(entry.title, entry.entry_id)
-    end
+  feed.entries.each do |entry|
+    break if Time.now.utc - entry.updated > 24 * 60 * 60
+    
+    cve_send_bot(entry.title, entry.entry_id)
   end
 end
 
