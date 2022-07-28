@@ -5,6 +5,7 @@
 
 require 'minitest/autorun'
 require_relative '../../.github/workflows/scripts/slack_gem_notifications/notifications_methods'
+require_relative '../../.github/workflows/scripts/slack_gem_notifications/cve_methods'
 
 class GemNotifications < Minitest::Test
   def successful_http_response
@@ -61,29 +62,72 @@ class GemNotifications < Minitest::Test
     assert_equal true, versions.size == 2
   end
 
-  def test_gem_updated
+  def test_gem_updated_true
     assert_equal true, gem_updated?([{"created_at" => "#{Time.now}"}])
+  end
+
+  def test_gem_updated_false
     assert_equal false, gem_updated?([{"created_at" => "1993-06-11T17:31:14.298Z"}])
   end
 
-  def test_send_bot_input_size
+  def test_send_bot_zero_args
     assert_raises(ArgumentError) { send_bot() }
+  end
+
+  def test_send_bot_one_arg
     assert_raises(ArgumentError) { send_bot("tyrannosaurus") }
+  end
+
+  def test_send_bot
     HTTParty.stub(:post, nil) do
       assert_nil send_bot("tyrannosaurus", [{"number" => "83.6"}, {"number" => "66.0"}])
     end
   end
 
-  def test_interpolate_github_url
+  def test_interpolate_github_url_one_arg
     gem_name = "stegosaurus"
     assert_raises(ArgumentError) { interpolate_github_url(gem_name) }
+  end
+
+  def test_interpolate_github_url
     gem_name, newest, previous = "stegosaurus", "2.0", "1.0"
     assert_kind_of String, interpolate_github_url(gem_name, newest, previous)
   end
 
-  def test_interpolate_rubygems_url
+  def test_interpolate_rubygems_url_one_arg
     assert_raises(ArgumentError) { interpolate_rubygems_url() }
+  end
+
+  def test_interpolate_rubygems_url
     gem_name = "velociraptor"
     assert_kind_of String, interpolate_rubygems_url(gem_name)
+  end
+
+  def test_cve_bot_text_zero_args
+    assert_raises(ArgumentError) { cve_bot_text() }
+  end
+
+  def test_cve_bot_text_one_arg
+    assert_raises(ArgumentError) { cve_bot_text("allosaurus") }
+  end
+
+  def test_cve_bot_text
+    text = cve_bot_text("allosaurus", "dinotracker.com")
+    assert_equal text, '{"text":":rotating_light: allosaurus\n<dinotracker.com|More info here>"}'
+    assert_kind_of String, text
+  end
+
+  def test_cve_send_bot_zero_args
+    assert_raises(ArgumentError) { cve_send_bot() }
+  end
+
+  def test_cve_send_bot_one_arg
+    assert_raises(ArgumentError) { cve_send_bot("brachiosaurus") }
+  end
+
+  def test_cve_send_bot
+    HTTParty.stub(:post, nil) do
+      assert_nil cve_send_bot("brachiosaurus", "dinotracker.com")
+    end
   end
 end
