@@ -46,12 +46,10 @@ module NewRelic
       end
 
       def code_information(object, method_name)
-        unless NewRelic::Agent.config[:'code_level_metrics.enabled'] && object && method_name
-          return NewRelic::EMPTY_HASH
-        end
+        return ::NewRelic::EMPTY_HASH unless clm_enabled? && object && method_name
 
         @code_information ||= {}
-        cache_key = "#{object.object_id}#{method_name}"
+        cache_key = "#{object.object_id}#{method_name}".freeze
         return @code_information[cache_key] if @code_information.key?(cache_key)
 
         namespace, location, is_class_method = namespace_and_location(object, method_name.to_sym)
@@ -59,7 +57,7 @@ module NewRelic
         @code_information[cache_key] = {filepath: location.first,
                                         lineno: location.last,
                                         function: "#{'self.' if is_class_method}#{method_name}",
-                                        namespace: namespace}
+                                        namespace: namespace}.freeze
       rescue => e
         ::NewRelic::Agent.logger.warn("Unable to determine source code info for '#{object}', " \
                                         "method '#{method_name}' - #{e.class}: #{e.message}")
@@ -68,6 +66,10 @@ module NewRelic
       end
 
       private
+
+      def clm_enabled?
+        ::NewRelic::Agent.config[:'code_level_metrics.enabled']
+      end
 
       # The string representation of a singleton class looks like
       # '#<Class:MyModule::MyClass>'. Return the 'MyModule::MyClass' part of
