@@ -5,6 +5,7 @@
 
 require 'minitest/autorun'
 require_relative '../../.github/workflows/scripts/slack_gem_notifications/notifications_methods'
+require_relative '../../.github/workflows/scripts/slack_gem_notifications/cve_methods'
 
 class GemNotifications < Minitest::Test
   def successful_http_response
@@ -85,5 +86,21 @@ class GemNotifications < Minitest::Test
     assert_raises(ArgumentError) { interpolate_rubygems_url() }
     gem_name = "velociraptor"
     assert_kind_of String, interpolate_rubygems_url(gem_name)
+  end
+
+  def test_cve_bot_message
+    assert_raises(ArgumentError) { cve_bot_message() }
+    assert_raises(ArgumentError) { cve_bot_message("allosaurus") }
+    message = cve_bot_message("allosaurus", "dinotracker.com")
+    assert_equal message, ":rotating_light: allosaurus\n<dinotracker.com|More info here>"
+    assert_kind_of String, message
+  end
+
+  def test_cve_send_bot
+    assert_raises(ArgumentError) { cve_send_bot() }
+    assert_raises(ArgumentError) { cve_send_bot("brachiosaurus") }
+    HTTParty.stub(:post, nil) do
+      assert_nil cve_send_bot("brachiosaurus", "dinotracker.com")
+    end
   end
 end
