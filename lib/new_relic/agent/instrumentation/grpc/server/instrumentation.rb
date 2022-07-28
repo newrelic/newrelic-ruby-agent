@@ -21,7 +21,7 @@ module NewRelic
             metadata = metadata_for_call(active_call)
 
             finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
-              name: mth.original_name,
+              name: mth.original_name.to_s,
               category: :web,
               options: server_options(metadata)
             )
