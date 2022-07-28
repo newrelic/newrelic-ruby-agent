@@ -8,24 +8,24 @@ require 'feedjira'
 require 'httparty'
 
 def check_for_cves
-  xml = HTTParty.get('https://rubysec.com/atom.xml').body
-  feed = Feedjira.parse(xml)
+  ruby_sec_feed = 'https://rubysec.com/atom.xml'
+  feed = Feedjira.parse(HTTParty.get(ruby_sec_feed).body)
+  time = Time.now.utc
+  cycle = 24 * 60 * 60
   feed.entries.each do |entry|
-    break if Time.now.utc - entry.updated > 24 * 60 * 60
-    
+    break if time - entry.updated > cycle
+
     cve_send_bot(entry.title, entry.entry_id)
   end
 end
 
-def cve_bot_message(title, url)
-  alert_message = ":rotating_light: #{title}\n<#{url}|More info here>"
+def cve_bot_text(title, url)
+  {text: ":rotating_light: #{title}\n<#{url}|More info here>"}.to_json
 end
 
 def cve_send_bot(title, url)
-  path = ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK']
   options = {headers: {'Content-Type' => 'application/json'},
-             body: {
-              text: cve_bot_message(title, url)}.to_json}
+             body: cve_bot_text(title, url)}
 
-  HTTParty.post(path, options)
+  HTTParty.post(ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK'], options)
 end
