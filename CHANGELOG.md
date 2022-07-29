@@ -1,6 +1,31 @@
 # New Relic Ruby Agent Release Notes #
 
 
+  ## v8.10.0
+
+  * **Bugfix: Error when setting the yaml configuration with `transaction_tracer.transaction_threshold: apdex_f`**
+    
+    Originally, the agent was only checking the `transaction_tracer.transaction_threshold` from the newrelic.yml correctly if it was on two lines. 
+
+    Example:
+
+    ```
+    # newrelic.yml
+    transaction_tracer:
+      transaction_threshold: apdex_f 
+    ```
+
+    When this was instead changed to be on one line, the agent was not able to correctly identify the value of apdex_f. 
+
+    Example:
+    ```
+    # newrelic.yml
+    transaction_tracer.transaction_threshold: apdex_f
+    ```
+    This would cause prevent transactions from finishing due to the error `ArgumentError: comparison of Float with String failed`. This has now been corrected and the agent is able to process newrelic.yml with a one line `transaction_tracer.transaction_threshold: apdex_f` correctly now. 
+    
+    Thank you to @oboxodo for bringing this to our attention.
+
   ## v8.9.0
   
   
