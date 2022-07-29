@@ -549,20 +549,29 @@ module NewRelic
         assign_intrinsics
 
         finalize_segments
-
+        puts "WALUIGI - 1" if NewRelic::Agent.config[:app_name].first.match?('server')
         @transaction_trace = transaction_sampler.on_finishing_transaction(self)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
+        puts "WALUIGI - 2" if NewRelic::Agent.config[:app_name].first.match?('server')
 
         record_summary_metrics(outermost_node_name)
+        puts "WALUIGI - 3" if NewRelic::Agent.config[:app_name].first.match?('server')
+
         record_total_time_metrics
+        puts "WALUIGI - 4" if NewRelic::Agent.config[:app_name].first.match?('server')
+
         record_apdex unless ignore_apdex?
+        puts "WALUIGI - 5" if NewRelic::Agent.config[:app_name].first.match?('server')
         record_queue_time
         distributed_tracer.record_metrics
+        puts "WALUIGI - 6" if NewRelic::Agent.config[:app_name].first.match?('server')
 
         record_exceptions
         record_transaction_event
+        puts "WALUIGI - 7" if NewRelic::Agent.config[:app_name].first.match?('server')
         record_log_events
         merge_metrics
+        puts "WALUIGI - 8" if NewRelic::Agent.config[:app_name].first.match?('server')
         send_transaction_finished_event
       end
 
@@ -646,6 +655,7 @@ module NewRelic
       # This event is fired when the transaction is fully completed. The metric
       # values and sampler can't be successfully modified from this event.
       def send_transaction_finished_event
+        puts "WALUIGI - #send_transaction_finished_event, payload: #{payload}" if NewRelic::Agent.config[:app_name].first.match?('server')
         agent.events.notify(:transaction_finished, payload)
       end
 

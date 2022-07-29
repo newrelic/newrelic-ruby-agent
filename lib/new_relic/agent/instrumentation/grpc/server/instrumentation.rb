@@ -11,6 +11,7 @@ module NewRelic
       module GRPC
         module Server
           include NewRelic::Agent::Instrumentation::GRPC::Helper
+          include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
           INSTANCE_VAR_HOST = :@host_nr
           INSTANCE_VAR_PORT = :@port_nr
@@ -19,22 +20,15 @@ module NewRelic
           def handle_with_tracing(active_call, mth, _inter_ctx)
             return yield unless trace_with_newrelic?
             metadata = metadata_for_call(active_call)
-
-            finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
-              name: mth.original_name.to_s,
-              category: :web,
-              options: server_options(metadata)
-            )
-            process_distributed_tracing_headers(metadata)
-
-            begin
+            result_code = 0
+            # rescue => put handling for exceptions to get at the non-zero code
+            # in the ensure block
+            # response - how do we add the response code?
+            # ability to turn off the server's status code?
+            perform_action_with_newrelic_trace(server_options(metadata)) do
+              process_distributed_tracing_headers(metadata)
               yield
-            rescue => e
-              NewRelic::Agent.notice_error(e)
-              raise
             end
-          ensure
-            finishable.finish if finishable
           end
 
           def add_http2_port_with_tracing(*args)
@@ -95,7 +89,9 @@ module NewRelic
                 headers: headers,
                 uri: "grpc://#{host}:#{port}/#{method}",
                 method: method
-              }
+              },
+              category: :web,
+              transaction_name: "Controller/#{method}"
             }
           end
 
