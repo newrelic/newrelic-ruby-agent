@@ -12,7 +12,7 @@ module NewRelic
         module Server
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
-          DT_HEADERS = [NewRelic::NEWRELIC_KEY, NewRelic::TRACEPARENT_KEY, NewRelic::TRACESTATE_KEY].freeze
+          DT_KEYS = [NewRelic::NEWRELIC_KEY, NewRelic::TRACEPARENT_KEY, NewRelic::TRACESTATE_KEY].freeze
           INSTANCE_VAR_HOST = :@host_nr
           INSTANCE_VAR_PORT = :@port_nr
           INSTANCE_VAR_METHOD = :@method_nr
