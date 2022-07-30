@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 SINATRA_VERSIONS = [
   [nil, 2.3],
   ['2.1.0', 2.3],
@@ -16,5 +21,3 @@ def gem_list(sinatra_version = nil)
 end
 
 create_gemfiles(SINATRA_VERSIONS, gem_list)
-
-# vim: ft=ruby

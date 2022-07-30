@@ -2038,11 +2038,12 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
         },
         :'code_level_metrics.enabled' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, the agent will report source code level metrics for traced methods.'
+          :description => "If `true`, the agent will report source code level metrics for traced methods.\nsee: " \
+                          'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
