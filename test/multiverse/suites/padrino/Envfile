@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
@@ -6,5 +11,3 @@ gemfile <<-RB
   gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
   gem 'webrick' if RUBY_VERSION >= '2.7.0'
 RB
-
-# vim: ft=ruby
