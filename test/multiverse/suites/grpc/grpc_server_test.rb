@@ -39,6 +39,12 @@ class GrpcServerTest < Minitest::Test
     m
   end
 
+  def transaction
+    t = MiniTest::Mock.new
+    t.expect(:finish, nil)
+    t
+  end
+
   def host_var
     ::NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_HOST
   end
@@ -59,15 +65,15 @@ class GrpcServerTest < Minitest::Test
   def test_hosts_are_not_traced_if_on_the_denylist
     desc = basic_grpc_desc
     desc.instance_variable_set(:@trace_with_newrelic, false)
-    in_transaction('grpc test') do |txn|
+
+    new_transaction_called = false
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true }) do
       # by passing nil as the first argument, an exception will happen if the
       # code proceeds beyond the early return. this gives us confidence that the
       # early return is activated
-      result = desc.handle_with_tracing(nil, nil, nil) { return_value }
+      result = desc.handle_with_tracing(nil, nil, nil, nil) { return_value }
       assert_equal return_value, result
-      # in_transaction always creates one segment, we don't want a second
-      # segment when an early return is invoked
-      assert_equal 1, txn.segments.count
+      refute new_transaction_called
     end
   end
 
@@ -77,13 +83,14 @@ class GrpcServerTest < Minitest::Test
     def desc.trace_with_newrelic?; true; end # force a true response from this method
     def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
-    in_transaction('grpc test') do |txn|
+    new_transaction_called = false
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true; transaction }) do
       # the 'active_call' and 'method' mocks used here will verify
       # (with expectations) to have methods called on them and return
       # appropriate responses
-      result = desc.handle_with_tracing(nil, method, nil) { return_value }
+      result = desc.handle_with_tracing(nil, nil, method, nil) { return_value }
       assert_equal return_value, result
-      assert_equal 2, txn.segments.count
+      assert new_transaction_called
     end
   end
 
@@ -95,15 +102,16 @@ class GrpcServerTest < Minitest::Test
     def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
     raised_error = RuntimeError.new
-    received_error = nil
-    in_transaction('grpc test') do |txn|
+    new_transaction_called = false
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true; transaction }) do
+      received_error = nil
       notice_stub = Proc.new { |e| received_error = e }
       NewRelic::Agent.stub(:notice_error, notice_stub) do
         assert_raises(RuntimeError) do
-          result = desc.handle_with_tracing(nil, method, nil) { raise raised_error }
+          result = desc.handle_with_tracing(nil, nil, method, nil) { raise raised_error }
         end
         assert_equal raised_error, received_error
-        assert_equal 2, txn.segments.count
+        assert new_transaction_called
       end
     end
   end
@@ -117,7 +125,7 @@ class GrpcServerTest < Minitest::Test
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
     # force finishable to be nil
     NewRelic::Agent::Tracer.stub(:start_transaction_or_segment, nil) do
-      result = desc.handle_with_tracing(nil, method, nil) { return_value }
+      result = desc.handle_with_tracing(nil, nil, method, nil) { return_value }
       assert_equal return_value, result
       # MiniTest does not have a wont_raise, but this test would fail if
       # finishable called #finish when nil

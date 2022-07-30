@@ -1,10 +1,13 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 suite_condition('grpc gem requires CRuby 2.5+') do
   RUBY_VERSION >= '2.5.0' && RUBY_PLATFORM != 'java'
 end
 
-instrumentation_methods(:chain, :prepend)
+instrumentation_methods(:prepend)
 
 GRPC_VERSIONS = [
   nil
@@ -17,5 +20,3 @@ def gem_list(grpc_version = nil)
 end
 
 create_gemfiles(GRPC_VERSIONS, gem_list)
-
-# vim: ft=ruby
