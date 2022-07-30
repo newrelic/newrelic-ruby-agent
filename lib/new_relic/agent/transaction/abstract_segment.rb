@@ -60,7 +60,6 @@ module NewRelic
         end
 
         def finish
-          puts "WALUIGI - segment name: #{name}" if NewRelic::Agent.config[:app_name].first.match?('server')
           @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = end_time - start_time
 

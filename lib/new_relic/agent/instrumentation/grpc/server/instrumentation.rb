@@ -11,24 +11,34 @@ module NewRelic
       module GRPC
         module Server
           include NewRelic::Agent::Instrumentation::GRPC::Helper
-          include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+          DT_HEADERS = [NewRelic::NEWRELIC_KEY, NewRelic::TRACEPARENT_KEY, NewRelic::TRACESTATE_KEY].freeze
           INSTANCE_VAR_HOST = :@host_nr
           INSTANCE_VAR_PORT = :@port_nr
           INSTANCE_VAR_METHOD = :@method_nr
 
-          def handle_with_tracing(active_call, mth, _inter_ctx)
+          def handle_with_tracing(streamer_type, active_call, mth, _inter_ctx)
             return yield unless trace_with_newrelic?
+
             metadata = metadata_for_call(active_call)
             result_code = 0
-            # rescue => put handling for exceptions to get at the non-zero code
-            # in the ensure block
-            # response - how do we add the response code?
-            # ability to turn off the server's status code?
-            perform_action_with_newrelic_trace(server_options(metadata)) do
-              process_distributed_tracing_headers(metadata)
+            options = trace_options(metadata, streamer_type)
+            txn = NewRelic::Agent::Transaction.start_new_transaction(NewRelic::Agent::Tracer.state,
+              options[:category],
+              options)
+            process_distributed_tracing_headers(metadata)
+
+            begin
               yield
+            rescue => e
+              # TODO: report error if configured to do so
+              # TODO: obtain result code
+              NewRelic::Agent.notice_error(e)
+              raise
             end
+          ensure
+            # TODO: update txn with the result code
+            txn.finish if txn
           end
 
           def add_http2_port_with_tracing(*args)
@@ -80,19 +90,24 @@ module NewRelic
             end
           end
 
-          def server_options(headers)
+          def grpc_headers(metadata)
+            metadata.reject { |k, v| DT_KEYS.include?(k) }
+          end
+
+          def grpc_params(metadata, streamer_type, host, port, method)
+            {headers: grpc_headers(metadata),
+             uri: "grpc://#{host}:#{port}/#{method}",
+             method: method,
+             type: streamer_type}
+          end
+
+          def trace_options(metadata, streamer_type)
             host = instance_variable_get(INSTANCE_VAR_HOST)
             port = instance_variable_get(INSTANCE_VAR_PORT)
             method = instance_variable_get(INSTANCE_VAR_METHOD)
-            {
-              request: {
-                headers: headers,
-                uri: "grpc://#{host}:#{port}/#{method}",
-                method: method
-              },
-              category: :web,
-              transaction_name: "Controller/#{method}"
-            }
+            {category: :web,
+             transaction_name: "Controller/#{method}",
+             filtered_params: grpc_params(metadata, streamer_type, host, port, method)}
           end
 
           def trace_with_newrelic?
