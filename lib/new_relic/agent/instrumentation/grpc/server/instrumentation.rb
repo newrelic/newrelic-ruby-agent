@@ -21,7 +21,6 @@ module NewRelic
             return yield unless trace_with_newrelic?
 
             metadata = metadata_for_call(active_call)
-            result_code = 0
             options = trace_options(metadata, streamer_type)
             txn = NewRelic::Agent::Transaction.start_new_transaction(NewRelic::Agent::Tracer.state,
               options[:category],
