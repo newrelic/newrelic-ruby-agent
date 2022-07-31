@@ -13,7 +13,8 @@ module NewRelic
         module Client
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
-          def issue_request_with_tracing(method, requests, marshal, unmarshal,
+          # TODO: gRPC - record request type
+          def issue_request_with_tracing(grpc_type, method, requests, marshal, unmarshal,
             deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
 
@@ -21,14 +22,32 @@ module NewRelic
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers(request_wrapper)
             metadata.merge!(metadata, request_wrapper.instance_variable_get(:@newrelic_metadata))
+            grpc_message = nil
+            grpc_status = 0
 
             NewRelic::Agent.disable_all_tracing do
-              NewRelic::Agent::Tracer.capture_segment_error(segment) do
+              begin
                 yield
+              rescue => e
+                NewRelic::Agent.notice_error(e)
+                if e.message =~ /debug_error_string:(.*)$/
+                  hash = JSON.parse(Regexp.last_match(1))
+                  grpc_message = hash['grpc_message']
+                  grpc_status = hash['grpc_status']
+                end
+                raise
               end
             end
           ensure
-            segment.finish if segment
+            if segment
+              if segment.transaction && segment.transaction.attributes
+                # TODO: gRPC - confirm these 3 attributes are being added correctly
+                segment.transaction.attributes.merge_custom_attributes(grpc_message: grpc_message,
+                  grpc_status: grpc_status,
+                  grpc_type: grpc_type)
+              end
+              segment.finish
+            end
           end
 
           private

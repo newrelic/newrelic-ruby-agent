@@ -29,7 +29,7 @@ module NewRelic::Agent::Instrumentation
               metadata: {},
               &blk)
 
-              issue_request_with_tracing(method, requests, marshal, unmarshal,
+              issue_request_with_tracing(:bidi_streamer, method, requests, marshal, unmarshal,
                 deadline: deadline,
                 return_op: return_op,
                 parent: parent,
@@ -49,7 +49,7 @@ module NewRelic::Agent::Instrumentation
               credentials: nil,
               metadata: {})
 
-              issue_request_with_tracing(method, requests, marshal, unmarshal,
+              issue_request_with_tracing(:client_streamer, method, requests, marshal, unmarshal,
                 deadline: deadline,
                 return_op: return_op,
                 parent: parent,
@@ -67,7 +67,7 @@ module NewRelic::Agent::Instrumentation
               credentials: nil,
               metadata: {})
 
-              issue_request_with_tracing(method, req, marshal, unmarshal,
+              issue_request_with_tracing(:request_response, method, req, marshal, unmarshal,
                 deadline: deadline,
                 return_op: return_op,
                 parent: parent,
@@ -86,7 +86,7 @@ module NewRelic::Agent::Instrumentation
               metadata: {},
               &blk)
 
-              issue_request_with_tracing(method, req, marshal, unmarshal,
+              issue_request_with_tracing(:server_streamer, method, req, marshal, unmarshal,
                 deadline: deadline,
                 return_op: return_op,
                 parent: parent,

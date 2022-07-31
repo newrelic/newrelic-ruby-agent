@@ -30,13 +30,13 @@ module NewRelic
             begin
               yield
             rescue => e
-              # TODO: report error if configured to do so
-              # TODO: obtain result code
+              # TODO: gRPC - report error if configured to do so
+              # TODO: gRPC - obtain result code
               NewRelic::Agent.notice_error(e)
               raise
             end
           ensure
-            # TODO: update txn with the result code
+            # TODO: gRPC - update txn with the result code
             txn.finish if txn
           end
 
@@ -104,6 +104,8 @@ module NewRelic
             host = instance_variable_get(INSTANCE_VAR_HOST)
             port = instance_variable_get(INSTANCE_VAR_PORT)
             method = instance_variable_get(INSTANCE_VAR_METHOD)
+            # TODO: gRPC - should category be 'gRPC'
+            # TODO: gRPC - should transaction name start with 'External/'?
             {category: :web,
              transaction_name: "Controller/#{method}",
              filtered_params: grpc_params(metadata, streamer_type, host, port, method)}

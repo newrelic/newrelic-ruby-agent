@@ -36,6 +36,7 @@ class GrpcClientTest < Minitest::Test
       grpc_client = basic_grpc_client
       trace_with_newrelic_true(grpc_client)
       result = grpc_client.issue_request_with_tracing(
+        nil,
         METHOD,
         nil,
         nil,
@@ -77,7 +78,7 @@ class GrpcClientTest < Minitest::Test
     # NOTE: by passing nil for metadata, we are guaranteed to encounter an
     #       exception unless the early 'return yield' is hit as desired
     in_transaction('grpc test') do |txn|
-      result = grpc_client.issue_request_with_tracing(nil, nil, nil, nil,
+      result = grpc_client.issue_request_with_tracing(nil, nil, nil, nil, nil,
         deadline: nil, return_op: nil, parent: nil, credentials: nil,
         metadata: nil) { return_value }
       assert_equal return_value, result
@@ -93,6 +94,7 @@ class GrpcClientTest < Minitest::Test
       in_transaction('gRPC client test transaction') do |txn|
         trace_with_newrelic_true(grpc_client)
         result = grpc_client.issue_request_with_tracing(
+          nil,
           METHOD,
           nil,
           nil,
@@ -151,6 +153,7 @@ class GrpcClientTest < Minitest::Test
       in_transaction('gRPC client test transaction') do |local_txn|
         txn = local_txn
         grpc_client.issue_request_with_tracing(
+          nil,
           METHOD,
           nil,
           nil,
