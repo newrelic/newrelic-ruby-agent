@@ -13,7 +13,6 @@ module NewRelic
         module Client
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
-          # TODO: gRPC - record request type
           def issue_request_with_tracing(grpc_type, method, requests, marshal, unmarshal,
             deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
@@ -30,11 +29,7 @@ module NewRelic
                 yield
               rescue => e
                 NewRelic::Agent.notice_error(e)
-                if e.message =~ /debug_error_string:(.*)$/
-                  hash = JSON.parse(Regexp.last_match(1))
-                  grpc_message = hash['grpc_message']
-                  grpc_status = hash['grpc_status']
-                end
+                grpc_status, grpc_message = grpc_status_and_message_from_exception(e)
                 raise
               end
             end
@@ -51,6 +46,12 @@ module NewRelic
           end
 
           private
+
+          def grpc_status_and_message_from_exception(exception)
+            return unless e.message =~ /^(\d+):(\w+)\./
+
+            [Regexp.last_match(1), Regexp.last_match(2)]
+          end
 
           def request_segment(method)
             cleaned = cleaned_method(method)

@@ -7,7 +7,7 @@ suite_condition('grpc gem requires CRuby 2.5+') do
   RUBY_VERSION >= '2.5.0' && RUBY_PLATFORM != 'java'
 end
 
-instrumentation_methods(:prepend)
+instrumentation_methods(:chain, :prepend)
 
 GRPC_VERSIONS = [
   nil
