@@ -49,7 +49,7 @@ module NewRelic
           end
 
           def grpc_status_and_message_from_exception(exception)
-            return unless e.message =~ /^(\d+):(\w+)\./
+            return unless exception.message =~ /^(\d+):(\w+)\./
 
             [Regexp.last_match(1), Regexp.last_match(2)]
           end

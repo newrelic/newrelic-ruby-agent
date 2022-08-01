@@ -16,15 +16,16 @@ module NewRelic
           INSTANCE_VAR_HOST = :@host_nr
           INSTANCE_VAR_PORT = :@port_nr
           INSTANCE_VAR_METHOD = :@method_nr
+          CATEGORY = :web
 
           def handle_with_tracing(streamer_type, active_call, mth, _inter_ctx)
             return yield unless trace_with_newrelic?
 
             metadata = metadata_for_call(active_call)
-            options = trace_options(metadata, streamer_type)
             txn = NewRelic::Agent::Transaction.start_new_transaction(NewRelic::Agent::Tracer.state,
-              options[:category],
-              options)
+              CATEGORY,
+              trace_options)
+            add_attributes(txn, metadata, streamer_type)
             process_distributed_tracing_headers(metadata)
 
             begin
@@ -51,6 +52,13 @@ module NewRelic
           end
 
           private
+
+          def add_attributes(txn, metadata, streamer_type)
+            grpc_params(metadata, streamer_type).each do |attr, value|
+              txn.add_agent_attribute(attr, value, NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              txn.current_segment.add_agent_attribute(attr, value) if txn.current_segment
+            end
+          end
 
           def metadata_for_call(active_call)
             return NewRelic::EMPTY_HASH unless active_call && active_call.metadata
@@ -93,22 +101,19 @@ module NewRelic
             metadata.reject { |k, v| DT_KEYS.include?(k) }
           end
 
-          def grpc_params(metadata, streamer_type, host, port, method)
+          def grpc_params(metadata, streamer_type)
+            host = instance_variable_get(INSTANCE_VAR_HOST)
+            port = instance_variable_get(INSTANCE_VAR_PORT)
+            method = instance_variable_get(INSTANCE_VAR_METHOD)
             {headers: grpc_headers(metadata),
              uri: "grpc://#{host}:#{port}/#{method}",
              method: method,
              type: streamer_type}
           end
 
-          def trace_options(metadata, streamer_type)
-            host = instance_variable_get(INSTANCE_VAR_HOST)
-            port = instance_variable_get(INSTANCE_VAR_PORT)
+          def trace_options
             method = instance_variable_get(INSTANCE_VAR_METHOD)
-            # TODO: gRPC - should category be 'gRPC'
-            # TODO: gRPC - should transaction name start with 'External/'?
-            {category: :web,
-             transaction_name: "Controller/#{method}",
-             filtered_params: grpc_params(metadata, streamer_type, host, port, method)}
+            {category: CATEGORY, transaction_name: "Controller/#{method}"}
           end
 
           def trace_with_newrelic?
