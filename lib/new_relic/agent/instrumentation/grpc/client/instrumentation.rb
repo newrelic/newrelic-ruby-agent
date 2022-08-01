@@ -34,18 +34,24 @@ module NewRelic
               end
             end
           ensure
-            if segment
-              if segment.transaction && segment.transaction.attributes
-                # TODO: gRPC - confirm these 3 attributes are being added correctly
-                segment.transaction.attributes.merge_custom_attributes(grpc_message: grpc_message,
-                  grpc_status: grpc_status,
-                  grpc_type: grpc_type)
-              end
-              segment.finish
-            end
+            add_attributes(segment, grpc_message: grpc_message, grpc_status: grpc_status, grpc_type: grpc_type)
+            segment.finish if segment
           end
 
           private
+
+          def add_attributes(segment, attributes_hash)
+            return unless segment
+
+            attributes_hash.each do |attr, value|
+              segment.add_agent_attribute(attr, value)
+              if segment.transaction
+                segment.transaction.add_agent_attribute(attr,
+                  value,
+                  NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              end
+            end
+          end
 
           def grpc_status_and_message_from_exception(exception)
             return unless e.message =~ /^(\d+):(\w+)\./
