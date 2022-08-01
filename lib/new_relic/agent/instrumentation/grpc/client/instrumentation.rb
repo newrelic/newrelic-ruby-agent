@@ -45,11 +45,6 @@ module NewRelic
 
             attributes_hash.each do |attr, value|
               segment.add_agent_attribute(attr, value)
-              if segment.transaction
-                segment.transaction.add_agent_attribute(attr,
-                  value,
-                  NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
-              end
             end
           end
 
