@@ -3,6 +3,7 @@
 
   ## v8.10.0
 
+
   * **Bugfix: Error when setting the yaml configuration with `transaction_tracer.transaction_threshold: apdex_f`**
     
     Originally, the agent was only checking the `transaction_tracer.transaction_threshold` from the newrelic.yml correctly if it was on two lines. 
@@ -25,6 +26,13 @@
     This would cause prevent transactions from finishing due to the error `ArgumentError: comparison of Float with String failed`. This has now been corrected and the agent is able to process newrelic.yml with a one line `transaction_tracer.transaction_threshold: apdex_f` correctly now. 
     
     Thank you to @oboxodo for bringing this to our attention.
+
+
+  * **Bugfix: Don't modify frozen Logger**
+
+    Previously the agent would modify each instance of the Logger class by adding a unique instance variable as part of the instrumentation. This could cause the error `FrozenError: can't modify frozen Logger` to be thrown if the Logger instance had been frozen. The agent will now check if the object is frozen before attempting to modify the object. Thanks to @mkcosta for bringing this issue to our attention.
+
+
 
   ## v8.9.0
   
