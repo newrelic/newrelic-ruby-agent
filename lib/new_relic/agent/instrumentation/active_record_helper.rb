@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/constants'
 
 module NewRelic
   module Agent
@@ -115,13 +116,12 @@ module NewRelic
         end
 
         SPACE = ' '.freeze
-        EMPTY = NewRelic::EMPTY_ARRAY
 
         def split_name(name)
           if name && name.respond_to?(:split)
             name.split(SPACE)
           else
-            EMPTY
+            NewRelic::EMPTY_ARRAY
           end
         end
 
