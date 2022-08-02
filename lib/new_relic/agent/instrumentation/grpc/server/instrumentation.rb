@@ -17,6 +17,9 @@ module NewRelic
           INSTANCE_VAR_PORT = :@port_nr
           INSTANCE_VAR_METHOD = :@method_nr
           CATEGORY = :web
+          DESTINATIONS = AttributeFilter::DST_TRANSACTION_TRACER |
+            AttributeFilter::DST_TRANSACTION_EVENTS |
+            AttributeFilter::DST_ERROR_COLLECTOR
 
           def handle_with_tracing(streamer_type, active_call, mth, _inter_ctx)
             return yield unless trace_with_newrelic?
@@ -31,13 +34,10 @@ module NewRelic
             begin
               yield
             rescue => e
-              # TODO: gRPC - report error if configured to do so
-              # TODO: gRPC - obtain result code
               NewRelic::Agent.notice_error(e)
               raise
             end
           ensure
-            # TODO: gRPC - update txn with the result code
             txn.finish if txn
           end
 
@@ -55,7 +55,7 @@ module NewRelic
 
           def add_attributes(txn, metadata, streamer_type)
             grpc_params(metadata, streamer_type).each do |attr, value|
-              txn.add_agent_attribute(attr, value, NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              txn.add_agent_attribute(attr, value, DESTINATIONS)
               txn.current_segment.add_agent_attribute(attr, value) if txn.current_segment
             end
           end
@@ -105,10 +105,10 @@ module NewRelic
             host = instance_variable_get(INSTANCE_VAR_HOST)
             port = instance_variable_get(INSTANCE_VAR_PORT)
             method = instance_variable_get(INSTANCE_VAR_METHOD)
-            {headers: grpc_headers(metadata),
-             uri: "grpc://#{host}:#{port}/#{method}",
-             method: method,
-             type: streamer_type}
+            {'request.headers': grpc_headers(metadata),
+             'request.uri': "grpc://#{host}:#{port}/#{method}",
+             'request.method': method,
+             'request.grpc_type': streamer_type}
           end
 
           def trace_options

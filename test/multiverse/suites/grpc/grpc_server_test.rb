@@ -39,8 +39,33 @@ class GrpcServerTest < Minitest::Test
     m
   end
 
+  def current_segment
+    t = MiniTest::Mock.new
+    t.expect(:add_agent_attribute, nil, [:'request.headers', {}])
+    t.expect(:add_agent_attribute, nil, [:'request.uri', "grpc://:/"])
+    t.expect(:add_agent_attribute, nil, [:'request.method', nil])
+    t.expect(:add_agent_attribute, nil, [:'request.grpc_type', nil])
+    t
+  end
+
+  def destinations
+    NewRelic::Agent::Instrumentation::GRPC::Server::DESTINATIONS
+  end
+
   def transaction
     t = MiniTest::Mock.new
+    t.expect(:add_agent_attribute, nil, [:'request.headers', {}, destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.uri', "grpc://:/", destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.method', nil, destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.grpc_type', nil, destinations])
+    t.expect(:current_segment, nil) # 4 existence checks
+    t.expect(:current_segment, nil)
+    t.expect(:current_segment, nil)
+    t.expect(:current_segment, nil)
+    t.expect(:current_segment, current_segment) # 4 attrs to add
+    t.expect(:current_segment, current_segment)
+    t.expect(:current_segment, current_segment)
+    t.expect(:current_segment, current_segment)
     t.expect(:finish, nil)
     t
   end

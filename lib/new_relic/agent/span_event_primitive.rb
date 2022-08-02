@@ -80,6 +80,10 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
+        if segment.respond_to?(:record_agent_attributes?) && segment.record_agent_attributes?
+          agent_attributes.merge!(agent_attributes(segment))
+        end
+
         [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
