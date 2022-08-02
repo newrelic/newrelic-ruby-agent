@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 # TODO: UNIT TESTS - Determine the root cause of our compatibility issues with
 #       rack-test 2+. If rack-test is not specified in Gemfile, the rum tests
 #       fail because the JS header is always included, even when not desired.

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'minitest/autorun'
 require 'net/http'
 require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'

@@ -1,6 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
 
+  ## v8.10.0
+
+  * **Bugfix: Don't modify frozen Logger**
+
+    Previously the agent would modify each instance of the Logger class by adding a unique instance variable as part of the instrumentation. This could cause the error `FrozenError: can't modify frozen Logger` to be thrown if the Logger instance had been frozen. The agent will now check if the object is frozen before attempting to modify the object. Thanks to @mkcosta for bringing this issue to our attention.
+
+
+
   ## v8.9.0
   
   
