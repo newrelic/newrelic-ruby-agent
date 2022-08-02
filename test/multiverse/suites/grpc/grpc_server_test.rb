@@ -282,4 +282,38 @@ class GrpcServerTest < Minitest::Test
       assert desc.send(:trace_with_newrelic?)
     end
   end
+
+  def test_grpc_headers_exclude_dt_headers
+    expected = {our: :blues,
+                hometown: :cha_cha_cha,
+                itaewon: :class}
+    input = NewRelic::Agent::Instrumentation::GRPC::Server::DT_KEYS.each_with_object(expected.dup) do |key, hash|
+      hash[key] = true
+    end
+    assert_equal (expected.keys.size + NewRelic::Agent::Instrumentation::GRPC::Server::DT_KEYS.size), input.keys.size
+    assert_equal expected, basic_grpc_desc.send(:grpc_headers, input)
+  end
+
+  def test_trace_options
+    desc = basic_grpc_desc
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD, method_name)
+    expected = {category: NewRelic::Agent::Instrumentation::GRPC::Server::CATEGORY,
+                transaction_name: "Controller/#{method_name}"}
+    assert_equal expected, desc.send(:trace_options)
+  end
+
+  def test_grpc_params
+    desc = basic_grpc_desc
+    type = 'congrats smarty pants'
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD, method_name)
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_HOST, host)
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_PORT, port)
+    def desc.grpc_headers(metadata); 'canned_headers'; end
+    expected = {'request.headers': 'canned_headers',
+                'request.uri': "grpc://#{host}:#{port}/#{method_name}",
+                'request.method': method_name,
+                'request.grpc_type': type}
+    result = desc.send(:grpc_params, metadata_hash, type)
+    assert_equal expected, result
+  end
 end
