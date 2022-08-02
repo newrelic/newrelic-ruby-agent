@@ -16,10 +16,10 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument ::GRPC::RpcServer, ::NewRelic::Agent::Instrumentation::GRPC::Server::RpcServerPrepend
-      prepend_instrument ::GRPC::RpcDesc, ::NewRelic::Agent::Instrumentation::GRPC::Server::RpcDescPrepend
+      prepend_instrument ::GRPC::RpcServer, ::NewRelic::Agent::Instrumentation::GRPC::Server::RpcServerPrepend, 'GRPC::Server::RpcServer'
+      prepend_instrument ::GRPC::RpcDesc, ::NewRelic::Agent::Instrumentation::GRPC::Server::RpcDescPrepend, 'GRPC::Server::RpcDesc'
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::GRPC::Server::Chain
+      chain_instrument ::NewRelic::Agent::Instrumentation::GRPC::Server::Chain, 'GRPC::Server'
     end
   end
 end
