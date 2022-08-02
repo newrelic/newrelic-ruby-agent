@@ -52,3 +52,7 @@ NewRelic::Agent.require_test_helper
 # This is an example of a test fail: unexpected invocation: #<Mock:0x28438>.sync=(true) (MiniTest::Assertion)
 ENV.delete('NEW_RELIC_LICENSE_KEY')
 ENV.delete('NEW_RELIC_HOST')
+
+def current_active_record_migration_version
+  ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
+end

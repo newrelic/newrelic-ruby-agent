@@ -4,6 +4,7 @@
 # frozen_string_literal: true
 
 require 'delayed_job'
+require_relative '../../../../test/test_helper'
 
 migration_version = nil
 
@@ -45,7 +46,7 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
     @connection = $db_connection
   end
 
-  class CreatePelicans < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
+  class CreatePelicans < current_active_record_migration_version
     @connection = $db_connection
     def self.up
       create_table(:pelicans) do |t|

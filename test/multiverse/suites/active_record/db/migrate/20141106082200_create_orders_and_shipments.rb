@@ -3,7 +3,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class CreateOrdersAndShipments < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration
+require_relative '../../../../../../test/test_helper'
+
+class CreateOrdersAndShipments < current_active_record_migration_version
   def self.up
     create_table(:orders) do |t|
       t.string(:name)

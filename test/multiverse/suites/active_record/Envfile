@@ -8,7 +8,7 @@
 
 # don't change the first index to a number ending in other than zero
 # it is used by jbdc_version
-RAILS_VERSIONS = [
+ACTIVERECORD_VERSIONS = [
   ['5.2.0', 2.2, 2.6],
   ['5.1.0', 2.2, 2.5],
   ['5.0.0', 2.2, 2.4],
@@ -48,3 +48,5 @@ def gem_list(activerecord_version = nil)
     #{mysql_gem(activerecord_version)}
   RB
 end
+
+create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
