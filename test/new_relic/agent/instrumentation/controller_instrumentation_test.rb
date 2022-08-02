@@ -221,6 +221,11 @@ module NewRelic::Agent::Instrumentation
           :name => 'action'))
     end
 
+    def test_transaction_name_always_comes_from_the_options_hash_when_present
+      expected = 'lighthouse'
+      assert_equal expected, @txn_namer.name_for(nil, nil, nil, transaction_name: expected)
+    end
+
     def test_transaction_namer_determines_prefix
       in_transaction do |txn|
         assert_equal @txn_namer.prefix_for_category(txn, :controller), 'Controller/'

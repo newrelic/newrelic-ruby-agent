@@ -309,6 +309,59 @@ module NewRelic
             assert_equal [false, false, false, false], existence
           end
         end
+
+        def test_agent_attributes_are_not_included_for_external_segments_by_default
+          SpanEventPrimitive.stub(:intrinsics_for, {}) do
+            SpanEventPrimitive.stub(:error_attributes, {}) do
+              SpanEventPrimitive.stub(:custom_attributes, {}) do
+                segment = MiniTest::Mock.new
+                segment.expect(:library, :library)
+                segment.expect(:procedure, :procedure)
+                segment.expect(:http_status_code, :http_status_code)
+                segment.expect(:http_status_code, :http_status_code) # 2 calls
+                segment.expect(:uri, :uri)
+                segment.expect(:record_agent_attributes?, false)
+                result = SpanEventPrimitive.for_external_request_segment(segment)
+                expected_intrinsics = {'component' => :library,
+                                       'http.method' => :procedure,
+                                       'http.statusCode' => :http_status_code,
+                                       'category' => 'http',
+                                       'span.kind' => 'client'}
+                expected_custom_attrs = {}
+                expected_agent_attrs = {'http.url' => 'uri'}
+                assert_equal [expected_intrinsics, expected_custom_attrs, expected_agent_attrs], result
+              end
+            end
+          end
+        end
+
+        def test_agent_attributes_are_included_for_external_segments_when_enabled_on_a_per_segment_basis
+          existing_agent_attributes = {mr: :badger}
+          SpanEventPrimitive.stub(:intrinsics_for, {}) do
+            SpanEventPrimitive.stub(:error_attributes, {}) do
+              SpanEventPrimitive.stub(:custom_attributes, {}) do
+                SpanEventPrimitive.stub(:agent_attributes, existing_agent_attributes) do
+                  segment = MiniTest::Mock.new
+                  segment.expect(:library, :library)
+                  segment.expect(:procedure, :procedure)
+                  segment.expect(:http_status_code, :http_status_code)
+                  segment.expect(:http_status_code, :http_status_code) # 2 calls
+                  segment.expect(:uri, :uri)
+                  segment.expect(:record_agent_attributes?, true)
+                  result = SpanEventPrimitive.for_external_request_segment(segment)
+                  expected_intrinsics = {'component' => :library,
+                                         'http.method' => :procedure,
+                                         'http.statusCode' => :http_status_code,
+                                         'category' => 'http',
+                                         'span.kind' => 'client'}
+                  expected_custom_attrs = {}
+                  expected_agent_attrs = {'http.url' => 'uri'}.merge(existing_agent_attributes)
+                  assert_equal [expected_intrinsics, expected_custom_attrs, expected_agent_attrs], result
+                end
+              end
+            end
+          end
+        end
       end
     end
   end

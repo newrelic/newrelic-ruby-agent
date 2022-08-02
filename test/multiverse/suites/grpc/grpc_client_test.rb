@@ -36,6 +36,7 @@ class GrpcClientTest < Minitest::Test
       grpc_client = basic_grpc_client
       trace_with_newrelic_true(grpc_client)
       result = grpc_client.issue_request_with_tracing(
+        nil,
         METHOD,
         nil,
         nil,
@@ -77,7 +78,7 @@ class GrpcClientTest < Minitest::Test
     # NOTE: by passing nil for metadata, we are guaranteed to encounter an
     #       exception unless the early 'return yield' is hit as desired
     in_transaction('grpc test') do |txn|
-      result = grpc_client.issue_request_with_tracing(nil, nil, nil, nil,
+      result = grpc_client.issue_request_with_tracing(nil, nil, nil, nil, nil,
         deadline: nil, return_op: nil, parent: nil, credentials: nil,
         metadata: nil) { return_value }
       assert_equal return_value, result
@@ -93,6 +94,7 @@ class GrpcClientTest < Minitest::Test
       in_transaction('gRPC client test transaction') do |txn|
         trace_with_newrelic_true(grpc_client)
         result = grpc_client.issue_request_with_tracing(
+          nil,
           METHOD,
           nil,
           nil,
@@ -151,6 +153,7 @@ class GrpcClientTest < Minitest::Test
       in_transaction('gRPC client test transaction') do |local_txn|
         txn = local_txn
         grpc_client.issue_request_with_tracing(
+          nil,
           METHOD,
           nil,
           nil,
@@ -188,5 +191,21 @@ class GrpcClientTest < Minitest::Test
     grpc_client = basic_grpc_client
     grpc_client.instance_variable_set(:@host, 'a host')
     assert_nil grpc_client.send(:method_uri, nil)
+  end
+
+  def test_gleaning_info_from_an_exception_returns_early
+    exception = MiniTest::Mock.new
+    exception.expect(:message, 'a message that does not match the expected format')
+    refute basic_grpc_client.send(:grpc_status_and_message_from_exception, exception)
+  end
+
+  def test_gleaning_info_from_an_exception_works_correctly
+    status = 2049
+    message = "He reads, that's good. Me too, not much else to do around here at night anymore. Many is the night I " \
+      'dream of cheese. Toasted, mostly. What are you doing here?'.gsub(/[,'\?\. ]/, '_')
+    exception = MiniTest::Mock.new
+    exception.expect(:message, "#{status}:#{message}. He liked to work alone. So did I. So we worked together to keep " \
+                               'it that way.')
+    assert_equal [status, message], basic_grpc_client.send(:grpc_status_and_message_from_exception, exception)
   end
 end

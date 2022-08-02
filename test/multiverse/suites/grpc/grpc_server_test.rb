@@ -39,6 +39,37 @@ class GrpcServerTest < Minitest::Test
     m
   end
 
+  def current_segment
+    t = MiniTest::Mock.new
+    t.expect(:add_agent_attribute, nil, [:'request.headers', {}])
+    t.expect(:add_agent_attribute, nil, [:'request.uri', "grpc://:/"])
+    t.expect(:add_agent_attribute, nil, [:'request.method', nil])
+    t.expect(:add_agent_attribute, nil, [:'request.grpc_type', nil])
+    t
+  end
+
+  def destinations
+    NewRelic::Agent::Instrumentation::GRPC::Server::DESTINATIONS
+  end
+
+  def transaction
+    t = MiniTest::Mock.new
+    t.expect(:add_agent_attribute, nil, [:'request.headers', {}, destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.uri', "grpc://:/", destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.method', nil, destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.grpc_type', nil, destinations])
+    t.expect(:current_segment, nil) # 4 existence checks
+    t.expect(:current_segment, nil)
+    t.expect(:current_segment, nil)
+    t.expect(:current_segment, nil)
+    t.expect(:current_segment, current_segment) # 4 attrs to add
+    t.expect(:current_segment, current_segment)
+    t.expect(:current_segment, current_segment)
+    t.expect(:current_segment, current_segment)
+    t.expect(:finish, nil)
+    t
+  end
+
   def host_var
     ::NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_HOST
   end
@@ -59,15 +90,15 @@ class GrpcServerTest < Minitest::Test
   def test_hosts_are_not_traced_if_on_the_denylist
     desc = basic_grpc_desc
     desc.instance_variable_set(:@trace_with_newrelic, false)
-    in_transaction('grpc test') do |txn|
+
+    new_transaction_called = false
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true }) do
       # by passing nil as the first argument, an exception will happen if the
       # code proceeds beyond the early return. this gives us confidence that the
       # early return is activated
-      result = desc.handle_with_tracing(nil, nil, nil) { return_value }
+      result = desc.handle_with_tracing(nil, nil, nil, nil) { return_value }
       assert_equal return_value, result
-      # in_transaction always creates one segment, we don't want a second
-      # segment when an early return is invoked
-      assert_equal 1, txn.segments.count
+      refute new_transaction_called
     end
   end
 
@@ -77,13 +108,14 @@ class GrpcServerTest < Minitest::Test
     def desc.trace_with_newrelic?; true; end # force a true response from this method
     def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
-    in_transaction('grpc test') do |txn|
+    new_transaction_called = false
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true; transaction }) do
       # the 'active_call' and 'method' mocks used here will verify
       # (with expectations) to have methods called on them and return
       # appropriate responses
-      result = desc.handle_with_tracing(nil, method, nil) { return_value }
+      result = desc.handle_with_tracing(nil, nil, method, nil) { return_value }
       assert_equal return_value, result
-      assert_equal 2, txn.segments.count
+      assert new_transaction_called
     end
   end
 
@@ -95,15 +127,16 @@ class GrpcServerTest < Minitest::Test
     def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
     raised_error = RuntimeError.new
-    received_error = nil
-    in_transaction('grpc test') do |txn|
+    new_transaction_called = false
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true; transaction }) do
+      received_error = nil
       notice_stub = Proc.new { |e| received_error = e }
       NewRelic::Agent.stub(:notice_error, notice_stub) do
         assert_raises(RuntimeError) do
-          result = desc.handle_with_tracing(nil, method, nil) { raise raised_error }
+          result = desc.handle_with_tracing(nil, nil, method, nil) { raise raised_error }
         end
         assert_equal raised_error, received_error
-        assert_equal 2, txn.segments.count
+        assert new_transaction_called
       end
     end
   end
@@ -117,7 +150,7 @@ class GrpcServerTest < Minitest::Test
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
     # force finishable to be nil
     NewRelic::Agent::Tracer.stub(:start_transaction_or_segment, nil) do
-      result = desc.handle_with_tracing(nil, method, nil) { return_value }
+      result = desc.handle_with_tracing(nil, nil, method, nil) { return_value }
       assert_equal return_value, result
       # MiniTest does not have a wont_raise, but this test would fail if
       # finishable called #finish when nil
@@ -248,5 +281,39 @@ class GrpcServerTest < Minitest::Test
     NewRelic::Agent.stub(:config, mock) do
       assert desc.send(:trace_with_newrelic?)
     end
+  end
+
+  def test_grpc_headers_exclude_dt_headers
+    expected = {our: :blues,
+                hometown: :cha_cha_cha,
+                itaewon: :class}
+    input = NewRelic::Agent::Instrumentation::GRPC::Server::DT_KEYS.each_with_object(expected.dup) do |key, hash|
+      hash[key] = true
+    end
+    assert_equal (expected.keys.size + NewRelic::Agent::Instrumentation::GRPC::Server::DT_KEYS.size), input.keys.size
+    assert_equal expected, basic_grpc_desc.send(:grpc_headers, input)
+  end
+
+  def test_trace_options
+    desc = basic_grpc_desc
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD, method_name)
+    expected = {category: NewRelic::Agent::Instrumentation::GRPC::Server::CATEGORY,
+                transaction_name: "Controller/#{method_name}"}
+    assert_equal expected, desc.send(:trace_options)
+  end
+
+  def test_grpc_params
+    desc = basic_grpc_desc
+    type = 'congrats smarty pants'
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD, method_name)
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_HOST, host)
+    desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_PORT, port)
+    def desc.grpc_headers(metadata); 'canned_headers'; end
+    expected = {'request.headers': 'canned_headers',
+                'request.uri': "grpc://#{host}:#{port}/#{method_name}",
+                'request.method': method_name,
+                'request.grpc_type': type}
+    result = desc.send(:grpc_params, metadata_hash, type)
+    assert_equal expected, result
   end
 end
