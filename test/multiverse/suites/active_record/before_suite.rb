@@ -20,6 +20,7 @@ if defined? ::Mysql2
 end
 
 begin
+  ENV['RAILS_ENV'] = 'test'
   load('Rakefile')
   Rake::Task['db:create'].invoke
   Rake::Task['db:migrate'].invoke
