@@ -16,16 +16,16 @@ ACTIVERECORD_VERSIONS = [
 def jdbc_version(activerecord_version)
   return unless RUBY_PLATFORM.eql?('java') || activerecord_version.nil?
   # remove the '.' between the major and minor versions
-  activerecord_version_jdbc = activerecord_version.sub('.','') 
+  activerecord_version_jdbc = activerecord_version.sub('.', '')
   activerecord_version_jdbc
 end
 
 def mysql2_version(activerecord_version)
   return if activerecord_version.nil?
   if activerecord_version.include?('5')
-    '0.4.4'
+    add_version('0.4.4')
   else
-    '0.3.21'
+    add_version('0.3.21')
   end
 end
 
@@ -40,16 +40,19 @@ end
 # Rails 4.0 sets the dependency on Minitest to “~> 4.2”
 def minitest_version(rails_version = nil)
   if rails_version && rails_version.start_with?('4.0')
-    '4.2.0'
+    add_version('4.2.0')
   else
-    '5.2.3'
+    add_version('5.2.3')
   end
+end
+
+def rack_version
+  add_version('2.1.4.1') if RUBY_VERSION < '2.3.0'
 end
 
 def gem_list(activerecord_version = nil)
   <<-RB
-    gem 'rack' if RUBY_VERSION >= '2.3.0'
-    gem 'rack', '2.1.4.1' if RUBY_VERSION < '2.3.0'
+    gem 'rack'#{rack_version}
     gem 'minitest'#{minitest_version}
     gem 'activerecord'#{activerecord_version}
     #{mysql_gem(activerecord_version)}
