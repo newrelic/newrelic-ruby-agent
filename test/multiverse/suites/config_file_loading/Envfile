@@ -21,6 +21,7 @@ def gem_list(psych_version = nil)
     gem 'jruby-openssl' if RUBY_PLATFORM == 'java'
 
     gem 'psych'#{psych_version}
+    gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java' 
 
     # don't start the agent
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
