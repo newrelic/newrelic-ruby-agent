@@ -114,7 +114,7 @@ module Multiverse
 
     def add_version(version)
       return if version.nil?
-      ", #{version}"
+      ", '#{version}'"
     end
 
     private
