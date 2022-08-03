@@ -2,7 +2,7 @@
 # mysql2 has issues with newer Rubies
 
 # don't change the first index to a number ending in other than zero
-# it is used by jbdc_version
+# it is used by jdbc_version
 ACTIVERECORD_VERSIONS = [
   ['5.2.0', 2.2, 2.6],
   ['5.1.0', 2.2, 2.5],
@@ -13,11 +13,11 @@ ACTIVERECORD_VERSIONS = [
   ['3.2.0', 2.2, 2.2]
 ]
 
-def jbdc_version(activerecord_version)
+def jdbc_version(activerecord_version)
   return unless RUBY_PLATFORM.eql?('java') || activerecord_version.nil?
   # remove the '.' between the major and minor versions
-  activerecord_version[1] = ''
-  activerecord_version
+  activerecord_version_jdbc = activerecord_version.sub('.','') 
+  activerecord_version_jdbc
 end
 
 def mysql2_version(activerecord_version)
@@ -31,14 +31,15 @@ end
 
 def mysql_gem(activerecord_version)
   if RUBY_PLATFORM.eql?('java')
-    "gem 'activerecord-jbdcmysql-adapter'#{add_twiddle_wakka(jbdc_version(activerecord_version))}"
+    "gem 'activerecord-jdbcmysql-adapter'#{add_twiddle_wakka(jdbc_version(activerecord_version))}"
   else
     "gem 'mysql2'#{add_twiddle_wakka(mysql2_version(activerecord_version))}"
   end
 end
 
+# Rails 4.0 sets the dependency on Minitest to “~> 4.2”
 def minitest_version(rails_version = nil)
-  if rails_version && rails_version.include?('4.0')
+  if rails_version && rails_version.start_with?('4.0')
     '4.2.0'
   else
     '5.2.3'
