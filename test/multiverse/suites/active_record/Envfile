@@ -1,8 +1,3 @@
-# encoding: utf-8
-# This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-# frozen_string_literal: true
-
 # not testing the latest of activerecord in this suite because
 # mysql2 has issues with newer Rubies
 
@@ -20,7 +15,9 @@ ACTIVERECORD_VERSIONS = [
 
 def jbdc_version(activerecord_version)
   return unless RUBY_PLATFORM.eql?('java') || activerecord_version.nil?
-  activerecord_version.slice('1')
+  # remove the '.' between the major and minor versions
+  activerecord_version[1] = ''
+  activerecord_version
 end
 
 def mysql2_version(activerecord_version)
@@ -40,10 +37,22 @@ def mysql_gem(activerecord_version)
   end
 end
 
+def minitest_version(rails_version = nil)
+  if rails_version && rails_version.include?('4.0')
+    '4.2.0'
+  else
+    '5.2.3'
+  end
+end
+
+def rack_version
+  '2.1.4.1' if RUBY_VERSION < '2.3.0'
+end
+
 def gem_list(activerecord_version = nil)
   <<-RB
-    gem 'rack'
-    gem 'minitest', '~> 5.2.3'
+    gem 'rack'#{rack_version}
+    gem 'minitest'#{minitest_version}
     gem 'activerecord'#{activerecord_version}
     #{mysql_gem(activerecord_version)}
   RB
