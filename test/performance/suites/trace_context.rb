@@ -51,9 +51,7 @@ class TraceContext < Performance::TestCase
     with_config(CONFIG) do
       in_transaction do |txn|
         measure do
-          NewRelic::Agent.agent.stub(:connected?, true) do
-            txn.distributed_tracer.insert_trace_context_header(carrier: {})
-          end
+          txn.distributed_tracer.insert_trace_context_header(carrier: {})
         end
       end
     end
