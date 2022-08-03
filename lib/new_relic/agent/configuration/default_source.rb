@@ -1968,7 +1968,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, the agent captures [custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
         },
         :'custom_insights_events.max_samples_stored' => {
-          :default => 1000,
+          :default => 10000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
