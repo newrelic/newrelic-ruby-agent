@@ -23,9 +23,9 @@ end
 def mysql2_version(activerecord_version)
   return if activerecord_version.nil?
   if activerecord_version.include?('5')
-    add_version('0.4.4')
+    '0.4.4'
   else
-    add_version('0.3.21')
+    '0.3.21'
   end
 end
 
