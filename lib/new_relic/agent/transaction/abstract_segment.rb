@@ -38,8 +38,8 @@ module NewRelic
           @end_time = nil
           @duration = 0.0
           @exclusive_duration = 0.0
+          @children_timings = []
           @children_time = 0.0
-          @children_time_ranges = nil
           @active_children = 0
           @range_recorded = false
           @concurrent_children = false
@@ -104,12 +104,40 @@ module NewRelic
           @start_time.to_f..@end_time.to_f
         end
 
+        def timings_overlap?(timing1, timing2)
+          (timing1.first >= timing2.first && timing1.first <= timing2.last) ||
+            (timing2.first >= timing1.first && timing2.first <= timing1.last)
+        end
+
+        def merge_timings(timing1, timing2)
+          [(timing1.first < timing2.first ? timing1.first : timing2.first),
+            (timing1.last > timing2.last ? timing1.last : timing2.last)]
+        end
+
+        # @children_timings is an array of array, with each inner array
+        # holding exactly 2 values, a child segment's start time and finish
+        # time (in that order). When it's time to record, these timings are
+        # converted into an array of range objects (using the same start and
+        # end values as the original array). Any two range objects that
+        # intersect and merged into a larger range. This checking for a
+        # intersections and merging of ranges is expensive, so the operation
+        # is only done at recording time.
         def children_time_ranges
-          @children_time_ranges ||= []
+          @children_time_ranges ||= begin
+            overlapped = @children_timings.each_with_object([]) do |timing, timings|
+              i = timings.index { |t| timings_overlap?(t, timing) }
+              if i
+                timings[i] = merge_timings(timing, timings[i])
+              else
+                timings << timing
+              end
+            end
+            overlapped.map { |t| Range.new(t.first, t.last) }
+          end
         end
 
         def children_time_ranges?
-          !!@children_time_ranges
+          !@children_timings.empty?
         end
 
         def concurrent_children?
@@ -208,10 +236,9 @@ module NewRelic
         # an ancestor whose end time is greater than or equal to the descendant's
         # we can stop the propagation. We pass along the direct child so we can
         # make any corrections needed for exclusive time calculation.
-
         def descendant_complete(child, descendant)
-          RangeExtensions.merge_or_append(descendant.time_range,
-            children_time_ranges)
+          add_child_timing(descendant)
+
           # If this child's time was previously added to this segment's
           # aggregate children time, we need to re-record it using a time range
           # for proper exclusive time calculation
@@ -226,6 +253,10 @@ module NewRelic
         end
 
         private
+
+        def add_child_timing(segment)
+          @children_timings << [segment.start_time, segment.end_time]
+        end
 
         def force_finish
           finish
@@ -257,8 +288,7 @@ module NewRelic
         end
 
         def record_child_time_as_range(child)
-          RangeExtensions.merge_or_append(child.time_range,
-            children_time_ranges)
+          add_child_timing(child)
           child.range_recorded = true
         end
 
