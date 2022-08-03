@@ -3,9 +3,34 @@
 
   ## v8.10.0
 
+
   * **Performance: Rework timing range overlap calculations for multiple transaction segments**
 
     Many thanks to GitHub community members @bmulholland and @hkdnet. @bmulholland alerted us to [rmosolgo/graphql-ruby#3945](https://github.com/rmosolgo/graphql-ruby/issues/3945). That Issue essentially notes that the New Relic Ruby agent incurs a significant perfomance hit when the `graphql` RubyGem (which ships with New Relic Ruby agent support) is used with DataLoader to generate a high number of transactions. Then @hkdnet diagnosed the root cause in the Ruby agent and put together both a proof of concept fix and a full blown PR to resolve the problem. The agent keeps track multiple segments that are concurrently in play for a given transaction in order to merge the ones whose start and stop times intersect. The logic for doing this find-and-merge operation has been reworked to a) be deferred entirely until the transaction is ready to be recorded, and b) made more performant when it is needed. GraphQL DataLoader users and other users who generate lots of activity for monitoring within a short amount of time will hopefully see some good performance gains from these changes.
+
+
+  * **Bugfix: Error when setting the yaml configuration with `transaction_tracer.transaction_threshold: apdex_f`**
+    
+    Originally, the agent was only checking the `transaction_tracer.transaction_threshold` from the newrelic.yml correctly if it was on two lines. 
+
+    Example:
+
+    ```
+    # newrelic.yml
+    transaction_tracer:
+      transaction_threshold: apdex_f 
+    ```
+
+    When this was instead changed to be on one line, the agent was not able to correctly identify the value of apdex_f. 
+
+    Example:
+    ```
+    # newrelic.yml
+    transaction_tracer.transaction_threshold: apdex_f
+    ```
+    This would cause prevent transactions from finishing due to the error `ArgumentError: comparison of Float with String failed`. This has now been corrected and the agent is able to process newrelic.yml with a one line `transaction_tracer.transaction_threshold: apdex_f` correctly now. 
+    
+    Thank you to @oboxodo for bringing this to our attention.
 
 
   * **Bugfix: Don't modify frozen Logger**

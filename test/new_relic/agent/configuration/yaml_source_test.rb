@@ -122,6 +122,12 @@ module NewRelic::Agent::Configuration
       assert_includes source.failures.flatten.join(' '), 'yolo'
     end
 
+    def test_transaction_threshold_one_liner
+      config = {'transaction_tracer.transaction_threshold' => 'apdex_f'}
+      @source.send(:substitute_transaction_threshold, config)
+      assert config.empty?
+    end
+
     [1, 'no', 'off', 0, 'false', [], {}, 1.0, Time.now].each do |value|
       method_name = "test_booleanify_values_fails_with_value_#{value}"
       define_method(method_name) do

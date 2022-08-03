@@ -101,14 +101,9 @@ module NewRelic
 
       def build_parent_transaction_headers
         carrier = {}
-
-        # stubbing contexted allows trace_context_active? to pass
-        # which, in turn, allows us to insert a trace_context header here.
         parent_txn = in_transaction('referring_txn') do |txn|
-          Agent.instance.stub(:connected?, true) do
-            txn.sampled = true
-            txn.distributed_tracer.insert_trace_context_header(carrier, NewRelic::FORMAT_RACK)
-          end
+          txn.sampled = true
+          txn.distributed_tracer.insert_trace_context_header(carrier, NewRelic::FORMAT_RACK)
         end
         [parent_txn, carrier]
       end

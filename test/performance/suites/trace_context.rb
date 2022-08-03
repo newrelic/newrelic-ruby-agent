@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'minitest/autorun'
 require 'net/http'
 require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'
@@ -52,9 +51,7 @@ class TraceContext < Performance::TestCase
     with_config(CONFIG) do
       in_transaction do |txn|
         measure do
-          NewRelic::Agent.agent.stub(:connected?, true) do
-            txn.distributed_tracer.insert_trace_context_header(carrier: {})
-          end
+          txn.distributed_tracer.insert_trace_context_header(carrier: {})
         end
       end
     end
