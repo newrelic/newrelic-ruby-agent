@@ -10,17 +10,17 @@ ActionController::Base.view_paths = ['app/views']
 
 class ViewsController < ApplicationController
   def template_render_with_3_partial_renders
-    render('index')
+    render(String.new('index'))
   end
 
   def render_with_delays
     nr_freeze_process_time
     @delay = 1
-    render('index')
+    render(String.new('index'))
   end
 
   def deep_partial_render
-    render('deep_partial')
+    render(String.new('deep_partial'))
   end
 
   def text_render
@@ -55,7 +55,7 @@ class ViewsController < ApplicationController
   end
 
   def haml_render
-    render('haml_view')
+    render(String.new('haml_view'))
   end
 
   def no_template
