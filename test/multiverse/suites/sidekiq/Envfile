@@ -27,7 +27,6 @@ def gem_list(sidekiq_version = nil)
     #{ruby3_gem_sorted_set}
     gem 'sidekiq'#{sidekiq_version}
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-    gem 'concurrent-ruby'
   RB
 end
 
