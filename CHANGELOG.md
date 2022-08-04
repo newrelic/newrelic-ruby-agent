@@ -4,7 +4,7 @@
   ## v8.10.0
 
 
-  * **gRPC instrumentation**
+  * **New gRPC instrumentation**
 
     The agent will now instrument [gRPC](https://grpc.io/) activity performed by clients and servers that use the [grpc](https://rubygems.org/gems/grpc) RubyGem. Instrumentation is automatic and enabled by default, so gRPC users should not need to modify any existing application code or agent configuration to benefit from the instrumentation. The instrumentation makes use of distributed tracing for a comprehensive overview of all gRPC traffic taking place across multiple monitored applications. This allows you to observer your client and server activity using any service that adheres to the W3C standard.
 
