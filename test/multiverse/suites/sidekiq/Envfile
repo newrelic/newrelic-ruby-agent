@@ -8,7 +8,9 @@ suite_condition("Sidekiq does not run on JRuby") do
 end
 
 SIDEKIQ_VERSIONS = [
-  [nil, 2.5],
+  # TODO: go back to using nil (to signify "latest") instead of v6.5.1 once Sidekiq v6.5.4 is out
+  ['6.5.1', 2.5],
+  # [nil, 2.5],
   ['6.4.0', 2.5],
   ['5.0.3', 2.3],
   ['4.2.0', 2.2]
