@@ -14,7 +14,7 @@
     | ----------- | ----------- |----------- |
     | `instrumentation.grpc_client` | auto | Set to 'disabled' to disable, set to 'chain' if there are module prepending conflicts |
     | `instrumentation.grpc_server` | auto | Set to 'disabled' to disable, set to 'chain' if there are module prepending conflicts |
-    | `instrumentation.grpc.host_denylist` | "" |  Provide a comma delimited list of host regex patterns (ex: "private.com$,exception.*" to ignore |
+    | `instrumentation.grpc.host_denylist` | "" |  Provide a comma delimited list of host regex patterns (ex: "private.com$,exception.*") |
 
 
   * **Performance: Rework timing range overlap calculations for multiple transaction segments**
