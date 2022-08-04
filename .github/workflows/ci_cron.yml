@@ -1,6 +1,7 @@
 name: Scheduled Continuous Integration
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -31,7 +32,7 @@ jobs:
         ports:
           - "3306:3306"
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.6.0]
 
@@ -167,7 +168,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
@@ -226,7 +227,7 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-20.04
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
@@ -300,7 +301,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
