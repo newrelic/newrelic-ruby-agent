@@ -112,6 +112,11 @@ module Multiverse
       ", '~> #{version}'"
     end
 
+    def add_version(version)
+      return if version.nil?
+      ", '#{version}'"
+    end
+
     private
 
     def last_supported_ruby_version?(last_supported_ruby_version)

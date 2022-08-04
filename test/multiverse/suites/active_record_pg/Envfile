@@ -9,7 +9,7 @@ ACTIVERECORD_VERSIONS = [
   ['6.0.0', 2.5, 2.7],
   ['5.2.0', 2.2, 2.6],
   ['5.1.0', 2.2, 2.5],
-  ['5.0.0', 2.2, 2.4],
+  ['5.0.0', 2.2, 2.4]
 ]
 
 def gem_list(activerecord_version = nil)

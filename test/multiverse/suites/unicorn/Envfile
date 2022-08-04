@@ -18,4 +18,3 @@ end
 
 create_gemfiles(SUPPORTED_UNICORN_VERSIONS, gem_list)
 # vim: ft=ruby
-
