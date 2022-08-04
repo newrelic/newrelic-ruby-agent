@@ -6,7 +6,7 @@
 
   * **gRPC instrumentation**
 
-    The agent will now instrument [gRPC](https://grpc.io/) activity performed by clients and servers that use the [grpc](https://rubygems.org/gems/grpc) RubyGem. Instrumentation is automatic and enabled by default, so gRPC users should not need to modify any existing application code or agent configuration to benefit from the instrumentation. The instrumentation makes use of New Relic Distributed Tracing for a comprehensive overview of all gRPC traffic taking place across multiple monitored applications. The Ruby agent's use of Distributed Tracing is compatible with other programming language based New Relic agents that support gRPC.
+    The agent will now instrument [gRPC](https://grpc.io/) activity performed by clients and servers that use the [grpc](https://rubygems.org/gems/grpc) RubyGem. Instrumentation is automatic and enabled by default, so gRPC users should not need to modify any existing application code or agent configuration to benefit from the instrumentation. The instrumentation makes use of distributed tracing for a comprehensive overview of all gRPC traffic taking place across multiple monitored applications. This allows you to observer your client and server activity using any service that adheres to the W3C standard.
 
     The following new configuration parameters have been added for gRPC. All are optional.
 
