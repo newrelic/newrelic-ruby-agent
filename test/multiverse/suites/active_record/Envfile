@@ -25,6 +25,7 @@ def jdbc_version(activerecord_version)
 end
 
 def mysql2_version(activerecord_version)
+  activerecord_version.delete('^0-9', '^.')
   if activerecord_version && activerecord_version.start_with?('5')
     '0.4.4'
   else
@@ -41,8 +42,9 @@ def mysql_gem(activerecord_version)
 end
 
 def minitest_activerecord_version(activerecord_version)
+  activerecord_version.delete('^0-9', '^.')
   puts "**************************CAT MEOW*", activerecord_version, activerecord_version.class, "&&&&&&&"
-  if activerecord_version && activerecord_version.start_with?('4.0')
+  if activerecord_version && activerecord_version.start_with?('40')
     add_version('4.2.0', false)
   else
     add_version('5.2.3', false)
