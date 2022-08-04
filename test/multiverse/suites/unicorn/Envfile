@@ -22,4 +22,3 @@ def gem_list(unicorn_version = nil)
 end
 
 create_gemfiles(SUPPORTED_UNICORN_VERSIONS, gem_list)
-# vim: ft=ruby

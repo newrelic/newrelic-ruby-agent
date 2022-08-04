@@ -37,7 +37,7 @@ def haml_rails(rails_version = nil)
 end
 
 
-def minitest_version(rails_version = nil)
+def minitest_rails_version(rails_version = nil)
   if rails_version && rails_version.include?('4.0.13')
     '4.2.0'
   else
@@ -54,7 +54,7 @@ def gem_list(rails_version = nil)
     gem 'rails'#{rails_version}
     gem 'haml', '5.1.2'
     #{haml_rails(rails_version)}
-    gem 'minitest', '#{minitest_version(rails_version)}'
+    gem 'minitest', '#{minitest_rails_version(rails_version)}'
     gem 'erubis' if RUBY_PLATFORM.eql?('java')
     #{pre2_rack_test}
     #{ruby3_gem_webrick}
