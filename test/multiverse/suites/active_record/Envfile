@@ -42,6 +42,7 @@ def mysql_gem(activerecord_version)
 end
 
 def minitest_activerecord_version(activerecord_version)
+  return if activerecord_version.nil?
   if activerecord_version.start_with?('4.0')
     add_version('4.2.0', false)
   else
