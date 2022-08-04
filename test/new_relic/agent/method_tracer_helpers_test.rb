@@ -105,4 +105,18 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
         info)
     end
   end
+
+  def test_clm_memoization_hash_uses_frozen_keys_and_values
+    helped = Class.new do
+      include NewRelic::Agent::MethodTracerHelpers
+    end.new
+    with_config(:'code_level_metrics.enabled' => true) do
+      helped.code_information(::The::Example, :instance_method)
+      memoized = helped.instance_variable_get(:@code_information)
+      assert memoized
+      assert memoized.keys.size == 1
+      assert memoized.keys.first.frozen?
+      assert memoized.values.first.frozen?
+    end
+  end
 end
