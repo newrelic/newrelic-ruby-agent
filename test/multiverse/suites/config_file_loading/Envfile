@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 omit_collector!
 
 PSYCH_VERSIONS = [
@@ -16,6 +21,7 @@ def gem_list(psych_version = nil)
     gem 'jruby-openssl' if RUBY_PLATFORM == 'java'
 
     gem 'psych'#{psych_version}
+    gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java' 
 
     # don't start the agent
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

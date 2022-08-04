@@ -8,10 +8,7 @@ require_relative '../../../test_helper'
 module NewRelic
   module Agent
     class TraceContextRequestMonitorTest < Minitest::Test
-      include Mocha::API
-
       def setup
-        mocha_setup
         @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
@@ -28,7 +25,6 @@ module NewRelic
       end
 
       def teardown
-        mocha_teardown
         NewRelic::Agent.config.reset_to_defaults
       end
 
@@ -105,14 +101,9 @@ module NewRelic
 
       def build_parent_transaction_headers
         carrier = {}
-
-        # stubbing contexted allows trace_context_active? to pass
-        # which, in turn, allows us to insert a trace_context header here.
-        parent_txn = in_transaction("referring_txn") do |txn|
-          Agent.instance.stubs(:connected?).returns(true)
+        parent_txn = in_transaction('referring_txn') do |txn|
           txn.sampled = true
           txn.distributed_tracer.insert_trace_context_header(carrier, NewRelic::FORMAT_RACK)
-          Agent.instance.unstub(:connected?)
         end
         [parent_txn, carrier]
       end

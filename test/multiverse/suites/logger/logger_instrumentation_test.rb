@@ -174,6 +174,15 @@ class LoggerInstrumentationTest < Minitest::Test
     assert_metrics_recorded_exclusive([])
   end
 
+  def test_dont_modify_frozen_logger
+    @logger.freeze
+    @logger.mark_skip_instrumenting
+    @logger.clear_skip_instrumenting
+    NewRelic::Agent::Instrumentation::Logger.mark_skip_instrumenting(@logger)
+    NewRelic::Agent::Instrumentation::Logger.clear_skip_instrumenting(@logger)
+    assert !@logger.instance_variable_defined?(:@skip_instrumenting), "instance variable should not be defined"
+  end
+
   def assert_logging_instrumentation(level, count = 1)
     # We count on Logger calls but actually write metrics on harvest to
     # minimize impact in the hot path
