@@ -107,7 +107,7 @@ module Multiverse
       @gemfiles.size * permutations
     end
 
-    def add_version(version, twiddle_wakka: true)
+    def add_version(version, twiddle_wakka = true)
       return unless version
 
       ", '#{'~> ' if twiddle_wakka}#{version}'"
