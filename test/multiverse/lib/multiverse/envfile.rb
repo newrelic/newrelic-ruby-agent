@@ -38,7 +38,7 @@ module Multiverse
           )
         end
 
-        version = add_version(version)
+        version = add_version(version.sub('= ', ''), !version.start_with?('='))
 
         gemfile(gem_list(version))
       end
@@ -111,11 +111,6 @@ module Multiverse
       return unless version
 
       ", '#{'~> ' if twiddle_wakka}#{version}'"
-    end
-
-    def add_version(version)
-      return if version.nil?
-      ", '#{version}'"
     end
 
     private
