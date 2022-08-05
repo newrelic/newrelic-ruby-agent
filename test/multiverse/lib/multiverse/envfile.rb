@@ -108,7 +108,13 @@ module Multiverse
     end
 
     def add_twiddle_wakka(version)
-      return if version.nil?
+      # no version number to twiddle wakka
+      return unless version
+      # caller supplied everything literally, return it all unchanged
+      return version if version.start_with?(',')
+      # caller wants an exact version, still add the comma, space, and quotes
+      return ", '#{version}'" if version.start_with?('=')
+
       ", '~> #{version}'"
     end
 
