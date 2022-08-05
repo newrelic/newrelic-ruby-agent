@@ -38,7 +38,11 @@ module Multiverse
           )
         end
 
-        version = add_version(version.sub('= ', ''), !version.start_with?('='))
+        version = if version && version.start_with?('=')
+          add_version(version.sub('= ', ''), false) # don't twiddle wakka
+        else
+          add_version(version)
+        end
 
         gemfile(gem_list(version))
       end

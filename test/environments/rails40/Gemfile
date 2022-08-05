@@ -4,8 +4,7 @@ source 'https://rubygems.org'
 gem 'rake', '~> 12.3.3'
 gem 'rails', '~> 4.0.0'
 
-# Rails 4.0 sets the dependency on Minitest to “~> 4.2”
-gem 'minitest', '~> 4.2.0', :require => false
+gem 'minitest', '~> 4.7.5', :require => false
 gem 'minitest-stub-const', '~> 0.6', :require => false
 gem 'mocha', '~> 1.9.0', :require => false
 gem 'rack-test'
