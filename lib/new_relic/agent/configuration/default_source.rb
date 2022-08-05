@@ -1101,7 +1101,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Define grpc connections you want the agent to ignore by specifying a list of patterns matching the hostname(s) of grpc servers to be ignored'
+          :description => %Q(Specifies a list of hostname patterns separated by commas that will match gRPC hostnames that traffic is to be ignored by New Relic for. New Relic's gRPC client instrumentation will ignore traffic streamed to a host matching any of these patterns, and New Relic's gRPC server instrumentation will ignore traffic for a server running on a host whose hostname matches any of these patterns. By default, no traffic is ignored when gRPC instrumentation is itself enabled. For example, "private.com$,exception.*")
         },
         :'instrumentation.grpc_server' => {
           :default => instrumentation_value_of(:disable_grpc_server),
