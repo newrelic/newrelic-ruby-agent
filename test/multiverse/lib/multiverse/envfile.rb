@@ -38,7 +38,7 @@ module Multiverse
           )
         end
 
-        version = add_version(version.sub('= ', ''), !version.start_with?('='))
+        version = add_version((version.sub('= ', '') if version), !version.start_with?('='))
 
         gemfile(gem_list(version))
       end
