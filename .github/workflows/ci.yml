@@ -1,7 +1,7 @@
 name: PR Continuous Integration
 
-# on:
-#   pull_request:
+on:
+  pull_request:
 
 jobs:
   run_rubocop:
