@@ -110,7 +110,7 @@ module Multiverse
     def add_version(version, twiddle_wakka = true)
       return unless version
 
-      ", '#{'~> ' if twiddle_wakka}#{version}'
+      ", '#{'~> ' if twiddle_wakka}#{version}'"
     end
 
     private
