@@ -28,6 +28,7 @@ module Multiverse
       @condition = block
     end
 
+    # TODO: create_gemfiles doesn't need gem_list as arg. Refactor all callers of create_gemfiles
     def create_gemfiles(versions, gem_list)
       versions.each do |version|
         if version.is_a?(Array)
@@ -38,7 +39,11 @@ module Multiverse
           )
         end
 
-        version = add_twiddle_wakka(version)
+        version = if version && version.start_with?('=')
+          add_version(version.sub('= ', ''), false) # don't twiddle wakka
+        else
+          add_version(version)
+        end
 
         gemfile(gem_list(version))
       end
@@ -107,15 +112,10 @@ module Multiverse
       @gemfiles.size * permutations
     end
 
-    def add_twiddle_wakka(version)
-      # no version number to twiddle wakka
+    def add_version(version, twiddle_wakka = true)
       return unless version
-      # caller supplied everything literally, return it all unchanged
-      return version if version.start_with?(',')
-      # caller wants an exact version, still add the comma, space, and quotes
-      return ", '#{version}'" if version.start_with?('=')
 
-      ", '~> #{version}'"
+      ", '#{'~> ' if twiddle_wakka}#{version}'"
     end
 
     private
