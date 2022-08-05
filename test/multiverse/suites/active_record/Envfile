@@ -35,7 +35,7 @@ end
 
 def mysql_gem(activerecord_version)
   if RUBY_PLATFORM.eql?('java')
-    "gem 'activerecord-jdbcmysql-adapter'#{add_version(jdbc_version(activerecord_version))}"
+    "gem 'activerecord-jdbcmysql-adapter'#{jdbc_version(activerecord_version)}"
   else
     "gem 'mysql2'#{add_version(mysql2_version(activerecord_version))}"
   end
