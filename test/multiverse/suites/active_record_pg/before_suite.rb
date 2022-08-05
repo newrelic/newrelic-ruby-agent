@@ -9,7 +9,6 @@ def redefine_mysql_primary_key(const_str)
 end
 
 begin
-  ENV['RAILS_ENV'] = 'test'
   load('Rakefile')
   Rake::Task['db:drop'].invoke
   Rake::Task['db:create'].invoke
