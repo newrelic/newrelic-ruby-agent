@@ -38,7 +38,7 @@ module Multiverse
           )
         end
 
-        version = add_twiddle_wakka(version)
+        version = add_version(version)
 
         gemfile(gem_list(version))
       end
@@ -107,9 +107,10 @@ module Multiverse
       @gemfiles.size * permutations
     end
 
-    def add_twiddle_wakka(version)
-      return if version.nil?
-      ", '~> #{version}'"
+    def add_version(version, twiddle_wakka = true)
+      return unless version
+
+      ", '#{'~> ' if twiddle_wakka}#{version}'"
     end
 
     def add_version(version)

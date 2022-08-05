@@ -20,3 +20,5 @@ def gem_list(unicorn_version = nil)
     gem 'rack'
   RB
 end
+
+create_gemfiles(SUPPORTED_UNICORN_VERSIONS, gem_list)
