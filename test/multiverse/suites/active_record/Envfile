@@ -26,8 +26,8 @@ end
 
 def mysql2_version(activerecord_version)
   return if activerecord_version.nil?
-  activerecord_version.delete('^0-9', '^.')
-  if activerecord_version.start_with?('5')
+  activerecord_number = activerecord_version.delete('^0-9', '^.')
+  if activerecord_number.start_with?('5')
     '0.4.4'
   else
     '0.3.21'
@@ -44,9 +44,9 @@ end
 
 def minitest_activerecord_version(activerecord_version)
   return if activerecord_version.nil?
-  activerecord_version.delete('^0-9', '^.')
-  puts "**************************CAT MEOW*", activerecord_version, activerecord_version.class, "&&&&&&&"
-  if activerecord_version.start_with?('4.0')
+  activerecord_number = activerecord_version.delete('^0-9', '^.')
+  puts "**************CAT MEOW*", activerecord_number, activerecord_version.class, "&&&&&&&"
+  if activerecord_number.start_with?('4.0')
     add_version('4.2.0', false)
   else
     add_version('5.2.3', false)
