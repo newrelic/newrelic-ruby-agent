@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 require 'delayed_job'
-require_relative '../../../../test/test_helper'
+require_relative '../../../../test/new_relic/multiverse_helpers'
 
 migration_version = nil
 
