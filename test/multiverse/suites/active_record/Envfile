@@ -14,7 +14,7 @@ ACTIVERECORD_VERSIONS = [
 ]
 
 def jdbc_version(activerecord_version)
-  return unless RUBY_PLATFORM.eql?('java') || activerecord_version.nil?
+  return unless RUBY_PLATFORM.eql?('java') && activerecord_version
   # remove the '.' between the major and minor versions
   activerecord_version.sub('.', '')
 end
