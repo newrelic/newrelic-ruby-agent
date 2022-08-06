@@ -3,7 +3,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class CreateGroups < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
+require_relative '../../../../../../test/new_relic/multiverse_helpers'
+
+class CreateGroups < current_active_record_migration_version
   def self.up
     create_table(:groups) do |t|
       t.string(:name)

@@ -13,6 +13,10 @@ class Minitest::Test
   end
 end
 
+def current_active_record_migration_version
+  ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
+end
+
 module MultiverseHelpers
   #
   # Agent startup/shutdown
