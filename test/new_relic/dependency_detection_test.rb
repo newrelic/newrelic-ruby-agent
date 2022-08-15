@@ -360,4 +360,15 @@ class DependencyDetectionTest < Minitest::Test
 
     assert_equal(1, run_count)
   end
+
+  def test_log_and_instrument_uses_supportability_name_when_provided
+    method = 'Stanislavski'
+    supportability_name = 'Magic::If'
+    log = with_array_logger do
+      DependencyDetection::Dependent.new.log_and_instrument(method, 'actor', supportability_name) { 'Given Circumstances' }
+    end
+    assert_metrics_recorded("Supportability/Instrumentation/#{supportability_name}/#{method}")
+    assert_log_contains(log, /#{supportability_name}/)
+    assert_log_contains(log, /#{method}/)
+  end
 end

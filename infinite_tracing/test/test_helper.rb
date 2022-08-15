@@ -57,6 +57,8 @@ def with_serial_lock
   CLIENT_MUTEX.synchronize { yield }
 end
 
+# This will always be false unless you physically flip it to true
+# Setting this to true gives extra trace information
 TRACE_POINT_ENABLED = false
 
 def trace

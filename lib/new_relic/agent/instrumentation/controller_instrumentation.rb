@@ -6,6 +6,7 @@
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/instrumentation/ignore_actions'
+
 module NewRelic
   module Agent
     # @api public
@@ -230,6 +231,8 @@ module NewRelic
 
         class TransactionNamer
           def self.name_for(txn, traced_obj, category, options = {})
+            return options[:transaction_name] if options[:transaction_name]
+
             "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 
