@@ -3,7 +3,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class CreateUsersAndAliases < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration
+require_relative '../../../../../../test/new_relic/multiverse_helpers'
+
+class CreateUsersAndAliases < current_active_record_migration_version
   def self.up
     create_table(:users) do |t|
       t.string(:name, null: false)

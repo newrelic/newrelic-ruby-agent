@@ -7,8 +7,8 @@
 # mysql2 has issues with newer Rubies
 
 # don't change the first index to a number ending in other than zero
-# it is used by jbdc_version
-RAILS_VERSIONS = [
+# it is used by jdbc_version
+ACTIVERECORD_VERSIONS = [
   ['5.2.0', 2.2, 2.6],
   ['5.1.0', 2.2, 2.5],
   ['5.0.0', 2.2, 2.4],
@@ -18,14 +18,15 @@ RAILS_VERSIONS = [
   ['3.2.0', 2.2, 2.2]
 ]
 
-def jbdc_version(activerecord_version)
-  return unless RUBY_PLATFORM.eql?('java') || activerecord_version.nil?
-  activerecord_version.slice('1')
+def jdbc_version(activerecord_version)
+  return unless RUBY_PLATFORM.eql?('java') && activerecord_version
+  # remove the '.' between the major and minor versions
+  activerecord_version.sub('.', '')
 end
 
 def mysql2_version(activerecord_version)
   return if activerecord_version.nil?
-  if activerecord_version.include?('5')
+  if activerecord_version.delete('^0-9', '^.').start_with?('5')
     '0.4.4'
   else
     '0.3.21'
@@ -34,17 +35,33 @@ end
 
 def mysql_gem(activerecord_version)
   if RUBY_PLATFORM.eql?('java')
-    "gem 'activerecord-jbdcmysql-adapter'#{add_twiddle_wakka(jbdc_version(activerecord_version))}"
+    "gem 'activerecord-jdbcmysql-adapter'#{jdbc_version(activerecord_version)}"
   else
-    "gem 'mysql2'#{add_twiddle_wakka(mysql2_version(activerecord_version))}"
+    "gem 'mysql2'#{add_version(mysql2_version(activerecord_version))}"
   end
+end
+
+# Rails 4.0 sets the dependency on Minitest to “~> 4.2”
+def minitest_activerecord_version(activerecord_version)
+  return if activerecord_version.nil?
+  if activerecord_version.delete('^0-9', '^.').start_with?('4.0')
+    add_version('4.2.0', false)
+  else
+    add_version('5.2.3', false)
+  end
+end
+
+def rack_version
+  add_version('2.1.4.1', false) if RUBY_VERSION < '2.3.0'
 end
 
 def gem_list(activerecord_version = nil)
   <<-RB
-    gem 'rack'
-    gem 'minitest', '~> 5.2.3'
+    gem 'rack'#{rack_version}
+    gem 'minitest'#{minitest_activerecord_version(activerecord_version)}
     gem 'activerecord'#{activerecord_version}
     #{mysql_gem(activerecord_version)}
   RB
 end
+
+create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)

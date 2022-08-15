@@ -12,9 +12,9 @@ ACTIVERECORD_VERSIONS = [
   ['7.0.0', 2.7],
   ['6.1.0', 2.5],
   ['6.0.0', 2.5, 2.7],
-  ['5.2.0', 2.2, 2.6],
-  ['5.1.0', 2.2, 2.5],
-  ['5.0.0', 2.2, 2.4],
+  ['5.2.0', 2.4, 2.6],
+  ['5.1.0', 2.4, 2.5],
+  ['5.0.0', 2.4, 2.7]
 ]
 
 def gem_list(activerecord_version = nil)
@@ -27,7 +27,7 @@ def gem_list(activerecord_version = nil)
   RB
 end
 
-
+create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
 # Removing JRuby from CI until we can understand why initialization fails on GitHub Actions
 # if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
 
