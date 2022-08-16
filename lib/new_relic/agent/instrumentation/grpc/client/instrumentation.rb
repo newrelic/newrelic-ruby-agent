@@ -20,7 +20,7 @@ module NewRelic
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)
             segment.add_request_headers(request_wrapper)
-            metadata.merge!(metadata, request_wrapper.instance_variable_get(:@newrelic_metadata))
+            metadata.merge!(request_wrapper.instance_variable_get(:@newrelic_metadata))
             grpc_message = nil
             grpc_status = 0
 
