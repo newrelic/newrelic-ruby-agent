@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: feature
+labels: feature request
 assignees: ''
 
 ---
@@ -20,5 +20,5 @@ A clear and concise description of any alternative solutions or features you've 
 Add any other context here.
 
 ### Priority
-Please help us better understand this feature request by choosing a priority from the following options: 
+Please help us better understand this feature request by choosing a priority from the following options:
 [Nice to Have, Really Want, Must Have, Blocker]
