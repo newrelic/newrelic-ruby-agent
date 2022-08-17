@@ -30,28 +30,23 @@ instrumentation_methods :chain, :prepend
 
 RAKE_VERSIONS = [
   nil,
-  '13.0.0',
   '12.3.3'
 ]
 
 def gem_list(rake_version = nil)
   <<-RB
     gem 'rack'
-    gem 'rake'
-    #{ruby3_gem_webrick}
-  RB
-end
-
-create_gemfiles(RAKE_VERSIONS, gem_list)
-
-def gem_list(rake_version = nil)
-  <<-RB
-    gem 'rack'
     gem 'rake'#{rake_version}
     #{ruby3_gem_webrick}
-    gem 'rails'
-    gem 'minitest', '5.2.3'
   RB
 end
 
 create_gemfiles(RAKE_VERSIONS, gem_list)
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake'
+  #{ruby3_gem_webrick}
+  gem 'rails'
+  gem 'minitest', '5.2.3'
+RB
