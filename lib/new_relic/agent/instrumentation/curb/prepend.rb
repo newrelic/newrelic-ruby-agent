@@ -25,7 +25,7 @@ module NewRelic
               http_put_with_tracing { super }
             end
 
-            def http verb
+            def http(verb)
               http_with_tracing(verb) { super }
             end
 
@@ -33,7 +33,7 @@ module NewRelic
               perform_with_tracing { super }
             end
 
-            def method verb
+            def method(verb)
               method_with_tracing(verb) { super }
             end
 

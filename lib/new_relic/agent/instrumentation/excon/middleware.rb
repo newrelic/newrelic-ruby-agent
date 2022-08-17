@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module ::Excon
   module Middleware
@@ -25,7 +26,7 @@ module ::Excon
               procedure: wrapped_request.method
             )
 
-            segment.add_request_headers wrapped_request
+            segment.add_request_headers(wrapped_request)
 
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, segment)
           end
@@ -54,7 +55,7 @@ module ::Excon
 
             if datum[:response]
               wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
-              segment.process_response_headers wrapped_response
+              segment.process_response_headers(wrapped_response)
             end
           ensure
             segment.finish if segment

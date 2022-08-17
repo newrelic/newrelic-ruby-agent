@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'webrick'
 require 'webrick/https'
@@ -16,20 +17,20 @@ module NewRelic
 
     # Default server options
     DEFAULT_OPTIONS = {
-      :Logger => ::WEBrick::Log.new('/dev/null'),
-      :AccessLog => [['/dev/null', '']]
+      :Logger => ::WEBrick::Log.new(String.new('/dev/null')),
+      :AccessLog => [[String.new('/dev/null'), '']]
     }
 
-    CONFIG_PATH = File.join(File.dirname(__FILE__), "..", "config")
-    FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, "test.cert.crt")
-    FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, "test.cert.key")
+    CONFIG_PATH = String.new(File.join(File.dirname(__FILE__), '..', 'config'))
+    FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, String.new('test.cert.crt'))
+    FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, String.new('test.cert.key'))
 
     SSL_OPTIONS = {
       :SSLEnable => true,
       :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
       :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
       :SSLCertificate => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
-      :SSLCertName => [["CN", "newrelic.com"]]
+      :SSLCertName => [[String.new('CN'), String.new('newrelic.com')]]
     }
 
     def initialize(port = DEFAULT_PORT)
@@ -65,7 +66,7 @@ module NewRelic
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)
-      @server.mount "/", ::Rack::Handler.get(:webrick), app
+      @server.mount(String.new('/'), ::Rack::Handler.get(:webrick), app)
 
       @thread = Thread.new(&self.method(:run_server)).tap { |t| t.abort_on_exception = true }
     end
@@ -107,7 +108,7 @@ module NewRelic
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       res.status = 403
-      res.body = ["Forbidden\n"]
+      res.body = [String.new("Forbidden\n")]
       res.finish
     end
 
@@ -123,7 +124,7 @@ module NewRelic
     end
 
     def call(env)
-      raise "something went wrong!"
+      raise String.new('something went wrong!')
     end
 
     def app

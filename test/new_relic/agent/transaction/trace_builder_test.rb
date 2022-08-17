@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/transaction/trace_builder'
@@ -16,22 +17,22 @@ module NewRelic
         def test_builds_trace_for_transaction
           txn = nil
           state = Tracer.state
-          Tracer.in_transaction name: "test_txn", category: :controller do
+          Tracer.in_transaction(name: "test_txn", category: :controller) do
             txn = state.current_transaction
-            advance_process_time 1
-            segment_a = Tracer.start_segment name: "segment_a"
+            advance_process_time(1)
+            segment_a = Tracer.start_segment(name: "segment_a")
             segment_a.params[:foo] = "bar"
-            advance_process_time 1
-            segment_b = Tracer.start_segment name: "segment_b"
-            advance_process_time 2
+            advance_process_time(1)
+            segment_b = Tracer.start_segment(name: "segment_b")
+            advance_process_time(2)
             segment_b.finish
-            segment_c = Tracer.start_segment name: "segment_c"
-            advance_process_time 3
+            segment_c = Tracer.start_segment(name: "segment_c")
+            advance_process_time(3)
             segment_c.finish
             segment_a.finish
           end
 
-          trace = TraceBuilder.build_trace txn
+          trace = TraceBuilder.build_trace(txn)
 
           root = trace.root_node
           assert_equal "ROOT", root.metric_name
@@ -63,14 +64,14 @@ module NewRelic
         def test_trace_built_if_segment_left_unfinished
           txn = nil
           state = Tracer.state
-          Tracer.in_transaction name: "test_txn", category: :controller do
+          Tracer.in_transaction(name: "test_txn", category: :controller) do
             txn = state.current_transaction
-            advance_process_time 1
-            Tracer.start_segment name: "segment_a"
-            advance_process_time 1
+            advance_process_time(1)
+            Tracer.start_segment(name: "segment_a")
+            advance_process_time(1)
           end
 
-          trace = TraceBuilder.build_trace txn
+          trace = TraceBuilder.build_trace(txn)
 
           root = trace.root_node
           assert_equal "ROOT", root.metric_name

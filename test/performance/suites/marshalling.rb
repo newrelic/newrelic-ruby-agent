@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require File.join(File.dirname(__FILE__), '..', '..', 'agent_helper')
 
@@ -73,10 +74,7 @@ class Marshalling < Performance::TestCase
   BYTE_ALPHABET = (0..255).to_a.freeze
 
   def generate_random_string(length)
-    bytes = []
-    meth = BYTE_ALPHABET.respond_to?(:sample) ? :sample : :choice
-    length.times { bytes << BYTE_ALPHABET.send(meth) }
-    bytes.pack("C*")
+    length.times.map { BYTE_ALPHABET.sample }.pack('C*')
   end
 
   def convert_strings_to_binary(object)
@@ -87,18 +85,11 @@ class Marshalling < Performance::TestCase
 
   def convert_strings_to_utf16(object)
     each_string(object) do |s|
-      if s.respond_to?(:encode!)
-        s.encode!('UTF-16')
-      else
-        require 'iconv'
-        s.replace(Iconv.conv('UTF-16', 'UTF-8', s))
-      end
+      s.encode!('UTF-16')
     end
   end
 
   def convert_strings_to_latin1(object)
-    return object unless "".respond_to?(:force_encoding)
-
     each_string(object) do |s|
       s.replace(generate_random_string(s.bytesize)).force_encoding('ISO-8859-1')
     end
@@ -130,16 +121,16 @@ class Marshalling < Performance::TestCase
     1000.times do
       event = {
         'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME),
-        'name' => "Controller/foo/bar",
-        'type' => "Transaction",
+        'name' => String.new('Controller/foo/bar'),
+        'type' => String.new('Transaction'),
         'duration' => rand,
         'databaseDuration' => rand,
         'databaseCallCount' => rand,
         'gcCumulative' => rand,
-        'host' => 'lo-calhost',
-        'color' => 'blue-green',
-        'shape' => 'squarish',
-        'texture' => 'sort of lumpy like a bag of frozen peas'
+        'host' => String.new('lo-calhost'),
+        'color' => String.new('blue-green'),
+        'shape' => String.new('squarish'),
+        'texture' => String.new('sort of lumpy like a bag of frozen peas')
       }
       events << [event, {}]
     end

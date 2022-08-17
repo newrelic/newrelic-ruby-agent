@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'time'
 
@@ -88,7 +89,7 @@ module Performance
       hash['measurements'].each do |key, value|
         result.measurements[key.to_sym] = value
       end
-      result.tags.merge! hash['tags']
+      result.tags.merge!(hash['tags'])
       result.exception = hash['exception']
       result.elapsed = elapsed
       result.iterations = hash['iterations']

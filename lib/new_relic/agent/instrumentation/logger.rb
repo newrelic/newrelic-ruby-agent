@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'logger/instrumentation'
 require_relative 'logger/chain'
@@ -15,7 +16,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info "Installing Logger instrumentation"
+    ::NewRelic::Agent.logger.info("Installing Logger instrumentation")
 
     if use_prepend?
       prepend_instrument ::Logger, NewRelic::Agent::Instrumentation::Logger::Prepend

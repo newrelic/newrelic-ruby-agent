@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class SpanEventsTest < Minitest::Test
   include MultiverseHelpers
@@ -8,7 +9,7 @@ class SpanEventsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_span_events_are_submitted
-    with_config :'distributed_tracing.enabled' => true do
+    with_config(:'distributed_tracing.enabled' => true) do
       NewRelic::Agent.config.notify_server_source_added
       event = generate_event('test_event')
       NewRelic::Agent.instance.span_event_aggregator.record(event: event)
@@ -21,7 +22,7 @@ class SpanEventsTest < Minitest::Test
   end
 
   def test_span_events_are_not_recorded_when_disabled_by_feature_gate
-    with_config :'distributed_tracing.enabled' => true do
+    with_config(:'distributed_tracing.enabled' => true) do
       connect_response = {
         'agent_run_id' => 1,
         'collect_span_events' => false

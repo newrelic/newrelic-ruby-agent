@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 DependencyDetection.defer do
   @name = :sequel
@@ -24,24 +25,24 @@ DependencyDetection.defer do
   executes do
     if supported_sequel_version?
 
-      ::NewRelic::Agent.logger.info 'Installing Sequel instrumentation'
+      ::NewRelic::Agent.logger.info('Installing Sequel instrumentation')
 
       if Sequel::Database.respond_to?(:extension)
-        Sequel::Database.extension :newrelic_instrumentation
+        Sequel::Database.extension(:newrelic_instrumentation)
       else
-        NewRelic::Agent.logger.info "Detected Sequel version %s." % [Sequel::VERSION]
-        NewRelic::Agent.logger.info "Please see additional documentation: " +
-          "https://newrelic.com/docs/ruby/sequel-instrumentation"
+        NewRelic::Agent.logger.info("Detected Sequel version %s." % [Sequel::VERSION])
+        NewRelic::Agent.logger.info("Please see additional documentation: " +
+          "https://newrelic.com/docs/ruby/sequel-instrumentation")
       end
 
       Sequel.synchronize { Sequel::DATABASES.dup }.each do |db|
-        db.extension :newrelic_instrumentation
+        db.extension(:newrelic_instrumentation)
       end
 
       Sequel::Model.plugin(:newrelic_instrumentation) if defined?(Sequel::Model)
     else
 
-      NewRelic::Agent.logger.info "Sequel instrumentation requires at least version 3.37.0."
+      NewRelic::Agent.logger.info("Sequel instrumentation requires at least version 3.37.0.")
 
     end
   end

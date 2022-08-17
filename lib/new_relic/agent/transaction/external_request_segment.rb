@@ -22,16 +22,17 @@ module NewRelic
         EXTERNAL_ALL_OTHER = "External/allOther"
         MISSING_STATUS_CODE = "MissingHTTPStatusCode"
 
-        attr_reader :library, :uri, :procedure
-        attr_reader :http_status_code
+        attr_reader :library, :uri, :procedure, :http_status_code
+        attr_writer :record_agent_attributes
 
-        def initialize library, uri, procedure, start_time = nil # :nodoc:
+        def initialize(library, uri, procedure, start_time = nil) # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.obfuscated_uri(uri)
           @procedure = procedure
           @host_header = nil
           @app_data = nil
           @http_status_code = nil
+          @record_agent_attributes = false
           super(nil, nil, start_time)
         end
 
@@ -43,6 +44,14 @@ module NewRelic
           @host_header || uri.host
         end
 
+        # By default external request segments only have errors and the http
+        # url recorded as agent attributes. To have all the agent attributes
+        # recorded, use the attr_writer like so `segment.record_agent_attributes = true`
+        # See: SpanEventPrimitive#for_external_request_segment
+        def record_agent_attributes?
+          @record_agent_attributes
+        end
+
         # This method adds New Relic request headers to a given request made to an
         # external API and checks to see if a host header is used for the request.
         # If a host header is used, it updates the segment name to match the host
@@ -52,16 +61,16 @@ module NewRelic
         # object (must belong to a subclass of NewRelic::Agent::HTTPClients::AbstractRequest)
         #
         # @api public
-        def add_request_headers request
-          process_host_header request
+        def add_request_headers(request)
+          process_host_header(request)
           synthetics_header = transaction && transaction.raw_synthetics_header
-          insert_synthetics_header request, synthetics_header if synthetics_header
+          insert_synthetics_header(request, synthetics_header) if synthetics_header
 
           return unless record_metrics?
 
-          transaction.distributed_tracer.insert_headers request
+          transaction.distributed_tracer.insert_headers(request)
         rescue => e
-          NewRelic::Agent.logger.error "Error in add_request_headers", e
+          NewRelic::Agent.logger.error("Error in add_request_headers", e)
         end
 
         # This method extracts app data from an external response if present. If
@@ -71,11 +80,11 @@ module NewRelic
         # @param [Hash] response a hash of response headers
         #
         # @api public
-        def read_response_headers response
+        def read_response_headers(response)
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
           unless data = CrossAppTracing.extract_appdata(response)
-            NewRelic::Agent.logger.debug "Couldn't extract_appdata from external segment response"
+            NewRelic::Agent.logger.debug("Couldn't extract_appdata from external segment response")
             return
           end
 
@@ -83,10 +92,10 @@ module NewRelic
             @app_data = data
             update_segment_name
           else
-            NewRelic::Agent.logger.debug "External segment response has invalid cross_app_id"
+            NewRelic::Agent.logger.debug("External segment response has invalid cross_app_id")
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error in read_response_headers", e
+          NewRelic::Agent.logger.error("Error in read_response_headers", e)
         end
 
         def cross_app_request? # :nodoc:
@@ -141,11 +150,11 @@ module NewRelic
 
             # obfuscate the generated request metadata JSON
             #
-            obfuscator.obfuscate ::JSON.dump(rmd)
+            obfuscator.obfuscate(::JSON.dump(rmd))
 
           end
         rescue => e
-          NewRelic::Agent.logger.error "error during get_request_metadata", e
+          NewRelic::Agent.logger.error("error during get_request_metadata", e)
         end
 
         # Process obfuscated +String+ sent from a called application that is also running a New Relic agent and
@@ -156,24 +165,24 @@ module NewRelic
         #
         # @api public
         #
-        def process_response_metadata response_metadata
+        def process_response_metadata(response_metadata)
           NewRelic::Agent.record_api_supportability_metric(:process_response_metadata)
           if transaction
             app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
 
             # validate cross app id
             #
-            if Array === app_data and CrossAppTracing.trusted_valid_cross_app_id? app_data[0]
+            if Array === app_data and CrossAppTracing.trusted_valid_cross_app_id?(app_data[0])
               @app_data = app_data
               update_segment_name
             else
-              NewRelic::Agent.logger.error "error processing response metadata: invalid/non-trusted ID"
+              NewRelic::Agent.logger.error("error processing response metadata: invalid/non-trusted ID")
             end
           end
 
           nil
         rescue => e
-          NewRelic::Agent.logger.error "error during process_response_metadata", e
+          NewRelic::Agent.logger.error("error during process_response_metadata", e)
         end
 
         def record_metrics
@@ -181,24 +190,24 @@ module NewRelic
           super
         end
 
-        def process_response_headers response # :nodoc:
-          set_http_status_code response
-          read_response_headers response
+        def process_response_headers(response) # :nodoc:
+          set_http_status_code(response)
+          read_response_headers(response)
         end
 
         private
 
         # Only sets the http_status_code if response.status_code is non-empty value
-        def set_http_status_code response
-          if response.respond_to? :status_code
+        def set_http_status_code(response)
+          if response.respond_to?(:status_code)
             @http_status_code = response.status_code if response.has_status_code?
           else
-            NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"
-            NewRelic::Agent.record_metric "#{name}/#{MISSING_STATUS_CODE}", 1
+            NewRelic::Agent.logger.warn("Cannot extract HTTP Status Code from response #{response.class.to_s}")
+            NewRelic::Agent.record_metric("#{name}/#{MISSING_STATUS_CODE}", 1)
           end
         end
 
-        def insert_synthetics_header request, header
+        def insert_synthetics_header(request, header)
           request[NR_SYNTHETICS_HEADER] = header
         end
 
@@ -211,7 +220,7 @@ module NewRelic
           super
         end
 
-        def process_host_header request
+        def process_host_header(request)
           if @host_header = request.host_from_header
             update_segment_name
           end

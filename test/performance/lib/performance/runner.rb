@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'socket'
 
@@ -141,7 +142,7 @@ module Performance
       test_case_name = test_case.class.name
       test_identifier = "#{test_case_name}##{method}"
       runner_script = File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'script', 'runner'))
-      cmd = "#{runner_script} -T #{test_identifier} -j -q -I"
+      cmd = +"#{runner_script} -T #{test_identifier} -j -q -I"
       cmd << " -A #{@options[:agent_path]}"
       cmd << " -N #{@options[:iterations]}" if @options[:iterations]
       cmd << " -d #{@options[:duration]}" if @options[:duration]

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Test
   def setup
@@ -19,7 +20,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
         :virtual_path => 'model/index')
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('!render_template.action_view', :id,
         :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id, params)
@@ -35,7 +36,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
         :virtual_path => nil)
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('!render_template.action_view', :id,
         :virtual_path => nil)
       @subscriber.finish('render_template.action_view', :id, params)
@@ -51,7 +52,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
         :virtual_path => nil)
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('!render_template.action_view', :id,
         :virtual_path => nil)
       @subscriber.finish('render_template.action_view', :id, params)
@@ -65,7 +66,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('render_template.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
@@ -79,7 +80,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.start('render_partial.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
         :virtual_path => 'model/_form')
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('!render_template.action_view', :id,
         :virtual_path => 'model/_form')
       @subscriber.finish('render_partial.action_view', :id, params)
@@ -95,7 +96,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.start('render_collection.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
         :virtual_path => 'model/_user')
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('!render_template.action_view', :id,
         :virtual_path => 'model/_user')
       @subscriber.finish('render_collection.action_view', :id, params)
@@ -109,7 +110,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     in_transaction do
       @subscriber.start('!render_template.action_view', :id,
         :virtual_path => 'layouts/application')
-      advance_process_time 2.0
+      advance_process_time(2.0)
       @subscriber.finish('!render_template.action_view', :id,
         :virtual_path => 'layouts/application')
     end

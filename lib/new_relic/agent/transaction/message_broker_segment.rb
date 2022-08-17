@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/distributed_tracing/cross_app_tracing'
@@ -66,7 +67,7 @@ module NewRelic
           @destination_name = destination_name
           @headers = headers
           super(nil, nil, start_time)
-          params.merge! parameters if parameters
+          params.merge!(parameters) if parameters
         end
 
         def name
@@ -85,12 +86,12 @@ module NewRelic
 
         def transaction_assigned
           if headers && transaction && action == :produce && record_metrics?
-            transaction.distributed_tracer.insert_distributed_trace_header headers
-            transaction.distributed_tracer.insert_cat_headers headers
-            transaction.distributed_tracer.log_request_headers headers
+            transaction.distributed_tracer.insert_distributed_trace_header(headers)
+            transaction.distributed_tracer.insert_cat_headers(headers)
+            transaction.distributed_tracer.log_request_headers(headers)
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error during message header processing", e
+          NewRelic::Agent.logger.error("Error during message header processing", e)
         end
       end
     end

@@ -1,33 +1,25 @@
-gemfile <<-RB
-  gem 'httpclient'
-  gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
-  #{ruby3_gem_webrick}
-RB
-instrumentation_methods :chain, :prepend
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-if RUBY_VERSION >= '3.1.0'
-  # versions below 2.8.3 use `timeout`, which does not exist in Ruby 3.1
-  gemfile <<-RB
-    gem 'httpclient', '~> 2.8.3'
+instrumentation_methods :chain, :prepend
+HTTPCLIENT_VERSIONS = [
+  [nil, 2.2],
+  ['2.8.3', 2.2],
+  ['2.6.0', 2.2, 3.0],
+  ['2.5.3', 2.2, 3.0],
+  ['2.4.0', 2.2, 3.0],
+  ['2.3.4', 2.2, 3.0],
+  ['2.2.0', 2.2, 3.0]
+]
+
+def gem_list(httpclient_version = nil)
+  <<-RB
+    gem 'httpclient'#{httpclient_version}
     gem 'rack'
-    gem 'json', :platforms => [:rbx, :mri_18]
     #{ruby3_gem_webrick}
   RB
-else
-  HTTPCLIENT_VERSIONS = %w(2.8.3
-                         2.6.0
-                         2.5.3
-                         2.4.0
-                         2.3.4
-                         2.2.0)
-
-  HTTPCLIENT_VERSIONS.each do |httpclient_version|
-    gemfile <<-RB
-      gem 'httpclient', '~> #{httpclient_version}'
-      gem 'rack'
-      gem 'json', :platforms => [:rbx, :mri_18]
-      #{ruby3_gem_webrick}
-    RB
-  end
 end
+
+create_gemfiles(HTTPCLIENT_VERSIONS, gem_list)

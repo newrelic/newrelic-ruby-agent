@@ -1,105 +1,70 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 # TODO: UNIT TESTS - Determine the root cause of our compatibility issues with
 #       rack-test 2+. If rack-test is not specified in Gemfile, the rum tests
 #       fail because the JS header is always included, even when not desired.
 #       Once the compatibility issue is addressed, all "rack_test" lines from
 #       this file and this comment should be removed.
-pre2_rack_test = %Q{gem 'rack-test', '< 2'}
 
-if RUBY_VERSION >= '2.7.0'
-  # Runs the latest published version of Rails
-  gemfile <<-RB
-    gem 'rails'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 2.0'
-    gem 'minitest', '5.2.3'
-    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
+RAILS_VERSIONS = [
+  [nil, 2.7],
+  ['7.0.3', 2.7],
+  ['6.1.6', 2.5],
+  ['6.0.5', 2.5, 2.7],
+  ['5.2.8', 2.2, 2.7],
+  ['5.1.7', 2.2, 2.7],
+  ['5.0.7', 2.2, 2.7],
+  ['4.2.11', 2.2, 2.3],
+  ['4.1.16', 2.2, 2.3],
+  ['4.0.13', 2.2, 2.3],
+]
+
+def haml_rails(rails_version = nil)
+  if rails_version && (
+    rails_version.include?('4.0.13') ||
+    rails_version.include?('4.1.16') ||
+    rails_version.include?('4.2.11') ||
+    rails_version.include?('5.0.7') ||
+    rails_version.include?('5.1.7') ||
+    rails_version.include?('5.2.8'))
+    "gem 'haml-rails', '~> 1.0.0'"
+  else
+    "gem 'haml-rails', '~> 2.0'"
+  end
+end
+
+
+def minitest_rails_version(rails_version = nil)
+  if rails_version && rails_version.include?('4.0.13')
+    '4.2.0'
+  else
+    '5.2.3'
+  end
+end
+
+def pre2_rack_test
+  %Q(gem 'rack-test', '< 2')
+end
+
+def gem_list(rails_version = nil)
+  <<-RB
+    gem 'rails'#{rails_version}
+    gem 'haml', '5.1.2'
+    #{haml_rails(rails_version)}
+    gem 'minitest', '#{minitest_rails_version(rails_version)}'
+    gem 'erubis' if RUBY_PLATFORM.eql?('java')
     #{pre2_rack_test}
     #{ruby3_gem_webrick}
   RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 7.0.2'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '2.0.0'
-    #{pre2_rack_test}
-    #{ruby3_gem_webrick}
-  RB
 end
 
-if RUBY_VERSION >= '2.5.0'
-  gemfile <<-RB
-    gem 'rails', '~> 6.1.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 2.0'
-    gem 'minitest', '5.2.3'
-    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
-    #{pre2_rack_test}
-    #{ruby3_gem_webrick}
-  RB
-end
+create_gemfiles(RAILS_VERSIONS, gem_list)
 
-if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'rails', '~> 6.0.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 2.0'
-    gem 'minitest', '5.2.3'
-    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
-    #{pre2_rack_test}
-  RB
-end
-
-if RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'rails', '~> 5.2.8'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
-    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
-    #{pre2_rack_test}
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 5.1.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
-    #{pre2_rack_test}
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 5.0.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
-    #{pre2_rack_test}
-  RB
-end
-
+# TODO: MAJOR VERSION - Remove these two gemfiles.
 if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
-    gem 'rails', '~> 4.2.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
-    #{pre2_rack_test}
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 4.1.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 1.0.0'
-    gem 'minitest', '5.2.3'
-    #{pre2_rack_test}
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 4.0.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'haml-rails', '~> 1.0.0'
-    #{pre2_rack_test}
-  RB
-
   gemfile <<-RB
     gem 'rails', '~> 3.2.0'
     gem 'i18n', '~> 0.6.11'

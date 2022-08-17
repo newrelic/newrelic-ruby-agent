@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 module NewRelic
   module Agent
     class Stats
@@ -65,7 +67,7 @@ module NewRelic
 
       def record(value = nil, aux = nil, &blk)
         if blk
-          yield self
+          yield(self)
         else
           case value
           when Numeric

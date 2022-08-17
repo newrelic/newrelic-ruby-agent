@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # Our Padrino instrumentation relies heavily on the fact that Padrino is
 # built on Sinatra. Although it wires up a lot of its own routing logic,
@@ -22,7 +23,7 @@ DependencyDetection.defer do
   depends_on { defined?(::Padrino) && defined?(::Padrino::Routing::InstanceMethods) }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Padrino instrumentation'
+    ::NewRelic::Agent.logger.info('Installing Padrino instrumentation')
     if use_prepend?
       prepend_instrument ::Padrino::Application, NewRelic::Agent::Instrumentation::PadrinoTracer::Prepend
     else

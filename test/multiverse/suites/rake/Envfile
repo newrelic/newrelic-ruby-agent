@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # NOTE:  Effective July, 2020, all the older versions of Rake prior to 12.3.3 are
 #        eliminated from the test suite due to security vulnerability.  Because of
@@ -24,34 +28,30 @@
 
 instrumentation_methods :chain, :prepend
 
-# Testing latest rake version
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake'
-  #{ruby3_gem_webrick}
-RB
+RAKE_VERSIONS = [
+  nil,
+  '13.0.0',
+  '12.3.3'
+]
 
-["'~> 13.0.0'", "'~> 12.3.3'"].each do |version|
-  gemfile <<-RB
+def gem_list(rake_version = nil)
+  <<-RB
     gem 'rack'
-    gem 'rake', #{version}
+    gem 'rake'
     #{ruby3_gem_webrick}
   RB
 end
-# No single Rails version works everywhere, so split it up
-if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
+
+create_gemfiles(RAKE_VERSIONS, gem_list)
+
+def gem_list(rake_version = nil)
+  <<-RB
     gem 'rack'
-    gem 'rake', '~> 12.3.3'
-    gem 'rails', '~> 4.2.1'
+    gem 'rake'#{rake_version}
+    #{ruby3_gem_webrick}
+    gem 'rails'
     gem 'minitest', '5.2.3'
   RB
 end
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 12.3.3'
-  gem 'newrelic-rake', :require => false # Can't coexist with third-party instrumentation
-  #{ruby3_gem_webrick}
-RB
-
+create_gemfiles(RAKE_VERSIONS, gem_list)

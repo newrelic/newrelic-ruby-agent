@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'forwardable'
 
@@ -46,7 +47,7 @@ module NewRelic
 
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
-      def self.deprecated_description new_setting, description
+      def self.deprecated_description(new_setting, description)
         link_ref = new_setting.to_s.gsub(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
@@ -117,7 +118,7 @@ module NewRelic
         def self.config_path
           Proc.new {
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
-              File.expand_path(file) if File.exist? file
+              File.expand_path(file) if File.exist?(file)
             end
             found_path || NewRelic::EMPTY_STR
           }
@@ -134,7 +135,7 @@ module NewRelic
               when 4..7
                 :rails_notifications
               else
-                ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"
+                ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
                 :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
@@ -211,7 +212,7 @@ module NewRelic
 
         def self.api_host
           Proc.new do
-            if String(NewRelic::Agent.config[:license_key]).start_with? 'eu'
+            if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
               'rpm.eu.newrelic.com'
             else
               'rpm.newrelic.com'
@@ -238,7 +239,7 @@ module NewRelic
         end
 
         SEMICOLON = ';'.freeze
-        def self.convert_to_list_on_semicolon value
+        def self.convert_to_list_on_semicolon(value)
           case value
           when Array then value
           when String then value.split(SEMICOLON)
@@ -1084,6 +1085,32 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.grpc_client' => {
+          :default => instrumentation_value_of(:disable_grpc_client),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of gRPC clients at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.grpc.host_denylist' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => %Q(Specifies a list of hostname patterns separated by commas that will match gRPC hostnames that traffic is to be ignored by New Relic for. New Relic's gRPC client instrumentation will ignore traffic streamed to a host matching any of these patterns, and New Relic's gRPC server instrumentation will ignore traffic for a server running on a host whose hostname matches any of these patterns. By default, no traffic is ignored when gRPC instrumentation is itself enabled. For example, "private.com$,exception.*")
+        },
+        :'instrumentation.grpc_server' => {
+          :default => instrumentation_value_of(:disable_grpc_server),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of gRPC servers at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,
@@ -2011,11 +2038,12 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
         },
         :'code_level_metrics.enabled' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, the agent will report source code level metrics for traced methods.'
+          :description => "If `true`, the agent will report source code level metrics for traced methods.\nsee: " \
+                          'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),

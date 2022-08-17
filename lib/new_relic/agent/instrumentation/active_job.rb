@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/prepend_supportability'
 
@@ -12,7 +13,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveJob instrumentation'
+    ::NewRelic::Agent.logger.info('Installing ActiveJob instrumentation')
 
     ActiveSupport.on_load(:active_job) do
       ::ActiveJob::Base.around_enqueue do |job, block|

@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.6.0]
+        ruby-version: [2.2.10, 3.1.2, jruby-9.3.7.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -52,12 +52,12 @@ jobs:
               "3.1.2": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.3.6.0": {
+              "jruby-9.3.7.0": {
                 "rails": "norails,rails61,rails52,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.6.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -65,7 +65,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.6.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -300,10 +300,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Ruby jruby-9.3.6.0
+      - name: Install Ruby jruby-9.3.7.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.6.0
+          ruby-version: jruby-9.3.7.0
 
       - name: Bundle
         run: bundle install
@@ -326,7 +326,7 @@ jobs:
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-20.04
-    if: github.repository == 'newrelic/newrelic-ruby-agent'
+    if: github.repository_owner == 'newrelic'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-ruby@v1
@@ -347,5 +347,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage/.last_run.json
-          failedThreshold: 60
-          failedThresholdBranch: 30
+          failedThreshold: 55
+          failedThresholdBranch: 20

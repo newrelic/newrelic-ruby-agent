@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
   module Sinatra
@@ -30,7 +31,7 @@ module NewRelic::Agent::Instrumentation
       def set_newrelic_ignore(type, *routes)
         # Important to default this in the context of the actual app
         # If it's done at register time, ignores end up shared between apps.
-        set :newrelic_ignores, Hash.new([]) if !respond_to?(:newrelic_ignores)
+        set(:newrelic_ignores, Hash.new([])) if !respond_to?(:newrelic_ignores)
 
         # If we call an ignore without a route, it applies to the whole app
         routes = ["*"] if routes.empty?

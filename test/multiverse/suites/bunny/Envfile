@@ -1,28 +1,28 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 suite_condition("bunny not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-instrumentation_methods :chain, :prepend
+instrumentation_methods :prepend
+# instrumentation_methods :chain, :prepend
 
-if RUBY_VERSION >= '2.3'
-  gemfile <<-RB
-    gem 'rack'
-    gem 'bunny'
-    gem 'amq-protocol'
-    #{ruby3_gem_webrick}
-  RB
+BUNNY_VERSIONS = [
+  [nil, 2.3],
+  ['2.19.0', 2.3],
+  ['2.9.1', 2.2]
+]
 
-  gemfile <<-RB
+def gem_list(bunny_version = nil)
+  <<-RB
     gem 'rack'
-    gem 'bunny', '~>2.19.0'
+    gem 'bunny'#{bunny_version}
     gem 'amq-protocol'
     #{ruby3_gem_webrick}
   RB
 end
 
-gemfile <<-RB
-  gem 'rack'
-  gem 'bunny', '~>2.9.1'
-  gem 'amq-protocol'
-  #{ruby3_gem_webrick}
-RB
+create_gemfiles(BUNNY_VERSIONS, gem_list)

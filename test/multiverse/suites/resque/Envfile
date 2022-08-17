@@ -1,24 +1,19 @@
-# Testing latest resque version
-gemfile <<-RB
-  gem 'resque'
-  gem 'json'
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+RESQUE_VERSIONS = [
+  [nil],
+  ['2.2.0', 2.3],
+  ['1.27.0']
+]
+
+def gem_list(resque_version = nil)
+  <<-RB
+  gem 'resque'#{resque_version}
   #{ruby3_gem_webrick}
-RB
-
-if RUBY_VERSION >= '2.3.0'
-  ["'~> 2.2.0'", "'~> 2.1.0'"].each do |version|
-    gemfile <<-RB
-      gem 'resque', #{version}
-      gem 'json'
-      #{ruby3_gem_webrick}
-    RB
-  end
-end
-
-["'~> 1.27.0'", "'~> 1.23.0'", "'~> 1.22.0'"].each do |version|
-  gemfile <<-RB
-    gem 'resque', #{version}
-    gem 'json'
-    #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(RESQUE_VERSIONS, gem_list)

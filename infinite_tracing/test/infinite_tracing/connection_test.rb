@@ -15,11 +15,11 @@ module NewRelic
         # begins it's connection handshake.
         def test_connection_initialized_before_connecting
           with_serial_lock do
-            with_config localhost_config do
+            with_config(localhost_config) do
               connection = Connection.instance # instantiate before simulation
-              simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+              simulate_connect_to_collector(fiddlesticks_config, 0.01) do |simulator|
                 simulator.join # ensure our simulation happens!
-                metadata = connection.send :metadata
+                metadata = connection.send(:metadata)
 
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "fiddlesticks", metadata["agent_run_token"]
@@ -32,11 +32,11 @@ module NewRelic
         # is instantiated.
         def test_connection_initialized_after_connecting
           with_serial_lock do
-            with_config localhost_config do
-              simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
+            with_config(localhost_config) do
+              simulate_connect_to_collector(fiddlesticks_config, 0.0) do |simulator|
                 simulator.join # ensure our simulation happens!
                 connection = Connection.instance # instantiate after simulated connection
-                metadata = connection.send :metadata
+                metadata = connection.send(:metadata)
 
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "fiddlesticks", metadata["agent_run_token"]
@@ -49,11 +49,11 @@ module NewRelic
         # the client is instantiated (via sleep 0.01 w/o explicit join).
         def test_connection_initialized_after_connecting_and_waiting
           with_serial_lock do
-            with_config localhost_config do
-              simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+            with_config(localhost_config) do
+              simulate_connect_to_collector(fiddlesticks_config, 0.01) do |simulator|
                 simulator.join # ensure our simulation happens!
                 connection = Connection.instance
-                metadata = connection.send :metadata
+                metadata = connection.send(:metadata)
 
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "fiddlesticks", metadata["agent_run_token"]
@@ -66,17 +66,17 @@ module NewRelic
         # The metadata is expected to change since agent run token changes.
         def test_connection_reconnects
           with_serial_lock do
-            with_config localhost_config do
+            with_config(localhost_config) do
               connection = Connection.instance
-              simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
+              simulate_connect_to_collector(fiddlesticks_config, 0.0) do |simulator|
                 simulator.join
-                metadata = connection.send :metadata
+                metadata = connection.send(:metadata)
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "fiddlesticks", metadata["agent_run_token"]
 
                 simulate_reconnect_to_collector(reconnect_config)
 
-                metadata = connection.send :metadata
+                metadata = connection.send(:metadata)
 
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "shazbat", metadata["agent_run_token"]
@@ -88,7 +88,7 @@ module NewRelic
         def test_sending_spans_to_server
           with_serial_lock do
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans
+            spans, segments = emulate_streaming_segments(total_spans)
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
           end
@@ -164,7 +164,7 @@ module NewRelic
 
             attempts = 0
             begin
-              connection.send :with_reconnection_backoff do
+              connection.send(:with_reconnection_backoff) do
                 attempts += 1
                 raise NewRelic::TestHelpers::Exceptions::TestRuntimeError # simulate grpc raising connection error
               end
@@ -178,13 +178,13 @@ module NewRelic
 
         def test_metadata_includes_request_headers_map
           with_serial_lock do
-            with_config localhost_config do
+            with_config(localhost_config) do
               NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata" => "test_metadata"})
 
               connection = Connection.instance # instantiate before simulation
-              simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+              simulate_connect_to_collector(fiddlesticks_config, 0.01) do |simulator|
                 simulator.join # ensure our simulation happens!
-                metadata = connection.send :metadata
+                metadata = connection.send(:metadata)
 
                 assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
               end

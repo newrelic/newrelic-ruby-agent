@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module Multiverse
   module ShellUtils
@@ -14,7 +15,7 @@ module Multiverse
         if $?.success?
           return result
         elsif count < n
-          sleep wait_time
+          sleep(wait_time)
           redo
         else
           puts "System command: #{cmd} failed #{n} times. Giving up..."

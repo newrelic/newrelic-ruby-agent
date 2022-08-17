@@ -1,15 +1,21 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 instrumentation_methods :chain, :prepend
 
-# Tests latest Tilt version
-gemfile <<-RB
-  gem 'tilt'
-  gem 'haml'
-  #{ruby3_gem_webrick}
-RB
+TILT_VERSIONS = [
+  [nil, 2.2],
+  ['1.4.1', 2.2, 2.7]
+]
 
-if RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'tilt', '~> 1.4.1'
+def gem_list(tilt_version = nil)
+  <<-RB
+    gem 'tilt'#{tilt_version}
     gem 'haml'
+    #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(TILT_VERSIONS, gem_list)

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/database/obfuscation_helpers'
 
@@ -50,7 +51,7 @@ module NewRelic
         def default_sql_obfuscator(sql)
           stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
 
-          if stmt.sql.end_with? ELLIPSIS
+          if stmt.sql.end_with?(ELLIPSIS)
             return QUERY_TOO_LARGE_MESSAGE
           end
 

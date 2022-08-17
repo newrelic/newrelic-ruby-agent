@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'new_relic/agent/instrumentation/notifications_subscriber'
 
 # Listen for ActiveSupport::Notifications events for ActionView render
@@ -17,7 +19,7 @@ module NewRelic
           if state.is_execution_traced? && recordable?(name, metric_name)
             event.finishable = Tracer.start_segment(name: metric_name)
           end
-          push_segment id, event
+          push_segment(id, event)
         rescue => e
           log_notification_error(e, name, 'start')
         end
@@ -25,7 +27,7 @@ module NewRelic
         def finish(name, id, payload)
           if segment = pop_segment(id)
             if exception = exception_object(payload)
-              segment.notice_error exception
+              segment.notice_error(exception)
             end
             segment.finish
           end
@@ -101,8 +103,8 @@ module NewRelic
           @finishable.finish if @finishable
         end
 
-        def notice_error error
-          @finishable.notice_error error if @finishable
+        def notice_error(error)
+          @finishable.notice_error(error) if @finishable
         end
       end
     end

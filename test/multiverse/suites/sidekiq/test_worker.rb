@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative "sidekiq_server"
 
@@ -27,7 +28,7 @@ class TestWorker
   def self.run_jobs(count)
     reset(count)
     count.times do |i|
-      yield i
+      yield(i)
     end
     wait
   end

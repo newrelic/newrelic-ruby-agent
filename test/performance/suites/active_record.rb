@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/active_record_helper'
 
@@ -11,7 +12,7 @@ class ActiveRecordTest < Performance::TestCase
 
   def test_helper_by_name
     measure do
-      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for NAME, SQL, ADAPTER
+      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for(NAME, SQL, ADAPTER)
     end
   end
 
@@ -19,7 +20,7 @@ class ActiveRecordTest < Performance::TestCase
 
   def test_helper_by_sql
     measure do
-      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for UNKNOWN_NAME, SQL, ADAPTER
+      NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for(UNKNOWN_NAME, SQL, ADAPTER)
     end
   end
 end

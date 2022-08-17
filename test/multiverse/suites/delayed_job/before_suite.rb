@@ -1,8 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'delayed_job'
+require_relative '../../../../test/new_relic/multiverse_helpers'
 
 migration_version = nil
 
@@ -44,11 +46,11 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
     @connection = $db_connection
   end
 
-  class CreatePelicans < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
+  class CreatePelicans < current_active_record_migration_version
     @connection = $db_connection
     def self.up
-      create_table :pelicans do |t|
-        t.string :name
+      create_table(:pelicans) do |t|
+        t.string(:name)
       end
     end
   end

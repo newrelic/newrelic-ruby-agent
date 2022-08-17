@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../test_helper'
 require 'new_relic/environment_report'
@@ -50,7 +51,7 @@ class EnvironmentReportTest < Minitest::Test
 
   def test_it_knows_what_gems_are_in_the_environment
     assert(@report['Gems'].size > 5, "Expected at least 5 gems in #{@report['Gems'].inspect}")
-    rake = @report['Gems'].detect { |s| s.include? 'rake' }
+    rake = @report['Gems'].detect { |s| s.include?('rake') }
     assert_match(/^rake\([\d\.]+\)$/, rake)
   end
 

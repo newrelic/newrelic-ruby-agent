@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/datastores/metric_helper'
@@ -189,13 +190,13 @@ module NewRelic
 
       def test_operation_from_sql
         sql = "SELECT * FROM blogs where id = 5"
-        operation = Datastores::MetricHelper.operation_from_sql sql
+        operation = Datastores::MetricHelper.operation_from_sql(sql)
         assert_equal "select", operation
       end
 
       def test_operation_from_sql_returns_other_for_unrecognized_operation
         sql = "DESCRIBE blogs"
-        operation = Datastores::MetricHelper.operation_from_sql sql
+        operation = Datastores::MetricHelper.operation_from_sql(sql)
         assert_equal "Other", operation
       end
     end

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 
@@ -220,6 +221,11 @@ module NewRelic::Agent::Instrumentation
           :name => 'action'))
     end
 
+    def test_transaction_name_always_comes_from_the_options_hash_when_present
+      expected = 'lighthouse'
+      assert_equal expected, @txn_namer.name_for(nil, nil, nil, transaction_name: expected)
+    end
+
     def test_transaction_namer_determines_prefix
       in_transaction do |txn|
         assert_equal @txn_namer.prefix_for_category(txn, :controller), 'Controller/'
@@ -256,19 +262,19 @@ module NewRelic::Agent::Instrumentation
     def test_add_transaction_tracer_should_not_double_instrument
       TestObject.expects(:alias_method).never
       TestObject.class_eval do
-        add_transaction_tracer :public_transaction
-        add_transaction_tracer :protected_transaction
-        add_transaction_tracer :private_transaction
+        add_transaction_tracer(:public_transaction)
+        add_transaction_tracer(:protected_transaction)
+        add_transaction_tracer(:private_transaction)
       end
       TestObject.new
     end
 
     def test_add_transaction_tracer_defines_with_method
-      assert TestObject.method_defined? :public_transaction_with_newrelic_transaction_trace
+      assert TestObject.method_defined?(:public_transaction_with_newrelic_transaction_trace)
     end
 
     def test_add_transaction_tracer_defines_without_method
-      assert TestObject.method_defined? :public_transaction_without_newrelic_transaction_trace
+      assert TestObject.method_defined?(:public_transaction_without_newrelic_transaction_trace)
     end
 
     def test_parse_punctuation

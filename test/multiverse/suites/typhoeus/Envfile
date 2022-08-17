@@ -1,28 +1,24 @@
-SUPPORTED_TYPHOEUS_VERSIONS = [
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+TYPHOEUS_VERSIONS = [
+  nil,
   '1.4.0',
   '1.3.1',
   '1.3.0',
 ]
-instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
-  gem 'typhoeus'
-  if RUBY_PLATFORM == 'java'
-    gem 'ethon', '0.14.0'
-  end
-  gem 'rack'
-  #{ruby3_gem_webrick}
-RB
-
-SUPPORTED_TYPHOEUS_VERSIONS.each do |version|
-  gemfile <<-RB
-    gem 'typhoeus', '~> #{version}'
-    if RUBY_PLATFORM == 'java'
-      gem 'ethon', '0.14.0'
-    end
+def gem_list(typhoeus_version = nil)
+  <<-RB
+    gem 'typhoeus'#{typhoeus_version}
+    gem 'ethon' if RUBY_PLATFORM == 'java'
     gem 'rack'
     #{ruby3_gem_webrick}
   RB
 end
 
-# vim: ft=ruby
+create_gemfiles(TYPHOEUS_VERSIONS, gem_list)

@@ -20,7 +20,7 @@ module NewRelic
         end
 
         def test_all_infinite_tracing_config_keys_are_used
-          scan_and_remove_used_entries @default_keys, non_test_files
+          scan_and_remove_used_entries(@default_keys, non_test_files)
           assert_empty @default_keys
         end
 
@@ -98,7 +98,7 @@ module NewRelic
         end
 
         def test_unset_trace_observer_host_raises_error
-          NewRelic::Agent.config.remove_config_type :yaml
+          NewRelic::Agent.config.remove_config_type(:yaml)
           error = assert_raises RuntimeError do
             Config.trace_observer_uri
           end
@@ -108,7 +108,7 @@ module NewRelic
         private
 
         def non_test_files
-          all_rb_files.reject { |filename| filename.include? 'test.rb' }
+          all_rb_files.reject { |filename| filename.include?('test.rb') }
         end
       end
     end

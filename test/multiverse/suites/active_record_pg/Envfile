@@ -1,39 +1,33 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-boilerplate_gems = <<-BOILERPLATE
-  gem 'rack'
-  gem 'minitest', '~> 5.2.3'
-BOILERPLATE
+suite_condition('Skip AR for JRuby, initialization fails on GitHub Actions') do
+  RUBY_PLATFORM != 'java'
+end
 
-if RUBY_VERSION >= '2.7.0'
-  gemfile <<-RB
-    gem 'activerecord'
+ACTIVERECORD_VERSIONS = [
+  [nil, 2.7],
+  ['7.0.0', 2.7],
+  ['6.1.0', 2.5],
+  ['6.0.0', 2.5, 2.7],
+  ['5.2.0', 2.4, 2.6],
+  ['5.1.0', 2.4, 2.5],
+  ['5.0.0', 2.4, 2.7]
+]
+
+def gem_list(activerecord_version = nil)
+  <<-RB
+    gem 'activerecord'#{activerecord_version}
     gem 'pg'
-    gem 'webrick'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 7.0'
-    gem 'pg'
-    gem 'webrick'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 6.1'
-    gem 'pg'
-    gem 'webrick'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 6.0'
-    gem 'pg'
-    gem 'webrick'
-    #{boilerplate_gems}
+    #{ruby3_gem_webrick}
+    gem 'rack'
+    gem 'minitest', '~> 5.2.3'
   RB
 end
 
+create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
 # Removing JRuby from CI until we can understand why initialization fails on GitHub Actions
 # if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
 
@@ -70,24 +64,3 @@ end
 #     #{boilerplate_gems}
 #   RB
 # end
-
-if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '3.0.0' && RUBY_PLATFORM != 'java'
-
-  gemfile <<-RB
-    gem 'activerecord', '5.2.2'
-    gem 'pg'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 5.1.6'
-    gem 'pg'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 5.0.0'
-    gem 'pg'
-    #{boilerplate_gems}
-  RB
-end

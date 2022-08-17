@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 require 'new_relic/agent/adaptive_sampler'
@@ -36,18 +37,18 @@ module NewRelic
       end
 
       def test_sampling_target_updated_when_config_changes
-        with_config sampling_target: 55 do
+        with_config(sampling_target: 55) do
           sampler = NewRelic::Agent.instance.adaptive_sampler
-          target = sampler.instance_variable_get :@target
+          target = sampler.instance_variable_get(:@target)
 
           assert_equal 55, target
         end
       end
 
       def test_sampling_period_updated_when_config_changes
-        with_config sampling_target_period_in_seconds: 500 do
+        with_config(sampling_target_period_in_seconds: 500) do
           sampler = NewRelic::Agent.instance.adaptive_sampler
-          period = sampler.instance_variable_get :@period_duration
+          period = sampler.instance_variable_get(:@period_duration)
 
           assert_equal 500, period
         end

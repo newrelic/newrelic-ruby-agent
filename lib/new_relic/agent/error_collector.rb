@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'new_relic/agent/error_trace_aggregator'
 require 'new_relic/agent/error_event_aggregator'
 
@@ -18,9 +20,9 @@ module NewRelic
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
       # Returns a new error collector
-      def initialize events
+      def initialize(events)
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
-        @error_event_aggregator = ErrorEventAggregator.new events
+        @error_event_aggregator = ErrorEventAggregator.new(events)
 
         @error_filter = NewRelic::Agent::ErrorFilter.new
 
@@ -62,7 +64,7 @@ module NewRelic
         if block
           define_method(:ignore_filter_proc, &block)
         elsif method_defined?(:ignore_filter_proc)
-          remove_method :ignore_filter_proc
+          remove_method(:ignore_filter_proc)
         end
         @ignore_filter
       end
@@ -212,7 +214,7 @@ module NewRelic
       def notice_segment_error(segment, exception, options = {})
         return if skip_notice_error?(exception)
 
-        segment.set_noticed_error create_noticed_error(exception, options)
+        segment.set_noticed_error(create_noticed_error(exception, options))
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)

@@ -1,29 +1,21 @@
-if RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+SEQUEL_VERSIONS = [
+  [nil],
+  ['5.58.0'],
+  ['5.17.0', 2.2, 2.7]
+]
+
+def gem_list(sequel_version = nil)
+  <<-RB
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
     gem 'jdbc-sqlite3', '3.7.2', :platform => :jruby
-    gem 'sqlite3', '~> 1.3.13', :platform => :ruby
-    gem 'sequel', '5.17.0'
+    gem 'sqlite3', :platform => :ruby
+    gem 'sequel'#{sequel_version}
   RB
 end
 
-  gemfile <<-RB
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-    gem 'jdbc-sqlite3',  :platform => :jruby
-    gem 'sqlite3',  '1.4.2', :platform => :ruby
-    gem 'sequel', '5.39.0'
-  RB
-
-  gemfile <<-RB
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-    gem 'jdbc-sqlite3',  :platform => :jruby
-    gem 'sqlite3',  '1.4.2', :platform => :ruby
-    gem 'sequel', '5.40.0'
-  RB
-
-  gemfile <<-RB
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-    gem 'jdbc-sqlite3',  :platform => :jruby
-    gem 'sqlite3',  '1.4.2', :platform => :ruby
-    gem 'sequel', '5.48.0'
-  RB
+create_gemfiles(SEQUEL_VERSIONS, gem_list)

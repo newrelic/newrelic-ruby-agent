@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -18,11 +19,11 @@ module NewRelic
       # See #connect for a description of connection_options.
       def start_worker_thread(connection_options = {})
         if disable = NewRelic::Agent.config[:disable_harvest_thread]
-          NewRelic::Agent.logger.info "Not starting Ruby Agent worker thread because :disable_harvest_thread is #{disable}"
+          NewRelic::Agent.logger.info("Not starting Ruby Agent worker thread because :disable_harvest_thread is #{disable}")
           return
         end
 
-        ::NewRelic::Agent.logger.debug "Creating Ruby Agent worker thread."
+        ::NewRelic::Agent.logger.debug("Creating Ruby Agent worker thread.")
         @worker_thread = Threading::AgentThread.create('Worker Loop') do
           deferred_work!(connection_options)
         end
@@ -44,7 +45,7 @@ module NewRelic
         # Wait the end of the event loop thread.
         if @worker_thread
           unless @worker_thread.join(3)
-            ::NewRelic::Agent.logger.debug "Event loop thread did not stop within 3 seconds"
+            ::NewRelic::Agent.logger.debug("Event loop thread did not stop within 3 seconds")
           end
         end
       end
@@ -52,7 +53,7 @@ module NewRelic
       # Certain event types may sometimes need to be on the same interval as metrics,
       # so we will check config assigned in EventHarvestConfig to determine the interval
       # on which to report them
-      def interval_for event_type
+      def interval_for(event_type)
         interval = Agent.config[:"event_report_period.#{event_type}"]
         :"#{interval}_second_harvest"
       end
@@ -66,19 +67,19 @@ module NewRelic
           transmit_data
         end
 
-        @event_loop.on(interval_for TRANSACTION_EVENT_DATA) do
+        @event_loop.on(interval_for(TRANSACTION_EVENT_DATA)) do
           transmit_analytic_event_data
         end
-        @event_loop.on(interval_for CUSTOM_EVENT_DATA) do
+        @event_loop.on(interval_for(CUSTOM_EVENT_DATA)) do
           transmit_custom_event_data
         end
-        @event_loop.on(interval_for ERROR_EVENT_DATA) do
+        @event_loop.on(interval_for(ERROR_EVENT_DATA)) do
           transmit_error_event_data
         end
-        @event_loop.on(interval_for SPAN_EVENT_DATA) do
+        @event_loop.on(interval_for(SPAN_EVENT_DATA)) do
           transmit_span_event_data
         end
-        @event_loop.on(interval_for LOG_EVENT_DATA) do
+        @event_loop.on(interval_for(LOG_EVENT_DATA)) do
           transmit_log_event_data
         end
 
@@ -96,18 +97,18 @@ module NewRelic
       # this clears the data, clears connection attempts, and
       # waits a while to reconnect.
       def handle_force_restart(error)
-        ::NewRelic::Agent.logger.debug error.message
+        ::NewRelic::Agent.logger.debug(error.message)
         drop_buffered_data
         @service.force_restart if @service
         @connect_state = :pending
-        sleep 30
+        sleep(30)
       end
 
       # when a disconnect is requested, stop the current thread, which
       # is the worker thread that gathers data and talks to the
       # server.
       def handle_force_disconnect(error)
-        ::NewRelic::Agent.logger.warn "Agent received a ForceDisconnectException from the server, disconnecting. (#{error.message})"
+        ::NewRelic::Agent.logger.warn("Agent received a ForceDisconnectException from the server, disconnecting. (#{error.message})")
         disconnect
       end
 
@@ -115,7 +116,7 @@ module NewRelic
       # it and disconnecting the agent, since we are now in an
       # unknown state.
       def handle_other_error(error)
-        ::NewRelic::Agent.logger.error "Unhandled error in worker thread, disconnecting."
+        ::NewRelic::Agent.logger.error("Unhandled error in worker thread, disconnecting.")
         # These errors are fatal (that is, they will prevent the agent from
         # reporting entirely), so we really want backtraces when they happen
         ::NewRelic::Agent.logger.log_exception(:error, error)
@@ -153,7 +154,7 @@ module NewRelic
               # never reaches here unless there is a problem or
               # the agent is exiting
             else
-              ::NewRelic::Agent.logger.debug "No connection.  Worker thread ending."
+              ::NewRelic::Agent.logger.debug("No connection.  Worker thread ending.")
             end
           end
         end

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/attribute_processing'
 
@@ -34,7 +35,7 @@ module NewRelic
       end
 
       def add_agent_attribute_with_key_check(key, value, default_destinations)
-        if exceeds_bytesize_limit? key, KEY_LIMIT
+        if exceeds_bytesize_limit?(key, KEY_LIMIT)
           NewRelic::Agent.logger.debug("Agent attribute #{key} was dropped for exceeding key length limit #{KEY_LIMIT}")
           return
         end

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -12,7 +13,7 @@ module NewRelic
           SINATRA_ROUTE = 'sinatra.route'
 
           def transaction_name_for_route(env, request)
-            if env.key? SINATRA_ROUTE
+            if env.key?(SINATRA_ROUTE)
               env[SINATRA_ROUTE]
             else
               name = route_for_sinatra(env)

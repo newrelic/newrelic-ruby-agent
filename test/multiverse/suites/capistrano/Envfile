@@ -1,38 +1,24 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 suite_condition("Capistrano 3 flaky on JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-boilerplate = <<-BOILERPLATE
-  gem 'rack'
-  #{ruby3_gem_webrick}
-BOILERPLATE
+CAPISTRANO_VERSIONS = [
+  nil,
+  '3.17.0'
+]
 
-gemfile <<-RB
-  gem 'sshkit', '1.16.0'
-  gem 'capistrano', '~>3.11.1'
-  #{boilerplate}
-RB
-gemfile <<-RB
-  gem 'sshkit', '1.16.0'
-  gem 'capistrano', '~>3.12.0'
-  #{boilerplate}
-RB
+def gem_list(capistrano_version = nil)
+  <<-RB
+    gem 'sshkit', '1.16.0'
+    gem 'rack'
+    #{ruby3_gem_webrick}
+    gem 'capistrano'#{capistrano_version}
+  RB
+end
 
-gemfile <<-RB
-  gem 'sshkit', '1.16.0'
-  gem 'capistrano', '~>3.13.0'
-  #{boilerplate}
-RB
-
-
-gemfile <<-RB
-  gem 'sshkit', '1.16.0'
-  gem 'capistrano', '~>3.14.1'
-  #{boilerplate}
-RB
-
-gemfile <<-RB
-  gem 'sshkit', '1.16.0'
-  gem 'capistrano', '~>3.15.0'
-  #{boilerplate}
-RB
+create_gemfiles(CAPISTRANO_VERSIONS, gem_list)

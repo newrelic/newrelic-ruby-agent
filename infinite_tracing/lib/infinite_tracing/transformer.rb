@@ -8,7 +8,7 @@ module NewRelic::Agent
     module Transformer
       extend self
 
-      def transform span_event
+      def transform(span_event)
         intrinsics, user_attributes, agent_attributes = span_event
         {
           "trace_id" => intrinsics[NewRelic::Agent::SpanEventPrimitive::TRACE_ID_KEY],
@@ -34,11 +34,11 @@ module NewRelic::Agent
         KLASS_TO_ARG[BigDecimal] = :double_value
       end
 
-      def safe_param_name value
+      def safe_param_name(value)
         KLASS_TO_ARG[value.class] || raise("Unhandled class #{value.class.name}")
       end
 
-      def hash_to_attributes values
+      def hash_to_attributes(values)
         values.map do |key, value|
           begin
             [key, AttributeValue.new(safe_param_name(value) => value)]

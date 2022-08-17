@@ -15,45 +15,93 @@ There are two main goals driving the development of this framework:
 
 ### Invoking via the runner directly
 
-More advanced options can be specified by invoking the runner script directly.
-See `./test/performance/script/runner -h` for a full list of options.
+The performance testing specific content lives in the `test/performance`
+directory beneath the repository's root. That directory includes its own
+`Gemfile` which specifies dependencies needed for testing.
 
-All the examples below assume you have switched to the test/performance folder under the repository's root folder:
+#### Docker Recommendation
+
+When running performance tests, especially when making comparisons between two
+different git branches, it is recommended that the tests be ran within a Docker
+container. Due to the fixed resources nature of using a Docker container, we
+have found that we are able to obtain more consistent results that are not
+impacted by things being done on the host machine that can compete for
+resources.
+
+To launch a Docker container with shared write access to your present working
+directory, do the following:
+
+```shell
+docker run --rm -it --mount "type=bind,source=$(pwd),target=/app" ruby bash
+
+# • docker run: run a container, note that Docker Desktop must be running
+# • --rm: remove the container (but not the image) after exiting
+# • --it: run an interactive (--i ) session with a pseudo tty (--t)
+# • --mount : mount a volume (source = host path, target = container path)
+# • ruby: image name (can also contain a tag, such as ruby:latest or whatnot)
+# • bash: the command to run on the container. after this command finishes, the container will stop (and with --rm be removed)
+```
+
+Once the Docker container is running and you are at an interactive Bash prompt,
+change to the agent repository directory:
+
+```shell
+docker$ cd /app
+```
+
+You are now set to perform the any of the remaining commands mentioned below.
+When done running the container, simply type `exit` and hit return/enter to exit
+Bash. NOTE: the container will be discarded upon exiting Bash, so if you are
+testing two different branches, be sure to perform both sets of tests prior to
+exiting.
+
+#### Initial setup
+
+```shell
+cd test/performance
+bundle install
+```
+
+#### Running tests
+
+The performance testing runner script is available at `script/runner` (which
+is at `test/performance/script/runner` beneath the repository's root).
+
+For help with the `script/runner` script, invoke it with `-h`:
+
+```shell
+bundle exec script/runner -h
+```
+
+To run all tests and report detailed results in a human-readable form:
 
 ```
-$ cd test/performance
-$ script/runner -l
+bundle exec script/runner
 ```
 
-Run all tests, report detailed results in a human-readable form
+To list all available test suites and names:
 
 ```
-$ script/runner
+bundle exec script/runner -l
 ```
 
-List all available test suites and names:
+To run a specific test (test name matching is done via regex):
 
 ```
-$ script/runner -l
-```
-
-Run a specific test (test name matching is via regex):
-
-```
-$ script/runner -n short
+bundle exec script/runner -n short
 ```
 
 To compare results for a specific test between two versions of the code, use the
 `-B` (for Baseline) and `-C` for (for Compare) switches:
 
 ```
-$ script/runner -n short -B
+bundle exec script/runner -n short -B
 1 tests, 0 failures, 8.199975 s total
 Saved 1 results as baseline.
 
-... switch to another branch and run again with -C ...
+... now switch to another git branch and run the script again with -C ...
 
-$ script/runner -n short -C
+bundle exec script/runner -n short -C
 1 tests, 0 failures, 8.220509 s total
 +-----------------------------------------------------+-----------+-----------+-------+---------------+--------------+--------------+
 | name                                                | before    | after     | delta | allocs_before | allocs_after | allocs_delta |
@@ -62,22 +110,28 @@ $ script/runner -n short -C
 +-----------------------------------------------------+-----------+-----------+-------+---------------+--------------+--------------+
 ```
 
-Run all the tests, produce machine readable JSON output (for eventual ingestion into a storage system):
+To run all tests and produce machine readable JSON output (for eventual ingestion into a storage system):
 
 ```
-$ script/runner -j | json_reformat
+bundle exec script/runner -j | json_reformat
 ```
 
-Run a specific test under a profiler (either stackprof or perftools.rb, depending on your Ruby version):
+To run all tests and produce Markdown formatted tabular output:
 
 ```
-$ script/runner -n short --profile
+bundle exec script/runner --markdown
 ```
 
-Run with a set number of iterations, and do object allocation profiling (again to a call-graph dot file):
+To run a specific test under a profiler (either stackprof or perftools.rb, depending on your Ruby version):
 
 ```
-$ script/runner -n short -a -N 1000
+bundle exec script/runner -n short --profile
+```
+
+To run with a set number of iterations, and do object allocation profiling (again to a call-graph dot file):
+
+```
+bundle exec script/runner -n short -a -N 1000
 ```
 
 ## Pointing at a different copy of the agent

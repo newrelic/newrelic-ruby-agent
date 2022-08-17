@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This makes sure that the Multiverse environment loads with the gem
 # version of Minitest, which we use throughout, not the one in stdlib on
@@ -21,7 +22,7 @@ module Multiverse
     attr_accessor :directory, :opts
 
     def initialize(directory, opts = {})
-      self.directory = File.expand_path directory
+      self.directory = File.expand_path(directory)
       self.opts = opts
       ENV["VERBOSE"] = '1' if opts[:verbose]
     end
@@ -72,9 +73,9 @@ module Multiverse
     end
 
     def envfile_path
-      ep = File.expand_path 'Envfile'
+      ep = File.expand_path('Envfile')
       if !File.exist?(ep)
-        ep = File.expand_path 'Envfile', directory
+        ep = File.expand_path('Envfile', directory)
         raise "#{ep} not found" unless File.exist?(ep)
       end
       ep
@@ -82,7 +83,7 @@ module Multiverse
 
     def environments
       @environments ||= (
-        Dir.chdir directory
+        Dir.chdir(directory)
         Envfile.new(envfile_path)
       )
     end
@@ -133,25 +134,25 @@ module Multiverse
     end
 
     # Ensures we bundle will recognize an explicit version number on command line
-    def safe_explicit version
+    def safe_explicit(version)
       return version if version.to_s == ""
       test_version = `bundle #{version} --version` =~ /Could not find command/
       test_version ? "" : version
     end
 
-    def explicit_bundler_version dir
+    def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f < 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")
     end
 
-    def bundle_show_env bundle_cmd
+    def bundle_show_env(bundle_cmd)
       return unless ENV["BUNDLE_SHOW_ENV"]
       puts `#{bundle_cmd} env`
     end
 
-    def bundle_config dir, bundle_cmd
+    def bundle_config(dir, bundle_cmd)
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
@@ -159,14 +160,14 @@ module Multiverse
       puts "Bundling in #{dir}..."
       bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
-      bundle_config dir, bundle_cmd
-      bundle_show_env bundle_cmd
+      bundle_config(dir, bundle_cmd)
+      bundle_show_env(bundle_cmd)
       full_bundle_cmd = "#{bundle_cmd} install"
-      result = ShellUtils.try_command_n_times full_bundle_cmd, 3
+      result = ShellUtils.try_command_n_times(full_bundle_cmd, 3)
       unless $?.success?
         puts "Failed local bundle, trying again without the version lock..."
         change_lock_version(dir, ENV["BUNDLE_GEMFILE"])
-        result = ShellUtils.try_command_n_times full_bundle_cmd, 3
+        result = ShellUtils.try_command_n_times(full_bundle_cmd, 3)
       end
 
       result = red(result) unless $?.success?
@@ -174,7 +175,7 @@ module Multiverse
       $?
     end
 
-    def change_lock_version filepath, gemfile, new_version = Bundler::VERSION
+    def change_lock_version(filepath, gemfile, new_version = Bundler::VERSION)
       begin
         lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/, '')
       rescue => e
@@ -182,7 +183,7 @@ module Multiverse
         puts "ERROR: on lock_filename #{filepath.inspect} / #{gemfile.inspect}"
         raise
       end
-      return unless File.exist? lock_filename
+      return unless File.exist?(lock_filename)
 
       lock_contents = File.read(lock_filename).split("\n")
       old_version = lock_contents.pop.strip
@@ -264,10 +265,11 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
-        f.puts "gem 'mocha', '~> 1.9.0', :require => false"
+        f.puts "gem 'mocha', '~> 1.9.0', require: false"
+        f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
         if debug
-          f.puts "gem 'pry', '~> 0.10.0'"
+          f.puts "gem 'pry', '~> 0.14'"
           f.puts "gem 'pry-nav'"
           f.puts "gem 'pry-stack_explorer', platforms: :mri"
         end
@@ -295,18 +297,22 @@ module Multiverse
     end
 
     def minitest_version
-      case
-      when RUBY_VERSION >= '2.4'
-        '5.10.1'
+      if RUBY_VERSION >= '2.6'
+        '5.16.2'
+      elsif RUBY_VERSION >= '2.4'
+        '5.15.0'
       else
         '4.7.5'
       end
     end
 
     def require_minitest
-      require 'minitest'
-    rescue LoadError
-      require 'minitest/unit'
+      begin
+        require 'minitest'
+      rescue LoadError
+        require 'minitest/unit'
+      end
+      require 'minitest/mock'
     end
 
     def print_environment
@@ -314,7 +320,7 @@ module Multiverse
       gems = with_potentially_mismatched_bundler do
         Bundler.definition.specs.inject([]) do |m, s|
           next m if s.name == 'bundler'
-          m.push "#{s.name} (#{s.version})"
+          m.push("#{s.name} (#{s.version})")
           m
         end
       end.sort
@@ -350,7 +356,7 @@ module Multiverse
 
     def execute_child_environment(env_index, instrumentation_method)
       with_unbundled_env do
-        configure_instrumentation_method instrumentation_method
+        configure_instrumentation_method(instrumentation_method)
         optimize_jruby_startups
         ENV["MULTIVERSE_ENV"] = env_index.to_s
         ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = instrumentation_method
@@ -400,7 +406,7 @@ module Multiverse
       end
     end
 
-    def each_instrumentation_method &block
+    def each_instrumentation_method(&block)
       environments.instrumentation_permutations.each do |instrumentation_method|
         yield(instrumentation_method)
       end
@@ -412,9 +418,9 @@ module Multiverse
     # polluting the parent process with test dependencies.  JRuby doesn't
     # implement #fork so we resort to a hack.  We exec this lib file, which
     # loads a new JVM for the tests to run in.
-    def execute instrumentation_method
+    def execute(instrumentation_method)
       return unless check_environment_condition
-      configure_instrumentation_method instrumentation_method
+      configure_instrumentation_method(instrumentation_method)
 
       label = should_serialize? ? 'serial' : 'parallel'
       env_count = filter_env ? 1 : environments.size
@@ -422,9 +428,9 @@ module Multiverse
 
       environments.before.call if environments.before
       if should_serialize?
-        execute_serial instrumentation_method
+        execute_serial(instrumentation_method)
       else
-        execute_parallel instrumentation_method
+        execute_parallel(instrumentation_method)
       end
       environments.after.call if environments.after
     rescue => e
@@ -437,7 +443,7 @@ module Multiverse
       exit(1)
     end
 
-    def execute_serial instrumentation_method
+    def execute_serial(instrumentation_method)
       with_each_environment do |_, i|
         if debug
           execute_in_foreground(i, instrumentation_method)
@@ -447,7 +453,7 @@ module Multiverse
       end
     end
 
-    def execute_parallel instrumentation_method
+    def execute_parallel(instrumentation_method)
       threads = []
       with_each_environment do |_, i|
         threads << Thread.new { execute_in_background(i, instrumentation_method) }
@@ -458,7 +464,7 @@ module Multiverse
     def with_each_environment
       environments.each_with_index do |gemfile_text, i|
         next unless should_run_environment?(i)
-        yield gemfile_text, i
+        yield(gemfile_text, i)
       end
     end
 
@@ -514,7 +520,7 @@ module Multiverse
         OutputCollector.write(suite, env, red("#{suite.inspect} for Envfile entry #{env} failed!"))
         OutputCollector.failed(suite, env)
       end
-      Multiverse::Runner.notice_exit_status $?
+      Multiverse::Runner.notice_exit_status($?)
     end
 
     def trigger_test_run
@@ -536,11 +542,17 @@ module Multiverse
         test_run = ::MiniTest::Unit.new.run(options)
       end
 
-      load @after_file if @after_file
-      begin
-        ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
-      rescue => e
-        puts "Error: #{e.inspect}"
+      load(@after_file) if @after_file
+
+      if RUBY_VERSION >= '2.7.0'
+        # This is only used for SimpleCov at this time,
+        # an error will be raised on Ruby versions that do not run
+        # SimpleCov without this condition
+        begin
+          ::MiniTest.class_variable_get(:@@after_run).reverse_each(&:call)
+        rescue NameError => e
+          puts "NameError: #{e.inspect}"
+        end
       end
 
       if test_run
@@ -609,7 +621,7 @@ module Multiverse
       ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] = "true" if environments.omit_collector
     end
 
-    def configure_instrumentation_method method
+    def configure_instrumentation_method(method)
       ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = $instrumentation_method = method
     end
 
@@ -621,7 +633,7 @@ module Multiverse
     end
 
     def execute_ruby_files
-      Dir.chdir directory
+      Dir.chdir(directory)
       ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
         next if exclude?(file)

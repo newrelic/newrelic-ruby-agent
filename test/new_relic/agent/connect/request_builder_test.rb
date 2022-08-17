@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/agent'
@@ -11,11 +12,12 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
     NewRelic::Agent.reset_config
     @event_harvest_config = NewRelic::Agent.agent.event_harvest_config
     @environment_report = []
-    @request_builder = NewRelic::Agent::Connect::RequestBuilder.new \
+    @request_builder = NewRelic::Agent::Connect::RequestBuilder.new( \
       @service,
       NewRelic::Agent.config,
       @event_harvest_config,
       @environment_report
+    )
   end
 
   def test_sanitize_environment_report
@@ -30,7 +32,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings
-    with_config :app_name => ["apps"] do
+    with_config(:app_name => ["apps"]) do
       keys = %w[pid host identifier display_host app_name language agent_version environment settings].map(&:to_sym)
 
       settings = @request_builder.connect_payload
@@ -42,7 +44,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings_includes_correct_identifier
-    with_config :app_name => "b;a;c" do
+    with_config(:app_name => "b;a;c") do
       NewRelic::Agent::Connect::RequestBuilder.any_instance.stubs(:local_host).returns('lo-calhost')
       @environment_report = {}
 

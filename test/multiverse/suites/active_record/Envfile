@@ -1,99 +1,67 @@
-if RUBY_PLATFORM == 'java'
-  mysql_gem = 'activerecord-jdbcmysql-adapter'
-  mysql_vsn = '~> 1.3.0'
-else
-  mysql_gem = 'mysql2'
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+# not testing the latest of activerecord in this suite because
+# mysql2 has issues with newer Rubies
+
+# don't change the first index to a number ending in other than zero
+# it is used by jdbc_version
+ACTIVERECORD_VERSIONS = [
+  ['5.2.0', 2.2, 2.6],
+  ['5.1.0', 2.2, 2.5],
+  ['5.0.0', 2.2, 2.4],
+  ['4.2.0', 2.2, 2.3],
+  ['4.1.0', 2.2, 2.3],
+  ['4.0.0', 2.2, 2.3],
+  ['3.2.0', 2.2, 2.2]
+]
+
+def jdbc_version(activerecord_version)
+  return unless RUBY_PLATFORM.eql?('java') && activerecord_version
+  # remove the '.' between the major and minor versions
+  activerecord_version.sub('.', '')
 end
 
-boilerplate_gems = <<-BOILERPLATE
-  gem 'rack'
-BOILERPLATE
-
-if RUBY_PLATFORM == 'java'
-  mysql_vsn = '~> 0.4.4'
-
-  gemfile <<-RB
-    gem 'activerecord', '5.2.2'
-    gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>52.0'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 5.1.6'
-    gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>51.0'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 5.0.0'
-    gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>50.0'
-    #{boilerplate_gems}
-  RB
-else
-  mysql_vsn = '~> 0.4.4'
-
-  gemfile <<-RB
-    gem 'activerecord', '5.2.2'
-    gem 'minitest', '~> 5.2.3'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 5.1.6'
-    gem 'minitest', '~> 5.2.3'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 5.0.0'
-    gem 'minitest', '~> 5.2.3'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
+def mysql2_version(activerecord_version)
+  return if activerecord_version.nil?
+  if activerecord_version.delete('^0-9', '^.').start_with?('5')
+    '0.4.4'
+  else
+    '0.3.21'
+  end
 end
 
-if RUBY_VERSION < '2.4.0'
-  mysql_vsn = '0.3.21' unless RUBY_PLATFORM == 'java'
+def mysql_gem(activerecord_version)
+  if RUBY_PLATFORM.eql?('java')
+    "gem 'activerecord-jdbcmysql-adapter'#{jdbc_version(activerecord_version)}"
+  else
+    "gem 'mysql2'#{add_version(mysql2_version(activerecord_version))}"
+  end
+end
 
-  gemfile <<-RB
-    gem 'activerecord', '~> 4.2.0'
-    gem 'minitest', '~> 5.2.3'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
+# Rails 4.0 sets the dependency on Minitest to “~> 4.2”
+def minitest_activerecord_version(activerecord_version)
+  return if activerecord_version.nil?
+  if activerecord_version.delete('^0-9', '^.').start_with?('4.0')
+    add_version('4.2.0', false)
+  else
+    add_version('5.2.3', false)
+  end
+end
 
-  gemfile <<-RB
-    gem 'activerecord', '~> 4.1.6'
-    gem 'minitest', '~> 5.2.3'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
+def rack_version
+  add_version('2.1.4.1', false) if RUBY_VERSION < '2.3.0'
+end
 
-  gemfile <<-RB
-    gem 'activerecord', '~> 4.0.11'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
+def gem_list(activerecord_version = nil)
+  <<-RB
+    gem 'rack'#{rack_version}
+    gem 'minitest'#{minitest_activerecord_version(activerecord_version)}
+    gem 'activerecord'#{activerecord_version}
+    #{mysql_gem(activerecord_version)}
   RB
 end
 
-# AR 3.x does not have official support for Ruby 2.2, and there are several
-# known issues, including https://github.com/rails/rails/issues/18991, so
-# skip 3.x versions on 2.2.
-#
-# Only 3.2.22 fixes the above mentioned issue, so it's the only one
-# surviving in our coverage of Rails 3.x series here.
-#
-if RUBY_VERSION < '2.3'
-  mysql_vsn = '0.3.21' unless RUBY_PLATFORM == 'java'
-
-  gemfile <<-RB
-    gem 'rack'
-    gem 'activerecord', '~> 3.2.22'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-  RB
-end
+create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)

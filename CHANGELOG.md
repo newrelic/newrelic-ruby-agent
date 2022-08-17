@@ -1,6 +1,62 @@
 # New Relic Ruby Agent Release Notes #
 
 
+  ## v8.10.0
+
+
+  * **New gRPC instrumentation**
+
+    The agent will now instrument [gRPC](https://grpc.io/) activity performed by clients and servers that use the [grpc](https://rubygems.org/gems/grpc) RubyGem. Instrumentation is automatic and enabled by default, so gRPC users should not need to modify any existing application code or agent configuration to benefit from the instrumentation. The instrumentation makes use of distributed tracing for a comprehensive overview of all gRPC traffic taking place across multiple monitored applications. This allows you to observe your client and server activity using any service that adheres to the W3C standard.
+
+    The following new configuration parameters have been added for gRPC. All are optional.
+
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.grpc_client` | auto | Set to 'disabled' to disable, set to 'chain' if there are module prepending conflicts |
+    | `instrumentation.grpc_server` | auto | Set to 'disabled' to disable, set to 'chain' if there are module prepending conflicts |
+    | `instrumentation.grpc.host_denylist` | "" |  Provide a comma delimited list of host regex patterns (ex: "private.com$,exception.*") |
+
+
+  * **Performance: Rework timing range overlap calculations for multiple transaction segments**
+
+    Many thanks to GitHub community members @bmulholland and @hkdnet. @bmulholland alerted us to [rmosolgo/graphql-ruby#3945](https://github.com/rmosolgo/graphql-ruby/issues/3945). That Issue essentially notes that the New Relic Ruby agent incurs a significant perfomance hit when the `graphql` RubyGem (which ships with New Relic Ruby agent support) is used with DataLoader to generate a high number of transactions. Then @hkdnet diagnosed the root cause in the Ruby agent and put together both a proof of concept fix and a full blown PR to resolve the problem. The agent keeps track multiple segments that are concurrently in play for a given transaction in order to merge the ones whose start and stop times intersect. The logic for doing this find-and-merge operation has been reworked to a) be deferred entirely until the transaction is ready to be recorded, and b) made more performant when it is needed. GraphQL DataLoader users and other users who generate lots of activity for monitoring within a short amount of time will hopefully see some good performance gains from these changes.
+
+
+  * **Performance: Make frozen string literals the default for the agent
+
+    The Ruby `frozen_string_literal: true` magic source code comment has now been applied consistently across all Ruby files belonging to the agent. This can provide a performance boost, given that Ruby can rely on the strings remaining immutable. Previously only about a third of the agent's code was freezing string literals by default. Now that 100% of the code freezes string literals by default, we have internally observed some related performance gains through testing. We are hopeful that these will translate into some real world gains in production capacities.
+
+
+  * **Bugfix: Error when setting the yaml configuration with `transaction_tracer.transaction_threshold: apdex_f`**
+    
+    Originally, the agent was only checking the `transaction_tracer.transaction_threshold` from the newrelic.yml correctly if it was on two lines. 
+
+    Example:
+
+    ```
+    # newrelic.yml
+    transaction_tracer:
+      transaction_threshold: apdex_f 
+    ```
+
+    When this was instead changed to be on one line, the agent was not able to correctly identify the value of apdex_f. 
+
+    Example:
+    ```
+    # newrelic.yml
+    transaction_tracer.transaction_threshold: apdex_f
+    ```
+    This would cause prevent transactions from finishing due to the error `ArgumentError: comparison of Float with String failed`. This has now been corrected and the agent is able to process newrelic.yml with a one line `transaction_tracer.transaction_threshold: apdex_f` correctly now. 
+    
+    Thank you to @oboxodo for bringing this to our attention.
+
+
+  * **Bugfix: Don't modify frozen Logger**
+
+    Previously the agent would modify each instance of the Logger class by adding a unique instance variable as part of the instrumentation. This could cause the error `FrozenError: can't modify frozen Logger` to be thrown if the Logger instance had been frozen. The agent will now check if the object is frozen before attempting to modify the object. Thanks to @mkcosta for bringing this issue to our attention.
+
+
+
   ## v8.9.0
   
   

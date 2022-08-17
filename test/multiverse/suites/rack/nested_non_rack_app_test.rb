@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require File.join(File.dirname(__FILE__), 'example_app')
 
@@ -35,13 +36,13 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     def app
       Rack::Builder.app do
-        use ExampleMiddleware
-        run RailsishApp.new
+        use(ExampleMiddleware)
+        run(RailsishApp.new)
       end
     end
 
     def test_outermost_middleware_contributes_to_middleware_all_if_txn_name_is_non_rack
-      get '/'
+      get('/')
 
       assert_metrics_recorded_exclusive(
         [

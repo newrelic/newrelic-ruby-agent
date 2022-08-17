@@ -1,78 +1,33 @@
-if RUBY_VERSION >= '2.7.0'
-  gemfile <<-RB
-    gem 'rails', '~> 7.0.2'
-    gem 'haml', '~> 5.1.2'
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+RAILS_VERSIONS = [
+  [nil, 2.7],
+  ['7.0.0', 2.7],
+  ['6.1.0', 2.5],
+  ['6.0.0', 2.5, 2.7],
+  ['5.2.0', 2.2, 2.6],
+  ['5.1.0', 2.2, 2.5],
+  ['5.0.0', 2.2, 2.4],
+  ['4.2.0', 2.2, 2.3],
+  ['4.1.0', 2.2, 2.3],
+  ['4.0.0', 2.2, 2.3]
+]
+
+def gem_list(rails_version = nil)
+  # earlier thor errors, uncertain if they persist
+  thor = "gem 'thor', '< 0.20.1'" if RUBY_PLATFORM == 'java' && rails_version && rails_version.include?('4')
+  minitest_version = rails_version && rails_version.include?('4.0') ? '4.2.0' : '5.2.3'
+  <<-RB
+    gem 'rails'#{rails_version}
+    gem 'haml'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
+    gem 'minitest', '~> #{minitest_version}'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
+    #{thor}
   RB
 end
 
-if RUBY_VERSION >= '2.5.0'
-  gemfile <<-RB
-    gem 'rails', '~> 6.1.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 6.0.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-  RB
-end
-
-if RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'rails', '~> 5.2.8'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 5.1.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 5.0.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-  RB
-end
-
-if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
-    gem 'rails', '~> 4.2.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-    # are these thor errors still present?
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 4.1.0'
-    # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
-    # now
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'minitest', '5.2.3'
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-  RB
-
-  gemfile <<-RB
-    gem 'rails', '~> 4.0.0'
-    gem 'haml', '~> 5.1.2'
-    gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-  RB
-end
+create_gemfiles(RAILS_VERSIONS, gem_list)

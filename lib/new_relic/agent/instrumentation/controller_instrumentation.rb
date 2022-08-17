@@ -1,10 +1,12 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/instrumentation/ignore_actions'
+
 module NewRelic
   module Agent
     # @api public
@@ -81,9 +83,9 @@ module NewRelic
 
           def newrelic_ignore_aspect(property, specifiers = {}) # :nodoc:
             if specifiers.empty?
-              self.newrelic_write_attr property, true
+              self.newrelic_write_attr(property, true)
             elsif !(Hash === specifiers)
-              ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
+              ::NewRelic::Agent.logger.error("newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')")
             else
               # symbolize the incoming values
               specifiers = specifiers.inject({}) do |memo, (key, values)|
@@ -94,7 +96,7 @@ module NewRelic
                 end
                 memo
               end
-              self.newrelic_write_attr property, specifiers
+              self.newrelic_write_attr(property, specifiers)
             end
           end
 
@@ -179,7 +181,7 @@ module NewRelic
             code_info = NewRelic::Agent::MethodTracerHelpers.code_information(self, method)
             argument_list = generate_argument_list(options.merge(code_info))
 
-            class_eval <<-EOC
+            class_eval(<<-EOC)
               def #{with_method_name}(*args, &block)
                 perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
                   #{without_method_name}(*args, &block)
@@ -188,12 +190,12 @@ module NewRelic
               ruby2_keywords(:#{with_method_name}) if respond_to?(:ruby2_keywords, true)
             EOC
 
-            visibility = NewRelic::Helper.instance_method_visibility self, method
+            visibility = NewRelic::Helper.instance_method_visibility(self, method)
 
-            alias_method without_method_name, method.to_s
-            alias_method method.to_s, with_method_name
-            send visibility, method
-            send visibility, with_method_name
+            alias_method(without_method_name, method.to_s)
+            alias_method(method.to_s, with_method_name)
+            send(visibility, method)
+            send(visibility, with_method_name)
             ::NewRelic::Agent.logger.debug("Traced transaction: class = #{self.name}, method = #{method.to_s}, options = #{options.inspect}")
           end
 
@@ -229,6 +231,8 @@ module NewRelic
 
         class TransactionNamer
           def self.name_for(txn, traced_obj, category, options = {})
+            return options[:transaction_name] if options[:transaction_name]
+
             "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 

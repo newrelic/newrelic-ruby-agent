@@ -31,9 +31,9 @@ jobs:
         ports:
           - "3306:3306"
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.6.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.7.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -79,12 +79,12 @@ jobs:
               "3.2.0-preview1": {
                 "rails": "norails,rails61,rails70,railsedge"
               },
-              "jruby-9.3.6.0": {
+              "jruby-9.3.7.0": {
                 "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.6.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.7.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -92,7 +92,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.6.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.7.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -167,7 +167,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
@@ -226,7 +226,7 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-20.04
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
@@ -300,16 +300,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Ruby jruby-9.3.6.0
+      - name: Install Ruby jruby-9.3.7.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.6.0
+          ruby-version: jruby-9.3.7.0
 
       - name: Bundle
         run: bundle install

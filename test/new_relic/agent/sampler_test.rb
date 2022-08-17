@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 
@@ -19,7 +20,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
 
   def test_inherited_should_append_subclasses_to_sampler_classes
     test_class = Class.new(NewRelic::Agent::Sampler)
-    sampler_classes = NewRelic::Agent::Sampler.instance_variable_get :@sampler_classes
+    sampler_classes = NewRelic::Agent::Sampler.instance_variable_get(:@sampler_classes)
     assert(sampler_classes.include?(test_class), "Sampler classes (#{sampler_classes.inspect}) does not include #{test_class.inspect}")
     # cleanup the sampler created above
     NewRelic::Agent::Sampler.instance_eval { @sampler_classes.delete(test_class) }

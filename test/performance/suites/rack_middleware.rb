@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 begin
   require 'rack'
@@ -106,13 +107,13 @@ begin
       end
 
       @stack = Rack::Builder.new do
-        middlewares.each { |m| use m }
-        run TestApp.new
+        middlewares.each { |m| use(m) }
+        run(TestApp.new)
       end.to_app
 
       @stack_with_params = Rack::Builder.new do
-        middlewares.each { |m| use m }
-        run TestAppWithParams.new
+        middlewares.each { |m| use(m) }
+        run(TestAppWithParams.new)
       end.to_app
 
       @env = {

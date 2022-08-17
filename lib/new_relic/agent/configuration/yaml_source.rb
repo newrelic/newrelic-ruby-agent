@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/configuration/dotted_hash'
 
@@ -124,6 +125,8 @@ module NewRelic
               config['transaction_tracer']['transaction_threshold'].to_s =~ /apdex_f/i
             # when value is "apdex_f" remove the config and defer to default
             config['transaction_tracer'].delete('transaction_threshold')
+          elsif config['transaction_tracer.transaction_threshold'].to_s =~ /apdex_f/i
+            config.delete('transaction_tracer.transaction_threshold')
           end
         end
 
@@ -135,7 +138,7 @@ module NewRelic
             elsif !config[option].nil? && !is_boolean?(config[option])
               coerced_value = !!(config[option].to_s =~ /yes|on|true/i)
               if !coerced_value
-                log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}"
+                log_failure("Unexpected value (#{config[option]}) for '#{option}' in #{@path}")
               end
               config[option] = coerced_value
             end

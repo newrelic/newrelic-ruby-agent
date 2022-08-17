@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/yaml_source'
@@ -121,12 +122,18 @@ module NewRelic::Agent::Configuration
       assert_includes source.failures.flatten.join(' '), 'yolo'
     end
 
+    def test_transaction_threshold_one_liner
+      config = {'transaction_tracer.transaction_threshold' => 'apdex_f'}
+      @source.send(:substitute_transaction_threshold, config)
+      assert config.empty?
+    end
+
     [1, 'no', 'off', 0, 'false', [], {}, 1.0, Time.now].each do |value|
       method_name = "test_booleanify_values_fails_with_value_#{value}"
       define_method(method_name) do
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
-        source.send :booleanify_values, config, 'key'
+        source.send(:booleanify_values, config, 'key')
 
         assert source.failed?
         expected_message = "Unexpected value (#{value}) for 'key' in #{@test_yml_path}"
@@ -140,7 +147,7 @@ module NewRelic::Agent::Configuration
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         refute source.failed?
-        source.send :booleanify_values, config, 'key'
+        source.send(:booleanify_values, config, 'key')
 
         refute source.failed?
         assert_empty source.failures

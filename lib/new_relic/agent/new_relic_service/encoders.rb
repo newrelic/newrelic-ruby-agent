@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'base64'
 require 'json'
@@ -29,7 +30,7 @@ module NewRelic
 
             def self.encode(data, opts = nil)
               output = StringIO.new
-              output.set_encoding BINARY
+              output.set_encoding(BINARY)
               gz = Zlib::GzipWriter.new(output, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY)
               gz.write(data)
               gz.close

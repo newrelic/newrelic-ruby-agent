@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative '../../test_helper'
 
@@ -35,7 +36,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
 
   def test_startup_shutdown_real
     with_config(:agent_enabled => true, :monitor_mode => true) do
-      NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => ('x' * 40))
       agent = NewRelic::Agent.instance
       assert agent.started?
       agent.shutdown
@@ -46,27 +47,27 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_manual_start
     NewRelic::Agent.instance.expects(:connect).once
     NewRelic::Agent.instance.expects(:start_worker_thread).once
-    NewRelic::Agent.instance.instance_variable_set :@started, nil
-    NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+    NewRelic::Agent.instance.instance_variable_set(:@started, nil)
+    NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => ('x' * 40))
     NewRelic::Agent.shutdown
   end
 
   def test_post_fork_handler
-    NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+    NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => ('x' * 40))
     NewRelic::Agent.after_fork
     NewRelic::Agent.after_fork
     NewRelic::Agent.shutdown
   end
 
   def test_manual_overrides
-    NewRelic::Agent.manual_start :app_name => "testjobs"
+    NewRelic::Agent.manual_start(:app_name => "testjobs")
     assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 
   def test_agent_restart
-    NewRelic::Agent.manual_start :app_name => "noapp"
-    NewRelic::Agent.manual_start :app_name => "testjobs"
+    NewRelic::Agent.manual_start(:app_name => "noapp")
+    NewRelic::Agent.manual_start(:app_name => "testjobs")
     assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end

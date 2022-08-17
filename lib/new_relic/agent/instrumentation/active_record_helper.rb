@@ -1,8 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/datastores/metric_helper'
+require 'new_relic/constants'
 
 module NewRelic
   module Agent
@@ -18,7 +20,7 @@ module NewRelic
 
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
-            alias_method :save_without_newrelic, :save
+            alias_method(:save_without_newrelic, :save)
 
             def save(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
@@ -26,7 +28,7 @@ module NewRelic
               end
             end
 
-            alias_method :save_without_newrelic!, :save!
+            alias_method(:save_without_newrelic!, :save!)
 
             def save!(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
@@ -38,7 +40,7 @@ module NewRelic
 
         def instrument_relation_methods
           ::ActiveRecord::Relation.class_eval do
-            alias_method :update_all_without_newrelic, :update_all
+            alias_method(:update_all_without_newrelic, :update_all)
 
             def update_all(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
@@ -46,7 +48,7 @@ module NewRelic
               end
             end
 
-            alias_method :delete_all_without_newrelic, :delete_all
+            alias_method(:delete_all_without_newrelic, :delete_all)
 
             if RUBY_VERSION < "2.7.0"
               def delete_all(*args, &blk)
@@ -62,7 +64,7 @@ module NewRelic
               end
             end
 
-            alias_method :destroy_all_without_newrelic, :destroy_all
+            alias_method(:destroy_all_without_newrelic, :destroy_all)
 
             def destroy_all(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
@@ -70,7 +72,7 @@ module NewRelic
               end
             end
 
-            alias_method :calculate_without_newrelic, :calculate
+            alias_method(:calculate_without_newrelic, :calculate)
 
             def calculate(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
@@ -79,7 +81,7 @@ module NewRelic
             end
 
             if method_defined?(:pluck)
-              alias_method :pluck_without_newrelic, :pluck
+              alias_method(:pluck_without_newrelic, :pluck)
 
               def pluck(*args, &blk)
                 ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
@@ -106,22 +108,21 @@ module NewRelic
           adapter_name
         end
 
-        def product_operation_collection_for name, sql, adapter_name
+        def product_operation_collection_for(name, sql, adapter_name)
           product = map_product(bare_adapter_name(adapter_name))
           splits = split_name(name)
           model = model_from_splits(splits)
           operation = operation_from_splits(splits, sql)
-          NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for product, operation, model, ACTIVE_RECORD
+          NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for(product, operation, model, ACTIVE_RECORD)
         end
 
         SPACE = ' '.freeze
-        EMPTY = NewRelic::EMPTY_ARRAY
 
         def split_name(name)
           if name && name.respond_to?(:split)
             name.split(SPACE)
           else
-            EMPTY
+            NewRelic::EMPTY_ARRAY
           end
         end
 
@@ -252,7 +253,7 @@ module NewRelic
               configured_value
             end
           rescue => e
-            NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord host: #{e}"
+            NewRelic::Agent.logger.debug("Failed to retrieve ActiveRecord host: #{e}")
             UNKNOWN
           end
 
@@ -272,13 +273,13 @@ module NewRelic
               UNKNOWN
             end
           rescue => e
-            NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord port_path_or_id: #{e}"
+            NewRelic::Agent.logger.debug("Failed to retrieve ActiveRecord port_path_or_id: #{e}")
             UNKNOWN
           end
 
           SUPPORTED_ADAPTERS = [:mysql, :postgres].freeze
 
-          def supported_adapter? config
+          def supported_adapter?(config)
             config && SUPPORTED_ADAPTERS.include?(adapter_from_config(config))
           end
 

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This is a class for executing commands related to deployment
 # events.  It runs without loading the rails environment
@@ -27,7 +28,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   #
   # Will throw CommandFailed exception if there's any error.
   #
-  def initialize command_line_args
+  def initialize(command_line_args)
     @control = NewRelic::Control.instance
     @environment = nil
     @changelog = nil
@@ -89,8 +90,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
       response = http.request(request)
 
-      if response.is_a? Net::HTTPSuccess
-        info "Recorded deployment to '#{@appname}' (#{@description || Time.now})"
+      if response.is_a?(Net::HTTPSuccess)
+        info("Recorded deployment to '#{@appname}' (#{@description || Time.now})")
       else
         err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue response.message
         raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
@@ -102,8 +103,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     rescue NewRelic::Cli::Command::CommandFailure
       raise
     rescue => e
-      err "Unexpected error attempting to connect to #{control.api_server}"
-      info "#{e}: #{e.backtrace.join("\n   ")}"
+      err("Unexpected error attempting to connect to #{control.api_server}")
+      info("#{e}: #{e.backtrace.join("\n   ")}")
       raise NewRelic::Cli::Command::CommandFailure.new(e.to_s)
     end
   end
@@ -111,8 +112,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   private
 
   def options
-    OptionParser.new %Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40 do |o|
-      o.separator "OPTIONS:"
+    OptionParser.new(%Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40) do |o|
+      o.separator("OPTIONS:")
       o.on("-a", "--appname=NAME", String,
         "Set the application name.",
         "Default is app_name setting in newrelic.yml") { |e| @appname = e }
@@ -128,7 +129,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
         "Specify the license key of the account for the app being deployed") { |l| @license_key = l }
       o.on("-c", "--changes",
         "Read in a change log from the standard input") { @changelog = STDIN.read }
-      yield o if block_given?
+      yield(o) if block_given?
     end
   end
 end

@@ -1,23 +1,23 @@
-gemfile <<-RB
-  gem 'excon'
-  gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
-  #{ruby3_gem_webrick}
-RB
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
-excon_versions = %w(
-  0.56.0
-  0.64.0
-  0.70.0
-  0.78.1
-  0.85.0
-)
+excon_versions = [
+  nil,
+  '0.56.0',
+  '0.64.0',
+  '0.70.0',
+  '0.78.1',
+  '0.85.0',
+]
 
-excon_versions.each do |excon_version|
-  gemfile <<-RB
-    gem 'excon', '~> #{excon_version}'
+def gem_list(excon_version = nil)
+  <<-RB
+    gem 'excon'#{excon_version}
     gem 'rack'
-    gem 'json', :platforms => [:rbx, :mri_18]
     #{ruby3_gem_webrick}
   RB
 end
+
+create_gemfiles(excon_versions, gem_list)
