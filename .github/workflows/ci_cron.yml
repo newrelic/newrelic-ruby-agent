@@ -255,7 +255,7 @@ jobs:
 
   jruby_multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
       mysql:
         image: mysql:5.7
