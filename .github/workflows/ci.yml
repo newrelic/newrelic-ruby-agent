@@ -11,6 +11,8 @@ jobs:
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.7'
+          bundler-cache: true
+          cache-version: 1
       - run: bundle
       - run: rubocop
 
@@ -39,6 +41,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+          cache-version: 1
 
       - name: Set up mini-envs for ruby version
         uses: kanga333/variable-mapper@master
@@ -161,6 +165,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+          cache-version: 1
 
       - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
         name: Cache mysql55
@@ -223,6 +229,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+          cache-version: 1
 
       - name: Bundle
         run: bundle install
@@ -304,6 +312,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: jruby-9.3.7.0
+          bundler-cache: true
+          cache-version: 1
 
       - name: Bundle
         run: bundle install
@@ -332,6 +342,8 @@ jobs:
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.7'
+          bundler-cache: true
+          cache-version: 1
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3
