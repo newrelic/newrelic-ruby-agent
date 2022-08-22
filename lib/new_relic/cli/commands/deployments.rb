@@ -41,6 +41,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     load_yaml_from_env(control.env)
     @appname ||= NewRelic::Agent.config[:app_name][0] || control.env || 'development'
     @license_key ||= NewRelic::Agent.config[:license_key]
+    @api_key ||= NewRelic::Agent.config[:api_key]
 
     setup_logging(control.env)
   end
@@ -78,13 +79,19 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       end
       http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
 
-      uri = "/deployments.xml"
-
-      if @license_key.nil? || @license_key.empty?
-        raise "license_key was not set in newrelic.yml for #{control.env}"
+      request = nil
+      if @api_key.nil? || @api_key.empty?
+        if @license_key.nil? || @license_key.empty?
+          raise "license_key and api_key were not set in newrelic.yml for #{control.env}"
+        end
+        uri = "/deployments.xml"
+        request = Net::HTTP::Post.new(uri, {'x-license-key' => @license_key})
+        request.content_type = "application/octet-stream"
+      else
+        uri = "/deployments.json"
+        request = Net::HTTP::Post.new(uri, {"Api-Key" => @api_key})
+        request.content_type = "application/json"
       end
-      request = Net::HTTP::Post.new(uri, {'x-license-key' => @license_key})
-      request.content_type = "application/octet-stream"
 
       request.set_form_data(create_params)
 
