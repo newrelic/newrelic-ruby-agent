@@ -330,6 +330,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Your New Relic [license key](/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key).'
         },
+        :api_key => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Your New Relic api key'
+        },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
           :documentation_default => true,
