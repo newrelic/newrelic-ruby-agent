@@ -86,10 +86,10 @@ jobs:
           COVERAGE: true
 
       - name: Save coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-unit-tests
-          path: lib/coverage
+          path: lib/coverage_*/.resultset.json
 
   multiverse:
     needs: run_rubocop
@@ -204,10 +204,11 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-multiverse
-          path: lib/coverage
+          path: lib/coverage_*/.resultset.json
+          retention-days: 2
 
   infinite_tracing:
     needs: run_rubocop
@@ -242,10 +243,10 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-infinite-tracing
-          path: lib/coverage
+          path: lib/coverage_*/.resultset.json
 
   jruby_multiverse:
     needs: run_rubocop
@@ -338,14 +339,15 @@ jobs:
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-combined
-          path: lib/coverage
+          path: lib/coverage_results
+          retention-days: 2
       - name: Simplecov Report
         uses: ./.github/actions/simplecov-report
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          resultPath: lib/coverage/.last_run.json
-          failedThreshold: 55
-          failedThresholdBranch: 20
+          resultPath: lib/coverage_results/.last_run.json
+          failedThreshold: 85
+          failedThresholdBranch: 80
