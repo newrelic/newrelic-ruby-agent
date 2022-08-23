@@ -23,10 +23,6 @@ class GrpcClientTest < Minitest::Test
     ::GRPC::ClientStub.new(HOST, CHANNEL)
   end
 
-  def assert_trace_with_newrelic_present(grpc_client)
-    assert_includes grpc_client.instance_variables, TRACE_WITH_NEWRELIC
-  end
-
   def trace_with_newrelic_true(grpc_client)
     grpc_client.instance_variable_set(TRACE_WITH_NEWRELIC, true)
   end
@@ -51,26 +47,25 @@ class GrpcClientTest < Minitest::Test
   end
 
   ## Tests
-  ## initialize_with_tracing
-  def test_initialize_with_tracing_sets_trace_with_new_relic_true_when_host_present
-    assert_trace_with_newrelic_present(basic_grpc_client)
-    assert basic_grpc_client.instance_variable_get(TRACE_WITH_NEWRELIC)
+  def test_trace_by_default
+    client = basic_grpc_client
+    assert client.send(:trace_with_newrelic?)
+    assert client.instance_variable_get(TRACE_WITH_NEWRELIC)
   end
 
-  def test_initialize_with_tracing_sets_trace_with_new_relic_false_with_blocked_host
-    grpc_client = ::GRPC::ClientStub.new('tracing.edge.nr-data.not.a.real.endpoint', CHANNEL)
-    assert_trace_with_newrelic_present(grpc_client)
-    refute grpc_client.instance_variable_get(TRACE_WITH_NEWRELIC)
+  def test_do_not_trace_interceptors
+    client = basic_grpc_client
+    def client.interceptor?; true; end
+    refute client.send(:trace_with_newrelic?)
+    refute client.instance_variable_get(TRACE_WITH_NEWRELIC)
   end
 
-  def test_initialize_with_tracing_sets_trace_with_new_relic_without_host
-    ::GRPC::ClientStub.stub(:name, 'GRPC::InterceptorRegistry') do
-      grpc_client = ::GRPC::ClientStub.new(HOST, CHANNEL)
-      refute grpc_client.send(:trace_with_newrelic?)
-    end
+  def test_do_not_trace_when_a_denylisted_host_is_involved
+    client = ::GRPC::ClientStub.new('tracing.edge.nr-data.not.a.real.endpoint', CHANNEL)
+    refute client.send(:trace_with_newrelic?)
+    refute client.instance_variable_get(TRACE_WITH_NEWRELIC)
   end
 
-  ## issue_request_with_tracing
   def test_falsey_trace_with_newrelic_does_not_create_segment
     return_value = 'Dinosaurs looked like big birds'
     grpc_client = basic_grpc_client

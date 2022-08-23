@@ -18,6 +18,8 @@ module NewRelic
           end
 
           def host_denylisted?(host)
+            return false unless host
+
             ignore_patterns.any? { |regex| host.match?(regex) }
           end
 
