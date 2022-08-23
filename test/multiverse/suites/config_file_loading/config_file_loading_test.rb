@@ -15,8 +15,6 @@
 # If this fails the agent will attempt to dial Lew Cirne's cell phone and ask
 # that he verbally describe how it should be configured.
 
-SimpleCovHelper.command_name("test:multiverse[config_file_loading]")
-
 class ConfigFileLoadingTest < Minitest::Test
   include MultiverseHelpers
 

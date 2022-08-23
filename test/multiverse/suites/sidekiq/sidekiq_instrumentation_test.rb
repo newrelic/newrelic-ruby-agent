@@ -5,7 +5,6 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-775
 
-SimpleCovHelper.command_name("test:multiverse[sidekiq]")
 require File.join(File.dirname(__FILE__), "sidekiq_server")
 SidekiqServer.instance.run
 
