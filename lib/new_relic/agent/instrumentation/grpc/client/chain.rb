@@ -13,14 +13,6 @@ module NewRelic::Agent::Instrumentation
           ::GRPC::ClientStub.class_eval do
             include NewRelic::Agent::Instrumentation::GRPC::Client
 
-            def initialize_with_newrelic_trace(*args)
-              @trace_with_newrelic = trace_with_newrelic?(args.first)
-              initialize_without_newrelic_trace(*args)
-            end
-
-            alias initialize_without_newrelic_trace initialize
-            alias initialize initialize_with_newrelic_trace
-
             def bidi_streamer_with_new_relic_trace(method, requests, marshal, unmarshal,
               deadline: nil,
               return_op: false,
