@@ -19,9 +19,7 @@ namespace :coverage do
       SimpleCov.collate(Dir['lib/coverage_*/.resultset.json'])
     end
 
-    coverage_dirs = Dir['lib/coverage_*']
-    coverage_dirs.delete('lib/coverage_results')
-    coverage_dirs.each { |dir| FileUtils.rm_rf(dir) }
+    Dir['lib/coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
   end
 
   desc "Removes all coverage_* directories"
