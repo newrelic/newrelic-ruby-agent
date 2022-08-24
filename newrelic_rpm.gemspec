@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
-Inc (http://www.newrelic.com).  New Relic provides you with deep
+Inc (http://www.newrelic.com). New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby agent is dual-purposed as a either a
 Gem or plugin, hosted on
@@ -50,8 +50,9 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
   s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3
-  s.add_development_dependency 'minitest', '4.7.5'
+  s.add_development_dependency 'minitest'
   s.add_development_dependency 'minitest-stub-const', '0.6'
+  s.add_development_dependency 'minitest-reporters'
   s.add_development_dependency 'mocha', '~> 1.9.0'
   s.add_development_dependency 'yard'
   s.add_development_dependency 'pry-nav', '~> 0.3.0'
