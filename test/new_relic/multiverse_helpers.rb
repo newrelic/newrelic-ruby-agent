@@ -204,7 +204,12 @@ module MultiverseHelpers
   end
 
   def single_error_posted
-    assert_equal 1, $collector.calls_for("error_data").length
+    call_count = $collector.calls_for("error_data").length
+    unless call_count == 1
+      puts "\n\n\nBAD CALL COUNT OF #{call_count} SEEN!\n\n  calls: #{$collector.calls_for('error_data').inspect}\n\n\n"
+    end
+
+    assert_equal 1, call_count
     assert_equal 1, $collector.calls_for("error_data").first.errors.length
 
     $collector.calls_for("error_data").first.errors.first
