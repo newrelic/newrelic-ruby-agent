@@ -56,10 +56,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Ruby jruby-9.3.7.0
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: jruby-9.3.7.0
+      - name: Install JRuby
+        run: mkdir /opt/jruby &&
+             curl -fSL https://repo1.maven.org/maven2/org/jruby/jruby-dist/${{env.jruby_version}}/jruby-dist-${{env.jruby_version}}-bin.tar.gz -o /tmp/jruby.tar.gz &&
+             echo "$JRUBY_SHA256 /tmp/jruby.tar.gz" | sha256sum -c - &&
+             tar -zx --strip-components=1 -f /tmp/jruby.tar.gz -C /opt/jruby &&
+             rm /tmp/jruby.tar.gz && update-alternatives --install /usr/local/bin/ruby ruby /opt/jruby/bin/jruby 1
+        env:
+          jruby_version: 9.3.7.0
 
       - name: Bundle
         run: bundle install
