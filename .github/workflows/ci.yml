@@ -28,7 +28,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.7.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.7.0]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -47,17 +48,38 @@ jobs:
           map: |
             {
               "2.2.10": {
-                "rails": "norails,rails52,rails42,rails32"
+                "rails": "norails,rails51,rails42,rails41,rails40,rails32"
+              },
+              "2.3.8": {
+                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
+              },
+              "2.4.10": {
+                "rails": "norails,rails52,rails51,rails42,rails32"
+              },
+              "2.5.9": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42,rails32"
+              },
+              "2.6.10": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+              },
+              "2.7.6": {
+                "rails": "norails,rails61,rails60,rails70,railsedge"
+              },
+              "3.0.4": {
+                "rails": "norails,rails61,rails60,rails70,railsedge"
               },
               "3.1.2": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,railsedge"
+              },
+              "3.2.0-preview1": {
+                "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.7.0": {
-                "rails": "norails,rails61,rails52,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.7.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -65,7 +87,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.7.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -74,22 +96,16 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
+
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev --debug
-          COVERAGE: true
-
-      - name: Save coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-unit-tests
-          path: lib/coverage_*/.resultset.json
+          JRUBY_OPTS: --dev
 
   multiverse:
     needs: run_rubocop
@@ -149,8 +165,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 3.1.2]
-
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
       - uses: actions/checkout@v2
 
@@ -170,7 +185,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -187,7 +202,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -197,18 +212,10 @@ jobs:
           POSTGRES_USERNAME: postgres
           POSTGRES_PASSWORD: password
           SERIALIZE: 1
-          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
-
-      - name: Save coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-multiverse
-          path: lib/coverage_*/.resultset.json
-          retention-days: 2
 
   infinite_tracing:
     needs: run_rubocop
@@ -216,7 +223,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 3.1.2]
+        ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
       - uses: actions/checkout@v2
 
@@ -233,20 +240,13 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
           SERIALIZE: 1
-          COVERAGE: true
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
-
-      - name: Save coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-infinite-tracing
-          path: lib/coverage_*/.resultset.json
 
   jruby_multiverse:
     needs: run_rubocop
@@ -314,7 +314,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
