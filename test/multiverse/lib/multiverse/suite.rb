@@ -422,10 +422,6 @@ module Multiverse
       return unless check_environment_condition
       configure_instrumentation_method(instrumentation_method)
 
-      label = should_serialize? ? 'serial' : 'parallel'
-      env_count = filter_env ? 1 : environments.size
-      puts yellow("\nRunning #{directory.inspect} in #{env_count} environments in #{label}")
-
       environments.before.call if environments.before
       if should_serialize?
         execute_serial(instrumentation_method)
@@ -680,6 +676,16 @@ module Multiverse
 
     def exclude?(file)
       EXCLUDED_FILES.include?(File.basename(file))
+    end
+
+    def execution_message
+      label = should_serialize? ? 'serial' : 'parallel'
+      env_count = filter_env ? 1 : environments.size
+      env_plural = env_count > 1 ? 'environments' : 'environment'
+      opening = "\nRunning \"#{suite}\" suite in"
+      body = environments.instrumentation_permutations.map { |p| "#{env_count} #{p.upcase} #{env_plural}" }
+      ending = "in #{label}"
+      message = [opening, body.join(' and '), ending].join(' ')
     end
   end
 end
