@@ -23,4 +23,10 @@ namespace :coverage do
     coverage_dirs.delete('lib/coverage_results')
     coverage_dirs.each { |dir| FileUtils.rm_rf(dir) }
   end
+
+  desc "Removes all coverage_* directories"
+  task :clear do
+    require 'fileutils'
+    Dir["lib/coverage_*"].each { |dir| FileUtils.rm_rf(dir) }
+  end
 end
