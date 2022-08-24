@@ -216,8 +216,8 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, 1) do
       NewRelic::Agent::SystemInfo.processor_info_bsd
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
-      assert_equal nil, info[:num_physical_packages]
-      assert_equal nil, info[:num_physical_cores]
+      assert_nil info[:num_physical_packages]
+      assert_nil info[:num_physical_cores]
       assert_equal 1, info[:num_logical_processors]
     end
   end
