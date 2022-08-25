@@ -302,7 +302,7 @@ module Multiverse
       elsif RUBY_VERSION >= '2.4'
         '5.15.0'
       else
-        '4.7.5'
+        '5.3.3'
       end
     end
 
