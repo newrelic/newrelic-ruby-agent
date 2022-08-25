@@ -140,7 +140,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo
+        image: mongo:5.0.11
         ports:
           - 27017:27017
       rabbitmq:
@@ -273,7 +273,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo
+        image: mongo:5.0.11
         ports:
           - 27017:27017
       rabbitmq:
