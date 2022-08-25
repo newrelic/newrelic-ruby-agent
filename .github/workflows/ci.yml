@@ -5,7 +5,7 @@ on:
 
 jobs:
   jruby_multiverse:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -57,18 +57,16 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install JRuby
-        run: mkdir /opt/jruby &&
-             curl -fSL https://repo1.maven.org/maven2/org/jruby/jruby-dist/${{env.jruby_version}}/jruby-dist-${{env.jruby_version}}-bin.tar.gz -o /tmp/jruby.tar.gz &&
-             echo "${{env.jruby_sha}} /tmp/jruby.tar.gz" | sha256sum -c - &&
-             tar -zx --strip-components=1 -f /tmp/jruby.tar.gz -C /opt/jruby &&
-             rm /tmp/jruby.tar.gz && sudo update-alternatives --install /usr/local/bin/ruby ruby /opt/jruby/bin/jruby 1 &&
-             echo /opt/jruby/bin >> $GITHUB_PATH
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: jruby-9.3.7.0
         env:
-          jruby_version: 9.3.7.0
-          jruby_sha: 94a7a8b3beeac2253a8876e73adfac6bececb2b54d2ddfa68f245dc81967d0c1
+          JAVA_HOME: ${{env.JAVA_HOME_17_X64}}
 
       - name: Bundle
         run: bundle install
+        env:
+          JAVA_HOME: ${{env.JAVA_HOME_17_X64}}
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -80,6 +78,7 @@ jobs:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
+          JAVA_HOME: ${{env.JAVA_HOME_17_X64}}
 
       - name: Annotate errors
         if: ${{ failure() }}
