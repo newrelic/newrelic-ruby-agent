@@ -210,11 +210,9 @@ class DependencyDetectionTest < Minitest::Test
   end
 
   def test_config_prepend
-    executed = false
-
     dd = DependencyDetection.defer do
       named(:testing)
-      executes { executed = true }
+      executes { true }
     end
 
     with_config({}) do
