@@ -20,8 +20,10 @@ require 'rake'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
+require 'minitest/reporters'
 require 'mocha/setup'
 
+Minitest::Reporters.use!(Minitest::Reporters::MeanTimeReporter.new)
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
 
 # We can speed things up in tests that don't need to load rails.
