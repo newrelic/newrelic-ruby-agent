@@ -28,6 +28,7 @@ module TransactionIgnoringTestCases
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric(TXN_PREFIX + 'accepted_transaction')
+    puts "\n\nBAD STATS COUNT! posts = #{stats.inspect}\n\n\n" unless stats.size == 1
     assert_equal(1, stats.size)
 
     stats = $collector.reported_stats_for_metric(TXN_PREFIX + 'ignored_transaction')
@@ -41,6 +42,8 @@ module TransactionIgnoringTestCases
     NewRelic::Agent.instance.send(:harvest_and_send_errors)
 
     posts = $collector.calls_for('error_data')
+    puts "\n\nBAD POSTS COUNT! posts = #{posts.inspect}\n\n\n" unless posts.size == 1
+
     assert_equal(1, posts.size)
 
     errors = posts.first.errors
@@ -68,6 +71,7 @@ module TransactionIgnoringTestCases
     NewRelic::Agent.instance.send(:harvest_and_send_analytic_event_data)
 
     posts = $collector.calls_for('analytic_event_data')
+    puts "\n\nBAD POSTS COUNT! posts = #{posts.inspect}\n\n\n" unless posts.size == 1
     assert_equal(1, posts.size)
 
     events = posts.first.events
@@ -83,6 +87,7 @@ module TransactionIgnoringTestCases
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
 
     posts = $collector.calls_for('sql_trace_data')
+    puts "\n\nBAD POSTS COUNT! posts = #{posts.inspect}\n\n\n" unless posts.size == 1
     assert_equal(1, posts.size)
 
     traces = posts.first.traces

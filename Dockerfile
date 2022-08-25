@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ Etc/UTC 
+ENV TZ Etc/UTC
 
 RUN apt-get update && apt-get install -y ca-certificates libc6-dev git curl autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm6 libgdbm-dev libdb-dev default-jre tzdata --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
