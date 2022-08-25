@@ -132,8 +132,8 @@ module NewRelic
               assert segment.headers.key?("newrelic"), "Expected message_properties to contain: newrelic"
             end
 
-            intrinsics, _, _ = last_transaction_event
-            assert_equal transaction.trace_id, intrinsics['traceId']
+            intrinsics = last_transaction_event
+            assert_equal transaction.trace_id, intrinsics[0]['traceId']
           end
         end
 
