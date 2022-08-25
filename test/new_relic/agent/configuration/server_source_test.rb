@@ -137,15 +137,6 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_correctly_handle_missing_event_type_from_event_harvest_config
-      modified_event_harvest_config = {
-        'report_period_ms' => 5000,
-        'harvest_limits' => {
-          'analytic_event_data' => 833,
-          'custom_event_data' => 833,
-          'error_event_data' => 8
-        }
-      }
-
       @config.delete('span_event_harvest_config')
       @source = ServerSource.new(@config)
 
