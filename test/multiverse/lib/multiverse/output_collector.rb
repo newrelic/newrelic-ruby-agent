@@ -55,6 +55,7 @@ module Multiverse
         output(*to_output)
         save_output_to_error_file(failing_output)
       end
+      sort_and_print_test_times
     end
 
     def self.failing_output_header
@@ -99,6 +100,17 @@ module Multiverse
     def self.output(*args)
       @output_lock.synchronize do
         puts(*args)
+      end
+    end
+
+    def self.sort_and_print_test_times
+      test_times = File.readlines('../../../../lib/minitest/minitest_time_report')
+      clean = test_times.map { |a| a.gsub("\n", '') }
+      grouped = clean.each_slice(2).to_a.to_h.transform_values { |v| v.to_f }
+      top_ten = grouped.to_h.sort_by { |k, v| v }.reverse!.slice(0, 10)
+      puts "====== Ten slowest tests ======"
+      top_ten.each_with_index do |element, index|
+        puts "#{index + 1}. #{element.join(': ')}"
       end
     end
   end

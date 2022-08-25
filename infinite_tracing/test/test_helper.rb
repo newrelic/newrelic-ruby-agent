@@ -15,6 +15,7 @@ require 'rubygems'
 require 'rake'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
+require_relative 'lib/minitest/test_time_plugin'
 require 'mocha/setup'
 require 'newrelic_rpm'
 require 'infinite_tracing'

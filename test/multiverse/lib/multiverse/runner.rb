@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+require_relative '../../../../lib/minitest/test_time_reporter'
 
 module Multiverse
   module Runner
@@ -47,6 +48,7 @@ module Multiverse
     end
 
     def run(filter = "", opts = {})
+      ::TestTimeReporter.reset_report
       execute_suites(filter, opts) do |suite|
         puts yellow(suite.execution_message)
         suite.each_instrumentation_method do |method|

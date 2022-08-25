@@ -51,6 +51,7 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
   s.add_development_dependency 'minitest', '5.3.3'
+  s.add_development_dependency 'minitest-fail-fast'
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.14.0'
   s.add_development_dependency 'pry' unless ENV['CI']
