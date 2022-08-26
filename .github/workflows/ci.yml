@@ -56,7 +56,9 @@ jobs:
     steps:
       - name: Set the default Java version
         run: sudo update-alternatives --set java ${JAVA_HOME_17_X64}/bin/java &&
-             sudo update-alternatives --set javac ${JAVA_HOME_17_X64}/bin/javac
+             sudo update-alternatives --set javac ${JAVA_HOME_17_X64}/bin/javac &&
+             java -version &&
+             javac -version
 
       - name: Check out the source code
         uses: actions/checkout@v2
@@ -65,9 +67,13 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: jruby-9.3.7.0
+        env:
+          JAVA_HOME: ${JAVA_HOME_17_X64}
 
       - name: Bundle
         run: bundle install
+        env:
+          JAVA_HOME: ${JAVA_HOME_17_X64}
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -79,6 +85,7 @@ jobs:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
+          JAVA_HOME: ${JAVA_HOME_17_X64}
 
       - name: Annotate errors
         if: ${{ failure() }}
