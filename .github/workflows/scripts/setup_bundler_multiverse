@@ -23,7 +23,7 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
     gem update --system --force
   fi
   echo "DEBUG: obtaining pre-installed Bundler version"
-  og_bundler=$(bundle --version | awk '{ print $1 }')
+  og_bundler=$(bundle --version | awk '{ print $3 }')
   echo "DEBUG: pre-installed Bundler version is $og_bundler"
   # need to use bundler <2 for all rails 4 and below tests
   echo "DEBUG: running 'gem install bundler'"
