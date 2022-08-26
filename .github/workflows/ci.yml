@@ -250,7 +250,7 @@ jobs:
 
   jruby_multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -299,26 +299,39 @@ jobs:
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
-      - uses: actions/checkout@v2
+      - name: Set the default Java version
+        run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
+             sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
+             java -version &&
+             javac -version
 
-      - name: Install Ruby jruby-9.3.7.0
+      - name: Check out the source code
+        uses: actions/checkout@v2
+
+      - name: Install JRuby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: jruby-9.3.7.0
+        env:
+          JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
 
       - name: Bundle
         run: bundle install
+        env:
+          JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          max_attempts: 1
+          # jruby -v yields info about which JVM version JRuby is using
+          command: jruby -v; bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
+          JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
 
       - name: Annotate errors
         if: ${{ failure() }}
