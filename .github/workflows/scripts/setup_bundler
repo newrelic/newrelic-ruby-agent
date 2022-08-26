@@ -9,7 +9,11 @@ if [[ $RAILS_VERSION =~ .*"4".* ]]; then
   echo "DEBUG: running 'gem update --system'"
   if [[ $RUBY_VERSION = "2.2.10" ]]; then
     echo "DEBUG: installing rubygems-update for Ruby 2.2"
-    gem install rubygems-update:3.0.6
+
+    # TODO: need 3.0.6 for Ruby 2.3
+    # gem install rubygems-update:3.0.6
+
+    gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
   else
