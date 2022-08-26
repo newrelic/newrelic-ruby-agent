@@ -3,37 +3,59 @@
 # and sets up the bundler config for when we are using the older mysql version
 
 if [[ $RUBY_VERSION =~ 2.[^67] ]]; then 
-  # Older rubies come with Ruby gems 2.5.x and we need 3.0.6 minimum to
+  # Older rubies come with older Rubygems and we need 3.0.6 minimum to
   # correctly install Bundler and do anything else within the multiverse test suite
-  gem update --system 3.0.6 --force
+  # Ruby 2.2 and 2.3 need to use update_rubygems,
+  # newer Rubies can use 'gem update --system'
+  if [[ $RUBY_VERSION = "2.2.10" || $RUBY_VERSION = "2.3.8" ]]; then
+    echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
+    if [[ $RUBY_VERSION = "2.2.10" ]]; then
+      ru_version=2.7.11
+    else
+      ru_version=3.0.6
+    fi
+    echo "DEBUG: installing rubygems-update version $ru_version"
+    gem install rubygems-update:$ru_version
+    echo "DEBUG: running 'rubygems-update'"
+    update_rubygems
+  else
+    echo "DEBUG: running 'gem update --system --force'"
+    gem update --system --force
+  fi
   # need to use bundler <2 for all rails 4 and below tests
+  echo "DEBUG: running 'gem install bundler'"
   gem install --default bundler:1.17.3 --force
+  echo "DEBUG: running 'gem list bundler'"
   gem list bundler
   if [[ $RUBY_VERSION != "2.2.10" ]]; then 
     # 2.2 does not install any 2+ bundler version, so nothing to uninstall
     # but we do need to remove higher bundler versions for when we're running rails 4 tests
+    echo "DEBUG: running 'gem uninstall bundler'"
     gem uninstall bundler
-    echo "did gem uninstall bundler"
   fi 
   echo "use bundler 1.17.3"
 fi
 
 # add mysql specific config for bundler when we are using older mysql
 if [[ $RUBY_VERSION =~ 2.[23] ]]; then  
+  echo "DEBUG: running 'bundle config'"
   bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
   echo "set bundler to use mysql55 for mysql2"
 fi
 
 # for some reason, ruby 3.0 fails unless 3.1.0 is installed before it bundles for rails_prepend suite/rails 7
 if [[ $RUBY_VERSION =~ 3.0 ]]; then 
+  echo "DEBUG: running 'gem install digest'"
   gem install --default digest:3.1.0
   echo "installed digest 3.1.0"
 fi
 
 # for some reason, ruby 3.0+ fails unless strscan 3.0.4 is installed
 if [[ $RUBY_VERSION = 3.* ]]; then 
+  echo "DEBUG: running 'gem install strscran'"
   gem install --default strscan:3.0.4
   echo "installed strscan 3.0.4"
 fi
 
+echo "DEBUG: running 'bundle install'"
 bundle install
