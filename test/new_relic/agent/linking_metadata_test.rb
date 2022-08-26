@@ -61,7 +61,7 @@ module NewRelic::Agent
         assert_equal(expected, result)
       end
 
-      def test_trace_metadata_empty
+      def test_trace_metadata_raises_argument_error
         assert_raises(ArgumentError) do
           LinkingMetadata.append_trace_linking_metadata(nil)
         end
