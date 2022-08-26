@@ -22,9 +22,6 @@ if [[ $RAILS_VERSION =~ .*"4".* ]]; then
   # need to use bundler <2 for all rails 4 and below tests
   echo "DEBUG: running 'gem install'"
   gem install --default bundler:1.17.3 --force
-  # add mysql specific config for bundler when we are using older mysql
-  echo "DEBUG: running 'bundle config'"
-  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
   echo "DEBUG: running 'gem list bundler'"
   gem list bundler
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
@@ -33,9 +30,12 @@ if [[ $RAILS_VERSION =~ .*"4".* ]]; then
     # but we do need to remove higher bundler versions for when we're running rails 4 tests
     echo "DEBUG: running 'gem uninstall'"
     gem uninstall bundler
-    echo "did gem uninstall bundler"
+    echo "DEBUG: running 'gem list bundler' again"
+    gem list bundler
   fi
-  echo "use bundler 1.17.3"
+  # add mysql specific config for bundler when we are using older mysql
+  echo "DEBUG: running 'bundle config'"
+  bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
 fi
 
 echo "DEBUG: running 'bundle install'"
