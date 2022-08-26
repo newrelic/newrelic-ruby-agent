@@ -28,14 +28,15 @@ if [[ $RAILS_VERSION =~ .*"4".* ]]; then
   echo "DEBUG: running 'gem list bundler'"
   gem list bundler
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-  if [[ $RUBY_VERSION != "2.2.10" ]]; then 
+  # if [[ $RUBY_VERSION != "2.2.10" ]]; then 
     # 2.2 does not install any 2+ bundler version, so nothing to uninstall
     # but we do need to remove higher bundler versions for when we're running rails 4 tests
     echo "DEBUG: running 'gem uninstall'"
     gem uninstall bundler
     echo "DEBUG: running 'gem list bundler' again"
     gem list bundler
-  fi
+
+  # fi
   # add mysql specific config for bundler when we are using older mysql
   echo "DEBUG: running 'bundle config'"
   bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config

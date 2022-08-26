@@ -27,13 +27,17 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
   gem install --default bundler:1.17.3 --force
   echo "DEBUG: running 'gem list bundler'"
   gem list bundler
-  if [[ $RUBY_VERSION != "2.2.10" ]]; then 
+
+  # if [[ $RUBY_VERSION != "2.2.10" ]]; then 
     # 2.2 does not install any 2+ bundler version, so nothing to uninstall
-    # but we do need to remove higher bundler versions for when we're running rails 4 tests
+    # but we do need to remove higher bundler versions for when we're running tests
+
     echo "DEBUG: running 'gem uninstall bundler'"
     gem uninstall bundler
-  fi 
-  echo "use bundler 1.17.3"
+    echo "DEBUG: running 'gem list bundler' again"
+    gem list bundler
+
+  # fi 
 fi
 
 # add mysql specific config for bundler when we are using older mysql
