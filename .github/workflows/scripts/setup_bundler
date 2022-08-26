@@ -2,22 +2,30 @@
 # This script sets up the bundler versions we need for our older unit tests
 # and sets up the bundler config for when we are using the older mysql version
 
+echo "DEBUG: RAILS_VERSION = $RAILS_VERSION"
 if [[ $RAILS_VERSION =~ .*"4".* ]]; then 
   # Older rubies come with Ruby gems 2.5.x and we need 3.0.6 minimum to
   # correctly install Bundler and do anything else within the multiverse test suite
+  echo "DEBUG: running 'gem update --system'"
   gem update --system 3.0.6 --force
   # need to use bundler <2 for all rails 4 and below tests
+  echo "DEBUG: running 'gem install'"
   gem install --default bundler:1.17.3 --force
   # add mysql specific config for bundler when we are using older mysql
+  echo "DEBUG: running 'bundle config'"
   bundle config --global build.mysql2 --with-mysql-config=/usr/local/mysql55/bin/mysql_config
+  echo "DEBUG: running 'gem list bundler'"
   gem list bundler
+  echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
   if [[ $RUBY_VERSION != "2.2.10" ]]; then 
     # 2.2 does not install any 2+ bundler version, so nothing to uninstall
     # but we do need to remove higher bundler versions for when we're running rails 4 tests
+    echo "DEBUG: running 'gem uninstall'"
     gem uninstall bundler
     echo "did gem uninstall bundler"
   fi
   echo "use bundler 1.17.3"
 fi
 
+echo "DEBUG: running 'bundle install'"
 bundle install
