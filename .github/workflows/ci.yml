@@ -55,8 +55,8 @@ jobs:
         multiverse: [httpclients_2, rails]
     steps:
       - name: Set the default Java version
-        run: sudo update-alternatives --set java ${{env.JAVA_HOME_17_X64}}/bin/java &&
-             sudo update-alternatives --set javac ${{env.JAVA_HOME_17_X64}}/bin/javac
+        run: sudo update-alternatives --set java ${{JAVA_HOME_17_X64}}/bin/java &&
+             sudo update-alternatives --set javac ${{JAVA_HOME_17_X64}}/bin/javac
 
       - name: Check out the source code
         uses: actions/checkout@v2
