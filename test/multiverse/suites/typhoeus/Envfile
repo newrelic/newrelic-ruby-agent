@@ -7,7 +7,7 @@
 suite_condition("Typhoeus is skipped for JRuby with Ubuntu 22") do
   RUBY_PLATFORM != 'java' &&
     File.exist?('/etc/lsb-release') &&
-    File.read('/etc/lsb-release').match?('DISTRIB_RELEASE=22.04')
+    File.read('/etc/lsb-release') =~ /DISTRIB_RELEASE=22\.04/
 end
 
 instrumentation_methods :chain, :prepend
