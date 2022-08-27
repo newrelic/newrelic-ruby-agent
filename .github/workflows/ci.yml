@@ -5,18 +5,18 @@ on:
 
 jobs:
   run_rubocop:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-ruby@v1
         with:
-          ruby-version: '2.7'
+          ruby-version: '3.1'
       - run: bundle
       - run: rubocop
 
   unit_tests:
     needs: run_rubocop
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -93,7 +93,7 @@ jobs:
 
   multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -212,7 +212,7 @@ jobs:
 
   infinite_tracing:
     needs: run_rubocop
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -339,13 +339,13 @@ jobs:
 
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.repository_owner == 'newrelic'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-ruby@v1
         with:
-          ruby-version: '2.7'
+          ruby-version: '3.1'
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3

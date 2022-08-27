@@ -38,6 +38,8 @@ MONGO_VERSIONS_OLDER_RUBIES = ['2.9.0',
 # The highest Mongo server version to test 1.x gems against
 MAX_SERVER_VERSION_FOR_1X_GEMS = 2.6
 
+CANNED_MONGO_VERSION = 5.0
+
 # * JRuby uses Mongo gem versions for v2.6.0+ Ruby only
 # * Newer CRubies use newer Mongo gem versions and older ones
 # * Older CRubies use older Mongo gem versions
@@ -58,8 +60,20 @@ def ruby_gte?(version)
   Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version)
 end
 
+def determine_mongo_version
+  return CANNED_MONGO_VERSION if docker?
+
+  mongo_path = ENV['PATH'].to_s.split(';').detect { |path| File.exist?(File.join(path, 'mongo')) }
+  return CANNED_MONGO_VERSION unless mongo_path
+
+  `#{mongo_path} --version`.scan(/version\sv([\d\.]+)/).join.to_f
+rescue => e
+  warn("Failed to determine a Mongo version: #{e.class}: #{e.message}")
+  CANNED_MONGO_VERSION
+end
+
 def installed_mongo_server_version
-  @mongo_server_version ||= docker? ? 5.0 : `mongo --version`.scan(/version\sv([\d\.]+)/).join.to_f
+  @installed_mongo_server_version ||= determine_mongo_version
 end
 
 mongo_versions.each do |mongo_version|
