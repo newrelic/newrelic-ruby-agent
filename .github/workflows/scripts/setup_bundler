@@ -20,7 +20,7 @@ if [[ $RAILS_VERSION =~ .*"4".* ]]; then
     update_rubygems
   else
     echo "DEBUG: running 'gem update --system --force'"
-    gem update --system --force
+    gem update --system 3.0.6 --force
   fi
   echo "DEBUG: obtaining pre-installed Bundler version"
   og_bundler=$(bundle --version | awk '{ print $3 }')

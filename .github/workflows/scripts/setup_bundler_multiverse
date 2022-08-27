@@ -3,9 +3,10 @@
 # and sets up the bundler config for when we are using the older mysql version
 
 if [[ $RUBY_VERSION =~ 2.[^67] ]]; then 
-  # Older rubies come with older Rubygems and we need 3.0.6 minimum to
-  # correctly install Bundler and do anything else within the multiverse test suite
-  # Ruby 2.2 and 2.3 need to use update_rubygems,
+  # Older rubies come with older Rubygems and we need 3.0.6 to
+  # correctly install Bundler 1.17.3 and do anything else within
+  # the multiverse test suite
+  # NOTE that Ruby 2.2 and 2.3 need to use update_rubygems, while
   # newer Rubies can use 'gem update --system'
   if [[ $RUBY_VERSION = "2.2.10" || $RUBY_VERSION = "2.3.8" ]]; then
     echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
@@ -20,7 +21,7 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
     update_rubygems
   else
     echo "DEBUG: running 'gem update --system --force'"
-    gem update --system --force
+    gem update --system 3.0.6 --force
   fi
   echo "DEBUG: obtaining pre-installed Bundler version"
   og_bundler=$(bundle --version | awk '{ print $3 }')
