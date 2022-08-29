@@ -8,7 +8,7 @@ if [[ $RAILS_VERSION =~ .*"4".* ]]; then
   # correctly install Bundler and do anything else within the multiverse test suite
   # Ruby 2.2 and 2.3 need to use update_rubygems,
   # newer Rubies can use 'gem update --system'
-  if [[ $RUBY_VERSION = "2.2.10" ]] then
+  if [[ $RUBY_VERSION = "2.2.10" ]]; then
     echo "DEBUG: installing rubygems-update version $ru_version"
     gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
