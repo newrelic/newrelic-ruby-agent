@@ -407,11 +407,15 @@ module NewRelic
         alias_method :tl_clear, :clear_state
 
         def thread_block_with_current_transaction(*args, &block)
-          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state]
+          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].is_execution_traced?
           Proc.new do
             begin
-              NewRelic::Agent::Tracer.state.current_transaction = current_txn
-              segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
+              begin
+                NewRelic::Agent::Tracer.state.current_transaction = current_txn
+                segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
+              rescue => e
+                NewRelic::Agent.logger.error("waluigi thread tracing error #{e}")
+              end
               block.call(*args) if block.respond_to?(:call)
             ensure
               segment.finish if segment

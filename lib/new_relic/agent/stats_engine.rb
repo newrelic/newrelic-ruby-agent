@@ -69,8 +69,10 @@ module NewRelic
       def record_unscoped_metrics(state, metric_names, value = nil, aux = nil, &blk)
         txn = state.current_transaction
         if txn
+          NewRelic::Agent.logger.debug("wario - Recording unscoped metric(s): #{metric_names}")
           txn.metrics.record_unscoped(metric_names, value, aux, &blk)
         else
+          NewRelic::Agent.logger.debug("wario2 - Recording unscoped metric(s): #{metric_names}")
           specs = coerce_to_metric_spec_array(metric_names, nil)
           with_stats_lock do
             @stats_hash.record(specs, value, aux, &blk)
