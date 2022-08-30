@@ -1466,7 +1466,7 @@ Style/MapToHash:
 
 Style/MethodCallWithArgsParentheses:
   Enabled: true
-  IgnoredMethods:
+  AllowedMethods:
     - puts
     - require
     - raise

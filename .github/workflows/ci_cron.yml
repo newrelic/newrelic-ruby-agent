@@ -57,7 +57,7 @@ jobs:
                 "rails": "norails,rails52,rails51,rails42,rails32"
               },
               "2.5.9": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails42,rails32"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
               },
               "2.6.10": {
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42"
