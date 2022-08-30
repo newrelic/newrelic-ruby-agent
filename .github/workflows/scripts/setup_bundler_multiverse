@@ -8,15 +8,10 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
   # the multiverse test suite
   # NOTE that Ruby 2.2 and 2.3 need to use update_rubygems, while
   # newer Rubies can use 'gem update --system'
-  if [[ $RUBY_VERSION = "2.2.10" || $RUBY_VERSION = "2.3.8" ]]; then
-    echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-    if [[ $RUBY_VERSION = "2.2.10" ]]; then
-      ru_version=2.7.11
-    else
-      ru_version=3.0.6
-    fi
-    echo "DEBUG: installing rubygems-update version $ru_version"
-    gem install rubygems-update:$ru_version
+  echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
+  if [[ $RUBY_VERSION = "2.2.10" ]]; then
+    echo "DEBUG: installing rubygems-update version 2.7.11"
+    gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
   else
