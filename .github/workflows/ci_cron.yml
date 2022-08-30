@@ -313,12 +313,14 @@ jobs:
         with:
           ruby-version: jruby-9.3.7.0
         env:
-          JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
+          # JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
+          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Bundle
         run: bundle install
         env:
-          JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
+          # JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
+          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -330,7 +332,8 @@ jobs:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
-          JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
+          # JAVA_HOME: ${{env.JAVA_HOME_8_X64}}
+          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Annotate errors
         if: ${{ failure() }}
