@@ -1466,7 +1466,7 @@ Style/MapToHash:
 
 Style/MethodCallWithArgsParentheses:
   Enabled: true
-  IgnoredMethods:
+  AllowedMethods:
     - puts
     - require
     - raise
@@ -1479,7 +1479,7 @@ Style/MethodCallWithArgsParentheses:
 
 Style/MethodCallWithoutArgsParentheses:
   Enabled: false
-  IgnoredMethods: []
+  AllowedMethods: []
 
 Style/MethodCalledOnDoEndBlock:
   Enabled: false

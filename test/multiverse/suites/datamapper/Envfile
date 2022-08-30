@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-suite_condition("only test on < 2.4"){ RUBY_VERSION < '2.4.0' }
+suite_condition("only test on 2.3") { RUBY_VERSION == '2.3.0' }
 
 adapter_gems = <<-RB
   gem 'dm-sqlite-adapter'
