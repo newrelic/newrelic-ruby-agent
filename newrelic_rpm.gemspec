@@ -48,21 +48,14 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"
   s.add_development_dependency 'rake', '12.3.3'
-  s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
-  s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3
   s.add_development_dependency 'minitest', '5.3.3'
   s.add_development_dependency 'minitest-stub-const', '0.6'
-  s.add_development_dependency 'mocha', '~> 1.9.0'
+  s.add_development_dependency 'mocha', '~> 1.14.0'
   s.add_development_dependency 'yard'
-  s.add_development_dependency 'pry-nav', '~> 0.3.0'
-  s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
-  s.add_development_dependency 'guard', '~> 2.16.0'
-  s.add_development_dependency 'guard-minitest', '~> 2.4.0'
+  s.add_development_dependency 'pry' unless ENV['CI']
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'rubocop-performance'
-  if RUBY_VERSION >= '2.7.0'
-    s.add_development_dependency 'simplecov'
-  end
+  s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'httparty'
 end
