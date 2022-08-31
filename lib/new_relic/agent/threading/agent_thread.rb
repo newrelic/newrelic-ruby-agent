@@ -10,6 +10,7 @@ module NewRelic
         def self.create(label, &blk)
           ::NewRelic::Agent.logger.debug("Creating New Relic thread: #{label}")
           wrapped_blk = Proc.new do
+            ::NewRelic::Agent.logger.warn("AgentThread created with current transaction #{::Thread.current[:newrelic_tracer_state].current_transaction.best_name}") if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].current_transaction
             begin
               blk.call
             rescue => e
@@ -21,8 +22,8 @@ module NewRelic
               ::NewRelic::Agent.logger.debug("Exiting New Relic thread: #{label}")
             end
           end
-
-          thread = backing_thread_class.new(&wrapped_blk)
+          thread = nil
+          NewRelic::Agent.disable_all_tracing { thread = backing_thread_class.new(&wrapped_blk) }
           thread[:newrelic_label] = label
           thread
         end
