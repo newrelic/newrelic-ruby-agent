@@ -75,8 +75,8 @@ module NewRelic
           root_span_event = nil
           root_segment = nil
 
-          txn = in_transaction do |txn|
-            root_segment = txn.current_segment
+          txn = in_transaction do |t|
+            root_segment = t.current_segment
           end
 
           root_span_event = SpanEventPrimitive.for_segment(root_segment)

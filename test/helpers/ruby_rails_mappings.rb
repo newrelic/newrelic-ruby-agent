@@ -13,7 +13,7 @@ def ruby_rails_versions_hash
     map_yaml = ci['jobs']['unit_tests']['steps'].detect do |hash|
       hash.key?('with') && hash['with'].key?('map')
     end['with']['map']
-    versions = YAML.load(map_yaml)
+    YAML.load(map_yaml)
   end
 end
 
