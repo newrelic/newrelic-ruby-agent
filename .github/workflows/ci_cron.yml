@@ -110,7 +110,7 @@ jobs:
       - name: Notify slack fail
         if: success()
         env:
-          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel_id: D038RVC321M
@@ -227,11 +227,10 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-
       - name: Notify slack fail
         if: success()
         env:
-          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel_id: D038RVC321M
@@ -272,7 +271,7 @@ jobs:
       - name: Notify slack fail
         if: success()
         env:
-          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel_id: D038RVC321M
@@ -370,7 +369,7 @@ jobs:
       - name: Notify slack fail
         if: success()
         env:
-          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
           channel_id: D038RVC321M
