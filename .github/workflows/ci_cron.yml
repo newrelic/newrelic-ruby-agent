@@ -1,12 +1,7 @@
 name: Scheduled Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-  schedule:
-    - cron:  '0 9 * * *'
+  pull_request:
 
 jobs:
   run_rubocop:
@@ -111,6 +106,16 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev
+
+      - name: Notify slack fail
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel_id: D038RVC321M
+          status: FAILED
+          color: danger
 
   multiverse:
     needs: run_rubocop
@@ -222,6 +227,17 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
+
+      - name: Notify slack fail
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel_id: D038RVC321M
+          status: FAILED
+          color: danger
+
   infinite_tracing:
     needs: run_rubocop
     runs-on: ubuntu-22.04
@@ -252,6 +268,16 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+      - name: Notify slack fail
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel_id: D038RVC321M
+          status: FAILED
+          color: danger
 
   jruby_multiverse:
     needs: run_rubocop
@@ -340,3 +366,13 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+      - name: Notify slack fail
+        if: success()
+        env:
+          SLACK_BOT_TOKEN: https://hooks.slack.com/services/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
+        uses: voxmedia/github-action-slack-notify-build@v1
+        with:
+          channel_id: D038RVC321M
+          status: FAILED
+          color: danger
