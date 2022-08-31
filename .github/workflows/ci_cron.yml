@@ -113,7 +113,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel_id: D038RVC321M
+          channel: hannah-nrrdbot-test
           status: FAILED
           color: danger
 
@@ -233,7 +233,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel_id: D038RVC321M
+          channel: hannah-nrrdbot-test
           status: FAILED
           color: danger
 
@@ -274,7 +274,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel_id: D038RVC321M
+          channel: hannah-nrrdbot-test
           status: FAILED
           color: danger
 
@@ -372,6 +372,6 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel_id: D038RVC321M
+          channel: hannah-nrrdbot-test
           status: FAILED
           color: danger
