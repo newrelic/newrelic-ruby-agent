@@ -155,8 +155,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install required packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        # TODO: OLD RUBIES - RUBY_VERSION < 2.5
+        #       newer versions of Nokogiri requiring Ruby 2.5+ don't appear to need the xslt package
+      - name: Install OS packages
+        run: sudo apt-get install -y --no-install-recommends libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
