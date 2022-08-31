@@ -50,7 +50,7 @@ jobs:
           map: |
             {
               "2.2.10": {
-                "rails": "norails,rails42,rails41,rails40,rails32"
+                "rails": "norails,rails41,rails40,rails32"
               },
               "2.3.8": {
                 "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
