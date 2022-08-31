@@ -108,7 +108,7 @@ jobs:
           JRUBY_OPTS: --dev
 
       - name: Notify slack fail
-        if: ${{ success() }}
+        if: ${{ failure() }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
@@ -228,7 +228,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Notify slack fail
-        if: ${{ success() }}
+        if: ${{ failure() }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
@@ -269,7 +269,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Notify slack fail
-        if: ${{ success() }}
+        if: ${{ failure() }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
@@ -367,7 +367,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Notify slack fail
-        if: ${{ success() }}
+        if: ${{ failure() }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
