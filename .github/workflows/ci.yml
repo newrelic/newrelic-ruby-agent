@@ -31,6 +31,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+        # TODO: OLD RUBIES - RUBY_VERSION < 2.5
+        #       newer versions of Nokogiri requiring Ruby 2.5+ don't appear to need the xslt package
+      - name: Install OS packages
+        run: sudo apt-get install -y --no-install-recommends libxslt1-dev
+
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
         with:
