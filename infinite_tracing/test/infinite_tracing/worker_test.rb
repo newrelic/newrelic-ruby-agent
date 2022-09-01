@@ -25,6 +25,12 @@ module NewRelic::Agent::InfiniteTracing
       assert_metrics_recorded "Supportability/InfiniteTracing/Worker"
     end
 
+    def test_worker_uses_agentthread
+      NewRelic::Agent::Threading::AgentThread.expects(:create).returns(Thread.new {})
+      worker = Worker.new("simple") {}
+      worker.join
+    end
+
     def test_worker_handles_errors
       worker = Worker.new("error") do
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Worker", 0.0)
