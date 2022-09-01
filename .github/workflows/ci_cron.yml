@@ -343,7 +343,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   notify_slack_fail:
-    needs: unit_tests multiverse infinite_tracing jruby_multiverse
+    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
     runs-on: ubuntu-18.04
     steps:
     - name: Notify slack fail
