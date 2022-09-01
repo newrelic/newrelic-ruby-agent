@@ -1,6 +1,17 @@
 # New Relic Ruby Agent Release Notes #
 
 
+  ## v8.11.0
+
+
+  * **Bugfix: Missing unscoped metrics when instrumentation.thread.tracing is enabled**
+    
+    Previously, when `instrumentation.thread.tracing` was set to true, some puma applications encountered a bug where a varying number of unscoped metrics would be missing. The agent now will correctly store and send all unscoped metrics.
+    
+    Thank you to @texpert for providing details of their situation to help resolve the issue.
+  
+  
+
   ## v8.10.0
 
 
