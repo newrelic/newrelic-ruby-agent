@@ -121,7 +121,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: hannah-private-testing-channel
+          channel: ruby-agent-notifications
           status: FAILED
           color: danger
 
@@ -244,7 +244,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: hannah-private-testing-channel
+          channel: ruby-agent-notifications
           status: FAILED
           color: danger
 
@@ -285,7 +285,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: hannah-private-testing-channel
+          channel: ruby-agent-notifications
           status: FAILED
           color: danger
 
@@ -383,6 +383,6 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         uses: voxmedia/github-action-slack-notify-build@v1
         with:
-          channel: hannah-private-testing-channel
+          channel: ruby-agent-notifications
           status: FAILED
           color: danger
