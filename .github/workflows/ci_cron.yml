@@ -38,6 +38,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
         with:
@@ -171,8 +177,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install required packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
