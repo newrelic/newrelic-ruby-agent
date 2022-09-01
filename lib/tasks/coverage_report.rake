@@ -13,10 +13,13 @@ namespace :coverage do
 
     if ENV['CI']
       SimpleCov.collate(Dir['*/coverage_*/.resultset.json']) do
+        formatter SimpleCov::Formatter::HTMLFormatter
         refuse_coverage_drop
       end
     else
-      SimpleCov.collate(Dir['lib/coverage_*/.resultset.json'])
+      SimpleCov.collate(Dir['lib/coverage_*/.resultset.json']) do
+        formatter SimpleCov::Formatter::HTMLFormatter
+      end
     end
 
     Dir['lib/coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
