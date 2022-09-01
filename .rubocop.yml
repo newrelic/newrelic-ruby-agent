@@ -256,7 +256,9 @@ Layout/LineEndStringConcatenationIndentation:
   Enabled: false
 
 Layout/LineLength:
-  Enabled: false
+  # TODO: get this down to something closer to the 80 col ideal
+  #       we should be able to manage 120
+  Max: 576
 
 Layout/MultilineArrayBraceLayout:
   Enabled: true
