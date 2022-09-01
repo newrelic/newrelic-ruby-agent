@@ -12,13 +12,10 @@ module NewRelic
     module Instrumentation
       class ActionControllerSubscriber < NotificationsSubscriber
         def start(name, id, payload) # THREAD_LOCAL_ACCESS
-          # @req is a historically stable but not guaranteed Rails header property
-          request = payload[:headers].instance_variable_get(:@req)
-
           controller_class = controller_class(payload)
 
           if state.is_execution_traced? && !should_ignore(payload, controller_class)
-            finishable = start_transaction_or_segment(payload, request, controller_class)
+            finishable = start_transaction_or_segment(payload, request_for_payload(payload), controller_class)
             push_segment(id, finishable)
           else
             # if this transaction is ignored, make sure child
@@ -97,6 +94,13 @@ module NewRelic
           if request && request.respond_to?(:env)
             QueueTime.parse_frontend_timestamp(request.env, Process.clock_gettime(Process::CLOCK_REALTIME))
           end
+        end
+
+        def request_for_payload(payload)
+          # @req is a historically stable but not guaranteed Rails header property
+          return unless payload[:headers].instance_variables.include?(:@req)
+
+          payload[:headers].instance_variable_get(:@req)
         end
       end
     end
