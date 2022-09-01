@@ -42,8 +42,6 @@ gemfile <<-RB
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 
-  # We try translating URIs through Addressable if it's there, so test with it.
-  gem 'addressable', :require => 'addressable/uri'
   #{ruby3_gem_webrick}
 RB
 
