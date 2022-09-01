@@ -52,7 +52,7 @@ module NewRelic::Agent
 
       def start_thread
         NewRelic::Agent.logger.debug("starting worker #{@name} thread...")
-        @worker_thread = Thread.new do
+        @worker_thread = NewRelic::Agent::Threading::AgentThread.create("infinite_tracing_worker") do
           catch(:exit) do
             begin
               @job.call
