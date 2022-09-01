@@ -38,8 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install required packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -53,7 +56,7 @@ jobs:
           map: |
             {
               "2.2.10": {
-                "rails": "norails,rails51,rails42,rails41,rails40,rails32"
+                "rails": "norails,rails41,rails40,rails32"
               },
               "2.3.8": {
                 "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
@@ -174,8 +177,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install required packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
