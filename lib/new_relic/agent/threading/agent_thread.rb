@@ -8,18 +8,18 @@ module NewRelic
     module Threading
       class AgentThread
         def self.create(label, &blk)
-          ::NewRelic::Agent.logger.debug("Creating New Relic thread: #{label}")
+          ::NewRelic::Agent.logger.debug("Creating AgentThread: #{label}")
           wrapped_blk = Proc.new do
             ::NewRelic::Agent.logger.warn("AgentThread created with current transaction #{::Thread.current[:newrelic_tracer_state].current_transaction.best_name}") if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].current_transaction
             begin
               blk.call
             rescue => e
-              ::NewRelic::Agent.logger.error("Thread #{label} exited with error", e)
+              ::NewRelic::Agent.logger.error("AgentThread #{label} exited with error", e)
             rescue Exception => e
-              ::NewRelic::Agent.logger.error("Thread #{label} exited with exception. Re-raising in case of interrupt.", e)
+              ::NewRelic::Agent.logger.error("AgentThread #{label} exited with exception. Re-raising in case of interrupt.", e)
               raise
             ensure
-              ::NewRelic::Agent.logger.debug("Exiting New Relic thread: #{label}")
+              ::NewRelic::Agent.logger.debug("Exiting AgentThread: #{label}")
             end
           end
           thread = nil
