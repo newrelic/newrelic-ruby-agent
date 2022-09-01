@@ -1,7 +1,12 @@
 name: Scheduled Continuous Integration
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+  schedule:
+    - cron:  '0 9 * * *'
 
 jobs:
   run_rubocop:
