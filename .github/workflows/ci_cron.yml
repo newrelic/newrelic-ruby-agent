@@ -8,20 +8,24 @@ on:
   schedule:
     - cron:  '0 9 * * *'
 
+env:
+  UBUNTU_VERSION: ubuntu-22.04
+  RUBY_VERSION: 3.1
+
 jobs:
   run_rubocop:
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: $RUBY_VERSION
       - run: bundle
       - run: rubocop
 
   unit_tests:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     services:
       mysql:
         image: mysql:5.7
@@ -117,7 +121,7 @@ jobs:
 
   multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     services:
       mysql:
         image: mysql:5.7
@@ -230,7 +234,7 @@ jobs:
 
   infinite_tracing:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     strategy:
       fail-fast: false
       matrix:
