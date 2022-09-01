@@ -353,5 +353,19 @@ jobs:
       uses: voxmedia/github-action-slack-notify-build@v1
       with:
         channel: hannah-private-testing-channel
+        status: SUCCESS
+        color: good
+
+  notify_slack_fail:
+    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Notify slack fail
+      if: ${{ success() }}
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: hannah-private-testing-channel
         status: FAILED
         color: danger
