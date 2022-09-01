@@ -1,12 +1,7 @@
 name: Scheduled Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-  schedule:
-    - cron:  '0 9 * * *'
+  pull_request:
 
 jobs:
   run_rubocop:
@@ -114,16 +109,6 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev
-
-      - name: Notify slack fail
-        if: ${{ failure() }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: ruby-agent-notifications
-          status: FAILED
-          color: danger
 
   multiverse:
     needs: run_rubocop
@@ -238,16 +223,6 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-      - name: Notify slack fail
-        if: ${{ failure() }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: ruby-agent-notifications
-          status: FAILED
-          color: danger
-
   infinite_tracing:
     needs: run_rubocop
     runs-on: ubuntu-22.04
@@ -278,16 +253,6 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
-
-      - name: Notify slack fail
-        if: ${{ failure() }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: ruby-agent-notifications
-          status: FAILED
-          color: danger
 
   jruby_multiverse:
     needs: run_rubocop
@@ -377,12 +342,14 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-      - name: Notify slack fail
-        if: ${{ failure() }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        uses: voxmedia/github-action-slack-notify-build@v1
-        with:
-          channel: ruby-agent-notifications
-          status: FAILED
-          color: danger
+  notify_slack_fail:
+    - name: Notify slack fail
+      needs: unit_tests multiverse infinite_tracing jruby_multiverse
+      if: ${{ success() }}
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: hannah-private-testing-channel
+        status: FAILED
+        color: danger
