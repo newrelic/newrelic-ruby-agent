@@ -8,20 +8,25 @@ on:
   schedule:
     - cron:  '0 9 * * *'
 
+env:
+  UBUNTU_VERSION: ubuntu-22.04
+  RUBY_VERSION: 3.1
+  JRUBY_VERSION: jruby-9.3.7.0
+
 jobs:
   run_rubocop:
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: $RUBY_VERSION
       - run: bundle
       - run: rubocop
 
   unit_tests:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     services:
       mysql:
         image: mysql:5.7
@@ -33,7 +38,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.7.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, $JRUBY_VERSION]
 
     steps:
       - uses: actions/checkout@v2
@@ -82,12 +87,12 @@ jobs:
               "3.2.0-preview1": {
                 "rails": "norails,rails61,rails70,railsedge"
               },
-              "jruby-9.3.7.0": {
+              $JRUBY_VERSION: {
                 "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.7.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == $JRUBY_VERSION
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -95,7 +100,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.7.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == $JRUBY_VERSION
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -117,7 +122,7 @@ jobs:
 
   multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     services:
       mysql:
         image: mysql:5.7
@@ -230,7 +235,7 @@ jobs:
 
   infinite_tracing:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: $UBUNTU_VERSION
     strategy:
       fail-fast: false
       matrix:
@@ -322,7 +327,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.7.0
+          ruby-version: $JRUBY_VERSION
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
