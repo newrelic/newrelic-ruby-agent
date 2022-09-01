@@ -342,7 +342,7 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-  notify_slack_fail:
+  notify_slack_success:
     needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
     runs-on: ubuntu-18.04
     steps:
