@@ -343,15 +343,17 @@ jobs:
         uses: ./.github/actions/annotate
 
   notify_slack_fail:
-    dependsOn: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
-    condition: ${{ failure() }}
+    name: Notify slack fail
+    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
     runs-on: ubuntu-22.04
+    if: always()
     steps:
-    - name: Notify slack fail
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-      uses: voxmedia/github-action-slack-notify-build@v1
-      with:
-        channel: hannah-private-testing-channel
-        status: FAILED
-        color: danger
+      - uses: technote-space/workflow-conclusion-action@v3
+      - uses: voxmedia/github-action-slack-notify-build@v1
+        if: env.WORKFLOW_CONCLUSION == 'failure'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+        with:
+          channel: hannah-private-testing-channel
+          status: FAILED
+          color: danger
