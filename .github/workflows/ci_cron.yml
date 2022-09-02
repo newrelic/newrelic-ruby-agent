@@ -1,7 +1,12 @@
 name: Scheduled Continuous Integration
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+  schedule:
+    - cron:  '0 9 * * *'
 
 jobs:
   run_rubocop:
@@ -354,6 +359,6 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         with:
-          channel: hannah-private-testing-channel
+          channel: ruby-agent-notifications
           status: FAILED
           color: danger
