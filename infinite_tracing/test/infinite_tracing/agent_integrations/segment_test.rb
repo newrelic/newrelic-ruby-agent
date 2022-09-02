@@ -69,7 +69,7 @@ module NewRelic
             end
           end
 
-          assert_equal 2, span_events.size
+          assert_equal 0, span_events.size
         end
 
         def test_ignored_transaction_does_not_record_span_event

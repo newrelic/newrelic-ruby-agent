@@ -25,7 +25,7 @@ module NewRelic
       end
 
       def get_agent_commands
-        EMPTY_ARRAY
+        NewRelic::EMPTY_ARRAY
       end
 
       def analytic_event_data(events)
