@@ -122,7 +122,7 @@ module NewRelic
           if name && name.respond_to?(:split)
             name.split(SPACE)
           else
-            NewRelic::EMPTY_ARRAY
+            EMPTY_ARRAY
           end
         end
 
