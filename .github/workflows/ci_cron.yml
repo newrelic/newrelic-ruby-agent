@@ -349,7 +349,7 @@ jobs:
 
   notify_slack_fail:
     needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Notify slack fail
       if: ${{ failure() }}
