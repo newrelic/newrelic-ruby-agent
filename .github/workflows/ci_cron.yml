@@ -347,7 +347,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Notify slack fail
-      if: ${{ failure() }}
+      dependsOn: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+      condition: ${{ failure() }}
       env:
         SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
       uses: voxmedia/github-action-slack-notify-build@v1
