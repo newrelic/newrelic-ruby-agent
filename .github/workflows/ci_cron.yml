@@ -1,12 +1,7 @@
 name: Scheduled Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-  schedule:
-    - cron:  '0 9 * * *'
+  pull_request:
 
 jobs:
   run_rubocop:
@@ -357,6 +352,6 @@ jobs:
         SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
       uses: voxmedia/github-action-slack-notify-build@v1
       with:
-        channel: ruby-agent-notifications
+        channel: hannah-private-testing-channel
         status: FAILED
         color: danger
