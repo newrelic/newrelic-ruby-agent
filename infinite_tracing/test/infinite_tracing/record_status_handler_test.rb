@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+# require_relative '../test_helper'
 
 module NewRelic::Agent::InfiniteTracing
   class RecordStatusHandlerTest < Minitest::Test
