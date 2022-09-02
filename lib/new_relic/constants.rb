@@ -6,7 +6,7 @@
 module NewRelic
   PRIORITY_PRECISION = 6
 
-  # EMPTY_ARRAY = [].freeze
+  EMPTY_ARRAY = [].freeze
   EMPTY_HASH = {}.freeze
   EMPTY_STR = ""
 
