@@ -21,7 +21,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --tls-version 'TLSv1.2'
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - "3306:3306"
     strategy:
@@ -101,7 +101,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --tls-version 'TLSv1.2'
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - 3306
       postgres:
@@ -134,7 +134,7 @@ jobs:
         ports:
           - 5672:5672
         options: >-
-          --health-cmd "rabbitmqctl node_health_check"
+          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -261,7 +261,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --tls-version 'TLSv1.2'
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - "3306:3306"
       postgres:
@@ -286,7 +286,7 @@ jobs:
         ports:
           - 5672:5672
         options: >-
-          --health-cmd "rabbitmqctl node_health_check"
+          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
