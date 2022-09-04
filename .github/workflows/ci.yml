@@ -6,7 +6,9 @@ jobs:
   run_rubocop:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
@@ -29,7 +31,9 @@ jobs:
       matrix:
         ruby-version: [2.2.10, 3.1.2, jruby-9.3.7.0]
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -154,7 +158,9 @@ jobs:
         ruby-version: [2.2.10, 3.1.2]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -223,7 +229,9 @@ jobs:
       matrix:
         ruby-version: [2.5.9, 3.1.2]
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -310,8 +318,11 @@ jobs:
              java -version &&
              javac -version
 
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+
       - name: Check out the source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install JRuby
         uses: ruby/setup-ruby@v1
@@ -347,7 +358,9 @@ jobs:
     runs-on: ubuntu-22.04
     if: github.repository_owner == 'newrelic'
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'

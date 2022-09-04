@@ -12,7 +12,9 @@ jobs:
   run_rubocop:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
@@ -36,7 +38,9 @@ jobs:
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1, jruby-9.3.7.0]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -175,7 +179,9 @@ jobs:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -236,7 +242,9 @@ jobs:
       matrix:
         ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview1]
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -316,8 +324,11 @@ jobs:
              java -version &&
              javac -version
 
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+
       - name: Check out the source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install JRuby
         uses: ruby/setup-ruby@v1
