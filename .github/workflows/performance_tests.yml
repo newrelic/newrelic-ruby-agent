@@ -14,9 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: adriangl/check-new-commits-action@v1
-          with:
-            seconds: 604800
-            branch: 'dev'
+        with:
+          seconds: 604800
+          branch: 'dev'
       - run: puts ${{ steps.check-new-commits.outputs.has-new-commits }}
 
   run_performance_tests:
