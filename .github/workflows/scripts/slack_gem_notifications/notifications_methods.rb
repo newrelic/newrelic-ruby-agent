@@ -32,7 +32,7 @@ def gem_versions(gem_info)
   versions = gem_info.each_with_object([]) do |gem, arr|
     next unless gem['platform'] == 'ruby'
 
-    # for the "new" version (first one recored), report any and all types of
+    # for the "new" version (first one recorded), report any and all types of
     #   versions (stable, preview, rc, beta, etc.)
     # for the "previous" version, record only the newest stable version
     if arr.size == 0 || !gem['number'].match?(/(?:rc|beta|preview)/)
