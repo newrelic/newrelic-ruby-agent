@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 
 gem 'rake', '~> 12.3.3'
 gem 'rack', '>= 2.1.4'
+gem 'rackup'
 gem 'rails', '~> 5.2.0'
 
 gem 'minitest', '5.2.3'

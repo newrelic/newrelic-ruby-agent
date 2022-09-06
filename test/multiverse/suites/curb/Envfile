@@ -40,6 +40,7 @@ end
 gemfile <<-RB
   gem 'curb', '#{curb_gem_version}'
   gem 'rack'
+  gem 'rackup'
   gem 'json', :platforms => [:rbx, :mri_18]
 
   #{ruby3_gem_webrick}

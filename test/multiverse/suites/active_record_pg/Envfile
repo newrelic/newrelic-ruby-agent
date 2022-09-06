@@ -23,6 +23,7 @@ def gem_list(activerecord_version = nil)
     gem 'pg'
     #{ruby3_gem_webrick}
     gem 'rack'
+    gem 'rackup'
     gem 'minitest', '~> 5.2.3'
   RB
 end

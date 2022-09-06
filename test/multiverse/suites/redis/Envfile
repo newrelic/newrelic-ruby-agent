@@ -16,6 +16,7 @@ REDIS_VERSIONS = [
 def gem_list(redis_version = nil)
   <<-RB
     gem 'rack'
+    gem 'rackup'
     gem 'redis'#{redis_version}
     #{ruby3_gem_webrick}
   RB

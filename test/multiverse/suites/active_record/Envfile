@@ -52,12 +52,23 @@ def minitest_activerecord_version(activerecord_version)
 end
 
 def rack_version
-  add_version('2.1.4.1', false) if RUBY_VERSION < '2.3.0'
+  add_version('2.1.4.1', false) if need_old_rack?
+end
+
+def rackup_line
+  return if need_old_rack?
+
+  "gem 'rackup'"
+end
+
+def need_old_rack?
+  RUBY_VERSION < '2.3.0'
 end
 
 def gem_list(activerecord_version = nil)
   <<-RB
     gem 'rack'#{rack_version}
+    #{rackup_line}
     gem 'minitest'#{minitest_activerecord_version(activerecord_version)}
     gem 'activerecord'#{activerecord_version}
     #{mysql_gem(activerecord_version)}

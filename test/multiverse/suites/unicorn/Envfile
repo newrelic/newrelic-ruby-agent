@@ -18,6 +18,7 @@ def gem_list(unicorn_version = nil)
   <<-RB
     gem 'unicorn'#{unicorn_version}
     gem 'rack'
+    gem 'rackup'
   RB
 end
 

@@ -14,6 +14,7 @@ def gem_list(activemerchant_version = nil)
   <<-RB
     gem 'activemerchant'#{activemerchant_version}
     gem 'rack'
+    gem 'rackup'
     gem 'rexml' if RUBY_VERSION >= '3.0.0'
     #{ruby3_gem_webrick}
     gem 'activesupport'

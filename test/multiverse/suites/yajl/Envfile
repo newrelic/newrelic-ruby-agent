@@ -18,6 +18,7 @@ YAJL_VERSIONS = [
 def gem_list(yajl_version = nil)
   <<-RB
     gem 'rack'
+    gem 'rackup'
     gem 'yajl-ruby'#{yajl_version}, require: ['yajl', 'yajl/json_gem']
     #{ruby3_gem_webrick}
   RB

@@ -22,6 +22,7 @@ def gem_list(sidekiq_version = nil)
   gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
   <<-RB
     gem 'rack'
+    gem 'rackup'
     gem 'json'
     #{gem_connection_pool}
     #{gem_redis}
