@@ -29,14 +29,6 @@ jobs:
         with:
           name: performance-test-results
           path: test/performance/performance_tests.txt
-
-  slack_performance_tests:
-    name: Slack performance tests
-    needs: run_perf_tests
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
       - name: Upload to slack
         uses: adrey/slack-file-upload-action@master
         with:
