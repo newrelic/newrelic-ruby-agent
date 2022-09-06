@@ -19,7 +19,9 @@ class GemNotifications < Minitest::Test
   end
 
   def http_get_response
-    [{"created_at" => "2001-07-18T16:15:29.083Z", "platform" => "ruby", "number" => "3.0.0"},
+    [{"created_at" => "2001-07-18T16:15:29.083Z", "platform" => "ruby", "number" => "4.0.0.preview"},
+      {"created_at" => "2001-07-18T16:15:29.083Z", "platform" => "ruby", "number" => "3.0.0.rc1"},
+      {"created_at" => "2001-07-18T16:15:29.083Z", "platform" => "ruby", "number" => "3.0.0"},
       {"created_at" => "1997-05-23T16:15:29.083Z", "platform" => "java", "number" => "2.0.0"},
       {"created_at" => "1993-06-11T16:15:29.083Z", "platform" => "ruby", "number" => "1.0.0"}]
   end
@@ -60,6 +62,16 @@ class GemNotifications < Minitest::Test
   def test_get_gem_info_max_size
     versions = gem_versions(http_get_response())
     assert_equal true, versions.size == 2
+  end
+
+  def test_newest_version_can_be_a_preview_or_rc_or_beta_release
+    versions = gem_versions(http_get_response())
+    assert_equal '4.0.0.preview', versions.first['number']
+  end
+
+  def test_previous_version_must_be_a_stable_release
+    versions = gem_versions(http_get_response())
+    assert_equal '3.0.0', versions.last['number']
   end
 
   def test_gem_updated_true

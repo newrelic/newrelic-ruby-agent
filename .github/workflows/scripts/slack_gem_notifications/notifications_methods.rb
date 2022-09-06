@@ -30,7 +30,15 @@ end
 # Gem entries are ordered by release date. The break limits versions to two versions: newest and previous.
 def gem_versions(gem_info)
   versions = gem_info.each_with_object([]) do |gem, arr|
-    arr << gem if gem['platform'] == 'ruby'
+    next unless gem['platform'] == 'ruby'
+
+    # for the "new" version (first one recored), report any and all types of
+    #   versions (stable, preview, rc, beta, etc.)
+    # for the "previous" version, record only the newest stable version
+    if arr.size == 0 || !gem['number'].match?(/(?:rc|beta|preview)/)
+      arr << gem
+    end
+
     break arr if arr.size == 2
   end
 end
