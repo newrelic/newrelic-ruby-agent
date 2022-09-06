@@ -19,6 +19,7 @@ jobs:
           ruby-version: '3.1'
       - run: cd test/performance
       - run: bundle
+      - run: pwd
       - run: script/runner -B
       - uses: actions/checkout@v2
       - run: script/runner -C > performance_test.txt
