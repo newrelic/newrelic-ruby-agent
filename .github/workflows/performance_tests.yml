@@ -1,0 +1,53 @@
+name: Performance Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron:  '0 9 * * 0'
+jobs:
+  check_branch_changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      changed: ${{ steps.branch_change_output.outputs.has-new-commits }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: check branch changes
+        id: branch_change_output
+        uses: adriangl/check-new-commits-action@v1
+        with:
+          seconds: 604800
+          branch: 'dev'
+
+  run_performance_tests:
+    runs-on: ubuntu-22.04
+    needs: check_branch_changes
+    if: ${{ needs.check_branch_changes.outputs.changed == 'true' }}
+    defaults:
+      run:
+        working-directory: ./test/performance
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: 'main'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+      - run: bundle
+      - run: pwd
+      - run: script/runner -B
+      - uses: actions/checkout@v2
+      - run: script/runner -C > performance_tests.txt
+      - name: Save performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test-results
+          path: test/performance/performance_tests.txt
+      - name: Slack results
+        uses: adrey/slack-file-upload-action@master
+        with:
+          token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+          path: test/performance/performance_tests.txt
+          channel: ruby-agent-notifications
+          title: Weekly performance tests
