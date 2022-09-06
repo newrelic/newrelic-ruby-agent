@@ -11,6 +11,12 @@
     Thank you to @texpert for providing details of their situation to help resolve the issue.
   
   
+  * **Bugfix: GRPC instrumentation causes ArgumentError when other google gems are present**
+
+    Previously, when the agent had grpc instrumentation enabled in an application using other gems (such as google-ads-googleads), the instrumentation could cause the error `ArgumentError: wrong number of arguments (given 3, expected 2)`. The grpc instrumentation has been updated to prevent this issue from occurring in the future. 
+
+    Thank you to @FeminismIsAwesome for bringing this issue to our attention.
+
 
   ## v8.10.0
 
