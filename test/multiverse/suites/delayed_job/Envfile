@@ -27,7 +27,6 @@ end
 
 boilerplate_gems = <<-SQLITE
   gem 'rack'
-  gem 'rackup'
   #{sqlite}
   #{bigdecimal}
   #{ruby3_gem_webrick}

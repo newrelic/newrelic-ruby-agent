@@ -16,7 +16,6 @@ def gem_list(excon_version = nil)
   <<-RB
     gem 'excon'#{excon_version}
     gem 'rack'
-    gem 'rackup'
     #{ruby3_gem_webrick}
   RB
 end

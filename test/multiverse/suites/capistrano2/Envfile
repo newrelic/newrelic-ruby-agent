@@ -10,6 +10,5 @@ end
 gemfile <<-RB
   gem 'capistrano', '~> 2.15.5'
   gem 'rack'
-  gem 'rackup'
   #{ruby3_gem_webrick}
 RB

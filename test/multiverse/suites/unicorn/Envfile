@@ -17,8 +17,7 @@ SUPPORTED_UNICORN_VERSIONS = [
 def gem_list(unicorn_version = nil)
   <<-RB
     gem 'unicorn'#{unicorn_version}
-    gem 'rack'
-    gem 'rackup'
+    gem 'rack' if RUBY_VERSION >= '2.4.0'
   RB
 end
 

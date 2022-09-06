@@ -265,6 +265,8 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
+        f.puts "gem 'rackup'" if need_rackup?(gemfile_text)
+
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
@@ -304,6 +306,18 @@ module Multiverse
       else
         '5.3.3'
       end
+    end
+
+    # rack v3 moved rack/handler out into a separate rackup gem
+    # rack v3 and rackup require Ruby 2.4+, so assume rack v2 or below
+    # (which doesn't need the separate rackup) for older rubies
+    def need_rackup?(gemfile_text)
+      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:[^\d]+(\d))?/ && RUBY_VERSION >= '2.4.0'
+
+      rack_major_version = Regexp.last_match(0)
+      return true unless rack_major_version.nil? # no version constraint, latest rack, needs rackup
+
+      ![1, 2].include?(rack_major_version) # no rackup needed for rack v1 and v2
     end
 
     def require_minitest

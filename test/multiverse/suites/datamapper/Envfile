@@ -13,7 +13,6 @@ adapter_gems = <<-RB
 
   # Needed for the fake collector
   gem 'rack'
-  gem 'rackup'
 RB
 
 gemfile <<-RB

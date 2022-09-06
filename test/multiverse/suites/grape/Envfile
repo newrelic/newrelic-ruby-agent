@@ -14,7 +14,6 @@ GRAPE_VERSIONS = [
 def gem_list(grape_version = nil)
   <<-RB
     gem 'rack'
-    gem 'rackup'
     gem 'rack-test', '>= 0.8.0'
     gem 'grape'#{grape_version}
     #{ruby3_gem_webrick}

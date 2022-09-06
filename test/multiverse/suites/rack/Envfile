@@ -35,7 +35,6 @@ RACK_VERSIONS = [
 def gem_list(rack_version = nil)
   <<-RB
     gem 'rack'#{rack_version}
-    #{"gem 'rackup'" unless rack_version.to_s.match?(/^1|2/)}
     gem 'rack-test'
     #{ruby3_gem_webrick}
   RB

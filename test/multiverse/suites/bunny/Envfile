@@ -19,7 +19,6 @@ BUNNY_VERSIONS = [
 def gem_list(bunny_version = nil)
   <<-RB
     gem 'rack'
-    gem 'rackup'
     gem 'bunny'#{bunny_version}
     gem 'amq-protocol'
     #{ruby3_gem_webrick}
