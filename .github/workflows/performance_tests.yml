@@ -23,9 +23,23 @@ jobs:
       - run: pwd
       - run: script/runner -B
       - uses: actions/checkout@v2
-      - run: script/runner -C > performance_test.txt
+      - run: script/runner -C > performance_tests.txt
       - name: Save performance results
         uses: actions/upload-artifact@v3
         with:
           name: performance-test-results
-          path: test/performance/performance_test.txt
+          path: test/performance/performance_tests.txt
+
+  slack_performance_tests:
+    name: Slack performance tests
+    needs: run_perf_tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Upload to slack
+        uses: adrey/slack-file-upload-action@master
+        with:
+          token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+          path: ./test/performance/performance_tests.txt
+          channel: ruby-agent-notifications
