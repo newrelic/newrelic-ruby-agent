@@ -15,12 +15,13 @@ SINATRA_VERSIONS = [
 # NOTE: Sinatra v2.2.2 itself requires rack `~> 2.2`. Here we redundantly
 #       specify a dependency on rack `~> 2.2` so that the multiverse helpers
 #       will see that Rack v2 is in play and not try to install rackup, which
-#       requires Rack v3
+#       requires Rack v3.
 def gem_list(sinatra_version = nil)
+  rack_version = sinatra_version.start_with?('1') ? '~> 1.5' : '~> 2.2'
   rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
   <<-RB
     gem 'sinatra'#{sinatra_version}
-    gem 'rack', '~> 2.2'
+    gem 'rack', '#{rack_version}'
     gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
     #{ruby3_gem_webrick}
   RB
