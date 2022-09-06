@@ -10,6 +10,9 @@ on:
 jobs:
   run_perf_tests:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: ./test/performance
     steps:
       - uses: actions/checkout@v2
         with:
@@ -17,7 +20,6 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.1'
-      - run: cd test/performance
       - run: bundle
       - run: pwd
       - run: script/runner -B
