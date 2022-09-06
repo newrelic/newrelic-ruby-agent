@@ -42,4 +42,4 @@ jobs:
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
           path: ./test/performance/performance_tests.txt
-          channel: ruby-agent-notifications
+          channel: hannah-private-testing-channel
