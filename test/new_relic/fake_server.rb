@@ -6,7 +6,7 @@
 require 'webrick'
 require 'webrick/https'
 require 'rack'
-require 'rack/handler'
+require 'rackup/handler'
 require 'timeout'
 require 'json'
 

@@ -4,9 +4,8 @@ on:
   pull_request:
     # branches:
     #   - main
- # TODO: cron weekly schedule
   # schedule:
-  #   - cron:  '0 9 * * *'
+  #   - cron:  '0 9 * * 0'
 jobs:
   run_perf_tests:
     runs-on: ubuntu-22.04
