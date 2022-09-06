@@ -7,7 +7,7 @@ gem 'rails', '~> 4.0.0'
 gem 'minitest', '4.7.5', require: false # Minitest ~> 4.2 required for Rails 3.2
 gem 'minitest-stub-const', '~> 0.6', :require => false
 gem 'mocha', '~> 1.9.0', require: false
-gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
+gem 'rack', '~> 1.5.2'
 gem 'rack-test'
 
 platforms :jruby do
