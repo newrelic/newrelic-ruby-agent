@@ -9,6 +9,7 @@ module NewRelic
       module MonitoredThread
         attr_reader :nr_parent_thread_id
 
+        # test change
         def initialize_with_newrelic_tracing
           @nr_parent_thread_id = ::Thread.current.object_id
           yield
