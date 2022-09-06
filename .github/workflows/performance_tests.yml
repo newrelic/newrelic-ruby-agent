@@ -1,0 +1,29 @@
+name: Performance Tests
+
+on:
+  pull_request:
+    # branches:
+    #   - main
+ # TODO: cron weekly schedule
+  # schedule:
+  #   - cron:  '0 9 * * *'
+jobs:
+  run_perf_tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: 'main'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+      - run: cd test/performance
+      - run: bundle
+      - run: script/runner -B
+      - uses: actions/checkout@v2
+      - run: script/runner -C > performance_test.txt
+      - name: Save performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test-results
+          path: test/performance/performance_test.txt
