@@ -1,7 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
 
-  ## v8.11.0
+  ## v8.10.1
 
 
   * **Bugfix: Missing unscoped metrics when instrumentation.thread.tracing is enabled**
