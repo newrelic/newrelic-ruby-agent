@@ -66,7 +66,7 @@ module NewRelic
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)
-      @server.mount(String.new('/'), ::Rackup::Handler.get(:webrick), app)
+      @server.mount(String.new('/'), webrick_handler, app)
 
       @thread = Thread.new(&self.method(:run_server)).tap { |t| t.abort_on_exception = true }
     end
@@ -78,6 +78,11 @@ module NewRelic
       @thread.join if running?
       @started_options = nil
       reset
+    end
+
+    def webrick_handler
+      handler = defined?(::Rackup) ? ::Rackup::Handler : ::Rack::Handler
+      handler.get(:webrick)
     end
 
     def build_webrick_options
