@@ -6,6 +6,7 @@
 require 'logger'
 require 'unicorn'
 require 'newrelic_rpm'
+require 'rack'
 
 class UnicornTest < Minitest::Test
   include MultiverseHelpers
@@ -14,7 +15,7 @@ class UnicornTest < Minitest::Test
   def setup
     NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
     @server = ::Unicorn::HttpServer.new(
-      Rack::Builder.app(
+      ::Rack::Builder.app(
         lambda { [200, {'Content-Type' => 'text/html'}, ['OK']] }
       )
     )

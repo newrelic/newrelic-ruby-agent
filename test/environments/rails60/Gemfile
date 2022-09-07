@@ -8,7 +8,7 @@ gem 'rails', '~> 6.0.0'
 gem 'minitest', '5.2.3'
 gem 'minitest-stub-const', '~> 0.6'
 gem 'mocha', '~> 1.1.0', :require => false
-gem 'rack', '>= 2.1.4'
+gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
 gem 'rack-test'
 gem 'sprockets', '3.7.2'
 
