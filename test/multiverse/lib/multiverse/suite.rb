@@ -314,8 +314,8 @@ module Multiverse
     def need_rackup?(gemfile_text)
       return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:[^\d]+(\d))?/ && RUBY_VERSION >= '2.4.0'
 
-      rack_major_version = Regexp.last_match(0)
-      return true unless rack_major_version.nil? # no version constraint, latest rack, needs rackup
+      rack_major_version = Regexp.last_match(1)
+      return true if rack_major_version.nil? # no version constraint, latest rack, needs rackup
 
       !%w[1, 2].include?(rack_major_version) # no rackup needed for rack v1 and v2
     end
