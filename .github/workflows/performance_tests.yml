@@ -46,7 +46,7 @@ jobs:
           name: performance-test-results
           path: test/performance/performance_tests.txt
       - name: Slack results
-        uses: adrey/slack-file-upload-action@v1
+        uses: adrey/slack-file-upload-action@1.0.5
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
           path: ./test/performance/performance_tests.txt
