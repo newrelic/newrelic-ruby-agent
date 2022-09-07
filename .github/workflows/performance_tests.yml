@@ -17,7 +17,7 @@ jobs:
         id: branch_change_output
         uses: adriangl/check-new-commits-action@v1
         with:
-          seconds: 604800
+          seconds: 50
           branch: 'dev'
 
   run_performance_tests:
