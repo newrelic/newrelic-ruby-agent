@@ -6,7 +6,7 @@
 require 'webrick'
 require 'webrick/https'
 require 'rack'
-require 'rackup/handler' unless Rack::RELEASE =~ /^1|2/
+require 'rackup/handler' unless Rack.release =~ /^1|2/
 require 'timeout'
 require 'json'
 
