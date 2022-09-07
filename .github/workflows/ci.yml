@@ -261,8 +261,25 @@ jobs:
           name: coverage-report-infinite-tracing
           path: lib/coverage_*/.resultset.json
 
-  jruby_multiverse:
+  check_jruby_multiverse:
     needs: run_rubocop
+    runs-on: ubuntu-22.04
+    outputs:
+      run_job: ${{ steps.filter.outputs.run_job }}
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            run_job:
+              - 'lib/new_relic/agent/instrumentation/**'
+
+  jruby_multiverse:
+    needs: check_jruby_multiverse
+    if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
     runs-on: ubuntu-22.04
     services:
       mysql:
