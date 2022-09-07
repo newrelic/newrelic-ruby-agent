@@ -2,10 +2,10 @@ name: Performance Tests
 
 on:
   pull_request:
-    # branches:
-    #   - main
-  # schedule:
-  #   - cron:  '0 9 * * 0'
+    branches:
+      - main
+  schedule:
+    - cron:  '0 9 * * 0'
 jobs:
   check_branch_changes:
     runs-on: ubuntu-22.04
@@ -17,7 +17,7 @@ jobs:
         id: branch_change_output
         uses: adriangl/check-new-commits-action@v1
         with:
-          seconds: 50
+          seconds: 604800
           branch: 'dev'
 
   run_performance_tests:
