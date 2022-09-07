@@ -13,7 +13,7 @@ jobs:
     outputs:
       changed: ${{ steps.branch_change_output.outputs.has-new-commits }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: check branch changes
         id: branch_change_output
         uses: adriangl/check-new-commits-action@v1
@@ -29,7 +29,7 @@ jobs:
       run:
         working-directory: ./test/performance
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: 'main'
       - uses: ruby/setup-ruby@v1
@@ -37,7 +37,8 @@ jobs:
           ruby-version: '3.1'
       - run: bundle
       - run: script/runner -B
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - run: bundle
       - run: script/runner -C > performance_tests.txt
       - name: Save performance results
         uses: actions/upload-artifact@v3
@@ -45,7 +46,7 @@ jobs:
           name: performance-test-results
           path: test/performance/performance_tests.txt
       - name: Slack results
-        uses: adrey/slack-file-upload-action@master
+        uses: adrey/slack-file-upload-action@v1
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
           path: ./test/performance/performance_tests.txt
