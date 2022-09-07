@@ -47,6 +47,7 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.homepage = "https://github.com/newrelic/rpm"
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"
+  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] # for Gabby
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'minitest', '5.3.3'
   s.add_development_dependency 'minitest-stub-const', '0.6'
@@ -57,5 +58,5 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'rubocop'
   s.add_development_dependency 'rubocop-performance'
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
-  s.add_development_dependency 'httparty'
+  s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
 end
