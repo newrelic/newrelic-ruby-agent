@@ -12,13 +12,12 @@ SINATRA_VERSIONS = [
   ['1.4.8', 2.2]
 ]
 
-# rack v2.2 requires ruby 2.3+
-# sinatra v1.x needs rack v1.x
-# sinatra v2.x with ruby v2.2- get rack v2.x
+# rack v2.2+ requires ruby 2.3+, use rack v2.0 for older rubies
+# sinatra v1.x needs rack v1.x, regardless of ruby version
 def rack_version(sinatra_version)
-  return '~> 2.0' if RUBY_VERSION < '2.3.0'
+  return '~> 1.5' if sinatra_version.to_s =~ /^[^\d]*1/
 
-  sinatra_version.to_s =~ /^[^\d]*1/ ? '~> 1.5' : '~> 2.2'
+  RUBY_VERSION < '2.3.0' ? '~> 2.0' : '~> 2.2'
 end
 
 def gem_list(sinatra_version = nil)
