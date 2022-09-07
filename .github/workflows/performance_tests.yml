@@ -9,11 +9,10 @@ on:
 jobs:
   check_branch_changes:
     runs-on: ubuntu-22.04
-    outputs: ${{ steps.id.check-new-commits }}
     steps:
       - uses: actions/checkout@v2
       - name: check branch changes
-        id: check-new-commits
+        id: branch_change_output
         uses: adriangl/check-new-commits-action@v1
         with:
           seconds: 604800
@@ -22,7 +21,7 @@ jobs:
   run_performance_tests:
     runs-on: ubuntu-22.04
     needs: check_branch_changes
-    if: ${{ needs.check_branch_changes.outputs.has-new-commits == 'true' }}
+    if: ${{ needs.check_branch_changes.steps.check_branch_output.outputs.has-new-commits == 'true' }}
     defaults:
       run:
         working-directory: ./test/performance
