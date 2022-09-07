@@ -14,10 +14,34 @@ SUPPORTED_UNICORN_VERSIONS = [
   ['4.9.0', 2.2]
 ]
 
+def rack_version
+  if RUBY_VERSION < '2.3.0'
+    '~> 2.1.4.1'
+  elsif RUBY_VERSION < '3.0.0'
+    '~> 2.2.4'
+  else
+    # TODO: CI - rack v3.0.0 causes 2 test failures
+    #
+    # UnicornTest#test_unicorn_set_as_discovered_dispatcher
+    # [test/multiverse/suites/unicorn/unicorn_test.rb:32]:
+    # Didn't see message 'Dispatcher: unicorn'
+    #
+    # and
+    #
+    # UnicornTest#test_defer_message_logged_when_unicorn_in_use
+    # [test/multiverse/suites/unicorn/unicorn_test.rb:36]:
+    # Didn't see message 'Deferring startup of agent reporting thread because unicorn may fork.'
+    #
+    # Once the issue is resolved, rack should be set to '~> 3.0.0' below
+    # '~> 3.0.0'
+    '~> 2.2.4'
+  end
+end
+
 def gem_list(unicorn_version = nil)
   <<-RB
     gem 'unicorn'#{unicorn_version}
-    gem 'rack'
+    gem 'rack', "#{rack_version}"
   RB
 end
 
