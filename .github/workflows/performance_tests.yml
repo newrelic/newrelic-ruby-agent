@@ -17,13 +17,11 @@ jobs:
         with:
           seconds: 604800
           branch: 'dev'
-        - run: puts ${{ steps.check_branch_output.outputs.has-new-commits }}
 
   run_performance_tests:
     runs-on: ubuntu-22.04
     needs: check_branch_changes
-    run: puts ${{ steps.check_branch_output.outputs.has-new-commits }}
-    if: ${{ needs.check_branch_changes.steps.check_branch_output.outputs.has-new-commits == 'true' }}
+    if: ${{ needs.check_branch_changes.steps.branch_change_output.outputs.has-new-commits == 'true' }}
     defaults:
       run:
         working-directory: ./test/performance
