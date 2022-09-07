@@ -9,6 +9,7 @@ on:
 jobs:
   check_branch_changes:
     runs-on: ubuntu-22.04
+    outputs: ${{ steps.id.check-new-commits }}
     steps:
       - uses: actions/checkout@v2
       - name: check branch changes
@@ -17,12 +18,11 @@ jobs:
         with:
           seconds: 604800
           branch: 'dev'
-      - run: puts ${{ steps.check-new-commits.outputs.has-new-commits }}
 
   run_performance_tests:
     runs-on: ubuntu-22.04
     needs: check_branch_changes
-    if: ${{ steps.check-new-commits.outputs.has-new-commits == 'true' }}
+    if: ${{ needs.check_branch_changes.outputs.has-new-commits == 'true' }}
     defaults:
       run:
         working-directory: ./test/performance
