@@ -7,7 +7,21 @@ instrumentation_methods :chain, :prepend
 
 # Net::HTTP is included in Ruby's standard library
 # It should not be explicitly listed here.
+#
+#
+# TODO: CI - rack v3.0.0 causes 2 test failures
+#
+# HTTPClientTest#test_crossapp_metrics_allow_valid_utf8_characters
+# [test/new_relic/http_client_test_cases.rb:381]:
+# Expected [:uri] to include :transaction_guid.
+#
+# and
+#
+# HTTPClientTest#test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
+# [test/new_relic/http_client_test_cases.rb:357]
+#
+# Once the issue is resolved, rack should be unpinned below
 gemfile <<-RB
-  gem 'rack'
+  gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
   #{ruby3_gem_webrick}
 RB
