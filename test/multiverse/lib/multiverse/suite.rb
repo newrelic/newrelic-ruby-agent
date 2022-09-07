@@ -317,7 +317,7 @@ module Multiverse
       rack_major_version = Regexp.last_match(1)
       return true if rack_major_version.nil? # no version constraint, latest rack, needs rackup
 
-      !%w[1, 2].include?(rack_major_version) # no rackup needed for rack v1 and v2
+      !%w[1 2].include?(rack_major_version) # no rackup needed for rack v1 and v2
     end
 
     def require_minitest
