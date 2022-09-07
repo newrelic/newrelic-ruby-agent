@@ -2,10 +2,10 @@ name: Performance Tests
 
 on:
   pull_request:
-  #   branches:
-  #     - main
-  # schedule:
-  #   - cron:  '0 9 * * 0'
+    branches:
+      - main
+  schedule:
+    - cron:  '0 9 * * 0'
 
 jobs:
   check_branch_changes:
@@ -50,4 +50,4 @@ jobs:
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
           path: ./test/performance/performance_tests.txt
-          channel: hannah-private-testing-channel
+          channel: ruby-agent-notifications
