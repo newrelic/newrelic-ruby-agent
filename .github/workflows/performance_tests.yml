@@ -10,9 +10,9 @@ jobs:
   check_branch_changes:
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v2
       - name: check branch changes
         id: check-new-commits
-        uses: actions/checkout@v2
         uses: adriangl/check-new-commits-action@v1
         with:
           seconds: 604800
