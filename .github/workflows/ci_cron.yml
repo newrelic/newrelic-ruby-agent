@@ -1,6 +1,7 @@
 name: Scheduled Continuous Integration
 
 on:
+  pull_request: #temp
   push:
     branches:
       - main
