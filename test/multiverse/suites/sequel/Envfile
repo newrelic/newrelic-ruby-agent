@@ -13,7 +13,7 @@ def gem_list(sequel_version = nil)
   <<-RB
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
     gem 'jdbc-sqlite3', '3.7.2', :platform => :jruby
-    gem 'sqlite3', :platform => :ruby
+    gem 'sqlite3',#{" '< 1.5.0'," if RUBY_VERSION < '2.6'} :platform => :ruby
     gem 'sequel'#{sequel_version}
   RB
 end
