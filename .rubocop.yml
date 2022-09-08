@@ -1,5 +1,6 @@
 require:
   - rubocop-performance
+  - rubocop-minitest
 
 AllCops:
   TargetRubyVersion: 2.7

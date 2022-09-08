@@ -56,6 +56,7 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'pry' unless ENV['CI']
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'rubocop-minitest'
   s.add_development_dependency 'rubocop-performance'
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
