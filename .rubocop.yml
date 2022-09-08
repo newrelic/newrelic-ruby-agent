@@ -1173,12 +1173,9 @@ Performance/UriDefaultParser:
   Enabled: true
 
 # Failing Rake cops - disabled pending dev review
-Rake/MethodDefinitionInTask:
-  Enabled: false
-
 Rake/Desc:
   Enabled: false
-
+  
 Rake/MethodDefinitionInTask:
   Enabled: false
 
