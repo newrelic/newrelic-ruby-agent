@@ -1,7 +1,7 @@
 require:
   - rubocop-minitest
   - rubocop-performance
-  - rubocop-rake
+  # - rubocop-rake
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -877,125 +877,74 @@ Metrics/PerceivedComplexity:
 Migration/DepartmentName:
   Enabled: true
 
-# Minitest cops - all disabled for now; pending dev review
+# Failing Minitest cops - disabled pending dev review
 Minitest/AssertEmpty:
   Enabled: false
 
 Minitest/AssertEmptyLiteral:
   Enabled: false
-
+  
 Minitest/AssertEqual:
   Enabled: false
-
+  
 Minitest/AssertInDelta:
   Enabled: false
-
+  
 Minitest/AssertIncludes:
   Enabled: false
-
-Minitest/AssertInstanceOf:
-  Enabled: false
-
+  
 Minitest/AssertKindOf:
   Enabled: false
-
-Minitest/AssertMatch:
-  Enabled: false
-
+  
 Minitest/AssertNil:
   Enabled: false
-
-Minitest/AssertOutput:
-  Enabled: false
-
+  
 Minitest/AssertPathExists:
   Enabled: false
-
+  
 Minitest/AssertPredicate:
   Enabled: false
-
+  
 Minitest/AssertRaisesCompoundBody:
   Enabled: false
-
-Minitest/AssertRaisesWithRegexpArgument:
-  Enabled: false
-
+  
 Minitest/AssertRespondTo:
   Enabled: false
-
-Minitest/AssertSilent:
-  Enabled: false
-
+  
 Minitest/AssertTruthy:
   Enabled: false
-
+  
 Minitest/AssertWithExpectedArgument:
   Enabled: false
-
-Minitest/AssertionInLifecycleHook:
-  Enabled: false
-
+  
 Minitest/DuplicateTestRun:
   Enabled: false
-
-Minitest/GlobalExpectations:
-  Enabled: false
-
+  
 Minitest/LiteralAsActualArgument:
   Enabled: false
-
+  
 Minitest/MultipleAssertions:
   Enabled: false
-
-Minitest/NoAssertions:
-  Enabled: false
-
+  
 Minitest/RefuteEmpty:
   Enabled: false
-
+  
 Minitest/RefuteEqual:
   Enabled: false
-
+  
 Minitest/RefuteFalse:
   Enabled: false
-
-Minitest/RefuteInDelta:
-  Enabled: false
-
+  
 Minitest/RefuteIncludes:
   Enabled: false
-
-Minitest/RefuteInstanceOf:
-  Enabled: false
-
-Minitest/RefuteKindOf:
-  Enabled: false
-
-Minitest/RefuteMatch:
-  Enabled: false
-
-Minitest/RefuteNil:
-  Enabled: false
-
+  
 Minitest/RefutePathExists:
   Enabled: false
-
+  
 Minitest/RefutePredicate:
   Enabled: false
-
-Minitest/RefuteRespondTo:
-  Enabled: false
-
-Minitest/SkipEnsure:
-  Enabled: false
-
+  
 Minitest/TestMethodName:
-  Enabled: false
-
-Minitest/UnreachableAssertion:
-  Enabled: false
-
-Minitest/UnspecifiedException:
   Enabled: false
 
 Naming/AccessorMethodName:
@@ -1222,6 +1171,16 @@ Performance/UnfreezeString:
 
 Performance/UriDefaultParser:
   Enabled: true
+
+# Failing Rake cops - disabled pending dev review
+Rake/MethodDefinitionInTask:
+  Enabled: false
+
+Rake/Desc:
+  Enabled: false
+
+Rake/MethodDefinitionInTask:
+  Enabled: false
 
 # Disabling for now
 Security/Eval:
