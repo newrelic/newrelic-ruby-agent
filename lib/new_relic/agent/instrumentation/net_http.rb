@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+require 'openssl'
+puts "\n\n\n\nwaluigi Ruby is linked against system OpenSSL version #{OpenSSL::OPENSSL_VERSION}\n\n\n\n"
 
 require_relative 'net_http/chain'
 require_relative 'net_http/prepend'
