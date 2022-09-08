@@ -1,0 +1,21 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+
+module NewRelic::Agent::Instrumentation
+  module <%= @name.capitalize %>
+    def self.instrument!
+      ::<%= @name.capitalize %>.class_eval do
+        include NewRelic::Agent::Instrumentation::<%= @name.capitalize %>
+
+        alias_method :<%= @method.downcase %>_without_new_relic, :<%= @method.downcase %>
+
+        def <%= @method.downcase %><%= "(#{@args})" if @args %>
+          <%= @method.downcase %>_with_tracing<%= "(#{@args})" if @args %> do
+            <%= @method.downcase %>_without_new_relic<%= "(#{@args})" if @args %>
+          end
+        end
+      end
+    end
+  end
+end
