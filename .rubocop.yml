@@ -1179,9 +1179,6 @@ Rake/MethodDefinitionInTask:
 Rake/Desc:
   Enabled: false
 
-Rake/MethodDefinitionInTask:
-  Enabled: false
-
 # Disabling for now
 Security/Eval:
   Enabled: false
