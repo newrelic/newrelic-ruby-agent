@@ -47,7 +47,7 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.homepage = "https://github.com/newrelic/rpm"
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"
-  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] # for Gabby
+  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI']  || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'minitest', '5.3.3'
   s.add_development_dependency 'minitest-stub-const', '0.6'
