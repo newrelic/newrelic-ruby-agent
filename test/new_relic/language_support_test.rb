@@ -97,4 +97,19 @@ class NewRelic::LanguageSupportTest < Minitest::Test
     assert_equal ::ContainsAnObject::ContainedObject,
       NewRelic::LanguageSupport.constantize("ContainsAnObject::ContainedObject")
   end
+
+  def test_should_camelize_names_with_hyphens
+    name = 'concurrent-ruby'
+    assert_equal 'ConcurrentRuby', NewRelic::LanguageSupport.camelize(name)
+  end
+
+  def test_should_camelize_names_with_underscores
+    name = 'delayed_job'
+    assert_equal 'DelayedJob', NewRelic::LanguageSupport.camelize(name)
+  end
+
+  def test_should_camelize_names_with_underscores_and_hyphens
+    name = 'newrelic-infinite_tracing'
+    assert_equal 'NewrelicInfiniteTracing', NewRelic::LanguageSupport.camelize(name)
+  end
 end
