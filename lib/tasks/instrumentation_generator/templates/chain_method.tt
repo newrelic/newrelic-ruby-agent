@@ -1,7 +1,7 @@
 alias_method :<%= @method.downcase %>_without_new_relic, :<%= @method.downcase %>
 
-def <%= @method.downcase %><%= "(#{@args})" if @args %>
-  <%= @method.downcase %>_with_tracing<%= "(#{@args})" if @args %> do
-    <%= @method.downcase %>_without_new_relic<%= "(#{@args})" if @args %>
+def <%= @method.downcase %><%= "(#{@args})" unless @args.empty? %>
+  <%= @method.downcase %>_with_tracing<%= "(#{@args})" unless @args.empty? %> do
+    <%= @method.downcase %>_without_new_relic<%= "(#{@args})" unless @args.empty? %>
   end
 end
