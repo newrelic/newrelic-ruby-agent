@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: performance-test-results
-          path: test/performance/performance_tests.txt
+          path: ./test/performance/performance_tests.txt
       - name: Slack results
         uses: adrey/slack-file-upload-action@1.0.5
         with:
