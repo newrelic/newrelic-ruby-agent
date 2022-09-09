@@ -1,7 +1,10 @@
 require:
   - rubocop-minitest
+  # Default configurations: https://github.com/rubocop/rubocop-minitest/blob/master/config/default.yml
   - rubocop-performance
+  # Default configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
   <%= '- rubocop-rake' if RUBY_VERSION >= '2.4.0' %>
+  # Default configurations: https://github.com/rubocop/rubocop-rake/blob/master/config/default.yml
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -877,7 +880,7 @@ Metrics/PerceivedComplexity:
 Migration/DepartmentName:
   Enabled: true
 
-# Failing Minitest cops - disabled pending dev review
+# TODO: Failing Minitest cops - disabled pending dev review
 Minitest/AssertEmpty:
   Enabled: false
 
@@ -1172,7 +1175,7 @@ Performance/UnfreezeString:
 Performance/UriDefaultParser:
   Enabled: true
 
-# Failing Rake cops - disabled pending dev review
+# TODO: Failing Rake cops - disabled pending dev review
 Rake/Desc:
   Enabled: false
   
