@@ -110,6 +110,6 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
   def test_should_camelize_names_with_underscores_and_hyphens
     name = 'newrelic-infinite_tracing'
-    assert_equal 'NewRelicInfiniteTracing', NewRelic::LanguageSupport.camelize(name)
+    assert_equal 'NewrelicInfiniteTracing', NewRelic::LanguageSupport.camelize(name)
   end
 end
