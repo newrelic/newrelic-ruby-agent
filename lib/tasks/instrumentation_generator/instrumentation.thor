@@ -63,6 +63,7 @@ class Instrumentation < Thor
 
   def create_tests(name)
     @name = name
+    @instrumentation_method_global_erb_snippet = '<%= $instrumentation_method %>'
     base_path = "#{MULTIVERSE_SUITE_ROOT}#{@name.downcase}"
     empty_directory(base_path)
     template('templates/Envfile.tt', "#{base_path}/Envfile")
