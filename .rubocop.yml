@@ -1,7 +1,7 @@
 require:
   - rubocop-minitest
   - rubocop-performance
-  - rubocop-rake
+  <%= '- rubocop-rake' if RUBY_VERSION >= '2.4.0' %>
 
 AllCops:
   TargetRubyVersion: 2.7
