@@ -76,7 +76,7 @@ class Instrumentation < Thor
   def create_configuration(name)
     config = <<-CONFIG
         :'instrumentation.#{name.downcase}' => {
-          :default => "auto",
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,

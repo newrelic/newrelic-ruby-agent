@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
       ::<%= @class_name %>.class_eval do
         include NewRelic::Agent::Instrumentation::<%= @class_name %>
 
-        alias_method :<%= @method.downcase %>_without_new_relic, :<%= @method.downcase %>
+        alias_method(:<%= @method.downcase %>_without_new_relic, :<%= @method.downcase %>)
 
         def <%= @method.downcase %><%= "(#{@args})" if @args %>
           <%= @method.downcase %>_with_tracing<%= "(#{@args})" if @args %> do
