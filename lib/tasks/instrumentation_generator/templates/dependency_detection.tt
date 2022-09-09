@@ -8,7 +8,7 @@ require_relative '<%= @name.downcase %>/chain'
 require_relative '<%= @name.downcase %>/prepend'
 
 DependencyDetection.defer do
-  named :<%= @name.downcase %>
+  named :<%= @name.match?(/\-|\_/) ? "'#{@name.downcase}'" : @name.downcase %>
 
   depends_on do
     # The class that needs to be defined to prepend/chain onto. This can be used
