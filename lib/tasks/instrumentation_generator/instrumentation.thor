@@ -81,7 +81,7 @@ class Instrumentation < Thor
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the #{name.capitalize} library at start up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the #{name.downcase} library at start up. May be one of [auto|prepend|chain|disabled].'
         },
     CONFIG
     insert_into_file(
