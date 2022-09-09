@@ -26,6 +26,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
 
   def teardown
     NewRelic::Agent.shutdown
+    mocha_teardown
   end
 
   def test_scope_stack_integrity_maintained_on_request_failure
