@@ -1,10 +1,12 @@
+inherit_from: .rubocop_todo.yml
+
 require:
+  # Default minitest configurations: https://github.com/rubocop/rubocop-minitest/blob/master/config/default.yml
   - rubocop-minitest
-  # Default configurations: https://github.com/rubocop/rubocop-minitest/blob/master/config/default.yml
+  # Default performance configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
   - rubocop-performance
-  # Default configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
+  # Default rake configurations: https://github.com/rubocop/rubocop-rake/blob/master/config/default.yml
   <%= '- rubocop-rake' if RUBY_VERSION >= '2.4.0' %>
-  # Default configurations: https://github.com/rubocop/rubocop-rake/blob/master/config/default.yml
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -880,76 +882,6 @@ Metrics/PerceivedComplexity:
 Migration/DepartmentName:
   Enabled: true
 
-# TODO: Failing Minitest cops - disabled pending dev review
-Minitest/AssertEmpty:
-  Enabled: false
-
-Minitest/AssertEmptyLiteral:
-  Enabled: false
-  
-Minitest/AssertEqual:
-  Enabled: false
-  
-Minitest/AssertInDelta:
-  Enabled: false
-  
-Minitest/AssertIncludes:
-  Enabled: false
-  
-Minitest/AssertKindOf:
-  Enabled: false
-  
-Minitest/AssertNil:
-  Enabled: false
-  
-Minitest/AssertPathExists:
-  Enabled: false
-  
-Minitest/AssertPredicate:
-  Enabled: false
-  
-Minitest/AssertRaisesCompoundBody:
-  Enabled: false
-  
-Minitest/AssertRespondTo:
-  Enabled: false
-  
-Minitest/AssertTruthy:
-  Enabled: false
-  
-Minitest/AssertWithExpectedArgument:
-  Enabled: false
-  
-Minitest/DuplicateTestRun:
-  Enabled: false
-  
-Minitest/LiteralAsActualArgument:
-  Enabled: false
-  
-Minitest/MultipleAssertions:
-  Enabled: false
-  
-Minitest/RefuteEmpty:
-  Enabled: false
-  
-Minitest/RefuteEqual:
-  Enabled: false
-  
-Minitest/RefuteFalse:
-  Enabled: false
-  
-Minitest/RefuteIncludes:
-  Enabled: false
-  
-Minitest/RefutePathExists:
-  Enabled: false
-  
-Minitest/RefutePredicate:
-  Enabled: false
-  
-Minitest/TestMethodName:
-  Enabled: false
-
 Naming/AccessorMethodName:
   Enabled: false
 
@@ -1174,13 +1106,6 @@ Performance/UnfreezeString:
 
 Performance/UriDefaultParser:
   Enabled: true
-
-# TODO: Failing Rake cops - disabled pending dev review
-Rake/Desc:
-  Enabled: false
-  
-Rake/MethodDefinitionInTask:
-  Enabled: false
 
 # Disabling for now
 Security/Eval:
