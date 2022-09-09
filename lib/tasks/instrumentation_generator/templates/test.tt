@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class <%= @name.capitalize %>InstrumentationTest < Minitest::Test
+class <%= @class_name %>InstrumentationTest < Minitest::Test
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end

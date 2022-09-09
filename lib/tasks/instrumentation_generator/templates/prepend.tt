@@ -4,8 +4,8 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module <%= @name.capitalize %>::Prepend
-    include NewRelic::Agent::Instrumentation::<%= @name.capitalize %>
+  module <%= @class_name %>::Prepend
+    include NewRelic::Agent::Instrumentation::<%= @class_name %>
 
     def <%= @method.downcase %><%= "(#{@args})" if @args %>
       <%= @method.downcase %>_with_tracing<%= "(#{@args})" if @args %> { super }

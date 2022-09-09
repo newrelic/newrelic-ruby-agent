@@ -1,9 +1,17 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative '../../new_relic/language_support'
 require 'thor'
 
 class Instrumentation < Thor
   include Thor::Actions
+
+  INSTRUMENTATION_ROOT = 'lib/new_relic/agent/instrumentation/'
+  MULTIVERSE_SUITE_ROOT = 'test/multiverse/suites/'
+  DEFAULT_SOURCE_LOCATION = 'lib/new_relic/agent/configuration/default_source.rb'
 
   desc('scaffold NAME', 'Scaffold the required files for adding new instrumentation')
   long_desc <<-LONGDESC
@@ -25,7 +33,8 @@ class Instrumentation < Thor
     @name = name
     @method = options[:method] if options[:method]
     @args = options[:args] if options[:args]
-    base_path = "lib/new_relic/agent/instrumentation/#{name.downcase}"
+    @class_name = ::NewRelic::LanguageSupport.camelize(name)
+    base_path = "#{INSTRUMENTATION_ROOT}#{name.downcase}"
     empty_directory(base_path)
 
     ['chain', 'instrumentation', 'prepend'].each do |file|
@@ -54,7 +63,7 @@ class Instrumentation < Thor
 
   def create_tests(name)
     @name = name
-    base_path = "test/multiverse/suites/#{@name.downcase}"
+    base_path = "#{MULTIVERSE_SUITE_ROOT}#{@name.downcase}"
     empty_directory(base_path)
     template('templates/Envfile.tt', "#{base_path}/Envfile")
     template('templates/test.tt', "#{base_path}/#{@name.downcase}_instrumentation_test.rb")
@@ -75,7 +84,7 @@ class Instrumentation < Thor
         },
     CONFIG
     insert_into_file(
-      'lib/new_relic/agent/configuration/default_source.rb',
+      DEFAULT_SOURCE_LOCATION,
       config,
       after: ":description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
         },\n"

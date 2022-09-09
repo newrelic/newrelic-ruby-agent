@@ -4,10 +4,10 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module <%= @name.capitalize %>
+  module <%= @class_name %>
     def self.instrument!
-      ::<%= @name.capitalize %>.class_eval do
-        include NewRelic::Agent::Instrumentation::<%= @name.capitalize %>
+      ::<%= @class_name %>.class_eval do
+        include NewRelic::Agent::Instrumentation::<%= @class_name %>
 
         alias_method :<%= @method.downcase %>_without_new_relic, :<%= @method.downcase %>
 
