@@ -50,7 +50,7 @@ class TestTimeReporter < Minitest::StatisticsReporter
   end
 
   def output_report
-    puts "====== Ten slowest tests ======"
+    puts "\n====== Ten slowest tests ======\n"
     ten_slowest_tests.each_with_index do |element, index|
       puts "#{index + 1}. #{element.join(': ')}"
     end

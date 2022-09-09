@@ -104,7 +104,7 @@ module Multiverse
     end
 
     def self.sort_and_print_test_times
-      test_times = File.readlines('../../../../lib/minitest/minitest_time_report')
+      test_times = File.readlines('../../../minitest/minitest_time_report')
       clean = test_times.map { |a| a.gsub("\n", '') }
       grouped = clean.each_slice(2).to_a.to_h.transform_values { |v| v.to_f }
       top_ten = grouped.to_h.sort_by { |k, v| v }.reverse!.slice(0, 10)

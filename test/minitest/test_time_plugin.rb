@@ -7,7 +7,6 @@ require_relative 'test_time_reporter'
 
 module Minitest
   def self.plugin_test_time_init(options)
-    # TODO: Get Minitest pride working again
     Minitest.reporter << TestTimeReporter.new
   end
 

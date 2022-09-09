@@ -20,7 +20,7 @@ require 'rake'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
-require_relative '../lib/minitest/test_time_reporter'
+require_relative 'minitest/test_time_reporter'
 require 'mocha/setup'
 
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
