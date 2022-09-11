@@ -44,10 +44,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: performance-test-results
-          path: ./test/performance/performance_tests.txt
+          path: ./test/performance/performance_results.txt
       - name: Slack results
         uses: adrey/slack-file-upload-action@1.0.5
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-          path: ./test/performance/performance_tests.txt
+          path: ./test/performance/performance_results.txt
           channel: ruby-agent-notifications
