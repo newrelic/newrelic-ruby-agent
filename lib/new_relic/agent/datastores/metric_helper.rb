@@ -10,7 +10,6 @@ module NewRelic
         ROLLUP_METRIC = "Datastore/all".freeze
         WEB_ROLLUP_METRIC = "Datastore/allWeb".freeze
         OTHER_ROLLUP_METRIC = "Datastore/allOther".freeze
-        DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
         OTHER = "Other".freeze
 
         ALL = "all".freeze
