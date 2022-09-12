@@ -35,7 +35,7 @@ def fixture_tcp_socket(response)
     s.stubs(:closed?).returns(false)
     s.stubs(:close)
     s.stubs(:setsockopt)
-    s.stubs(:sync).returns(false)
+    s.stubs(:sync).returns(String.new("meow"))
 
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it
