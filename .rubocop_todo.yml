@@ -166,17 +166,6 @@ Minitest/LiteralAsActualArgument:
 Minitest/MultipleAssertions:
   Max: 28
 
-# Offense count: 11
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteEmpty:
-  Exclude:
-    - 'infinite_tracing/test/infinite_tracing/agent_integrations/datastore_segment_test.rb'
-    - 'infinite_tracing/test/infinite_tracing/agent_integrations/segment_test.rb'
-    - 'test/multiverse/suites/sidekiq/sidekiq_instrumentation_test.rb'
-    - 'test/new_relic/agent/external_test.rb'
-    - 'test/new_relic/agent/new_relic_service_test.rb'
-    - 'test/new_relic/agent/transaction/external_request_segment_test.rb'
-
 # Offense count: 9
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/RefuteEqual:
