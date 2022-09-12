@@ -541,6 +541,14 @@ module NewRelic
           conn = http_connection
           ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}")
           Timeout.timeout(@request_timeout) do
+            puts "###############################################################################################################"
+            Thread.list.each do |thr|
+              puts "**********************************************************************************************************"
+              puts thr.backtrace
+            end
+            puts "###############################################################################################################"
+            require 'openssl'
+            puts "\n\n\n\nwaluigi Ruby is linked against system OpenSSL version #{OpenSSL::OPENSSL_VERSION}\n\n\n\n"
             response = conn.request(request)
           end
         rescue *CONNECTION_ERRORS => e
