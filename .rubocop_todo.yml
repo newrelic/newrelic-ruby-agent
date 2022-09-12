@@ -15,19 +15,6 @@ Layout/EmptyLinesAroundBlockBody:
     - 'test/multiverse/suites/active_record/db/schema.rb'
     - 'test/multiverse/suites/active_record_pg/db/schema.rb'
 
-# Offense count: 15
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertEmpty:
-  Exclude:
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/rails/error_tracing_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/agent/configuration/yaml_source_test.rb'
-    - 'test/new_relic/agent/external_test.rb'
-    - 'test/new_relic/agent/threading/backtrace_service_test.rb'
-    - 'test/new_relic/agent/threading/thread_profile_test.rb'
-    - 'test/new_relic/agent/transaction/slowest_sample_buffer_test.rb'
-
 # Offense count: 52
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertEmptyLiteral:
