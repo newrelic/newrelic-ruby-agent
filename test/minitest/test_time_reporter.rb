@@ -2,20 +2,16 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
-require 'minitest'
 
 class TestTimeReporter < Minitest::StatisticsReporter
   attr_accessor :test_times
 
+  # Keep the value for this constant the same as in Multiverse::Runner#run
   TEST_TIME_REPORT = File.join(File.expand_path(File.dirname(__FILE__)), 'minitest_time_report')
 
   def initialize(options = {})
     super
     @test_times = []
-  end
-
-  def self.reset_report
-    FileUtils.rm_f(TEST_TIME_REPORT)
   end
 
   def record(result)
