@@ -36,6 +36,7 @@ def fixture_tcp_socket(response)
     s.stubs(:close)
     s.stubs(:setsockopt)
     s.stubs(:sync).returns(true)
+    s.stubs(:connect_nonblock)
 
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it
