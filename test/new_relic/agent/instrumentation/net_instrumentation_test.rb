@@ -29,6 +29,9 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   end
 
   def test_scope_stack_integrity_maintained_on_request_failure
+    # This prevents intermittent failures and I don't know why it needs this now but it didn't before
+    ::Net::Protocol.any_instance.stubs(:ssl_socket_connect)
+
     @socket.stubs(:write).raises('fake network error')
     @socket.stubs(:write_nonblock).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
