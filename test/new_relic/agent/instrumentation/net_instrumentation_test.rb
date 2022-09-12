@@ -30,6 +30,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   end
 
   def test_scope_stack_integrity_maintained_on_request_failure
+    require 'openssl'
+    puts "\n\n\n\nwaluigi Ruby is linked against system OpenSSL version #{OpenSSL::OPENSSL_VERSION}\n\n\n\n"
     @socket.stubs(:write).raises('fake network error')
     @socket.stubs(:write_nonblock).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do

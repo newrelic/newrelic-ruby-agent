@@ -115,7 +115,8 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 1
-          command:  bundle exec rake test:env[norails] TESTOPTS="--verbose"
+          command:  bundle exec rubytest/new_relic/agent/instrumentation/net_instrumentation_test.rb
+          # command:  bundle exec rake test:env[norails] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev
