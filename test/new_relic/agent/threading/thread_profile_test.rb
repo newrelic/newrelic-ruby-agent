@@ -202,7 +202,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_empty
         profile = ThreadProfile.new
-        assert profile.empty?
+        assert_empty profile
       end
 
       def test_not_empty

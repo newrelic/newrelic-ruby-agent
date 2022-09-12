@@ -111,7 +111,7 @@ end
 
 unless defined? assert_empty
   def assert_empty(collection, msg = nil)
-    assert collection.empty?, msg
+    assert_empty collection, msg
   end
 end
 
@@ -902,7 +902,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
   event_attrs.each do |name, actual_value|
     msg << "  #{name}: #{actual_value.inspect}\n"
   end
-  assert(incorrect_attributes.empty?, msg)
+  assert_empty(incorrect_attributes, msg)
 
   non_expected_attributes.each do |name|
     refute event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}"
