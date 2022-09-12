@@ -8,7 +8,6 @@ module NewRelic
     module Datastores
       module MetricHelper
         ROLLUP_METRIC = "Datastore/all".freeze
-        OTHER_ROLLUP_METRIC = "Datastore/allOther".freeze
         OTHER = "Other".freeze
 
         ALL = "all".freeze
