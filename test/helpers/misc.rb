@@ -36,8 +36,8 @@ def fixture_tcp_socket(response)
     s.stubs(:close)
     s.stubs(:setsockopt)
     s.stubs(:sync).returns(true)
-    s.stubs(:connect_nonblock)
-
+    s.stubs(:connect_nonblock).returns(:wait_readable)
+    ::Net::Protocol.any_instance.stubs(:ssl_socket_connect)
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it
 
