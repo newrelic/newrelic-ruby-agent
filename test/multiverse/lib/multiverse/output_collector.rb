@@ -104,13 +104,18 @@ module Multiverse
     end
 
     def self.sort_and_print_test_times
-      test_times = File.readlines('../../../minitest/minitest_time_report')
-      clean = test_times.map { |a| a.gsub("\n", '') }
-      grouped = clean.each_slice(2).to_a.to_h.transform_values { |v| v.to_f }
-      top_ten = grouped.to_h.sort_by { |k, v| v }.reverse!.slice(0, 10)
-      puts "====== Ten slowest tests ======"
-      top_ten.each_with_index do |element, index|
-        puts "#{index + 1}. #{element.join(': ')}"
+      time_report_path = '../../../minitest/minitest_time_report'
+      if File.exist?(time_report_path)
+        test_times = File.readlines(time_report_path)
+        clean = test_times.map { |a| a.gsub("\n", '') }
+        grouped = clean.each_slice(2).to_a.to_h.transform_values { |v| v.to_f }
+        top_ten = grouped.to_h.sort_by { |k, v| v }.reverse!.slice(0, 10)
+        puts "====== Ten slowest tests ======"
+        top_ten.each_with_index do |element, index|
+          puts "#{index + 1}. #{element.join(': ')}"
+        end
+      else
+        puts 'Test timing data not found.'
       end
     end
   end
