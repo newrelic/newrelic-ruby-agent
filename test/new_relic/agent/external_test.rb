@@ -88,7 +88,7 @@ module NewRelic
 
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
-            refute l.array.empty?, "process_request_metadata should log error on invalid ID"
+            refute_empty l.array, "process_request_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             refute txn.distributed_tracer.cross_app_payload
@@ -106,7 +106,7 @@ module NewRelic
 
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
-            refute l.array.empty?, "process_request_metadata should log error on invalid ID"
+            refute_empty l.array, "process_request_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             refute txn.distributed_tracer.cross_app_payload
