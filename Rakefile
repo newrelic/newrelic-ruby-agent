@@ -147,6 +147,7 @@ namespace :cross_agent_tests do
   end
 end
 
+desc 'Start Pry'
 task :console do
   require 'pry'
   require 'newrelic_rpm'

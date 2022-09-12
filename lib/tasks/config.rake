@@ -5,8 +5,6 @@
 
 namespace :newrelic do
   namespace :config do
-    desc "Describe available New Relic configuration settings."
-
     GENERAL = "general"
     DISABLING = "disabling"
     ATTRIBUTES = "attributes"
@@ -139,6 +137,7 @@ namespace :newrelic do
       ERB.new(template)
     end
 
+    desc "Describe available New Relic configuration settings."
     task :docs, [:format] => [] do |t, args|
       require File.expand_path(File.join(File.dirname(__FILE__), "..", "new_relic", "agent", "configuration", "default_source.rb"))
       format = args[:format] || "text"
