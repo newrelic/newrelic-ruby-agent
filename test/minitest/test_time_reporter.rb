@@ -3,14 +3,14 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-StatisticsReporter = case
+STATISTICS_REPORTER = case
   when Gem::Version.new(Minitest::VERSION || MiniTest::VERSION) < Gem::Version.new('5.0.0')
     MiniTest::StatisticsReporter
   else
     Minitest::StatisticsReporter
 end
 
-class TestTimeReporter < StatisticsReporter
+class TestTimeReporter < STATISTICS_REPORTER
   attr_accessor :test_times
 
   # Keep the value for this constant the same as in Multiverse::Runner#run
