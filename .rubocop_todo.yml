@@ -193,12 +193,6 @@ Minitest/RefuteIncludes:
     - 'test/new_relic/agent/configuration/manager_test.rb'
     - 'test/new_relic/control/instance_methods_test.rb'
 
-# Offense count: 3
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefutePathExists:
-  Exclude:
-    - 'test/multiverse/suites/mongo/helpers/mongo_server_test.rb'
-
 # Offense count: 96
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/RefutePredicate:

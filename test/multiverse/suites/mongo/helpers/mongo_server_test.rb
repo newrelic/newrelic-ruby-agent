@@ -45,7 +45,7 @@ class MongoServerTest < Test::Unit::TestCase
     path = @server.port_lock_path
     assert File.exist?(path)
     @server.release_port
-    refute File.exist?(path)
+    refute_path_exists(path)
   end
 
   def test_all_port_lock_files_returns_all_file_names
@@ -80,14 +80,14 @@ class MongoServerTest < Test::Unit::TestCase
     @server.start
     assert File.exist?(@server.port_lock_path)
     @server.stop
-    refute File.exist?(@server.port_lock_path)
+    refute_path_exists(@server.port_lock_path)
   end
 
   def test_stop_deletes_pid_file
     @server.start
     assert File.exist?(@server.pid_path)
     @server.stop
-    refute File.exist?(@server.pid_path)
+    refute_path_exists(@server.pid_path)
   end
 
   def test_pingable_returns_true_if_ping_is_ok
