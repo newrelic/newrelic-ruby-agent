@@ -23,6 +23,11 @@ module Multiverse
   # suites dir from env var, default to <ruby_agent>/test/multiverse/suites
   #
   SUITES_DIRECTORY = ENV['SUITES_DIRECTORY'] || File.expand_path('suites', ROOT)
+
+  # This path is from the perspective of the files within the multiverse directory
+  # It is used to hold test timing information between suite runs so that the slowest
+  # tests can be evaluated across suites
+  TIME_REPORT_PATH = '../../../minitest/minitest_time_report'
 end
 
 require 'multiverse/bundler_patch'

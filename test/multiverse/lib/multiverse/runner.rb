@@ -51,7 +51,7 @@ module Multiverse
       # until minitest has been loaded by an individual suite, so we cannot define
       # this inside the TestTimeReporter class. Please keep this path and the
       # path for TestTimeReporter::TEST_TIME_REPORT the same!
-      FileUtils.rm_f(File.join(File.expand_path(File.dirname(__FILE__)), 'minitest_time_report'))
+      FileUtils.rm_f(Multiverse::TIME_REPORT_PATH)
       execute_suites(filter, opts) do |suite|
         puts yellow(suite.execution_message)
         suite.each_instrumentation_method do |method|
