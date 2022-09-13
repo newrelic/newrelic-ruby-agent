@@ -58,8 +58,6 @@ module NewRelic
             nil
           end
 
-          MONGO_PRODUCT_NAME = "MongoDB".freeze
-
           def self.collection_in_selector?(payload)
             payload[:collection] == '$cmd' && payload[:selector]
           end

@@ -37,7 +37,6 @@ module NewRelic
       ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
       WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
-      TRANSACTION_NAMING_SOURCES = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS = ["Middleware/all"].freeze
       WEB_SUMMARY_METRIC = "HttpDispatcher"
