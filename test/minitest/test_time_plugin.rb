@@ -7,7 +7,7 @@ require_relative 'test_time_reporter'
 
 module Minitest
   def self.plugin_test_time_init(options)
-    Minitest.reporter << TestTimeReporter.new
+    Minitest.reporter << TestTimeReporter.new if RUBY_VERSION >= '2.4.0'
   end
 
   def self.plugin_test_time_options(opts, options)
