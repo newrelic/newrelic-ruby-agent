@@ -110,12 +110,12 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
 
-      - name: Run Unit Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 30
-          max_attempts: 1
-          command:  bundle exec rake test:env[norails] TESTOPTS="--verbose"
+      - run: bundle exec rake test[seed=21119]
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          JRUBY_OPTS: --dev
+
+      - run: bundle exec rake test[seed=6192]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev
