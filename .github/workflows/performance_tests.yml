@@ -39,7 +39,7 @@ jobs:
       - run: script/runner -B
       - uses: actions/checkout@v3
       - run: bundle
-      - run: script/runner -C > performance_tests.txt
+      - run: script/runner -C > performance_results.txt
       - name: Save performance results
         uses: actions/upload-artifact@v3
         with:
