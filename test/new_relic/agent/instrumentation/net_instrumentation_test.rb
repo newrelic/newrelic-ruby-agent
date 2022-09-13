@@ -26,10 +26,16 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
 
   def teardown
     NewRelic::Agent.shutdown
+    mocha_teardown
   end
 
   def test_scope_stack_integrity_maintained_on_request_failure
-    # This prevents intermittent failures and I don't know why it needs this now but it didn't before
+    # This is needed to prevent intermittent failures and I don't know why
+    # The error this prevents is unexpected invocation: #<Mock:socket>.sync()
+    # The error is caused by @socket being a mock
+    # If you add .sync to the mock in fixture_tcp_socket, the test seg faults instead of failing
+    # This was never needed previously and there were never any issues with it
+    # I have no idea.
     ::Net::Protocol.any_instance.stubs(:ssl_socket_connect)
 
     @socket.stubs(:write).raises('fake network error')
