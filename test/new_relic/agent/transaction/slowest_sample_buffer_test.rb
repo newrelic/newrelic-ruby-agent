@@ -62,7 +62,7 @@ class NewRelic::Agent::Transaction
 
       @buffer.harvest_samples
 
-      assert(@buffer.samples.empty?)
+      assert_empty(@buffer.samples)
     end
   end
 end

@@ -70,16 +70,18 @@ module NewRelic
             "grpc://#{@host}/#{method}"
           end
 
-          def trace_with_newrelic?(host = nil)
-            return false if self.class.name.eql?('GRPC::InterceptorRegistry')
+          def interceptor?
+            self.class.name.eql?('GRPC::InterceptorRegistry')
+          end
 
-            do_trace = instance_variable_get(:@trace_with_newrelic)
-            return do_trace unless do_trace.nil? # check for nil, not falsey
+          def trace_with_newrelic?
+            return @trace_with_newrelic unless @trace_with_newrelic.nil? # check for nil, not false
 
-            host ||= @host
-            return false unless host && !host_denylisted?(host)
-
-            true
+            @trace_with_newrelic = if interceptor?
+              false
+            else
+              !host_denylisted?(@host)
+            end
           end
         end
       end

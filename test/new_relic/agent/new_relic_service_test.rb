@@ -286,7 +286,7 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:security_policies_token => 'please-use-lasp') do
       response = @service.preconnect
       assert_equal 'localhost', response['redirect_host']
-      refute response['security_policies'].empty?
+      refute_empty response['security_policies']
     end
   end
 
@@ -359,7 +359,7 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:security_policies_token => 'please-use-lasp') do
       @service.connect
       payload = @http_handle.last_request_payload.first
-      refute payload['security_policies'].empty?
+      refute_empty payload['security_policies']
       assert_equal policies.keys, payload['security_policies'].keys
     end
   end
@@ -371,7 +371,7 @@ class NewRelicServiceTest < Minitest::Test
 
     with_config(:security_policies_token => 'please-use-lasp') do
       response = @service.connect
-      refute response['security_policies'].empty?
+      refute_empty response['security_policies']
       assert_equal policies.keys, response['security_policies'].keys
     end
   end

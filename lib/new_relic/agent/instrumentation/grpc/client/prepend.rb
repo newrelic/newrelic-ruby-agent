@@ -13,11 +13,6 @@ module NewRelic
           module Prepend
             include NewRelic::Agent::Instrumentation::GRPC::Client
 
-            def initialize(*args)
-              @trace_with_newrelic = trace_with_newrelic?(args.first)
-              super(*args)
-            end
-
             def bidi_streamer(method, requests, marshal, unmarshal,
               deadline: nil,
               return_op: false,

@@ -205,13 +205,13 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_not_notice_errors_from_ignored_action
     get('/error/ignored_action')
-    assert(errors.empty?,
+    assert_empty(errors,
       'Noticed an error that should have been ignored')
   end
 
   def test_should_not_notice_ignored_error_classes
     get('/error/ignored_error')
-    assert(errors.empty?,
+    assert_empty(errors,
       'Noticed an error that should have been ignored')
   end
 
@@ -232,7 +232,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       get('/error/controller_error')
     end
 
-    assert(errors.empty?,
+    assert_empty(errors,
       'Noticed an error that should have been ignored')
   end
 
@@ -240,7 +240,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     with_config(:'error_collector.ignore_status_codes' => '500') do
       get('/error/ignored_status_code')
 
-      assert(errors.empty?, 'Noticed an error that should have been ignored')
+      assert_empty(errors, 'Noticed an error that should have been ignored')
     end
   end
 
@@ -352,7 +352,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
   def test_should_ignore_server_ignored_errors
     get('/error/server_ignored_error')
 
-    assert(errors.empty?,
+    assert_empty(errors,
       'Noticed an error that should have been ignored' + errors.join(', '))
   end
 end

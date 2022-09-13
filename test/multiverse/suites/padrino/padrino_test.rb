@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name("test:multiverse[padrino]")
 # Shhhh
 Padrino::Logger::Config[:development][:stream] = :null
 

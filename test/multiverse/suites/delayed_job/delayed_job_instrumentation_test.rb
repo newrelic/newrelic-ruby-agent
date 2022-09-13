@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name("test:multiverse[delayed_job]")
-
 if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:delay_jobs)
   class DelayedJobInstrumentationTest < Minitest::Test
     include MultiverseHelpers

@@ -14,20 +14,6 @@ rescue LoadError
   # NOP -- Net::HTTP::STATUS_CODES was introduced in Ruby 2.5
 end
 
-module MiniTest
-  module Assertions
-    # The failure message is backwards.  This patch reverses the message
-    # Note: passing +msg+ caused two failure messages to be shown on failure
-    # and was more confusing than patching here.
-    def assert_match(matcher, obj, msg = nil)
-      msg = message(msg) { "Expected #{mu_pp(obj)} to match #{mu_pp(matcher)}" }
-      assert_respond_to matcher, :"=~"
-      matcher = Regexp.new(Regexp.escape(matcher)) if String === matcher
-      assert matcher =~ obj, msg
-    end
-  end
-end
-
 class ArrayLogDevice
   def initialize(array = [])
     @array = array
@@ -125,7 +111,7 @@ end
 
 unless defined? assert_empty
   def assert_empty(collection, msg = nil)
-    assert collection.empty?, msg
+    assert_empty collection, msg
   end
 end
 
@@ -430,9 +416,9 @@ end
 # may be supplied.
 def with_segment(*args, &blk)
   segment = nil
-  txn = in_transaction(*args) do |txn|
-    segment = txn.current_segment
-    yield(segment, txn)
+  txn = in_transaction(*args) do |t|
+    segment = t.current_segment
+    yield(segment, t)
   end
   [segment, txn]
 end
@@ -916,7 +902,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
   event_attrs.each do |name, actual_value|
     msg << "  #{name}: #{actual_value.inspect}\n"
   end
-  assert(incorrect_attributes.empty?, msg)
+  assert_empty(incorrect_attributes, msg)
 
   non_expected_attributes.each do |name|
     refute event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}"

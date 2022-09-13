@@ -5,7 +5,6 @@
 
 # https://newrelic.atlassian.net/browse/RUBY-775
 
-SimpleCovHelper.command_name("test:multiverse[sidekiq]")
 require File.join(File.dirname(__FILE__), "sidekiq_server")
 SidekiqServer.instance.run
 
@@ -193,7 +192,7 @@ class SidekiqTest < Minitest::Test
 
   def assert_attributes_on_transaction_trace
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    refute transaction_samples.empty?, "Expected a transaction trace"
+    refute_empty transaction_samples, "Expected a transaction trace"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
@@ -208,7 +207,7 @@ class SidekiqTest < Minitest::Test
 
   def refute_attributes_on_transaction_trace
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    refute transaction_samples.empty?, "Didn't find any transaction samples!"
+    refute_empty transaction_samples, "Didn't find any transaction samples!"
 
     transaction_samples.each do |post|
       post.samples.each do |sample|

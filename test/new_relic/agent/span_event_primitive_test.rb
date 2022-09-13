@@ -75,8 +75,8 @@ module NewRelic
           root_span_event = nil
           root_segment = nil
 
-          txn = in_transaction do |txn|
-            root_segment = txn.current_segment
+          txn = in_transaction do |t|
+            root_segment = t.current_segment
           end
 
           root_span_event = SpanEventPrimitive.for_segment(root_segment)
@@ -100,9 +100,8 @@ module NewRelic
           NewRelic::Agent.config.add_config_for_testing(@config)
 
           payload = nil
-          external_segment = nil
           in_transaction('test_txn') do |txn|
-            external_segment = NewRelic::Agent::Tracer \
+            NewRelic::Agent::Tracer \
               .start_external_request_segment(library: "net/http",
                 uri: "http://docs.newrelic.com",
                 procedure: "GET")

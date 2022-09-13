@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name("test:multiverse[grape]")
 require "grape"
 require "newrelic_rpm"
 require './grape_test_api'

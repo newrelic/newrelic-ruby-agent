@@ -415,7 +415,7 @@ module NewRelic
       end
 
       def test_accept_distributed_trace_payload_delegates_to_transaction
-        payload = stub(:payload)
+        payload = stub(payload: nil)
         in_transaction do |txn|
           txn.distributed_tracer.expects(:accept_distributed_trace_payload).with(payload)
           Tracer.accept_distributed_trace_payload(payload)

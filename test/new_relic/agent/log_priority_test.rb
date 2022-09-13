@@ -10,7 +10,7 @@ require 'new_relic/agent/log_priority'
 module NewRelic::Agent
   class LogPriorityTest < Minitest::Test
     def test_uses_transaction_if_its_there
-      txn = in_transaction do |txn|
+      in_transaction do |txn|
         assert_equal txn.priority, LogPriority.priority_for(txn)
       end
     end

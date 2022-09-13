@@ -351,7 +351,6 @@ module NewRelic::Agent
       end
 
       def test_ignored_and_expected_error_is_ignored
-        error = AnError.new
         with_config(:'error_collector.ignore_classes' => ['AnError'],
           :'error_collector.expected_classes' => ['AnError']) do
           @error_collector.notice_error(AnError.new)

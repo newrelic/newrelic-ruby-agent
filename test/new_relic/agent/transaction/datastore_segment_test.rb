@@ -631,7 +631,7 @@ module NewRelic
         end
 
         def test_internal_notice_sql
-          explainer = stub(:explainer)
+          explainer = stub(explainer: nil)
           in_transaction do
             segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",

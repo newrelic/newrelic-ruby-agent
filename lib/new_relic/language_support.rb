@@ -73,6 +73,11 @@ module NewRelic
       end
     end
 
+    def camelize(string)
+      camelized = string.downcase
+      camelized.split(/\-|\_/).map(&:capitalize).join
+    end
+
     def bundled_gem?(gem_name)
       defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?(gem_name)
     rescue => e

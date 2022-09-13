@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name("test:multiverse[sinatra]")
-
 class SinatraIgnoreTestApp < Sinatra::Base
   get '/record' do request.path_info end
 
