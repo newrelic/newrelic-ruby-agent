@@ -299,12 +299,11 @@ module Multiverse
     end
 
     def minitest_version
-      if RUBY_VERSION >= '2.6'
-        '5.16.2'
-      elsif RUBY_VERSION >= '2.4'
-        '5.15.0'
+      case
+      when RUBY_VERSION >= '2.4'
+        '5.10.1'
       else
-        '5.3.3'
+        '4.7.5'
       end
     end
 
