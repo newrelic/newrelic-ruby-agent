@@ -9,15 +9,15 @@ if [[ $RUBY_VERSION =~ 2.[^67] ]]; then
   # NOTE that Ruby 2.2 and 2.3 need to use update_rubygems, while
   # newer Rubies can use 'gem update --system'
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-  # if [[ $RUBY_VERSION = "2.2.10" ]]; then
-  #   echo "DEBUG: installing rubygems-update version 2.7.11"
-  #   gem install rubygems-update:2.7.11
-  #   echo "DEBUG: running 'rubygems-update'"
-  #   update_rubygems
-  # else
-  echo "DEBUG: running 'gem update --system --force'"
-  gem update --system 3.0.6 --force
-  # fi
+  if [[ $RUBY_VERSION = "2.2.10" ]]; then
+    echo "DEBUG: installing rubygems-update version 2.7.11"
+    gem install rubygems-update:2.7.11
+    echo "DEBUG: running 'rubygems-update'"
+    update_rubygems
+  else
+    echo "DEBUG: running 'gem update --system --force'"
+    gem update --system 3.0.6 --force
+  fi
   echo "DEBUG: obtaining pre-installed Bundler version"
   og_bundler=$(bundle --version | awk '{ print $3 }')
   echo "DEBUG: pre-installed Bundler version is $og_bundler"
