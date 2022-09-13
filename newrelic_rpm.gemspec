@@ -48,8 +48,8 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"
   s.add_development_dependency 'rake', '12.3.3'
-  s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
-  s.add_development_dependency 'listen', '3.0.8'        # locked to support < Ruby 2.3
+  s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
+  s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
   s.add_development_dependency 'minitest', '4.7.5'
