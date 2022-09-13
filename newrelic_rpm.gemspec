@@ -57,8 +57,8 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'pry' unless ENV['CI']
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rubocop'
-  s.add_development_dependency 'rubocop-minitest'
-  s.add_development_dependency 'rubocop-performance'
+  s.add_development_dependency 'rubocop-minitest' if RUBY_VERSION > '2.4.0'
+  s.add_development_dependency 'rubocop-performance' if RUBY_VERSION > '2.4.0'
   s.add_development_dependency 'rubocop-rake' if RUBY_VERSION >= '2.4.0'
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'thor'
