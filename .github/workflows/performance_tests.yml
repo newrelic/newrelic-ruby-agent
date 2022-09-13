@@ -2,10 +2,10 @@ name: Performance Tests
 
 on:
   pull_request:
-  #   branches:
-  #     - main
-  # schedule:
-  #   - cron:  '0 9 * * 0'
+    branches:
+      - main
+  schedule:
+    - cron:  '0 9 * * 0'
 
 jobs:
   check_branch_changes:
