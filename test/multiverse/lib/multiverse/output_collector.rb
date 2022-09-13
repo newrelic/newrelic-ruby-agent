@@ -103,19 +103,35 @@ module Multiverse
       end
     end
 
+    def self.print_top_ten(top_ten)
+      puts "\n====== Ten slowest tests ======\n"
+      top_ten.each_with_index do |element, index|
+        puts "#{index + 1}. #{element.join(': ')}"
+      end
+    end
+
+    def self.time_report_to_hash(time_report_lines)
+      time_report_lines.map { |line| line.gsub("\n", '') }.each_slice(2).to_h
+    end
+
+    # TODO: OLD RUBIES - When we support only Ruby 2.4+, refactor to use #transform_values instead
+    def self.hash_values_to_float(original_hash)
+      float_values = {}
+      original_hash.each { |k, v| float_values[k] = v.to_f }
+      float_values
+    end
+
+    def self.sort_ten_slowest_tests(test_times)
+      test_times.sort_by { |_k, v| v }.reverse!.slice(0, 100)
+    end
+
     def self.sort_and_print_test_times
       if File.exist?(Multiverse::TIME_REPORT_PATH)
-        test_times = File.readlines(Multiverse::TIME_REPORT_PATH)
-        clean = test_times.map { |a| a.gsub("\n", '') }.each_slice(2).to_h
-        float_times = {}
-        clean.each { |k, v| float_times[k] = v.to_f }
-        top_ten = float_times.sort_by { |k, v| v }.reverse!.slice(0, 10)
-        puts "====== Ten slowest tests ======"
-        top_ten.each_with_index do |element, index|
-          puts "#{index + 1}. #{element.join(': ')}"
-        end
+        test_times = time_report_to_hash(File.readlines(Multiverse::TIME_REPORT_PATH))
+        test_times = hash_values_to_float(test_times)
+        print_top_ten(sort_ten_slowest_tests(test_times))
       else
-        puts 'Test timing data not found.'
+        puts yellow('Test timing data not found.')
       end
     end
   end
