@@ -7,6 +7,7 @@ require 'rubygems'
 require 'rake/testtask'
 require 'yard'
 require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
+require_relative 'rakefile_helpers'
 
 YARD::Rake::YardocTask.new
 
@@ -115,35 +116,16 @@ namespace :cross_agent_tests do
   CROSS_AGENT_TESTS_UPSTREAM_PATH = File.expand_path(File.join('..', 'cross_agent_tests')).freeze
   CROSS_AGENT_TESTS_LOCAL_PATH = File.expand_path(File.join('test', 'fixtures', 'cross_agent_tests')).freeze
 
-  def prompt_to_continue(command, destination = 'local')
-    puts "The following rsync command will be executed to update the #{destination} copy of the specs:"
-    puts
-    puts command
-    puts
-    puts "CAUTION: Any unsaved changes that exist within the #{destination} content will be OVERWRITTEN!"
-    if destination.eql?('local')
-      puts 'CAUTION 2: Before continuing, make sure your local repo is on the correct, synced branch!'
-    end
-    puts
-    print "Do you wish to continue? ('y' to continue, return to cancel) [n] "
-    continue = STDIN.gets.chomp
-    if continue.downcase.eql?('y')
-      system(command)
-    else
-      puts 'Cancelled'
-    end
-  end
-
   desc 'Pull latest changes from cross_agent_tests repo'
   task :pull do
     command = "  rsync -av --exclude .git #{CROSS_AGENT_TESTS_UPSTREAM_PATH}/ #{CROSS_AGENT_TESTS_LOCAL_PATH}/"
-    prompt_to_continue(command)
+    Prompts.new.prompt_to_continue(command)
   end
 
   desc 'Copy changes from embedded cross_agent_tests to official repo working copy'
   task :push do
     command = "rsync -av #{CROSS_AGENT_TESTS_LOCAL_PATH}/ #{CROSS_AGENT_TESTS_UPSTREAM_PATH}/"
-    prompt_to_continue(command, 'remote (agent spec repo)')
+    Prompts.new.prompt_to_continue(command, 'remote (agent spec repo)')
   end
 end
 
