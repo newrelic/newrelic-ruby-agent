@@ -22,7 +22,8 @@ module NewRelic
             :heap_live => 0,
             :heap_free => 0,
             :method_cache_invalidations => 0,
-            :constant_cache_invalidations => 0
+            :constant_cache_invalidations => 0,
+            :constant_cache_misses => 0
           )
           @sampler = VMSampler.new
           @sampler.setup_events(NewRelic::Agent.instance.events)
@@ -128,7 +129,8 @@ module NewRelic
         def test_poll_records_vm_cache_invalidations
           stub_snapshot(
             :method_cache_invalidations => 100,
-            :constant_cache_invalidations => 200
+            :constant_cache_invalidations => 200,
+            :constant_cache_misses => 175
           )
           generate_transactions(50)
           @sampler.poll
@@ -141,6 +143,10 @@ module NewRelic
             'RubyVM/CacheInvalidations/constant' => {
               :call_count => 50, # number of transactions
               :total_call_time => 200 # number of constant cache invalidations
+            }
+            'RubyVM/CacheMisses/constant' => {
+              :call_count => 50, # number of transactions
+              :total_call_time => 175 # number of constant cache misses
             }
           )
         end
@@ -187,6 +193,7 @@ module NewRelic
             :minor_gc_count => 10,
             :method_cache_invalidations => 10,
             :constant_cache_invalidations => 10
+            :constant_cache_misses => 10
           )
           @sampler.poll
 
@@ -209,6 +216,9 @@ module NewRelic
             },
             'RubyVM/CacheInvalidations/constant' => {
               :total_call_time => 10
+            },
+            'RubyVM/CacheMisses/constant' => {
+              :total_call_time => 10
             }
           }
 
@@ -224,6 +234,7 @@ module NewRelic
             :minor_gc_count => 20,
             :method_cache_invalidations => 20,
             :constant_cache_invalidations => 20
+            :constant_cache_misses => 20
           )
           @sampler.poll
 
@@ -242,6 +253,7 @@ module NewRelic
             :minor_gc_count => 10,
             :method_cache_invalidations => 10,
             :constant_cache_invalidations => 10,
+            :constant_cache_misses => 10,
             :taken_at => 10
           )
           generate_transactions(10)
@@ -255,6 +267,7 @@ module NewRelic
             :minor_gc_count => 20,
             :method_cache_invalidations => 20,
             :constant_cache_invalidations => 20,
+            :constant_cache_misses => 20,
             :taken_at => 20
           )
           generate_transactions(10)
@@ -284,6 +297,10 @@ module NewRelic
               :total_call_time => 20
             },
             'RubyVM/CacheInvalidations/constant' => {
+              :call_count => 20,
+              :total_call_time => 20
+            },
+            'RubyVM/CacheMisses/constant' => {
               :call_count => 20,
               :total_call_time => 20
             }
