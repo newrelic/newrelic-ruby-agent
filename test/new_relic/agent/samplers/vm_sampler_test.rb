@@ -143,7 +143,7 @@ module NewRelic
             'RubyVM/CacheInvalidations/constant' => {
               :call_count => 50, # number of transactions
               :total_call_time => 200 # number of constant cache invalidations
-            }
+            },
             'RubyVM/CacheMisses/constant' => {
               :call_count => 50, # number of transactions
               :total_call_time => 175 # number of constant cache misses
@@ -192,7 +192,7 @@ module NewRelic
             :major_gc_count => 10,
             :minor_gc_count => 10,
             :method_cache_invalidations => 10,
-            :constant_cache_invalidations => 10
+            :constant_cache_invalidations => 10,
             :constant_cache_misses => 10
           )
           @sampler.poll
@@ -233,7 +233,7 @@ module NewRelic
             :major_gc_count => 20,
             :minor_gc_count => 20,
             :method_cache_invalidations => 20,
-            :constant_cache_invalidations => 20
+            :constant_cache_invalidations => 20,
             :constant_cache_misses => 20
           )
           @sampler.poll
