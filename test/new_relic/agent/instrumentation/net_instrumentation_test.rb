@@ -22,6 +22,36 @@ Minitest::Reporter.class_eval do
     io.puts
   end
 
+  def report
+    aggregate = results.group_by { |r| r.failure.class }
+    aggregate.default = [] # dumb. group_by should provide this
+
+    f = aggregate[Assertion].size
+    e = aggregate[UnexpectedError].size
+    s = aggregate[Skip].size
+    t = Time.now - start_time
+
+    io.puts # finish the dots
+    io.puts
+    io.puts "Finished in %.6fs, %.4f runs/s, %.4f assertions/s." %
+      [t, count / t, self.assertions / t]
+
+    format = "%d runs, %d assertions, %d failures, %d errors, %d skips"
+    summary = format % [count, self.assertions, f, e, s]
+
+    filtered_results = results.dup
+    filtered_results.reject!(&:skipped?) unless options[:verbose]
+
+    filtered_results.each_with_index do |result, i|
+      io.puts "\n%3d) %s" % [i+1, result]
+    end
+
+    io.puts
+    io.puts summary
+
+    # io.sync = self.old_sync if self.sync
+  end
+
 end
 
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
