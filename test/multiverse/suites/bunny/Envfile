@@ -7,8 +7,7 @@ suite_condition("bunny not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-instrumentation_methods :prepend
-# instrumentation_methods :chain, :prepend
+instrumentation_methods :chain, :prepend
 
 BUNNY_VERSIONS = [
   [nil, 2.3],
