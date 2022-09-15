@@ -8,6 +8,22 @@ require 'net/http'
 require_relative '../../../test_helper'
 require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
+Minitest::Reporter.class_eval do 
+
+  def start
+    # self.sync = io.respond_to? :"sync=" # stupid emacs
+    # self.old_sync, io.sync = io.sync, true if self.sync
+
+    self.start_time = Time.now
+
+    io.puts "Run options: #{options[:args]}"
+    io.puts
+    io.puts "# Running:"
+    io.puts
+  end
+
+end
+
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start(
