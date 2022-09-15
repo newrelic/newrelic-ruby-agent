@@ -19,6 +19,7 @@ module NewRelic
         MINOR_GC_METRIC = 'RubyVM/GC/minor_gc_count'.freeze
         METHOD_INVALIDATIONS_METRIC = 'RubyVM/CacheInvalidations/method'.freeze
         CONSTANT_INVALIDATIONS_METRIC = 'RubyVM/CacheInvalidations/constant'.freeze
+        CONSTANT_MISSES_METRIC = 'RubyVM/CacheMisses/constant'.freeze
 
         attr_reader :transaction_count
 
@@ -115,6 +116,7 @@ module NewRelic
           record_delta(snap, :minor_gc_count, MINOR_GC_METRIC, tcount)
           record_delta(snap, :method_cache_invalidations, METHOD_INVALIDATIONS_METRIC, tcount)
           record_delta(snap, :constant_cache_invalidations, CONSTANT_INVALIDATIONS_METRIC, tcount)
+          record_delta(snap, :constant_cache_misses, CONSTANT_MISSES_METRIC, tcount)
           record_heap_live_metric(snap)
           record_heap_free_metric(snap)
           record_thread_count_metric(snap)
