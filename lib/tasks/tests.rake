@@ -3,7 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'tests_helpers'
+require_relative 'helpers/matches'
+include Matches
 
 begin
   require 'rake/testtask'
@@ -17,7 +18,7 @@ if defined? Rake::TestTask
     if tasks.any? { |t| t.include?("verbose") }
       ENV["TESTOPTS"] += " -v"
     end
-    if seed = Matches.new.look_for_seed(tasks)
+    if seed = look_for_seed(tasks)
       ENV["TESTOPTS"] += " --" + seed
     end
 

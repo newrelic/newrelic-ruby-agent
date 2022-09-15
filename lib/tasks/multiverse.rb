@@ -36,7 +36,8 @@
 #   # Runs with a specific test seed
 #   bundle exec rake test:multiverse[my_gem,seed=1337]
 
-require_relative 'multiverse_helpers'
+require_relative 'helpers/removers'
+include Removers
 
 namespace :test do
   desc "Run functional test suite for New Relic"
@@ -51,9 +52,9 @@ namespace :test do
     end
 
     task :clobber do
-      Removers.new.remove_local_multiverse_databases
-      Removers.new.remove_generated_gemfiles
-      Removers.new.remove_generated_gemfile_lockfiles
+      remove_local_multiverse_databases
+      remove_generated_gemfiles
+      remove_generated_gemfile_lockfiles
     end
 
     desc "Clean cached gemfiles from Bundler.bundle_path"

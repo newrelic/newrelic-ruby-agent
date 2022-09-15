@@ -3,7 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'proto_helpers'
+require_relative '/helpers/license'
+include License
 
 namespace :proto do
   desc "Generate proto files"
@@ -22,7 +23,7 @@ namespace :proto do
 
     if system(cmd)
       puts "Proto file generated!"
-      License.new.add_license_preamble_and_remove_requires(output_path)
+      add_license_preamble_and_remove_requires(output_path)
     else
       puts "Failed to generate proto file."
     end

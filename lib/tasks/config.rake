@@ -3,7 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'config_helpers'
+require_relative 'helpers/format'
+include Format
 
 namespace :newrelic do
   namespace :config do
@@ -33,7 +34,7 @@ namespace :newrelic do
     task :docs, [:format] => [] do |t, args|
       require File.expand_path(File.join(File.dirname(__FILE__), "..", "new_relic", "agent", "configuration", "default_source.rb"))
       format = args[:format] || "text"
-      Config.new.output(format)
+      output(format)
     end
   end
 end

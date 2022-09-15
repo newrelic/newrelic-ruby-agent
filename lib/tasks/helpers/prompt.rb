@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class Prompts
+module Prompt
   def prompt_to_continue(command, destination = 'local')
     puts "The following rsync command will be executed to update the #{destination} copy of the specs:"
     puts

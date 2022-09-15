@@ -7,7 +7,8 @@ require 'rubygems'
 require 'rake/testtask'
 require 'yard'
 require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
-require_relative 'rakefile_helpers'
+require_relative 'lib/tasks/helpers/prompt'
+include Prompt
 
 YARD::Rake::YardocTask.new
 
@@ -119,13 +120,13 @@ namespace :cross_agent_tests do
   desc 'Pull latest changes from cross_agent_tests repo'
   task :pull do
     command = "  rsync -av --exclude .git #{CROSS_AGENT_TESTS_UPSTREAM_PATH}/ #{CROSS_AGENT_TESTS_LOCAL_PATH}/"
-    Prompts.new.prompt_to_continue(command)
+    prompt_to_continue(command)
   end
 
   desc 'Copy changes from embedded cross_agent_tests to official repo working copy'
   task :push do
     command = "rsync -av #{CROSS_AGENT_TESTS_LOCAL_PATH}/ #{CROSS_AGENT_TESTS_UPSTREAM_PATH}/"
-    Prompts.new.prompt_to_continue(command, 'remote (agent spec repo)')
+    prompt_to_continue(command, 'remote (agent spec repo)')
   end
 end
 

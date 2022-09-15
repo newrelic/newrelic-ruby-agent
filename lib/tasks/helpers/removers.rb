@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class Removers
+module Removers
   def remove_local_multiverse_databases
     list_databases_command = %(echo "show databases" | mysql -u root)
     databases = `#{list_databases_command}`.chomp!.split("\n").select { |s| s =~ /multiverse/ }

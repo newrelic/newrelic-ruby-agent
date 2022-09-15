@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class Config
+module Format
   def output(format)
     config_hash = build_config_hash
     sections = flatten_config_hash(config_hash)
