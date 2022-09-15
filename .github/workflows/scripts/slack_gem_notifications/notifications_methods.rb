@@ -60,7 +60,7 @@ def send_bot(gem_name, versions)
              body: {
               text: bot_message(gem_name, versions)}.to_json}
 
-  # Sleep guards against Slack rate limit
+  # Sleep helps guard against reaching Slack rate limit
   sleep(rand(5))
   HTTParty.post(path, options)
 end

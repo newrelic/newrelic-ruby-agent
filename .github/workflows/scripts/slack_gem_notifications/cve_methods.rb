@@ -27,7 +27,7 @@ def cve_send_bot(title, url)
   options = {headers: {'Content-Type' => 'application/json'},
              body: cve_bot_text(title, url)}
 
-  # Sleep guards against Slack rate limit
+  # Sleep helps guard against reaching Slack rate limit
   sleep(rand(5))
   HTTParty.post(ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK'], options)
 end
