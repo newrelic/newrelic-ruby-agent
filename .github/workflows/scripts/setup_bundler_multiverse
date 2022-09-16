@@ -51,11 +51,15 @@ if [[ $RUBY_VERSION =~ 3.0 ]]; then
   echo "installed digest 3.1.0"
 fi
 
-# for some reason, ruby 3.0+ fails unless strscan 3.0.4 is installed
-if [[ $RUBY_VERSION = 3.* ]]; then 
+# for some reason, ruby 2.7+ fails unless strscan 3.0.4 is installed
+if [[ $RUBY_VERSION = 3.* || $RUBY_VERSION =~ 2.7 ]]; then 
   echo "DEBUG: running 'gem install strscran'"
   gem install --default strscan:3.0.4
   echo "installed strscan 3.0.4"
+
+  echo "DEBUG: running gem install set"
+  gem install --default set:1.0.3
+  echo "installed set 1.0.3"
 fi
 
 echo "DEBUG: running 'bundle install'"
