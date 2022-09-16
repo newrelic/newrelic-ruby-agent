@@ -49,10 +49,10 @@ class TimeReporterTest < Minitest::Test
   def test_report_adds_data_to_file
     time_report = File.join(File.expand_path(File.dirname(__FILE__)), 'tmp')
     setup
-    TestTimeReporter.stub_const(:TEST_TIME_REPORT, File.new(time_report)) do
+    TestTimeReporter.stub_const(:TEST_TIME_REPORT, File.open(time_report, 'w')) do
       @reporter.report
       assert_match(/#{result.instance_variable_get(:@NAME)}/, File.read(time_report))
-      File.delete(time_report)
     end
+    File.delete(time_report)
   end
 end
