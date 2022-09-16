@@ -3,7 +3,13 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-MINITEST_CLASS_NAME = defined?(Minitest::VERSION) ? Minitest::StatisticsReporter : MiniTest::StatisticsReporter
+MINITEST_CLASS_NAME = if defined?(Minitest::VERSION)
+  Minitest::StatisticsReporter
+elsif defined?(MiniTest::VERSION)
+  MiniTest::StatisticsReporter
+else
+  raise 'Minitest not loaded'
+end
 
 class TestTimeReporter < MINITEST_CLASS_NAME
   attr_accessor :test_times
