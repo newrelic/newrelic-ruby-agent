@@ -3,7 +3,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class TestTimeReporter < Minitest::StatisticsReporter
+MINITEST_CLASS_NAME = defined?(Minitest::VERSION) ? Minitest::StatisticsReporter : MiniTest::StatisticsReporter
+
+class TestTimeReporter < MINITEST_CLASS_NAME
   attr_accessor :test_times
 
   # Keep the value for this constant the same as in Multiverse::Runner#run
