@@ -56,6 +56,10 @@ if [[ $RUBY_VERSION = 3.* || $RUBY_VERSION =~ 2.7 ]]; then
   echo "DEBUG: running 'gem install strscran'"
   gem install --default strscan:3.0.4
   echo "installed strscan 3.0.4"
+
+  echo "DEBUG: running gem install set"
+  gem install --default set:1.0.3
+  echo "installed set 1.0.3"
 fi
 
 echo "DEBUG: running 'bundle install'"
