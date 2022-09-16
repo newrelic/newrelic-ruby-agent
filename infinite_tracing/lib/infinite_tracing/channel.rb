@@ -6,18 +6,41 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Channel
+      COMPRESSION_LEVELS = %i[none low medium high].freeze
+
       def stub
         NewRelic::Agent.logger.debug("Infinite Tracer Opening Channel to #{host_and_port}")
 
         Com::Newrelic::Trace::V1::IngestService::Stub.new( \
           host_and_port,
           credentials,
-          channel_override: channel
+          channel_override: channel,
+          channel_args: channel_args
         )
       end
 
       def channel
         GRPC::Core::Channel.new(host_and_port, settings, credentials)
+      end
+
+      def channel_args
+        return NewRelic::EMPTY_HASH unless compression_enabled?
+
+        GRPC::Core::CompressionOptions.new(compression_options).to_channel_arg_hash
+      end
+
+      def compression_enabled?
+        validate_compression_level
+        compression_level != :none
+      end
+
+      def compression_level
+        NewRelic::Agent.config[:'infinite_tracing.compression_level']
+      end
+
+      def compression_options
+        { default_algorithm: :gzip,
+          default_level: compression_level }
       end
 
       def credentials
@@ -34,6 +57,15 @@ module NewRelic::Agent
           'grpc.minimal_stack' => 1,
           'grpc.enable_deadline_checking' => 0
         }
+      end
+
+      def validate_compression_level
+        NewRelic::Agent.logger.debug("Infinite Tracer compression level set to #{compression_level}")
+
+        return if COMPRESSION_LEVELS.include?(compression_level)
+
+        raise "Invalid compression level '#{compression_level}' specified! Must be one of " \
+              "#{COMPRESSION_LEVELS.join('|')}."
       end
     end
   end

@@ -26,6 +26,10 @@ module NewRelic::Agent
         buffer << segment
       end
 
+      def batching_enabled?
+        NewRelic::Agent.config[:'infinite_tracing.batching']
+      end
+
       # Transfers spans in streaming buffer from previous
       # client (if any) and returns self (so we chain the call)
       def transfer(previous_client)
@@ -143,8 +147,10 @@ module NewRelic::Agent
 
       def start_streaming(exponential_backoff = true)
         return if suspended?
+
+        @exponential_backoff = exponential_backoff
         Connection.instance.wait_for_agent_connect
-        @lock.synchronize { @response_handler = record_spans(exponential_backoff) }
+        @lock.synchronize { response_handler(exponential_backoff) }
       end
 
       def record_spans(exponential_backoff)
@@ -153,6 +159,10 @@ module NewRelic::Agent
 
       def record_span_batches(exponential_backoff)
         RecordStatusHandler.new(self, Connection.record_span_batches(self, buffer.batch_enumerator, exponential_backoff))
+      end
+
+      def response_handler(backoff)
+        @response_handler = batching_enabled? ? record_span_batches(backoff) : record_spans(backoff)
       end
     end
   end
