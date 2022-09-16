@@ -210,21 +210,6 @@ Minitest/TestMethodName:
   Enabled: false
 
 # Offense count: 2
-# This cop supports safe autocorrection (--autocorrect).
-Rake/Desc:
-  Exclude:
-    - 'Rakefile'
-    - 'lib/tasks/config.rake'
-
-# Offense count: 15
-Rake/MethodDefinitionInTask:
-  Exclude:
-    - 'Rakefile'
-    - 'infinite_tracing/tasks/proto.rake'
-    - 'lib/tasks/config.rake'
-    - 'lib/tasks/tests.rake'
-
-# Offense count: 2
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: EnforcedStyle.
 # SupportedStyles: always, always_true, never
