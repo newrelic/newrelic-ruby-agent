@@ -30,7 +30,7 @@ namespace :newrelic do
       "custom_insights_events" => "Custom Events"
     }
 
-    desc "Describe available New Relic configuration settings."
+    desc "Describe available New Relic configuration settings"
     task :docs, [:format] => [] do |t, args|
       require File.expand_path(File.join(File.dirname(__FILE__), "..", "new_relic", "agent", "configuration", "default_source.rb"))
       format = args[:format] || "text"
