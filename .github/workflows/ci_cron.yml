@@ -7,7 +7,6 @@ on:
       - dev
   schedule:
     - cron:  '0 9 * * *'
-  pull_request:
 
 jobs:
   run_rubocop:

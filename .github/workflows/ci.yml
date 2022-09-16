@@ -1,12 +1,6 @@
 name: PR Continuous Integration
 on:
-  # pull_request:
-  push:
-    branches:
-      - main
-      - dev
-  schedule:
-    - cron:  '0 9 * * *'
+  pull_request:
 
 jobs:
   run_rubocop:
