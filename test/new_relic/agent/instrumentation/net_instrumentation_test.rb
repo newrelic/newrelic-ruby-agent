@@ -26,9 +26,9 @@ Minitest::Reporter.class_eval do
     aggregate = results.group_by { |r| r.failure.class }
     aggregate.default = [] # dumb. group_by should provide this
 
-    f = aggregate[Assertion].size
-    e = aggregate[UnexpectedError].size
-    s = aggregate[Skip].size
+    f = 69#aggregate[Assertion].size
+    e = 420# aggregate[UnexpectedError].size
+    s = 666# aggregate[Skip].size
     t = Time.now - start_time
 
     io.puts # finish the dots
