@@ -52,6 +52,7 @@ class TimeReporterTest < Minitest::Test
     TestTimeReporter.stub_const(:TEST_TIME_REPORT, File.new(time_report)) do
       @reporter.report
       assert_match(/#{result.instance_variable_get(:@NAME)}/, File.read(time_report))
+      File.delete(time_report)
     end
   end
 end
