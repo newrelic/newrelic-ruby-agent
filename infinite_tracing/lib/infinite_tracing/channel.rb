@@ -39,8 +39,8 @@ module NewRelic::Agent
       end
 
       def compression_options
-        { default_algorithm: :gzip,
-          default_level: compression_level }
+        {default_algorithm: :gzip,
+         default_level: compression_level}
       end
 
       def credentials
