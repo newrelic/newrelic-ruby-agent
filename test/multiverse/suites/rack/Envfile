@@ -24,20 +24,27 @@ def gem_list(puma_version = nil)
   RB
 end
 
-create_gemfiles(PUMA_VERSIONS, gem_list)
+# TODO: Puma not working on 3.2.0-preview2
+create_gemfiles(PUMA_VERSIONS, gem_list) if RUBY_VERSION < '3.2.0'
 
-RACK_VERSIONS = [
-  [nil],
-  ['2.2.4', 2.3],
-  ['1.6.13']
-]
+if RUBY_VERSION >= '2.3.0'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'rack-test'
+    #{ruby3_gem_webrick}
+  RB
 
-def gem_list(rack_version = nil)
-  <<-RB
-    gem 'rack'#{rack_version}
+  gemfile <<-RB
+    gem 'rack', '2.2.4'
     gem 'rack-test'
     #{ruby3_gem_webrick}
   RB
 end
 
-create_gemfiles(RACK_VERSIONS, gem_list)
+if RUBY_VERSION < '3.2.0'
+  gemfile <<-RB
+    gem 'rack', '1.6.13'
+    gem 'rack-test'
+    #{ruby3_gem_webrick}
+  RB
+end

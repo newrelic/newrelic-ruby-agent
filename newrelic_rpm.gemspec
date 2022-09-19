@@ -48,18 +48,18 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.require_paths = ["lib"]
   s.summary = "New Relic Ruby Agent"
   s.add_development_dependency 'bundler'
-  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
-  s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
-  s.add_development_dependency 'minitest', '5.3.3'
-  s.add_development_dependency 'minitest-fail-fast'
+  s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabbi
+  s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabbi
+  s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
+  s.add_development_dependency 'minitest-fail-fast
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.14.0'
   s.add_development_dependency 'pry' unless ENV['CI']
   s.add_development_dependency 'rake', '12.3.3'
-  s.add_development_dependency 'rubocop'
-  s.add_development_dependency 'rubocop-minitest'
-  s.add_development_dependency 'rubocop-performance'
-  s.add_development_dependency 'rubocop-rake' if RUBY_VERSION >= '2.4.0'
+  s.add_development_dependency 'rubocop' if RUBY_VERSION > '2.5.0'
+  s.add_development_dependency 'rubocop-minitest' if RUBY_VERSION > '2.5.0'
+  s.add_development_dependency 'rubocop-performance' if RUBY_VERSION > '2.5.0'
+  s.add_development_dependency 'rubocop-rake' if RUBY_VERSION > '2.5.0'
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'thor'
   s.add_development_dependency 'yard'

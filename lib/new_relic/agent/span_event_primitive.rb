@@ -21,7 +21,6 @@ module NewRelic
       TRACE_ID_KEY = 'traceId'
       GUID_KEY = 'guid'
       PARENT_ID_KEY = 'parentId'
-      GRANDPARENT_ID_KEY = 'grandparentId'
       TRANSACTION_ID_KEY = 'transactionId'
       SAMPLED_KEY = 'sampled'
       PRIORITY_KEY = 'priority'

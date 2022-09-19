@@ -3,9 +3,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-gemfile <<-RB
-  gem 'minitest', "#{RUBY_VERSION >= '3.0.0' ? '5.3.3' : '4.7.5'}"
-  gem 'rack', '< 2.1.0'
-  gem 'rack-test', '>= 0.8.0'
-  #{ruby3_gem_webrick}
-RB
+module Matches
+  def look_for_seed(tasks)
+    matches = tasks.map { |t| /(seed=.*?)[,\]]/.match(t) }.compact
+    if matches.any?
+      matches.first[1]
+    end
+  end
+end

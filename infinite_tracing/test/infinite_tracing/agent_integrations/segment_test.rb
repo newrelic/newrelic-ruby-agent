@@ -45,7 +45,7 @@ module NewRelic
 
           assert_equal 'Span', custom_span_event['intrinsics']['type'].string_value
           assert_equal trace_id, custom_span_event['intrinsics']['traceId'].string_value
-          refute custom_span_event['intrinsics']['guid'].string_value.empty?
+          refute_empty custom_span_event['intrinsics']['guid'].string_value
           assert_equal root_guid, custom_span_event['intrinsics']['parentId'].string_value
           assert_equal txn_guid, custom_span_event['intrinsics']['transactionId'].string_value
           assert_equal sampled, custom_span_event['intrinsics']['sampled'].bool_value

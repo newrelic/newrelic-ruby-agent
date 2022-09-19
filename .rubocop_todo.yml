@@ -15,19 +15,6 @@ Layout/EmptyLinesAroundBlockBody:
     - 'test/multiverse/suites/active_record/db/schema.rb'
     - 'test/multiverse/suites/active_record_pg/db/schema.rb'
 
-# Offense count: 15
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertEmpty:
-  Exclude:
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/rails/error_tracing_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/agent/configuration/yaml_source_test.rb'
-    - 'test/new_relic/agent/external_test.rb'
-    - 'test/new_relic/agent/threading/backtrace_service_test.rb'
-    - 'test/new_relic/agent/threading/thread_profile_test.rb'
-    - 'test/new_relic/agent/transaction/slowest_sample_buffer_test.rb'
-
 # Offense count: 52
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertEmptyLiteral:
@@ -179,17 +166,6 @@ Minitest/LiteralAsActualArgument:
 Minitest/MultipleAssertions:
   Max: 28
 
-# Offense count: 11
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteEmpty:
-  Exclude:
-    - 'infinite_tracing/test/infinite_tracing/agent_integrations/datastore_segment_test.rb'
-    - 'infinite_tracing/test/infinite_tracing/agent_integrations/segment_test.rb'
-    - 'test/multiverse/suites/sidekiq/sidekiq_instrumentation_test.rb'
-    - 'test/new_relic/agent/external_test.rb'
-    - 'test/new_relic/agent/new_relic_service_test.rb'
-    - 'test/new_relic/agent/transaction/external_request_segment_test.rb'
-
 # Offense count: 9
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/RefuteEqual:
@@ -232,21 +208,6 @@ Minitest/RefutePredicate:
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/TestMethodName:
   Enabled: false
-
-# Offense count: 2
-# This cop supports safe autocorrection (--autocorrect).
-Rake/Desc:
-  Exclude:
-    - 'Rakefile'
-    - 'lib/tasks/config.rake'
-
-# Offense count: 15
-Rake/MethodDefinitionInTask:
-  Exclude:
-    - 'Rakefile'
-    - 'infinite_tracing/tasks/proto.rake'
-    - 'lib/tasks/config.rake'
-    - 'lib/tasks/tests.rake'
 
 # Offense count: 2
 # This cop supports unsafe autocorrection (--autocorrect-all).

@@ -57,7 +57,7 @@ module NewRelic
 
           assert_equal 'Span', intrinsics['type'].string_value
           assert_equal trace_id, intrinsics['traceId'].string_value
-          refute intrinsics['guid'].string_value.empty?
+          refute_empty intrinsics['guid'].string_value
           assert_equal root_guid, intrinsics['parentId'].string_value
           assert_equal txn_guid, intrinsics['transactionId'].string_value
           assert_equal sampled, intrinsics['sampled'].bool_value
