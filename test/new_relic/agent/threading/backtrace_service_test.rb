@@ -270,7 +270,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.poll
 
         fake_transaction_finished('bar', 0, 1, thread)
-        assert @service.buffer.empty?
+        assert_empty @service.buffer
       end
 
       def test_on_transaction_finished_aggregates_backtraces_to_subscribed_profile

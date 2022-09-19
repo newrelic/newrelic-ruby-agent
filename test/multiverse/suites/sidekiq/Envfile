@@ -8,9 +8,7 @@ suite_condition("Sidekiq does not run on JRuby") do
 end
 
 SIDEKIQ_VERSIONS = [
-  # TODO: go back to using nil (to signify "latest") instead of v6.5.1 once Sidekiq v6.5.4 is out
-  ['= 6.5.1', 2.5],
-  # [nil, 2.5],
+  [nil, 2.5],
   ['6.4.0', 2.5],
   ['5.0.3', 2.3],
   ['4.2.0', 2.2]
@@ -21,7 +19,7 @@ def gem_list(sidekiq_version = nil)
   gem_redis = RUBY_VERSION <= "2.3.0" ? "gem 'redis', '<= 4.1.0'" : ""
   gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
   <<-RB
-    gem 'rack'
+    gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
     gem 'json'
     #{gem_connection_pool}
     #{gem_redis}

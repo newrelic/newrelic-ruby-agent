@@ -1,22 +1,23 @@
 name: PR Continuous Integration
-
 on:
   pull_request:
 
 jobs:
   run_rubocop:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-ruby@v1
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.7'
+          ruby-version: '3.1'
       - run: bundle
       - run: rubocop
 
   unit_tests:
     needs: run_rubocop
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -28,12 +29,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.7.0]
+        ruby-version: [2.2.10, 3.1.2, jruby-9.3.8.0]
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
-      - name: Install required packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -47,17 +53,17 @@ jobs:
           map: |
             {
               "2.2.10": {
-                "rails": "norails,rails52,rails42,rails32"
+                "rails": "norails,rails41,rails32"
               },
               "3.1.2": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.3.7.0": {
+              "jruby-9.3.8.0": {
                 "rails": "norails,rails61,rails52,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.8.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -65,7 +71,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.8.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -86,14 +92,14 @@ jobs:
           COVERAGE: true
 
       - name: Save coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-unit-tests
-          path: lib/coverage
+          path: lib/coverage_*/.resultset.json
 
   multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -124,7 +130,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo
+        image: mongo:5.0.11
         ports:
           - 27017:27017
       rabbitmq:
@@ -132,7 +138,7 @@ jobs:
         ports:
           - 5672:5672
         options: >-
-          --health-cmd "rabbitmqctl node_health_check"
+          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -152,10 +158,15 @@ jobs:
         ruby-version: [2.2.10, 3.1.2]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
-      - name: Install required packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -204,20 +215,23 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-multiverse
-          path: lib/coverage
+          path: lib/coverage_*/.resultset.json
+          retention-days: 2
 
   infinite_tracing:
     needs: run_rubocop
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         ruby-version: [2.5.9, 3.1.2]
     steps:
-      - uses: actions/checkout@v2
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
@@ -242,14 +256,31 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-infinite-tracing
-          path: lib/coverage
+          path: lib/coverage_*/.resultset.json
+
+  check_jruby_multiverse:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    outputs:
+      run_job: ${{ steps.filter.outputs.run_job }}
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            run_job:
+              - 'lib/new_relic/agent/instrumentation/**'
 
   jruby_multiverse:
-    needs: run_rubocop
-    runs-on: ubuntu-18.04
+    needs: check_jruby_multiverse
+    if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -272,7 +303,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo
+        image: mongo:5.0.11
         ports:
           - 27017:27017
       rabbitmq:
@@ -280,7 +311,7 @@ jobs:
         ports:
           - 5672:5672
         options: >-
-          --health-cmd "rabbitmqctl node_health_check"
+          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -298,26 +329,42 @@ jobs:
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
-      - uses: actions/checkout@v2
+      - name: Set the default Java version
+        run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
+             sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
+             java -version &&
+             javac -version
 
-      - name: Install Ruby jruby-9.3.7.0
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+
+      - name: Check out the source code
+        uses: actions/checkout@v3
+
+      - name: Install JRuby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.7.0
+          ruby-version: jruby-9.3.8.0
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Bundle
         run: bundle install
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          max_attempts: 1
+          # jruby -v yields info about which JVM version JRuby is using
+          command: jruby -v; bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
           JRUBY_OPTS: --dev
+          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -325,27 +372,30 @@ jobs:
 
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-20.04
-    if: github.repository_owner == 'newrelic'
+    runs-on: ubuntu-22.04
+    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-ruby@v1
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.7'
+          ruby-version: '3.1'
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report-combined
-          path: lib/coverage
+          path: lib/coverage_results
+          retention-days: 2
       - name: Simplecov Report
         uses: ./.github/actions/simplecov-report
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          resultPath: lib/coverage/.last_run.json
-          failedThreshold: 55
-          failedThresholdBranch: 20
+          resultPath: lib/coverage_results/.last_run.json
+          failedThreshold: 90
+          failedThresholdBranch: 80

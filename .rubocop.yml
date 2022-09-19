@@ -1,5 +1,12 @@
+inherit_from: .rubocop_todo.yml
+
 require:
+  # Default minitest configurations: https://github.com/rubocop/rubocop-minitest/blob/master/config/default.yml
+  - rubocop-minitest
+  # Default performance configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
   - rubocop-performance
+  # Default rake configurations: https://github.com/rubocop/rubocop-rake/blob/master/config/default.yml
+  <%= '- rubocop-rake' if RUBY_VERSION >= '2.4.0' %>
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -256,7 +263,9 @@ Layout/LineEndStringConcatenationIndentation:
   Enabled: false
 
 Layout/LineLength:
-  Enabled: false
+  # TODO: get this down to something closer to the 80 col ideal
+  #       we should be able to manage 120
+  Max: 576
 
 Layout/MultilineArrayBraceLayout:
   Enabled: true
@@ -1466,7 +1475,7 @@ Style/MapToHash:
 
 Style/MethodCallWithArgsParentheses:
   Enabled: true
-  IgnoredMethods:
+  AllowedMethods:
     - puts
     - require
     - raise
@@ -1479,7 +1488,7 @@ Style/MethodCallWithArgsParentheses:
 
 Style/MethodCallWithoutArgsParentheses:
   Enabled: false
-  IgnoredMethods: []
+  AllowedMethods: []
 
 Style/MethodCalledOnDoEndBlock:
   Enabled: false

@@ -42,7 +42,7 @@ module NewRelic
 
       def test_accepts_trace_context_with_trace_parent_and_no_trace_state
         carrier = {'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-01'}
-        txn = in_transaction("receiving_txn") do |txn|
+        txn = in_transaction("receiving_txn") do
           @events.notify(:before_call, carrier)
         end
 
@@ -54,7 +54,7 @@ module NewRelic
           'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-00',
           'HTTP_TRACESTATE' => ''
         }
-        txn = in_transaction("receiving_txn") do |txn|
+        txn = in_transaction("receiving_txn") do
           @events.notify(:before_call, carrier)
         end
 
@@ -66,7 +66,7 @@ module NewRelic
           'HTTP_TRACEPARENT' => '00-00000000000000000000000000000000-1234567890123456-00',
           'HTTP_TRACESTATE' => ''
         }
-        txn = in_transaction("receiving_txn") do |txn|
+        txn = in_transaction("receiving_txn") do
           @events.notify(:before_call, carrier)
         end
 

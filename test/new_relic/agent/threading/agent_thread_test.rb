@@ -157,6 +157,17 @@ module NewRelic::Agent::Threading
       assert_nil(bt)
     end
 
+    def test_agent_thread_creation_ignores_current_transaction
+      with_config(:'instrumentation.thread.tracing' => true) do
+        in_transaction do |txn|
+          t = AgentThread.create("label") do
+            refute ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].current_transaction, "Agent thread should not contain a current transaction"
+          end
+          t.join
+        end
+      end
+    end
+
     DONT_CARE = true
   end
 end

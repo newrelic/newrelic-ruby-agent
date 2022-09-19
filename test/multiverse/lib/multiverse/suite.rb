@@ -265,6 +265,8 @@ module Multiverse
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
+        f.puts "gem 'rackup'" if need_rackup?(gemfile_text)
+
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
@@ -300,10 +302,22 @@ module Multiverse
       if RUBY_VERSION >= '2.6'
         '5.16.2'
       elsif RUBY_VERSION >= '2.4'
-        '5.15.0'
+        '5.10.1'
       else
         '4.7.5'
       end
+    end
+
+    # rack v3 moved rack/handler out into a separate rackup gem
+    # rack v3 and rackup require Ruby 2.4+, so assume rack v2 or below
+    # (which doesn't need the separate rackup) for older rubies
+    def need_rackup?(gemfile_text)
+      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/ && RUBY_VERSION >= '2.4.0'
+
+      rack_major_version = Regexp.last_match(1)
+      return true if rack_major_version.nil? # no version constraint, latest rack, needs rackup
+
+      !%w[1 2].include?(rack_major_version) # no rackup needed for rack v1 and v2
     end
 
     def require_minitest
@@ -421,10 +435,6 @@ module Multiverse
     def execute(instrumentation_method)
       return unless check_environment_condition
       configure_instrumentation_method(instrumentation_method)
-
-      label = should_serialize? ? 'serial' : 'parallel'
-      env_count = filter_env ? 1 : environments.size
-      puts yellow("\nRunning #{directory.inspect} in #{env_count} environments in #{label}")
 
       environments.before.call if environments.before
       if should_serialize?
@@ -680,6 +690,16 @@ module Multiverse
 
     def exclude?(file)
       EXCLUDED_FILES.include?(File.basename(file))
+    end
+
+    def execution_message
+      label = should_serialize? ? 'serial' : 'parallel'
+      env_count = filter_env ? 1 : environments.size
+      env_plural = env_count > 1 ? 'environments' : 'environment'
+      opening = "\nRunning \"#{suite}\" suite in"
+      body = environments.instrumentation_permutations.map { |p| "#{env_count} #{p.upcase} #{env_plural}" }
+      ending = "in #{label}"
+      message = [opening, body.join(' and '), ending].join(' ')
     end
   end
 end

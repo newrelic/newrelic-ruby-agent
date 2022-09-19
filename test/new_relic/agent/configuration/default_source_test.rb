@@ -223,8 +223,8 @@ module NewRelic::Agent::Configuration
         end
       end
 
-      assert unspecified_keys.empty?, "The following keys did not specify a value for :allowed_from_server: #{unspecified_keys.join(', ')}"
-      assert bad_value_keys.empty?, "The following keys had incorrect :allowed_from_server values (only true or false are allowed): #{bad_value_keys.join(', ')}"
+      assert_empty unspecified_keys, "The following keys did not specify a value for :allowed_from_server: #{unspecified_keys.join(', ')}"
+      assert_empty bad_value_keys, "The following keys had incorrect :allowed_from_server values (only true or false are allowed): #{bad_value_keys.join(', ')}"
     end
 
     def test_host_correct_when_license_key_matches_identifier

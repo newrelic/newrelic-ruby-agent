@@ -54,7 +54,7 @@ module NewRelic
         end
 
         def test_segment_with_no_error_does_not_produce_error_attributes
-          segment, _ = with_segment do |segment|
+          segment, _ = with_segment do
             # A perfectly fine walk through segmentland
           end
           refute segment.noticed_error_attributes

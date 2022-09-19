@@ -3,8 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-SimpleCovHelper.command_name("test:multiverse[tilt]")
-
 class TiltInstrumentationTest < Minitest::Test
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine

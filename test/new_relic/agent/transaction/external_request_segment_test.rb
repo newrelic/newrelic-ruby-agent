@@ -695,7 +695,7 @@ module NewRelic::Agent
             l = with_array_logger do
               segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
             end
-            refute l.array.empty?, "process_response_metadata should log error on invalid ID"
+            refute_empty l.array, "process_response_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             assert_equal 'External/example.com/foo/get', segment.name
@@ -721,7 +721,7 @@ module NewRelic::Agent
             l = with_array_logger do
               segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
             end
-            refute l.array.empty?, "process_response_metadata should log error on invalid ID"
+            refute_empty l.array, "process_response_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             assert_equal 'External/example.com/foo/get', segment.name

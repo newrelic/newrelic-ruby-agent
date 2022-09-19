@@ -20,8 +20,8 @@ class LicenseTest < Minitest::Test
   def test_all_files_have_license_header
     ruby_files.each do |file|
       lines = []
-      File.open(file, 'r') do |file|
-        file.each_line do |line|
+      File.open(file, 'r') do |f|
+        f.each_line do |line|
           break unless line.start_with?('#')
           lines << line
         end

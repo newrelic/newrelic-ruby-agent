@@ -19,7 +19,6 @@ module NewRelic
 
       VERSION = [0, 1].freeze
       PARENT_TYPE = "App"
-      POUND = '#'
 
       # Key names for serialization
       VERSION_KEY = 'v'

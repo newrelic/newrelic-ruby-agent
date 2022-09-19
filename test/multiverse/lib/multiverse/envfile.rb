@@ -109,7 +109,7 @@ module Multiverse
     end
 
     def size
-      @gemfiles.size * permutations
+      @gemfiles.size
     end
 
     def add_version(version, twiddle_wakka = true)

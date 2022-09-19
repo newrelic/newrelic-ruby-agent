@@ -18,16 +18,28 @@ HTTPRB_VERSIONS = [
   ['4.4.0', 2.3, 2.6],
   ['4.3.0', 2.3, 2.6],
   ['4.2.0', 2.3, 2.6],
-  ['3.0.0'],
-  ['2.2.2']
+  ['3.0.0', 2.3, 2.6],
+  ['2.2.2', 2.3, 2.6]
 ]
 
 def gem_list(httprb_version = nil)
   return if (httprb_version && httprb_version.include?('5') && RUBY_PLATFORM.eql?('java')) ||
     (RUBY_PLATFORM.eql?('java') && httprb_version.nil?)
+  # TODO: CI - rack v3.0.0 causes 2 test failures
+  #
+  # HTTPClientTest#test_crossapp_metrics_allow_valid_utf8_characters
+  # [test/new_relic/http_client_test_cases.rb:381]:
+  # Expected [:uri] to include :transaction_guid.
+  #
+  # and
+  #
+  # HTTPClientTest#test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
+  # [test/new_relic/http_client_test_cases.rb:357]
+  #
+  # Once the issue is resolved, rack should be unpinned below
   <<-RB
     gem 'http'#{httprb_version}
-    gem 'rack'
+    gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
     #{ruby3_gem_webrick}
   RB
 end

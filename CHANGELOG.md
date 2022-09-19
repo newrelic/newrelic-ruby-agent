@@ -1,6 +1,23 @@
 # New Relic Ruby Agent Release Notes #
 
 
+  ## v8.10.1
+
+
+  * **Bugfix: Missing unscoped metrics when instrumentation.thread.tracing is enabled**
+    
+    Previously, when `instrumentation.thread.tracing` was set to true, some puma applications encountered a bug where a varying number of unscoped metrics would be missing. The agent now will correctly store and send all unscoped metrics.
+    
+    Thank you to @texpert for providing details of their situation to help resolve the issue.
+  
+  
+  * **Bugfix: gRPC instrumentation causes ArgumentError when other Google gems are present**
+
+    Previously, when the agent had gRPC instrumentation enabled in an application using other gems (such as google-ads-googleads), the instrumentation could cause the error `ArgumentError: wrong number of arguments (given 3, expected 2)`. The gRPC instrumentation has been updated to prevent this issue from occurring in the future. 
+
+    Thank you to @FeminismIsAwesome for bringing this issue to our attention.
+
+
   ## v8.10.0
 
 
