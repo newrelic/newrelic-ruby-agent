@@ -130,7 +130,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo:5.0.11
+        image: ${{ (matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10') && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
           - 27017:27017
       rabbitmq:
