@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 require_relative 'suite'
-require_relative 'new_relic_test'
+require_relative 'new_relic_runnable'
 
 MINITEST_REPORTER_CLASS_NAME = if defined?(Minitest::VERSION)
   Minitest::StatisticsReporter
