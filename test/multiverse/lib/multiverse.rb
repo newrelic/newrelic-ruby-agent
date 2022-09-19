@@ -27,7 +27,8 @@ module Multiverse
   # This path is from the perspective of the files within the multiverse directory
   # It is used to hold test timing information between suite runs so that the slowest
   # tests can be evaluated across suites
-  TIME_REPORT_PATH = '../../../minitest/minitest_time_report'
+  TEST_TIME_REPORT_PATH = File.join(File.expand_path('../../..', __FILE__), 'minitest/minitest_time_report')
+  SUITE_TIME_REPORT_PATH = File.join(File.expand_path('../../..', __FILE__), 'minitest/minitest_suite_time_report')
 end
 
 require 'multiverse/bundler_patch'
