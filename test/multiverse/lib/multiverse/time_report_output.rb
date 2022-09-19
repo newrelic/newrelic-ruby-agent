@@ -1,3 +1,8 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 module TimeReportOutput
   def sort_and_print_test_times
     if File.exist?(Multiverse::TEST_TIME_REPORT_PATH)
