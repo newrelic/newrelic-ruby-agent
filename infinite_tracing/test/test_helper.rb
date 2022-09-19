@@ -16,6 +16,7 @@ require 'rake'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require_relative '../../test/minitest/test_time_plugin'
+require_relative '../../test/minitest/suite_time_plugin'
 require 'mocha/setup'
 require 'newrelic_rpm'
 require 'infinite_tracing'
