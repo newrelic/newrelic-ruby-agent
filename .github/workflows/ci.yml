@@ -130,7 +130,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo:5.0.11
+        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
           - 27017:27017
       rabbitmq:
