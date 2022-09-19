@@ -853,7 +853,7 @@ Lint/RequireRelativeSelfPath:
   Enabled: true
 
 Metrics/AbcSize:
-  Enabled: false
+  Enabled: true
 
 Metrics/BlockLength:
   Enabled: false
