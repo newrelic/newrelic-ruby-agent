@@ -8,7 +8,7 @@ MINITEST_CLASS_NAME = if defined?(MiniTest::VERSION)
 elsif defined?(Minitest::VERSION)
   Minitest::StatisticsReporter
 else
-  raise 'Minitest not loaded'
+  puts 'Minitest version not found by Test Time Reporter'
 end
 
 class TestTimeReporter < MINITEST_CLASS_NAME
