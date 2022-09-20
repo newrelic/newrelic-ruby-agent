@@ -3,12 +3,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class DummyClass; end
 MINITEST_CLASS_NAME = if defined?(MiniTest::VERSION)
   MiniTest::StatisticsReporter
 elsif defined?(Minitest::VERSION)
   Minitest::StatisticsReporter
 else
+  class DummyClass; end
   DummyClass
 end
 
