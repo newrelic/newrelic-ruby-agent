@@ -7,7 +7,8 @@ require_relative 'suite_time_reporter'
 
 module Minitest
   def self.plugin_suite_time_init(options)
-    Minitest.reporter << SuiteTimeReporter.new if RUBY_VERSION >= '2.4.0'
+    # TODO - SUITE TIMES: Get working with Multiverse and enable
+    # Minitest.reporter << SuiteTimeReporter.new if RUBY_VERSION >= '2.4.0'
   end
 
   def self.plugin_suite_time_options(opts, options)
