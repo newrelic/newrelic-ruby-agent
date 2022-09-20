@@ -148,7 +148,6 @@ module NewRelic::Agent
       def start_streaming(exponential_backoff = true)
         return if suspended?
 
-        @exponential_backoff = exponential_backoff
         Connection.instance.wait_for_agent_connect
         @lock.synchronize { response_handler(exponential_backoff) }
       end

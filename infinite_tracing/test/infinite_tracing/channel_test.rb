@@ -71,8 +71,7 @@ module NewRelic
 
         def test_invalid_compression_level
           channel = Channel.new
-          def channel.compression_level; :bogus; end
-          assert_raises(RuntimeError) { channel.validate_compression_level }
+          refute channel.valid_compression_level?(:bogus)
         end
 
         def test_channel_args_are_empty_if_compression_is_disabled

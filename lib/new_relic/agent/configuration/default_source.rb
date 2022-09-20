@@ -2439,7 +2439,7 @@ A map of error classes to a list of messages. When an error of one of the classe
         },
         :'infinite_tracing.compression_level' => {
           :default => :none,
-          :public => true,
+          :public => false,
           :type => Symbol,
           :allowed_from_server => false,
           :external => :infinite_tracing,
@@ -2448,7 +2448,7 @@ A map of error classes to a list of messages. When an error of one of the classe
         },
         :'infinite_tracing.batching' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,

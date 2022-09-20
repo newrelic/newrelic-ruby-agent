@@ -7,6 +7,7 @@ module NewRelic::Agent
   module InfiniteTracing
     class Channel
       COMPRESSION_LEVELS = %i[none low medium high].freeze
+      DEFAULT_COMPRESSION_LEVEL = :none
 
       def stub
         NewRelic::Agent.logger.debug("Infinite Tracer Opening Channel to #{host_and_port}")
@@ -23,6 +24,15 @@ module NewRelic::Agent
         GRPC::Core::Channel.new(host_and_port, settings, credentials)
       end
 
+      # def apply_default_compression_level
+
+
+      #   require 'pry'
+      #   binding.pry
+
+      #   NewRelic::Agent.config[:'infinite_tracing.compression_level'] = DEFAULT_COMPRESSION_LEVEL
+      # end
+
       def channel_args
         return NewRelic::EMPTY_HASH unless compression_enabled?
 
@@ -30,17 +40,28 @@ module NewRelic::Agent
       end
 
       def compression_enabled?
-        validate_compression_level
         compression_level != :none
       end
 
       def compression_level
-        NewRelic::Agent.config[:'infinite_tracing.compression_level']
+        @compression_level ||= begin
+          level = if valid_compression_level?(configured_compression_level)
+            configured_compression_level
+          else
+            DEFAULT_COMPRESSION_LEVEL
+          end
+          NewRelic::Agent.logger.debug("Infinite Tracer compression level set to #{level}")
+          level
+        end
       end
 
       def compression_options
         {default_algorithm: :gzip,
          default_level: compression_level}
+      end
+
+      def configured_compression_level
+        NewRelic::Agent.config[:'infinite_tracing.compression_level']
       end
 
       def credentials
@@ -59,13 +80,13 @@ module NewRelic::Agent
         }
       end
 
-      def validate_compression_level
-        NewRelic::Agent.logger.debug("Infinite Tracer compression level set to #{compression_level}")
+      def valid_compression_level?(level)
+        return true if COMPRESSION_LEVELS.include?(level)
 
-        return if COMPRESSION_LEVELS.include?(compression_level)
+        NewRelic::Agent.logger.error("Invalid compression level '#{level}' specified! Must be one of " \
+          "#{COMPRESSION_LEVELS.join('|')}. Using default level of '#{DEFAULT_COMPRESSION_LEVEL}'")
 
-        raise "Invalid compression level '#{compression_level}' specified! Must be one of " \
-              "#{COMPRESSION_LEVELS.join('|')}."
+        false
       end
     end
   end
