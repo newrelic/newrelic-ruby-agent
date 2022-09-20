@@ -296,12 +296,7 @@ module NewRelic
 
         def flush_pipe_data
           if connected? && @service.is_a?(PipeService)
-            transmit_data
-            transmit_analytic_event_data
-            transmit_custom_event_data
-            transmit_error_event_data
-            transmit_span_event_data
-            transmit_log_event_data
+            transmit_data_types
           end
         end
 
@@ -765,19 +760,9 @@ module NewRelic
               @service.request_timeout = 10
 
               @events.notify(:before_shutdown)
-              transmit_data
-              transmit_analytic_event_data
-              transmit_custom_event_data
-              transmit_error_event_data
-              transmit_span_event_data
-              transmit_log_event_data
+              transmit_data_types
+              shutdown_message
 
-              if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-                ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
-                @service.shutdown
-              else
-                ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
-              end
               ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
             rescue Timeout::Error, StandardError => e
               ::NewRelic::Agent.logger.debug("Error when disconnecting #{e.class.name}: #{e.message}")
@@ -786,6 +771,24 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Bypassing graceful disconnect - agent not connected")
           end
         end
+      end
+
+      def shutdown_message
+        if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
+          ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
+          @service.shutdown
+        else
+          ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
+        end
+      end
+
+      def transmit_data_types
+        transmit_data
+        transmit_analytic_event_data
+        transmit_custom_event_data
+        transmit_error_event_data
+        transmit_span_event_data
+        transmit_log_event_data
       end
 
       extend ClassMethods
