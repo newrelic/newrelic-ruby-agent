@@ -52,9 +52,10 @@ module Multiverse
       # individual suite, so we cannot define this inside the TestTimeReporter
       # class. Please keep this path and the paths for the reporter constants
       # the same!
-      # TODO: These files aren't connected to the correct path, so they aren't getting reset
-      File.delete(Multiverse::TEST_TIME_REPORT_PATH)
-      File.delete(Multiverse::SUITE_TIME_REPORT_PATH)
+      # rubocop:disable Lint/NonAtomicFileOperation
+      File.delete(Multiverse::TEST_TIME_REPORT_PATH) if File.exist?(Multiverse::TEST_TIME_REPORT_PATH)
+      File.delete(Multiverse::SUITE_TIME_REPORT_PATH) if File.exist?(Multiverse::SUITE_TIME_REPORT_PATH)
+      # rubocop:enable Lint/NonAtomicFileOperation
 
       execute_suites(filter, opts) do |suite|
         puts yellow(suite.execution_message)

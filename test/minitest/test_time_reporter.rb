@@ -19,6 +19,7 @@ class TestTimeReporter < MINITEST_CLASS_NAME
 
   def initialize(options = {})
     super
+    File.open(TEST_TIME_REPORT, 'w+') unless File.exist?(TEST_TIME_REPORT)
     @test_times = []
   end
 
