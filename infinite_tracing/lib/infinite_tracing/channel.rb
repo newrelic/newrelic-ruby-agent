@@ -24,15 +24,6 @@ module NewRelic::Agent
         GRPC::Core::Channel.new(host_and_port, settings, credentials)
       end
 
-      # def apply_default_compression_level
-
-
-      #   require 'pry'
-      #   binding.pry
-
-      #   NewRelic::Agent.config[:'infinite_tracing.compression_level'] = DEFAULT_COMPRESSION_LEVEL
-      # end
-
       def channel_args
         return NewRelic::EMPTY_HASH unless compression_enabled?
 
