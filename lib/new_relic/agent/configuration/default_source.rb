@@ -2436,6 +2436,25 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :external => :infinite_tracing,
           :description => "Configures the TCP/IP port for the Trace Observer Host"
+        },
+        :'infinite_tracing.compression_level' => {
+          :default => :none,
+          :public => false,
+          :type => Symbol,
+          :allowed_from_server => false,
+          :external => :infinite_tracing,
+          :description => "Configure the compression level for data sent to the Trace Observer\nMay be one of " \
+                          "[none|low|medium|high]\nBy default, compression is not used (level = none)"
+        },
+        :'infinite_tracing.batching' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :external => :infinite_tracing,
+          :description => "If true, data sent to the Trace Observer will be batched instead of the default of each " \
+                          "span being sent individually"
+
         }
       }.freeze
     end
