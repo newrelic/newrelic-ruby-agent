@@ -199,15 +199,9 @@ module NewRelic
 
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
-
-        stats.call_count = value[:count] if value[:count]
-        stats.total_call_time = value[:total] if value[:total]
-        stats.total_exclusive_time = value[:total] if value[:total]
-        stats.min_call_time = value[:min] if value[:min]
-        stats.max_call_time = value[:max] if value[:max]
-        stats.sum_of_squares = value[:sum_of_squares] if value[:sum_of_squares]
-        value = stats
+        value = stats.hash_merge(value)
       end
+
       agent.stats_engine.tl_record_unscoped_metrics(metric_name, value)
     end
 

@@ -49,14 +49,14 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
   def test_simple
     stats = NewRelic::Agent::Stats.new
-    validate(stats, 0, 0, 0, 0)
+    validate(stats: stats, count: 0, total: 0, min: 0, max: 0)
 
     assert_equal stats.call_count, 0
     stats.trace_call(10)
     stats.trace_call(20)
     stats.trace_call(30)
 
-    validate(stats, 3, (10 + 20 + 30), 10, 30)
+    validate(stats: stats, count: 3, total: (10 + 20 + 30), min: 10, max: 30)
   end
 
   def test_to_s
@@ -87,15 +87,15 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s2.trace_call(20)
     s2.freeze
 
-    validate(s2, 1, 20, 20, 20)
+    validate(stats: s2, count: 1, total: 20, min: 20, max: 20)
     s3 = s1.merge(s2)
-    validate(s3, 2, (10 + 20), 10, 20)
-    validate(s1, 1, 10, 10, 10)
-    validate(s2, 1, 20, 20, 20)
+    validate(stats: s3, count: 2, total: (10 + 20), min: 10, max: 20)
+    validate(stats: s1, count: 1, total: 10, min: 10, max: 10)
+    validate(stats: s2, count: 1, total: 20, min: 20, max: 20)
 
     s1.merge!(s2)
-    validate(s1, 2, (10 + 20), 10, 20)
-    validate(s2, 1, 20, 20, 20)
+    validate(stats: s1, count: 2, total: (10 + 20), min: 10, max: 20)
+    validate(stats: s2, count: 1, total: 20, min: 20, max: 20)
   end
 
   def test_merge_with_exclusive
@@ -107,15 +107,27 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s2.trace_call(20, 10)
     s2.freeze
 
-    validate(s2, 1, 20, 20, 20, 10)
+    validate(stats: s2, count: 1, total: 20, min: 20, max: 20, exclusive: 10)
     s3 = s1.merge(s2)
-    validate(s3, 2, (10 + 20), 10, 20, (10 + 5))
-    validate(s1, 1, 10, 10, 10, 5)
-    validate(s2, 1, 20, 20, 20, 10)
+    validate(stats: s3, count: 2, total: (10 + 20), min: 10, max: 20, exclusive: (10 + 5))
+    validate(stats: s1, count: 1, total: 10, min: 10, max: 10, exclusive: 5)
+    validate(stats: s2, count: 1, total: 20, min: 20, max: 20, exclusive: 10)
 
     s1.merge!(s2)
-    validate(s1, 2, (10 + 20), 10, 20, (5 + 10))
-    validate(s2, 1, 20, 20, 20, 10)
+    validate(stats: s1, count: 2, total: (10 + 20), min: 10, max: 20, exclusive: (5 + 10))
+    validate(stats: s2, count: 1, total: 20, min: 20, max: 20, exclusive: 10)
+  end
+
+  def test_hash_merge
+    incomplete_stats_hash = {
+      :count => 12,
+      :max => 5,
+      :sum_of_squares => 999
+    }
+
+    stats = NewRelic::Agent::Stats.new
+    stats = stats.hash_merge(incomplete_stats_hash)
+    validate(stats: stats, count: 12, total: 0.0, min: 0.0, max: 5, exclusive: 0.0, sum_of_squares: 999)
   end
 
   def test_freeze
@@ -130,7 +142,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
       assert false
     rescue StandardError
       assert s1.frozen?
-      validate(s1, 1, 10, 10, 10)
+      validate(stats: s1, count: 1, total: 10, min: 10, max: 10)
     end
   end
 
@@ -159,7 +171,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
   private
 
-  def validate(stats, count, total, min, max, exclusive = nil)
+  def validate(stats:, count:, total:, min:, max:, sum_of_squares: nil, exclusive: nil)
     assert_equal count, stats.call_count
     assert_equal total, stats.total_call_time
     assert_equal min, stats.min_call_time

@@ -50,6 +50,16 @@ module NewRelic
         self
       end
 
+      def hash_merge(hash)
+        @call_count = hash[:count] if hash[:count]
+        @total_call_time = hash[:total] if hash[:total]
+        @total_exclusive_time = hash[:total] if hash[:total]
+        @min_call_time = hash[:min] if hash[:min]
+        @max_call_time = hash[:max] if hash[:max]
+        @sum_of_squares = hash[:sum_of_squares] if hash[:sum_of_squares]
+        self
+      end
+
       def to_s
         "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s / #{'%.4f' % total_exclusive_time.to_f}s ex]"
       end
