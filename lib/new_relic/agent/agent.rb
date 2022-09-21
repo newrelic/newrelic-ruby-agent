@@ -730,13 +730,7 @@ module NewRelic
 
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
-            harvest_and_send_errors
-            harvest_and_send_error_event_data
-            harvest_and_send_transaction_traces
-            harvest_and_send_slowest_sql
-            harvest_and_send_timeslice_data
-            harvest_and_send_span_event_data
-            harvest_and_send_log_event_data
+            harvest_and_send_data_types
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands
@@ -789,6 +783,16 @@ module NewRelic
         transmit_error_event_data
         transmit_span_event_data
         transmit_log_event_data
+      end
+
+      def harvest_and_send_data_types
+        harvest_and_send_errors
+        harvest_and_send_error_event_data
+        harvest_and_send_transaction_traces
+        harvest_and_send_slowest_sql
+        harvest_and_send_timeslice_data
+        harvest_and_send_span_event_data
+        harvest_and_send_log_event_data
       end
 
       extend ClassMethods
