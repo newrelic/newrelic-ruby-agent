@@ -580,13 +580,17 @@ module NewRelic
 
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment
-          # Make sure not to override existing segment-level custom attributes
-          segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
-          segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
+          add_new_segment_attributes(params, segement)
         end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
+    end
+
+    def add_new_segment_attributes(params, segement)
+      # Make sure not to override existing segment-level custom attributes
+      segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
+      segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
     end
 
     # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the
