@@ -77,18 +77,21 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end
-      http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
 
+      http = nil
       request = nil
       if @api_key.nil? || @api_key.empty?
         if @license_key.nil? || @license_key.empty?
           raise "license_key and api_key were not set in newrelic.yml for #{control.env}"
         end
+        http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
         uri = "/deployments.xml"
         request = Net::HTTP::Post.new(uri, {'x-license-key' => @license_key})
         request.content_type = "application/octet-stream"
       else
+        http = ::NewRelic::Agent::NewRelicService.new(nil, NewRelic::Control::Server.new('api.newrelic.com', Agent.config[:api_port])).http_connection
         uri = "/deployments.json"
+
         request = Net::HTTP::Post.new(uri, {"Api-Key" => @api_key})
         request.content_type = "application/json"
       end
@@ -96,6 +99,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       request.set_form_data(create_params)
 
       response = http.request(request)
+      # binding.irb
 
       if response.is_a?(Net::HTTPSuccess)
         info("Recorded deployment to '#{@appname}' (#{@description || Time.now})")
