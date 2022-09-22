@@ -17,7 +17,11 @@ class TiltInstrumentationTest < Minitest::Test
   end
 
   def haml_render_metric(filename = 'test.haml')
-    "View/Tilt::HamlTemplate/#{filename}/Rendering"
+    if Gem::Version.new(Haml::VERSION) >= Gem::Version.new('6.0.0')
+      "View/Haml::Template/#{filename}/Rendering"
+    else
+      "View/Tilt::HamlTemplate/#{filename}/Rendering"
+    end
   end
 
   ### Tilt::Template#render tests ###

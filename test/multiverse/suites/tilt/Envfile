@@ -10,10 +10,16 @@ TILT_VERSIONS = [
   ['1.4.1', 2.2, 2.7]
 ]
 
+def haml_version(tilt_version)
+  if tilt_version && (Gem::Version.new(tilt_version.match(/\d|\./)) < Gem::Version.new('2.0.0'))
+    add_version('5.2.2')
+  end
+end
+
 def gem_list(tilt_version = nil)
   <<-RB
     gem 'tilt'#{tilt_version}
-    gem 'haml'
+    gem 'haml'#{haml_version(tilt_version)}
     #{ruby3_gem_webrick}
   RB
 end
