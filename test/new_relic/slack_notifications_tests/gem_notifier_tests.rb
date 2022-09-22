@@ -42,7 +42,7 @@ class GemNotifications < Minitest::Test
   def test_valid_github_diff
     response = successful_http_response()
     HTTParty.stub(:get, response) do
-      assert_equal true, GemNotifier.github_diff('valid_git_diff', '1.2', '1.1')
+      assert GemNotifier.github_diff('valid_git_diff', '1.2', '1.1')
     end
   end
 
@@ -60,7 +60,7 @@ class GemNotifications < Minitest::Test
 
   def test_get_gem_info_max_size
     versions = GemNotifier.gem_versions(http_get_response())
-    assert_equal true, versions.size == 2
+    assert_equal versions.size == 2
   end
 
   def test_newest_version_can_be_a_preview_or_rc_or_beta_release
@@ -74,7 +74,7 @@ class GemNotifications < Minitest::Test
   end
 
   def test_gem_updated_true
-    assert_equal true, GemNotifier.gem_updated?([{"created_at" => "#{Time.now}"}])
+    assert GemNotifier.gem_updated?([{"created_at" => "#{Time.now}"}])
   end
 
   def test_gem_updated_false
