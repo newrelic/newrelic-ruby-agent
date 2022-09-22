@@ -5,8 +5,8 @@
 
 module NewRelicRunnable
   def run(reporter, options = {})
-    reporter.reporters.each do |reporter|
-      reporter.before_test(self) if defined?(reporter.before_test)
+    reporter.reporters.each do |r|
+      r.before_test(self) if defined?(r.before_test)
     end
     super
   end
