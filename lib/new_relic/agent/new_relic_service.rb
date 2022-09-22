@@ -402,7 +402,7 @@ module NewRelic
       end
 
       def prep_request(opts)
-        headers = prep_headers
+        headers = prep_headers(opts)
         if Agent.config[:put_for_data_send]
           request = Net::HTTP::Put.new(opts[:uri], headers)
         else
