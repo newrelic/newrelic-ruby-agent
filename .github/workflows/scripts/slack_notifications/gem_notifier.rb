@@ -76,3 +76,8 @@ class GemNotifier < SlackNotifier
     alert_message + "\n\n" + action_message
   end
 end
+
+# This file runs on a 24 hour cycle via gem_notifications.yml and sends Slack updates for new gem version releases.
+if $PROGRAM_NAME == __FILE__
+  GemNotifier.check_for_updates(ARGV)
+end

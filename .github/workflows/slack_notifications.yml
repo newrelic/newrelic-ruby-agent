@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: gem install httparty
       - name: Check for outdated gems 
-        run: ruby .github/workflows/scripts/slack_notifications/gem_script.rb ${{ env.gems }}
+        run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb ${{ env.gems }}
         env:
           SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}
           gems:
@@ -47,6 +47,6 @@ jobs:
       - run: gem install httparty
       - run: gem install feedjira
       - name: Check for CVEs
-        run: ruby .github/workflows/scripts/slack_notifications/cve_script.rb
+        run: ruby .github/workflows/scripts/slack_notifications/cve_notifier.rb
         env:
           SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}

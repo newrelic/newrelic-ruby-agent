@@ -25,3 +25,8 @@ class CveNotifier < SlackNotifier
     {text: ":rotating_light: #{title}\n<#{url}|More info here>"}.to_json
   end
 end
+
+# This file runs on a 24 hour cycle via slack_notifications.yml and sends Slack updates for Ruby CVEs.
+if $PROGRAM_NAME == __FILE__
+  CveNotifier.check_for_cves
+end
