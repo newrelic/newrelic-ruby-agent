@@ -5,6 +5,6 @@
 
 # This script runs on a 24 hour cycle via gem_notifications.yml and sends Slack updates for new gem version releases.
 
-require_relative 'notifications_methods'
+require_relative 'gem_notifier'
 
-check_for_updates(ARGV)
+GemNotifier.check_for_updates(ARGV)

@@ -5,6 +5,6 @@
 
 # This script runs on a 24 hour cycle via gem_notifications.yml and sends Slack updates for Ruby CVEs.
 
-require_relative 'cve_methods'
+require_relative 'cve_notifier'
 
-check_for_cves
+CveNotifier.new.check_for_cves
