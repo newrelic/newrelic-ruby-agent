@@ -24,18 +24,32 @@ module NewRelic
         end
 
         def gather_gc_stats(snap)
-          if supports?(:gc_runs)
-            snap.gc_runs = GC.count
-          end
+          gather_gc_runs(snap) if supports?(:gc_runs)
+          gather_stats if GC.respond_to?(:stat)
+        end
 
-          if GC.respond_to?(:stat)
-            gc_stats = GC.stat
-            snap.total_allocated_object = gc_stats[:total_allocated_objects] || gc_stats[:total_allocated_object]
-            snap.major_gc_count = gc_stats[:major_gc_count]
-            snap.minor_gc_count = gc_stats[:minor_gc_count]
-            snap.heap_live = gc_stats[:heap_live_slots] || gc_stats[:heap_live_slot] || gc_stats[:heap_live_num]
-            snap.heap_free = gc_stats[:heap_free_slots] || gc_stats[:heap_free_slot] || gc_stats[:heap_free_num]
+        def gather_gc_runs(snap)
+          snap.gc_runs = GC.count
+        end
+
+        def gather_stats(snap)
+          snap.total_allocated_object = derive_from_gc_stats(%i[total_allocated_objects total_allocated_object])
+          snap.major_gc_count = derive_from_gc_stats(:major_gc_count)
+          snap.minor_gc_count = derive_from_gc_stats(:minor_gc_count)
+          snap.heap_live = derive_from_gc_stats(%i[heap_live_slots heap_live_slot heap_live_num])
+          snap.heap_free = derive_from_gc_stats(%i[heap_free_slots heap_free_slot heap_free_num])
+        end
+
+        def derive_from_gc_stats(keys)
+          Array(keys).each do |key|
+            value = gc_stats[key]
+            return value if value
           end
+          nil
+        end
+
+        def gc_stats
+          @gc_stats ||= GC.stat
         end
 
         def gather_gc_time(snap)
