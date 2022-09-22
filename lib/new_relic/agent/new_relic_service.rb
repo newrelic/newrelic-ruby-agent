@@ -674,7 +674,7 @@ module NewRelic
         @collector = @configured_collector if method == :preconnect
       end
 
-      def invoke_remote_send_request(method, payload, data)
+      def invoke_remote_send_request(method, payload, data, encoding)
         uri = remote_method_uri(method)
         full_uri = "#{@collector}#{uri}"
 
