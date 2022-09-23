@@ -1641,9 +1641,8 @@ Style/OptionalArguments:
 Style/OptionalBooleanParameter:
   Enabled: false
 
-# Disabling for now
 Style/OrAssignment:
-  Enabled: false
+  Enabled: true
 
 Style/ParallelAssignment:
   Enabled: false
