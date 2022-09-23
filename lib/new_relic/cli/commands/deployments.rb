@@ -109,11 +109,11 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     end
   end
 
-  private
-
   def api_v1?
     @api_key.nil? || @api_key.empty?
   end
+
+  private
 
   def create_request(uri, headers, content_type)
     Net::HTTP::Post.new(uri, headers).tap do |req|
@@ -167,7 +167,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       o.separator("OPTIONS:")
       o.on("-a", "--appname=NAME", String,
         "Set the application name.",
-        "Default is app_name setting in newrelic.yml") { |e| @appname = e }
+        "Default is app_name setting in newrelic.yml. Available only whne using API v1.") { |e| @appname = e }
       o.on("-i", "--appid=ID", String,
         "Set the application ID",
         "If not provided, will connect to the New Relic collector to get it") { |i| @application_id = i }
