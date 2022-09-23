@@ -22,6 +22,9 @@ module NewRelic
       # underlying TCP connection may be in a bad state.
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
 
+      # The maximum number of times to attempt an HTTP request
+      MAX_ATTEMPTS = 2
+
       # Don't perform compression on the payload unless its uncompressed size is
       # greater than or equal to this number of bytes. In testing with
       # Ruby 2.2 - 3.1, we determined an absolute minimum value for ASCII to be
@@ -139,12 +142,11 @@ module NewRelic
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
-        result = invoke_remote(
+        invoke_remote(
           :metric_data,
           [@agent_id, timeslice_start, timeslice_end, metric_data_array],
           :item_count => metric_data_array.size
         )
-        result
       end
 
       def error_data(unsent_errors)
@@ -418,15 +420,13 @@ module NewRelic
       def relay_request(request, opts)
         response = nil
         attempts = 0
-        max_attempts = 2
-        endpoint = opts[:endpoint]
 
         begin
           attempts += 1
-          attempt_request(request, opts)
+          response = attempt_request(request, opts)
         rescue *CONNECTION_ERRORS => e
           close_shared_connection
-          if attempts < max_attempts
+          if attempts < MAX_ATTEMPTS
             ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
             retry
           else
@@ -439,11 +439,13 @@ module NewRelic
       end
 
       def attempt_request(request, opts)
+        response = nil
         conn = http_connection
         ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}")
         Timeout.timeout(@request_timeout) do
           response = conn.request(request)
         end
+        response
       end
 
       def handle_error_response(response, endpoint)
@@ -468,7 +470,7 @@ module NewRelic
           handle_unrecoverable_server_exception(response, endpoint)
         when Net::HTTPConflict,
              Net::HTTPUnauthorized
-          handle_error_response(response, endpoint)
+          handle_unauthorized_error_response(response, endpoint)
           raise ForceRestartException, "#{response.code}: #{response.message}"
         when Net::HTTPGone
           handle_gone_response(response, endpoint)
@@ -491,7 +493,7 @@ module NewRelic
         raise UnrecoverableServerException, "#{response.code}: #{response.message}"
       end
 
-      def handle_error_response(response, endpoint)
+      def handle_unauthorized_error_response(response, endpoint)
         record_endpoint_attempts_supportability_metrics(endpoint)
         record_error_response_supportability_metrics(response.code)
       end
@@ -543,8 +545,7 @@ module NewRelic
         request_send_ts, response_check_ts = nil
         data, encoding, size, serialize_finish_ts = marshal_payload(method, payload, options)
         prep_collector(method)
-        request_send_ts, response_check_ts = invoke_remote_send_request(method, payload, data, encoding)
-
+        response, request_send_ts, response_check_ts = invoke_remote_send_request(method, payload, data, encoding)
         @marshaller.load(decompress_response(response))
       ensure
         record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
@@ -612,7 +613,7 @@ module NewRelic
       def send_request(opts)
         request = prep_request(opts)
         response = relay_request(request, opts)
-        return response if [Net::HTTPSuccess, Net::HTTPAccepted].include?(response)
+        return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
 
         handle_error_response(response, opts[:endpoint])
       end
@@ -634,11 +635,9 @@ module NewRelic
       # Decompresses the response from the server, if it is gzip
       # encoded, otherwise returns it verbatim
       def decompress_response(response)
-        if response['content-encoding'] == 'gzip'
-          Zlib::GzipReader.new(StringIO.new(response.body)).read
-        else
-          response.body
-        end
+        return response.body unless response['content-encoding'] == 'gzip'
+
+        Zlib::GzipReader.new(StringIO.new(response.body)).read
       end
 
       # Sets the user agent for connections to the server, to
@@ -685,7 +684,7 @@ module NewRelic
           :encoding  => encoding,
           :collector => @collector,
           :endpoint  => method)
-        [request_send_ts, Process.clock_gettime(Process::CLOCK_MONOTONIC)]
+        [response, request_send_ts, Process.clock_gettime(Process::CLOCK_MONOTONIC)]
       end
     end
   end

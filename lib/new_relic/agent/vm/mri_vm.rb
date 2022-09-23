@@ -25,37 +25,34 @@ module NewRelic
 
         def gather_gc_stats(snap)
           gather_gc_runs(snap) if supports?(:gc_runs)
-          gather_stats if GC.respond_to?(:stat)
+          gather_derived_stats(snap) if GC.respond_to?(:stat)
         end
 
         def gather_gc_runs(snap)
           snap.gc_runs = GC.count
         end
 
-        def gather_stats(snap)
-          snap.total_allocated_object = derive_from_gc_stats(%i[total_allocated_objects total_allocated_object])
-          snap.major_gc_count = derive_from_gc_stats(:major_gc_count)
-          snap.minor_gc_count = derive_from_gc_stats(:minor_gc_count)
-          snap.heap_live = derive_from_gc_stats(%i[heap_live_slots heap_live_slot heap_live_num])
-          snap.heap_free = derive_from_gc_stats(%i[heap_free_slots heap_free_slot heap_free_num])
+        def gather_derived_stats(snap)
+          stat = GC.stat
+          snap.total_allocated_object = derive_from_gc_stats(%i[total_allocated_objects total_allocated_object], stat)
+          snap.major_gc_count = derive_from_gc_stats(:major_gc_count, stat)
+          snap.minor_gc_count = derive_from_gc_stats(:minor_gc_count, stat)
+          snap.heap_live = derive_from_gc_stats(%i[heap_live_slots heap_live_slot heap_live_num], stat)
+          snap.heap_free = derive_from_gc_stats(%i[heap_free_slots heap_free_slot heap_free_num], stat)
         end
 
-        def derive_from_gc_stats(keys)
+        def derive_from_gc_stats(keys, stat)
           Array(keys).each do |key|
-            value = gc_stats[key]
+            value = stat[key]
             return value if value
           end
           nil
         end
 
-        def gc_stats
-          @gc_stats ||= GC.stat
-        end
-
         def gather_gc_time(snap)
-          if supports?(:gc_total_time)
-            snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s
-          end
+          return unless supports?(:gc_total_time)
+
+          snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s
         end
 
         def gather_ruby_vm_stats(snap)

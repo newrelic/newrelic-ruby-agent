@@ -77,6 +77,7 @@ module NewRelic
       attr_reader :rules
 
       def initialize(config)
+        prep_enabled_destinations(config)
         prep_rules(config)
 
         # We're ok to cache high security for fast lookup because the attribute
@@ -87,11 +88,11 @@ module NewRelic
         cache_prefix_denylist
       end
 
-      def enabled_destinations
-        @enabled_destinations ||= config[:'attributes.enabled'] ? enabled_destinations_for_attributes : DST_NONE
+      def prep_enabled_destinations(config)
+        @enabled_destinations = config[:'attributes.enabled'] ? enabled_destinations_for_attributes(config) : DST_NONE
       end
 
-      def enabled_destinations_for_attributes
+      def enabled_destinations_for_attributes(config)
         destinations = DST_NONE
         destinations |= DST_TRANSACTION_TRACER if config[:'transaction_tracer.attributes.enabled']
         destinations |= DST_TRANSACTION_EVENTS if config[:'transaction_events.attributes.enabled']
@@ -192,7 +193,7 @@ module NewRelic
       end
 
       def apply(attribute_name, default_destinations)
-        return DST_NONE if enabled_destinations == DST_NONE
+        return DST_NONE if @enabled_destinations == DST_NONE
 
         destinations = default_destinations
         attribute_name = attribute_name.to_s
@@ -207,7 +208,7 @@ module NewRelic
           end
         end
 
-        destinations & enabled_destinations
+        destinations & @enabled_destinations
       end
 
       def allows?(allowed_destinations, requested_destination)
@@ -215,7 +216,7 @@ module NewRelic
       end
 
       def allows_key?(key, destination)
-        return false unless destination & enabled_destinations == destination
+        return false unless destination & @enabled_destinations == destination
 
         value = @key_cache[destination][key]
 
