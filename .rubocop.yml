@@ -1541,7 +1541,7 @@ Style/MultilineMethodSignature:
   Enabled: false
 
 Style/MultilineTernaryOperator:
-  Enabled: false
+  Enabled: true
 
 Style/MultilineWhenThen:
   Enabled: true

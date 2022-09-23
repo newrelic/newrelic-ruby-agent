@@ -386,8 +386,7 @@ def in_transaction(*args, &blk)
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
-  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
-                                        args.first || 'dummy'
+  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) : args.first || 'dummy'
 
   state = NewRelic::Agent::Tracer.state
   txn = nil
