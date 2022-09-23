@@ -81,7 +81,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
           set_params_v1(req)
         end
       else
-        uri = "v2/applications/#{application_id}/deployments.json"
+        uri = "/v2/applications/#{application_id}/deployments.json"
         create_request(uri, {"Api-Key" => @api_key}, "application/json").tap do |req|
           set_params_v2(req)
         end
@@ -123,8 +123,16 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
   def application_id
     return @application_id if @application_id
-    # puts "---#{NewRelic::Agent.config[:application_id]}"
-    # need to get app id somehow, need license key also prbly and do a preconnect?
+
+    # Need to connect to collector to acquire application id from the connect response
+    # but set monitor_mode false because we don't want to actually report anything
+    begin
+      NewRelic::Agent.manual_start(monitor_mode: false)
+      NewRelic::Agent.agent.connect_to_server
+      @application_id = NewRelic::Agent.config[:primary_application_id]
+    ensure
+      NewRelic::Agent.shutdown
+    end
   end
 
   def set_params_v1(request)
