@@ -211,12 +211,16 @@ module NewRelic
         end
 
         def self.api_host
+          # only used for deployment task
           Proc.new do
-            if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
-              'rpm.eu.newrelic.com'
+            api_version = if NewRelic::Agent.config[:api_key].nil? || NewRelic::Agent.config[:api_key].empty?
+              "rpm"
             else
-              'rpm.newrelic.com'
+              "api"
             end
+            api_region = "eu." if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
+
+            "#{api_version}.#{api_region}newrelic.com"
           end
         end
 
@@ -335,7 +339,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Your New Relic api key'
+          :description => 'Your New Relic api key. Required to use New Relic REST API v2 for deployment task'
         },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
