@@ -170,7 +170,7 @@ module NewRelic
         memo[opt] = false
         memo
       end
-      aggregator.class.stubs(:enabled_fn).returns(Proc.new { false })
+      aggregator.class.stubs(:enabled_fn).returns(proc { false })
       with_server_source(options, &blk)
     end
   end

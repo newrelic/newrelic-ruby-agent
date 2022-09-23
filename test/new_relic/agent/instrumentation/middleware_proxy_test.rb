@@ -224,8 +224,8 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_should_emit_events_once
-    app = Proc.new { |env| [200, {}, ["nothing"]] }
-    middleware = Proc.new { |env| app.call(env) }
+    app = proc { |env| [200, {}, ["nothing"]] }
+    middleware = proc { |env| app.call(env) }
     wrapped_middleware = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware, true)
 
     before_call_count = 0
@@ -240,7 +240,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_before_call_should_receive_rack_env_hash
-    app = Proc.new { |env| [200, {}, ["nothing"]] }
+    app = proc { |env| [200, {}, ["nothing"]] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}
@@ -253,7 +253,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_after_call_should_receive_rack_env_hash
-    app = Proc.new { |env| [200, {}, ["nothing"]] }
+    app = proc { |env| [200, {}, ["nothing"]] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}

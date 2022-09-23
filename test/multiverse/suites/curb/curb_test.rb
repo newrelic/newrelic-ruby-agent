@@ -41,7 +41,7 @@ class CurbTest < Minitest::Test
   def test_get_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run the test_get test
     # again
-    @get_response_proc = Proc.new do |url|
+    @get_response_proc = proc do |url|
       Curl.get(url || default_url)
     end
     test_get
@@ -51,7 +51,7 @@ class CurbTest < Minitest::Test
 
   def test_background_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run test_background again
-    @get_response_proc = Proc.new do |url|
+    @get_response_proc = proc do |url|
       Curl.get(url || default_url)
     end
     test_background

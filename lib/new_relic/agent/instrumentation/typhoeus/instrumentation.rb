@@ -60,7 +60,7 @@ module NewRelic
 
           segment.add_request_headers(wrapped_request)
 
-          callback = Proc.new do
+          callback = proc do
             wrapped_response = HTTPClients::TyphoeusHTTPResponse.new(request.response)
 
             segment.process_response_headers(wrapped_response)

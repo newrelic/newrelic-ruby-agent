@@ -7,8 +7,8 @@ module NewRelic
   module Agent
     module Configuration
       MASK_DEFAULTS = {
-        :'thread_profiler' => Proc.new { !NewRelic::Agent::Threading::BacktraceService.is_supported? },
-        :'thread_profiler.enabled' => Proc.new { !NewRelic::Agent::Threading::BacktraceService.is_supported? }
+        :'thread_profiler' => proc { !NewRelic::Agent::Threading::BacktraceService.is_supported? },
+        :'thread_profiler.enabled' => proc { !NewRelic::Agent::Threading::BacktraceService.is_supported? }
       }
     end
   end

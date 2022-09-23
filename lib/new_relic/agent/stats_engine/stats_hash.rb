@@ -128,7 +128,7 @@ module NewRelic
         hash[key] = stats
         # Try to restore the default_proc so we won't continually trip the error
         if hash.respond_to?(:default_proc=)
-          hash.default_proc = Proc.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+          hash.default_proc = proc { |h, k| h[k] = NewRelic::Agent::Stats.new }
         end
         stats
       end

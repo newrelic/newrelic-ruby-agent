@@ -47,7 +47,7 @@ module NewRelic
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
       server = self
-      Proc.new do |env|
+      proc do |env|
         result = inner_app.call(env)
         result[1].merge!(server.overridden_response_headers)
         result

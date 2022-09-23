@@ -122,7 +122,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def test_wrap_calls_notice
     noticed = nil
-    notice = Proc.new do |*args|
+    notice = proc do |*args|
       noticed = args
     end
 

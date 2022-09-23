@@ -49,7 +49,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_each_node_delegates_to_root_node
-    block = Proc.new {}
+    block = proc {}
     @trace.root_node.expects(:each_node)
     @trace.each_node(&block)
   end

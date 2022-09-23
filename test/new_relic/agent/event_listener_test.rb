@@ -12,7 +12,7 @@ class EventListenerTest < Minitest::Test
     @called = false
     @called_with = nil
 
-    @check_method = Proc.new do |*args|
+    @check_method = proc do |*args|
       @called = true
       @called_with = args
     end

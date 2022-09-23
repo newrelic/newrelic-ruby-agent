@@ -119,7 +119,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new { |env| inner_app.call(env) }
+      proc { |env| inner_app.call(env) }
     end
   end
 
@@ -134,7 +134,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new { |env| inner_app.call(env) }
+      proc { |env| inner_app.call(env) }
     end
   end
 end

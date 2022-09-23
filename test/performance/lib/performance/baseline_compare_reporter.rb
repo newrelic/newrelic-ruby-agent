@@ -98,7 +98,7 @@ module Performance
         ]
       end
 
-      format_percent_delta = Proc.new { |v|
+      format_percent_delta = proc { |v|
         prefix = v > 0 ? "+" : ""
         sprintf("#{prefix}%.1f%%", v)
       }

@@ -224,7 +224,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   def test_should_not_notice_filtered_errors
-    filter = Proc.new do |error|
+    filter = proc do |error|
       !error.kind_of?(RuntimeError)
     end
 

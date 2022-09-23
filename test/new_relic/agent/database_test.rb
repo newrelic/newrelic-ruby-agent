@@ -429,7 +429,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_manager_get_connection_does_not_log_configuration_details_on_error
     config = "VOLDEMORT"
-    connector = Proc.new { raise }
+    connector = proc { raise }
     error_log = with_array_logger(:error) do
       NewRelic::Agent::Database::ConnectionManager.instance.get_connection(config, &connector)
     end
