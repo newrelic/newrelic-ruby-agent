@@ -953,6 +953,20 @@ Performance/MapCompact:
 Performance/DeletePrefix:
   Enabled: false
 
+# ====
+
+# Disabled until they can be focused on (no autocorrect)
+Performance/MethodObjectAsBlock:
+  Enabled: false
+
+Performance/Count:
+  Enabled: false
+
+Performance/CollectionLiteralInLoop:
+  Enabled: false
+
+# ====
+
 # Disabling for now
 Security/Eval:
   Enabled: false
