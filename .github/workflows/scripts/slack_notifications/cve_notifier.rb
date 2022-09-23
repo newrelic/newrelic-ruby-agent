@@ -12,7 +12,6 @@ require_relative 'slack_notifier'
 
 class CveNotifier < SlackNotifier
   RUBY_SEC_FEED = 'https://rubysec.com/atom.xml'
-  CYCLE = 24 * 60 * 60 # How often to check for new feed entries in seconds"
 
   def self.check_for_cves
     time = Time.now.utc

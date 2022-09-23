@@ -6,6 +6,8 @@
 require 'httparty'
 
 class SlackNotifier
+  CYCLE = 24 * 60 * 60 # Period in seconds to check for updates that need to be Slacked."
+
   def self.send_slack_message(message)
     path = ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK']
     options = {headers: {'Content-Type' => 'application/json'},
