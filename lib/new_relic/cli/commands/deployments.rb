@@ -66,40 +66,29 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   def run
     begin
       @description = nil if @description && @description.strip.empty?
-      create_params = {}
-      {
-        :application_id => @appname,
-        :host => NewRelic::Agent::Hostname.get,
-        :description => @description,
-        :user => @user,
-        :revision => @revision,
-        :changelog => @changelog
-      }.each do |k, v|
-        create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
+
+      if @license_key.nil? || @license_key.empty?
+        raise "license_key not set in newrelic.yml for #{control.env}. api_key also required to use New Relic REST API v2"
       end
 
-      http = nil
-      request = nil
-      if @api_key.nil? || @api_key.empty?
-        if @license_key.nil? || @license_key.empty?
-          raise "license_key and api_key were not set in newrelic.yml for #{control.env}"
-        end
-        http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
+      if !api_v1? && (@revision.nil? || @revision.empty?)
+        raise "revision required when using New Relic REST API v2 with api_key. Pass in revision using: -r, --revision=REV"
+      end
+
+      request = if api_v1?
         uri = "/deployments.xml"
-        request = Net::HTTP::Post.new(uri, {'x-license-key' => @license_key})
-        request.content_type = "application/octet-stream"
+        create_request(uri, {'x-license-key' => @license_key}, "application/octet-stream").tap do |req|
+          set_params_v1(req)
+        end
       else
-        http = ::NewRelic::Agent::NewRelicService.new(nil, NewRelic::Control::Server.new('api.newrelic.com', Agent.config[:api_port])).http_connection
-        uri = "/deployments.json"
-
-        request = Net::HTTP::Post.new(uri, {"Api-Key" => @api_key})
-        request.content_type = "application/json"
+        uri = "v2/applications/#{application_id}/deployments.json"
+        create_request(uri, {"Api-Key" => @api_key}, "application/json").tap do |req|
+          set_params_v2(req)
+        end
       end
 
-      request.set_form_data(create_params)
-
+      http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
       response = http.request(request)
-      # binding.irb
 
       if response.is_a?(Net::HTTPSuccess)
         info("Recorded deployment to '#{@appname}' (#{@description || Time.now})")
@@ -122,12 +111,58 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
   private
 
+  def api_v1?
+    @api_key.nil? || @api_key.empty?
+  end
+
+  def create_request(uri, headers, content_type)
+    Net::HTTP::Post.new(uri, headers).tap do |req|
+      req.content_type = content_type
+    end
+  end
+
+  def application_id
+    return @application_id if @application_id
+    # puts "---#{NewRelic::Agent.config[:application_id]}"
+    # need to get app id somehow, need license key also prbly and do a preconnect?
+  end
+
+  def set_params_v1(request)
+    params = {}
+    {
+      :application_id => @appname,
+      :host => NewRelic::Agent::Hostname.get,
+      :description => @description,
+      :user => @user,
+      :revision => @revision,
+      :changelog => @changelog
+    }.each do |k, v|
+      params["deployment[#{k}]"] = v unless v.nil? || v == ''
+    end
+    request.set_form_data(params)
+  end
+
+  def set_params_v2(request)
+    params = {
+      "deployment" => {
+        :description => @description,
+        :user => @user,
+        :revision => @revision,
+        :changelog => @changelog
+      }
+    }
+    request.body = JSON.dump(params)
+  end
+
   def options
     OptionParser.new(%Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40) do |o|
       o.separator("OPTIONS:")
       o.on("-a", "--appname=NAME", String,
         "Set the application name.",
         "Default is app_name setting in newrelic.yml") { |e| @appname = e }
+      o.on("-i", "--appid=ID", String,
+        "Set the application ID",
+        "If not provided, will connect to the New Relic collector to get it") { |i| @application_id = i }
       o.on("-e", "--environment=name", String,
         "Override the (RAILS|RUBY|RACK)_ENV setting",
         "currently: #{control.env}") { |e| @environment = e }
@@ -135,7 +170,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
         "Specify the user deploying, for information only",
         "Default: #{@user || '<none>'}") { |u| @user = u }
       o.on("-r", "--revision=REV", String,
-        "Specify the revision being deployed") { |r| @revision = r }
+        "Specify the revision being deployed. Required when using New Relic REST API v2") { |r| @revision = r }
       o.on("-l", "--license-key=KEY", String,
         "Specify the license key of the account for the app being deployed") { |l| @license_key = l }
       o.on("-c", "--changes",
