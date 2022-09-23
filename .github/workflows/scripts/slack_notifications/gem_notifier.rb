@@ -3,24 +3,28 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+# This file runs on a 24 hour cycle via gem_notifications.yml and sends Slack updates for new gem version releases.
+
 require 'time'
 require 'httparty'
 require_relative 'slack_notifier'
 
 class GemNotifier < SlackNotifier
   def self.check_for_updates(watched_gems)
-    return if gem_list_empty(watched_gems)
+    return if verify_gem_list(watched_gems)
     watched_gems.each do |gem_name|
-      verify_gem(gem_name) ? gem_info = verify_gem(gem_name) : return
+      gem_info = verify_gem(gem_name)
+      abort("Failed to obtain info for gem '#{gem_name}'") unless gem_info
+
       versions = gem_versions(gem_info)
-      notifier.send_slack_message(gem_message(gem_name, versions)) if gem_updated?(versions)
+      send_slack_message(gem_message(gem_name, versions)) if gem_updated?(versions)
     end
   end
 
-  def self.gem_list_empty(watched_gems)
-    if watched_gems.empty?
-      abort("Nothing to see here! The 'watched_gems' array cannot be empty")
-    end
+  private
+
+  def self.verify_gem_list(watched_gems)
+    abort("Nothing to see here! The 'watched_gems' array cannot be empty") if watched_gems.empty?
   end
 
   def self.verify_gem(gem_name)
@@ -46,7 +50,7 @@ class GemNotifier < SlackNotifier
   end
 
   def self.gem_updated?(versions)
-    Time.now.utc - Time.parse(versions[0]['created_at']) < 24 * 60 * 60
+    Time.now.utc - Time.parse(versions[0]['created_at']) < 100 * 60 * 60
   end
 
   def self.github_diff(gem_name, newest, previous)
@@ -77,7 +81,6 @@ class GemNotifier < SlackNotifier
   end
 end
 
-# This file runs on a 24 hour cycle via gem_notifications.yml and sends Slack updates for new gem version releases.
 if $PROGRAM_NAME == __FILE__
   GemNotifier.check_for_updates(ARGV)
 end

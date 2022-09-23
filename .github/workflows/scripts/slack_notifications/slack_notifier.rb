@@ -11,9 +11,7 @@ class SlackNotifier
     options = {headers: {'Content-Type' => 'application/json'},
                body: {text: message}.to_json}
 
-    # Pause to avoid slack throttling
-    sleep(1)
-
     HTTParty.post(path, options)
+    sleep(1) # Pause to avoid Slack throttling
   end
 end
