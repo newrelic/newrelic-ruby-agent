@@ -86,7 +86,7 @@ module NewRelic
         if block
           return unless @log.send("#{level}?")
 
-          msgs = Array(block.call)
+          msgs = Array(yield)
         end
 
         msgs.flatten.each do |item|

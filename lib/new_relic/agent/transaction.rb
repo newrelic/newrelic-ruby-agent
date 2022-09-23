@@ -128,7 +128,7 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX) || name.start_with?(OTHER_TRANSACTION_PREFIX)
+        if name.start_with?(CONTROLLER_PREFIX, OTHER_TRANSACTION_PREFIX)
           "#{NESTED_TRANSACTION_PREFIX}#{name}"
         else
           name

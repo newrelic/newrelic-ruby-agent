@@ -36,7 +36,7 @@ class FrameworkTest < Minitest::Test
     end
 
     # does the path match "rails\d" (ex: rails7) or "railsedge"?
-    if ENV['BUNDLE_GEMFILE'].match(/rails(?:\d|edge)/)
+    if /rails(?:\d|edge)/.match?(ENV['BUNDLE_GEMFILE'])
       assert_truthy NewRelic::Agent.config[:framework].match(/rails/)
     else
       assert_equal :sinatra, NewRelic::Agent.config[:framework]

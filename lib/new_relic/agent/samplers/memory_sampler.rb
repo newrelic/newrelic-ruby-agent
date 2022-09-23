@@ -20,7 +20,7 @@ module NewRelic
           # macos, linux, solaris
           if defined? JRuby
             @sampler = JavaHeapSampler.new
-          elsif platform =~ /linux/
+          elsif /linux/.match?(platform)
             @sampler = ProcStatus.new
             if !@sampler.can_run?
               ::NewRelic::Agent.logger.debug("Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead.")
@@ -28,13 +28,13 @@ module NewRelic
             else
               ::NewRelic::Agent.logger.debug("Using /proc/#{$$}/status for reading process memory.")
             end
-          elsif platform =~ /darwin9/ # 10.5
+          elsif /darwin9/.match?(platform) # 10.5
             @sampler = ShellPS.new("ps -o rsz")
-          elsif platform =~ /darwin(1|2)\d+/ # >= 10.6
+          elsif /darwin(1|2)\d+/.match?(platform) # >= 10.6
             @sampler = ShellPS.new("ps -o rss")
-          elsif platform =~ /freebsd/
+          elsif /freebsd/.match?(platform)
             @sampler = ShellPS.new("ps -o rss")
-          elsif platform =~ /solaris/
+          elsif /solaris/.match?(platform)
             @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
           end
 
@@ -47,7 +47,7 @@ module NewRelic
         end
 
         def self.platform
-          if RUBY_PLATFORM =~ /java/
+          if RUBY_PLATFORM.match?(/java/)
             begin
               NewRelic::Helper.run_command('uname -s').downcase
             rescue NewRelic::CommandRunFailedError, NewRelic::CommandExecutableNotFoundError

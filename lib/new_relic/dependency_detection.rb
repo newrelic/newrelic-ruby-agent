@@ -77,7 +77,7 @@ module DependencyDetection
     end
 
     def source_location_for(klass, method_name)
-      Object.instance_method(:method).bind(klass.allocate).call(method_name).source_location.to_s
+      Object.instance_method(:method).bind_call(klass.allocate, method_name).source_location.to_s
     end
 
     # Extracts the instrumented library name from the instrumenting module's name
@@ -140,7 +140,7 @@ module DependencyDetection
     end
 
     def depends_on(&block)
-      @dependencies << block if block_given?
+      @dependencies << block if block
     end
 
     def allowed_by_config?
@@ -206,11 +206,11 @@ module DependencyDetection
     end
 
     def executes(&block)
-      @executes << block if block_given?
+      @executes << block if block
     end
 
     def conflicts_with_prepend(&block)
-      @prepend_conflicts << block if block_given?
+      @prepend_conflicts << block if block
     end
 
     def use_prepend?

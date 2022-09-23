@@ -47,7 +47,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
           assert_equal num_logical_processors, info[:num_logical_processors]
         end
       end
-    elsif File.basename(file) =~ /malformed/
+    elsif /malformed/.match?(File.basename(file))
       define_method("test_#{File.basename(file)}") do
         cpuinfo = File.read(file)
         info = @sysinfo.parse_cpuinfo(cpuinfo)

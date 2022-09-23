@@ -633,7 +633,7 @@ module HttpClientTestCases
   end
 
   def http_header_name_to_rack_key(name)
-    "HTTP_" + name.upcase.gsub('-', '_')
+    "HTTP_" + name.upcase.tr('-', '_')
   end
 
   def make_app_data_payload(*args)

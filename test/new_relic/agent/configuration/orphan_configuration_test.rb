@@ -20,7 +20,7 @@ class OrphanedConfigTest < Minitest::Test
         next unless config_match
 
         config_keys = config_match.captures.map do |key|
-          key.gsub("'", "").to_sym
+          key.delete("'").to_sym
         end
 
         config_keys.each do |key|

@@ -70,7 +70,7 @@ module Performance
         end
       end
       test_case.on(:after_each) do |test, test_name, result|
-        instrumentors.reverse.each { |i| i.after(test, test_name) }
+        instrumentors.reverse_each { |i| i.after(test, test_name) }
         instrumentors.each do |i|
           result.measurements.merge!(i.results)
           result.artifacts.concat(i.artifacts)

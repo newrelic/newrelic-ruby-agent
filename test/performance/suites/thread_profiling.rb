@@ -60,7 +60,7 @@ class ThreadProfiling < Performance::TestCase
     @threads.each(&:join)
     mocha_teardown
   rescue Exception => e
-    if e.message =~ /Deadlock/
+    if /Deadlock/.match?(e.message)
       Thread.list.select(&:alive?).each do |t|
         STDERR.puts "*" * 80
         STDERR.puts "Live thread: #{t.inspect}"

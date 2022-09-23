@@ -547,7 +547,7 @@ module NewRelic
             @agent.start
           end
         end
-        logmsg = logdev.array.first.gsub(/\n/, '')
+        logmsg = logdev.array.first.delete("\n")
 
         assert !@agent.started?, "agent was started"
         assert_match(/No application name configured/i, logmsg)

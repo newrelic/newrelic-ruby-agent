@@ -63,7 +63,7 @@ TRACE_POINT_ENABLED = false
 
 def trace
   @trace ||= TracePoint.new(:call, :b_call) do |tp|
-    next unless tp.defined_class.to_s =~ /InfiniteTracing/
+    next unless /InfiniteTracing/.match?(tp.defined_class.to_s)
     next unless [
       :record_spans,
       :record_span,

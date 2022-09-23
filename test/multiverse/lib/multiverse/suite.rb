@@ -28,7 +28,7 @@ module Multiverse
     end
 
     def self.encode_options(decoded_opts)
-      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+      Base64.encode64(Marshal.dump(decoded_opts)).delete("\n")
     end
 
     def self.decode_options(encoded_opts)
@@ -260,9 +260,9 @@ module Multiverse
       File.open(gemfile, 'w') do |f|
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
-        f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
+        f.puts newrelic_gemfile_line unless /^\s*gem .newrelic_rpm./.match?(gemfile_text)
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
-        f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+        f.puts minitest_line unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
         f.puts "gem 'rackup'" if need_rackup?(gemfile_text)

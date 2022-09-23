@@ -156,7 +156,7 @@ module NewRelic
 
         def register_callback(key, &proc)
           @callbacks[key] << proc
-          proc.call(@cache[key])
+          yield(@cache[key])
         end
 
         def invoke_callbacks(direction, source)

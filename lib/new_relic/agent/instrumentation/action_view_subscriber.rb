@@ -65,7 +65,7 @@ module NewRelic
 
         def metric_action(name)
           case name
-          when /#{RENDER_TEMPLATE_EVENT_NAME}$/ then 'Rendering'
+          when /#{RENDER_TEMPLATE_EVENT_NAME}$/o then 'Rendering'
           when RENDER_PARTIAL_EVENT_NAME then 'Partial'
           when RENDER_COLLECTION_EVENT_NAME then 'Partial'
           end
@@ -76,7 +76,7 @@ module NewRelic
           # so do not mistake rendering a collection for rendering a file.
           if identifier.nil? && name != RENDER_COLLECTION_EVENT_NAME
             'file'
-          elsif identifier =~ /template$/
+          elsif /template$/.match?(identifier)
             identifier
           elsif identifier && (parts = identifier.split('/')).size > 1
             parts[-2..-1].join('/')

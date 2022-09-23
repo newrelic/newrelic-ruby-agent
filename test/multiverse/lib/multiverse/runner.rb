@@ -65,7 +65,7 @@ module Multiverse
       Dir.new(SUITES_DIRECTORY).entries.each do |dir|
         full_path = File.join(SUITES_DIRECTORY, dir)
 
-        next if dir =~ /\A\./
+        next if /\A\./.match?(dir)
         next unless passes_filter?(dir, filter)
         next unless File.exist?(File.join(full_path, "Envfile"))
 

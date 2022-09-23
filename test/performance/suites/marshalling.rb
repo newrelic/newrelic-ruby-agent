@@ -61,7 +61,7 @@ class Marshalling < Performance::TestCase
   def each_string(object, &blk)
     case object
     when String
-      blk.call(object)
+      yield(object)
     when Array
       object.map! { |x| each_string(x, &blk) }
     when Hash

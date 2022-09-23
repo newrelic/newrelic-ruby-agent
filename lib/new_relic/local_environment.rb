@@ -183,7 +183,7 @@ module NewRelic
     end
 
     def check_for_litespeed
-      if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
+      if /fcgi-bin\/RailsRunner\.rb/.match?(caller.pop)
         @discovered_dispatcher = :litespeed
       end
     end

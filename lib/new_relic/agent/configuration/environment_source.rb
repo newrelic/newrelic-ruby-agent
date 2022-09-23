@@ -44,7 +44,7 @@ module NewRelic
           config_setting = original_config_setting.to_s
 
           if config_setting.include?('.')
-            config_alias = config_setting.gsub(/\./, '_').to_sym
+            config_alias = config_setting.tr('.', '_').to_sym
             self.alias_map[config_alias] = original_config_setting
           end
         end
@@ -94,7 +94,7 @@ module NewRelic
           elsif type == Array
             self[config_key] = value.split(/\s*,\s*/)
           elsif type == NewRelic::Agent::Configuration::Boolean
-            if value =~ /false|off|no/i
+            if /false|off|no/i.match?(value)
               self[config_key] = false
             elsif value != nil
               self[config_key] = true

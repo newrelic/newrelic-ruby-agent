@@ -158,7 +158,7 @@ module NewRelic
           return connection if connection
 
           begin
-            @connections[config] = connector.call(config)
+            @connections[config] = yield(config)
           rescue => e
             ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain.", e)
             nil
