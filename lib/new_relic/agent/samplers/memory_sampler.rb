@@ -47,7 +47,7 @@ module NewRelic
         end
 
         def self.platform
-          if RUBY_PLATFORM.match?(/java/)
+          if RUBY_PLATFORM.include?('java')
             begin
               NewRelic::Helper.run_command('uname -s').downcase
             rescue NewRelic::CommandRunFailedError, NewRelic::CommandExecutableNotFoundError

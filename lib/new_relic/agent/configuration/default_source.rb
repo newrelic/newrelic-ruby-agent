@@ -158,7 +158,7 @@ module NewRelic
         def self.audit_log_path
           Proc.new {
             log_file_path = NewRelic::Agent.config[:log_file_path]
-            wants_stdout = (log_file_path.upcase == 'STDOUT')
+            wants_stdout = (log_file_path.casecmp('STDOUT').zero?)
             audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
 
             File.join(audit_log_dir, 'newrelic_audit.log')

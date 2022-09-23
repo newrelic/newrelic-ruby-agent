@@ -510,7 +510,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             statement = node.params[:statement]
 
-            refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
+            refute statement.key?(:documents), "Noticed NoSQL should not include documents: #{statement}"
           end
 
           def test_noticed_nosql_does_not_contain_selector_values
@@ -570,7 +570,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
           def statement_metric(action)
             metrics = build_test_metrics(action, true)
-            metrics.select { |m| m.start_with?("Datastore/statement") }.first
+            metrics.find { |m| m.start_with?("Datastore/statement") }
           end
 
           def assert_mongo_operation(expected_value, query)

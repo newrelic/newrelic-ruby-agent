@@ -940,6 +940,18 @@ Naming/VariableName:
 Naming/VariableNumber:
   Enabled: false
 
+# Disabled to support older Rubies
+Performance/UnfreezeString:
+  Enabled: false
+
+Performance/TimesMap:
+  Enabled: false
+
+Performance/MapCompact:
+  Enabled: false
+
+Performance/DeletePrefix:
+  Enabled: false
 
 # Disabling for now
 Security/Eval:

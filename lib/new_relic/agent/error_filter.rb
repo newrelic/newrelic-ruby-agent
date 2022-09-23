@@ -51,14 +51,14 @@ module NewRelic
 
       def ignore?(ex, status_code = nil)
         @ignore_classes.include?(ex.class.name) ||
-          (@ignore_messages.keys.include?(ex.class.name) &&
+          (@ignore_messages.key?(ex.class.name) &&
           @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @ignore_status_codes.include?(status_code.to_i)
       end
 
       def expected?(ex, status_code = nil)
         @expected_classes.include?(ex.class.name) ||
-          (@expected_messages.keys.include?(ex.class.name) &&
+          (@expected_messages.key?(ex.class.name) &&
           @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @expected_status_codes.include?(status_code.to_i)
       end

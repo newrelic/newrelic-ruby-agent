@@ -124,7 +124,7 @@ module NewRelic
       uri = URI.parse(req.url)
       method = method_from_request(req)
 
-      if @mock.keys.include?(method)
+      if @mock.key?(method)
         status, body = @mock[method].evaluate
         res.status = status
         res.write(::JSON.dump(body))
