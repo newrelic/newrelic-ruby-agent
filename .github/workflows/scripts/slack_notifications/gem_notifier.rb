@@ -50,7 +50,7 @@ class GemNotifier < SlackNotifier
   end
 
   def self.gem_updated?(versions)
-    Time.now.utc - Time.parse(versions[0]['created_at']) < 100 * 60 * 60
+    Time.now.utc - Time.parse(versions[0]['created_at']) < 24 * 60 * 60
   end
 
   def self.github_diff(gem_name, newest, previous)
