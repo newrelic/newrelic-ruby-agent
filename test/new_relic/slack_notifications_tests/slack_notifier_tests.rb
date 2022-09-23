@@ -8,17 +8,13 @@ require_relative '../../../.github/workflows/scripts/slack_notifications/slack_n
 
 class SlackNotifications < Minitest::Test
   def test_send_slack_message_zero_args
-    SlackNotifier.stub(:sleep, nil) do
-      assert_raises(ArgumentError) { SlackNotifier.send_slack_message() }
-    end
+    assert_raises(ArgumentError) { SlackNotifier.send_slack_message() }
   end
 
   def test_send_slack_message_too_many_args
-    SlackNotifier.stub(:sleep, nil) do
-      assert_raises(ArgumentError) {
-        SlackNotifier.send_slack_message("I am a notification message!", "But I'm one too many")
-      }
-    end
+    assert_raises(ArgumentError) {
+      SlackNotifier.send_slack_message("I am a notification message!", "But I'm one too many")
+    }
   end
 
   def test_send_slack_message
