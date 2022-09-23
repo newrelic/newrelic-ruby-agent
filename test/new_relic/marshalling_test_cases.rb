@@ -72,8 +72,8 @@ module MarshallingTestCases
     assert_equal 0.0, event[0]["duration"]
     assert_equal false, event[0]["error"]
     assert_equal event[0]["parent.transportType"], "Unknown"
-    assert event[0]['guid'] != nil
-    assert event[0]["traceId"] != nil
+    assert !event[0]['guid'].nil?
+    assert !event[0]["traceId"].nil?
 
     assert_equal 9, event[0].size
   end
@@ -142,9 +142,9 @@ module MarshallingTestCases
     assert_equal "TestTransaction/break_it", event[0]["transactionName"]
     assert_equal 0.0, event[0]["duration"]
     assert_equal "Unknown", event[0]["parent.transportType"]
-    assert event[0]["spanId"] != nil
-    assert event[0]['guid'] != nil
-    assert event[0]["traceId"] != nil
+    assert !event[0]["spanId"].nil?
+    assert !event[0]['guid'].nil?
+    assert !event[0]["traceId"].nil?
 
     assert_equal 12, event[0].size
 

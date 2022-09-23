@@ -670,7 +670,7 @@ module NewRelic
       end
 
       def is_synthetics_request?
-        synthetics_payload != nil && raw_synthetics_header != nil
+        !synthetics_payload.nil? && !raw_synthetics_header.nil?
       end
 
       def synthetics_version

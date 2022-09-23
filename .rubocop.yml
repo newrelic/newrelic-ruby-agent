@@ -1604,10 +1604,9 @@ Style/NilComparison:
 Style/NilLambda:
   Enabled: false
 
-# Disabling for now
 Style/NonNilCheck:
-  Enabled: false
-  # IncludeSemanticChanges: false
+  Enabled: true
+  IncludeSemanticChanges: false
 
 Style/Not:
   Enabled: true
