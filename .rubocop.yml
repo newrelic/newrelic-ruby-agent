@@ -1596,10 +1596,9 @@ Style/NestedTernaryOperator:
 Style/Next:
   Enabled: false
 
-# Disabling for now
 Style/NilComparison:
-  Enabled: false
-  # EnforcedStyle: predicate
+  Enabled: true
+  EnforcedStyle: predicate
 
 # Disabling for now
 Style/NilLambda:
