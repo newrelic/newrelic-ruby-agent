@@ -1540,9 +1540,6 @@ Style/MultilineMemoization:
 Style/MultilineMethodSignature:
   Enabled: false
 
-Style/MultilineTernaryOperator:
-  Enabled: true
-
 Style/MultilineWhenThen:
   Enabled: true
 
@@ -1596,17 +1593,9 @@ Style/NestedTernaryOperator:
 Style/Next:
   Enabled: false
 
-Style/NilComparison:
-  Enabled: true
-  EnforcedStyle: predicate
-
 # Disabling for now
 Style/NilLambda:
   Enabled: false
-
-Style/NonNilCheck:
-  Enabled: true
-  IncludeSemanticChanges: false
 
 Style/Not:
   Enabled: true
@@ -1640,9 +1629,6 @@ Style/OptionalArguments:
 
 Style/OptionalBooleanParameter:
   Enabled: false
-
-Style/OrAssignment:
-  Enabled: true
 
 Style/ParallelAssignment:
   Enabled: false
