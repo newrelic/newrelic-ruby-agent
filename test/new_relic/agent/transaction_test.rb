@@ -1608,32 +1608,6 @@ module NewRelic::Agent
       end
     end
 
-    def test_generates_guid_when_running_out_of_file_descriptors
-      # SecureRandom.hex raises an exception when the ruby interpreter
-      # uses up all of its allotted file descriptors.
-      # See also: https://github.com/newrelic/newrelic-ruby-agent/issues/303
-      file_descriptors = []
-      begin
-        # Errno::EMFILE is raised when the system runs out of file
-        # descriptors
-        # If the segment constructor fails to create a random guid, the
-        # exception would be a RuntimeError
-        # When this test file is accessed by Docker Compose via a volume,
-        # then Errno::EIO is raised instead
-        assert_raises Errno::EIO, Errno::EMFILE, Errno::ENFILE do
-          while true
-            file_descriptors << IO.sysopen(__FILE__)
-            in_transaction do |txn|
-              refute_nil txn.guid
-              refute_nil txn.trace_id
-            end
-          end
-        end
-      ensure
-        file_descriptors.map { |fd| IO::new(fd).close }
-      end
-    end
-
     def test_batches_logs_during_transaction
       with_config(
         LogEventAggregator::enabled_keys.first => true,

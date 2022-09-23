@@ -1476,14 +1476,16 @@ Style/MapToHash:
 Style/MethodCallWithArgsParentheses:
   Enabled: true
   AllowedMethods:
-    - puts
-    - require
-    - raise
-    - include
-    - fail
-    - print
     - add_dependency
     - add_development_dependency
+    - expect
+    - fail
+    - include
+    - print
+    - puts
+    - raise
+    - require
+    - stub
   AllowedPatterns: [^assert, ^refute]
 
 Style/MethodCallWithoutArgsParentheses:

@@ -271,29 +271,6 @@ module NewRelic
           assert_equal t, segment.start_time
         end
 
-        def test_generates_guid_when_running_out_of_file_descriptors
-          # SecureRandom.hex raises an exception when the ruby interpreter
-          # uses up all of its allotted file descriptors.
-          # See also: https://github.com/newrelic/newrelic-ruby-agent/issues/303
-          file_descriptors = []
-          begin
-            # Errno::EMFILE is raised when the system runs out of file
-            # descriptors
-            # If the segment constructor fails to create a random guid, the
-            # exception would be a RuntimeError
-            # When Docker Compose is used with this test file accessible via
-            # a volume, the error is Errno::EIO instead
-            assert_raises(Errno::EIO, Errno::EMFILE, Errno::ENFILE) do
-              while true
-                file_descriptors << IO.sysopen(__FILE__)
-                Segment.new("Test #{file_descriptors[-1]}")
-              end
-            end
-          ensure
-            file_descriptors.map { |fd| IO::new(fd).close }
-          end
-        end
-
         def test_adding_agent_attributes
           in_transaction do |txn|
             txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
