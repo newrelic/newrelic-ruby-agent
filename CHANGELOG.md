@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v.8.11.0
+  ## v8.11.0
 
   * **Added support for New Relic REST API v2 when using `newrelic deployments` command**
 
