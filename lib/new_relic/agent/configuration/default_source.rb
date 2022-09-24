@@ -339,7 +339,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Your New Relic api key. Required to use New Relic REST API v2 for deployment task'
+          :description => 'Your New Relic API key. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
         },
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,

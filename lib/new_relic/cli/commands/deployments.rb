@@ -136,30 +136,28 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   end
 
   def set_params_v1(request)
-    params = {}
-    {
+    params = {
       :application_id => @appname,
       :host => NewRelic::Agent::Hostname.get,
       :description => @description,
       :user => @user,
       :revision => @revision,
       :changelog => @changelog
-    }.each do |k, v|
-      params["deployment[#{k}]"] = v unless v.nil? || v == ''
+    }.each_with_object({}) do |(k, v), h|
+      h["deployment[#{k}]"] = v unless v.nil? || v == ''
     end
     request.set_form_data(params)
   end
 
   def set_params_v2(request)
-    params = {
+    request.body = {
       "deployment" => {
         :description => @description,
         :user => @user,
         :revision => @revision,
         :changelog => @changelog
       }
-    }
-    request.body = JSON.dump(params)
+    }.to_json
   end
 
   def options
@@ -167,7 +165,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       o.separator("OPTIONS:")
       o.on("-a", "--appname=NAME", String,
         "Set the application name.",
-        "Default is app_name setting in newrelic.yml. Available only whne using API v1.") { |e| @appname = e }
+        "Default is app_name setting in newrelic.yml. Available only when using API v1.") { |e| @appname = e }
       o.on("-i", "--appid=ID", String,
         "Set the application ID",
         "If not provided, will connect to the New Relic collector to get it") { |i| @application_id = i }
