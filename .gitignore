@@ -16,7 +16,6 @@ tags
 *.swo
 
 coverage
-coverage_*
 /doc/
 /log/
 /lerg/
