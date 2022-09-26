@@ -55,7 +55,7 @@ module NewRelic
       # checks the size of the error queue to make sure we are under
       # the maximum limit, and logs a warning if we are over the limit.
       def over_queue_limit?(message)
-        over_limit = (@errors.count { |err| err.is_internal } >= @capacity)
+        over_limit = (@errors.count { |err| !err.is_internal } >= @capacity)
         if over_limit
           ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{@capacity}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}")
         end
