@@ -965,15 +965,8 @@ Performance/CollectionLiteralInLoop:
   Enabled: false
 
 # Disabled until they can be focused on (no autocorrect)
-Performance/Count:
-  Enabled: false
-
-# Disabled until they can be focused on (no autocorrect)
 Performance/MethodObjectAsBlock:
   Enabled: false
-
-Performance/TimesMap:
-  Enabled: true
 
 # Disabling for now
 Security/Eval:
