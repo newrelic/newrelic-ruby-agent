@@ -24,7 +24,7 @@ module NewRelic::Agent::InfiniteTracing
     end
 
     def test_processes_multiple_items_and_stops
-      items = 5.times.map { |i| RecordStatus.new(messages_seen: i + 1) }
+      items = Array.new(5) { |i| RecordStatus.new(messages_seen: i + 1) }
       queue = EnumeratorQueue.new.preload(items)
 
       handler = build_handler(queue)

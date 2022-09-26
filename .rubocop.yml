@@ -973,7 +973,7 @@ Performance/MethodObjectAsBlock:
   Enabled: false
 
 Performance/TimesMap:
-  Enabled: false
+  Enabled: true
 
 # Disabling for now
 Security/Eval:
