@@ -54,7 +54,7 @@ module NewRelic
 
         def with_pcf_env(vars, &blk)
           vars.each_pair { |k, v| ENV[k] = v }
-          blk.call
+          yield
           vars.keys.each { |k| ENV.delete(k) }
         end
 
@@ -63,7 +63,7 @@ module NewRelic
         load_cross_agent_test("utilization_vendor_specific/pcf").each do |test_case|
           test_case = symbolize_keys_in_object(test_case)
 
-          define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
+          define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
             timeout = false
             pcf_env = test_case[:env_vars].reduce({}) do |h, (k, v)|
               h[k.to_s] = v[:response] if v[:response]

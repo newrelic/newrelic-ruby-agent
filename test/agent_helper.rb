@@ -869,7 +869,7 @@ def load_cross_agent_test(name)
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
   data = ::JSON.load(data)
-  data.each { |testcase| testcase['testname'].gsub!(' ', '_') if String === testcase['testname'] }
+  data.each { |testcase| testcase['testname'].tr!(' ', '_') if String === testcase['testname'] }
   data
 end
 

@@ -24,7 +24,7 @@ module NewRelic
       end
 
       def obfuscate(text)
-        [encode(text)].pack(PACK_FORMAT).gsub(/\n/, '')
+        [encode(text)].pack(PACK_FORMAT).delete("\n")
       end
 
       def deobfuscate(text)

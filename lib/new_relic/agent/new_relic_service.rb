@@ -217,7 +217,7 @@ module NewRelic
       # represents 1 tcp connection which may transmit multiple HTTP requests
       # via keep-alive.
       def session(&block)
-        raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
+        raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block
 
         begin
           t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -237,13 +237,13 @@ module NewRelic
 
       def session_with_keepalive(&block)
         establish_shared_connection
-        block.call
+        yield
       end
 
       def session_without_keepalive(&block)
         begin
           establish_shared_connection
-          block.call
+          yield
         ensure
           close_shared_connection
         end

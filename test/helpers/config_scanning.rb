@@ -27,7 +27,7 @@ module NewRelic
             captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
             captures.flatten.compact.each do |key|
-              default_keys.delete(key.gsub("'", "").to_sym)
+              default_keys.delete(key.delete("'").to_sym)
             end
             # Remove any config keys that are annotated with the 'dynamic_name' setting
             # This indicates that the names of these keys are constructed dynamically at

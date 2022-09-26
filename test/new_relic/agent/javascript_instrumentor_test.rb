@@ -330,7 +330,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def pack(text)
-    [text].pack("m0").gsub("\n", "")
+    [text].pack("m0").delete("\n")
   end
 
   def unpack_to_object(text)

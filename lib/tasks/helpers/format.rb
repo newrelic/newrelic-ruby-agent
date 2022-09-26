@@ -21,7 +21,7 @@ module Format
       key = key.to_s
       components = key.split(".")
 
-      if key.match(/^disable_/) # "disable_httpclient"
+      if key =~ /^disable_/ # "disable_httpclient"
         section_key = DISABLING
       elsif components.length >= 2 && !(components[1] == "attributes") # "analytics_events.enabled"
         section_key = components.first
@@ -99,7 +99,7 @@ module Format
 
   def format_env_var(key)
     return "None" if NON_ENV_CONFIGS.include?(key)
-    "NEW_RELIC_#{key.gsub(".", "_").upcase}"
+    "NEW_RELIC_#{key.tr(".", "_").upcase}"
   end
 
   def pluck(key, config_hash)

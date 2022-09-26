@@ -414,7 +414,7 @@ module NewRelic
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
                 segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
               end
-              block.call(*args) if block.respond_to?(:call)
+              yield(*args) if block.respond_to?(:call)
             ensure
               segment.finish if segment
             end

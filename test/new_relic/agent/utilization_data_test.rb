@@ -327,7 +327,7 @@ module NewRelic::Agent
 
     def with_pcf_env(vars, &blk)
       vars.each_pair { |k, v| ENV[k] = v }
-      blk.call
+      yield
       vars.keys.each { |k| ENV.delete(k) }
     end
 

@@ -48,7 +48,7 @@ module NewRelic
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
       def self.deprecated_description(new_setting, description)
-        link_ref = new_setting.to_s.gsub(".", "-")
+        link_ref = new_setting.to_s.tr(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
 

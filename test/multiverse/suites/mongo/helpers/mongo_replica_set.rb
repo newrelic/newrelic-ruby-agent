@@ -93,6 +93,6 @@ class MongoReplicaSet
     return nil unless running?
     self.servers.first.client['admin'].command({'replSetInitiate' => config})
   rescue Mongo::OperationFailure => e
-    raise e unless e.message.match(/already initialized/)
+    raise e unless e.message =~ /already initialized/
   end
 end

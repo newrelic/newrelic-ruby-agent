@@ -81,7 +81,7 @@ module NewRelic
             @ignore_messages.update(errors)
             log_filter(:ignore_messages, errors)
           when String
-            if errors.match(/^[\d\,\-]+$/)
+            if errors =~ /^[\d\,\-]+$/
               @ignore_status_codes |= parse_status_codes(errors)
               log_filter(:ignore_status_codes, errors)
             else
@@ -105,7 +105,7 @@ module NewRelic
             @expected_messages.update(errors)
             log_filter(:expected_messages, errors)
           when String
-            if errors.match(/^[\d\,\-]+$/)
+            if errors =~ /^[\d\,\-]+$/
               @expected_status_codes |= parse_status_codes(errors)
               log_filter(:expected_status_codes, errors)
             else

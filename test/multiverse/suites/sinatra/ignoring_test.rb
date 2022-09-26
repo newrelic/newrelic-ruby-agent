@@ -60,11 +60,11 @@ class SinatraTestCase < Minitest::Test
   end
 
   def assert_enduser_ignored(response)
-    refute_match(/#{JS_AGENT_LOADER}/, response.body)
+    refute_match(/#{JS_AGENT_LOADER}/o, response.body)
   end
 
   def refute_enduser_ignored(response)
-    assert_match(/#{JS_AGENT_LOADER}/, response.body)
+    assert_match(/#{JS_AGENT_LOADER}/o, response.body)
   end
 
   # Keep Test::Unit happy by specifying at least one test method here

@@ -28,7 +28,7 @@ module Multiverse
     end
 
     def self.encode_options(decoded_opts)
-      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+      Base64.encode64(Marshal.dump(decoded_opts)).delete("\n")
     end
 
     def self.decode_options(encoded_opts)
