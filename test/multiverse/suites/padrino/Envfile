@@ -4,9 +4,11 @@
 
 instrumentation_methods :chain, :prepend
 
+# TODO: sinatra 3's CALLERS_TO_IGNORE array is frozen, causes issues
 gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.15.1'
   gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
+  gem 'sinatra', '< 3'
   gem 'webrick' if RUBY_VERSION >= '2.7.0'
 RB
