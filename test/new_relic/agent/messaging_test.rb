@@ -179,7 +179,7 @@ module NewRelic
         transaction_event = last_transaction_event
         assert Array === transaction_event, "expected Array, actual: #{transaction_event.class}"
         assert_equal 3, transaction_event.length, "expected Array of 3 elements, actual: #{transaction_event.length}"
-        assert transaction_event.all? { |e| Hash === e }, "expected Array of 3 hashes, actual: [#{transaction_event.map(&:class).join(',')}]"
+        assert transaction_event.all?(Hash), "expected Array of 3 hashes, actual: [#{transaction_event.map(&:class).join(',')}]"
         assert transaction_event[2].key?(:'message.routingKey'), "expected transaction event attributes to have key :'message.routingKey', actual: #{transaction_event[2].keys.join(',')}"
         assert_equal "red", transaction_event[2][:'message.routingKey']
 

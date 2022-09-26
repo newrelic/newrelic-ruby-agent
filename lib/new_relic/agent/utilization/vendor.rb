@@ -74,7 +74,7 @@ module NewRelic
 
         def request_metadata
           processed_headers = headers
-          raise if processed_headers.values.include?(:error)
+          raise if processed_headers.value?(:error)
 
           Timeout.timeout(1) do
             response = nil

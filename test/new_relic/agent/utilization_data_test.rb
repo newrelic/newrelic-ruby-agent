@@ -349,7 +349,7 @@ module NewRelic::Agent
 
         # additionally, boot_id will be picked up on linux/inside docker containers. so let's
         # add the local boot_id to the expected hash on linux.
-        if RbConfig::CONFIG['host_os'] =~ /linux/
+        if RbConfig::CONFIG['host_os'].include?('linux')
           refute test_case[:expected_output_json][:boot_id]
           test_case[:expected_output_json][:boot_id] = NewRelic::Agent::SystemInfo.proc_try_read('/proc/sys/kernel/random/boot_id').chomp
         end

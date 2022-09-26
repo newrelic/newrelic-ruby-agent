@@ -275,7 +275,7 @@ def assert_metrics_recorded_exclusive(expected, options = {})
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s) }
 
   unexpected_metrics = recorded_metrics - expected_metrics
-  unexpected_metrics.reject! { |m| m.name =~ /GC\/Transaction/ }
+  unexpected_metrics.reject! { |m| m.name.include?('GC/Transaction') }
 
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end

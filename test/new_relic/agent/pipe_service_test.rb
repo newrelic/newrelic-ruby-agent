@@ -152,7 +152,7 @@ class PipeServiceTest < Minitest::Test
     data = {}
     while payload = pipe.read
       endpoint, data_for_endpoint = Marshal.load(payload)
-      data.merge!(endpoint => data_for_endpoint)
+      data[endpoint] = data_for_endpoint
     end
     data
   end

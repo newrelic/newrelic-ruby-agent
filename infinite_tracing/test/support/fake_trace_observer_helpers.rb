@@ -13,7 +13,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       class EventListener
         def still_subscribed(event)
           return [] if @events[event].nil?
-          @events[event].select { |e| e.inspect =~ /infinite_tracing/ }
+          @events[event].select { |e| e.inspect.include?('infinite_tracing') }
         end
       end
 

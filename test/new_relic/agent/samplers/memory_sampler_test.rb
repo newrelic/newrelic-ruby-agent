@@ -23,7 +23,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   end
 
   def test_memory__linux
-    return if RUBY_PLATFORM =~ /darwin/
+    return if RUBY_PLATFORM.include?('darwin')
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns('linux')
     stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new

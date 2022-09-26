@@ -11,7 +11,7 @@ module NewRelic
       class HTTPClientResponse < AbstractResponse
         def [](key)
           @wrapped_response.headers.each do |k, v|
-            if key.downcase == k.downcase
+            if key.casecmp(k).zero?
               return v
             end
           end

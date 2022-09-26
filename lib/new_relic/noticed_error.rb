@@ -135,10 +135,8 @@ class NewRelic::NoticedError
 
   def build_error_attributes
     @attributes_from_notice_error ||= {}
-    @attributes_from_notice_error.merge!({
-      ERROR_MESSAGE_KEY => string(message),
-      ERROR_CLASS_KEY => string(exception_class_name)
-    })
+    @attributes_from_notice_error[ERROR_MESSAGE_KEY] = string(message)
+    @attributes_from_notice_error[ERROR_CLASS_KEY] = string(exception_class_name)
 
     @attributes_from_notice_error[ERROR_EXPECTED_KEY] = true if expected
   end
