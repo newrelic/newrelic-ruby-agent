@@ -952,16 +952,20 @@ Performance/DeletePrefix:
 Performance/MapCompact:
   Enabled: false
 
+# TODO: Enable when time can be spent on it (no autocorrect)
+Performance/MethodObjectAsBlock:
+  Enabled: false
+
 # TODO: OLD RUBIES - Requires 2.4
 Performance/RegexpMatch:
   Enabled: false
 
-# TODO: OLD RUBIES - Requires 2.3
-Performance/UnfreezeString:
+# TODO: OLD RUBIES - Requires 2.4
+Performance/Sum:
   Enabled: false
 
-# TODO: Enable when time can be spent on it (no autocorrect)
-Performance/MethodObjectAsBlock:
+# TODO: OLD RUBIES - Requires 2.3
+Performance/UnfreezeString:
   Enabled: false
 
 # Disabling for now
