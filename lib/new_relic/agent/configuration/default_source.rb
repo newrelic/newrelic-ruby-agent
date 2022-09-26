@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -10,7 +9,7 @@ module NewRelic
     module Configuration
       # Helper since default Procs are evaluated in the context of this module
       def self.value_of(key)
-        Proc.new do
+        proc do
           NewRelic::Agent.config[key]
         end
       end
@@ -28,7 +27,7 @@ module NewRelic
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
       #
       def self.instrumentation_value_of(disable_key, prepend_key = nil)
-        Proc.new do
+        proc do
           if NewRelic::Agent.config[disable_key]
             "disabled"
           elsif prepend_key && !NewRelic::Agent.config[prepend_key]
@@ -40,7 +39,7 @@ module NewRelic
       end
 
       def self.instrumentation_value_from_boolean(key)
-        Proc.new do
+        proc do
           NewRelic::Agent.config[key] ? 'auto' : 'disabled'
         end
       end
@@ -82,7 +81,7 @@ module NewRelic
         end
 
         def self.config_search_paths
-          Proc.new {
+          proc {
             paths = [
               File.join("config", "newrelic.yml"),
               File.join("newrelic.yml"),
@@ -116,7 +115,7 @@ module NewRelic
         end
 
         def self.config_path
-          Proc.new {
+          proc {
             found_path = NewRelic::Agent.config[:config_search_paths].detect do |file|
               File.expand_path(file) if File.exist?(file)
             end
@@ -125,7 +124,7 @@ module NewRelic
         end
 
         def self.framework
-          Proc.new {
+          proc {
             case
             when defined?(::NewRelic::TEST) then :test
             when defined?(::Rails::VERSION)
@@ -146,7 +145,7 @@ module NewRelic
         end
 
         def self.agent_enabled
-          Proc.new {
+          proc {
             NewRelic::Agent.config[:enabled] &&
               (NewRelic::Agent.config[:test_mode] || NewRelic::Agent.config[:monitor_mode]) &&
               NewRelic::Agent::Autostart.agent_should_start?
@@ -156,7 +155,7 @@ module NewRelic
         DEFAULT_LOG_DIR = 'log/'.freeze
 
         def self.audit_log_path
-          Proc.new {
+          proc {
             log_file_path = NewRelic::Agent.config[:log_file_path]
             wants_stdout = (log_file_path.upcase == 'STDOUT')
             audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
@@ -166,30 +165,30 @@ module NewRelic
         end
 
         def self.app_name
-          Proc.new { NewRelic::Control.instance.env }
+          proc { NewRelic::Control.instance.env }
         end
 
         def self.dispatcher
-          Proc.new { NewRelic::Control.instance.local_env.discovered_dispatcher }
+          proc { NewRelic::Control.instance.local_env.discovered_dispatcher }
         end
 
         def self.thread_profiler_enabled
-          Proc.new { NewRelic::Agent::Threading::BacktraceService.is_supported? }
+          proc { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
 
         # This check supports the js_errors_beta key we've asked clients to
         # set. Once JS errors are GA, browser_monitoring.loader can stop
         # being dynamic.
         def self.browser_monitoring_loader
-          Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum" }
+          proc { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum" }
         end
 
         def self.transaction_tracer_transaction_threshold
-          Proc.new { NewRelic::Agent.config[:apdex_t] * 4 }
+          proc { NewRelic::Agent.config[:apdex_t] * 4 }
         end
 
         def self.profiling_available
-          Proc.new {
+          proc {
             begin
               require 'ruby-prof'
               true
@@ -200,7 +199,7 @@ module NewRelic
         end
 
         def self.host
-          Proc.new do
+          proc do
             regex = /\A(?<identifier>.+?)x/
             if matches = regex.match(String(NewRelic::Agent.config[:license_key]))
               "collector.#{matches['identifier']}.nr-data.net"
@@ -211,7 +210,7 @@ module NewRelic
         end
 
         def self.api_host
-          Proc.new do
+          proc do
             if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
               'rpm.eu.newrelic.com'
             else
@@ -260,7 +259,7 @@ module NewRelic
         end
 
         def self.enforce_fallback(allowed_values: nil, fallback: nil)
-          Proc.new do |configured_value|
+          proc do |configured_value|
             if allowed_values.any? { |v| v =~ /#{configured_value}/i }
               configured_value
             else
@@ -1929,7 +1928,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, <b>worker.3</b>). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, <b>worker</b>).'
         },
         :'process_host.display_name' => {
-          :default => Proc.new { NewRelic::Agent::Hostname.get },
+          :default => proc { NewRelic::Agent::Hostname.get },
           :public => true,
           :type => String,
           :allowed_from_server => false,

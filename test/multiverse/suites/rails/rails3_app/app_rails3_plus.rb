@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -51,7 +50,7 @@ if !defined?(MyApp)
     module Sinatra
       class Application < Base
         # Override to not accidentally start the app in at_exit handler
-        set :run, Proc.new { false }
+        set :run, proc { false }
       end
     end
 

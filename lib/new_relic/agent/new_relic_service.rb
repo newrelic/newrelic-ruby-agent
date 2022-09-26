@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -250,9 +249,7 @@ module NewRelic
       end
 
       def establish_shared_connection
-        unless @shared_tcp_connection
-          @shared_tcp_connection = create_and_start_http_connection
-        end
+        @shared_tcp_connection ||= create_and_start_http_connection
         @shared_tcp_connection
       end
 

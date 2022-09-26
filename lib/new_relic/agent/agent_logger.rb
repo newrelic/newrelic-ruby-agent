@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -165,7 +164,7 @@ module NewRelic
       def set_log_format!
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
-        @log.formatter = Proc.new do |severity, timestamp, progname, msg|
+        @log.formatter = proc do |severity, timestamp, progname, msg|
           "#{@prefix}[#{timestamp.strftime("%F %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
       end

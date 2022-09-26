@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -224,7 +223,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   def test_should_not_notice_filtered_errors
-    filter = Proc.new do |error|
+    filter = proc do |error|
       !error.kind_of?(RuntimeError)
     end
 

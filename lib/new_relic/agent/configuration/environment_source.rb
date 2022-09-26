@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -96,7 +95,7 @@ module NewRelic
           elsif type == NewRelic::Agent::Configuration::Boolean
             if value =~ /false|off|no/i
               self[config_key] = false
-            elsif value != nil
+            elsif !value.nil?
               self[config_key] = true
             end
           else

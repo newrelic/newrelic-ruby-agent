@@ -1318,10 +1318,6 @@ Style/EmptyMethod:
   Enabled: false
   # EnforcedStyle: expanded
 
-# Disabling for now
-Style/Encoding:
-  Enabled: false
-
 Style/EndBlock:
   Enabled: true
   AutoCorrect: true
@@ -1485,6 +1481,7 @@ Style/MethodCallWithArgsParentheses:
     - puts
     - raise
     - require
+    - skip
     - stub
   AllowedPatterns: [^assert, ^refute]
 
@@ -1538,9 +1535,6 @@ Style/MultilineMemoization:
   # EnforcedStyle: keyword
 
 Style/MultilineMethodSignature:
-  Enabled: false
-
-Style/MultilineTernaryOperator:
   Enabled: false
 
 Style/MultilineWhenThen:
@@ -1597,18 +1591,8 @@ Style/Next:
   Enabled: false
 
 # Disabling for now
-Style/NilComparison:
-  Enabled: false
-  # EnforcedStyle: predicate
-
-# Disabling for now
 Style/NilLambda:
   Enabled: false
-
-# Disabling for now
-Style/NonNilCheck:
-  Enabled: false
-  # IncludeSemanticChanges: false
 
 Style/Not:
   Enabled: true
@@ -1643,10 +1627,6 @@ Style/OptionalArguments:
 Style/OptionalBooleanParameter:
   Enabled: false
 
-# Disabling for now
-Style/OrAssignment:
-  Enabled: false
-
 Style/ParallelAssignment:
   Enabled: false
 
@@ -1672,10 +1652,6 @@ Style/PerlBackrefs:
   Enabled: false
 
 Style/PreferredHashMethods:
-  Enabled: false
-
-# Disabling for now
-Style/Proc:
   Enabled: false
 
 Style/QuotedSymbols:

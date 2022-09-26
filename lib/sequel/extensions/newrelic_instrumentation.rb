@@ -1,5 +1,4 @@
 # -*- ruby -*-
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -83,7 +82,7 @@ module Sequel
     ].freeze
 
     def explainer_for(sql)
-      Proc.new do |*|
+      proc do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[sql].explain
         else

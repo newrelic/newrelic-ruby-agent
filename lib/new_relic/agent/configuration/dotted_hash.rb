@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -36,7 +35,7 @@ module NewRelic
         # turns {'a' => {'b' => 'c'}} into {'a.b' => 'c'}
         def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|
-            next if val == nil
+            next if val.nil?
             if val.respond_to?(:has_key?)
               dot_flattened(val, names + [key], result)
             else

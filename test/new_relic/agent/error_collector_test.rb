@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -100,7 +99,7 @@ module NewRelic::Agent
       end
 
       def test_failure_in_exclude_block
-        @error_collector.class.ignore_error_filter = Proc.new do
+        @error_collector.class.ignore_error_filter = proc do
           raise "HAHAHAHAH, error in the filter for ignoring errors!"
         end
 
@@ -116,7 +115,7 @@ module NewRelic::Agent
       end
 
       def test_failure_block_assigned_with_different_instance
-        @error_collector.class.ignore_error_filter = Proc.new do |*_|
+        @error_collector.class.ignore_error_filter = proc do |*_|
           # meh, ignore 'em all!
           nil
         end
@@ -374,7 +373,7 @@ module NewRelic::Agent
 
       def test_filtered_by_error_filter_positive
         saw_error = nil
-        NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+        NewRelic::Agent::ErrorCollector.ignore_error_filter = proc do |e|
           saw_error = e
           false
         end
@@ -387,7 +386,7 @@ module NewRelic::Agent
 
       def test_filtered_by_error_filter_negative
         saw_error = nil
-        NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+        NewRelic::Agent::ErrorCollector.ignore_error_filter = proc do |e|
           saw_error = e
           true
         end
@@ -588,7 +587,7 @@ module NewRelic::Agent
       end
 
       def wrapped_filter_proc
-        Proc.new do |e|
+        proc do |e|
           if e.is_a?(IOError)
             return nil
           else
