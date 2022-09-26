@@ -1318,10 +1318,6 @@ Style/EmptyMethod:
   Enabled: false
   # EnforcedStyle: expanded
 
-# Disabling for now
-Style/Encoding:
-  Enabled: false
-
 Style/EndBlock:
   Enabled: true
   AutoCorrect: true
