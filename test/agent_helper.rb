@@ -55,8 +55,7 @@ end
 
 def assert_has_traced_error(error_class)
   errors = harvest_error_traces!
-  assert \
-    errors.find { |e| e.exception_class_name == error_class.name } != nil, \
+  assert !(errors.find { |e| e.exception_class_name == error_class.name }).nil?, \
     "Didn't find error of class #{error_class}"
 end
 
@@ -385,8 +384,7 @@ def in_transaction(*args, &blk)
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
-  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
-                                        args.first || 'dummy'
+  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) : args.first || 'dummy'
 
   state = NewRelic::Agent::Tracer.state
   txn = nil

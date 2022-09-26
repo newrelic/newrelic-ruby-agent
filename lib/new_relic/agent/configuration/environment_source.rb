@@ -95,7 +95,7 @@ module NewRelic
           elsif type == NewRelic::Agent::Configuration::Boolean
             if value =~ /false|off|no/i
               self[config_key] = false
-            elsif value != nil
+            elsif !value.nil?
               self[config_key] = true
             end
           else
