@@ -85,7 +85,7 @@ module NewRelic
         if block
           return unless @log.send("#{level}?")
 
-          msgs = Array(block.call)
+          msgs = Array(yield)
         end
 
         msgs.flatten.each do |item|
@@ -132,7 +132,7 @@ module NewRelic
       end
 
       def wants_stdout?
-        ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
+        ::NewRelic::Agent.config[:log_file_path].casecmp("STDOUT").zero?
       end
 
       def find_or_create_file_path(path_setting, root)

@@ -355,7 +355,7 @@ class BunnyTest < Minitest::Test
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
 
-    yield(queue) if block_given?
+    yield(queue) if block
 
     @chan.queue(queue.name).purge
   end

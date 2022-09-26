@@ -173,7 +173,7 @@ module NewRelic
       end
 
       def self.docker_container_id
-        return unless ruby_os_identifier =~ /linux/
+        return unless ruby_os_identifier.include?('linux')
 
         cgroup_info = proc_try_read('/proc/self/cgroup')
         return unless cgroup_info

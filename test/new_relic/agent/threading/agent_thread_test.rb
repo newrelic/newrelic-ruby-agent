@@ -123,7 +123,7 @@ module NewRelic::Agent::Threading
         report_on_exception_original_value = Thread.report_on_exception
         Thread.report_on_exception = false
       end
-      blk.call
+      yield
       if Thread.respond_to?(:report_on_exception)
         Thread.report_on_exception = report_on_exception_original_value
       end

@@ -40,7 +40,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
       def initialize(*args, &blk)
         @initialize_args = args
-        blk.call
+        yield
       end
     end
 

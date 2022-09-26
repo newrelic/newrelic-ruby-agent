@@ -64,7 +64,7 @@ module NewRelic
 
         def metric_action(name)
           case name
-          when /#{RENDER_TEMPLATE_EVENT_NAME}$/ then 'Rendering'
+          when /#{RENDER_TEMPLATE_EVENT_NAME}$/o then 'Rendering'
           when RENDER_PARTIAL_EVENT_NAME then 'Partial'
           when RENDER_COLLECTION_EVENT_NAME then 'Partial'
           end

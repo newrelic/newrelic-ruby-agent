@@ -70,6 +70,6 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
     assert_equal(expected, output)
 
     unoutput = obfuscator.obfuscate(Base64.decode64(output))
-    assert_equal Base64.encode64(text).gsub("\n", ''), unoutput
+    assert_equal Base64.encode64(text).delete("\n"), unoutput
   end
 end

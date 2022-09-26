@@ -71,7 +71,7 @@ module NewRelic
     def valid_api_argument_class?(arg, name, klass)
       return true if arg.is_a?(klass)
 
-      caller_location = caller_locations.first.label
+      caller_location = caller_locations(1..1).first.label
 
       message = "Bad argument passed to ##{caller_location}. " \
         "Expected #{klass} for `#{name}` but got #{arg.class}"

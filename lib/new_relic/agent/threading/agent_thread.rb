@@ -14,7 +14,7 @@ module NewRelic
               ::NewRelic::Agent.logger.warn("AgentThread created with current transaction #{txn.best_name}")
             end
             begin
-              blk.call
+              yield
             rescue => e
               ::NewRelic::Agent.logger.error("AgentThread #{label} exited with error", e)
             rescue Exception => e

@@ -132,7 +132,7 @@ if defined?(::Rack::Test)
     RUM_PLACEHOLDER = "EXPECTED_RUM_LOADER_LOCATION"
 
     source_files.each do |source_file|
-      source_filename = File.basename(source_file).gsub(".", "_")
+      source_filename = File.basename(source_file).tr(".", "_")
       instrumented_html = File.read(source_file)
       uninstrumented_html = instrumented_html.gsub(RUM_PLACEHOLDER, '')
 

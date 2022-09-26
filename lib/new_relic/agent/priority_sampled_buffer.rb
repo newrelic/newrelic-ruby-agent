@@ -34,13 +34,13 @@ module NewRelic
           priority ||= priority_for(event)
           if priority_for(@items[0]) < priority
             heapify_items_array
-            incoming = event || blk.call
+            incoming = event || yield
             @items[0] = incoming
             @items.fix(0)
             incoming
           end
         else
-          @items << (event || blk.call)
+          @items << (event || yield)
           @captured_lifetime += 1
           @items[-1]
         end

@@ -7,7 +7,7 @@ class FakeThread
 
   def initialize(locals = {}, &block)
     @locals = locals
-    yield if block_given?
+    yield if block
   end
 
   def self.current

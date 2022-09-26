@@ -84,7 +84,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_pipeline_commands_truncates_long_commands
-    pipeline = NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH.times.map do
+    pipeline = Array.new(NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH) do
       [:set, "0123456789"]
     end
 

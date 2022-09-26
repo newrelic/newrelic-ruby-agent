@@ -27,7 +27,7 @@ module Multiverse
     end
 
     def self.encode_options(decoded_opts)
-      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+      Base64.encode64(Marshal.dump(decoded_opts)).delete("\n")
     end
 
     def self.decode_options(encoded_opts)
@@ -135,7 +135,7 @@ module Multiverse
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
       return version if version.to_s == ""
-      test_version = `bundle #{version} --version` =~ /Could not find command/
+      test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? "" : version
     end
 

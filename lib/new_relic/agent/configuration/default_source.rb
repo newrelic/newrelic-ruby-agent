@@ -47,7 +47,7 @@ module NewRelic
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
       def self.deprecated_description(new_setting, description)
-        link_ref = new_setting.to_s.gsub(".", "-")
+        link_ref = new_setting.to_s.tr(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
 
@@ -157,7 +157,7 @@ module NewRelic
         def self.audit_log_path
           proc {
             log_file_path = NewRelic::Agent.config[:log_file_path]
-            wants_stdout = (log_file_path.upcase == 'STDOUT')
+            wants_stdout = (log_file_path.casecmp('STDOUT').zero?)
             audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
 
             File.join(audit_log_dir, 'newrelic_audit.log')

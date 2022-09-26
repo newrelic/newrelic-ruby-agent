@@ -206,10 +206,10 @@ module MarshallingTestCases
   def with_around_hook(&blk)
     if respond_to?(:around_each)
       around_each do
-        blk.call
+        yield
       end
     else
-      blk.call
+      yield
     end
 
     if respond_to?(:after_each)

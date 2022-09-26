@@ -60,7 +60,7 @@ class Marshalling < Performance::TestCase
   def each_string(object, &blk)
     case object
     when String
-      blk.call(object)
+      yield(object)
     when Array
       object.map! { |x| each_string(x, &blk) }
     when Hash
@@ -73,7 +73,7 @@ class Marshalling < Performance::TestCase
   BYTE_ALPHABET = (0..255).to_a.freeze
 
   def generate_random_string(length)
-    length.times.map { BYTE_ALPHABET.sample }.pack('C*')
+    Array.new(length) { BYTE_ALPHABET.sample }.pack('C*')
   end
 
   def convert_strings_to_binary(object)

@@ -18,7 +18,7 @@ module NewRelic
         elsif prefix
           val = Coerce.scalar(object)
           if blk
-            blk.call(prefix, val)
+            yield(prefix, val)
           elsif !val.nil?
             result[prefix] = val
           end
@@ -31,7 +31,7 @@ module NewRelic
       def flatten_and_coerce_hash(hash, prefix, result, &blk)
         if hash.empty?
           if blk
-            blk.call(prefix, EMPTY_HASH_STRING_LITERAL)
+            yield(prefix, EMPTY_HASH_STRING_LITERAL)
           else
             result[prefix] = EMPTY_HASH_STRING_LITERAL
           end
@@ -46,7 +46,7 @@ module NewRelic
       def flatten_and_coerce_array(array, prefix, result, &blk)
         if array.empty?
           if blk
-            blk.call(prefix, EMPTY_ARRAY_STRING_LITERAL)
+            yield(prefix, EMPTY_ARRAY_STRING_LITERAL)
           else
             result[prefix] = EMPTY_ARRAY_STRING_LITERAL
           end

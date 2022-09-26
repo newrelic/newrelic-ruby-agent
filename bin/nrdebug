@@ -96,11 +96,11 @@ class LinuxProcessDataProvider < ProcessDataProvider
   end
 
   def procline
-    File.read(proc_path('cmdline')).gsub("\000", " ")
+    File.read(proc_path('cmdline')).tr("\000", " ")
   end
 
   def environment
-    File.read(proc_path('environ')).gsub("\000", "\n")
+    File.read(proc_path('environ')).tr("\000", "\n")
   end
 end
 
@@ -211,7 +211,7 @@ class ProcessReport
 
       section(f) do
         c_backtraces, ruby_backtraces = @target.gather_backtraces
-        if c_backtraces.match(/could not attach/i)
+        if c_backtraces =~ /could not attach/i
           fail("Failed to attach to target process. Please try again with sudo.")
         end
         section(f, "C Backtraces") { c_backtraces }

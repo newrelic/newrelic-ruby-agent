@@ -71,7 +71,7 @@ module NewRelic
         extra = options.order!
         command = extra.shift
         # just make it a little easier on them
-        command = 'deployments' if command =~ /deploy/
+        command = 'deployments' if command.include?('deploy')
         if command.nil?
           STDERR.puts options
         elsif !@command_names.include?(command)

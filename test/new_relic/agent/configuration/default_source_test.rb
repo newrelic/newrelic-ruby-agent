@@ -217,7 +217,9 @@ module NewRelic::Agent::Configuration
           unspecified_keys << key
         end
 
-        if ![true, false].include?(spec[:allowed_from_server])
+        booleans = [true, false]
+
+        if !booleans.include?(spec[:allowed_from_server])
           bad_value_keys << key
         end
       end

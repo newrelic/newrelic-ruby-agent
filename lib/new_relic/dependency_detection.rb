@@ -139,7 +139,7 @@ module DependencyDetection
     end
 
     def depends_on(&block)
-      @dependencies << block if block_given?
+      @dependencies << block if block
     end
 
     def allowed_by_config?
@@ -205,11 +205,11 @@ module DependencyDetection
     end
 
     def executes(&block)
-      @executes << block if block_given?
+      @executes << block if block
     end
 
     def conflicts_with_prepend(&block)
-      @prepend_conflicts << block if block_given?
+      @prepend_conflicts << block if block
     end
 
     def use_prepend?

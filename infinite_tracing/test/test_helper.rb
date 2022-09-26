@@ -38,7 +38,7 @@ Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 def timeout_cap(duration = 1.0)
   Timeout::timeout(duration) { yield }
 rescue Timeout::Error => error
-  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject { |r| r =~ /gems\/minitest/ }.join("\n")}"
+  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject { |r| r.include?('gems/minitest') }.join("\n")}"
 end
 
 def deferred_span(segment)
@@ -62,7 +62,7 @@ TRACE_POINT_ENABLED = false
 
 def trace
   @trace ||= TracePoint.new(:call, :b_call) do |tp|
-    next unless tp.defined_class.to_s =~ /InfiniteTracing/
+    next unless tp.defined_class.to_s.include?('InfiniteTracing')
     next unless [
       :record_spans,
       :record_span,

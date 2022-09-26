@@ -115,7 +115,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     stats = NewRelic::Agent::TransactionTimeAggregator.instance_variable_get(:@stats)
 
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
-    workers = 100.times.map do
+    workers = Array.new(100) do
       Thread.new do
         ::NewRelic::Agent::TransactionTimeAggregator.transaction_start(t0 + 15)
         # thread dies before transaction completes

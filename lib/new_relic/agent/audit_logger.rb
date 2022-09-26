@@ -94,7 +94,7 @@ module NewRelic
       end
 
       def wants_stdout?
-        ::NewRelic::Agent.config[:'audit_log.path'].upcase == "STDOUT"
+        ::NewRelic::Agent.config[:'audit_log.path'].casecmp("STDOUT").zero?
       end
 
       def create_log_formatter

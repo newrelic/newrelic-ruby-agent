@@ -43,14 +43,14 @@ module NewRelic
           config_setting = original_config_setting.to_s
 
           if config_setting.include?('.')
-            config_alias = config_setting.gsub(/\./, '_').to_sym
+            config_alias = config_setting.tr('.', '_').to_sym
             self.alias_map[config_alias] = original_config_setting
           end
         end
 
         def set_log_file
           if ENV['NEW_RELIC_LOG']
-            if ENV['NEW_RELIC_LOG'].upcase == 'STDOUT'
+            if ENV['NEW_RELIC_LOG'].casecmp('STDOUT').zero?
               self[:log_file_path] = self[:log_file_name] = 'STDOUT'
             else
               self[:log_file_path] = File.dirname(ENV['NEW_RELIC_LOG'])
