@@ -57,7 +57,8 @@ module NewRelic::Agent
 
       variables.each do |ivar|
         value = state.instance_variable_get(ivar)
-        assert [0, nil, false, []].include?(value),
+        empties = [0, nil, false, []]
+        assert empties.include?(value),
           "Expected #{ivar} to reset, but was #{value}"
       end
     end

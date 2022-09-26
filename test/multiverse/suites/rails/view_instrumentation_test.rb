@@ -187,7 +187,9 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
 
-    [:js_render, :xml_render, :proc_render, :json_render].each do |action|
+    RENDERING_OPTIONS = [:js_render, :xml_render, :proc_render, :json_render]
+
+    RENDERING_OPTIONS.each do |action|
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = last_transaction_trace

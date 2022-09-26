@@ -960,11 +960,7 @@ Performance/RegexpMatch:
 Performance/UnfreezeString:
   Enabled: false
 
-# Disabled until they can be focused on (no autocorrect)
-Performance/CollectionLiteralInLoop:
-  Enabled: false
-
-# Disabled until they can be focused on (no autocorrect)
+# TODO: Enable when time can be spent on it (no autocorrect)
 Performance/MethodObjectAsBlock:
   Enabled: false
 

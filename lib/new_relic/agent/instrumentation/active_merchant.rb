@@ -25,7 +25,8 @@ DependencyDetection.defer do
       gateway.class_eval do
         implemented_methods = public_instance_methods(false).map(&:to_sym)
         gateway_name = self.name.split('::').last
-        [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update].each do |operation|
+        actions = [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update]
+        actions.each do |operation|
           if implemented_methods.include?(operation)
             add_method_tracer operation, [-> (*) { "ActiveMerchant/gateway/#{gateway_name}/#{operation}" },
               -> (*) { "ActiveMerchant/gateway/#{gateway_name}" },
