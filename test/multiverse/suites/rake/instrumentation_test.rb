@@ -159,7 +159,7 @@ class RakeInstrumentationTest < Minitest::Test
     prereq = MiniTest::Mock.new
     prereq.expect :instance_variable_get, nil, [:@__newrelic_instrumented_execute]
     prereq.expect :instance_variable_set, nil, [:@__newrelic_instrumented_execute, true]
-    prereq.expect :prerequisite_tasks, []
+    prereq.expect :prerequisite_tasks, [], []
     task = OpenStruct.new(application: OpenStruct.new(options: OpenStruct.new(always_multitask: false)),
       prerequisite_tasks: [prereq])
     NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(task)
