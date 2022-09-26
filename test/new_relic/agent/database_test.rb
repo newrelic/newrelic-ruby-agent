@@ -1,4 +1,3 @@
-# encoding: utf-8
 # frozen_string_literal: true
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
@@ -429,7 +428,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_manager_get_connection_does_not_log_configuration_details_on_error
     config = "VOLDEMORT"
-    connector = Proc.new { raise }
+    connector = proc { raise }
     error_log = with_array_logger(:error) do
       NewRelic::Agent::Database::ConnectionManager.instance.get_connection(config, &connector)
     end

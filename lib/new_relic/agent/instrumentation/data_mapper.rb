@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -130,7 +129,7 @@ module NewRelic
         use_model_name = NewRelic::Helper.instance_methods_include?(clazz, :model)
         metric_operation = method_name.to_s.gsub(/[!?]/, "")
 
-        Proc.new do |*args, &blk|
+        proc do |*args, &blk|
           begin
             if operation_only
               # Used by direct SQL, like ::DataMapper::Adapters::DataObjectsAdapter#select

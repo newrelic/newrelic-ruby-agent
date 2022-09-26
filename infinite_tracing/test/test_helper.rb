@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -43,7 +42,7 @@ rescue Timeout::Error => error
 end
 
 def deferred_span(segment)
-  Proc.new { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
+  proc { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
 end
 
 def reset_infinite_tracer

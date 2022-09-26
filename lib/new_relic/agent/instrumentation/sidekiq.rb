@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -95,7 +94,7 @@ DependencyDetection.defer do
       end
 
       if config.respond_to?(:error_handlers)
-        config.error_handlers << Proc.new do |error, *_|
+        config.error_handlers << proc do |error, *_|
           NewRelic::Agent.notice_error(error)
         end
       end
