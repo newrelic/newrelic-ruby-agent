@@ -2,7 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# -*- coding: utf-8 -*-
 module NewRelic
   module Agent
     class StatsEngine
