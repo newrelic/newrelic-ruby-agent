@@ -188,7 +188,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.class_method', attributes['code.function']
-      assert_equal 58, attributes['code.lineno']
+      assert_equal 57, attributes['code.lineno']
       assert_equal 'MyClass', attributes['code.namespace']
     end
   end
@@ -209,7 +209,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.module_method', attributes['code.function']
-      assert_equal 68, attributes['code.lineno']
+      assert_equal 67, attributes['code.lineno']
       assert_equal 'MyModule', attributes['code.namespace']
     end
   end
@@ -244,7 +244,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'instance_method', attributes['code.function']
-      assert_equal 221, attributes['code.lineno']
+      assert_equal 220, attributes['code.lineno']
       assert_equal '(Anonymous)', attributes['code.namespace']
     end
   end
