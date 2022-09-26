@@ -1657,10 +1657,6 @@ Style/PerlBackrefs:
 Style/PreferredHashMethods:
   Enabled: false
 
-# Disabling for now
-Style/Proc:
-  Enabled: false
-
 Style/QuotedSymbols:
   Enabled: false
 

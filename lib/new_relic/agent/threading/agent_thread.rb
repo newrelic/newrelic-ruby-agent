@@ -9,7 +9,7 @@ module NewRelic
       class AgentThread
         def self.create(label, &blk)
           ::NewRelic::Agent.logger.debug("Creating AgentThread: #{label}")
-          wrapped_blk = Proc.new do
+          wrapped_blk = proc do
             if ::Thread.current[:newrelic_tracer_state] && Thread.current[:newrelic_tracer_state].current_transaction
               txn = ::Thread.current[:newrelic_tracer_state].current_transaction
               ::NewRelic::Agent.logger.warn("AgentThread created with current transaction #{txn.best_name}")

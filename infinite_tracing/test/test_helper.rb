@@ -43,7 +43,7 @@ rescue Timeout::Error => error
 end
 
 def deferred_span(segment)
-  Proc.new { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
+  proc { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
 end
 
 def reset_infinite_tracer

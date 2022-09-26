@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-make_notify_task = Proc.new do
+make_notify_task = proc do
   namespace(:newrelic) do
     # on all deployments, notify New Relic
     desc("Record a deployment in New Relic (newrelic.com)")

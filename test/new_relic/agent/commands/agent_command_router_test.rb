@@ -39,8 +39,8 @@ class AgentCommandRouterTest < Minitest::Test
     @events = NewRelic::Agent::EventListener.new
 
     @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
-    @agent_commands.handlers["bazzle"] = Proc.new { |args| handle_bazzle_command(args) }
-    @agent_commands.handlers["boom"] = Proc.new { |args| handle_boom_command(args) }
+    @agent_commands.handlers["bazzle"] = proc { |args| handle_bazzle_command(args) }
+    @agent_commands.handlers["boom"] = proc { |args| handle_boom_command(args) }
   end
 
   def teardown

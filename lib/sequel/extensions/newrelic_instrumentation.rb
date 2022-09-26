@@ -83,7 +83,7 @@ module Sequel
     ].freeze
 
     def explainer_for(sql)
-      Proc.new do |*|
+      proc do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[sql].explain
         else

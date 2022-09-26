@@ -101,7 +101,7 @@ module NewRelic
       def create_log_formatter
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
-        Proc.new do |severity, time, progname, msg|
+        proc do |severity, time, progname, msg|
           "#{@prefix}[#{time} #{@hostname} (#{$$})] : #{msg}\n"
         end
       end

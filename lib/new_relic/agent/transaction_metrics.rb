@@ -11,7 +11,7 @@
 module NewRelic
   module Agent
     class TransactionMetrics
-      DEFAULT_PROC = Proc.new { |hash, name| hash[name] = NewRelic::Agent::Stats.new }
+      DEFAULT_PROC = proc { |hash, name| hash[name] = NewRelic::Agent::Stats.new }
 
       def initialize
         @lock = Mutex.new

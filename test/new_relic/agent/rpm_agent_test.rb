@@ -23,7 +23,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     end
 
     ignore_called = false
-    filter = Proc.new do |e|
+    filter = proc do |e|
       ignore_called = true
       nil
     end

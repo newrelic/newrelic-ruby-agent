@@ -337,7 +337,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_can_overwrite_log_formatter
     log_message = 'How are you?'
-    log_formatter = Proc.new { |s, t, p, m| m.reverse }
+    log_formatter = proc { |s, t, p, m| m.reverse }
 
     logger = create_basic_logger
     logger.log_formatter = log_formatter

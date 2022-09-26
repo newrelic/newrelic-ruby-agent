@@ -309,7 +309,7 @@ module NewRelic::Agent
     end
 
     def test_apdex_success_with_ignored_error
-      filter = Proc.new do |error|
+      filter = proc do |error|
         error.is_a?(SillyError) ? nil : error
       end
 
@@ -1081,7 +1081,7 @@ module NewRelic::Agent
     end
 
     def test_failure_during_ignore_error_filter_doesnt_prevent_transaction
-      filter = Proc.new do |*_|
+      filter = proc do |*_|
         raise "HAHAHAHAH, error in the filter for ignoring errors!"
       end
 
@@ -1491,7 +1491,7 @@ module NewRelic::Agent
     end
 
     def test_error_recorded_predicate_abides_by_ignore_filter
-      filter = Proc.new do |error|
+      filter = proc do |error|
         error.message == "Sorry!" ? nil : error
       end
 
@@ -1505,7 +1505,7 @@ module NewRelic::Agent
     end
 
     def test_error_recorded_with_ignore_filter_and_multiple_errors
-      filter = Proc.new do |error|
+      filter = proc do |error|
         error.message == "Sorry!" ? nil : error
       end
 

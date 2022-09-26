@@ -91,7 +91,7 @@ end
 module Sinatra
   class Application < Base
     # Override to not accidentally start the app in at_exit handler
-    set :run, Proc.new { false }
+    set :run, proc { false }
   end
 end
 
