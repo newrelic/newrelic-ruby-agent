@@ -156,7 +156,7 @@ module NewRelic
 
         def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|
-            next if val == nil
+            next if val.nil?
             if val.respond_to?(:has_key?) && !CONFIG_WITH_HASH_VALUE.include?(key)
               dot_flattened(val, names + [key], result)
             else

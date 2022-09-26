@@ -10,7 +10,7 @@ module NewRelic
     @@forkable = nil
     def can_fork?
       # this is expensive to check, so we should only check once
-      return @@forkable if @@forkable != nil
+      return @@forkable if !@@forkable.nil?
       @@forkable = Process.respond_to?(:fork)
     end
 

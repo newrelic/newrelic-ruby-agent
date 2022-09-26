@@ -250,9 +250,7 @@ module NewRelic
       end
 
       def establish_shared_connection
-        unless @shared_tcp_connection
-          @shared_tcp_connection = create_and_start_http_connection
-        end
+        @shared_tcp_connection ||= create_and_start_http_connection
         @shared_tcp_connection
       end
 
