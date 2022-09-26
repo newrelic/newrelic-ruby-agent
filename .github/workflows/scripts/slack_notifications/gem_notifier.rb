@@ -41,7 +41,7 @@ class GemNotifier < SlackNotifier
       # for the "new" version (first one recorded), report any and all types of
       #   versions (stable, preview, rc, beta, etc.)
       # for the "previous" version, record only the newest stable version
-      if arr.size == 0 || !gem['number'].match?(/(?:rc|beta|preview)/)
+      if arr.length.zero? || !gem['number'].match?(/(?:rc|beta|preview)/)
         arr << gem
       end
 
@@ -54,13 +54,15 @@ class GemNotifier < SlackNotifier
   end
 
   def self.github_diff(gem_name, newest, previous)
-    diff = HTTParty.get(interpolate_github_url(gem_name, newest, previous))
+    info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
+    gem_source_uri = info["source_code_uri"]
+    interpolated_url = interpolate_github_url(gem_source_uri, newest, previous)
 
-    diff.success?
+    HTTParty.get(interpolated_url).success?
   end
 
-  def self.interpolate_github_url(gem_name, newest, previous)
-    "https://github.com/#{gem_name}/#{gem_name}/compare/v#{previous}...v#{newest}"
+  def self.interpolate_github_url(gem_source_uri, newest, previous)
+    "#{gem_source_uri}/compare/v#{previous}...v#{newest}"
   end
 
   def self.interpolate_rubygems_url(gem_name)
@@ -71,8 +73,9 @@ class GemNotifier < SlackNotifier
     abort("Expected exactly 2 version numbers in the 'versions' array") unless versions.size == 2
     newest, previous = versions[0]['number'], versions[1]['number']
     alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
-    if github_diff(gem_name, newest, previous)
-      action_message = "<#{interpolate_github_url(gem_name, newest, previous)}|See what's new.>"
+    github_diff = github_diff(gem_name, newest, previous)
+    if github_diff == true
+      action_message = "<#{github_diff}|See what's new.>"
     else
       action_message = "See what's new with gem-compare:\n`gem compare #{gem_name} #{previous} #{newest} --diff`"
     end
@@ -80,6 +83,8 @@ class GemNotifier < SlackNotifier
     alert_message + "\n\n" + action_message
   end
 end
+
+# GemNotifier.check_for_updates(["sinatra", "redis"])
 
 if $PROGRAM_NAME == __FILE__
   GemNotifier.check_for_updates(ARGV)
