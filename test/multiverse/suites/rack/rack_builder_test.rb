@@ -88,6 +88,9 @@ class RackBuilderTest < Minitest::Test
   end
 
   def test_run_with_tracing
+    # TODO: OLD RUBIES - RUBY_VERSION < 2.3
+    skip 'Requires Ruby 2.3+' unless RUBY_VERSION >= '2.3.0'
+
     instance = TestBuilderClass.new
     app = :the_app
     def instance.middleware_instrumentation_enabled; true; end
@@ -107,6 +110,9 @@ class RackBuilderTest < Minitest::Test
   end
 
   def test_use_with_tracing
+    # TODO: OLD RUBIES - RUBY_VERSION < 2.3
+    skip 'Requires Ruby 2.3+' unless RUBY_VERSION >= '2.3.0'
+
     instance = TestBuilderClass.new
     def instance.middleware_instrumentation_enabled?; true; end
     middleware = 'lucky tiger cup'
@@ -130,6 +136,9 @@ class RackBuilderTest < Minitest::Test
   end
 
   def test_generate_traced_map
+    # TODO: OLD RUBIES - RUBY_VERSION < 2.3
+    skip 'Requires Ruby 2.3+' unless RUBY_VERSION >= '2.3.0'
+
     url = :url
     handler = 'handler'
     map = {url => handler}
