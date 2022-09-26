@@ -1481,6 +1481,7 @@ Style/MethodCallWithArgsParentheses:
     - puts
     - raise
     - require
+    - skip
     - stub
   AllowedPatterns: [^assert, ^refute]
 
