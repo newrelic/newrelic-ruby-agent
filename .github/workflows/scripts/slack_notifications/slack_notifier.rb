@@ -6,14 +6,14 @@
 require 'httparty'
 
 class SlackNotifier
-  CYCLE = 24 * 60 * 60 # Period in seconds to check for updates that need to be Slacked."
+  CYCLE = 500 * 60 * 60 # Period in seconds to check for updates that need to be Slacked."
 
   def self.send_slack_message(message)
     path = ENV['SLACK_GEM_NOTIFICATIONS_WEBHOOK']
     options = {headers: {'Content-Type' => 'application/json'},
                body: {text: message}.to_json}
 
-    HTTParty.post(path, options)
+    HTTParty.post("fake_path_to_test_failure", options)
     sleep(1) # Pause to avoid Slack throttling
   end
 end
