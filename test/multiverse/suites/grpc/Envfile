@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -10,7 +9,8 @@ end
 instrumentation_methods(:chain, :prepend)
 
 GRPC_VERSIONS = [
-  nil
+  [nil, 2.6],
+  ['1.48.0', 2.5]
 ]
 
 def gem_list(grpc_version = nil)

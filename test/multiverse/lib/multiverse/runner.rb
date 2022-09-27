@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -50,6 +49,10 @@ module Multiverse
       execute_suites(filter, opts) do |suite|
         puts yellow(suite.execution_message)
         suite.each_instrumentation_method do |method|
+          if opts.key?(:method) && method != opts[:method]
+            puts "Skipping method '#{method}' while focusing only on '#{opts[:method]}'"
+            next
+          end
           suite.execute(method)
         end
       end
@@ -65,7 +68,7 @@ module Multiverse
       Dir.new(SUITES_DIRECTORY).entries.each do |dir|
         full_path = File.join(SUITES_DIRECTORY, dir)
 
-        next if dir =~ /\A\./
+        next if dir.start_with?('.')
         next unless passes_filter?(dir, filter)
         next unless File.exist?(File.join(full_path, "Envfile"))
 

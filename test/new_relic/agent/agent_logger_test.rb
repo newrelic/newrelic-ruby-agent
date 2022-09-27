@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -337,7 +336,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_can_overwrite_log_formatter
     log_message = 'How are you?'
-    log_formatter = Proc.new { |s, t, p, m| m.reverse }
+    log_formatter = proc { |s, t, p, m| m.reverse }
 
     logger = create_basic_logger
     logger.log_formatter = log_formatter

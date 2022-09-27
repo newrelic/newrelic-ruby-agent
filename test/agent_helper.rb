@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -56,8 +55,7 @@ end
 
 def assert_has_traced_error(error_class)
   errors = harvest_error_traces!
-  assert \
-    errors.find { |e| e.exception_class_name == error_class.name } != nil, \
+  assert !(errors.find { |e| e.exception_class_name == error_class.name }).nil?, \
     "Didn't find error of class #{error_class}"
 end
 
@@ -276,7 +274,7 @@ def assert_metrics_recorded_exclusive(expected, options = {})
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s) }
 
   unexpected_metrics = recorded_metrics - expected_metrics
-  unexpected_metrics.reject! { |m| m.name =~ /GC\/Transaction/ }
+  unexpected_metrics.reject! { |m| m.name.include?('GC/Transaction') }
 
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
@@ -386,8 +384,7 @@ def in_transaction(*args, &blk)
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
-  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
-                                        args.first || 'dummy'
+  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) : args.first || 'dummy'
 
   state = NewRelic::Agent::Tracer.state
   txn = nil
@@ -871,7 +868,7 @@ def load_cross_agent_test(name)
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
   data = ::JSON.load(data)
-  data.each { |testcase| testcase['testname'].gsub!(' ', '_') if String === testcase['testname'] }
+  data.each { |testcase| testcase['testname'].tr!(' ', '_') if String === testcase['testname'] }
   data
 end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -27,6 +26,7 @@ class NewRelic::Agent::VMTestCase < Minitest::Test
     :heap_free,
     :method_cache_invalidations,
     :constant_cache_invalidations,
+    :constant_cache_misses,
     :thread_count
   ]
 

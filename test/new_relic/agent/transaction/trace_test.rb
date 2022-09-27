@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -49,7 +48,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_each_node_delegates_to_root_node
-    block = Proc.new {}
+    block = proc {}
     @trace.root_node.expects(:each_node)
     @trace.each_node(&block)
   end

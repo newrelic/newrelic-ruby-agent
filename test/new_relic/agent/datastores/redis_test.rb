@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -85,7 +84,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_pipeline_commands_truncates_long_commands
-    pipeline = NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH.times.map do
+    pipeline = Array.new(NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH) do
       [:set, "0123456789"]
     end
 

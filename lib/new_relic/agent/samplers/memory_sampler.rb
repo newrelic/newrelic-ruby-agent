@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -20,7 +19,7 @@ module NewRelic
           # macos, linux, solaris
           if defined? JRuby
             @sampler = JavaHeapSampler.new
-          elsif platform =~ /linux/
+          elsif platform.include?('linux')
             @sampler = ProcStatus.new
             if !@sampler.can_run?
               ::NewRelic::Agent.logger.debug("Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead.")
@@ -28,13 +27,13 @@ module NewRelic
             else
               ::NewRelic::Agent.logger.debug("Using /proc/#{$$}/status for reading process memory.")
             end
-          elsif platform =~ /darwin9/ # 10.5
+          elsif platform.include?('darwin9') # 10.5
             @sampler = ShellPS.new("ps -o rsz")
           elsif platform =~ /darwin(1|2)\d+/ # >= 10.6
             @sampler = ShellPS.new("ps -o rss")
-          elsif platform =~ /freebsd/
+          elsif platform.include?('freebsd')
             @sampler = ShellPS.new("ps -o rss")
-          elsif platform =~ /solaris/
+          elsif platform.include?('solaris')
             @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
           end
 
@@ -47,7 +46,7 @@ module NewRelic
         end
 
         def self.platform
-          if RUBY_PLATFORM =~ /java/
+          if RUBY_PLATFORM.include?('java')
             begin
               NewRelic::Helper.run_command('uname -s').downcase
             rescue NewRelic::CommandRunFailedError, NewRelic::CommandExecutableNotFoundError

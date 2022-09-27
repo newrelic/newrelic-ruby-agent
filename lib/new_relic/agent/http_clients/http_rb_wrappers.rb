@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -10,7 +9,7 @@ module NewRelic
     module HTTPClients
       class HTTPResponse < AbstractResponse
         def [](key)
-          _, value = @wrapped_response.headers.find { |k, _| key.downcase == k.downcase }
+          _, value = @wrapped_response.headers.find { |k, _| key.casecmp(k).zero? }
           value unless value.nil?
         end
 

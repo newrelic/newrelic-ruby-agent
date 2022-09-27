@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,13 +8,13 @@ module NewRelic
       class AgentThread
         def self.create(label, &blk)
           ::NewRelic::Agent.logger.debug("Creating AgentThread: #{label}")
-          wrapped_blk = Proc.new do
+          wrapped_blk = proc do
             if ::Thread.current[:newrelic_tracer_state] && Thread.current[:newrelic_tracer_state].current_transaction
               txn = ::Thread.current[:newrelic_tracer_state].current_transaction
               ::NewRelic::Agent.logger.warn("AgentThread created with current transaction #{txn.best_name}")
             end
             begin
-              blk.call
+              yield
             rescue => e
               ::NewRelic::Agent.logger.error("AgentThread #{label} exited with error", e)
             rescue Exception => e

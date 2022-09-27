@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -72,8 +71,8 @@ module MarshallingTestCases
     assert_equal 0.0, event[0]["duration"]
     assert_equal false, event[0]["error"]
     assert_equal event[0]["parent.transportType"], "Unknown"
-    assert event[0]['guid'] != nil
-    assert event[0]["traceId"] != nil
+    assert !event[0]['guid'].nil?
+    assert !event[0]["traceId"].nil?
 
     assert_equal 9, event[0].size
   end
@@ -142,9 +141,9 @@ module MarshallingTestCases
     assert_equal "TestTransaction/break_it", event[0]["transactionName"]
     assert_equal 0.0, event[0]["duration"]
     assert_equal "Unknown", event[0]["parent.transportType"]
-    assert event[0]["spanId"] != nil
-    assert event[0]['guid'] != nil
-    assert event[0]["traceId"] != nil
+    assert !event[0]["spanId"].nil?
+    assert !event[0]['guid'].nil?
+    assert !event[0]["traceId"].nil?
 
     assert_equal 12, event[0].size
 
@@ -207,10 +206,10 @@ module MarshallingTestCases
   def with_around_hook(&blk)
     if respond_to?(:around_each)
       around_each do
-        blk.call
+        yield
       end
     else
-      blk.call
+      yield
     end
 
     if respond_to?(:after_each)

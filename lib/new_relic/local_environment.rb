@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -183,7 +182,7 @@ module NewRelic
     end
 
     def check_for_litespeed
-      if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
+      if caller.pop.include?('fcgi-bin/RailsRunner.rb')
         @discovered_dispatcher = :litespeed
       end
     end

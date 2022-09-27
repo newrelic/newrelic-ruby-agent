@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -295,7 +294,7 @@ module HttpClientTestCases
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     in_transaction { get_response }
-    assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
+    assert_equal false, server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
@@ -303,7 +302,7 @@ module HttpClientTestCases
       :'distributed_tracing.enabled' => false,
       :cross_process_id => "") do
       in_transaction { get_response }
-      assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
+      assert_equal false, server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
     end
   end
 
@@ -314,7 +313,7 @@ module HttpClientTestCases
       :encoding_key => ""
     ) do
       in_transaction { get_response }
-      assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
+      assert_equal false, server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
     end
   end
 
@@ -633,7 +632,7 @@ module HttpClientTestCases
   end
 
   def http_header_name_to_rack_key(name)
-    "HTTP_" + name.upcase.gsub('-', '_')
+    "HTTP_" + name.upcase.tr('-', '_')
   end
 
   def make_app_data_payload(*args)

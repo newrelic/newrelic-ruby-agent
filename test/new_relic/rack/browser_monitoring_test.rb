@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -133,7 +132,7 @@ if defined?(::Rack::Test)
     RUM_PLACEHOLDER = "EXPECTED_RUM_LOADER_LOCATION"
 
     source_files.each do |source_file|
-      source_filename = File.basename(source_file).gsub(".", "_")
+      source_filename = File.basename(source_file).tr(".", "_")
       instrumented_html = File.read(source_file)
       uninstrumented_html = instrumented_html.gsub(RUM_PLACEHOLDER, '')
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -57,7 +56,8 @@ module NewRelic::Agent
 
       variables.each do |ivar|
         value = state.instance_variable_get(ivar)
-        assert [0, nil, false, []].include?(value),
+        empties = [0, nil, false, []]
+        assert empties.include?(value),
           "Expected #{ivar} to reset, but was #{value}"
       end
     end

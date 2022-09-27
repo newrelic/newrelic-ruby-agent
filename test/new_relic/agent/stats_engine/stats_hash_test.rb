@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -192,6 +191,6 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
   def fake_borked_default_proc(stats_hash)
     exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
     hash = stats_hash.instance_variable_get(:@unscoped)
-    hash.default_proc = Proc.new { raise exception }
+    hash.default_proc = proc { raise exception }
   end
 end

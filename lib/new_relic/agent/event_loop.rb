@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -62,8 +61,8 @@ module NewRelic
         @timers = {}
 
         @subscriptions = Hash.new { |h, k| h[k] = [] }
-        @subscriptions[:__add_timer] << Proc.new { |t| set_timer(t) }
-        @subscriptions[:__add_event] << Proc.new { |e, blk| @subscriptions[e] << blk }
+        @subscriptions[:__add_timer] << proc { |t| set_timer(t) }
+        @subscriptions[:__add_event] << proc { |e, blk| @subscriptions[e] << blk }
       end
 
       def set_timer(timer)

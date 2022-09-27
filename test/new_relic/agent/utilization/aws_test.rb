@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -84,7 +83,7 @@ module NewRelic
         load_cross_agent_test("utilization_vendor_specific/aws").each do |test_case|
           test_case = symbolize_keys_in_object(test_case)
 
-          define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
+          define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
             NewRelic::Agent::Utilization::AWS.stubs(:imds_token).returns('John Howe')
             uri_obj_key = test_case[:uri].keys.detect do |key|
               key =~ %r{http://169.254.169.254/(?:2016-09-02|latest)/dynamic/instance-identity/document}

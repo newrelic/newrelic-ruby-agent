@@ -1,5 +1,4 @@
 # -*- ruby -*-
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -23,7 +22,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
   end
 
   def test_memory__linux
-    return if RUBY_PLATFORM =~ /darwin/
+    return if RUBY_PLATFORM.include?('darwin')
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns('linux')
     stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new

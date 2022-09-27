@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -93,6 +92,6 @@ class MongoReplicaSet
     return nil unless running?
     self.servers.first.client['admin'].command({'replSetInitiate' => config})
   rescue Mongo::OperationFailure => e
-    raise e unless e.message.match(/already initialized/)
+    raise e unless e.message.include?('already initialized')
   end
 end

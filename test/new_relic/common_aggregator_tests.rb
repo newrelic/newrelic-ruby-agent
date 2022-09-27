@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -170,7 +169,7 @@ module NewRelic
         memo[opt] = false
         memo
       end
-      aggregator.class.stubs(:enabled_fn).returns(Proc.new { false })
+      aggregator.class.stubs(:enabled_fn).returns(proc { false })
       with_server_source(options, &blk)
     end
   end

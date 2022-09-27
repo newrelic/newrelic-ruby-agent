@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -51,7 +50,7 @@ module MultiverseHelpers
     # Give caller a shot to setup before we start
     # Don't just yield, as that won't necessarily have the intended receiver
     # (the test case instance itself)
-    self.instance_exec($collector, &block) if block_given? && self.respond_to?(:instance_exec)
+    self.instance_exec($collector, &block) if block && self.respond_to?(:instance_exec)
 
     # It's important that this be called after the instance_exec above, so that
     # test cases have the chance to change settings on the fake collector first
@@ -93,7 +92,7 @@ module MultiverseHelpers
 
   def run_agent(options = {}, &block)
     setup_agent(options)
-    yield if block_given?
+    yield if block
     teardown_agent
   end
 

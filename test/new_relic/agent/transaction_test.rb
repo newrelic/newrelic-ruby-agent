@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -309,7 +308,7 @@ module NewRelic::Agent
     end
 
     def test_apdex_success_with_ignored_error
-      filter = Proc.new do |error|
+      filter = proc do |error|
         error.is_a?(SillyError) ? nil : error
       end
 
@@ -1081,7 +1080,7 @@ module NewRelic::Agent
     end
 
     def test_failure_during_ignore_error_filter_doesnt_prevent_transaction
-      filter = Proc.new do |*_|
+      filter = proc do |*_|
         raise "HAHAHAHAH, error in the filter for ignoring errors!"
       end
 
@@ -1491,7 +1490,7 @@ module NewRelic::Agent
     end
 
     def test_error_recorded_predicate_abides_by_ignore_filter
-      filter = Proc.new do |error|
+      filter = proc do |error|
         error.message == "Sorry!" ? nil : error
       end
 
@@ -1505,7 +1504,7 @@ module NewRelic::Agent
     end
 
     def test_error_recorded_with_ignore_filter_and_multiple_errors
-      filter = Proc.new do |error|
+      filter = proc do |error|
         error.message == "Sorry!" ? nil : error
       end
 
@@ -1605,32 +1604,6 @@ module NewRelic::Agent
 
         refute segment_a.params.key?(:'request.parameters.uri')
         assert segment_a.params.key?(:foo)
-      end
-    end
-
-    def test_generates_guid_when_running_out_of_file_descriptors
-      # SecureRandom.hex raises an exception when the ruby interpreter
-      # uses up all of its allotted file descriptors.
-      # See also: https://github.com/newrelic/newrelic-ruby-agent/issues/303
-      file_descriptors = []
-      begin
-        # Errno::EMFILE is raised when the system runs out of file
-        # descriptors
-        # If the segment constructor fails to create a random guid, the
-        # exception would be a RuntimeError
-        # When this test file is accessed by Docker Compose via a volume,
-        # then Errno::EIO is raised instead
-        assert_raises Errno::EIO, Errno::EMFILE, Errno::ENFILE do
-          while true
-            file_descriptors << IO.sysopen(__FILE__)
-            in_transaction do |txn|
-              refute_nil txn.guid
-              refute_nil txn.trace_id
-            end
-          end
-        end
-      ensure
-        file_descriptors.map { |fd| IO::new(fd).close }
       end
     end
 

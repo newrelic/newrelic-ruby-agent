@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -547,7 +546,7 @@ module NewRelic
             @agent.start
           end
         end
-        logmsg = logdev.array.first.gsub(/\n/, '')
+        logmsg = logdev.array.first.delete("\n")
 
         assert !@agent.started?, "agent was started"
         assert_match(/No application name configured/i, logmsg)

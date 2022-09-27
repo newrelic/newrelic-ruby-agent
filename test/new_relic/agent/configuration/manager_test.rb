@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -75,8 +74,8 @@ module NewRelic::Agent::Configuration
     def test_callable_value_for_config_should_return_computed_value
       source = {
         :foo => 'bar',
-        :simple_value => Proc.new { '666' },
-        :reference => Proc.new { self['foo'] }
+        :simple_value => proc { '666' },
+        :reference => proc { self['foo'] }
       }
       @manager.add_config_for_testing(source)
 
@@ -87,9 +86,9 @@ module NewRelic::Agent::Configuration
 
     def test_manager_resolves_nested_procs_from_default_source
       source = {
-        :foo => Proc.new { self[:bar] },
-        :bar => Proc.new { self[:baz] },
-        :baz => Proc.new { 'Russian Nesting Dolls!' }
+        :foo => proc { self[:bar] },
+        :bar => proc { self[:baz] },
+        :baz => proc { 'Russian Nesting Dolls!' }
       }
       @manager.add_config_for_testing(source)
 
@@ -133,7 +132,7 @@ module NewRelic::Agent::Configuration
 
     def test_to_collector_hash
       @manager.delete_all_configs_for_testing
-      @manager.add_config_for_testing(:eins => Proc.new { self[:one] })
+      @manager.add_config_for_testing(:eins => proc { self[:one] })
       @manager.add_config_for_testing(:one => 1)
       @manager.add_config_for_testing(:two => 2)
       @manager.add_config_for_testing(:nested => {:madness => 'test'})
@@ -146,7 +145,7 @@ module NewRelic::Agent::Configuration
     # Necessary to keep the pruby marshaller happy
     def test_to_collector_hash_returns_bare_hash
       @manager.delete_all_configs_for_testing
-      @manager.add_config_for_testing(:eins => Proc.new { self[:one] })
+      @manager.add_config_for_testing(:eins => proc { self[:one] })
 
       assert_equal(::Hash, @manager.to_collector_hash.class)
     end
@@ -162,7 +161,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_masks
-      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { true }
+      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = proc { true }
 
       @manager.add_config_for_testing(:boo => 1)
 
@@ -170,7 +169,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_masks_conditionally
-      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { false }
+      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = proc { false }
 
       @manager.add_config_for_testing(:boo => 1)
 
@@ -216,7 +215,7 @@ module NewRelic::Agent::Configuration
       @manager.register_callback(:test) do |value|
         actual = value
       end
-      @manager.add_config_for_testing(:test => Proc.new { "value" })
+      @manager.add_config_for_testing(:test => proc { "value" })
       assert actual.class != Proc, 'Callback returned Proc'
     end
 
@@ -387,7 +386,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_apply_transformations
-      transform = Proc.new { |value| value.gsub('foo', 'baz') }
+      transform = proc { |value| value.gsub('foo', 'baz') }
       ::NewRelic::Agent::Configuration::DefaultSource.stubs(:transform_for).returns(transform)
 
       assert_equal 'bazbar', @manager.apply_transformations(:test, 'foobar')
@@ -400,7 +399,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_fetch_skips_the_config_layer_if_transformation_raises_error
-      bomb = Proc.new do |value|
+      bomb = proc do |value|
         if value == 'boom'
           raise StandardError.new
         else
@@ -450,7 +449,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
-      callable = Proc.new { 'test' }
+      callable = proc { 'test' }
       assert_equal 'test', @manager.evaluate_procs(callable)
     end
 
@@ -459,7 +458,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_apply_transformations_logs_error_if_transformation_fails
-      bomb = Proc.new { raise StandardError.new }
+      bomb = proc { raise StandardError.new }
       @manager.stubs(:transform_from_default).returns(bomb)
 
       expects_logging(:error, includes("Error applying transformation"), any_parameters)
@@ -470,7 +469,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_apply_transformations_reraises_errors
-      bomb = Proc.new { raise StandardError.new }
+      bomb = proc { raise StandardError.new }
       @manager.stubs(:transform_from_default).returns(bomb)
 
       assert_raises StandardError do

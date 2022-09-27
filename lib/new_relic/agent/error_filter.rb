@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -51,14 +50,14 @@ module NewRelic
 
       def ignore?(ex, status_code = nil)
         @ignore_classes.include?(ex.class.name) ||
-          (@ignore_messages.keys.include?(ex.class.name) &&
+          (@ignore_messages.key?(ex.class.name) &&
           @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @ignore_status_codes.include?(status_code.to_i)
       end
 
       def expected?(ex, status_code = nil)
         @expected_classes.include?(ex.class.name) ||
-          (@expected_messages.keys.include?(ex.class.name) &&
+          (@expected_messages.key?(ex.class.name) &&
           @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @expected_status_codes.include?(status_code.to_i)
       end
@@ -81,7 +80,7 @@ module NewRelic
             @ignore_messages.update(errors)
             log_filter(:ignore_messages, errors)
           when String
-            if errors.match(/^[\d\,\-]+$/)
+            if errors =~ /^[\d\,\-]+$/
               @ignore_status_codes |= parse_status_codes(errors)
               log_filter(:ignore_status_codes, errors)
             else
@@ -105,7 +104,7 @@ module NewRelic
             @expected_messages.update(errors)
             log_filter(:expected_messages, errors)
           when String
-            if errors.match(/^[\d\,\-]+$/)
+            if errors =~ /^[\d\,\-]+$/
               @expected_status_codes |= parse_status_codes(errors)
               log_filter(:expected_status_codes, errors)
             else

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -13,7 +12,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       class EventListener
         def still_subscribed(event)
           return [] if @events[event].nil?
-          @events[event].select { |e| e.inspect =~ /infinite_tracing/ }
+          @events[event].select { |e| e.inspect.include?('infinite_tracing') }
         end
       end
 
@@ -150,7 +149,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
                     # If you want opportunity to do something after each segment
                     # is pushed, invoke this method with a block and do it.
-                    block.call(client, segments) if block_given?
+                    yield(client, segments) if block
 
                     # waits for the grpc mock server to handle any values it needs to
                     # important for tests that expect the mock server to break at a specific point

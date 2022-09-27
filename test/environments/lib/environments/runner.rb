@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -66,7 +65,7 @@ module Environments
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
       return version if version.to_s == ""
-      test_version = `bundle #{version} --version` =~ /Could not find command/
+      test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? "" : version
     end
 

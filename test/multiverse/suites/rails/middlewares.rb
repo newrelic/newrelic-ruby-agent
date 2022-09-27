@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -12,9 +11,9 @@ class ErrorMiddleware
 
   def call(env)
     path = ::Rack::Request.new(env).path_info
-    raise "middleware error" if path.match(/\/middleware_error\/before/)
+    raise "middleware error" if path.include?('/middleware_error/before')
     result = @app.call(env)
-    raise "middleware error" if path.match(/\/middleware_error\/after/)
+    raise "middleware error" if path.include?('/middleware_error/after')
     result
   end
 end

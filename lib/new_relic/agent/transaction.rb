@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -128,7 +127,7 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX) || name.start_with?(OTHER_TRANSACTION_PREFIX)
+        if name.start_with?(CONTROLLER_PREFIX, OTHER_TRANSACTION_PREFIX)
           "#{NESTED_TRANSACTION_PREFIX}#{name}"
         else
           name
@@ -670,7 +669,7 @@ module NewRelic
       end
 
       def is_synthetics_request?
-        synthetics_payload != nil && raw_synthetics_header != nil
+        !synthetics_payload.nil? && !raw_synthetics_header.nil?
       end
 
       def synthetics_version

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -92,7 +91,7 @@ class GrpcServerTest < Minitest::Test
     desc.instance_variable_set(:@trace_with_newrelic, false)
 
     new_transaction_called = false
-    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true }) do
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, proc { new_transaction_called = true }) do
       # by passing nil as the first argument, an exception will happen if the
       # code proceeds beyond the early return. this gives us confidence that the
       # early return is activated
@@ -109,7 +108,7 @@ class GrpcServerTest < Minitest::Test
     def desc.process_distributed_tracing_headers(ac); end # noop this DT method (tested elsewhere)
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
     new_transaction_called = false
-    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true; transaction }) do
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, proc { new_transaction_called = true; transaction }) do
       # the 'active_call' and 'method' mocks used here will verify
       # (with expectations) to have methods called on them and return
       # appropriate responses
@@ -128,9 +127,9 @@ class GrpcServerTest < Minitest::Test
     def desc.metadata_for_call(call); NewRelic::EMPTY_HASH; end # canned. test metadata_for_call elsewhere
     raised_error = RuntimeError.new
     new_transaction_called = false
-    NewRelic::Agent::Transaction.stub(:start_new_transaction, Proc.new { new_transaction_called = true; transaction }) do
+    NewRelic::Agent::Transaction.stub(:start_new_transaction, proc { new_transaction_called = true; transaction }) do
       received_error = nil
-      notice_stub = Proc.new { |e| received_error = e }
+      notice_stub = proc { |e| received_error = e }
       NewRelic::Agent.stub(:notice_error, notice_stub) do
         assert_raises(RuntimeError) do
           result = desc.handle_with_tracing(nil, nil, method, nil) { raise raised_error }
@@ -196,7 +195,7 @@ class GrpcServerTest < Minitest::Test
   def test_process_distributed_tracing_if_metadata_is_present
     desc = basic_grpc_desc
     received_args = nil
-    dt_stub = Proc.new { |hash, type| received_args = [hash, type] }
+    dt_stub = proc { |hash, type| received_args = [hash, type] }
     NewRelic::Agent::DistributedTracing.stub(:accept_distributed_trace_headers, dt_stub) do
       desc.send(:process_distributed_tracing_headers, metadata_hash)
     end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,11 +8,12 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   include MultiverseHelpers
 
   def test_action_view_prepended_metrics
+    value_for_haml_version = Gem::Version.new(Haml::VERSION) >= Gem::Version.new('6.0.0') ? 1 : 2
     assert_metrics_recorded({
 
       # haml prepends a module on ActionView::Base
       #
-      "Supportability/PrependedModules/ActionView::Base" => metric_values_for(2),
+      "Supportability/PrependedModules/ActionView::Base" => metric_values_for(value_for_haml_version),
 
       "Supportability/PrependedModules/ActionView::Template" => metric_values_for(1),
       "Supportability/PrependedModules/ActionView::Renderer" => metric_values_for(1)

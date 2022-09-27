@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -60,7 +59,7 @@ class ThreadProfiling < Performance::TestCase
     @threads.each(&:join)
     mocha_teardown
   rescue Exception => e
-    if e.message =~ /Deadlock/
+    if e.message.include?('Deadlock')
       Thread.list.select(&:alive?).each do |t|
         STDERR.puts "*" * 80
         STDERR.puts "Live thread: #{t.inspect}"

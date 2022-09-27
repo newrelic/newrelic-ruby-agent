@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -72,7 +71,7 @@ module NewRelic
         extra = options.order!
         command = extra.shift
         # just make it a little easier on them
-        command = 'deployments' if command =~ /deploy/
+        command = 'deployments' if command.include?('deploy')
         if command.nil?
           STDERR.puts options
         elsif !@command_names.include?(command)

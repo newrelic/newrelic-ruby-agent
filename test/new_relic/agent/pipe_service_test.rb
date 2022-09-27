@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -152,7 +151,7 @@ class PipeServiceTest < Minitest::Test
     data = {}
     while payload = pipe.read
       endpoint, data_for_endpoint = Marshal.load(payload)
-      data.merge!(endpoint => data_for_endpoint)
+      data[endpoint] = data_for_endpoint
     end
     data
   end

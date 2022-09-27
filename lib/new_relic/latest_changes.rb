@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -31,8 +30,8 @@ EOS
 
       current_item = nil
       latest.each do |line|
-        if line.match(/^\s*\*.*/)
-          if line.match(/\(#{patch_level}\)/)
+        if line =~ /^\s*\*.*/
+          if line =~ /\(#{patch_level}\)/
             # Found a patch level item, so start tracking the lines!
             current_item = line
           else
@@ -53,7 +52,7 @@ EOS
       changes = []
       version_count = 0
       contents.each_line do |line|
-        if line.match(/##\s+v[\d.]+/)
+        if line =~ /##\s+v[\d.]+/
           version_count += 1
         end
         break if version_count >= 2

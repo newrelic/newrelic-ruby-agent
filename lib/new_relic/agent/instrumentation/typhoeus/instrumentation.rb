@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -60,7 +59,7 @@ module NewRelic
 
           segment.add_request_headers(wrapped_request)
 
-          callback = Proc.new do
+          callback = proc do
             wrapped_response = HTTPClients::TyphoeusHTTPResponse.new(request.response)
 
             segment.process_response_headers(wrapped_response)

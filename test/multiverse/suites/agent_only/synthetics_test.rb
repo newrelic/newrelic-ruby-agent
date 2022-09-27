@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -70,7 +69,7 @@ class SyntheticsTest < Minitest::Test
 
     expected_event_attrs.each do |key, value|
       msg = "Incorrect value for analytic event key '#{key}'. Full event = #{event.inspect}"
-      assert_equal(value, event[0][key], msg) unless key == 'nr.guid' && event[0][key] == nil
+      assert_equal(value, event[0][key], msg) unless key == 'nr.guid' && event[0][key].nil?
     end
 
     non_expected_event_attrs.each do |key|

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # frozen_string_literal: true
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
@@ -13,7 +12,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
     def test_url_map_generation_is_enhanced_with_tracing
       pairs = {'/' => 'one',
                '/another' => 'another'}
-      mapping = pairs.each_with_object({}) { |(k, v), h| h[k] = Proc.new { v } }
+      mapping = pairs.each_with_object({}) { |(k, v), h| h[k] = proc { v } }
       map = Puma::Rack::URLMap.new(mapping)
       pairs.each do |k, v|
         env = {'PATH_INFO' => k, 'SCRIPT_NAME' => 'Eagle Fang'}

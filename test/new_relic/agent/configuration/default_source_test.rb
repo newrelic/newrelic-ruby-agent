@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -218,7 +217,9 @@ module NewRelic::Agent::Configuration
           unspecified_keys << key
         end
 
-        if ![true, false].include?(spec[:allowed_from_server])
+        booleans = [true, false]
+
+        if !booleans.include?(spec[:allowed_from_server])
           bad_value_keys << key
         end
       end
