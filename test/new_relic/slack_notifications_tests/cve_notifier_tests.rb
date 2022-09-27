@@ -6,7 +6,7 @@
 require 'minitest/autorun'
 require_relative '../../../.github/workflows/scripts/slack_notifications/cve_notifier'
 
-class SlackNotifications < Minitest::Test
+class CveNotifierTests < Minitest::Test
   def test_cve_message_zero_args
     assert_raises(ArgumentError) { CveNotifier.cve_message() }
   end

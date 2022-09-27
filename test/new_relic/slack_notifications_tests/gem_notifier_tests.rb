@@ -6,7 +6,7 @@
 require 'minitest/autorun'
 require_relative '../../../.github/workflows/scripts/slack_notifications/gem_notifier'
 
-class GemNotifications < Minitest::Test
+class GemNotifierTests < Minitest::Test
   def successful_http_response
     response = MiniTest::Mock.new
     response.expect(:success?, true)

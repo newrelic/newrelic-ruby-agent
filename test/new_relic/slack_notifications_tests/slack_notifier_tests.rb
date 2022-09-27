@@ -6,7 +6,7 @@
 require 'minitest/autorun'
 require_relative '../../../.github/workflows/scripts/slack_notifications/slack_notifier'
 
-class SlackNotifications < Minitest::Test
+class SlackNotifierTests < Minitest::Test
   def clear_errors_array
     SlackNotifier.errors_array.clear
   end
