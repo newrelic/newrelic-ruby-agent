@@ -696,9 +696,23 @@ module Multiverse
       env_count = filter_env ? 1 : environments.size
       env_plural = env_count > 1 ? 'environments' : 'environment'
       opening = "\nRunning \"#{suite}\" suite in"
-      body = environments.instrumentation_permutations.map { |p| "#{env_count} #{p.upcase} #{env_plural}" }
       ending = "in #{label}"
-      message = [opening, body.join(' and '), ending].join(' ')
+      message = [opening, execution_message_body(env_count, env_plural).join(' and '), ending].join(' ')
+    end
+
+    def execution_message_body(env_count, env_plural)
+      filtered_instrumentations.map { |p| "#{env_count} #{p.upcase} #{env_plural}" }
+    end
+
+    def filtered_instrumentations
+      return environments.instrumentation_permutations unless opts.key?(:method)
+
+      unless environments.instrumentation_permutations.include?(opts[:method])
+        raise "The :method filter specified a value of #{opts[:method]}, but the only possible methods are " \
+          "#{environments.instrumentation_permutations.join('|')}"
+      end
+
+      [opts[:method]]
     end
   end
 end
