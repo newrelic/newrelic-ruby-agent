@@ -68,7 +68,7 @@ class SlackNotifierTests < Minitest::Test
     clear_errors_array
   end
 
-  def test_report_errors_multiple
+  def test_report_errors_multiple_errors
     SlackNotifier.errors_array << 'SomeError'
     SlackNotifier.errors_array << 'AnotherError'
     exception = assert_raises StandardError do
