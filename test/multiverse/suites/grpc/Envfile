@@ -9,7 +9,8 @@ end
 instrumentation_methods(:chain, :prepend)
 
 GRPC_VERSIONS = [
-  nil
+  [nil, 2.6],
+  ['1.48.0', 2.5]
 ]
 
 def gem_list(grpc_version = nil)
