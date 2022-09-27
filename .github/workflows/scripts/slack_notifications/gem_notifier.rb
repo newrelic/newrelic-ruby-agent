@@ -13,8 +13,6 @@ class GemNotifier < SlackNotifier
     return if verify_gem_list(watched_gems)
     watched_gems.each do |gem_name|
       gem_info = verify_gem(gem_name)
-      abort("Failed to obtain info for gem '#{gem_name}'") unless gem_info
-
       versions = gem_versions(gem_info)
       send_slack_message(gem_message(gem_name, versions)) if gem_updated?(versions)
     end
@@ -29,8 +27,9 @@ class GemNotifier < SlackNotifier
 
   def self.verify_gem(gem_name)
     gem_info = HTTParty.get("https://rubygems.org/api/v1/versions/#{gem_name}.json")
+    abort("Failed to obtain info for gem '#{gem_name}'") unless gem_info.success?
 
-    gem_info if gem_info.success?
+    gem_info
   end
 
   # Gem entries are ordered by release date. The break limits versions to two versions: newest and previous.
@@ -54,7 +53,7 @@ class GemNotifier < SlackNotifier
   end
 
   def self.github_diff(gem_name, newest, previous)
-    info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json") 
+    info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
     interpolated_url = interpolate_github_url(info["source_code_uri"], newest, previous)
 
     HTTParty.get(interpolated_url).success?
