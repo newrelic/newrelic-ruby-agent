@@ -17,9 +17,8 @@ class RakeInstrumentationTest < Minitest::Test
   def test_invoke_with_newrelic_tracing_happy_path
     instance = TesterClass.new
     instance_mock = MiniTest::Mock.new
-    canned_config = {'rake.connect_timeout': instance.timeout}
-    NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
-      NewRelic::Agent.stub :config, canned_config do
+    with_config('rake.connect_timeout': instance.timeout) do
+      NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
         NewRelic::Agent.stub :instance, instance_mock do
           instance_mock.expect :wait_on_connect, nil, [instance.timeout]
           NewRelic::Agent::Instrumentation::Rake.stub :before_invoke_transaction, nil do
@@ -48,8 +47,6 @@ class RakeInstrumentationTest < Minitest::Test
 
   def test_invoke_with_tracing_with_exception
     instance = TesterClass.new
-    instance_mock = MiniTest::Mock.new
-    canned_config = {'rake.connect_timeout': instance.timeout}
     NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
       error = RuntimeError.new('expected')
       # produce the exception we want to have the method rescue
@@ -77,15 +74,13 @@ class RakeInstrumentationTest < Minitest::Test
   end
 
   def test_we_should_trace_if_the_task_is_allowlisted
-    canned_config = {'rake.tasks': [/instrument me/]}
-    NewRelic::Agent.stub :config, canned_config do
+    with_config('rake.tasks': [/instrument me/]) do
       assert NewRelic::Agent::Instrumentation::Rake.should_trace?('please instrument me')
     end
   end
 
   def test_we_should_not_trace_if_the_task_is_not_allowlisted
-    canned_config = {'rake.tasks': [/instrument me/]}
-    NewRelic::Agent.stub :config, canned_config do
+    with_config('rake.tasks': [/instrument me/]) do
       refute NewRelic::Agent::Instrumentation::Rake.should_trace?('new task I have not yet instrumented')
     end
   end
