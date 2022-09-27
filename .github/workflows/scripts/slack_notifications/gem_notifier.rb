@@ -19,6 +19,7 @@ class GemNotifier < SlackNotifier
       versions = gem_versions(gem_info)
       send_slack_message(gem_message(gem_name, versions)) if gem_updated?(versions)
     end
+    report_errors
   end
 
   private
@@ -54,15 +55,14 @@ class GemNotifier < SlackNotifier
   end
 
   def self.github_diff(gem_name, newest, previous)
-    info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
-    gem_source_uri = info["source_code_uri"]
-    interpolated_url = interpolate_github_url(gem_source_uri, newest, previous)
+    info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json") 
+    interpolated_url = interpolate_github_url(info["source_code_uri"], newest, previous)
 
     HTTParty.get(interpolated_url).success?
   end
 
-  def self.interpolate_github_url(gem_source_uri, newest, previous)
-    "#{gem_source_uri}/compare/v#{previous}...v#{newest}"
+  def self.interpolate_github_url(source_code_uri, newest, previous)
+    "#{source_code_uri}/compare/v#{previous}...v#{newest}"
   end
 
   def self.interpolate_rubygems_url(gem_name)
@@ -83,8 +83,6 @@ class GemNotifier < SlackNotifier
     alert_message + "\n\n" + action_message
   end
 end
-
-# GemNotifier.check_for_updates(["sinatra", "redis"])
 
 if $PROGRAM_NAME == __FILE__
   GemNotifier.check_for_updates(ARGV)

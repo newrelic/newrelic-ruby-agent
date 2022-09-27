@@ -18,8 +18,9 @@ class CveNotifier < SlackNotifier
     feed.entries.each do |entry|
       break if time - entry.updated > CYCLE
 
-      SlackNotifier.send_slack_message(cve_message(entry.title, entry.entry_id))
+      send_slack_message(cve_message(entry.title, entry.entry_id))
     end
+    report_errors
   end
 
   private

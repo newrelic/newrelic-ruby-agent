@@ -24,4 +24,20 @@ class SlackNotifications < Minitest::Test
       end
     end
   end
+
+  def test_exit_handler_no_fail
+    SlackNotifier.stub(:sleep, nil) do
+      HTTParty.stub(:post, nil) do
+        SlackNotifier.send_slack_message("I am a notification message!")
+        assert_empty SlackNotifier.errors_array
+      end
+    end
+  end
+
+  def test_exit_handler_fail
+    HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
+      SlackNotifier.send_slack_message("I am a notification message!")
+      refute_empty SlackNotifier.errors_array
+    end
+  end
 end
