@@ -34,13 +34,9 @@ class Instrumentation < Thor
     @args = options[:args] if options[:args]
     @class_name = ::NewRelic::LanguageSupport.camelize(name)
     base_path = "#{INSTRUMENTATION_ROOT}#{name.downcase}"
+
     empty_directory(base_path)
-
-    ['chain', 'instrumentation', 'prepend'].each do |file|
-      template("templates/#{file}.tt", "#{base_path}/#{file}.rb")
-    end
-
-    template('templates/dependency_detection.tt', "#{base_path}.rb")
+    create_instrumentation_files(base_path)
     create_configuration(name)
     create_tests(name)
   end
@@ -60,6 +56,14 @@ class Instrumentation < Thor
 
   private
 
+  def create_instrumentation_files(base_path)
+    ['chain', 'instrumentation', 'prepend'].each do |file|
+      template("templates/#{file}.tt", "#{base_path}/#{file}.rb")
+    end
+
+    template('templates/dependency_detection.tt', "#{base_path}.rb")
+  end
+
   def create_tests(name)
     @name = name
     @instrumentation_method_global_erb_snippet = '<%= $instrumentation_method %>'
@@ -73,22 +77,25 @@ class Instrumentation < Thor
   end
 
   def create_configuration(name)
-    config = <<-CONFIG
-        :'instrumentation.#{name.downcase}' => {
+    insert_into_file(
+      DEFAULT_SOURCE_LOCATION,
+      config_block(name.downcase),
+      after: ":description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
+        },\n"
+    )
+  end
+
+  def config_block(library)
+    <<-CONFIG
+        :'instrumentation.#{library}' => {
           :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the #{name.downcase} library at start up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the #{library} library at start up. May be one of [auto|prepend|chain|disabled].'
         },
     CONFIG
-    insert_into_file(
-      DEFAULT_SOURCE_LOCATION,
-      config,
-      after: ":description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
-        },\n"
-    )
   end
 end
 
