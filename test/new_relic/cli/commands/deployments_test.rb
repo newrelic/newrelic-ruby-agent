@@ -24,6 +24,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def teardown
     super
+    mocha_teardown
     return unless @deployment
     puts @deployment.errors
     puts @deployment.messages
@@ -61,6 +62,23 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     @deployment = nil
   end
 
+  def test_interactive_v2
+    mock_the_connection
+    with_config(:api_key => 'fake_api_key') do
+      @deployment = NewRelic::Cli::Deployments.new(:appname => 'APP',
+        :revision => 3838,
+        :application_id => "appid",
+        :user => 'Bill',
+        :description => "Some lengthy description")
+      assert_nil @deployment.exit_status
+      assert_nil @deployment.errors
+      assert_equal '3838', @deployment.revision
+      @deployment.run
+      refute @deployment.api_v1?, "Using v1 when v2 should be used"
+      @deployment = nil
+    end
+  end
+
   def test_command_line_run
     mock_the_connection
     #    @mock_response.expects(:body).returns("<xml>deployment</xml>")
@@ -77,10 +95,33 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     @deployment = nil
   end
 
+  def test_command_line_run_v2
+    mock_the_connection
+    with_config(:api_key => 'fake_api_key') do
+      @deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill --appid=appid1234] << "Some lengthy description")
+      assert_nil @deployment.exit_status
+      assert_nil @deployment.errors
+      assert_equal '3838', @deployment.revision
+      @deployment.run
+      refute @deployment.api_v1?, "Using v1 when v2 should be used"
+      @deployment = nil
+    end
+  end
+
   def test_error_if_no_license_key
     with_config(:license_key => '') do
       assert_raises NewRelic::Cli::Command::CommandFailure do
         deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+        deployment.run
+      end
+    end
+    @deployment = nil
+  end
+
+  def test_error_if_no_revision_with_api_key
+    with_config(:api_key => 'fake_api_key') do
+      assert_raises NewRelic::Cli::Command::CommandFailure do
+        deployment = NewRelic::Cli::Deployments.new(%w[-a APP --user=Bill] << "Some lengthy description")
         deployment.run
       end
     end
@@ -124,7 +165,29 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     @deployment = nil
   end
 
+  def test_gets_appid_from_connect_when_not_provided_with_v2
+    mock_the_connection
+    mock_the_collector
+
+    with_config(:api_key => 'fake_api_key') do
+      @deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+      assert_nil @deployment.exit_status
+      assert_nil @deployment.errors
+      assert_equal '3838', @deployment.revision
+      @deployment.run
+      @deployment = nil
+    end
+  end
+
   private
+
+  def mock_the_collector
+    NewRelic::Agent.expects(:manual_start)
+    agent_mock = mock()
+    NewRelic::Agent.expects(:agent).returns(agent_mock)
+    agent_mock.expects(:connect_to_server)
+    NewRelic::Agent.expects(:shutdown)
+  end
 
   def mock_the_connection
     mock_connection = mock()
