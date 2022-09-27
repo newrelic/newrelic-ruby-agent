@@ -108,7 +108,7 @@ class RakeInstrumentationTest < Minitest::Test
   def test_a_task_is_not_monkeypatched_a_second_time
     task = OpenStruct.new
     task.instance_variable_set(:@__newrelic_instrumented_execute, true)
-    # gaurantee that #instance_variable_set is not invoked again
+    # guarantee that #instance_variable_set is not invoked again
     def task.instance_variable_set; raise 'kaboom'; end
 
     assert_nil NewRelic::Agent::Instrumentation::Rake.instrument_execute(task)
