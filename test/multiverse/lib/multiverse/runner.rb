@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'fileutils'
+
 module Multiverse
   module Runner
     extend self
@@ -51,9 +53,7 @@ module Multiverse
       # individual suite, so we cannot define this inside the TestTimeReporter
       # class. Please keep this path and the paths for the reporter constants
       # the same!
-      # rubocop:disable Lint/NonAtomicFileOperation
-      File.delete(Multiverse::TEST_TIME_REPORT_PATH) if File.exist?(Multiverse::TEST_TIME_REPORT_PATH)
-      # rubocop:enable Lint/NonAtomicFileOperation
+      FileUtils.rm_f(Multiverse::TEST_TIME_REPORT_PATH)
 
       execute_suites(filter, opts) do |suite|
         puts yellow(suite.execution_message)
