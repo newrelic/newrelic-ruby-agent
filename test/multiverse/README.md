@@ -106,6 +106,9 @@ You can pass these additional parameters to the test:multiverse rake task to con
 - `name=` only tests with names matching string will be executed
 - `env=` only the Nth environment will be executed (may be specified multiple times)
 - `file=` only tests in specified file will be executed
+    NOTE: the given string will be fuzzily matched against relative paths below the suite name
+          ex: "file=instrumentation" to match `test/multiverse/suites/redis/redis_instrumentation_test.rb`
+- `method=` only tests for the specified method ("chain" or "prepend") will be executed
 - `debug` environments for each suite will be executed in serial rather than parallel (the default), and the pry gem will be automatically included, so that you can use it to help debug tests.
 
 ```

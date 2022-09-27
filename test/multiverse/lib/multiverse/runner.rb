@@ -49,6 +49,10 @@ module Multiverse
       execute_suites(filter, opts) do |suite|
         puts yellow(suite.execution_message)
         suite.each_instrumentation_method do |method|
+          if opts.key?(:method) && method != opts[:method]
+            puts "Skipping method '#{method}' while focusing only on '#{opts[:method]}'"
+            next
+          end
           suite.execute(method)
         end
       end
