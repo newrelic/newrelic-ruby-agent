@@ -132,7 +132,12 @@ module NewRelic
           at_exit do
             # The agent's default at_exit might not default to installing, but
             # if we are running an instrumented rake task, we always want it.
+            # No code coverage, as the strategy for mocking Kernel.exit prevents
+            # the at_exit block from being executed, and not mocking results in
+            # an early unwanted exit of MiniTest.
+            # :nocov:
             NewRelic::Agent.shutdown
+            # :nocov:
           end
 
           @installed_at_exit = true
