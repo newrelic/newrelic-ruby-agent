@@ -74,11 +74,11 @@ class MethodVisibilityTest < Minitest::Test
 
   %w[ public private protected ].each do |visibility|
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_method" do
-      assert @instance.send("#{visibility}_methods").map { |s| s.to_sym }.include?(:"#{visibility}_method!"), "Method #{visibility}_method should be #{visibility}"
+      assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_method!", "Method #{visibility}_method should be #{visibility}")
     end
 
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_transaction" do
-      assert @instance.send("#{visibility}_methods").map { |s| s.to_sym }.include?(:"#{visibility}_transaction!"), "Transcation #{visibility}_transaction should be #{visibility}"
+      assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_transaction!", "Transcation #{visibility}_transaction should be #{visibility}")
     end
   end
 
