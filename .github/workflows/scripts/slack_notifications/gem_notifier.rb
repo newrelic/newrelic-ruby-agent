@@ -27,7 +27,7 @@ class GemNotifier < SlackNotifier
 
   def self.verify_gem(gem_name)
     gem_info = HTTParty.get("https://rubygems.org/api/v1/versions/#{gem_name}.json")
-    abort("Failed to obtain info for gem '#{gem_name}'") unless gem_info.success?
+    abort("Failed to obtain info for gem '#{gem_name}'.") unless gem_info.success?
 
     gem_info
   end
@@ -52,9 +52,18 @@ class GemNotifier < SlackNotifier
     Time.now.utc - Time.parse(versions[0]['created_at']) < CYCLE
   end
 
-  def self.github_diff(gem_name, newest, previous)
+  def self.gem_source_code_uri(gem_name)
     info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
-    interpolated_url = interpolate_github_url(info["source_code_uri"], newest, previous)
+    raise "Reponse unsuccessful: #{info}" unless info.success?
+
+    info["source_code_uri"]
+  rescue StandardError => e
+    abort("#{e.class}: #{e.message}")
+  end
+
+  def self.github_diff_availability?(gem_name, newest, previous)
+    source_code_uri = gem_source_code_uri(gem_name)
+    interpolated_url = interpolate_github_url(source_code_uri, newest, previous)
 
     HTTParty.get(interpolated_url).success?
   end
@@ -71,7 +80,7 @@ class GemNotifier < SlackNotifier
     abort("Expected exactly 2 version numbers in the 'versions' array") unless versions.size == 2
     newest, previous = versions[0]['number'], versions[1]['number']
     alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
-    github_diff = github_diff(gem_name, newest, previous)
+    github_diff = github_diff_availability?(gem_name, newest, previous)
     if github_diff == true
       action_message = "<#{github_diff}|See what's new.>"
     else

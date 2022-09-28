@@ -25,41 +25,47 @@ class GemNotifierTests < Minitest::Test
   end
 
   def test_valid_gem_name
-    response = successful_http_response()
+    response = successful_http_response
     HTTParty.stub(:get, response) do
       assert GemNotifier.verify_gem("puma!")
     end
   end
 
   def test_invalid_gem_name
-    response = unsuccessful_http_response()
+    response = unsuccessful_http_response
+    response.expect(:ouch?, true)
     HTTParty.stub(:get, response) do
-      assert_nil GemNotifier.verify_gem("TrexRawr!")
+      GemNotifier.stub(:abort, nil) do
+        assert GemNotifier.verify_gem("TrexRawr!").ouch?
+      end
     end
   end
 
   def test_valid_github_diff
-    response = successful_http_response()
-    HTTParty.stub(:get, response) do
-      assert GemNotifier.github_diff('valid_git_diff', '1.2', '1.1')
+    HTTParty.stub(:get, -> { raise "Oh no a failure" }) do
+      GemNotifier.stub(:abort, nil) do
+        assert_raises(StandardError) { GemNotifier.github_diff_availability?('invalid_git_diff', '1.2', '1.1') }
+      end
     end
   end
 
   def test_invalid_github_diff
     response = unsuccessful_http_response()
     HTTParty.stub(:get, response) do
-      assert_equal false, GemNotifier.github_diff('invalid_git_diff', '1.2', '1.1')
+      GemNotifier.stub(:abort, nil) do
+        assert_raises(StandardError) { GemNotifier.github_diff_availability?('invalid_git_diff', '1.2', '1.1') }
+      end
     end
   end
 
   def test_get_gem_info_returns_array
-    versions = GemNotifier.gem_versions(http_get_response())
+    versions = GemNotifier.gem_versions(http_get_response)
     assert_instance_of Array, versions
   end
 
   def test_get_gem_info_max_size
     versions = GemNotifier.gem_versions(http_get_response())
-    assert_equal versions.size == 2
+    assert_equal 2, versions.size
   end
 
   def test_newest_version_can_be_a_preview_or_rc_or_beta_release
