@@ -35,7 +35,7 @@ module NewRelic
           @agent.after_fork(:report_to_channel => 123)
         end
 
-        assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
+        assert_kind_of(NewRelic::Agent::PipeService, @agent.service,
           'Agent should use PipeService when directed to report to pipe channel')
         NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never
         assert_equal 123, @agent.service.channel_id
