@@ -174,7 +174,7 @@ module NewRelic
             category: :middleware
           )
 
-          # todo: Implement current_segment on Tracer
+          # TODO: Implement current_segment on Tracer
           assert_equal finishable, Tracer.current_transaction.current_segment
 
           finishable.finish

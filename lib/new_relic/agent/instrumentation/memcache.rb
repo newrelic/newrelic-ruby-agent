@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# NOTE there are multiple implementations of the MemCache client in Ruby,
+# NOTE: there are multiple implementations of the MemCache client in Ruby,
 # each with slightly different API's and semantics.
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)

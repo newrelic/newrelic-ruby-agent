@@ -1098,9 +1098,6 @@ Style/CommandLiteral:
   # EnforcedStyle: mixed
   # AllowInnerBackticks: false
 
-Style/CommentAnnotation:
-  Enabled: false
-
 Style/CommentedKeyword:
   Enabled: false
 
