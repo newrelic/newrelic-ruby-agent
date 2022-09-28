@@ -91,7 +91,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     def test_to_json
       md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
       json = md.to_json
-      assert(json.include?('"Custom/test/method"'), "should include the metric spec in the json")
+      assert_includes(json, '"Custom/test/method"', "should include the metric spec in the json")
     end
 
   else

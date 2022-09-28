@@ -39,7 +39,7 @@ class AuditLoggerTest < Minitest::Test
 
   def assert_log_contains_string(str)
     log_body = read_log_body
-    assert(log_body.include?(str), "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
+    assert_includes(log_body, str, "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
   end
 
   def read_log_body

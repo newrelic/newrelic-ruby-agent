@@ -243,8 +243,8 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
         err = errors.first
 
-        assert err.message.include?(exception.message)
-        assert err.message.include?("Ruby agent internal error")
+        assert_includes(err.message, exception.message)
+        assert_includes(err.message, "Ruby agent internal error")
       end
 
       def test_errors_not_noticed_when_disabled

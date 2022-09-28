@@ -25,26 +25,6 @@ Metrics/AbcSize:
 Minitest/AssertInDelta:
   Enabled: false
 
-# Offense count: 22
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertIncludes:
-  Exclude:
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/rails/active_support_logger_test.rb'
-    - 'test/multiverse/suites/sequel/sequel_plugin_test.rb'
-    - 'test/multiverse/suites/sinatra_agent_disabled/shim_test.rb'
-    - 'test/new_relic/agent/audit_logger_test.rb'
-    - 'test/new_relic/agent/configuration/manager_test.rb'
-    - 'test/new_relic/agent/configuration/orphan_configuration_test.rb'
-    - 'test/new_relic/agent/error_trace_aggregator_test.rb'
-    - 'test/new_relic/agent/javascript_instrumentor_test.rb'
-    - 'test/new_relic/agent/method_visibility_test.rb'
-    - 'test/new_relic/agent/sampler_test.rb'
-    - 'test/new_relic/agent/tracer_state_test.rb'
-    - 'test/new_relic/control/instance_methods_test.rb'
-    - 'test/new_relic/environment_report_test.rb'
-    - 'test/new_relic/metric_data_test.rb'
-
 # Offense count: 4
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertKindOf:

@@ -293,8 +293,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_is_correctly_initialized
-      assert @manager.config_classes_for_testing.include?(EnvironmentSource)
-      assert @manager.config_classes_for_testing.include?(DefaultSource)
+      assert_includes(@manager.config_classes_for_testing, EnvironmentSource)
+      assert_includes(@manager.config_classes_for_testing, DefaultSource)
       refute @manager.config_classes_for_testing.include?(ManualSource)
       refute @manager.config_classes_for_testing.include?(ServerSource)
       refute @manager.config_classes_for_testing.include?(YamlSource)
@@ -306,7 +306,7 @@ module NewRelic::Agent::Configuration
       refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
       @manager.replace_or_add_config(security_policy_source)
-      assert @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
     load_cross_agent_test("labels").each do |testcase|

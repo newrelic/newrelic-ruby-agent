@@ -66,6 +66,6 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   end
 
   def assert_has_config(clazz)
-    assert NewRelic::Agent.config.config_classes_for_testing.include?(clazz)
+    assert_includes(NewRelic::Agent.config.config_classes_for_testing, clazz)
   end
 end

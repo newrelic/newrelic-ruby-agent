@@ -311,7 +311,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def assert_has_text(snippet, footer)
-    assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
+    assert_includes(footer, snippet, "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
   end
 
   def assert_attributes_are(expected)

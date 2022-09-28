@@ -131,7 +131,7 @@ def assert_audit_log_contains(audit_log_contents, needle)
   regex = /[:"]/
   needle = needle.gsub(regex, '')
   haystack = audit_log_contents.gsub(regex, '')
-  assert(haystack.include?(needle), "Expected log to contain '#{needle}'")
+  assert_includes(haystack, needle, "Expected log to contain '#{needle}'")
 end
 
 # Because we don't generate a strictly machine-readable representation of
