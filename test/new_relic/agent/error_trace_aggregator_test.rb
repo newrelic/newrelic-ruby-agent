@@ -139,7 +139,7 @@ module NewRelic
         end
 
         errors = error_trace_aggregator.harvest!
-        assert_equal(errors.length, max_q_length)
+        assert_equal(max_q_length, errors.length)
         errors.each_index do |i|
           error = errors.shift
           actual = error.to_collector_array.last["userAttributes"]["x"]
