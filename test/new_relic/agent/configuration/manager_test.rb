@@ -409,7 +409,7 @@ module NewRelic::Agent::Configuration
       @manager.stubs(:transform_from_default).returns(bomb)
 
       with_config(:'rules.ignore_url_regexes' => 'boom') do
-        assert_equal [], @manager.fetch(:'rules.ignore_url_regexes')
+        assert_empty(@manager.fetch(:'rules.ignore_url_regexes'))
       end
     end
 

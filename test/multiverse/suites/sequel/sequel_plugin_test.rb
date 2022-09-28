@@ -192,7 +192,7 @@ if Sequel.const_defined?(:MAJOR) &&
           model_class[11]
         end
         assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
-        assert_equal([], node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
+        assert_empty(node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
       end
     end
 

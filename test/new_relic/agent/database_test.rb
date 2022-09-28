@@ -298,7 +298,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_explain_sql_non_select
     statement = NewRelic::Agent::Database::Statement.new('foo', mock('config'), mock('explainer'))
-    assert_equal([], NewRelic::Agent::Database.explain_sql(statement))
+    assert_empty(NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_dont_collect_explain_for_truncated_query
@@ -307,7 +307,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
-    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
+    assert_empty(NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_dont_collect_explain_for_parameterized_query
@@ -316,7 +316,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, 'Unable to collect explain plan for parameter-less parameterized query.')
-    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
+    assert_empty NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_do_collect_explain_for_parameter_looking_literal
@@ -349,7 +349,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, "Not collecting explain plan because an unknown connection adapter ('dorkdb') was used.")
-    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
+    assert_empty NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_dont_collect_explain_for_multiple_queries
@@ -358,7 +358,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, 'Unable to collect explain plan for multiple queries.')
-    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
+    assert_empty NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_explain_sql_no_connection_config
@@ -378,7 +378,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     explainer = lambda { |statement| nil }
     statement = NewRelic::Agent::Database::Statement.new('SELECT', config, explainer)
 
-    assert_equal([], NewRelic::Agent::Database.explain_sql(statement))
+    assert_empty(NewRelic::Agent::Database.explain_sql(statement))
   end
 
   # See SqlObfuscationTest, which uses cross agent tests for the basic SQL

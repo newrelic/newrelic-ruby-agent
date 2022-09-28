@@ -27,7 +27,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
   def test_sanitize_environment_report_cannot_be_serialized
     @service.stubs(:valid_to_marshal?).returns(false)
-    assert_equal [], @request_builder.sanitize_environment_report(['not empty'])
+    assert_empty(@request_builder.sanitize_environment_report(['not empty']))
   end
 
   def test_connect_settings

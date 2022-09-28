@@ -231,7 +231,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes
 
-      assert_equal({}, error.custom_attributes)
+      assert_empty(error.custom_attributes)
     end
   end
 
@@ -256,7 +256,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes
 
-      assert_equal({}, error.agent_attributes)
+      assert_empty(error.agent_attributes)
     end
   end
 

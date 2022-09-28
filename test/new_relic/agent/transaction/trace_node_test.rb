@@ -136,7 +136,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_children_default
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    assert_equal([], s.children)
+    assert_empty(s.children)
   end
 
   def test_children_with_nodes
@@ -216,7 +216,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_params
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
 
-    assert_equal({}, s.params)
+    assert_empty(s.params)
 
     # should otherwise take the value from the @params var
     s.instance_eval { @params = {:foo => 'correct'} }

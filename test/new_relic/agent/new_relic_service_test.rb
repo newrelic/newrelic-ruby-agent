@@ -64,7 +64,7 @@ class NewRelicServiceTest < Minitest::Test
     assert(block_ran)
 
     assert_equal([:start, :finish], handle1.calls)
-    assert_equal([], handle2.calls)
+    assert_empty(handle2.calls)
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
@@ -135,7 +135,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:start, :request, :finish], conn0.calls)
     assert_equal([:start, :request, :request, :request], conn1.calls)
-    assert_equal([], conn2.calls)
+    assert_empty(conn2.calls)
   end
 
   def test_repeated_connection_failures
@@ -198,7 +198,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:request], conn0.calls)
     assert_equal([:request], conn1.calls)
-    assert_equal([], conn2.calls)
+    assert_empty(conn2.calls)
   end
 
   def test_no_default_cert_file_path
@@ -512,7 +512,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
     response = @service.agent_command_results({'1' => {}})
-    assert_equal({}, response)
+    assert_empty(response)
   end
 
   def test_request_timeout

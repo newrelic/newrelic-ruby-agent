@@ -70,13 +70,13 @@ module NewRelic
             :'transaction_segments.attributes.include'   => ['sql_statement']) do
             source = SecurityPolicySource.new(policies)
 
-            assert_equal [], source[:'attributes.include']
-            assert_equal [], source[:'transaction_tracer.attributes.include']
-            assert_equal [], source[:'transaction_events.attributes.include']
-            assert_equal [], source[:'error_collector.attributes.include']
-            assert_equal [], source[:'browser_monitoring.attributes.include']
-            assert_equal [], source[:'span_events.attributes.include']
-            assert_equal [], source[:'transaction_segments.attributes.include']
+            assert_empty(source[:'attributes.include'])
+            assert_empty(source[:'transaction_tracer.attributes.include'])
+            assert_empty(source[:'transaction_events.attributes.include'])
+            assert_empty(source[:'error_collector.attributes.include'])
+            assert_empty(source[:'browser_monitoring.attributes.include'])
+            assert_empty(source[:'span_events.attributes.include'])
+            assert_empty(source[:'transaction_segments.attributes.include'])
           end
         end
 

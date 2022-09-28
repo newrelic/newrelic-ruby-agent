@@ -113,7 +113,7 @@ class ErrorEventsTest < Minitest::Test
 
     _, custom_attributes, _ = last_error_event
 
-    assert_equal({}, custom_attributes)
+    assert_empty(custom_attributes)
   end
 
   def test_error_events_outside_txn_abide_by_custom_attributes_config
@@ -125,7 +125,7 @@ class ErrorEventsTest < Minitest::Test
 
     _, custom_attributes, _ = last_error_event
 
-    assert_equal({}, custom_attributes)
+    assert_empty(custom_attributes)
   end
 
   def generate_errors(num_errors = 1, options = {})
