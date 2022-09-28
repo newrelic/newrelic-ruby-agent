@@ -643,7 +643,7 @@ module NewRelic
       # that may cause corrupt compression if there is a problem.
       def user_agent
         if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
-          ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " # note the trailing space!
+          ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " # NOTE: the trailing space!
         end
         zlib_version = "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"

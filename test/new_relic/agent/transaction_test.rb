@@ -30,7 +30,7 @@ module NewRelic::Agent
       end
     end
 
-    # note: technically this shouldn't happen if the request we are dealing with is
+    # NOTE: technically this shouldn't happen if the request we are dealing with is
     # a Rack::Request (or subclass such as ActionDispatch::Request or the old
     # ActionController::AbstractRequest)
     def test_request_with_path_with_query_string

@@ -11,7 +11,7 @@ module NewRelic
     def normalize_params(params)
       case params
         when Hash
-          # optimize for empty hash since that is often what this is called with.
+          # Optimize for empty hash since that is often what this is called with.
           return params if params.empty?
           new_params = {}
           params.each do |key, value|
