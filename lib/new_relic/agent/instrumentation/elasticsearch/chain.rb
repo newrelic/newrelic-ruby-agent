@@ -1,0 +1,27 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+module NewRelic::Agent::Instrumentation
+  module Elasticsearch
+    def self.instrument!
+      to_instrument = if defined?(::Elastic)
+        ::Elastic::Transport::Client
+      else
+        ::Elasticsearch::Transport::Client
+      end
+
+      to_instrument.class_eval do
+        include NewRelic::Agent::Instrumentation::Elasticsearch
+
+        alias_method(:perform_request_without_new_relic, :perform_request)
+
+        def perform_request(*args)
+          perform_request_with_tracing(*args) do
+            perform_request_without_new_relic(*args)
+          end
+        end
+      end
+    end
+  end
+end

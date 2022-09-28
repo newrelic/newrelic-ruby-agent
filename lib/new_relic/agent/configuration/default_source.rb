@@ -916,6 +916,14 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.elasticsearch' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the elasticsearch library at start up. May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.httprb' => {
           :default => instrumentation_value_of(:disable_httprb),
           :documentation_default => 'auto',
