@@ -29,7 +29,7 @@ module NewRelic::Agent
 
       private
 
-      def build_worker
+      def handle_response
         @enumerator.each do |response|
           break if response.nil? || response.is_a?(Exception)
           @lock.synchronize do
@@ -41,7 +41,7 @@ module NewRelic::Agent
 
       def start_handler
         Worker.new(self.class.name) do
-          build_worker
+          handle_response
           NewRelic::Agent.logger.debug("gRPC Infinite Tracer Observer closed the stream")
           @client.handle_close
         rescue => error

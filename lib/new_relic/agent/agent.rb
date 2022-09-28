@@ -755,7 +755,7 @@ module NewRelic
 
               @events.notify(:before_shutdown)
               transmit_data_types
-              shutdown_message
+              shutdown_service
 
               ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
             rescue Timeout::Error, StandardError => e
@@ -767,7 +767,7 @@ module NewRelic
         end
       end
 
-      def shutdown_message
+      def shutdown_service
         if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
           ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
           @service.shutdown

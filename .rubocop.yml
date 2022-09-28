@@ -852,9 +852,6 @@ Lint/IncompatibleIoSelectWithFiberScheduler:
 Lint/RequireRelativeSelfPath:
   Enabled: true
 
-Metrics/AbcSize:
-  Enabled: true
-
 Metrics/BlockLength:
   Enabled: false
 
