@@ -84,7 +84,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     expected = [spec, stats].hash
-    assert(expected == md1.hash, "expected #{expected} to equal #{md1.hash}")
+    assert_equal(expected, md1.hash, "expected #{expected} to equal #{md1.hash}")
   end
 
   if {}.respond_to?(:to_json)

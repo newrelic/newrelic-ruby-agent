@@ -497,16 +497,16 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   # test methods to be traced
   def method_to_be_traced(x, y, z, is_traced, expected_metric)
     advance_process_time(0.05)
-    assert x == 1
-    assert y == 2
-    assert z == 3
+    assert_equal(1, x)
+    assert_equal(2, y)
+    assert_equal(3, z)
   end
 
   def method_with_block(x, y, z, is_traced, expected_metric, &block)
     advance_process_time(0.05)
-    assert x == 1
-    assert y == 2
-    assert z == 3
+    assert_equal(1, x)
+    assert_equal(2, y)
+    assert_equal(3, z)
     yield
   end
 
