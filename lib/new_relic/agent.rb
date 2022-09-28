@@ -198,15 +198,9 @@ module NewRelic
 
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
-
-        stats.call_count = value[:count] if value[:count]
-        stats.total_call_time = value[:total] if value[:total]
-        stats.total_exclusive_time = value[:total] if value[:total]
-        stats.min_call_time = value[:min] if value[:min]
-        stats.max_call_time = value[:max] if value[:max]
-        stats.sum_of_squares = value[:sum_of_squares] if value[:sum_of_squares]
-        value = stats
+        value = stats.hash_merge(value)
       end
+
       agent.stats_engine.tl_record_unscoped_metrics(metric_name, value)
     end
 
@@ -585,13 +579,17 @@ module NewRelic
 
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment
-          # Make sure not to override existing segment-level custom attributes
-          segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
-          segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
+          add_new_segment_attributes(params, segment)
         end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
+    end
+
+    def add_new_segment_attributes(params, segment)
+      # Make sure not to override existing segment-level custom attributes
+      segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
+      segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
     end
 
     # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the

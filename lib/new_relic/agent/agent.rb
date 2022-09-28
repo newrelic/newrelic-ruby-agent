@@ -295,12 +295,7 @@ module NewRelic
 
         def flush_pipe_data
           if connected? && @service.is_a?(PipeService)
-            transmit_data
-            transmit_analytic_event_data
-            transmit_custom_event_data
-            transmit_error_event_data
-            transmit_span_event_data
-            transmit_log_event_data
+            transmit_data_types
           end
         end
 
@@ -734,13 +729,7 @@ module NewRelic
 
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
-            harvest_and_send_errors
-            harvest_and_send_error_event_data
-            harvest_and_send_transaction_traces
-            harvest_and_send_slowest_sql
-            harvest_and_send_timeslice_data
-            harvest_and_send_span_event_data
-            harvest_and_send_log_event_data
+            harvest_and_send_data_types
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands
@@ -764,19 +753,9 @@ module NewRelic
               @service.request_timeout = 10
 
               @events.notify(:before_shutdown)
-              transmit_data
-              transmit_analytic_event_data
-              transmit_custom_event_data
-              transmit_error_event_data
-              transmit_span_event_data
-              transmit_log_event_data
+              transmit_data_types
+              shutdown_service
 
-              if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-                ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
-                @service.shutdown
-              else
-                ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
-              end
               ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
             rescue Timeout::Error, StandardError => e
               ::NewRelic::Agent.logger.debug("Error when disconnecting #{e.class.name}: #{e.message}")
@@ -785,6 +764,34 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Bypassing graceful disconnect - agent not connected")
           end
         end
+      end
+
+      def shutdown_service
+        if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
+          ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
+          @service.shutdown
+        else
+          ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
+        end
+      end
+
+      def transmit_data_types
+        transmit_data
+        transmit_analytic_event_data
+        transmit_custom_event_data
+        transmit_error_event_data
+        transmit_span_event_data
+        transmit_log_event_data
+      end
+
+      def harvest_and_send_data_types
+        harvest_and_send_errors
+        harvest_and_send_error_event_data
+        harvest_and_send_transaction_traces
+        harvest_and_send_slowest_sql
+        harvest_and_send_timeslice_data
+        harvest_and_send_span_event_data
+        harvest_and_send_log_event_data
       end
 
       extend ClassMethods
