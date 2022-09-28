@@ -314,7 +314,7 @@ def assert_metrics_not_recorded(not_expected)
       found_but_not_expected << spec
     end
   end
-  assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
+  assert_empty(found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
 end
 
 alias :refute_metrics_recorded :assert_metrics_not_recorded
@@ -325,8 +325,7 @@ def assert_no_metrics_match(regex)
     matching_metrics << metric if metric.match(regex)
   end
 
-  assert_equal(
-    [],
+  assert_empty(
     matching_metrics,
     "Found unexpected metrics:\n" + matching_metrics.map { |m| "  '#{m}'" }.join("\n") + "\n\n"
   )

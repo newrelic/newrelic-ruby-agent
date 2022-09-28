@@ -99,7 +99,7 @@ module NewRelic::Agent
 
     def test_harvest_when_disabled
       with_config(:'transaction_tracer.enabled' => false) do
-        assert_equal([], @sampler.harvest!)
+        assert_empty(@sampler.harvest!)
       end
     end
 
@@ -109,14 +109,14 @@ module NewRelic::Agent
         @last_sample = 'a sample'
       end
 
-      assert_equal([], @sampler.harvest!)
+      assert_empty(@sampler.harvest!)
 
       # make sure the samples have been cleared
       assert_nil(@sampler.instance_variable_get(:@last_sample))
     end
 
     def test_harvest_no_data
-      assert_equal([], @sampler.harvest!)
+      assert_empty(@sampler.harvest!)
     end
 
     def test_add_samples_holds_onto_previous_result

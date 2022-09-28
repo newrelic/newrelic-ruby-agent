@@ -213,7 +213,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_environment_for_connect_negative
     with_config(:send_environment_info => false) do
-      assert_equal [], environment_for_connect
+      assert_empty(environment_for_connect)
     end
   end
 

@@ -124,9 +124,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_flatten_and_coerce_turns_nan_or_infinity_into_null_and_then_dropped
-    assert_equal(
-      {
-      },
+    assert_empty(
       NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
         {
           'nan' => Float::NAN,

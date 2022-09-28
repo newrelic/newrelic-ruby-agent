@@ -83,7 +83,7 @@ class MethodVisibilityTest < Minitest::Test
   end
 
   def test_tracing_non_public_methods_doesnt_add_public_methods
-    assert_equal [], ObjectWithTracers.public_instance_methods - ObjectWithInstrumentation.public_instance_methods
+    assert_empty(ObjectWithTracers.public_instance_methods - ObjectWithInstrumentation.public_instance_methods)
   end
 
   # FIXME: Currently including MethodTracer and ControllerInstrumentation
