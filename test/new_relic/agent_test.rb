@@ -159,23 +159,27 @@ module NewRelic
 
     def test_is_execution_traced_empty
       NewRelic::Agent::Tracer.state.untraced = []
-      assert_equal(true, NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is an empty array')
+      assert_equal(true, NewRelic::Agent.tl_is_execution_traced?,
+        'should be true since the thread local is an empty array')
     end
 
     def test_is_execution_traced_false
       NewRelic::Agent::Tracer.state.untraced = [true, false]
-      assert_equal(false, NewRelic::Agent.tl_is_execution_traced?, 'should be false since the thread local stack has the last element false')
+      assert_equal(false, NewRelic::Agent.tl_is_execution_traced?,
+        'should be false since the thread local stack has the last element false')
     end
 
     def test_instance
       NewRelic::Agent.manual_start
-      assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
+      assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance,
+        "should return the same agent for both identical methods")
       NewRelic::Agent.shutdown
     end
 
     def test_register_report_channel
       NewRelic::Agent.register_report_channel(:channel_id)
-      assert_kind_of(NewRelic::Agent::PipeChannelManager::Pipe, NewRelic::Agent::PipeChannelManager.channels[:channel_id])
+      assert_kind_of(NewRelic::Agent::PipeChannelManager::Pipe, 
+        NewRelic::Agent::PipeChannelManager.channels[:channel_id])
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     end
 
