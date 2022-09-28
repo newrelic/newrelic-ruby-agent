@@ -178,7 +178,7 @@ module NewRelic
 
     def test_register_report_channel
       NewRelic::Agent.register_report_channel(:channel_id)
-      assert_kind_of(NewRelic::Agent::PipeChannelManager::Pipe, 
+      assert_kind_of(NewRelic::Agent::PipeChannelManager::Pipe,
         NewRelic::Agent::PipeChannelManager.channels[:channel_id])
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     end
