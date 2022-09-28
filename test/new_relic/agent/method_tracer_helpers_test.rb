@@ -113,7 +113,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       helped.code_information(::The::Example, :instance_method)
       memoized = helped.instance_variable_get(:@code_information)
       assert memoized
-      assert memoized.keys.size == 1
+      assert_equal(1, memoized.keys.size)
       assert memoized.keys.first.frozen?
       assert memoized.values.first.frozen?
     end

@@ -174,7 +174,7 @@ module NewRelic::Agent::Configuration
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} to convert comma delimited string into array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
-          assert expected == result, message
+          assert_equal(expected, result, message)
         end
 
         key = "#{type}attributes.include".to_sym
@@ -197,7 +197,7 @@ module NewRelic::Agent::Configuration
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} not to modify settings from YAML array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
-          assert expected == result, message
+          assert_equal expected, result, message
         end
 
         key = "#{type}attributes.include".to_sym

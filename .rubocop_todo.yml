@@ -20,18 +20,6 @@ Layout/EmptyLinesAroundBlockBody:
 Metrics/AbcSize:
   Max: 82
 
-# Offense count: 13
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertEqual:
-  Exclude:
-    - 'test/multiverse/suites/config_file_loading/config_file_loading_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/agent/error_trace_aggregator_test.rb'
-    - 'test/new_relic/agent/method_tracer_helpers_test.rb'
-    - 'test/new_relic/agent/method_tracer_test.rb'
-    - 'test/new_relic/agent/transaction_sampler_test.rb'
-    - 'test/new_relic/metric_data_test.rb'
-
 # Offense count: 145
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertInDelta:

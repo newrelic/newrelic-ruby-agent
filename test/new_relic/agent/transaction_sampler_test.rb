@@ -262,7 +262,7 @@ module NewRelic::Agent
         end
         @sampler.merge!([slowest])
         not_as_slow = @sampler.harvest![0]
-        assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
+        assert_equal(not_as_slow, slowest, "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
         # 1 second duration
         in_transaction do
