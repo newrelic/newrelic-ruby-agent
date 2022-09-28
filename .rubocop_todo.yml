@@ -25,14 +25,6 @@ Metrics/AbcSize:
 Minitest/AssertInDelta:
   Enabled: false
 
-# Offense count: 4
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertKindOf:
-  Exclude:
-    - 'test/new_relic/agent/agent_test.rb'
-    - 'test/new_relic/agent/pipe_channel_manager_test.rb'
-    - 'test/new_relic/agent_test.rb'
-
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertPathExists:
