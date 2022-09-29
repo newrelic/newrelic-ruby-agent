@@ -295,15 +295,15 @@ module NewRelic::Agent::Configuration
     def test_config_is_correctly_initialized
       assert_includes(@manager.config_classes_for_testing, EnvironmentSource)
       assert_includes(@manager.config_classes_for_testing, DefaultSource)
-      refute @manager.config_classes_for_testing.include?(ManualSource)
-      refute @manager.config_classes_for_testing.include?(ServerSource)
-      refute @manager.config_classes_for_testing.include?(YamlSource)
-      refute @manager.config_classes_for_testing.include?(HighSecuritySource)
-      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      refute_includes @manager.config_classes_for_testing, ManualSource
+      refute_includes @manager.config_classes_for_testing, ServerSource
+      refute_includes @manager.config_classes_for_testing, YamlSource
+      refute_includes @manager.config_classes_for_testing, HighSecuritySource
+      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
     end
 
     def test_high_security_source_addable
-      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
       @manager.replace_or_add_config(security_policy_source)
       assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
