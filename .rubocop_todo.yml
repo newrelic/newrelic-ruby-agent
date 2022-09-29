@@ -18,7 +18,11 @@ Layout/EmptyLinesAroundBlockBody:
 # Offense count: 426
 # Configuration parameters: AllowedMethods, AllowedPatterns, IgnoredMethods, CountRepeatedAttributes.
 Metrics/AbcSize:
-  Max: 82
+  Max: 54
+  Exclude:
+    - test/**/*
+    - infinite_tracing/test/**/*
+
 
 # Offense count: 145
 # This cop supports safe autocorrection (--autocorrect).
