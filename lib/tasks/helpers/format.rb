@@ -71,7 +71,7 @@ module Format
 
   def format_env_var(key)
     return "None" if NON_ENV_CONFIGS.include?(key)
-    "NEW_RELIC_#{key.gsub(".", "_").upcase}"
+    "NEW_RELIC_#{key.tr(".", "_").upcase}"
   end
 
   def format_name(key)
@@ -107,7 +107,7 @@ module Format
   end
 
   def section_key(key, components)
-    if key.match(/^disable_/) # "disable_httpclient"
+    if key =~ /^disable_/ # "disable_httpclient"
       DISABLING
     elsif components.length >= 2 && !(components[1] == "attributes") # "analytics_events.enabled"
       components.first
