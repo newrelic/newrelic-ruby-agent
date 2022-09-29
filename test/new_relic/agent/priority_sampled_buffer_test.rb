@@ -96,7 +96,7 @@ module NewRelic::Agent
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
-        assert_equal(true, buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
+        assert(buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
       end
     end
 

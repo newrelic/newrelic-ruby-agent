@@ -93,7 +93,7 @@ module NewRelic::Agent
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
       in_transaction("test_txn2") do |txn|
         payload = DistributedTracePayload.for_transaction(txn)
-        assert_equal true, payload.sampled
+        assert payload.sampled
       end
     end
 
@@ -118,7 +118,7 @@ module NewRelic::Agent
       assert_equal referring_transaction.initial_segment.guid, payload.id
       assert_equal referring_transaction.guid, payload.transaction_id
       assert_equal referring_transaction.trace_id, payload.trace_id
-      assert_equal true, payload.sampled?
+      assert payload.sampled?
       assert_equal referring_transaction.priority, payload.priority
       assert_equal created_at.round, payload.timestamp
     end
@@ -144,7 +144,7 @@ module NewRelic::Agent
       assert_equal referring_transaction.initial_segment.guid, payload.id
       assert_equal referring_transaction.guid, payload.transaction_id
       assert_equal referring_transaction.trace_id, payload.trace_id
-      assert_equal true, payload.sampled?
+      assert payload.sampled?
       assert_equal referring_transaction.priority, payload.priority
       assert_equal created_at.round, payload.timestamp
     end

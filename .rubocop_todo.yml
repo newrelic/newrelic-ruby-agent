@@ -58,26 +58,6 @@ Minitest/AssertRespondTo:
     - 'test/new_relic/collection_helper_test.rb'
     - 'test/new_relic/data_container_tests.rb'
 
-# Offense count: 35
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertTruthy:
-  Exclude:
-    - 'test/multiverse/suites/agent_only/error_events_test.rb'
-    - 'test/multiverse/suites/rack/puma_rack_urlmap_test.rb'
-    - 'test/multiverse/suites/sequel/sequel_safety_test.rb'
-    - 'test/new_relic/agent/commands/thread_profiler_session_test.rb'
-    - 'test/new_relic/agent/configuration/environment_source_test.rb'
-    - 'test/new_relic/agent/configuration/manager_test.rb'
-    - 'test/new_relic/agent/configuration/security_policy_source_test.rb'
-    - 'test/new_relic/agent/configuration/yaml_source_test.rb'
-    - 'test/new_relic/agent/distributed_tracing/distributed_trace_payload_test.rb'
-    - 'test/new_relic/agent/distributed_tracing/trace_context_payload_test.rb'
-    - 'test/new_relic/agent/priority_sampled_buffer_test.rb'
-    - 'test/new_relic/agent/transaction/distributed_tracing_test.rb'
-    - 'test/new_relic/agent_test.rb'
-    - 'test/new_relic/gem_notifications_tests.rb'
-    - 'test/new_relic/language_support_test.rb'
-
 # Offense count: 24
 Minitest/AssertWithExpectedArgument:
   Exclude:

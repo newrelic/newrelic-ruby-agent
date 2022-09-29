@@ -143,7 +143,7 @@ else
 
     def test_handle_start_command_starts_running
       @profiler.handle_start_command(start_command)
-      assert_equal true, @profiler.running?
+      assert @profiler.running?
     end
 
     def test_config_can_disable_running

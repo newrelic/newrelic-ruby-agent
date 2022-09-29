@@ -31,7 +31,7 @@ class ErrorEventsTest < Minitest::Test
 
     intrinsics, _, _ = last_error_event
 
-    assert_equal true, intrinsics["error.expected"]
+    assert intrinsics["error.expected"]
   end
 
   def test_records_supportability_metrics
