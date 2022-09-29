@@ -8,8 +8,10 @@ module NewRelic
   class MetricData
     # a NewRelic::MetricSpec object
     attr_reader :metric_spec
-    # the actual statistics object
+    # a NewRelic::Agent::Stats object
     attr_accessor :stats
+
+    include NewRelic::Coerce
 
     def initialize(metric_spec, stats)
       @original_spec = nil
@@ -21,8 +23,12 @@ module NewRelic
       (metric_spec.eql?(o.metric_spec)) && (stats.eql?(o.stats))
     end
 
-    def original_spec
-      @original_spec || @metric_spec
+    def hash
+      [metric_spec, stats].hash
+    end
+
+    def inspect
+      "#<MetricData metric_spec:#{metric_spec.inspect}, stats:#{stats.inspect}>"
     end
 
     # assigns a new metric spec, and retains the old metric spec as
@@ -32,8 +38,13 @@ module NewRelic
       @metric_spec = new_spec
     end
 
-    def hash
-      [metric_spec, stats].hash
+    def original_spec
+      @original_spec || @metric_spec
+    end
+
+    def to_collector_array(encoder = nil)
+      stat_key = {'name' => metric_spec.name, 'scope' => metric_spec.scope}
+      [stat_key, stats_collector_array(stat_key)]
     end
 
     def to_json(*a)
@@ -44,23 +55,18 @@ module NewRelic
       "#{metric_spec.name}(#{metric_spec.scope}): #{stats}"
     end
 
-    def inspect
-      "#<MetricData metric_spec:#{metric_spec.inspect}, stats:#{stats.inspect}>"
-    end
+    private
 
-    include NewRelic::Coerce
-
-    def to_collector_array(encoder = nil)
-      stat_key = {'name' => metric_spec.name, 'scope' => metric_spec.scope}
-      [stat_key,
-        [
-          int(stats.call_count, stat_key),
-          float(stats.total_call_time, stat_key),
-          float(stats.total_exclusive_time, stat_key),
-          float(stats.min_call_time, stat_key),
-          float(stats.max_call_time, stat_key),
-          float(stats.sum_of_squares, stat_key)
-        ]]
+    def stats_collector_array(stat_key)
+      [[:call_count, Integer], [:total_call_time, Float],
+        [:total_exclusive_time, Float], [:min_call_time, Float],
+        [:max_call_time, Float], [:sum_of_squares, Float]].map do |attr_types|
+        if attr_types[1].eql?(Integer)
+          int(stats.send(attr_types[0]), stat_key)
+        elsif attr_types[1].eql?(Float)
+          float(stats.send(attr_types[0]), stat_key)
+        end
+      end
     end
   end
 end
