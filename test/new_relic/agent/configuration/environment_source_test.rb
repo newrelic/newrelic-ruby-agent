@@ -50,11 +50,11 @@ module NewRelic::Agent::Configuration
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
-        assert !EnvironmentSource.new[:enabled]
+        refute EnvironmentSource.new[:enabled]
         ENV[var] = 'off'
-        assert !EnvironmentSource.new[:enabled]
+        refute EnvironmentSource.new[:enabled]
         ENV[var] = 'no'
-        assert !EnvironmentSource.new[:enabled]
+        refute EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
     end
@@ -72,11 +72,11 @@ module NewRelic::Agent::Configuration
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
-        assert !EnvironmentSource.new[:disable_harvest_thread]
+        refute EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'off'
-        assert !EnvironmentSource.new[:disable_harvest_thread]
+        refute EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'no'
-        assert !EnvironmentSource.new[:disable_harvest_thread]
+        refute EnvironmentSource.new[:disable_harvest_thread]
         ENV.delete(var)
       end
     end

@@ -89,7 +89,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_disable_tracer_as_configured
-      assert !@source[:'error_collector.enabled']
+      refute @source[:'error_collector.enabled']
     end
 
     def test_should_ignore_apdex_f_setting_for_transaction_threshold
@@ -206,10 +206,10 @@ module NewRelic::Agent::Configuration
         :'transaction_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
-      assert !@source[:'error_collector.enabled']
-      assert !@source[:'slow_sql.enabled']
-      assert !@source[:'transaction_tracer.enabled']
-      assert !@source[:'transaction_events.enabled']
+      refute @source[:'error_collector.enabled']
+      refute @source[:'slow_sql.enabled']
+      refute @source[:'transaction_tracer.enabled']
+      refute @source[:'transaction_events.enabled']
     end
 
     def test_should_enable_gated_features_when_server_says_yes_and_existing_says_no

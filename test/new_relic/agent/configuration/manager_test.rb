@@ -57,7 +57,7 @@ module NewRelic::Agent::Configuration
 
       assert_equal 3, @manager['data_report_period']
       assert_equal 'bar', @manager['bar']
-      assert_equal false, @manager['capture_params']
+      refute @manager['capture_params']
     end
 
     def test_identifying_config_source
@@ -165,7 +165,7 @@ module NewRelic::Agent::Configuration
 
       @manager.add_config_for_testing(:boo => 1)
 
-      assert_equal false, @manager.to_collector_hash.has_key?(:boo)
+      refute @manager.to_collector_hash.has_key?(:boo)
     end
 
     def test_config_masks_conditionally
@@ -235,7 +235,7 @@ module NewRelic::Agent::Configuration
 
     def test_finished_configuring
       @manager.add_config_for_testing(:layer => "yo")
-      assert_equal false, @manager.finished_configuring?
+      refute @manager.finished_configuring?
 
       @manager.replace_or_add_config(ServerSource.new({}))
       assert_equal true, @manager.finished_configuring?
@@ -257,7 +257,7 @@ module NewRelic::Agent::Configuration
       @manager.replace_or_add_config(ManualSource.new(:manual => true))
       @manager.replace_or_add_config(YamlSource.new("", "test"))
 
-      assert_equal false, called
+      refute called
     end
 
     def test_high_security_enables_strip_exception_messages

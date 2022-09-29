@@ -83,7 +83,7 @@ class GemNotifierTests < Minitest::Test
   end
 
   def test_gem_updated_false
-    assert_equal false, GemNotifier.gem_updated?([{"created_at" => "1993-06-11T17:31:14.298Z"}])
+    refute GemNotifier.gem_updated?([{"created_at" => "1993-06-11T17:31:14.298Z"}])
   end
 
   def test_interpolate_github_url_one_arg
