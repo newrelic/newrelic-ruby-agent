@@ -125,16 +125,6 @@ Minitest/LiteralAsActualArgument:
 Minitest/MultipleAssertions:
   Max: 28
 
-# Offense count: 9
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteEqual:
-  Exclude:
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/config_file_loading/config_file_loading_test.rb'
-    - 'test/new_relic/agent/agent_test.rb'
-    - 'test/new_relic/agent/configuration/manager_test.rb'
-    - 'test/new_relic/marshalling_test_cases.rb'
-
 # Offense count: 121
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/RefuteFalse:

@@ -216,7 +216,7 @@ module NewRelic::Agent::Configuration
         actual = value
       end
       @manager.add_config_for_testing(:test => proc { "value" })
-      assert actual.class != Proc, 'Callback returned Proc'
+      refute_equal(actual.class, Proc, 'Callback returned Proc')
     end
 
     def test_callback_not_called_if_no_change

@@ -78,7 +78,7 @@ module NewRelic
 
           @agent.after_fork(:report_to_channel => 123)
 
-          assert old_engine != @agent.stats_engine, "Still got our old engine around!"
+          refute_equal(old_engine, @agent.stats_engine, "Still got our old engine around!")
         end
       end
 
