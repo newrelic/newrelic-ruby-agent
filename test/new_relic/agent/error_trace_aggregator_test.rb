@@ -39,7 +39,7 @@ module NewRelic
 
         errors = error_trace_aggregator.harvest!
 
-        assert_equal errors.length, 1
+        assert_equal 1, errors.length
 
         err = errors.first
         assert_equal 'message', err.message

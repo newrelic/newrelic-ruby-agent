@@ -317,7 +317,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
     with_config(:security_policies_token => 'please-check-these-policies') do
-      assert_equal @service.preconnect['redirect_host'], 'localhost'
+      assert_equal 'localhost', @service.preconnect['redirect_host']
     end
   end
 

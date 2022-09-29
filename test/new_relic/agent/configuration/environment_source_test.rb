@@ -121,7 +121,7 @@ module NewRelic::Agent::Configuration
     def test_set_value_from_environment_variable
       ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
       @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
-      assert_equal @environment_source[:license_key], 'super rad'
+      assert_equal 'super rad', @environment_source[:license_key]
     end
 
     def test_set_key_by_type_uses_the_default_type

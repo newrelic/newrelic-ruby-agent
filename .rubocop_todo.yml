@@ -79,26 +79,6 @@ Minitest/DuplicateTestRun:
     - 'test/multiverse/suites/rails/error_tracing_test.rb'
     - 'test/multiverse/suites/sinatra/ignoring_test.rb'
 
-# Offense count: 38
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/LiteralAsActualArgument:
-  Exclude:
-    - 'test/multiverse/suites/rails/active_support_logger_test.rb'
-    - 'test/new_relic/agent/configuration/environment_source_test.rb'
-    - 'test/new_relic/agent/connect/request_builder_test.rb'
-    - 'test/new_relic/agent/error_trace_aggregator_test.rb'
-    - 'test/new_relic/agent/instrumentation/controller_instrumentation_test.rb'
-    - 'test/new_relic/agent/new_relic_service_test.rb'
-    - 'test/new_relic/agent/samplers/cpu_sampler_test.rb'
-    - 'test/new_relic/agent/samplers/memory_sampler_test.rb'
-    - 'test/new_relic/agent/stats_test.rb'
-    - 'test/new_relic/agent/transaction/abstract_segment_test.rb'
-    - 'test/new_relic/agent/transaction/datastore_segment_test.rb'
-    - 'test/new_relic/agent/transaction_sampler_test.rb'
-    - 'test/new_relic/gem_notifications_tests.rb'
-    - 'test/new_relic/marshalling_test_cases.rb'
-    - 'test/new_relic/noticed_error_test.rb'
-
 # Offense count: 260
 Minitest/MultipleAssertions:
   Max: 28

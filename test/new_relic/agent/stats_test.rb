@@ -50,7 +50,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     stats = NewRelic::Agent::Stats.new
     validate(stats: stats, count: 0, total: 0, min: 0, max: 0)
 
-    assert_equal stats.call_count, 0
+    assert_equal 0, stats.call_count
     stats.trace_call(10)
     stats.trace_call(20)
     stats.trace_call(30)
