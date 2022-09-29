@@ -89,7 +89,7 @@ module NewRelic::Agent::Configuration
 
     def test_transform_for_returns_something_callable
       transform = DefaultSource.transform_for(:'rules.ignore_url_regexes')
-      assert transform.respond_to?(:call)
+      assert_respond_to transform, :call
     end
 
     def test_transform_for_returns_nil_for_settings_that_do_not_have_a_transform
