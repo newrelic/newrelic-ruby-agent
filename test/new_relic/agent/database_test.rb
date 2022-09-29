@@ -433,7 +433,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
       NewRelic::Agent::Database::ConnectionManager.instance.get_connection(config, &connector)
     end
 
-    assert_equal false, error_log.array.join.include?('VOLDEMORT')
+    refute_includes error_log.array.join, 'VOLDEMORT'
   end
 
   def test_default_sql_obfuscator_obfuscates_double_quoted_literals_with_unknown_adapter

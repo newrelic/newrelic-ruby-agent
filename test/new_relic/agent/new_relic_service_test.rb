@@ -42,7 +42,7 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
-    assert(!block_ran, "Expected block passed to #session to have not run")
+    refute block_ran, "Expected block passed to #session to have not run"
   end
 
   def test_session_block_reuses_http_handle_with_aggressive_keepalive_off

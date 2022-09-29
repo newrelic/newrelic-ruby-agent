@@ -276,7 +276,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_method_traced?
-    assert !self.class.method_traced?(:method_to_be_traced)
+    refute self.class.method_traced?(:method_to_be_traced)
     self.class.add_method_tracer(:method_to_be_traced, METRIC)
     assert self.class.method_traced?(:method_to_be_traced)
     begin

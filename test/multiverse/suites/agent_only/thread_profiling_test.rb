@@ -130,6 +130,6 @@ class ThreadProfilingTest < Minitest::Test
     traces_for_type = profile_data.traces[type]
     assert traces_for_type, "Missing key for type #{type} in profile_data"
     assert_kind_of Array, traces_for_type
-    assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
+    refute_empty profile_data.traces[type], "Zero #{type} traces seen"
   end
 end

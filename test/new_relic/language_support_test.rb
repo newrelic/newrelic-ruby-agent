@@ -27,7 +27,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
   def test_gc_profiler_unavailable_on_jruby
     return unless NewRelic::LanguageSupport.jruby?
-    assert_equal false, NewRelic::LanguageSupport.gc_profiler_usable?
+    refute NewRelic::LanguageSupport.gc_profiler_usable?
   end
 
   def test_gc_profiler_disabled_without_constant
@@ -39,7 +39,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   if NewRelic::LanguageSupport.gc_profiler_usable?
     def test_gc_profiler_disabled_when_enabled_is_falsy
       ::GC::Profiler.stubs(:enabled?).returns(false)
-      assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+      refute NewRelic::LanguageSupport.gc_profiler_enabled?
     end
 
     def test_gc_profiler_enabled
@@ -64,7 +64,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
     return unless defined?(::GC::Profiler) && NewRelic::LanguageSupport.jruby?
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
-    assert_equal false, NewRelic::LanguageSupport.gc_profiler_enabled?
+    refute NewRelic::LanguageSupport.gc_profiler_enabled?
   end
 
   module ::Outer

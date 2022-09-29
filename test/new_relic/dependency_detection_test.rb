@@ -61,7 +61,7 @@ class DependencyDetectionTest < Minitest::Test
     end
     DependencyDetection.detect!
 
-    assert !executed
+    refute executed
   end
 
   def test_short_circuits_on_failure
@@ -75,7 +75,7 @@ class DependencyDetectionTest < Minitest::Test
     end
     DependencyDetection.detect!
 
-    assert !executed
+    refute executed
   end
 
   def test_named_disabling_defaults_to_allowed
@@ -117,7 +117,7 @@ class DependencyDetectionTest < Minitest::Test
       DependencyDetection.detect!
     end
 
-    assert !executed
+    refute executed
   end
 
   def test_config_defaults_to_auto

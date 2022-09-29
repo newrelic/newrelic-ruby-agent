@@ -91,7 +91,7 @@ module NewRelic::Agent
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
-        assert_equal(false, buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full")
+        refute buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full"
       end
 
       4.times do |i|

@@ -40,7 +40,7 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("What time is it?") do
       nil
     end
-    assert !NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
+    refute NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
   end
 
   def test_can_set_an_environment_value_directly

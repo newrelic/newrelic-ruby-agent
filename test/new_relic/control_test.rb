@@ -58,15 +58,15 @@ class NewRelic::ControlTest < Minitest::Test
 
   def test_transaction_tracer_disabled
     with_config(:'transaction_tracer.enabled' => false, :monitor_mode => true) do
-      assert(!NewRelic::Agent.instance.transaction_sampler.enabled?,
-        'transaction tracer enabled when config calls for disabled')
+      refute NewRelic::Agent.instance.transaction_sampler.enabled?,
+        'transaction tracer enabled when config calls for disabled'
     end
   end
 
   def test_sql_tracer_disabled
     with_config(:'slow_sql.enabled' => false, :monitor_mode => true) do
-      assert(!NewRelic::Agent.instance.sql_sampler.enabled?,
-        'sql tracer enabled when config calls for disabled')
+      refute NewRelic::Agent.instance.sql_sampler.enabled?,
+        'sql tracer enabled when config calls for disabled'
     end
   end
 

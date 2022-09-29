@@ -447,8 +447,8 @@ module NewRelic::Agent
         trace_attrs = traces[0].to_collector_array[4]
 
         # nil isn't good enough!
-        assert_equal false, event_attrs['error.expected'], "Intrinsic attributes should have 'error.expected' set to false"
-        assert_equal false, trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to false"
+        refute event_attrs['error.expected'], "Intrinsic attributes should have 'error.expected' set to false"
+        refute trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to false"
       end
 
       def test_expected_error_does_not_increment_metrics

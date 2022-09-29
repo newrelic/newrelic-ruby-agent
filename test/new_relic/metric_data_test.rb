@@ -29,8 +29,8 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     md2 = NewRelic::MetricData.new(other_spec, stats)
-    assert(!md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")
-    assert(!md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")
+    refute md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
+    refute md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
   end
 
   def test_eql_unequal_stats
@@ -39,8 +39,8 @@ class NewRelic::MetricDataTest < Minitest::Test
     other_stats = mock('other_stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     md2 = NewRelic::MetricData.new(spec, other_stats)
-    assert(!md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")
-    assert(!md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}")
+    refute md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
+    refute md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
   end
 
   def test_original_spec_basic

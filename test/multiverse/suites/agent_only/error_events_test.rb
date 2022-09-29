@@ -19,7 +19,7 @@ class ErrorEventsTest < Minitest::Test
     assert_equal txn.best_name, intrinsics["transactionName"]
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "Big Controller", intrinsics["error.message"]
-    assert_equal false, intrinsics["error.expected"]
+    refute intrinsics["error.expected"]
     assert_equal "TransactionError", intrinsics["type"]
     assert_equal txn.payload[:duration], intrinsics["duration"]
   end
