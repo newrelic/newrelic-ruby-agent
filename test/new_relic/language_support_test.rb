@@ -44,12 +44,12 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
     def test_gc_profiler_enabled
       ::GC::Profiler.stubs(:enabled?).returns(true)
-      assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+      assert NewRelic::LanguageSupport.gc_profiler_enabled?
     end
 
     def test_gc_profiler_enabled_when_response_is_only_truthy
       ::GC::Profiler.stubs(:enabled?).returns(0)
-      assert_equal true, NewRelic::LanguageSupport.gc_profiler_enabled?
+      assert NewRelic::LanguageSupport.gc_profiler_enabled?
     end
 
     def test_gc_profiler_enabled_when_config_is_disabled

@@ -20,7 +20,7 @@ module NewRelic
 
             assert_equal 'obfuscated', source[:'transaction_tracer.record_sql']
             assert_equal 'obfuscated', source[:'slow_sql.record_sql']
-            assert_equal true, source[:'mongo.obfuscate_queries']
+            assert source[:'mongo.obfuscate_queries']
           end
         end
 

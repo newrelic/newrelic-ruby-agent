@@ -260,7 +260,7 @@ module NewRelic
           assert_equal inbound_payload.trace_id, child_intrinsics["traceId"]
           assert_equal inbound_payload.id, child_intrinsics["parentSpanId"]
           assert_equal child_transaction.guid, child_intrinsics["guid"]
-          assert_equal true, child_intrinsics["sampled"]
+          assert child_intrinsics["sampled"]
 
           assert child_intrinsics["parentId"]
           assert_equal parent_transaction.guid, child_intrinsics["parentId"]
@@ -351,7 +351,7 @@ module NewRelic
           assert_equal inbound_payload.transaction_id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["guid"]
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
-          assert_equal true, intrinsics["sampled"]
+          assert intrinsics["sampled"]
           assert intrinsics["parentId"], "Child should be linked to parent transaction"
           assert_equal inbound_payload.transaction_id, intrinsics["parentId"]
         end
@@ -382,8 +382,8 @@ module NewRelic
 
           intrinsics, _, _ = last_transaction_event
 
-          assert_equal true, transaction.sampled?
-          assert_equal true, intrinsics["sampled"]
+          assert transaction.sampled?
+          assert intrinsics["sampled"]
         end
 
         def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_true
@@ -396,9 +396,9 @@ module NewRelic
           txn_intrinsics, _, _ = last_transaction_event
           err_intrinsics, _, _ = last_error_event
 
-          assert_equal true, transaction.sampled?
-          assert_equal true, txn_intrinsics["sampled"]
-          assert_equal true, err_intrinsics["sampled"]
+          assert transaction.sampled?
+          assert txn_intrinsics["sampled"]
+          assert err_intrinsics["sampled"]
         end
 
         def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_false
@@ -558,7 +558,7 @@ module NewRelic
           in_transaction('test_txn') do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
 
-            assert_equal true, txn.sampled?
+            assert txn.sampled?
             assert_equal payload.priority, txn.priority
           end
         end

@@ -127,7 +127,7 @@ module NewRelic::Agent::Configuration
     def test_set_key_by_type_uses_the_default_type
       ENV['NEW_RELIC_TEST'] = 'true'
       @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
-      assert_equal true, @environment_source[:enabled]
+      assert @environment_source[:enabled]
     end
 
     def test_set_key_by_type_converts_comma_lists_to_array
@@ -204,7 +204,7 @@ module NewRelic::Agent::Configuration
 
     def assert_applied_boolean(env_var, config_var)
       ENV[env_var] = 'true'
-      assert_equal true, EnvironmentSource.new[config_var.to_sym]
+      assert EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
   end
