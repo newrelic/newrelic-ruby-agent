@@ -41,19 +41,28 @@ class GemNotifierTests < Minitest::Test
     end
   end
 
-  def test_valid_github_diff
+  def test_github_diff_get_request_failure
     HTTParty.stub(:get, -> { raise "Oh no a failure" }) do
       GemNotifier.stub(:abort, nil) do
-        assert_raises(StandardError) { GemNotifier.github_diff_availability?('invalid_git_diff', '1.2', '1.1') }
+        assert_raises(StandardError) { GemNotifier.github_diff('invalid_git_diff', '1.2', '1.1') }
       end
     end
   end
 
-  def test_invalid_github_diff
-    response = unsuccessful_http_response()
+  def test_github_diff_invalid_url
+    response = unsuccessful_http_response
     HTTParty.stub(:get, response) do
       GemNotifier.stub(:abort, nil) do
-        assert_raises(StandardError) { GemNotifier.github_diff_availability?('invalid_git_diff', '1.2', '1.1') }
+        assert_raises(StandardError) { GemNotifier.github_diff('invalid_git_diff', '1.2', '1.1') }
+      end
+    end
+  end
+
+  def test_github_diff_valid_url
+    response = successful_http_response
+    HTTParty.stub(:get, response) do
+      GemNotifier.stub(:gem_source_code_uri, 'uri') do
+        assert_equal 'uri/compare/v1.1...v1.2', GemNotifier.github_diff('valid_git_diff', '1.2', '1.1')
       end
     end
   end
@@ -64,17 +73,17 @@ class GemNotifierTests < Minitest::Test
   end
 
   def test_get_gem_info_max_size
-    versions = GemNotifier.gem_versions(http_get_response())
+    versions = GemNotifier.gem_versions(http_get_response)
     assert_equal 2, versions.size
   end
 
   def test_newest_version_can_be_a_preview_or_rc_or_beta_release
-    versions = GemNotifier.gem_versions(http_get_response())
+    versions = GemNotifier.gem_versions(http_get_response)
     assert_equal '4.0.0.preview', versions.first['number']
   end
 
   def test_previous_version_must_be_a_stable_release
-    versions = GemNotifier.gem_versions(http_get_response())
+    versions = GemNotifier.gem_versions(http_get_response)
     assert_equal '3.0.0', versions.last['number']
   end
 
@@ -97,7 +106,7 @@ class GemNotifierTests < Minitest::Test
   end
 
   def test_interpolate_rubygems_url_one_arg
-    assert_raises(ArgumentError) { GemNotifier.interpolate_rubygems_url() }
+    assert_raises(ArgumentError) { GemNotifier.interpolate_rubygems_url }
   end
 
   def test_interpolate_rubygems_url

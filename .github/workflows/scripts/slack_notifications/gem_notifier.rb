@@ -61,11 +61,11 @@ class GemNotifier < SlackNotifier
     abort("#{e.class}: #{e.message}")
   end
 
-  def self.github_diff_availability?(gem_name, newest, previous)
+  def self.github_diff(gem_name, newest, previous)
     source_code_uri = gem_source_code_uri(gem_name)
     interpolated_url = interpolate_github_url(source_code_uri, newest, previous)
 
-    HTTParty.get(interpolated_url).success?
+    interpolated_url if HTTParty.get(interpolated_url).success?
   end
 
   def self.interpolate_github_url(source_code_uri, newest, previous)
@@ -80,8 +80,8 @@ class GemNotifier < SlackNotifier
     abort("Expected exactly 2 version numbers in the 'versions' array") unless versions.size == 2
     newest, previous = versions[0]['number'], versions[1]['number']
     alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
-    github_diff = github_diff_availability?(gem_name, newest, previous)
-    if github_diff == true
+    github_diff_exist = github_diff(gem_name, newest, previous)
+    if github_diff_exist
       action_message = "<#{github_diff}|See what's new.>"
     else
       action_message = "See what's new with gem-compare:\n`gem compare #{gem_name} #{previous} #{newest} --diff`"
