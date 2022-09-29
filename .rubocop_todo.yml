@@ -48,16 +48,6 @@ Minitest/AssertRaisesCompoundBody:
     - 'test/new_relic/agent/new_relic_service_test.rb'
     - 'test/new_relic/cli/commands/deployments_test.rb'
 
-# Offense count: 9
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertRespondTo:
-  Exclude:
-    - 'test/multiverse/suites/sequel/sequel_plugin_test.rb'
-    - 'test/multiverse/suites/sinatra_agent_disabled/shim_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/collection_helper_test.rb'
-    - 'test/new_relic/data_container_tests.rb'
-
 # Offense count: 24
 Minitest/AssertWithExpectedArgument:
   Exclude:

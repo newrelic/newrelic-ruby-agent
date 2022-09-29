@@ -29,7 +29,7 @@ if Sequel.const_defined?(:MAJOR) &&
     end
 
     def test_sequel_model_instrumentation_is_loaded
-      assert Post.respond_to?(:trace_execution_scoped)
+      assert_respond_to Post, :trace_execution_scoped
     end
 
     def test_model_enumerator_generates_metrics
