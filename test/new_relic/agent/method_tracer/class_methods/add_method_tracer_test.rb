@@ -29,7 +29,7 @@ module NewRelic
               self.class.expects(:method_defined?).returns(false)
               self.class.expects(:private_method_defined?).returns(false)
 
-              assert !self.class.newrelic_method_exists?('test_method')
+              refute self.class.newrelic_method_exists?('test_method')
             end
 
             def test_check_for_illegal_keys_positive

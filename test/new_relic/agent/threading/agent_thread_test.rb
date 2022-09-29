@@ -111,7 +111,7 @@ module NewRelic::Agent::Threading
     end
 
     def assert_thread_completed(t)
-      assert_equal false, t.status
+      refute t.status
     end
 
     def assert_thread_died_from_exception(t)

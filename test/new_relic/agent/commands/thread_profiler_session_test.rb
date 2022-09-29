@@ -55,7 +55,7 @@ if !NewRelic::Agent::Threading::BacktraceService.is_supported?
     end
 
     def test_thread_profiling_isnt_supported
-      assert_equal false, NewRelic::Agent::Threading::BacktraceService.is_supported?
+      refute NewRelic::Agent::Threading::BacktraceService.is_supported?
     end
 
     def test_stop_is_safe_when_not_supported
@@ -67,7 +67,7 @@ if !NewRelic::Agent::Threading::BacktraceService.is_supported?
       assert_raises NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError do
         @profiler.handle_start_command(start_command)
       end
-      assert_equal false, @profiler.running?
+      refute @profiler.running?
     end
   end
 
@@ -138,7 +138,7 @@ else
 
     def test_wont_crash_if_stopping_when_not_started
       @profiler.stop(true)
-      assert_equal false, @profiler.running?
+      refute @profiler.running?
     end
 
     def test_handle_start_command_starts_running

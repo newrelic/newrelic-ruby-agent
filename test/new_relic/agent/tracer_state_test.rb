@@ -22,7 +22,7 @@ module NewRelic::Agent
 
     def test_in_background_transaction
       in_transaction(:category => :task) do |txn|
-        assert !txn.recording_web_transaction?
+        refute txn.recording_web_transaction?
       end
     end
 

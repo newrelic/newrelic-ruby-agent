@@ -25,12 +25,6 @@ Metrics/AbcSize:
 Minitest/AssertInDelta:
   Enabled: false
 
-# Offense count: 4
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertNil:
-  Exclude:
-    - 'test/multiverse/suites/agent_only/log_events_test.rb'
-
 # Offense count: 5
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertPathExists:
@@ -124,21 +118,6 @@ Minitest/LiteralAsActualArgument:
 # Offense count: 260
 Minitest/MultipleAssertions:
   Max: 28
-
-# Offense count: 9
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteEqual:
-  Exclude:
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/config_file_loading/config_file_loading_test.rb'
-    - 'test/new_relic/agent/agent_test.rb'
-    - 'test/new_relic/agent/configuration/manager_test.rb'
-    - 'test/new_relic/marshalling_test_cases.rb'
-
-# Offense count: 121
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteFalse:
-  Enabled: false
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).

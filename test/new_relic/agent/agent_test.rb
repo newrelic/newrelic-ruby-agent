@@ -78,7 +78,7 @@ module NewRelic
 
           @agent.after_fork(:report_to_channel => 123)
 
-          assert old_engine != @agent.stats_engine, "Still got our old engine around!"
+          refute_equal old_engine, @agent.stats_engine, "Still got our old engine around!"
         end
       end
 
@@ -515,7 +515,7 @@ module NewRelic
           @agent.start
         end
 
-        assert !@agent.started?
+        refute @agent.started?
       end
 
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
@@ -548,7 +548,7 @@ module NewRelic
         end
         logmsg = logdev.array.first.delete("\n")
 
-        assert !@agent.started?, "agent was started"
+        refute @agent.started?, "agent was started"
         assert_match(/No application name configured/i, logmsg)
       end
 
@@ -697,8 +697,8 @@ module NewRelic
         @agent.revert_to_default_configuration
 
         config_classes = NewRelic::Agent.config.config_classes_for_testing
-        assert !config_classes.include?(NewRelic::Agent::Configuration::ManualSource)
-        assert !config_classes.include?(NewRelic::Agent::Configuration::ServerSource)
+        refute_includes config_classes, NewRelic::Agent::Configuration::ManualSource
+        refute_includes config_classes, NewRelic::Agent::Configuration::ServerSource
       end
 
       def test_log_ignore_url_regexes

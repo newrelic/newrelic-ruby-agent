@@ -39,7 +39,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
     assert_nil worker_loop.instance_variable_get(:@deadline)
 
     worker_loop.run(0.001) {}
-    assert !worker_loop.instance_variable_get(:@deadline).nil?
+    refute_nil worker_loop.instance_variable_get(:@deadline)
   end
 
   def test_loop_limit
