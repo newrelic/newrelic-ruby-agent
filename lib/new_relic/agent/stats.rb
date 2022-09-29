@@ -59,10 +59,6 @@ module NewRelic
         self
       end
 
-      def to_s
-        "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s / #{'%.4f' % total_exclusive_time.to_f}s ex]"
-      end
-
       def to_json(*_)
         {
           'call_count' => call_count.to_i,
@@ -72,6 +68,10 @@ module NewRelic
           'total_exclusive_time' => total_exclusive_time.to_f,
           'sum_of_squares' => sum_of_squares.to_f
         }.to_json(*_)
+      end
+
+      def to_s
+        "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s / #{'%.4f' % total_exclusive_time.to_f}s ex]"
       end
 
       def record(value = nil, aux = nil, &blk)
