@@ -140,18 +140,6 @@ Minitest/RefuteEqual:
 Minitest/RefuteFalse:
   Enabled: false
 
-# Offense count: 16
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteIncludes:
-  Exclude:
-    - 'test/multiverse/suites/datamapper/datamapper_test.rb'
-    - 'test/multiverse/suites/grpc/grpc_server_test.rb'
-    - 'test/multiverse/suites/mongo/helpers/mongo_operation_tests.rb'
-    - 'test/multiverse/suites/mongo/mongo2_instrumentation_test.rb'
-    - 'test/multiverse/suites/rack/rack_cascade_test.rb'
-    - 'test/new_relic/agent/configuration/manager_test.rb'
-    - 'test/new_relic/control/instance_methods_test.rb'
-
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/RefutePathExists:

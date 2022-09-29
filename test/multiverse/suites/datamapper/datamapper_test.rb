@@ -389,7 +389,7 @@ class DataMapperTest < Minitest::Test
       end
     end
 
-    refute last_traced_error.message.include?(invalid_query)
+    refute_includes last_traced_error.message, invalid_query
   end
 
   def test_error_noticing_on_segments
@@ -417,7 +417,7 @@ class DataMapperTest < Minitest::Test
       NewRelic::Agent.notice_error(e)
     end
 
-    refute last_traced_error.message.include?('&password='),
+    refute_includes last_traced_error.message, '&password=',
       "error message expected not to contain '&password=' but did: #{last_traced_error && last_traced_error.message}"
   end
 
