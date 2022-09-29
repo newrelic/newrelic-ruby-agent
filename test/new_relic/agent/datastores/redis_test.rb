@@ -90,7 +90,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
-      assert NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH, result.length
+      assert_equal result.length, NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH
       assert result.end_with?("012345...")
     end
   end

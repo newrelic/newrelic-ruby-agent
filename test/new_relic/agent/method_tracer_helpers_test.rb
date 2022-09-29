@@ -32,7 +32,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   def test_gets_at_an_underlying_class_from_a_singleton_class
     with_config(:'code_level_metrics.enabled' => true) do
       klass = NewRelic::Agent::MethodTracerHelpers.send(:klassify_singleton, The::Example.singleton_class)
-      assert The::Example, klass
+      assert_equal klass, The::Example
     end
   end
 
