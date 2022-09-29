@@ -55,7 +55,7 @@ end
 
 def assert_has_traced_error(error_class)
   errors = harvest_error_traces!
-  assert !(errors.find { |e| e.exception_class_name == error_class.name }).nil?, \
+  refute_nil errors.find { |e| e.exception_class_name == error_class.name }, \
     "Didn't find error of class #{error_class}"
 end
 
@@ -103,7 +103,7 @@ end
 unless defined? assert_not_includes
   def assert_not_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
-    assert !collection.include?(member), msg
+    refute_includes collection, member, msg
   end
 end
 
@@ -342,17 +342,17 @@ end
 
 def assert_truthy(expected, msg = nil)
   msg ||= "Expected #{expected.inspect} to be truthy"
-  assert !!expected, msg
+  refute !expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
   msg ||= "Expected #{expected.inspect} to be falsy"
-  assert !expected, msg
+  refute expected, msg
 end
 
 unless defined? assert_false
   def assert_false(expected)
-    assert_equal false, expected
+    refute expected
   end
 end
 

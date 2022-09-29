@@ -23,7 +23,7 @@ class CurbTest < Minitest::Test
       end
     end
 
-    assert !headers.empty?
+    refute_empty headers
   end
 
   def test_shouldnt_clobber_existing_completion_callback

@@ -373,7 +373,7 @@ class DataMapperTest < Minitest::Test
     msg.stubs(:duration).returns(1)
     msg.stubs(:query).returns(q)
 
-    assert_equal false, msg.query.valid_encoding?
+    refute msg.query.valid_encoding?
     db.send(:log, msg)
   end
 

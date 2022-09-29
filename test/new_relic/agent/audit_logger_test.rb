@@ -51,7 +51,7 @@ class AuditLoggerTest < Minitest::Test
     with_config(:'audit_log.enabled' => false) do
       logger = NewRelic::Agent::AuditLogger.new
       logger.log_request(@uri, "hi there", @marshaller)
-      assert(!logger.setup?, "Expected logger to not have been setup")
+      refute logger.setup?, "Expected logger to not have been setup"
     end
   end
 

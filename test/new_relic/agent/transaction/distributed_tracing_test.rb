@@ -310,7 +310,7 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
-          assert_equal false, intrinsics["sampled"]
+          refute intrinsics["sampled"]
         end
 
         def test_agent_attributes_always_recorded_when_distributed_tracing_enabled
@@ -367,7 +367,7 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_error_event
-          assert_equal false, intrinsics["sampled"]
+          refute intrinsics["sampled"]
         end
 
         def test_distributed_trace_does_not_propagate_nil_sampled_flags
@@ -411,9 +411,9 @@ module NewRelic
           txn_intrinsics, _, _ = last_transaction_event
           err_intrinsics, _, _ = last_error_event
 
-          assert_equal false, transaction.sampled?
-          assert_equal false, txn_intrinsics["sampled"]
-          assert_equal false, err_intrinsics["sampled"]
+          refute transaction.sampled?
+          refute txn_intrinsics["sampled"]
+          refute err_intrinsics["sampled"]
         end
 
         def test_transaction_inherits_priority_from_distributed_trace_payload

@@ -9,6 +9,6 @@ class ATest < Test::Unit::TestCase
   end
 
   def test_haml_is_not_loaded
-    assert !defined?(Haml)
+    refute defined?(Haml)
   end
 end

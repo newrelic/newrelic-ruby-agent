@@ -119,11 +119,6 @@ Minitest/LiteralAsActualArgument:
 Minitest/MultipleAssertions:
   Max: 28
 
-# Offense count: 121
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefuteFalse:
-  Enabled: false
-
 # Offense count: 16
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/RefuteIncludes:

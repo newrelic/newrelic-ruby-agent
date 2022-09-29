@@ -44,7 +44,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_should_not_connect_if_disconnected
     @connect_state = :disconnected
-    assert(!should_connect?, "should not attempt to connect if force disconnected")
+    refute should_connect?, "should not attempt to connect if force disconnected"
   end
 
   def test_should_connect_if_forced

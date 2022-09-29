@@ -171,7 +171,7 @@ module NewRelic::Agent
         request = for_id(REQUEST_CROSS_APP_ID)
         @events.notify(:before_call, request)
 
-        assert !Transaction.tl_current.name_frozen?
+        refute Transaction.tl_current.name_frozen?
         @events.notify(:after_call, request, [200, @response, ''])
         assert Transaction.tl_current.name_frozen?
       end

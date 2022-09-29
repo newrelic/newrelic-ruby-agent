@@ -37,7 +37,7 @@ module NewRelic
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40, :some_absurd_setting => true)
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
-      assert !NewRelic::Agent.config[:some_absurd_setting]
+      refute NewRelic::Agent.config[:some_absurd_setting]
     end
 
     def test_shutdown_removes_server_config
@@ -144,7 +144,7 @@ module NewRelic
 
     def test_is_sql_recorded_false
       NewRelic::Agent::Tracer.state.record_sql = false
-      assert_equal(false, NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
+      refute(NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
@@ -165,7 +165,7 @@ module NewRelic
 
     def test_is_execution_traced_false
       NewRelic::Agent::Tracer.state.untraced = [true, false]
-      assert_equal(false, NewRelic::Agent.tl_is_execution_traced?,
+      refute(NewRelic::Agent.tl_is_execution_traced?,
         'should be false since the thread local stack has the last element false')
     end
 

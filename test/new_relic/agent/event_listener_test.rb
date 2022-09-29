@@ -26,7 +26,7 @@ class EventListenerTest < Minitest::Test
   end
 
   def assert_was_not_called
-    assert !@called, "Event was called"
+    refute @called, "Event was called"
   end
 
   #

@@ -31,7 +31,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
 
   def test_boolean
     np = normalize_params('monitor_mode' => false)
-    assert_equal false, np['monitor_mode']
+    refute np['monitor_mode']
   end
 
   def test_string__singleton
@@ -39,7 +39,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     def val.hello; end
     assert_equal 'This String', normalize_params(val)
     assert val.respond_to?(:hello)
-    assert !normalize_params(val).respond_to?(:hello)
+    refute_respond_to normalize_params(val), :hello
   end
 
   class MyString < String; end
