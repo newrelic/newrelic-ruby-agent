@@ -231,7 +231,7 @@ module NewRelic
     # @!group Recording custom errors
 
     # Set a filter to be applied to errors that the Ruby Agent will
-    # track.  The block should evalute to the exception to track
+    # track.  The block should evaluate to the exception to track
     # (which could be different from the original exception) or nil to
     # ignore this exception.
     #
