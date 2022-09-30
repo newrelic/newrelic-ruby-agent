@@ -1572,7 +1572,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Javascript agent file for real user monitoring.'
+          :description => 'JavaScript agent file for real user monitoring.'
         },
         :'browser_monitoring.auto_instrument' => {
           :default => value_of(:'rum.enabled'),

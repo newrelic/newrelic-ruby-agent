@@ -6,7 +6,7 @@ require_relative '../../test_helper'
 require "new_relic/agent/javascript_instrumentor"
 require "base64"
 
-class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
+class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   attr_reader :instrumentor
 
   def setup
@@ -22,7 +22,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     NewRelic::Agent.config.add_config_for_testing(@config)
 
     events = stub(:subscribe => nil)
-    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
+    @instrumentor = NewRelic::Agent::JavaScriptInstrumentor.new(events)
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially

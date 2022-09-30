@@ -97,7 +97,7 @@ module NewRelic
         @monitors = Monitors.new(@events)
         @error_collector = ErrorCollector.new(@events)
         @harvest_samplers = SamplerCollection.new(@events)
-        @javascript_instrumentor = JavascriptInstrumentor.new(@events)
+        @javascript_instrumentor = JavaScriptInstrumentor.new(@events)
         @harvester = Harvester.new(@events)
         @transaction_event_recorder = TransactionEventRecorder.new(@events)
         @custom_event_aggregator = CustomEventAggregator.new(@events)
