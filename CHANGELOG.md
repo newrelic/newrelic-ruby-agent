@@ -410,7 +410,7 @@
 
   * **Update configuration option default value for `span_events.max_samples_stored` from 1000 to 2000**
 
-    For more information about this congfiguration option, visit [the Ruby agent documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored).
+    For more information about this configuration option, visit [the Ruby agent documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored).
 
   * **Agent now enforces server supplied maximum value for configuration option `span_events.max_samples_stored`**
 
