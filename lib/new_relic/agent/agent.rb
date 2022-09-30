@@ -190,7 +190,7 @@ module NewRelic
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.
         #
-        # The call is idempotent, but not re-entrant.
+        # The call is idempotent, but not reentrant.
         #
         # * It clears any metrics carried over from the parent process
         # * Restarts the sampler thread if necessary

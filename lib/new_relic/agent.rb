@@ -670,7 +670,7 @@ module NewRelic
 
     # Yield to a block that is run with a database metric name context.  This means
     # the Database instrumentation will use this for the metric name if it does not
-    # otherwise know about a model.  This is re-entrant.
+    # otherwise know about a model.  This is reentrant.
     #
     # @param [String,Class,#to_s] model the DB model class
     #
