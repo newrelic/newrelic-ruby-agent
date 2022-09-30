@@ -74,7 +74,7 @@ module NewRelic::Agent
       end
 
       # The scheme is based on whether the Trace Observer is running locally or remotely.
-      # Remote unsecure (unencypted) streaming is disallowed!
+      # Remote unsecure (unencrypted) streaming is disallowed!
       def trace_observer_scheme
         local? ? NewRelic::HTTP : NewRelic::HTTPS
       end
