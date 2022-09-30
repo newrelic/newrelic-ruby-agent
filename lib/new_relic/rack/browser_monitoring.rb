@@ -58,6 +58,15 @@ module NewRelic
         end
       end
 
+      def should_instrument?(env, status, headers)
+        NewRelic::Agent.config[:'browser_monitoring.auto_instrument'] &&
+          status == 200 &&
+          !env[ALREADY_INSTRUMENTED_KEY] &&
+          html?(headers) &&
+          !attachment?(headers) &&
+          !streaming?(env, headers)
+      end
+
       private
 
       def autoinstrument_source(response, headers, js_to_inject)
@@ -84,15 +93,6 @@ module NewRelic
       rescue => e
         NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception.", e)
         nil
-      end
-
-      def should_instrument?(env, status, headers)
-        NewRelic::Agent.config[:'browser_monitoring.auto_instrument'] &&
-          status == 200 &&
-          !env[ALREADY_INSTRUMENTED_KEY] &&
-          html?(headers) &&
-          !attachment?(headers) &&
-          !streaming?(env, headers)
       end
 
       def html?(headers)
