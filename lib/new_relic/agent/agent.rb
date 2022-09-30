@@ -162,7 +162,7 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_accessor :transaction_rules
-        # Responsbile for restarting the harvest thread
+        # Responsible for restarting the harvest thread
         attr_reader :harvester
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
