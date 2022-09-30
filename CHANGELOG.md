@@ -660,7 +660,7 @@
   * **Default prepend_net_instrumentation to false**
 
     Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of
-    unexpected compatibilty issues.
+    unexpected compatibility issues.
 
   ## v6.14.0
 
