@@ -306,12 +306,12 @@ class AgentLoggerTest < Minitest::Test
     with_config(:log_level => 'warn') do
       logger = create_basic_logger
 
-      block_was_evalutated = false
+      block_was_evaluated = false
       logger.info do
-        block_was_evalutated = true
+        block_was_evaluated = true
       end
 
-      refute block_was_evalutated
+      refute block_was_evaluated
     end
   end
 
