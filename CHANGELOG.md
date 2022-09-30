@@ -541,7 +541,7 @@
 
   * **Ruby Agent 6.x to 7.x Migration Guide Available**
 
-    Please see our [Ruby Agent 6.x to 7.x migration guide](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/migration-7x-guide/) for helpful strategies and tips for migrating from earlier versions of the Ruby agent to 7.0.0.  We cover new configuration settings, diagnosiing and installing SSL CA certificates and deprecated items and their replacements in this guide.
+    Please see our [Ruby Agent 6.x to 7.x migration guide](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/migration-7x-guide/) for helpful strategies and tips for migrating from earlier versions of the Ruby agent to 7.0.0.  We cover new configuration settings, diagnosing and installing SSL CA certificates and deprecated items and their replacements in this guide.
 
   * **Ruby 2.0 and 2.1 Dropped**
 
