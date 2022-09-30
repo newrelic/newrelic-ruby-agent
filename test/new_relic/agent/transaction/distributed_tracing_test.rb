@@ -295,7 +295,7 @@ module NewRelic
 
           intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
 
-          expected_keys = ['guid', 'traceId', 'sampled']
+          expected_keys = %w[guid traceId sampled]
 
           expected_keys.each do |key|
             assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"

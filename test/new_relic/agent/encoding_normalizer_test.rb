@@ -10,7 +10,7 @@ class EncodingNormalizerTest < Minitest::Test
 
   def test_normalize_object_converts_symbol_values_to_strings
     result = EncodingNormalizer.normalize_object([:foo, :bar])
-    assert_equal(['foo', 'bar'], result)
+    assert_equal(%w[foo bar], result)
   end
 
   def test_normalize_object_converts_symbols_in_hash_to_strings

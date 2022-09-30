@@ -9,7 +9,7 @@ module NewRelic
     module Utilization
       class PCF < Vendor
         vendor_name "pcf"
-        keys ["CF_INSTANCE_GUID", "CF_INSTANCE_IP", "MEMORY_LIMIT"]
+        keys %w[CF_INSTANCE_GUID CF_INSTANCE_IP MEMORY_LIMIT]
         key_transforms [:downcase, :to_sym]
 
         def detect

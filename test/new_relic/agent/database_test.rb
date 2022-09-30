@@ -54,7 +54,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'mysql2'}
     sql = 'SELECT * FROM spells where id=1'
 
-    columns = ["id", "select_type", "table", "type", "possible_keys", "key", "key_len", "ref", "rows", "Extra"]
+    columns = %w[id select_type table type possible_keys key key_len ref rows Extra]
     rows = [["1", "SIMPLE", "spells", "const", "PRIMARY", "PRIMARY", "4", "const", "1", ""]]
     activerecord_result = ::ActiveRecord::Result.new(columns, rows)
     explainer = lambda { |statement| activerecord_result }
@@ -108,8 +108,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
-    expected_result = [["select_type", "key_len", "table", "id", "possible_keys", "type",
-      "Extra", "rows", "ref", "key"],
+    expected_result = [%w[select_type key_len table id possible_keys type
+      Extra rows ref key],
       [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")
@@ -142,7 +142,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'mysql2'}
     sql = 'SELECT foo'
 
-    plan_fields = ["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"]
+    plan_fields = %w[select_type key_len table id possible_keys type Extra rows ref key]
     plan_row = ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]
     explainer_result = mock('explain plan')
     explainer_result.expects(:fields).returns(plan_fields)
@@ -151,8 +151,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
-    expected_result = [["select_type", "key_len", "table", "id", "possible_keys", "type",
-      "Extra", "rows", "ref", "key"],
+    expected_result = [%w[select_type key_len table id possible_keys type
+      Extra rows ref key],
       [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")

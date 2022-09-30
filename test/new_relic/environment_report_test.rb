@@ -18,7 +18,7 @@ class EnvironmentReportTest < Minitest::Test
   def test_converts_to_array
     ::NewRelic::EnvironmentReport.report_on("something") { "awesome" }
     data = Array(::NewRelic::EnvironmentReport.new)
-    expected = ["something", "awesome"]
+    expected = %w[something awesome]
     assert_includes(data, expected, "expected to find #{expected} in #{data.inspect}")
   end
 

@@ -181,7 +181,7 @@ module NewRelic
         in_transaction do
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
             result = Datastores::MetricHelper.product_operation_collection_for("MoreSpecificDB", "original_method", nil, @product)
-            expected = ["MoreSpecificDB", "new_method", "Model"]
+            expected = %w[MoreSpecificDB new_method Model]
             assert_equal expected, result
           end
         end

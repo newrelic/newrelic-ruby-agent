@@ -221,7 +221,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     e = Exception.new("howdy")
-    e.set_backtrace(["wiggle", "wobble", "topple"])
+    e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:info, e)
 
@@ -233,7 +233,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     e = Exception.new("howdy")
-    e.set_backtrace(["wiggle", "wobble", "topple"])
+    e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:warn, e, :info)
 

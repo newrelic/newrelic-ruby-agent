@@ -11,7 +11,7 @@ module NewRelic
         vendor_name "gcp"
         endpoint "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true"
         headers "Metadata-Flavor" => "Google"
-        keys ["id", "machineType", "name", "zone"]
+        keys %w[id machineType name zone]
         key_transforms :to_sym
 
         MACH_TYPE = 'machineType'.freeze
