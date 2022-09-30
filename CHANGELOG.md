@@ -4187,7 +4187,7 @@
 
  * corrupt marshal data from pipe children crashing agent
 
-   If the agent received corrupted data from the Reqsue worker child agent
+   If the agent received corrupted data from the Resque worker child agent
    it could crash the agent itself. fixed.
 
  * should reset RubyBench GC counter between polls
