@@ -279,7 +279,7 @@ def assert_metrics_recorded_exclusive(expected, options = {})
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
 
-def assert_newrelic_metdata_present(metadata)
+def assert_newrelic_metadata_present(metadata)
   assert metadata.key?('newrelic')
   refute_nil metadata['newrelic']
 end
