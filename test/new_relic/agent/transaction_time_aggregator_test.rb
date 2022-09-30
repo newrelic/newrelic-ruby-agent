@@ -5,7 +5,7 @@
 require_relative '../../test_helper'
 require 'new_relic/agent/transaction_time_aggregator'
 
-class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
+class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
   def setup
     nr_freeze_process_time
     NewRelic::Agent.agent.stats_engine.clear_stats
