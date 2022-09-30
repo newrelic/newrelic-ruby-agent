@@ -119,7 +119,7 @@ module NewRelic
             name == :findandmodify && payload[:selector] && payload[:selector][:remove]
           end
 
-          def self.create_indexes?(name, paylod)
+          def self.create_indexes?(name, payload)
             name == :createIndexes
           end
 
