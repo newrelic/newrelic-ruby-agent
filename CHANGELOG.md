@@ -670,7 +670,7 @@
 
   * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
 
-    Previously, the agent was erroneousy separating positional and keyword arguments on the instrumented method calls into
+    Previously, the agent was erroneously separating positional and keyword arguments on the instrumented method calls into
     Delayed Job's library.  The led to Delayed job not auto-instrumenting correctly and has been fixed.
 
   * **Bugfix: Ruby 2.7+ methods sometimes erroneously attributed compiler warnings to the Agent's `add_method_tracer`**
