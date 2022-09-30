@@ -82,7 +82,7 @@ class GemNotifier < SlackNotifier
     alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
     github_diff_exist = github_diff(gem_name, newest, previous)
     if github_diff_exist
-      action_message = "<#{github_diff}|See what's new.>"
+      action_message = "<#{github_diff_exist}|See what's new.>"
     else
       action_message = "See what's new with gem-compare:\n`gem compare #{gem_name} #{previous} #{newest} --diff`"
     end
