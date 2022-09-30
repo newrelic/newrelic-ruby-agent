@@ -30,13 +30,6 @@ def fake_guid(length = 16)
   NewRelic::Agent::GuidGenerator.generate_guid(length)
 end
 
-def assert_match(matcher, obj, msg = nil)
-  msg = message(msg) { "Expected #{mu_pp(matcher)} to match #{mu_pp(obj)}" }
-  assert_respond_to matcher, :"=~"
-  matcher = Regexp.new(Regexp.escape(matcher)) if String === matcher
-  assert matcher =~ obj, msg
-end
-
 def assert_between(floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}")
   assert((floor <= value && value <= ceiling), message)
 end
