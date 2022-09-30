@@ -54,7 +54,7 @@ class EncodingNormalizerTest < Minitest::Test
     assert_equal(string, result.encode('UTF-16LE'))
   end
 
-  def test_normalize_string_returns_munged_copy_if_other_non_convertible_enocding
+  def test_normalize_string_returns_munged_copy_if_other_non_convertible_encoding
     # Attempting to convert from UTF-7 to UTF-8 in Ruby will raise an
     # Encoding::ConverterNotFoundError, which is what we're trying to
     # replicate for this test case.
