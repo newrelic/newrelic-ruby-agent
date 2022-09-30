@@ -185,7 +185,7 @@
   {
     "test_name": "spans_disabled_in_parent",
     "comment": [ "If the parent is a New Relic agent with span events disabled it SHOULD omit span",
-      "id from the tracestate. This verifies agents propogate Trace Context payloads when the",
+      "id from the tracestate. This verifies agents propagate Trace Context payloads when the",
       "parent is a New Relic agent with span events disabled" ],
     "trusted_account_key": "33",
     "account_id": "33",
