@@ -186,7 +186,7 @@ class NewRelic::NoticedError
     if exception.nil?
       @exception_class_name = UNKNOWN_ERROR_CLASS_NAME
       @message = NIL_ERROR_MESSAGE
-    elsif exception.is_a?(NewRelic::Agent::NoticibleError)
+    elsif exception.is_a?(NewRelic::Agent::NoticeableError)
       @exception_class_name = exception.class_name
       @message = exception.message
     else

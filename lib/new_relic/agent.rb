@@ -29,7 +29,7 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/noticed_error'
-    require 'new_relic/agent/noticible_error'
+    require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
 
     require 'new_relic/agent/encoding_normalizer'

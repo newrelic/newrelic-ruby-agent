@@ -85,7 +85,7 @@ module NewRelic
             def exception_object(payload)
               exception_class, message = payload[:exception]
               return nil unless exception_class
-              NewRelic::Agent::NoticibleError.new(exception_class, message)
+              NewRelic::Agent::NoticeableError.new(exception_class, message)
             end
           else
             def exception_object(payload)

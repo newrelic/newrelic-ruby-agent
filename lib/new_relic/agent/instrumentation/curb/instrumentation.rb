@@ -166,8 +166,8 @@ module NewRelic
             request.on_failure do |failed_request, error|
               begin
                 if segment
-                  noticible_error = NewRelic::Agent::NoticibleError.new(error[0].name, error[-1])
-                  segment.notice_error(noticible_error)
+                  noticeable_error = NewRelic::Agent::NoticeableError.new(error[0].name, error[-1])
+                  segment.notice_error(noticeable_error)
                 end
               ensure
                 original_callback.call(failed_request, error) if original_callback
