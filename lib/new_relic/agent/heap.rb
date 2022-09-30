@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     # This class implements a min Heap. The first element is always the one with the
     # lowest priority. It is a tree structure that is represented as an array. The
-    # relationship between between nodes in the tree and indices in the array are as
+    # relationship between nodes in the tree and indices in the array are as
     # follows:
     #
     # parent_index      = (child_index -  1) / 2
