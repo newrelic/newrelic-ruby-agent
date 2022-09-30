@@ -64,7 +64,7 @@ module NewRelic
         assert_equal 'TestAggregator', TestAggregator.named
       end
 
-      def test_enabled_relects_config_value
+      def test_enabled_reflects_config_value
         assert @aggregator.enabled?, "Expected enabled? to be true"
 
         with_server_source(:enabled_key => false) do
