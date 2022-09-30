@@ -31,7 +31,7 @@ def fake_guid(length = 16)
 end
 
 def assert_between(floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}")
-  assert((floor <= value && value <= ceiling), message)
+  assert((floor <= value && value <= ceiling), message) # rubocop:disable Minitest/AssertWithExpectedArgument
 end
 
 def assert_in_delta(expected, actual, delta)
@@ -78,12 +78,6 @@ end
 
 def last_error_event
   harvest_error_events!.last.last
-end
-
-unless defined? assert_block
-  def assert_block(*msgs)
-    assert yield, *msgs
-  end
 end
 
 unless defined? assert_includes
