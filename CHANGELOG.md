@@ -3554,7 +3554,7 @@
 
   The agent's ActiveRecord 4.0 instrumentation could not gather SQL explain
   plans on JRuby by default because of a dependency on ObjectSpace, which isn't
-  avialable by default. This has been fixed.
+  available by default. This has been fixed.
 
   * Fix for Curb http_put_with_newrelic
 
