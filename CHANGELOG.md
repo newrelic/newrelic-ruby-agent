@@ -4241,7 +4241,7 @@
   * fix for issues with RAILS_ROOT deprecation warnings
   * fixed incorrect 1.9 GC time reporting
   * obfuscation for Slow SQL queries respects transaction trace config
-  * fix for RUM instrumentation repoting bad timing info in some cases
+  * fix for RUM instrumentation reporting bad timing info in some cases
   * refactored ActiveRecord instrumentation, no longer requires Rails
 
 ## v3.3.0
