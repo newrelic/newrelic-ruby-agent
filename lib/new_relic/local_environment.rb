@@ -34,7 +34,7 @@ module NewRelic
     end
 
     def initialize
-      # Extend self with any any submodules of LocalEnvironment.  These can override
+      # Extend self with any submodules of LocalEnvironment.  These can override
       # the discover methods to discover new framworks and dispatchers.
       NewRelic::LocalEnvironment.constants.each do |const|
         mod = NewRelic::LocalEnvironment.const_get(const)
