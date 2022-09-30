@@ -118,7 +118,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     with_config(:send_data_on_exit => false) do
       install_exit_handler
     end
-    # should not raise excpetion
+    # should not raise exception
   end
 
   def test_force_install_exit_handler_negative
@@ -126,7 +126,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     with_config(:send_data_on_exit => false, :force_install_exit_handler => true) do
       install_exit_handler
     end
-    # should not raise excpetion
+    # should not raise exception
   end
 
   def test_install_exit_handler_weird_ruby
