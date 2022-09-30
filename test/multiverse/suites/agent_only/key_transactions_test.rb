@@ -75,7 +75,7 @@ class KeyTransactionsTest < Minitest::Test
       "Expected stats (#{stats}) to be apdex satisfying")
   end
 
-  def test_applied_correct_tt_theshold
+  def test_applied_correct_tt_threshold
     TestWidget.new.key_txn
     TestWidget.new.other_txn
 
@@ -102,7 +102,7 @@ class KeyTransactionsTest < Minitest::Test
     assert_empty $collector.reported_stats_for_metric('ApdexOther')
   end
 
-  def test_applied_correct_tt_theshold_to_background
+  def test_applied_correct_tt_threshold_to_background
     TestBackgroundWidget.new.key_txn
     TestBackgroundWidget.new.other_txn
 
