@@ -18,7 +18,7 @@ inputs:
     default: "coverage/.last_run.json"
     required: false
   token:
-    description: "Github token"
+    description: "GitHub token"
     required: true
 runs:
   using: "node12"
