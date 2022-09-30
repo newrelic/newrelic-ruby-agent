@@ -3139,7 +3139,7 @@
   runtime relative to the directory that the host process is started from.
 
   In cases where the host process was started from outside of the application's
-  root directory (for example, if the process is started from from '/'), it will
+  root directory (for example, if the process is started from '/'), it will
   now also attempt to locate its configuration file based on the value of
   Rails.root for Rails applications.
 
