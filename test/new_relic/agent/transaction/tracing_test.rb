@@ -363,7 +363,7 @@ module NewRelic
         # This behavior may change over time and there is no reason to preserve
         # it as is. The point of this test is to ensure that the transaction
         # isn't lost entirely. We will log a message at warn level when this
-        # unexpected conditon arises.
+        # unexpected condition arises.
 
         def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
           segment_a, segment_b, segment_c = nil, nil, nil
