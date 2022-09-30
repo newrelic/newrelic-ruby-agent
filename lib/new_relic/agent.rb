@@ -283,7 +283,7 @@ module NewRelic
       record_api_supportability_metric(:notice_error)
 
       Transaction.notice_error(exception, options)
-      nil # don't return a noticed error datastructure. it can only hurt.
+      nil # don't return a noticed error data structure. it can only hurt.
     end
 
     # @!endgroup
