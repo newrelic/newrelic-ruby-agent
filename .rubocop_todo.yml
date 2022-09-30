@@ -29,13 +29,6 @@ Metrics/AbcSize:
 Minitest/AssertInDelta:
   Enabled: false
 
-# Offense count: 5
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertPathExists:
-  Exclude:
-    - 'infinite_tracing/test/support/fixtures.rb'
-    - 'test/multiverse/suites/mongo/helpers/mongo_server_test.rb'
-
 # Offense count: 125
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertPredicate:
@@ -57,12 +50,6 @@ Minitest/DuplicateTestRun:
 # Offense count: 260
 Minitest/MultipleAssertions:
   Max: 28
-
-# Offense count: 3
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/RefutePathExists:
-  Exclude:
-    - 'test/multiverse/suites/mongo/helpers/mongo_server_test.rb'
 
 # Offense count: 85
 # This cop supports safe autocorrection (--autocorrect).
