@@ -228,7 +228,7 @@
 
     Previously, unit tests would fail with unexpected invocation errors when `NEW_RELIC_LICENSE_KEY` and `NEW_RELIC_HOST` environment variables were present. Now, tests will discard these environment variables before running.
 
-  * **Bugfix: Curb - satify method_with_tracing's verb argument requirement**
+  * **Bugfix: Curb - satisfy method_with_tracing's verb argument requirement**
 
     When Curb instrumentation is used (either via prepend or chain), be sure to always pass the verb argument over to `method_with_tracing` which requires it. Thank you to @knarewski for bringing this issue to our attention, for providing a means of reproducing an error, and for providing a fix. That fix has been replicated by the agent team with permission. See [Issue 1033](https://github.com/newrelic/newrelic-ruby-agent/issues/1033) for more details.
 
