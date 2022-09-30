@@ -48,7 +48,7 @@ class HelperTest < Minitest::Test
     end
   end
 
-  def test_run_commmand_happy
+  def test_run_command_happy
     stubbed = 'Jinba ittai'
     NewRelic::Helper.stubs('executable_in_path?').returns(true)
     Open3.stubs('capture2e').returns([stubbed, OpenStruct.new(success?: true)])
