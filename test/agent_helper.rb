@@ -408,7 +408,7 @@ def with_disabled_defaults_transformer(key)
 end
 
 # Convenience wrapper to stand up a transaction and provide a segment within
-# that transaction to work with.  The same arguements as provided to in_transaction
+# that transaction to work with.  The same arguments as provided to in_transaction
 # may be supplied.
 def with_segment(*args, &blk)
   segment = nil
