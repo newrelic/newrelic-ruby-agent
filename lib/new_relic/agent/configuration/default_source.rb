@@ -1931,7 +1931,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, the agent uses Heroku dyno names as the hostname.'
         },
         :'heroku.dyno_name_prefixes_to_shorten' => {
-          :default => ['scheduler', 'run'],
+          :default => %w[scheduler run],
           :public => true,
           :type => Array,
           :allowed_from_server => false,

@@ -129,7 +129,7 @@ module NewRelic
       end
 
       def prep_datastore_rules(config)
-        build_rule(['host', 'port_path_or_id'], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.instance_reporting.enabled'])
+        build_rule(%w[host port_path_or_id], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.instance_reporting.enabled'])
         build_rule(['database_name'], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.database_name_reporting.enabled'])
       end
 

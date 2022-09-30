@@ -39,7 +39,7 @@ module NewRelic
 
         errors = error_trace_aggregator.harvest!
 
-        assert_equal errors.length, 1
+        assert_equal 1, errors.length
 
         err = errors.first
         assert_equal 'message', err.message
@@ -86,7 +86,7 @@ module NewRelic
       def test_supported_param_types
         types = [[1, '1'],
           [1.1, '1.1'],
-          ['hi', 'hi'],
+          %w[hi hi],
           [:hi, 'hi'],
           [StandardError.new("test"), "#<StandardError>"],
           [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
@@ -195,7 +195,7 @@ module NewRelic
       end
 
       def test_notice_agent_error_uses_exception_backtrace_if_present
-        trace = ["boo", "yeah", "error"]
+        trace = %w[boo yeah error]
         exception = DifficultToDebugAgentError.new
         exception.set_backtrace(trace)
         error_trace_aggregator.notice_agent_error(exception)

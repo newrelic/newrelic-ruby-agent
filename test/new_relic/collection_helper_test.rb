@@ -38,7 +38,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     val = String.new('This String')
     def val.hello; end
     assert_equal 'This String', normalize_params(val)
-    assert val.respond_to?(:hello)
+    assert_respond_to val, :hello
     refute_respond_to normalize_params(val), :hello
   end
 

@@ -49,7 +49,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
       settings = @request_builder.connect_payload
 
-      assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
+      assert_equal "ruby:lo-calhost:a,b,c", settings[:identifier]
     end
   end
 

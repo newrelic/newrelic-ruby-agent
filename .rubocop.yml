@@ -1796,9 +1796,6 @@ Style/WhileUntilDo:
 Style/WhileUntilModifier:
   Enabled: false
 
-Style/WordArray:
-  Enabled: false
-
 # Disabling for now
 Style/YodaCondition:
   Enabled: false

@@ -517,7 +517,7 @@ module NewRelic
           sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
-          assert_equal node.params[:database_name], "pizza_cube"
+          assert_equal "pizza_cube", node.params[:database_name]
         end
 
         def test_does_not_add_database_name_segment_parameter_when_disabled
@@ -552,10 +552,10 @@ module NewRelic
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
-              assert_equal duration, 2.0
+              assert_equal(2.0, duration)
             end
             segment.finish
-            assert_equal segment.params[:sql].sql, "select * from blogs"
+            assert_equal("select * from blogs", segment.params[:sql].sql)
           end
         end
 
@@ -625,7 +625,7 @@ module NewRelic
             )
             segment.notice_sql("select * from blogs where " + ("something is nothing" * 16_384))
             segment.finish
-            assert_equal segment.params[:sql].sql.length, 16_384
+            assert_equal(16_384, segment.params[:sql].sql.length)
           end
         end
 
@@ -641,10 +641,10 @@ module NewRelic
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
-              assert_equal duration, 2.0
+              assert_equal(2.0, duration)
             end
             segment.finish
-            assert_equal segment.params[:sql].sql, "select * from blogs"
+            assert_equal("select * from blogs", segment.params[:sql].sql)
           end
         end
 

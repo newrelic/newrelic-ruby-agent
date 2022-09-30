@@ -80,7 +80,7 @@ module NewRelic::Agent
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('request.parameters.muggle', AttributeFilter::DST_NONE)
 
-        assert_destinations ['transaction_tracer', 'error_collector'], result
+        assert_destinations %w[transaction_tracer error_collector], result
       end
     end
 
@@ -98,7 +98,7 @@ module NewRelic::Agent
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('job.resque.args.*', AttributeFilter::DST_NONE)
 
-        assert_destinations ['transaction_tracer', 'error_collector'], result
+        assert_destinations %w[transaction_tracer error_collector], result
       end
     end
 
@@ -116,7 +116,7 @@ module NewRelic::Agent
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('job.sidekiq.args.*', AttributeFilter::DST_NONE)
 
-        assert_destinations ['transaction_tracer', 'error_collector'], result
+        assert_destinations %w[transaction_tracer error_collector], result
       end
     end
 
@@ -217,12 +217,12 @@ module NewRelic::Agent
 
         result = filter.apply('request.headers.contentType', AttributeFilter::DST_ALL)
 
-        expected_destinations = [
-          'transaction_events',
-          'transaction_tracer',
-          'error_collector',
-          'span_events',
-          'transaction_segments'
+        expected_destinations = %w[
+          transaction_events
+          transaction_tracer
+          error_collector
+          span_events
+          transaction_segments
         ]
 
         assert_destinations expected_destinations, result
