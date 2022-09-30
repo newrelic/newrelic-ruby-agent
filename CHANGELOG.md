@@ -694,7 +694,7 @@
 
     Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find
     the `.erb` file because it was not in the list of files searched at startup.  The Ruby agent has long supported this as a
-    means of configuring the agent programatically.  The `newrelic.yml.erb` filename is restored to the search
+    means of configuring the agent programmatically.  The `newrelic.yml.erb` filename is restored to the search
     path and will be utilized if present.  NOTE:  `newrelic.yml` still takes precedence over `newrelic.yml.erb`  If found,
     the `.yml` file is used instead of the `.erb` file.  Search directories and order of traversal remain unchanged.
 
