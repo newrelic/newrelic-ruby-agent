@@ -274,7 +274,7 @@ module NewRelic::Agent
         @sampler.merge!([slowest])
         new_slowest = @sampler.harvest![0]
         assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
-        assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
+        assert_equal(10, new_slowest.duration.round, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
       end
       nr_unfreeze_process_time
     end

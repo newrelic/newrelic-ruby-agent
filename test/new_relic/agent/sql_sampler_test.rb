@@ -184,13 +184,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.save_slow_sql(data)
     sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
-    assert_equal(["header0", "header1", "header2"],
+    assert_equal(%w[header0 header1 header2],
       sql_traces[0].params[:explain_plan][0].sort)
-    assert_equal(["header0", "header1", "header2"],
+    assert_equal(%w[header0 header1 header2],
       sql_traces[1].params[:explain_plan][0].sort)
-    assert_equal(["foo0", "foo1", "foo2"],
+    assert_equal(%w[foo0 foo1 foo2],
       sql_traces[0].params[:explain_plan][1][0].sort)
-    assert_equal(["bar0", "bar1", "bar2"],
+    assert_equal(%w[bar0 bar1 bar2],
       sql_traces[1].params[:explain_plan][1][0].sort)
   end
 

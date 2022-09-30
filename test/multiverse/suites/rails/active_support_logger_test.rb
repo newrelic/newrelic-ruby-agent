@@ -35,7 +35,7 @@ if defined?(ActiveSupport::Logger)
 
       # LogEventAggregator sees the log only once
       assert_equal 1, @aggregator.instance_variable_get(:@seen)
-      assert_equal @aggregator.instance_variable_get(:@seen_by_severity), {"DEBUG" => 1}
+      assert_equal({"DEBUG" => 1}, @aggregator.instance_variable_get(:@seen_by_severity))
     end
   end
 end

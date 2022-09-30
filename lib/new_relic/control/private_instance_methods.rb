@@ -2,12 +2,14 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# require 'new_relic/agent/agent_logger'
-# require 'new_relic/agent/memory_logger'
+require 'new_relic/agent/memory_logger'
+require 'new_relic/agent/agent_logger'
 
 module NewRelic
   class Control
     module PrivateInstanceMethods
+      private
+
       def configure_high_security
         if security_settings_valid? && Agent.config[:high_security]
           Agent.logger.info("Installing high security configuration based on local configuration")

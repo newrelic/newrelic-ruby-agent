@@ -37,11 +37,11 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
   def test_record_unscoped_metrics_records_to_transaction_stats_if_in_txn
     in_transaction do
-      @engine.tl_record_unscoped_metrics(['a', 'b'], 20, 10)
+      @engine.tl_record_unscoped_metrics(%w[a b], 20, 10)
 
       # txn is still active, so metrics should not be merged into global
       # stats hash yet
-      assert_metrics_not_recorded(['a', 'b'])
+      assert_metrics_not_recorded(%w[a b])
     end
 
     expected = {
@@ -56,7 +56,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   end
 
   def test_record_unscoped_metrics_records_to_global_metrics_if_no_txn
-    @engine.tl_record_unscoped_metrics(['a', 'b'], 20, 10)
+    @engine.tl_record_unscoped_metrics(%w[a b], 20, 10)
     expected = {
       :call_count => 1,
       :total_call_time => 20,
@@ -135,7 +135,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     }
     assert_metrics_recorded(
       'a' => expected,
-      ['a', 'txn'] => expected
+      %w[a txn] => expected
     )
   end
 
@@ -150,15 +150,15 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded(
       'a' => expected,
-      ['a', 'txn'] => expected,
+      %w[a txn] => expected,
       'b' => expected
     )
   end
 
   def test_record_scoped_and_unscoped_metrics_records_multiple_unscoped_metrics
     in_transaction('txn') do
-      @engine.tl_record_scoped_and_unscoped_metrics('a', ['b', 'c'], 20, 10)
-      assert_metrics_not_recorded(['a', 'b', 'c'])
+      @engine.tl_record_scoped_and_unscoped_metrics('a', %w[b c], 20, 10)
+      assert_metrics_not_recorded(%w[a b c])
     end
 
     expected = {
@@ -168,13 +168,13 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     }
     assert_metrics_recorded(
       'a' => expected,
-      ['a', 'txn'] => expected,
+      %w[a txn] => expected,
       'b' => expected,
       'c' => expected
     )
     assert_metrics_not_recorded([
-      ['b', 'txn'],
-      ['c', 'txn']
+      %w[b txn],
+      %w[c txn]
     ])
   end
 
@@ -201,8 +201,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     assert_metrics_recorded(
       'm1' => expected,
       'm2' => expected,
-      ['m1', 'txn'] => expected,
-      ['m2', 'txn'] => expected,
+      %w[m1 txn] => expected,
+      %w[m2 txn] => expected,
       'm3' => expected,
       'm4' => expected
     )
@@ -231,8 +231,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     assert_metrics_recorded(
       'm1' => expected,
       'm2' => expected,
-      ['m1', 'txn'] => expected,
-      ['m2', 'txn'] => expected,
+      %w[m1 txn] => expected,
+      %w[m2 txn] => expected,
       'm3' => expected,
       'm4' => expected
     )
@@ -365,7 +365,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       @engine.tl_record_unscoped_metrics('foo', 42)
     end
     assert_metrics_recorded('foo' => {:call_count => 1, :total_call_time => 42})
-    assert_metrics_not_recorded([['foo', 'scopey']])
+    assert_metrics_not_recorded([%w[foo scopey]])
   end
 
   def test_record_supportability_metric_count_records_counts_only

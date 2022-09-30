@@ -16,9 +16,9 @@ module NewRelic
   module BasicDataContainerMethodTests
     def test_should_respond_to_required_methods
       c = create_container
-      assert c.respond_to?(:harvest!)
-      assert c.respond_to?(:reset!)
-      assert c.respond_to?(:merge!)
+      assert_respond_to c, :harvest!
+      assert_respond_to c, :reset!
+      assert_respond_to c, :merge!
     end
   end
 

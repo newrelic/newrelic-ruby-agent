@@ -617,7 +617,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def assert_activerecord_metrics(model, operation, stats = {})
-    operation = operation_for(operation) if ['create', 'delete'].include?(operation)
+    operation = operation_for(operation) if %w[create delete].include?(operation)
 
     assert_metrics_recorded({
       "Datastore/statement/#{current_product}/#{model}/#{operation}" => stats,

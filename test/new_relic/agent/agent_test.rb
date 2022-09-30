@@ -554,7 +554,7 @@ module NewRelic
 
       def test_harvest_from_container
         container = mock
-        harvested_items = ['foo', 'bar', 'baz']
+        harvested_items = %w[foo bar baz]
         container.expects(:harvest!).returns(harvested_items)
         items = @agent.send(:harvest_from_container, container, 'digglewumpus')
         assert_equal(harvested_items, items)
@@ -702,7 +702,7 @@ module NewRelic
       end
 
       def test_log_ignore_url_regexes
-        with_config(:rules => {:ignore_url_regexes => ['foo', 'bar', 'baz']}) do
+        with_config(:rules => {:ignore_url_regexes => %w[foo bar baz]}) do
           expects_logging(:info, includes("/foo/, /bar/, /baz/"))
           @agent.log_ignore_url_regexes
         end
