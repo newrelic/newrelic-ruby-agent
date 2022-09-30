@@ -127,14 +127,16 @@ class GemNotifierTests < Minitest::Test
 
   def test_gem_message_with_github_diff
     GemNotifier.stub(:github_diff, 'fake_gem_diff_url') do
-      assert_equal "A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2\n\n<fake_gem_diff_url|See what's new.>",
+      assert_equal "A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2" \
+      "\n\n<fake_gem_diff_url|See what's new.>",
         GemNotifier.gem_message('fake_gem', gem_versions_array)
     end
   end
 
   def test_gem_message_with_gem_compare
     GemNotifier.stub(:github_diff, false) do
-      assert_equal "A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2\n\nSee what's new with gem-compare:\n`gem compare fake_gem 1.1 1.2 --diff`",
+      assert_equal "A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2" \
+      "\n\nSee what's new with gem-compare:\n`gem compare fake_gem 1.1 1.2 --diff`",
         GemNotifier.gem_message('fake_gem', gem_versions_array)
     end
   end
