@@ -13,7 +13,7 @@ raise "#{gem_filename} is missing!" unless File.exist?(gem_filename)
 otp = ENV["RUBYGEMS_OTP"]
 raise "RUBYGEMS_OTP environment must be set" if otp.to_s == ""
 
-puts "Publshing the #{gem_filename} file..."
+puts "Publishing the #{gem_filename} file..."
 cmd = "gem push --otp #{otp} #{gem_filename}"
 puts "executing: #{cmd}"
 
