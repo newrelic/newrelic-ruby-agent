@@ -3188,7 +3188,7 @@
   Rack::Builder, or via Rails' middleware stack in Rails 3.0+.
 
   This instrumentation may be disabled with the
-  disable_middlware_instrumentation configuration setting.
+  disable_middleware_instrumentation configuration setting.
 
   For more details, see the documentation for this feature:
 
