@@ -58,20 +58,6 @@ Minitest/AssertRespondTo:
     - 'test/new_relic/collection_helper_test.rb'
     - 'test/new_relic/data_container_tests.rb'
 
-# Offense count: 24
-# NOTE: As of September 2022, this cop is unsafe because it is not possible to determine whether 
-# the second argument of assert is a message or not. Leaving disabled.
-Minitest/AssertWithExpectedArgument:
-  Exclude:
-    - 'infinite_tracing/test/infinite_tracing/worker_test.rb'
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/grpc/grpc_client_test.rb'
-    - 'test/multiverse/suites/sidekiq/sidekiq_instrumentation_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/agent/configuration/orphan_configuration_test.rb'
-    - 'test/new_relic/agent/distributed_tracing/distributed_tracing_cross_agent_test.rb'
-    - 'test/new_relic/control_test.rb'
-
 # Offense count: 4
 Minitest/DuplicateTestRun:
   Exclude:
