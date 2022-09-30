@@ -11,49 +11,7 @@ module Format
     sections # silences unused warning to return this
   end
 
-  def build_config_hash
-    sections = Hash.new { |hash, key| hash[key] = [] }
-    NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
-      next unless value[:public]
-
-      section_key = GENERAL
-      key = key.to_s
-      components = key.split(".")
-
-      if key =~ /^disable_/ # "disable_httpclient"
-        section_key = DISABLING
-      elsif components.length >= 2 && !(components[1] == "attributes") # "analytics_events.enabled"
-        section_key = components.first
-      elsif components[1] == "attributes" # "transaction_tracer.attributes.enabled"
-        section_key = ATTRIBUTES
-      end
-
-      sections[section_key] << {
-        :key => key,
-        :type => format_type(value[:type]),
-        :description => format_description(value),
-        :default => format_default_value(value),
-        :env_var => format_env_var(key)
-      }
-    end
-    sections
-  end
-
-  def flatten_config_hash(config_hash)
-    sections = []
-    sections << pluck(GENERAL, config_hash)
-    sections << pluck("transaction_tracer", config_hash)
-    sections << pluck("error_collector", config_hash)
-    sections << pluck("browser_monitoring", config_hash)
-    sections << pluck("analytics_events", config_hash)
-    sections << pluck("transaction_events", config_hash)
-    sections << pluck("application_logging", config_hash)
-    sections.concat(config_hash.to_a.sort_by { |a| a.first })
-
-    add_data_to_sections(sections)
-
-    sections
-  end
+  private
 
   def add_data_to_sections(sections)
     sections.each do |section|
@@ -63,28 +21,36 @@ module Format
     end
   end
 
-  def format_name(key)
-    name = NAME_OVERRIDES[key]
-    return name if name
-
-    key.split("_")
-      .each { |fragment| fragment[0] = fragment[0].upcase }
-      .join(" ")
-  end
-
-  def format_type(type)
-    if type == NewRelic::Agent::Configuration::Boolean
-      "Boolean"
-    else
-      type
+  def build_config_hash
+    sections = Hash.new { |hash, key| hash[key] = [] }
+    NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
+      next unless value[:public]
+      key = key.to_s
+      section_key = section_key(key, key.split('.'))
+      sections[section_key] << format_sections(key, value)
     end
+    sections
   end
 
-  def format_description(value)
-    description = ''
-    description += "<b>DEPRECATED</b> " if value[:deprecated]
-    description += value[:description]
-    description
+  def build_erb(format)
+    require 'erb'
+    path = File.join(File.dirname(__FILE__), "config.#{format}.erb")
+    template = File.read(File.expand_path(path))
+    ERB.new(template)
+  end
+
+  def flatten_config_hash(config_hash)
+    sections = []
+    config = [GENERAL, 'transaction_tracer', 'error_collector',
+      'browser_monitoring', 'analytics_events', 'transaction_events',
+      'application_logging']
+
+    config.each { |config| sections << pluck(config, config_hash) }
+
+    sections.concat(config_hash.to_a.sort_by { |a| a.first })
+    add_data_to_sections(sections)
+
+    sections
   end
 
   def format_default_value(spec)
@@ -96,9 +62,43 @@ module Format
     end
   end
 
+  def format_description(value)
+    description = ''
+    description += "<b>DEPRECATED</b> " if value[:deprecated]
+    description += value[:description]
+    description
+  end
+
   def format_env_var(key)
     return "None" if NON_ENV_CONFIGS.include?(key)
     "NEW_RELIC_#{key.tr(".", "_").upcase}"
+  end
+
+  def format_name(key)
+    name = NAME_OVERRIDES[key]
+    return name if name
+
+    key.split("_")
+      .each { |fragment| fragment[0] = fragment[0].upcase }
+      .join(" ")
+  end
+
+  def format_sections(key, value)
+    {
+      :key => key,
+      :type => format_type(value[:type]),
+      :description => format_description(value),
+      :default => format_default_value(value),
+      :env_var => format_env_var(key)
+    }
+  end
+
+  def format_type(type)
+    if type == NewRelic::Agent::Configuration::Boolean
+      "Boolean"
+    else
+      type
+    end
   end
 
   def pluck(key, config_hash)
@@ -106,10 +106,15 @@ module Format
     [key, value]
   end
 
-  def build_erb(format)
-    require 'erb'
-    path = File.join(File.dirname(__FILE__), "config.#{format}.erb")
-    template = File.read(File.expand_path(path))
-    ERB.new(template)
+  def section_key(key, components)
+    if key =~ /^disable_/ # "disable_httpclient"
+      DISABLING
+    elsif components.length >= 2 && !(components[1] == "attributes") # "analytics_events.enabled"
+      components.first
+    elsif components[1] == "attributes" # "transaction_tracer.attributes.enabled"
+      ATTRIBUTES
+    else
+      GENERAL
+    end
   end
 end
