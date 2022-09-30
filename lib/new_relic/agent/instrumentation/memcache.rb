@@ -55,7 +55,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_prependers do |client_class, instrumenting_module|
-        prepend_instrument client_class, instrumenting_module, "MemecacheDalli"
+        prepend_instrument client_class, instrumenting_module, "MemcachedDalli"
       end
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::Dalli
@@ -78,7 +78,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_cas_prependers do |client_class, instrumenting_module|
-        prepend_instrument client_class, instrumenting_module, "MemecacheDalliCAS"
+        prepend_instrument client_class, instrumenting_module, "MemcachedDalliCAS"
       end
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS
