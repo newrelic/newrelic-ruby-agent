@@ -434,7 +434,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_still_records_metrics_in_error_cases
-    # Let's trigger an active record SQL StatemntInvalid error
+    # Let's trigger an active record SQL StatementInvalid error
     assert_raises ::ActiveRecord::StatementInvalid do
       in_web_transaction do
         Order.connection.select_rows("select * from askdjfhkajsdhflkjh")
