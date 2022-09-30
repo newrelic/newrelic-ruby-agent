@@ -829,7 +829,7 @@
   * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
 
     Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
-    environments once capacity is reached and the sampling algorthym engages.  This issue is fixed.
+    environments once capacity is reached and the sampling algorithm engages.  This issue is fixed.
 
   * **Additional Transaction Information applied to Span Events**
 
