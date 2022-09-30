@@ -23,7 +23,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   end
 
   def test_adapter_from_config_uri_jdbc_postgresql
-    config = {:uri => "jdbc:postgresql://host/database?user=posgres"}
+    config = {:uri => "jdbc:postgresql://host/database?user=postgres"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:postgres, statement.adapter)
   end
