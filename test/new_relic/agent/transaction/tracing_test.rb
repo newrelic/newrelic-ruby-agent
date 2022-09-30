@@ -331,7 +331,7 @@ module NewRelic
               segment_a.finish
             end
 
-            assert_metrics_recorded ['metric_a', 'metric_b', 'metric_c']
+            assert_metrics_recorded %w[metric_a metric_b metric_c]
           end
         end
 

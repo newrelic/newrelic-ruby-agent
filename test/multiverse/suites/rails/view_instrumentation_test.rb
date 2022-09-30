@@ -98,7 +98,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  (ViewsController.action_methods - ['raise_render', 'collection_render', 'haml_render']).each do |method|
+  (ViewsController.action_methods - %w[raise_render collection_render haml_render]).each do |method|
     define_method("test_sanity_#{method}") do
       get "/views/#{method}"
       assert_equal 200, status

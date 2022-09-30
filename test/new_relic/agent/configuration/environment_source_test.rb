@@ -133,13 +133,13 @@ module NewRelic::Agent::Configuration
     def test_set_key_by_type_converts_comma_lists_to_array
       ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi,bye'
       @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
-      assert_equal ['hi', 'bye'], @environment_source[:'attributes.include']
+      assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
     def test_set_key_by_type_converts_comma_lists_with_spaces_to_array
       ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi, bye'
       @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
-      assert_equal ['hi', 'bye'], @environment_source[:'attributes.include']
+      assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
     def test_set_key_with_new_relic_prefix

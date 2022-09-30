@@ -8,11 +8,11 @@ class RulesEngineTests < Performance::TestCase
       "transaction_segment_terms": [
         {
           "prefix": "WebTransaction/Custom",
-          "terms": ["one", "two", "three"]
+          "terms": %w[one two three]
         },
         {
           "prefix": "WebTransaction/Uri",
-          "terms": ["seven", "eight", "nine"]
+          "terms": %w[seven eight nine]
         }
       ]
     }

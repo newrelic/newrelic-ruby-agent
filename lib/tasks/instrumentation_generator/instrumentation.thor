@@ -57,7 +57,7 @@ class Instrumentation < Thor
   private
 
   def create_instrumentation_files(base_path)
-    ['chain', 'instrumentation', 'prepend'].each do |file|
+    %w[chain instrumentation prepend].each do |file|
       template("templates/#{file}.tt", "#{base_path}/#{file}.rb")
     end
 

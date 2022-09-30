@@ -20,14 +20,14 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def test_metric_recording_in_non_nested_transaction
     in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar']) do
+      trace_execution_scoped(%w[foo bar]) do
         # erm
       end
     end
 
     expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
-      ['foo', 'outer'] => expected_values,
+      %w[foo outer] => expected_values,
       'foo' => expected_values,
       'bar' => expected_values,
       'outer' => expected_values,
@@ -43,7 +43,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   def test_metric_recording_in_nested_transactions
     in_transaction('Controller/outer_txn') do
       in_transaction('Controller/inner_txn') do
-        trace_execution_scoped(['foo', 'bar']) do
+        trace_execution_scoped(%w[foo bar]) do
           # erm
         end
       end
@@ -90,7 +90,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def test_metric_recording_inside_transaction
     in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar']) do
+      trace_execution_scoped(%w[foo bar]) do
         # erm
       end
     end
@@ -99,7 +99,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     assert_metrics_recorded_exclusive(
       'outer' => expected_values,
       'foo' => expected_values,
-      ['foo', 'outer'] => expected_values,
+      %w[foo outer] => expected_values,
       'bar' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
       'OtherTransactionTotalTime' => expected_values,
@@ -114,7 +114,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     options = {:metric => false, :scoped_metric => false}
 
     in_transaction('outer') do
-      trace_execution_scoped(['foo', 'bar'], options) do
+      trace_execution_scoped(%w[foo bar], options) do
         # erm
       end
     end
@@ -151,7 +151,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
         :total_call_time => 20,
         :total_exclusive_time => 10
       },
-      ['parent', 'txn'] => {
+      %w[parent txn] => {
         :call_count => 1,
         :total_call_time => 20,
         :total_exclusive_time => 10
@@ -161,7 +161,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
         :total_call_time => 10,
         :total_exclusive_time => 10
       },
-      ['child', 'txn'] => {
+      %w[child txn] => {
         :call_count => 1,
         :total_call_time => 10,
         :total_exclusive_time => 10
@@ -201,7 +201,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_trace_execution_scope_runs_passed_block_and_returns_its_value
-    value = trace_execution_scoped(['metric', 'array'], {}) do
+    value = trace_execution_scoped(%w[metric array], {}) do
       1172
     end
     assert_equal 1172, value, 'should return the contents of the block'
@@ -209,7 +209,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def test_trace_execution_scoped_does_not_swallow_errors
     assert_raises(RuntimeError) do
-      trace_execution_scoped(['metric', 'array'], {}) do
+      trace_execution_scoped(%w[metric array], {}) do
         raise 'raising a test error'
       end
     end
