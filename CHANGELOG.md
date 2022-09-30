@@ -826,7 +826,7 @@
     Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify"
     for versions 2.1 through 2.5 was fixed.
 
-  * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
+  * **Bugfix: Priority Sampler causes crash in high throughput environments in rare cases**
 
     Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
     environments once capacity is reached and the sampling algorithm engages.  This issue is fixed.
