@@ -20,7 +20,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
     })
   end
 
-  def test_action_contoller_prepended_metrics
+  def test_action_controller_prepended_metrics
     metrics = ["Supportability/PrependedModules/ActionController::Base"]
     metrics << "Supportability/PrependedModules/ActionController::API" if ::Rails::VERSION::MAJOR.to_i == 5
     assert_metrics_recorded(metrics.reduce({}) { |h, m| h[m] = metric_values_for(1); h })
