@@ -484,7 +484,7 @@
 
   * **Bugfix: resolves "can't add a new key into hash during iteration" Errors**
 
-    Thanks to @wyhaines for this fix that prevents "can't add a new key into hash during iteration" errors from occuring when iterating over environment data.
+    Thanks to @wyhaines for this fix that prevents "can't add a new key into hash during iteration" errors from occurring when iterating over environment data.
 
   * **Bugfix: kwarg support fixed for Rack middleware instrumentation**
 
