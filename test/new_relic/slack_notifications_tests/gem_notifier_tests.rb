@@ -24,6 +24,11 @@ class GemNotifierTests < Minitest::Test
       {"created_at" => "1993-06-11T16:15:29.083Z", "platform" => "ruby", "number" => "1.0.0"}]
   end
 
+  def gem_versions_array
+    [{"created_at" => "2001-07-18T16:15:29.083Z", "platform" => "ruby", "number" => "1.2"},
+      {"created_at" => "2001-07-18T16:15:29.083Z", "platform" => "ruby", "number" => "1.1"}]
+  end
+
   def test_valid_gem_name
     response = successful_http_response
     HTTParty.stub(:get, response) do
@@ -112,5 +117,27 @@ class GemNotifierTests < Minitest::Test
   def test_interpolate_rubygems_url
     gem_name = "velociraptor"
     assert_kind_of String, GemNotifier.interpolate_rubygems_url(gem_name)
+  end
+
+  def test_gem_message_incorrect_args
+    GemNotifier.stub(:abort, nil) do
+      assert_raises(StandardError) { GemNotifier.gem_message('fake_gem', '1.2') }
+    end
+  end
+
+  def test_gem_message_with_github_diff
+    GemNotifier.stub(:github_diff, 'fake_gem_diff_url') do
+      assert_equal "A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2" \
+      "\n\n<fake_gem_diff_url|See what's new.>",
+        GemNotifier.gem_message('fake_gem', gem_versions_array)
+    end
+  end
+
+  def test_gem_message_with_gem_compare
+    GemNotifier.stub(:github_diff, false) do
+      assert_equal "A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2" \
+      "\n\nSee what's new with gem-compare:\n`gem compare fake_gem 1.1 1.2 --diff`",
+        GemNotifier.gem_message('fake_gem', gem_versions_array)
+    end
   end
 end
