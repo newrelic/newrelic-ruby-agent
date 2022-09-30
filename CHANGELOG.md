@@ -677,7 +677,7 @@
 
     The specific edge cases presented are now fixed by this release of the agent.  There are still some known corner-cases
     that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding
-    method tracers and compiler warnings raised, please continue to submit small repoducible examples.
+    method tracers and compiler warnings raised, please continue to submit small reproducible examples.
 
   * **Bugfix: Ruby 2.7+ fix for keyword arguments on Rack apps is unnecessary and removed**
 
