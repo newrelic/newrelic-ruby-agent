@@ -128,9 +128,9 @@ class GrpcClientTest < Minitest::Test
     successful_grpc_client_issue_request_with_tracing
 
     span = last_span_event
-    assert 'gRPC', span[0]['component']
-    assert METHOD, span[0]['http.method']
-    assert "grpc://#{HOST}/#{METHOD}", span[2]['http.url']
+    assert_equal 'gRPC', span[0]['component']
+    assert_equal METHOD, span[0]['http.method']
+    assert_equal "grpc://#{HOST}/#{METHOD}", span[2]['http.url']
   end
 
   def test_external_metric_recorded

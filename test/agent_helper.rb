@@ -107,8 +107,7 @@ end
 
 def assert_log_contains(log, message)
   lines = log.array
-  failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
-  assert (lines.any? { |line| line.match(message) }), failure_message
+  assert (lines.any? { |line| line.match(message) })
 end
 
 def assert_audit_log_contains(audit_log_contents, needle)
@@ -228,7 +227,7 @@ def assert_metrics_recorded(expected)
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
       msg += "\nAll specs in there were: #{format_metric_spec_list(all_specs)}"
 
-      assert(actual_stats, msg)
+      assert(actual_stats, msg) # rubocop:disable Minitest/AssertWithExpectedArgument
     end
     assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
   end
