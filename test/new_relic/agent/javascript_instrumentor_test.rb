@@ -273,7 +273,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     end
   end
 
-  def test_html_safe_if_needed_unsafed
+  def test_html_safe_if_needed_unsafe
     string = mock('string')
     # here to handle 1.9 encoding - we stub this out because it should
     # be handled automatically and is outside the scope of this test
@@ -282,7 +282,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     assert_equal(string, instrumentor.html_safe_if_needed(string))
   end
 
-  def test_html_safe_if_needed_safed
+  def test_html_safe_if_needed_safe
     string = mock('string')
     string.expects(:respond_to?).with(:html_safe).returns(true)
     string.expects(:html_safe).returns(string)
