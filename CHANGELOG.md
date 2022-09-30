@@ -1548,7 +1548,7 @@
 
     Prior to this version, using an SSL connection to New Relic was
     the default behavior, but could be overridden. SSL connections are
-    now enforced (not overrideable).
+    now enforced (not overridable).
 
   * Additional security checking before trying to explain
     multi-statement SQL queries
