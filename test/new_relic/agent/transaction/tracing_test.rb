@@ -202,7 +202,7 @@ module NewRelic
           end
         end
 
-        def test_segment_started_oustide_txn_does_not_record_metrics
+        def test_segment_started_outside_txn_does_not_record_metrics
           segment = Tracer.start_segment(
             name: "Custom/segment/method",
             unscoped_metrics: "Custom/all"
