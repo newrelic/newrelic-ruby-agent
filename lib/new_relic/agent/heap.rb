@@ -18,7 +18,7 @@ module NewRelic
     #
 
     class Heap
-      # @param [Array] items an optional array of items to intialize the heap
+      # @param [Array] items an optional array of items to initialize the heap
       #
       # @param [Callable] priority_fn an optional priority function used to
       #   to compute the priority for an item. If it's not supplied priority

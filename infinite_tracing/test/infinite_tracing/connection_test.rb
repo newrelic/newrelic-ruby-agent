@@ -10,7 +10,7 @@ module NewRelic
       class ConnectionTest < Minitest::Test
         include FakeTraceObserverHelpers
 
-        # This scenario tests client being intialized before the agent
+        # This scenario tests client being initialized before the agent
         # begins it's connection handshake.
         def test_connection_initialized_before_connecting
           with_serial_lock do
