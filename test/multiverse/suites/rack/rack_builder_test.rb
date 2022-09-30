@@ -118,7 +118,7 @@ class RackBuilderTest < Minitest::Test
     end
   end
 
-  def test_use_with_traicng_skipped_if_no_middleware_class
+  def test_use_with_tracing_skipped_if_no_middleware_class
     instance = TestBuilderClass.new
     # ensure that middleware_instrumentation_enabled is not called
     def instance.middleware_instrumentation_enabled?; raise 'kaboom'; end
