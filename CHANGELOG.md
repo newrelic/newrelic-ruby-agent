@@ -1961,7 +1961,7 @@
   * Include ControllerInstrumentation module with ActiveSupport.on_load
 
   The agent will now use the `on_load :action_controller` hook to include
-  the ControllerInstrumentation module in to both the `Base` and `API`
+  the ControllerInstrumentation module into both the `Base` and `API`
   classes of ActionController for Rails 5. This ensures that the proper
   load order is retained, minimizing side-effects of having the agent in
   an application.
@@ -2006,7 +2006,7 @@
   better compatibility between our ActiveRecord Instrumentation and
   other third party gems that modify ActiveRecord using `Module#prepend`.
 
-  * Use license key passed in to NewRelic::Agent.manual_start
+  * Use license key passed into NewRelic::Agent.manual_start
 
   Previously, the license key passed in when manually starting the agent
   with NewRelic::Agent.manual_start was not referenced when setting up
@@ -3326,7 +3326,7 @@
   * Separate in-transaction GC timings for web and background processes
 
   Previously, an application with GC instrumentation enabled, and both web and
-  background processes reporting in to it would show an overly inflated GC band
+  background processes reporting into it would show an overly inflated GC band
   on the application overview graph, because data from both web and non-web
   transactions would be included. This has been fixed, and GC time during web
   and non-web transactions is now tracked separately.
