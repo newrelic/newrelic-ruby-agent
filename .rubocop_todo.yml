@@ -48,21 +48,6 @@ Minitest/AssertRaisesCompoundBody:
     - 'test/new_relic/agent/new_relic_service_test.rb'
     - 'test/new_relic/cli/commands/deployments_test.rb'
 
-# Offense count: 24
-Minitest/AssertWithExpectedArgument:
-  Exclude:
-    - 'infinite_tracing/test/infinite_tracing/worker_test.rb'
-    - 'test/agent_helper.rb'
-    - 'test/multiverse/suites/grpc/grpc_client_test.rb'
-    - 'test/multiverse/suites/sidekiq/sidekiq_instrumentation_test.rb'
-    - 'test/new_relic/agent/agent_test.rb'
-    - 'test/new_relic/agent/configuration/default_source_test.rb'
-    - 'test/new_relic/agent/configuration/orphan_configuration_test.rb'
-    - 'test/new_relic/agent/datastores/redis_test.rb'
-    - 'test/new_relic/agent/distributed_tracing/distributed_tracing_cross_agent_test.rb'
-    - 'test/new_relic/agent/method_tracer_helpers_test.rb'
-    - 'test/new_relic/control_test.rb'
-
 # Offense count: 4
 Minitest/DuplicateTestRun:
   Exclude:

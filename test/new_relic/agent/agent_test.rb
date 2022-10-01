@@ -475,7 +475,7 @@ module NewRelic
         @agent.signal_connected
         thread.join
 
-        assert error, error
+        assert_equal error, error
         assert_kind_of NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout, error
       end
 
@@ -496,7 +496,7 @@ module NewRelic
         @agent.stubs(:connected?).returns(false)
         thread.join
 
-        assert error, error
+        assert_equal error, error
         assert_kind_of NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout, error
       end
 

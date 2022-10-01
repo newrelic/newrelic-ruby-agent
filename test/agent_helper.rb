@@ -30,15 +30,8 @@ def fake_guid(length = 16)
   NewRelic::Agent::GuidGenerator.generate_guid(length)
 end
 
-def assert_match(matcher, obj, msg = nil)
-  msg = message(msg) { "Expected #{mu_pp(matcher)} to match #{mu_pp(obj)}" }
-  assert_respond_to matcher, :"=~"
-  matcher = Regexp.new(Regexp.escape(matcher)) if String === matcher
-  assert matcher =~ obj, msg
-end
-
 def assert_between(floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}")
-  assert((floor <= value && value <= ceiling), message)
+  assert((floor <= value && value <= ceiling), message) # rubocop:disable Minitest/AssertWithExpectedArgument
 end
 
 def assert_in_delta(expected, actual, delta)
@@ -87,16 +80,10 @@ def last_error_event
   harvest_error_events!.last.last
 end
 
-unless defined? assert_block
-  def assert_block(*msgs)
-    assert yield, *msgs
-  end
-end
-
 unless defined? assert_includes
   def assert_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
-    assert_block(msg) { collection.include?(member) }
+    assert_includes collection, member, msg
   end
 end
 
@@ -120,8 +107,7 @@ end
 
 def assert_log_contains(log, message)
   lines = log.array
-  failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
-  assert (lines.any? { |line| line.match(message) }), failure_message
+  assert (lines.any? { |line| line.match(message) })
 end
 
 def assert_audit_log_contains(audit_log_contents, needle)
@@ -241,7 +227,7 @@ def assert_metrics_recorded(expected)
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
       msg += "\nAll specs in there were: #{format_metric_spec_list(all_specs)}"
 
-      assert(actual_stats, msg)
+      assert(actual_stats, msg) # rubocop:disable Minitest/AssertWithExpectedArgument
     end
     assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
   end
