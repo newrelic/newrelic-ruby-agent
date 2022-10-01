@@ -83,7 +83,7 @@ end
 unless defined? assert_includes
   def assert_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
-    assert_block(msg) { collection.include?(member) }
+    assert_includes collection, member, msg
   end
 end
 
