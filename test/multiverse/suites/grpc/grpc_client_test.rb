@@ -125,21 +125,16 @@ class GrpcClientTest < Minitest::Test
   end
 
   def test_span_attributes_added
-    # TODO: the switch to the correct assert_equal (previously assert) has
-    #       highlighted that all assertions in this test are failing. None
-    #       of the requested keys are available in the span hashes being
-    #       inspected. This may be because of a late gRPC instrumentation
-    #       refactor that wasn't reflected in the tests (because they were
-    #       hiding the fact that they were broken), or there may be a bug in
-    #       need of fixing
-    skip 'gRPC span attributes testing is broken'
-
     successful_grpc_client_issue_request_with_tracing
+    spans = harvest_span_events!
+    span = spans.select { |s| s.is_a?(Array) }
+    assert span
 
-    span = last_span_event
-    assert_equal 'gRPC', span[0]['component']
-    assert_equal METHOD, span[0]['http.method']
-    assert_equal "grpc://#{HOST}/#{METHOD}", span[2]['http.url']
+    info_pair = span.first.detect { |s| s.last.key?('http.url') }
+    assert info_pair
+    assert_equal 'gRPC', info_pair.first['component']
+    assert_equal METHOD, info_pair.first['http.method']
+    assert_equal "grpc://#{HOST}/#{METHOD}", info_pair.last['http.url']
   end
 
   def test_external_metric_recorded
