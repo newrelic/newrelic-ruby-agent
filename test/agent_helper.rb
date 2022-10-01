@@ -87,12 +87,6 @@ unless defined? assert_includes
   end
 end
 
-unless defined? assert_block
-  def assert_block(*msgs)
-    assert yield, *msgs # rubocop:disable Minitest/AssertWithExpectedArgument
-  end
-end
-
 unless defined? assert_not_includes
   def assert_not_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
