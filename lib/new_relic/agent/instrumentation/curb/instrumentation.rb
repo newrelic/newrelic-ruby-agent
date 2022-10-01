@@ -8,7 +8,6 @@ module NewRelic
       module Curb
         module Easy
           attr_accessor :_nr_instrumented,
-            :_nr_failure_instrumented,
             :_nr_http_verb,
             :_nr_header_str,
             :_nr_original_on_header,
@@ -157,13 +156,16 @@ module NewRelic
           # NOTE:  on_failure is not always called, so we're not always
           # unhooking the callback.  No harm/no foul in production, but
           # definitely something to beware of if debugging callback issues
-          # _nr_failure_instrumented exists to prevent infinitely chaining
+          # @__newrelic_original_callback exists to prevent infinitely chaining
           # our on_failure callback hook.
           def install_failure_callback(request, wrapped_response, segment)
-            return if request._nr_failure_instrumented
             original_callback = request.on_failure
+            nr_original_callback = original_callback.instance_variable_get(:@__newrelic_original_callback)
+            original_callback = nr_original_callback || original_callback
+
             request._nr_original_on_failure = original_callback
-            request.on_failure do |failed_request, error|
+
+            newrelic_callback = proc do |failed_request, error|
               begin
                 if segment
                   noticible_error = NewRelic::Agent::NoticibleError.new(error[0].name, error[-1])
@@ -173,8 +175,10 @@ module NewRelic
                 original_callback.call(failed_request, error) if original_callback
                 remove_failure_callback(failed_request)
               end
-              request._nr_failure_instrumented = true
             end
+            newrelic_callback.instance_variable_set(:@__newrelic_original_callback, original_callback)
+
+            request.on_failure(&newrelic_callback)
           end
 
           # on_failure callbacks cannot be removed in the on_complete
@@ -191,7 +195,6 @@ module NewRelic
           # fires before the on_failure callback.
           def remove_failure_callback(request)
             request.on_failure(&request._nr_original_on_failure)
-            request._nr_failure_instrumented = false
           end
 
           private
