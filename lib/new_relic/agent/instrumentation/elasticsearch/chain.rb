@@ -14,7 +14,8 @@ module NewRelic::Agent::Instrumentation
       to_instrument.class_eval do
         include NewRelic::Agent::Instrumentation::Elasticsearch
 
-        alias_method(:perform_request_without_new_relic, :perform_request)
+        alias_method(:perform_request_without_tracing, :perform_request)
+        alias_method(:perform_request, :perform_request_with_tracing)
 
         def perform_request(*args)
           perform_request_with_tracing(*args) do
