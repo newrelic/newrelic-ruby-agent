@@ -15,11 +15,12 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info('Installing elasticsearch instrumentation')
-
-    to_instrument = if defined?(::Elastic)
-      ::Elastic::Transport::Client
-    else
+    # why didn't this work when we looked at defined?(::Elastic)
+    # why was the name changed?
+    to_instrument = if defined?(::Elasticsearch)
       ::Elasticsearch::Transport::Client
+    else
+      ::Elastic::Transport::Client
     end
 
     if use_prepend?
