@@ -58,7 +58,7 @@ module NewRelic
         NewRelic::Agent.instance, NewRelic::Agent.config
       )
       with_config_low_priority({
-        :'transction_tracer.enabled' => true,
+        :'transaction_tracer.enabled' => true,
         :'error_collector.enabled' => true
       }) do
         response_handler.configure_agent(

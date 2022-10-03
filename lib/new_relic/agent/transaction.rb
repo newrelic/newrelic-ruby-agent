@@ -315,7 +315,7 @@ module NewRelic
         @request_attributes && @request_attributes.port
       end
 
-      # This transaction-local hash may be used as temprory storage by
+      # This transaction-local hash may be used as temporary storage by
       # instrumentation that needs to pass data from one instrumentation point
       # to another.
       #

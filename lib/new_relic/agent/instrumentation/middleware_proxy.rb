@@ -86,7 +86,7 @@ module NewRelic
         # In 'normal' usage, the target will be an application instance that
         # responds to #call. With Rails, however, the target may be a subclass
         # of Rails::Application that defines a method_missing that proxies #call
-        # to a singleton instance of the the subclass. We need to ensure that we
+        # to a singleton instance of the subclass. We need to ensure that we
         # capture the correct name in both cases.
         def determine_class_name
           clazz = class_for_target

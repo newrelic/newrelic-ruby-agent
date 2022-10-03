@@ -1,6 +1,6 @@
 ## Datastore instance tests
 
-The datastore instance tests provide attributes similar to what an agent could expect to find regarding a database configuration and specifies the expected [datastore instance metric](https://source.datanerd.us/agents/agent-specs/blob/master/Datastore-Metrics-PORTED.md#datastore-metric-namespace) that should be generated. The table below lists types attributes and whether will will always be included or optionally included in each test case.
+The datastore instance tests provide attributes similar to what an agent could expect to find regarding a database configuration and specifies the expected [datastore instance metric](https://source.datanerd.us/agents/agent-specs/blob/master/Datastore-Metrics-PORTED.md#datastore-metric-namespace) that should be generated. The table below lists types attributes and whether they will always be included or optionally included in each test case.
 
 | Name | Present | Description |
 |---|---|---|

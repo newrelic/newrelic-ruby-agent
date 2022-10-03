@@ -8,7 +8,7 @@ require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
   module Agent
-    # This is responsibile for recording transaction events and managing
+    # This is responsible for recording transaction events and managing
     # the relationship between events generated from synthetics requests
     # vs normal requests.
     class TransactionEventRecorder

@@ -54,7 +54,7 @@ class GemNotifier < SlackNotifier
 
   def self.gem_source_code_uri(gem_name)
     info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
-    raise "Reponse unsuccessful: #{info}" unless info.success?
+    raise "Response unsuccessful: #{info}" unless info.success?
 
     info["source_code_uri"]
   rescue StandardError => e

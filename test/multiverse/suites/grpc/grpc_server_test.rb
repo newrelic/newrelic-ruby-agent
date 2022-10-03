@@ -119,7 +119,7 @@ class GrpcServerTest < Minitest::Test
   end
 
   # make it all the way to the final yield in #handle_with_tracing, then
-  # verify that raised execptions are noticed
+  # verify that raised exceptions are noticed
   def test_errors_from_handled_requests_are_noticed
     desc = basic_grpc_desc
     def desc.trace_with_newrelic?; true; end # force a true response from this method

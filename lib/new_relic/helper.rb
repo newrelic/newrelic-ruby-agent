@@ -65,7 +65,7 @@ module NewRelic
       output.chomp
     end
 
-    # TODO: Open3 defers the actual excecution of a binary to Process.spawn,
+    # TODO: Open3 defers the actual execution of a binary to Process.spawn,
     #       which will raise an Errno::ENOENT exception for a file that
     #       cannot be found. We might want to take the time to evaluate
     #       relying on that Process.spawn behavior instead of checking for

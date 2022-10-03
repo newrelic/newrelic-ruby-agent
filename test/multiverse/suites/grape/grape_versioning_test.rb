@@ -73,7 +73,7 @@ unless ::Grape::VERSION == '0.1.5'
       assert_metrics_recorded('Controller/Grape/GrapeVersioning::Unversioned/fish (GET)')
     end
 
-    def test_shared_version_declaration_in_tranasaction_names
+    def test_shared_version_declaration_in_transaction_names
       @app_class = GrapeVersioning::SharedApi
       %w[ v1 v2 v3 v4 ].each do |v|
         get("/#{v}/fish")
@@ -81,7 +81,7 @@ unless ::Grape::VERSION == '0.1.5'
       end
     end
 
-    def test_shared_version_block_in_tranasaction_names
+    def test_shared_version_block_in_transaction_names
       @app_class = GrapeVersioning::SharedBlockApi
       %w[ v1 v2 v3 v4 ].each do |v|
         get("/#{v}/fish")
@@ -96,7 +96,7 @@ unless ::Grape::VERSION == '0.1.5'
     #
     # defaulting without version/vendor in Accept value does not set rack.env['api.version']
     #
-    def test_default_header_version_in_tranasaction_names
+    def test_default_header_version_in_transaction_names
       @app_class = GrapeVersioning::DefaultHeaderApi
       get("/fish", nil, 'HTTP_ACCEPT' => 'application/json')
       assert_metrics_recorded("Controller/Grape/GrapeVersioning::DefaultHeaderApi-v2|v3/fish (GET)")
@@ -107,7 +107,7 @@ unless ::Grape::VERSION == '0.1.5'
     # defaulting with header key/empty value does not set rack.env['api.version']
     #
     if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.5.0')
-      def test_default_accept_version_header_version_in_tranasaction_names
+      def test_default_accept_version_header_version_in_transaction_names
         @app_class = GrapeVersioning::DefaultAcceptVersionHeaderApi
         get("/fish", nil, 'HTTP_ACCEPT_VERSION' => '')
         assert_metrics_recorded("Controller/Grape/GrapeVersioning::DefaultAcceptVersionHeaderApi-v2|v3/fish (GET)")

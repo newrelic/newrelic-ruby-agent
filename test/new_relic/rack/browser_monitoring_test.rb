@@ -184,7 +184,7 @@ if defined?(::Rack::Test)
       assert last_response.ok?
     end
 
-    def test_should_not_throw_exception_on_empty_reponse
+    def test_should_not_throw_exception_on_empty_response
       TestApp.doc = ''
       get('/')
 

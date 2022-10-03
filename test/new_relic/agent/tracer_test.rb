@@ -184,7 +184,7 @@ module NewRelic
         assert_nil Tracer.current_transaction
       end
 
-      def test_start_transaction_or_segment_mulitple_calls
+      def test_start_transaction_or_segment_multiple_calls
         f1 = Tracer.start_transaction_or_segment(
           name: "Controller/Rack/Test::App/call",
           category: :rack
@@ -220,7 +220,7 @@ module NewRelic
         ]
       end
 
-      def test_start_transaction_or_segment_mulitple_calls_with_partial_name
+      def test_start_transaction_or_segment_multiple_calls_with_partial_name
         f1 = Tracer.start_transaction_or_segment(
           partial_name: "Test::App/call",
           category: :rack

@@ -38,7 +38,7 @@ module NewRelic
         end
 
         # We've seen objects in the environment report (Rails.env in
-        # particular) that can't seralize to JSON. Cope with that here and
+        # particular) that can't serialize to JSON. Cope with that here and
         # clear out so downstream code doesn't have to check again.
         def sanitize_environment_report(environment_report)
           return NewRelic::EMPTY_ARRAY unless @service.valid_to_marshal?(environment_report)

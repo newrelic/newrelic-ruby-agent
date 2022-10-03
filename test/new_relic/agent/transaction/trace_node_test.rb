@@ -108,7 +108,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 150 ms Custom/test/other\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
   end
 
-  def test_to_debug_str_multichild
+  def test_to_debug_str_multi_child
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/other', 0.1)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/extra', 0.11)
