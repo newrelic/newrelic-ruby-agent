@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require_relative '../test_helper'
 
 def fixtures_path
   @fixtures_path ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
