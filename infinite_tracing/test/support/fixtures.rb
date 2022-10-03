@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'yaml'
-require_relative '../test_helper'
 
 def fixtures_path
   @fixtures_path ||= File.expand_path(File.join(File.dirname(__FILE__), '..', 'fixtures'))
@@ -11,9 +10,7 @@ end
 
 def span_event_fixture(fixture_name)
   fixture_filename = File.join(fixtures_path, "span_events", "#{fixture_name}.yml")
-  # rubocop:disable Minitest/AssertPathExists
-  assert File.exist?(fixture_filename), "Missing Span Event Fixture: #{fixture_name}. Looked for #{fixture_filename}"
-  # rubocop:enable Minitest/AssertPathExists
+  assert_path_exists(fixture_filename, "Missing Span Event Fixture: #{fixture_name}. Looked for #{fixture_filename}")
   if YAML.respond_to?(:unsafe_load)
     YAML::unsafe_load(File.read(fixture_filename))
   else
