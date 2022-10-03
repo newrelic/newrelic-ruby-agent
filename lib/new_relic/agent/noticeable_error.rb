@@ -7,7 +7,7 @@ module NewRelic
     # This class is used for instrumentations that have exceptions or error classes
     # not derived from Ruby's usual Exception or StandardError or in situations
     # where we do not have such Exception object to work with.
-    class NoticibleError
+    class NoticeableError
       attr_reader :class_name, :message
 
       def initialize(class_name, message)

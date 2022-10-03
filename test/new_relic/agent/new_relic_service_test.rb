@@ -1113,7 +1113,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     def address
-      'whereever.com'
+      'wherever.com'
     end
 
     def port

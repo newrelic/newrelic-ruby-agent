@@ -91,7 +91,7 @@ This [troubleshooting framework](https://discuss.newrelic.com/t/ruby-troubleshoo
 
 New Relic offers NRDiag, [a client-side diagnostic utility](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) that automatically detects common problems with New Relic agents. If NRDiag detects a problem, it suggests troubleshooting steps. NRDiag can also automatically attach troubleshooting data to a New Relic Support ticket.
 
-If the issue has been confirmed as a bug or is a Feature request, please file a Github issue.
+If the issue has been confirmed as a bug or is a Feature request, please file a GitHub issue.
 
 **Support Channels**
 

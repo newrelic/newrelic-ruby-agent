@@ -49,7 +49,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             @collection.drop
           end
 
-          def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+          def test_noticed_error_at_segment_and_txn_when_violating_unique_constraints
             expected_error_class = /Mongo\:\:Error/
             txn = nil
             begin

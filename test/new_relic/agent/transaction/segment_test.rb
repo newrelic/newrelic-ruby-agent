@@ -281,7 +281,7 @@ module NewRelic
 
         def test_request_attributes_in_agent_attributes
           request_attributes = {
-            :referer => "/referered",
+            :referer => "/referred",
             :path => "/",
             :content_length => 0,
             :content_type => "application/json",
@@ -296,7 +296,7 @@ module NewRelic
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
 
-          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/referred", actual[:'request.headers.referer']
           assert_equal "/", actual[:'request.uri']
           assert_equal 0, actual[:'request.headers.contentLength']
           assert_equal "application/json", actual[:"request.headers.contentType"]
@@ -321,13 +321,13 @@ module NewRelic
 
         def test_referer_in_agent_attributes
           segment = nil
-          request = stub('request', :referer => "/referered", :path => "/")
+          request = stub('request', :referer => "/referred", :path => "/")
           txn = in_transaction(:request => request) do
           end
 
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
-          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/referred", actual[:'request.headers.referer']
         end
 
         private

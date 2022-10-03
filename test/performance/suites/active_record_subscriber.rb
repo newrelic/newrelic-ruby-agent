@@ -5,7 +5,7 @@
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
 # NOTE: This test was cobbled together from the AR Subscriber Unit Test and
-# by cut & paste of ActiveSupport::Notifcations::Event from Rails source.
+# by cut & paste of ActiveSupport::Notifications::Event from Rails source.
 # This test is here because it's useful, not because it's well written.
 # If you have a desire to improve this test, do it!
 

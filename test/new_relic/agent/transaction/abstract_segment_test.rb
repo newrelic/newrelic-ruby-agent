@@ -96,7 +96,7 @@ module NewRelic
             refute_metrics_recorded [basic_segment_name, BasicSegment::ALL_NAME]
           end
 
-          # local metrics will be merged into global store at the end of the transction
+          # local metrics will be merged into global store at the end of the transaction
           assert_metrics_recorded [basic_segment_name, BasicSegment::ALL_NAME]
         end
 

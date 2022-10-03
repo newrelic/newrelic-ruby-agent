@@ -62,7 +62,7 @@ module NewRelic
           end
         end
 
-        def test_allows_symbol_exhange_names
+        def test_allows_symbol_exchange_names
           in_transaction("test_txn") do
             segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,

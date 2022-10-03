@@ -940,7 +940,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asyncronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.thread.tracing' => {
           :default => false,
@@ -1572,7 +1572,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Javascript agent file for real user monitoring.'
+          :description => 'JavaScript agent file for real user monitoring.'
         },
         :'browser_monitoring.auto_instrument' => {
           :default => value_of(:'rum.enabled'),

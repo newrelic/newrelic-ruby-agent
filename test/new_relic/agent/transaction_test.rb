@@ -1457,12 +1457,12 @@ module NewRelic::Agent
     end
 
     def test_referer_in_agent_attributes
-      request = stub('request', :referer => "/referered", :path => "/")
+      request = stub('request', :referer => "/referred", :path => "/")
       txn = in_transaction(:request => request) do
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR)
-      assert_equal "/referered", actual[:'request.headers.referer']
+      assert_equal "/referred", actual[:'request.headers.referer']
     end
 
     def test_referer_omitted_if_not_on_request

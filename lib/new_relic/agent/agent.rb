@@ -97,7 +97,7 @@ module NewRelic
         @monitors = Monitors.new(@events)
         @error_collector = ErrorCollector.new(@events)
         @harvest_samplers = SamplerCollection.new(@events)
-        @javascript_instrumentor = JavascriptInstrumentor.new(@events)
+        @javascript_instrumentor = JavaScriptInstrumentor.new(@events)
         @harvester = Harvester.new(@events)
         @transaction_event_recorder = TransactionEventRecorder.new(@events)
         @custom_event_aggregator = CustomEventAggregator.new(@events)
@@ -162,7 +162,7 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_accessor :transaction_rules
-        # Responsbile for restarting the harvest thread
+        # Responsible for restarting the harvest thread
         attr_reader :harvester
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
@@ -190,7 +190,7 @@ module NewRelic
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.
         #
-        # The call is idempotent, but not re-entrant.
+        # The call is idempotent, but not reentrant.
         #
         # * It clears any metrics carried over from the parent process
         # * Restarts the sampler thread if necessary

@@ -171,7 +171,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       "Controller/error/string_noticed_error")
   end
 
-  # Important choice of controllor_error, since this goes through both the
+  # Important choice of controller_error, since this goes through both the
   # transaction and the rack error collector, so risks multiple counting!
   def test_should_capture_multiple_errors
     40.times do

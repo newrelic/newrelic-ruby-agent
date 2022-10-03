@@ -78,7 +78,7 @@ class MethodVisibilityTest < Minitest::Test
     end
 
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_transaction" do
-      assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_transaction!", "Transcation #{visibility}_transaction should be #{visibility}")
+      assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_transaction!", "Transaction #{visibility}_transaction should be #{visibility}")
     end
   end
 

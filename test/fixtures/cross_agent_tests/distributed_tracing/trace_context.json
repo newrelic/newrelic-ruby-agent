@@ -185,7 +185,7 @@
   {
     "test_name": "spans_disabled_in_parent",
     "comment": [ "If the parent is a New Relic agent with span events disabled it SHOULD omit span",
-      "id from the tracestate. This verifies agents propogate Trace Context payloads when the",
+      "id from the tracestate. This verifies agents propagate Trace Context payloads when the",
       "parent is a New Relic agent with span events disabled" ],
     "trusted_account_key": "33",
     "account_id": "33",
@@ -956,7 +956,7 @@
     "test_name": "tracestate_has_larger_version",
     "comment": [
       "If the new relic payload's version is higher than 0, with extra new fields, all ",
-      "the existing fields should be read and used, and the extra future feilds should ",
+      "the existing fields should be read and used, and the extra future fields should ",
       "be ignored."
     ],
     "trusted_account_key": "33",

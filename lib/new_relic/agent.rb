@@ -29,7 +29,7 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/noticed_error'
-    require 'new_relic/agent/noticible_error'
+    require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
 
     require 'new_relic/agent/encoding_normalizer'
@@ -231,7 +231,7 @@ module NewRelic
     # @!group Recording custom errors
 
     # Set a filter to be applied to errors that the Ruby Agent will
-    # track.  The block should evalute to the exception to track
+    # track.  The block should evaluate to the exception to track
     # (which could be different from the original exception) or nil to
     # ignore this exception.
     #
@@ -283,7 +283,7 @@ module NewRelic
       record_api_supportability_metric(:notice_error)
 
       Transaction.notice_error(exception, options)
-      nil # don't return a noticed error datastructure. it can only hurt.
+      nil # don't return a noticed error data structure. it can only hurt.
     end
 
     # @!endgroup
@@ -670,7 +670,7 @@ module NewRelic
 
     # Yield to a block that is run with a database metric name context.  This means
     # the Database instrumentation will use this for the metric name if it does not
-    # otherwise know about a model.  This is re-entrant.
+    # otherwise know about a model.  This is reentrant.
     #
     # @param [String,Class,#to_s] model the DB model class
     #

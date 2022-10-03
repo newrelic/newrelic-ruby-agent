@@ -120,7 +120,7 @@ class GrpcClientTest < Minitest::Test
       successful_grpc_client_issue_request_with_tracing(metadata)
     end
 
-    assert_newrelic_metdata_present(metadata)
+    assert_newrelic_metadata_present(metadata)
     assert_distributed_tracing_payload_created_for_transaction(transaction)
   end
 
