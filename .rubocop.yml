@@ -10,7 +10,10 @@ require:
 
 AllCops:
   TargetRubyVersion: 2.7
-  Exclude: []
+  # Rubocop shouldn't run on auto generated files.
+  Exclude:
+    - 'test/multiverse/suites/active_record/db/schema.rb'
+    - 'test/multiverse/suites/active_record_pg/db/schema.rb'
   NewCops: enable
 
 Bundler/DuplicatedGem:
