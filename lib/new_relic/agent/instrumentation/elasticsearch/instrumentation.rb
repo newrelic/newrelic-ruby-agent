@@ -1,6 +1,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+require_relative '../../datastores/nosql_obfuscator'
 
 module NewRelic::Agent::Instrumentation
   module Elasticsearch
@@ -9,31 +10,38 @@ module NewRelic::Agent::Instrumentation
 
     def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
-
-      # args = method, path, params = {}, body = nil
-      # does updating your indicies hit perform_request?
+      # add a config option to collect paramters or not
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
-        operation: OPERATION, # this should be in the params.. params ex: {:q=>"genesis"}
+        operation: OPERATION,
         host: host,
         port_path_or_id: path || port,
-        database_name: cluster_name # do we need to get this every time, or will it stay the same
+        database_name: cluster_name # do we need to get this every time, or will it stay the same?
       )
       begin
-        # add attributes for all method args?
-        # right now, no query data/arguments are preserved
-
+        obfuscated_params = NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(params)
+        obfuscated_body = NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(body)
         response = nil
+
         NewRelic::Agent::Tracer.capture_segment_error(segment) { response = yield }
-        # binding.irb
 
         response
       ensure
+        add_attributes(segment, params: obfuscated_params, body: obfuscated_body, method: method)
         segment.finish if segment
       end
     end
 
     private
+
+    def add_attributes(segment, attributes_hash)
+      return unless segment
+
+      attributes_hash.each do |attr, value|
+        segment.add_agent_attribute(attr, value)
+      end
+      segment.record_agent_attributes = true
+    end
 
     def cluster_name
       NewRelic::Agent.disable_all_tracing { cluster.stats['cluster_name'] }
