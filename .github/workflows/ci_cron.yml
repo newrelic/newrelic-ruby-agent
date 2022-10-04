@@ -386,7 +386,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: voxmedia/github-action-slack-notify-build@v1
-        if: env.WORKFLOW_CONCLUSION == 'success'
+        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         with:
