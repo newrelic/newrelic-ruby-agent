@@ -15,7 +15,7 @@ module NewRelic::Agent::Instrumentation
         operation: OPERATION,
         host: host,
         port_path_or_id: port,
-        database_name: cluster_name
+        database_name: 'cluster_name'
       )
       begin
         # add attributes for all method args?
@@ -28,10 +28,11 @@ module NewRelic::Agent::Instrumentation
 
     private
 
-    def cluster_name
-      # this makes a call to perform_request, so not ideal
-      cluster.stats['cluster_name']
-    end
+    # def cluster_name
+    #   # this is an attribute on the response
+    #   # can be captured after the segment was created
+    #   cluster.stats['cluster_name']
+    # end
 
     def hosts
       (transport.hosts.first || NewRelic::EMPTY_HASH)
