@@ -222,7 +222,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_blocks_log_capture
-    Logger.new(StringIO.new()).fatal("Ooops")
+    Logger.new(StringIO.new()).fatal("Oops")
 
     run_harvest
 

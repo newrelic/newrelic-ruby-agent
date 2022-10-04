@@ -154,7 +154,7 @@ module NewRelic::Agent
         rescue => exception
           retry_connection_period = retry_connection_period(exponential_backoff)
           ::NewRelic::Agent.logger.error("Error establishing connection with infinite tracing service:", exception)
-          ::NewRelic::Agent.logger.info("Will re-attempt infinte tracing connection in #{retry_connection_period} seconds")
+          ::NewRelic::Agent.logger.info("Will re-attempt infinite tracing connection in #{retry_connection_period} seconds")
           sleep(retry_connection_period)
           note_connect_failure
           retry

@@ -37,7 +37,7 @@ module NewRelic
             return unless segment
 
             # operations that succeed but have errors return CommandSucceeded
-            # with an error_key that is populated with error specfics
+            # with an error_key that is populated with error specifics
             if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
               attributes = event.reply[error_key][-1]

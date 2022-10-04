@@ -95,7 +95,7 @@ class RakeInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_a_task_is_monkeypatched_for_executation_instrumentation
+  def test_a_task_is_monkeypatched_for_execution_instrumentation
     skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
 
     name = 'Call the Ships to Port'

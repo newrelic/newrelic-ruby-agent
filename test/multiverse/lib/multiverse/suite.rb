@@ -300,6 +300,8 @@ module Multiverse
     def minitest_version
       if RUBY_VERSION >= '2.6'
         '5.16.2'
+      elsif RUBY_VERSION >= '2.5'
+        '5.15.0'
       elsif RUBY_VERSION >= '2.4'
         '5.10.1'
       else
@@ -727,7 +729,7 @@ if $0 == __FILE__ && $already_running.nil?
   # feeds into the OutputCollector above.
   $stderr.reopen($stdout)
 
-  # Ugly, but seralized args passed along to #popen when kicking child off
+  # Ugly, but serialized args passed along to #popen when kicking child off
   dir, env_index, encoded_opts, _ = *ARGV
   opts = Multiverse::Suite.decode_options(encoded_opts)
   instrumentation_method = opts.delete(:instrumentation_method)

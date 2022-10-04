@@ -139,7 +139,7 @@ module NewRelic
               ]
             }
 
-            # flag cross app in the state so transaction knows to add bits to paylaod
+            # flag cross app in the state so transaction knows to add bits to payload
             #
             transaction.distributed_tracer.is_cross_app_caller = true
 

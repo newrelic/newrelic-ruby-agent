@@ -29,7 +29,7 @@ Run it using:
 
 `thor instrumentation:scaffold gem_name`
 
-It accepts two optional paramters:
+It accepts two optional parameters:
 
 - `--method`: the name of a method to instrument. Only one method can be accepted at this time. Defaults to `method_to_instrument`
 - `--args`: the arguments for the instrumented method. A comma-separated list can be given if there are multiple arguments. Defaults to `*args`.

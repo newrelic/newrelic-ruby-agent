@@ -45,11 +45,11 @@ module NewRelic::Agent::Configuration
 
     def test_forces_unrecognized_values_to_off
       local_settings = {
-        :'transaction_tracer.record_sql' => 'jibberish',
+        :'transaction_tracer.record_sql' => 'gibberish',
         :'slow_sql.record_sql' => 'junk'
       }
 
-      expects_logging(:info, includes('jibberish'))
+      expects_logging(:info, includes('gibberish'))
 
       source = HighSecuritySource.new(local_settings)
 

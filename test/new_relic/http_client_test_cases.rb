@@ -390,7 +390,7 @@ module HttpClientTestCases
     ])
   end
 
-  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
+  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
       make_app_data_payload("88#88#88", "invalid", 1, 2, 4096, TRANSACTION_GUID))
 

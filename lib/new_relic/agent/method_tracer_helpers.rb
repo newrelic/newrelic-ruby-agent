@@ -11,7 +11,7 @@ module NewRelic
       #   function: the name of the Ruby method
       #   namespace: the Ruby class' namespace as a string, ex: 'MyModule::MyClass'
       SOURCE_CODE_INFORMATION_PARAMETERS = %i[filepath lineno function namespace].freeze
-      SOURCE_CODE_INFORMATION_FAILURE_METRIC = "Supportabiltiy/CodeLevelMetrics/Ruby/Failure".freeze
+      SOURCE_CODE_INFORMATION_FAILURE_METRIC = "Supportability/CodeLevelMetrics/Ruby/Failure".freeze
       MAX_ALLOWED_METRIC_DURATION = 1_000_000_000 # roughly 31 years
 
       extend self

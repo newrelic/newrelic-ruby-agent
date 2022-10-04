@@ -13,7 +13,7 @@ module NewRelic
             result = headers[key]
 
             # Typhoeus 0.5.3 has a bug where asking the headers hash for a
-            # non-existent header will return the hash itself, not what we want.
+            # nonexistent header will return the hash itself, not what we want.
             result == headers ? nil : result
           end
         end

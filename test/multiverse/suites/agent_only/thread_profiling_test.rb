@@ -51,7 +51,7 @@ class ThreadProfilingTest < Minitest::Test
 
   # These are potentially fragile for being timing based
   # START_COMMAND with 0.01 sampling and 0.5 duration expects to get
-  # roughly 50 polling cycles in. We check signficiantly less than that.
+  # roughly 50 polling cycles in. We check significantly less than that.
 
   # STOP_COMMAND when immediately issued after a START_COMMAND is expected
   # go only let a few cycles through, so we check less than 10

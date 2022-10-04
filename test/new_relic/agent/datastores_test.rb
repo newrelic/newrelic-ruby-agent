@@ -73,7 +73,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     assert_equal MyFirstDatabase::THE_OBJECT, MyFirstDatabase.new.find
   end
 
-  def test_method_retains_visbility
+  def test_method_retains_visibility
     private_methods = MyFirstDatabase.private_instance_methods.map(&:to_sym)
     assert_includes private_methods, :internal
   end

@@ -9,9 +9,9 @@ module NewRelic
   module Agent
     class Transaction
       class AbstractSegment
-        # This class is the base class for all segments. It is reponsible for
+        # This class is the base class for all segments. It is responsible for
         # timing, naming, and defining lifecycle callbacks. One of the more
-        # complex responsibilites of this class is computing exclusive duration.
+        # complex responsibilities of this class is computing exclusive duration.
         # One of the reasons for this complexity is that exclusive time will be
         # computed using time ranges or by recording an aggregate value for
         # a segments children time. The reason for this is that computing
