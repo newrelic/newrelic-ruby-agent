@@ -7,20 +7,27 @@ module NewRelic::Agent::Instrumentation
     PRODUCT_NAME = 'Elasticsearch'
     OPERATION = 'query'
 
-    def perform_request_with_tracing(*args)
+    def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil)
+      return yield unless NewRelic::Agent::Tracer.tracing_enabled?
+
       # args = method, path, params = {}, body = nil
       # does updating your indicies hit perform_request?
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
-        operation: OPERATION,
+        operation: OPERATION, # this should be in the params.. params ex: {:q=>"genesis"}
         host: host,
-        port_path_or_id: port,
-        database_name: 'cluster_name'
+        port_path_or_id: path || port,
+        database_name: cluster_name # do we need to get this every time, or will it stay the same
       )
       begin
         # add attributes for all method args?
         # right now, no query data/arguments are preserved
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+
+        response = nil
+        NewRelic::Agent::Tracer.capture_segment_error(segment) { response = yield }
+        # binding.irb
+
+        response
       ensure
         segment.finish if segment
       end
@@ -28,11 +35,9 @@ module NewRelic::Agent::Instrumentation
 
     private
 
-    # def cluster_name
-    #   # this is an attribute on the response
-    #   # can be captured after the segment was created
-    #   cluster.stats['cluster_name']
-    # end
+    def cluster_name
+      NewRelic::Agent.disable_all_tracing { cluster.stats['cluster_name'] }
+    end
 
     def hosts
       (transport.hosts.first || NewRelic::EMPTY_HASH)
