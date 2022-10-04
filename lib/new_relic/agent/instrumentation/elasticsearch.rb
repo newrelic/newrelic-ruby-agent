@@ -17,6 +17,7 @@ DependencyDetection.defer do
     ::NewRelic::Agent.logger.info('Installing elasticsearch instrumentation')
     # why didn't this work when we looked at defined?(::Elastic)
     # why was the name changed?
+    # perform_request is also defined in Transport::Base
     to_instrument = if defined?(::Elasticsearch)
       ::Elasticsearch::Transport::Client
     else
