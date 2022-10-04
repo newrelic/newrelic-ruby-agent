@@ -80,6 +80,15 @@ module NewRelic
               }
             },
             {
+              option: :'elasticsearch.capture_queries',
+              supported: true,
+              enabled_fn: method(:enabled?),
+              disabled_value: false,
+              permitted_fn: proc { |policies|
+                change_setting(policies, :'elasticsearch.obfuscate_queries', true)
+              }
+            },
+            {
               option: :'transaction_tracer.record_redis_arguments',
               supported: true,
               enabled_fn: method(:enabled?),

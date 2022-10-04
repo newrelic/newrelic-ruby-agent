@@ -459,6 +459,12 @@ common: &default_settings
   # If true, the agent obfuscates Mongo queries in transaction traces.
   # mongo.obfuscate_queries: true
 
+  # If true, the agent captures Elasticsearch queries in transaction traces.
+  # elasticsearch.capture_queries: true
+
+  # If true, the agent obfuscates Elasticsearch queries in transaction traces.
+  # elasticsearch.obfuscate_queries: true
+
   # When true, the agent transmits data about your app to the New Relic collector.
   # monitor_mode: true
 

@@ -1415,6 +1415,20 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => true,
           :description => 'If `true`, the agent obfuscates Mongo queries in transaction traces.'
         },
+        :'elasticsearch.capture_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent captures Elasticsearch queries in transaction traces.'
+        },
+        :'elasticsearch.obfuscate_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent obfuscates Elasticsearch queries in transaction traces.'
+        },
         :'error_collector.enabled' => {
           :default => true,
           :public => true,

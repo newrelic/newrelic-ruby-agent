@@ -19,20 +19,25 @@ module NewRelic::Agent::Instrumentation
         database_name: cluster_name # do we need to get this every time, or will it stay the same?
       )
       begin
-        obfuscated_params = NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(params)
-        obfuscated_body = NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(body)
         response = nil
 
         NewRelic::Agent::Tracer.capture_segment_error(segment) { response = yield }
 
         response
       ensure
-        add_attributes(segment, params: obfuscated_params, body: obfuscated_body, method: method)
+        add_attributes(segment, params: reported_query(params), body: reported_query(body), method: method)
         segment.finish if segment
       end
     end
 
     private
+
+    def reported_query(query)
+      return unless NewRelic::Agent.config[:'elasticsearch.capture_queries']
+      return query unless NewRelic::Agent.config[:'elasticsearch.obfuscate_queries']
+
+      NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(query)
+    end
 
     def add_attributes(segment, attributes_hash)
       return unless segment

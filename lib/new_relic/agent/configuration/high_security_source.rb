@@ -18,6 +18,7 @@ module NewRelic
             :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
             :'slow_sql.record_sql' => record_sql_setting(local_settings, :'slow_sql.record_sql'),
             :'mongo.obfuscate_queries' => true,
+            :'elasticsearch.obfuscate_queries' => true,
             :'transaction_tracer.record_redis_arguments' => false,
 
             :'custom_insights_events.enabled' => false,
