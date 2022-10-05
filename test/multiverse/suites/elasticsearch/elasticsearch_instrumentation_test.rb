@@ -21,7 +21,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_test
     # only works on 7 rn for some reason
-    client = Elasticsearch::Client.new(port: port)
-    client.search(q: 'test')
+    client = Elasticsearch::Client.new(hosts: "localhost:#{port}")
+    puts client.search(q: 'test')
   end
 end
