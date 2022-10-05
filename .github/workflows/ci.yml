@@ -127,11 +127,11 @@ jobs:
           ES_JAVA_OPTS: "-Xms1g -Xmx1g"
         ports:
           - 9250:9200
-        # options: >-
-        #   --health-cmd "curl http://localhost:9250/_cluster/health"
-        #   --health-interval 10s
-        #   --health-timeout 5s
-        #   --health-retries 10
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       postgres:
         image: postgres:latest
         env:
