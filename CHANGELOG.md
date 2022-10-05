@@ -6,14 +6,14 @@
 
     Previously, the `newrelic deployments` command only supported the older version of the deployments api, which does not currently support newer license keys. Now you can use the New Relic REST API v2 to record deployments by providing your user api key to the agent configuration using `api_key`. When this configuration option is present, the `newrelic deployments` command will automatically use the New Relic REST API v2 deployment endpoint. [PR#1461](https://github.com/newrelic/newrelic-ruby-agent/pull/1461)
 
-    Thank you to @Arkham for bringing this to our attention!
+    Thank you to [@Arkham](https://github.com/Arkham) for bringing this to our attention!
 
 
-  * **Bugfix: Fix memory leak in the Curb instrumentation
+  * **Bugfix: Fix memory leak in the Curb instrumentation**
 
-    With [PR #1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518) community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks.
+    Community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks. [PR#1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518)
 
-    Many thanks, [@charkost](https://github.com/charkost)!
+    Many thanks for both the heads up on the issue and the fix, [@charkost](https://github.com/charkost)!
 
 
   ## v8.10.1
