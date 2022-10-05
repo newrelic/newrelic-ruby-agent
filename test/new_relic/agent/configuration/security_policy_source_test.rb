@@ -42,14 +42,14 @@ module NewRelic
           policies = generate_security_policies(default: false, enabled: ['record_sql'])
 
           with_config(:'transaction_tracer.record_sql' => 'raw',
-            :'slow_sql.record_sql'           => 'raw',
-            :'elasticsearch.capture_queries'         => true,
-            :'elasticsearch.obfuscate_queries'       => false) do
+            :'slow_sql.record_sql' => 'raw',
+            :'elasticsearch.capture_queries' => true,
+            :'elasticsearch.obfuscate_queries' => false) do
             source = SecurityPolicySource.new(policies)
 
             assert_equal 'obfuscated', source[:'transaction_tracer.record_sql']
             assert_equal 'obfuscated', source[:'slow_sql.record_sql']
-            assert_equal true, source[:'elasticsearch.obfuscate_queries']
+            assert source[:'elasticsearch.obfuscate_queries']
           end
         end
 
@@ -57,13 +57,13 @@ module NewRelic
           policies = generate_security_policies(default: true, disabled: ['record_sql'])
 
           with_config(:'transaction_tracer.record_sql' => 'raw',
-            :'slow_sql.record_sql'           => 'raw',
-            :'elasticsearch.capture_queries'         => true) do
+            :'slow_sql.record_sql' => 'raw',
+            :'elasticsearch.capture_queries' => true) do
             source = SecurityPolicySource.new(policies)
 
             assert_equal 'off', source[:'transaction_tracer.record_sql']
             assert_equal 'off', source[:'slow_sql.record_sql']
-            assert_equal false, source[:'elasticsearch.capture_queries']
+            refute source[:'elasticsearch.capture_queries']
           end
         end
 
