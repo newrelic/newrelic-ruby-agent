@@ -108,17 +108,17 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - 3306
-      # elasticsearch7:
-      #   image: elasticsearch:7.16.2
-      #   env:
-      #     discovery.type: single-node
-      #   ports:
-      #     - 9200:9200
-      #   options: >-
-      #     --health-cmd "curl http://localhost:9200/_cluster/health"
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 10
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       # elasticsearch8:
       #   image: elasticsearch:8.4.2
       #   env:
@@ -192,12 +192,12 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
 
-      - name: Runs Elasticsearch 7
-        uses: elastic/elastic-github-actions/elasticsearch@master
-        with:
-          stack-version: 7.16.2
-          port: 9200
-          security-enabled: false
+      # - name: Runs Elasticsearch 7
+      #   uses: elastic/elastic-github-actions/elasticsearch@master
+      #   with:
+      #     stack-version: 7.16.2
+      #     port: 9200
+      #     security-enabled: false
           
       - name: Runs Elasticsearch 8
         uses: elastic/elastic-github-actions/elasticsearch@master
