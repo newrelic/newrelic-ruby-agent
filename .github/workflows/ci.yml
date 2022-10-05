@@ -119,19 +119,19 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-      # elasticsearch8:
-      #   image: elasticsearch:8.4.2
-      #   env:
-      #     discovery.type: single-node
-      #     xpack.security.enabled: false
-      #     ES_JAVA_OPTS: "-Xms1g -Xmx1g"
-      #   ports:
-      #     - 9250:9250
-      #   # options: >-
-      #   #   --health-cmd "curl http://localhost:9250/_cluster/health"
-      #   #   --health-interval 10s
-      #   #   --health-timeout 5s
-      #   #   --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.4.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: 0
+          ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+        ports:
+          - 9250:9250
+        # options: >-
+        #   --health-cmd "curl http://localhost:9250/_cluster/health"
+        #   --health-interval 10s
+        #   --health-timeout 5s
+        #   --health-retries 10
       postgres:
         image: postgres:latest
         env:
@@ -192,12 +192,12 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
           
       # only if multiverse is database to save time?
-      - name: Runs Elasticsearch 8
-        uses: elastic/elastic-github-actions/elasticsearch@master
-        with:
-          stack-version: 8.4.2
-          port: 9250
-          security-enabled: false
+      # - name: Runs Elasticsearch 8
+      #   uses: elastic/elastic-github-actions/elasticsearch@master
+      #   with:
+      #     stack-version: 8.4.2
+      #     port: 9250
+      #     security-enabled: false
 
 
       - name: check elasticsearch7
