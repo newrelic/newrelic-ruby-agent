@@ -179,12 +179,9 @@ jobs:
       - name: check elasticsearch
         run: |
           sleep 60
-          curl -X GET http://elasticsearch7:9200/
-
-      - name: check elasticsearch localhost
-        run: |
-          sleep 60
           curl -X GET http://localhost:9200/
+
+
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
