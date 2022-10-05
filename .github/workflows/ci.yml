@@ -110,6 +110,8 @@ jobs:
           - 3306
       elasticsearch7:
         image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
         ports:
           - 9200:9200
       # elasticsearch8:
@@ -173,6 +175,11 @@ jobs:
         # - sasl is needed for memcached
       - name: Install OS packages
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: check elasticsearch
+        run: |
+          sleep 60
+          curl -X GET http://elasticsearch:9200/
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
