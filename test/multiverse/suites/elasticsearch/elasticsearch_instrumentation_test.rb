@@ -11,8 +11,13 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
+  def port
+    9200
+    # if ::Elasticsearch
+  end
+
   def test_test
-    client = Elasticsearch::Client.new
+    client = Elasticsearch::Client.new(port: port)
     puts client.search(q: 'test')
   end
 end
