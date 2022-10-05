@@ -101,6 +101,19 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+        ports:
+          - 27017:27017
       mysql:
         image: mysql:5.7
         env:
@@ -120,19 +133,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
-        ports:
-          - 27017:27017
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -142,12 +142,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      memcached:
-        image: memcached:latest
+      redis:
+        image: redis
         ports:
-          - 11211:11211
+          - 6379:6379
         options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -282,6 +282,19 @@ jobs:
     if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
     runs-on: ubuntu-22.04
     services:
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:5.0.11
+        ports:
+          - 27017:27017
       mysql:
         image: mysql:5.7
         env:
@@ -293,19 +306,6 @@ jobs:
         image: postgres:latest
         ports:
           - 5432:5432
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: mongo:5.0.11
-        ports:
-          - 27017:27017
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -315,12 +315,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      memcached:
-        image: memcached:latest
+      redis:
+        image: redis
         ports:
-          - 11211:11211
+          - 6379:6379
         options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
