@@ -325,7 +325,7 @@ jobs:
           --health-retries 5
     strategy:
       fail-fast: false
-      matrix:
+      # matrix:
         # multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
       - name: Set the default Java version
