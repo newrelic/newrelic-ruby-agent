@@ -9,7 +9,11 @@
     Thank you to @Arkham for bringing this to our attention!
 
 
+  * **Bugfix: Fix memory leak in the Curb instrumentation
 
+    With [PR #1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518) community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks.
+
+    Many thanks, [@charkost](https://github.com/charkost)!
 
 
   ## v8.10.1
@@ -87,7 +91,6 @@
   * **Bugfix: Don't modify frozen Logger**
 
     Previously the agent would modify each instance of the Logger class by adding a unique instance variable as part of the instrumentation. This could cause the error `FrozenError: can't modify frozen Logger` to be thrown if the Logger instance had been frozen. The agent will now check if the object is frozen before attempting to modify the object. Thanks to @mkcosta for bringing this issue to our attention.
-
 
 
   ## v8.9.0

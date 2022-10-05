@@ -141,7 +141,7 @@ module NewRelic
             request._nr_original_on_complete = original_callback
             request.on_complete do |finished_request|
               begin
-                segment.process_response_headers(wrapped_response)
+                segment.process_response_headers(wrapped_response) if segment
               ensure
                 segment.finish if segment
                 # Make sure the existing completion callback is run, and restore the
@@ -158,8 +158,9 @@ module NewRelic
           # definitely something to beware of if debugging callback issues
           # @__newrelic_original_callback exists to prevent infinitely chaining
           # our on_failure callback hook.
-          def install_failure_callback(request, wrapped_response, segment)
+          def install_failure_callback(request, _wrapped_response, segment)
             original_callback = request.on_failure
+
             nr_original_callback = original_callback.instance_variable_get(:@__newrelic_original_callback)
             original_callback = nr_original_callback || original_callback
 
