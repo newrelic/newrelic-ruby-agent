@@ -108,17 +108,17 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - 3306
-      elasticsearch7:
-        image: elasticsearch:7.16.2
-        env:
-          discovery.type: single-node
-        ports:
-          - 9200:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+      # elasticsearch7:
+      #   image: elasticsearch:7.16.2
+      #   env:
+      #     discovery.type: single-node
+      #   ports:
+      #     - 9200:9200
+      #   options: >-
+      #     --health-cmd "curl http://localhost:9200/_cluster/health"
+      #     --health-interval 10s
+      #     --health-timeout 5s
+      #     --health-retries 10
       elasticsearch8:
         image: elasticsearch:8.4.2
         env:
@@ -200,10 +200,10 @@ jobs:
       #     security-enabled: false
 
 
-      - name: check elasticsearch7
-        run: |
-          sleep 60
-          curl -X GET http://localhost:9200/
+      # - name: check elasticsearch7
+      #   run: |
+      #     sleep 60
+      #     curl -X GET http://localhost:9200/
 
       - name: check elasticsearch8
         run: curl http://localhost:9250/_cluster/health
