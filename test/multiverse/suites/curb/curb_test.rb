@@ -205,6 +205,7 @@ class CurbTest < Minitest::Test
       multi.hook_pending_request(request)
     end
     request.verify
+    segment.verify
   end
 
   def test_callback_installation_errors_are_logged
