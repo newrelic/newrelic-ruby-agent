@@ -11,5 +11,19 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
-  # Add tests Here
+  def port
+    if defined?(::Elasticsearch)
+      puts "elastic 7"
+      9200 # 9200 for elasticsearch 7
+    else
+      puts "elastic 8"
+      9250 # 9250 for elasticsearch 8
+    end
+  end
+
+  def test_test
+    # only works on 7 rn for some reason
+    client = Elasticsearch::Client.new(port: port)
+    puts client.search(q: 'test')
+  end
 end

@@ -5,5 +5,9 @@
 instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
+  gem 'elasticsearch', '< 8.0'
+RB
+
+gemfile <<-RB
   gem 'elasticsearch'
 RB
