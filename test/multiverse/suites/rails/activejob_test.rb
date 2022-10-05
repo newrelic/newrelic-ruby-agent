@@ -165,7 +165,7 @@ if Rails::VERSION::STRING >= "4.2.0"
 
     def test_doesnt_interfere_with_params_on_job
       MyJobWithParams.perform_later("1", "2")
-      assert_equal(["1", "2"], MyJobWithParams.last_params)
+      assert_equal(%w[1 2], MyJobWithParams.last_params)
     end
 
     def test_captures_errors

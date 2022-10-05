@@ -202,7 +202,7 @@ module NewRelic
           end
         end
 
-        def test_segment_started_oustide_txn_does_not_record_metrics
+        def test_segment_started_outside_txn_does_not_record_metrics
           segment = Tracer.start_segment(
             name: "Custom/segment/method",
             unscoped_metrics: "Custom/all"
@@ -331,7 +331,7 @@ module NewRelic
               segment_a.finish
             end
 
-            assert_metrics_recorded ['metric_a', 'metric_b', 'metric_c']
+            assert_metrics_recorded %w[metric_a metric_b metric_c]
           end
         end
 
@@ -351,7 +351,7 @@ module NewRelic
 
             expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
             deepest_node = find_last_transaction_node(last_sample)
-            assert_equal([], deepest_node.children)
+            assert_empty(deepest_node.children)
             assert_equal(expected_sql, deepest_node[:sql].sql)
           end
         end
@@ -363,7 +363,7 @@ module NewRelic
         # This behavior may change over time and there is no reason to preserve
         # it as is. The point of this test is to ensure that the transaction
         # isn't lost entirely. We will log a message at warn level when this
-        # unexpected conditon arises.
+        # unexpected condition arises.
 
         def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
           segment_a, segment_b, segment_c = nil, nil, nil

@@ -30,12 +30,12 @@ if defined?(ActiveSupport::Logger)
 
       @logger.add(Logger::DEBUG, message)
 
-      assert @output.string.include?(message)
-      assert @broadcasted_output.string.include?(message)
+      assert_includes(@output.string, message)
+      assert_includes(@broadcasted_output.string, message)
 
       # LogEventAggregator sees the log only once
       assert_equal 1, @aggregator.instance_variable_get(:@seen)
-      assert_equal @aggregator.instance_variable_get(:@seen_by_severity), {"DEBUG" => 1}
+      assert_equal({"DEBUG" => 1}, @aggregator.instance_variable_get(:@seen_by_severity))
     end
   end
 end

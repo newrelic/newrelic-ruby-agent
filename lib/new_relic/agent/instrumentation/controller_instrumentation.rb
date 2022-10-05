@@ -415,14 +415,14 @@ module NewRelic
           end
         end
 
-        # overrideable method to determine whether to trace an action
+        # overridable method to determine whether to trace an action
         # or not - you may override this in your controller and supply
         # your own logic for ignoring transactions.
         def do_not_trace?
           _is_filtered?(NR_DO_NOT_TRACE_KEY)
         end
 
-        # overrideable method to determine whether to trace an action
+        # overridable method to determine whether to trace an action
         # for purposes of apdex measurement - you can use this to
         # ignore things like api calls or other fast non-user-facing
         # actions

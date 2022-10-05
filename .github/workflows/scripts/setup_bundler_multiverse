@@ -53,7 +53,7 @@ fi
 
 # for some reason, ruby 2.7+ fails unless strscan 3.0.4 is installed
 if [[ $RUBY_VERSION = 3.* || $RUBY_VERSION =~ 2.7 ]]; then 
-  echo "DEBUG: running 'gem install strscran'"
+  echo "DEBUG: running 'gem install strscan'"
   gem install --default strscan:3.0.4
   echo "installed strscan 3.0.4"
 

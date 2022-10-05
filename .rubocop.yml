@@ -10,7 +10,10 @@ require:
 
 AllCops:
   TargetRubyVersion: 2.7
-  Exclude: []
+  # Rubocop shouldn't run on auto generated files.
+  Exclude:
+    - 'test/multiverse/suites/active_record/db/schema.rb'
+    - 'test/multiverse/suites/active_record_pg/db/schema.rb'
   NewCops: enable
 
 Bundler/DuplicatedGem:
@@ -852,9 +855,6 @@ Lint/IncompatibleIoSelectWithFiberScheduler:
 Lint/RequireRelativeSelfPath:
   Enabled: true
 
-Metrics/AbcSize:
-  Enabled: false
-
 Metrics/BlockLength:
   Enabled: false
 
@@ -1100,9 +1100,6 @@ Style/CommandLiteral:
   Enabled: false
   # EnforcedStyle: mixed
   # AllowInnerBackticks: false
-
-Style/CommentAnnotation:
-  Enabled: false
 
 Style/CommentedKeyword:
   Enabled: false
@@ -1800,9 +1797,6 @@ Style/WhileUntilDo:
   Enabled: true
 
 Style/WhileUntilModifier:
-  Enabled: false
-
-Style/WordArray:
   Enabled: false
 
 # Disabling for now

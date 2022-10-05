@@ -43,7 +43,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => false) do
       get('/parameter_capture/transaction?other=1234&secret=4567')
     end
-    assert_equal({}, last_transaction_trace_request_params)
+    assert_empty(last_transaction_trace_request_params)
   end
 
   def test_uri_on_traced_errors_never_contains_query_string_without_capture_params
@@ -147,7 +147,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       get('/middleware_error/before?other=1234&secret=4567')
     end
 
-    assert_equal({}, last_transaction_trace_request_params)
+    assert_empty(last_transaction_trace_request_params)
   end
 
   def test_no_params_captured_on_error_when_bails_before_rails_even_when_enabled
@@ -161,7 +161,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => true) do
       get('/middleware_error/before?other=1234&secret=4567')
     end
-    assert_equal({}, last_transaction_trace_request_params)
+    assert_empty(last_transaction_trace_request_params)
   end
 
   def test_uri_on_tt_should_not_contain_query_string_with_capture_params_off

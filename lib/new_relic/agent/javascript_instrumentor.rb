@@ -8,7 +8,7 @@ require 'new_relic/agent/obfuscator'
 
 module NewRelic
   module Agent
-    class JavascriptInstrumentor
+    class JavaScriptInstrumentor
       include NewRelic::Coerce
 
       RUM_KEY_LENGTH = 13

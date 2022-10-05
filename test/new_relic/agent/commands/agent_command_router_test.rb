@@ -117,14 +117,14 @@ class AgentCommandRouterTest < Minitest::Test
 
     def test_harvest_not_started
       result = agent_commands.harvest!
-      assert_equal([], result)
+      assert_empty(result)
     end
 
     def test_harvest_with_profile_in_progress
       start_profile('duration' => 1.0)
 
       result = agent_commands.harvest!
-      assert_equal([], result)
+      assert_empty(result)
     end
 
     def test_harvest_with_profile_completed

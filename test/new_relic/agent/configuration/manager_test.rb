@@ -57,7 +57,7 @@ module NewRelic::Agent::Configuration
 
       assert_equal 3, @manager['data_report_period']
       assert_equal 'bar', @manager['bar']
-      assert_equal false, @manager['capture_params']
+      refute @manager['capture_params']
     end
 
     def test_identifying_config_source
@@ -165,7 +165,7 @@ module NewRelic::Agent::Configuration
 
       @manager.add_config_for_testing(:boo => 1)
 
-      assert_equal false, @manager.to_collector_hash.has_key?(:boo)
+      refute @manager.to_collector_hash.has_key?(:boo)
     end
 
     def test_config_masks_conditionally
@@ -216,7 +216,7 @@ module NewRelic::Agent::Configuration
         actual = value
       end
       @manager.add_config_for_testing(:test => proc { "value" })
-      assert actual.class != Proc, 'Callback returned Proc'
+      refute_equal actual.class, Proc, 'Callback returned Proc'
     end
 
     def test_callback_not_called_if_no_change
@@ -235,10 +235,10 @@ module NewRelic::Agent::Configuration
 
     def test_finished_configuring
       @manager.add_config_for_testing(:layer => "yo")
-      assert_equal false, @manager.finished_configuring?
+      refute @manager.finished_configuring?
 
       @manager.replace_or_add_config(ServerSource.new({}))
-      assert_equal true, @manager.finished_configuring?
+      assert @manager.finished_configuring?
     end
 
     def test_notifies_finished_configuring
@@ -246,7 +246,7 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.instance.events.subscribe(:initial_configuration_complete) { called = true }
       @manager.replace_or_add_config(ServerSource.new({}))
 
-      assert_equal true, called
+      assert called
     end
 
     def test_doesnt_notify_unless_finished
@@ -257,7 +257,7 @@ module NewRelic::Agent::Configuration
       @manager.replace_or_add_config(ManualSource.new(:manual => true))
       @manager.replace_or_add_config(YamlSource.new("", "test"))
 
-      assert_equal false, called
+      refute called
     end
 
     def test_high_security_enables_strip_exception_messages
@@ -293,20 +293,20 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_is_correctly_initialized
-      assert @manager.config_classes_for_testing.include?(EnvironmentSource)
-      assert @manager.config_classes_for_testing.include?(DefaultSource)
-      refute @manager.config_classes_for_testing.include?(ManualSource)
-      refute @manager.config_classes_for_testing.include?(ServerSource)
-      refute @manager.config_classes_for_testing.include?(YamlSource)
-      refute @manager.config_classes_for_testing.include?(HighSecuritySource)
-      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      assert_includes(@manager.config_classes_for_testing, EnvironmentSource)
+      assert_includes(@manager.config_classes_for_testing, DefaultSource)
+      refute_includes @manager.config_classes_for_testing, ManualSource
+      refute_includes @manager.config_classes_for_testing, ServerSource
+      refute_includes @manager.config_classes_for_testing, YamlSource
+      refute_includes @manager.config_classes_for_testing, HighSecuritySource
+      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
     end
 
     def test_high_security_source_addable
-      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
       @manager.replace_or_add_config(security_policy_source)
-      assert @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
     load_cross_agent_test("labels").each do |testcase|
@@ -409,7 +409,7 @@ module NewRelic::Agent::Configuration
       @manager.stubs(:transform_from_default).returns(bomb)
 
       with_config(:'rules.ignore_url_regexes' => 'boom') do
-        assert_equal [], @manager.fetch(:'rules.ignore_url_regexes')
+        assert_empty(@manager.fetch(:'rules.ignore_url_regexes'))
       end
     end
 

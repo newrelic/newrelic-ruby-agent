@@ -44,7 +44,7 @@ module NewRelic
         end
 
         assert_equal [1, 4, 5, 7, 12, 30], ordered_items
-        assert_equal [], heap.to_a
+        assert_empty(heap.to_a)
       end
 
       def test_fix_bubbles_up_large_heap
@@ -61,7 +61,7 @@ module NewRelic
         end
 
         assert_equal (0..100).to_a - [replaced_value], ordered_items
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_fix_bubbles_down
@@ -77,7 +77,7 @@ module NewRelic
         end
 
         assert_equal [4, 5, 7, 12, 30, 50], ordered_items
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_fix_bubbles_down_large_heap
@@ -93,7 +93,7 @@ module NewRelic
         end
 
         assert_equal (2..101).to_a, ordered_items
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_fix_leaves_item_if_heap_rule_satisfied
@@ -111,7 +111,7 @@ module NewRelic
         end
 
         assert_equal [4, 5, 7, 9, 12, 30], ordered_items
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_items_are_popped_in_ascending_order
@@ -124,7 +124,7 @@ module NewRelic
         end
 
         assert_equal [4, 5, 7, 8, 12, 30], ordered_items
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_items_are_popped_in_ascending_order_with_priority_function
@@ -155,7 +155,7 @@ module NewRelic
         ]
 
         assert_equal expected, ordered_items
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_large_heap_even_number_of_items
@@ -167,7 +167,7 @@ module NewRelic
         end
 
         assert_equal (0..100).to_a, output
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
 
       def test_large_heap_odd_number_of_items
@@ -179,7 +179,7 @@ module NewRelic
         end
 
         assert_equal (0..101).to_a, output
-        assert_equal [], heap.to_a
+        assert_empty heap.to_a
       end
     end
   end

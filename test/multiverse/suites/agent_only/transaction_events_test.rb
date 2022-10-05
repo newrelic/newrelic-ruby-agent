@@ -40,7 +40,7 @@ class TransactionEventsTest < Minitest::Test
 
     _, custom_attributes, _ = last_transaction_event
 
-    assert_equal({}, custom_attributes)
+    assert_empty(custom_attributes)
   end
 
   def last_transaction_event

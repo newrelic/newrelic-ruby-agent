@@ -69,10 +69,10 @@ module MarshallingTestCases
     assert_equal t0, event[0]["timestamp"]
     assert_equal "TestTransaction/do_it", event[0]["name"]
     assert_equal 0.0, event[0]["duration"]
-    assert_equal false, event[0]["error"]
-    assert_equal event[0]["parent.transportType"], "Unknown"
-    assert !event[0]['guid'].nil?
-    assert !event[0]["traceId"].nil?
+    refute event[0]["error"]
+    assert_equal "Unknown", event[0]["parent.transportType"]
+    refute_nil event[0]['guid']
+    refute_nil event[0]["traceId"]
 
     assert_equal 9, event[0].size
   end
@@ -136,21 +136,21 @@ module MarshallingTestCases
     assert_equal "TransactionError", event[0]["type"]
     assert_equal "StandardError", event[0]["error.class"]
     assert_equal "Sorry!", event[0]["error.message"]
-    assert_equal false, event[0]["error.expected"]
+    refute event[0]["error.expected"]
     assert_equal t0.to_f, event[0]["timestamp"]
     assert_equal "TestTransaction/break_it", event[0]["transactionName"]
     assert_equal 0.0, event[0]["duration"]
     assert_equal "Unknown", event[0]["parent.transportType"]
-    assert !event[0]["spanId"].nil?
-    assert !event[0]['guid'].nil?
-    assert !event[0]["traceId"].nil?
+    refute_nil event[0]["spanId"]
+    refute_nil event[0]['guid']
+    refute_nil event[0]["traceId"]
 
     assert_equal 12, event[0].size
 
-    assert_equal event[1], {}
-    assert_equal event[2], {}
+    assert_empty(event[1])
+    assert_empty(event[2])
 
-    assert_equal event.size, 3
+    assert_equal(3, event.size)
   end
 
   def test_sends_log_events

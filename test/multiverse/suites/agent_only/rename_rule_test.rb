@@ -11,7 +11,7 @@ class RenameRuleTest < Minitest::Test
       {'match_expression' => 'Nothing', 'replacement' => 'Something'}
     ]
     segment_terms_rules = [
-      {'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two']}
+      {'prefix' => 'other/qux', 'terms' => %w[Nothing one two]}
     ]
     collector.stub('connect', {
       'agent_run_id' => 666,

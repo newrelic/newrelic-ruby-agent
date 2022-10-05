@@ -7,11 +7,13 @@
 # of failing tests) at the end of the process.
 
 require 'thread'
+require_relative 'time_report_output'
 
 module Multiverse
   module OutputCollector
     include Color
     extend Color
+    extend TimeReportOutput
 
     @output_lock = Mutex.new
     @buffer_lock = Mutex.new
@@ -54,6 +56,7 @@ module Multiverse
         output(*to_output)
         save_output_to_error_file(failing_output)
       end
+      sort_and_print_test_times
     end
 
     def self.failing_output_header

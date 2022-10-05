@@ -89,16 +89,16 @@ if defined?(::Rack::Test)
 
     def test_should_only_instrument_successful_html_requests
       assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'}), "Expected to instrument 200 requests."
-      assert !app.should_instrument?({}, 500, {'Content-Type' => 'text/html'}), "Expected not to instrument 500 requests."
-      assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), "Expected not to instrument requests with content type other than text/html."
+      refute app.should_instrument?({}, 500, {'Content-Type' => 'text/html'}), "Expected not to instrument 500 requests."
+      refute app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), "Expected not to instrument requests with content type other than text/html."
     end
 
     def test_should_not_instrument_when_content_disposition
-      assert !app.should_instrument?({}, 200, {'Content-Type' => 'text/html', 'Content-Disposition' => 'attachment; filename=test.html'})
+      refute app.should_instrument?({}, 200, {'Content-Type' => 'text/html', 'Content-Disposition' => 'attachment; filename=test.html'})
     end
 
     def test_should_not_instrument_when_already_did
-      assert !app.should_instrument?({NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY => true}, 200, {'Content-Type' => 'text/html'})
+      refute app.should_instrument?({NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY => true}, 200, {'Content-Type' => 'text/html'})
     end
 
     def test_should_not_instrument_when_disabled_by_config
@@ -184,7 +184,7 @@ if defined?(::Rack::Test)
       assert last_response.ok?
     end
 
-    def test_should_not_throw_exception_on_empty_reponse
+    def test_should_not_throw_exception_on_empty_response
       TestApp.doc = ''
       get('/')
 

@@ -4,7 +4,7 @@
 
 class TestClass
   def method_1
-    trace_execution_scoped(['a', 'b']) do
+    trace_execution_scoped(%w[a b]) do
       "hi"
     end
   end

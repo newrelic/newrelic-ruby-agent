@@ -141,7 +141,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
 
-      ['blue', 'bar', 'bad'].each do |key|
+      %w[blue bar bad].each do |key|
         assert_not_includes(sample, key)
       end
 

@@ -32,10 +32,10 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_booleans
-      assert_equal true, @source[:tval]
-      assert_equal false, @source[:fval]
+      assert @source[:tval]
+      refute @source[:fval]
       assert_nil @source[:not_in_yaml_val]
-      assert_equal true, @source[:yval]
+      assert @source[:yval]
       assert_equal 'sure', @source[:sval]
     end
 

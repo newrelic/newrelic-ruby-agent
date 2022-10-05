@@ -112,7 +112,7 @@ module NewRelic
             end
           end
 
-          SUPPORTED_PRODUCTS = ["Postgres", "MySQL"]
+          SUPPORTED_PRODUCTS = %w[Postgres MySQL]
 
           load_cross_agent_test('datastores/datastore_instances').each do |test|
             next unless SUPPORTED_PRODUCTS.include?(test['product'])

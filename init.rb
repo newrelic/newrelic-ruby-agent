@@ -14,7 +14,7 @@ require 'new_relic/control'
 
 # Initializer for the NewRelic Ruby Agent
 
-# After verison 2.0 of Rails we can access the configuration directly.
+# After version 2.0 of Rails we can access the configuration directly.
 # We need it to add dev mode routes after initialization finished.
 
 begin

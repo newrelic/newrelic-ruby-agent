@@ -10,13 +10,15 @@ ENV['RAILS_ENV'] = 'test'
 agent_test_path = File.expand_path('../../../test', __FILE__)
 $LOAD_PATH << agent_test_path
 
-require 'rubygems'
-require 'rake'
+require 'infinite_tracing'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'mocha/setup'
 require 'newrelic_rpm'
-require 'infinite_tracing'
+require 'rake'
+require 'rubygems'
+
+require_relative '../../test/minitest/test_time_plugin'
 
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.

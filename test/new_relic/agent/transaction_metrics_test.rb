@@ -21,8 +21,8 @@ class TransactionMetricsTest < Minitest::Test
   end
 
   def test_record_scoped_and_unscoped_should_take_multiple_metrics
-    @metrics.record_scoped_and_unscoped(['foo', 'bar'], 42, 12)
-    assert_scoped_metrics(@metrics, ['foo', 'bar'], {
+    @metrics.record_scoped_and_unscoped(%w[foo bar], 42, 12)
+    assert_scoped_metrics(@metrics, %w[foo bar], {
       :call_count => 1,
       :total_call_time => 42,
       :total_exclusive_time => 12
@@ -55,8 +55,8 @@ class TransactionMetricsTest < Minitest::Test
   end
 
   def test_record_unscoped_should_take_multiple_metrics
-    @metrics.record_unscoped(['foo', 'bar'], 42, 12)
-    assert_unscoped_metrics(@metrics, ['foo', 'bar'], {
+    @metrics.record_unscoped(%w[foo bar], 42, 12)
+    assert_unscoped_metrics(@metrics, %w[foo bar], {
       :call_count => 1,
       :total_call_time => 42,
       :total_exclusive_time => 12

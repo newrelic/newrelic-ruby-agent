@@ -20,7 +20,7 @@ module NewRelic
         assert_equal "Transaction", intrinsics['type']
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "Controller/whatever", intrinsics['name']
-        assert_equal false, intrinsics['error']
+        refute intrinsics['error']
         assert_equal 0.1, intrinsics['duration']
         assert intrinsics["priority"].is_a?(Numeric)
       end

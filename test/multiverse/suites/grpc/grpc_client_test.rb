@@ -120,17 +120,21 @@ class GrpcClientTest < Minitest::Test
       successful_grpc_client_issue_request_with_tracing(metadata)
     end
 
-    assert_newrelic_metdata_present(metadata)
+    assert_newrelic_metadata_present(metadata)
     assert_distributed_tracing_payload_created_for_transaction(transaction)
   end
 
   def test_span_attributes_added
     successful_grpc_client_issue_request_with_tracing
+    spans = harvest_span_events!
+    span = spans.select { |s| s.is_a?(Array) }
+    assert span
 
-    span = last_span_event
-    assert 'gRPC', span[0]['component']
-    assert METHOD, span[0]['http.method']
-    assert "grpc://#{HOST}/#{METHOD}", span[2]['http.url']
+    info_pair = span.first.detect { |s| s.last.key?('http.url') }
+    assert info_pair
+    assert_equal 'gRPC', info_pair.first['component']
+    assert_equal METHOD, info_pair.first['http.method']
+    assert_equal "grpc://#{HOST}/#{METHOD}", info_pair.last['http.url']
   end
 
   def test_external_metric_recorded

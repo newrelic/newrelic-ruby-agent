@@ -478,7 +478,7 @@ module MongoOperationTests
     node = find_last_transaction_node
     statement = node.params[:statement]
 
-    refute statement.inspect.include?('$secret')
+    refute_includes statement.inspect, '$secret'
     assert_equal '?', statement[:selector]['password']
   end
 

@@ -107,7 +107,7 @@ module NewRelic
         end
 
         # ObjectSpace is faster on MRI, but disabled by default on JRuby for
-        # perfomance reasons. We have two implmentations of `thread_by_id`
+        # performance reasons. We have two implementations of `thread_by_id`
         # based on ruby implementation.
         if RUBY_ENGINE == 'jruby'
           def thread_by_id(thread_id)

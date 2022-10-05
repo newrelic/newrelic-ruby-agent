@@ -58,7 +58,7 @@ module NewRelic
             end.class_eval do
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-              # TODO: Dalli - 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
+              # TODO: Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
               if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
                 alias_method(:pipelined_get_without_newrelic_trace, :pipelined_get)
                 def pipelined_get(keys)
