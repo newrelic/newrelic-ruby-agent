@@ -101,6 +101,30 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.4.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+          ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       memcached:
         image: memcached:latest
         ports:
@@ -282,6 +306,30 @@ jobs:
     if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
     runs-on: ubuntu-22.04
     services:
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.4.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+          ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       memcached:
         image: memcached:latest
         ports:
