@@ -12,11 +12,9 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    if defined?(::Elasticsearch)
-      puts "elastic 7"
+    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
       9200 # 9200 for elasticsearch 7
     else
-      puts "elastic 8"
       9250 # 9250 for elasticsearch 8
     end
   end
@@ -24,6 +22,6 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   def test_test
     # only works on 7 rn for some reason
     client = Elasticsearch::Client.new(port: port)
-    puts client.search(q: 'test')
+    client.search(q: 'test')
   end
 end
