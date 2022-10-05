@@ -110,7 +110,8 @@ jobs:
           - 3306
       elasticsearch7:
         image: elasticsearch:7.16.2
-        ports: 9200:9200
+        ports:
+          - 9200:9200
       # elasticsearch8:
       #   image: elasticsearch:7.16.2
       #   ports: 9200:9200
