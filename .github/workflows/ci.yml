@@ -114,9 +114,12 @@ jobs:
           discovery.type: single-node
         ports:
           - 9200:9200
-      # elasticsearch8:
-      #   image: elasticsearch:7.16.2
-      #   ports: 9200:9200
+      elasticsearch8:
+        image: elasticsearch:8.4.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9250:9250
       postgres:
         image: postgres:latest
         env:
@@ -176,12 +179,13 @@ jobs:
       - name: Install OS packages
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
-      - name: check elasticsearch
+      - name: check elasticsearch7
         run: |
           sleep 60
           curl -X GET http://localhost:9200/
 
-
+      - name: check elasticsearch7
+        run: curl -X GET http://localhost:9250/
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
