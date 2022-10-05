@@ -16,6 +16,33 @@
     Many thanks for both the heads up on the issue and the fix, [@charkost](https://github.com/charkost)!
 
 
+  * **Cleanup: Performance tests, constants, rubocop-minitest assertions and refutations**
+
+    Community member [@esquith](https://github.com/esquith) contributed a whole slew of cleanup successes for our performance test configuration, orphaned constants in our code base, and RuboCop related improvements. [PR#1406](https://github.com/newrelic/newrelic-ruby-agent/pull/1406) [PR#1408](https://github.com/newrelic/newrelic-ruby-agent/pull/1408) [PR#1409](https://github.com/newrelic/newrelic-ruby-agent/pull/1409) [PR#1411](https://github.com/newrelic/newrelic-ruby-agent/pull/1411)
+
+    Thank you [@esquith](https://github.com/esquith) for these great contributions!
+
+
+  * **CI: nofify on a change from failure to success**
+
+    A super handy, much beloved feature of certain CI and build systems is to not only notify when builds start to fail, but also to notify again when the builds once again start to go green. Community member [@luigieai](https://github.com/luigieai) was able to figure out how configure our existing complex, multiple-3rd-party-action based GitHub Actions pipeline to notify on a switch back to success from failure. [PR#1519](https://github.com/newrelic/newrelic-ruby-agent/pull/1519)
+
+    This is much appreciated! Thank you, [@luigieai](https://github.com/luigieai).
+
+
+  * **Spelling corrections**
+
+    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive once over than a simple dictionary based check would have been able to provide, and the changs are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
+
+    Thank you very much, [@jsoref](https://github.com/jsoref)!
+
+
+  * **Ruby 3.2.0-preview2 compatibility**
+
+    Ruby 3.2.0-preview1 introduced a change to the way that Ruby reports VM stats and the approach was changed yet again to a 3rd approach with the preview2 release. New Relic reports on Ruby VM stats and is keeping track of the Ruby 3.2 development process to help ensure our customers with a smooth and worthwhile upgrade process once Ruby 3.2.0 (non-preview) is released. [PR#1436](https://github.com/newrelic/newrelic-ruby-agent/pull/1436)
+
+
+
   ## v8.10.1
 
 
