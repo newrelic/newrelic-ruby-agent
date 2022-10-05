@@ -126,11 +126,11 @@ jobs:
           xpack.security.enabled: false
         ports:
           - 9250:9250
-        options: >-
-          --health-cmd "curl http://localhost:9250/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+        # options: >-
+        #   --health-cmd "curl http://localhost:9250/_cluster/health"
+        #   --health-interval 10s
+        #   --health-timeout 5s
+        #   --health-retries 10
       postgres:
         image: postgres:latest
         env:
