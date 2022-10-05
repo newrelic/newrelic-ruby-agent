@@ -190,15 +190,8 @@ jobs:
         # - sasl is needed for memcached
       - name: Install OS packages
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-
-      # - name: Runs Elasticsearch 7
-      #   uses: elastic/elastic-github-actions/elasticsearch@master
-      #   with:
-      #     stack-version: 7.16.2
-      #     port: 9200
-      #     security-enabled: false
           
+      # only if multiverse is database to save time?
       - name: Runs Elasticsearch 8
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:

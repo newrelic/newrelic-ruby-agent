@@ -12,8 +12,19 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    9200
-    # if ::Elasticsearch
+    if defined?(::Elasticsearch)
+      9200
+    else
+      9250
+    end
+  end
+
+  def client
+    if defined?(::Elasticsearch)
+      ::Elasticsearch::Transport::Client
+    else
+      ::Elastic::Transport::Client
+    end
   end
 
   def test_test
