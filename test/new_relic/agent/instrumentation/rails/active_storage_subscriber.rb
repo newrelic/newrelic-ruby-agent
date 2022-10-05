@@ -78,7 +78,7 @@ module NewRelic
           tt_node = find_node_with_name(trace, "Ruby/ActiveStorage/DiskService/exist")
 
           assert tt_node.params.key?(:exist)
-          assert_equal false, tt_node.params[:exist]
+          refute tt_node.params[:exist]
         end
 
         def test_segment_created

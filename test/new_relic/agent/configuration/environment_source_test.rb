@@ -50,11 +50,11 @@ module NewRelic::Agent::Configuration
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
-        assert !EnvironmentSource.new[:enabled]
+        refute EnvironmentSource.new[:enabled]
         ENV[var] = 'off'
-        assert !EnvironmentSource.new[:enabled]
+        refute EnvironmentSource.new[:enabled]
         ENV[var] = 'no'
-        assert !EnvironmentSource.new[:enabled]
+        refute EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
     end
@@ -72,11 +72,11 @@ module NewRelic::Agent::Configuration
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
-        assert !EnvironmentSource.new[:disable_harvest_thread]
+        refute EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'off'
-        assert !EnvironmentSource.new[:disable_harvest_thread]
+        refute EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'no'
-        assert !EnvironmentSource.new[:disable_harvest_thread]
+        refute EnvironmentSource.new[:disable_harvest_thread]
         ENV.delete(var)
       end
     end
@@ -121,25 +121,25 @@ module NewRelic::Agent::Configuration
     def test_set_value_from_environment_variable
       ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
       @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
-      assert_equal @environment_source[:license_key], 'super rad'
+      assert_equal 'super rad', @environment_source[:license_key]
     end
 
     def test_set_key_by_type_uses_the_default_type
       ENV['NEW_RELIC_TEST'] = 'true'
       @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
-      assert_equal true, @environment_source[:enabled]
+      assert @environment_source[:enabled]
     end
 
     def test_set_key_by_type_converts_comma_lists_to_array
       ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi,bye'
       @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
-      assert_equal ['hi', 'bye'], @environment_source[:'attributes.include']
+      assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
     def test_set_key_by_type_converts_comma_lists_with_spaces_to_array
       ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi, bye'
       @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
-      assert_equal ['hi', 'bye'], @environment_source[:'attributes.include']
+      assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
     def test_set_key_with_new_relic_prefix
@@ -204,7 +204,7 @@ module NewRelic::Agent::Configuration
 
     def assert_applied_boolean(env_var, config_var)
       ENV[env_var] = 'true'
-      assert_equal true, EnvironmentSource.new[config_var.to_sym]
+      assert EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
   end

@@ -91,7 +91,7 @@ ga_gem_versions.each do |version|
   gem.extract!
   options = {
     :agent_path => gem.extracted_path,
-    :reporter_classes => ["ConsoleReporter", "HakoReporter"],
+    :reporter_classes => %w[ConsoleReporter HakoReporter],
     :tags => {
       :series => 'baseline',
       :newrelic_rpm_git_sha => gem.git_sha

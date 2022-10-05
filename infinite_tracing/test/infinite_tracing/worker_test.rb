@@ -20,7 +20,7 @@ module NewRelic::Agent::InfiniteTracing
       worker.stop
       assert_equal "stopped", worker.status
 
-      assert "simple", worker.name
+      assert_equal "simple", worker.name
       assert_metrics_recorded "Supportability/InfiniteTracing/Worker"
     end
 
@@ -44,7 +44,7 @@ module NewRelic::Agent::InfiniteTracing
         assert worker.error
       end
 
-      assert "error", worker.name
+      assert_equal "error", worker.name
       assert_equal "error", worker.status
       assert_metrics_recorded "Supportability/InfiniteTracing/Worker"
       refute_metrics_recorded "Supportability/InfiniteTracing/Error"

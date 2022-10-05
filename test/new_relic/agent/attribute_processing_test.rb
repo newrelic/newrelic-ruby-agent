@@ -49,7 +49,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_prefix_optional_for_flatten_and_coerce
-    params = {:foo => {:bar => ["v1", "v2"]}}
+    params = {:foo => {:bar => %w[v1 v2]}}
 
     expected = {
       "foo.bar.0" => "v1",
@@ -62,7 +62,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_prefix_optional_for_flatten_and_coerce_with_initial_array_argument
-    params = [:foo => {:bar => ["v1", "v2"]}]
+    params = [:foo => {:bar => %w[v1 v2]}]
 
     expected = {
       "0.foo.bar.0" => "v1",
@@ -124,9 +124,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_flatten_and_coerce_turns_nan_or_infinity_into_null_and_then_dropped
-    assert_equal(
-      {
-      },
+    assert_empty(
       NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
         {
           'nan' => Float::NAN,
@@ -143,7 +141,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_flatten_and_coerce_calls_a_block_key_and_value_when_provided
-    params = {:foo => {:bar => ["qux", "quux"]}}
+    params = {:foo => {:bar => %w[qux quux]}}
     yielded = {}
 
     NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params) { |k, v| yielded[k] = v }

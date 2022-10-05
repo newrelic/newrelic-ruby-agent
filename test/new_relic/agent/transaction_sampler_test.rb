@@ -99,7 +99,7 @@ module NewRelic::Agent
 
     def test_harvest_when_disabled
       with_config(:'transaction_tracer.enabled' => false) do
-        assert_equal([], @sampler.harvest!)
+        assert_empty(@sampler.harvest!)
       end
     end
 
@@ -109,14 +109,14 @@ module NewRelic::Agent
         @last_sample = 'a sample'
       end
 
-      assert_equal([], @sampler.harvest!)
+      assert_empty(@sampler.harvest!)
 
       # make sure the samples have been cleared
       assert_nil(@sampler.instance_variable_get(:@last_sample))
     end
 
     def test_harvest_no_data
-      assert_equal([], @sampler.harvest!)
+      assert_empty(@sampler.harvest!)
     end
 
     def test_add_samples_holds_onto_previous_result
@@ -262,7 +262,7 @@ module NewRelic::Agent
         end
         @sampler.merge!([slowest])
         not_as_slow = @sampler.harvest![0]
-        assert((not_as_slow == slowest), "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
+        assert_equal(not_as_slow, slowest, "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
         # 1 second duration
         in_transaction do
@@ -274,7 +274,7 @@ module NewRelic::Agent
         @sampler.merge!([slowest])
         new_slowest = @sampler.harvest![0]
         assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
-        assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
+        assert_equal(10, new_slowest.duration.round, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
       end
       nr_unfreeze_process_time
     end

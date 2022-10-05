@@ -84,7 +84,7 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          # TODO: Dalli - 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
+          # TODO: Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
           if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
             def pipelined_get(keys)
               send_multiget_with_newrelic_tracing(keys) { super }

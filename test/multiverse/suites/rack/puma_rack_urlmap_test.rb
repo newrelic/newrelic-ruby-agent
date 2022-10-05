@@ -20,7 +20,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
         # confirm basic mapping functionality still works as expected
         assert_equal v, result
         # confirm that we've enhanced the mapping experience
-        assert_equal true, env['newrelic.transaction_started']
+        assert env['newrelic.transaction_started']
       end
     end
   end

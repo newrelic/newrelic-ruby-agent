@@ -21,7 +21,7 @@ Gem or plugin, hosted on
 https://github.com/newrelic/newrelic-ruby-agent/
   EOS
   s.email = "support@newrelic.com"
-  s.executables = ["newrelic_cmd", "newrelic", "nrdebug"]
+  s.executables = %w[newrelic_cmd newrelic nrdebug]
   s.extra_rdoc_files = [
     "CHANGELOG.md",
     "LICENSE",

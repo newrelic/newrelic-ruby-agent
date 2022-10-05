@@ -48,12 +48,12 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   def test_decoding_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new("")
-    assert_equal "querty", obfuscator.encode('querty')
+    assert_equal "query", obfuscator.encode('query')
   end
 
   def test_encode_with_nil_uses_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new(nil)
-    assert_equal "querty", obfuscator.encode('querty')
+    assert_equal "query", obfuscator.encode('query')
   end
 
   def test_encoding_functions_can_roundtrip_utf8_text

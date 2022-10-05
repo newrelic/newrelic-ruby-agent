@@ -39,7 +39,7 @@ module NewRelic
 
         errors = error_trace_aggregator.harvest!
 
-        assert_equal errors.length, 1
+        assert_equal 1, errors.length
 
         err = errors.first
         assert_equal 'message', err.message
@@ -86,7 +86,7 @@ module NewRelic
       def test_supported_param_types
         types = [[1, '1'],
           [1.1, '1.1'],
-          ['hi', 'hi'],
+          %w[hi hi],
           [:hi, 'hi'],
           [StandardError.new("test"), "#<StandardError>"],
           [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
@@ -139,7 +139,7 @@ module NewRelic
         end
 
         errors = error_trace_aggregator.harvest!
-        assert errors.length == max_q_length
+        assert_equal(max_q_length, errors.length)
         errors.each_index do |i|
           error = errors.shift
           actual = error.to_collector_array.last["userAttributes"]["x"]
@@ -195,7 +195,7 @@ module NewRelic
       end
 
       def test_notice_agent_error_uses_exception_backtrace_if_present
-        trace = ["boo", "yeah", "error"]
+        trace = %w[boo yeah error]
         exception = DifficultToDebugAgentError.new
         exception.set_backtrace(trace)
         error_trace_aggregator.notice_agent_error(exception)
@@ -243,8 +243,8 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
         err = errors.first
 
-        assert err.message.include?(exception.message)
-        assert err.message.include?("Ruby agent internal error")
+        assert_includes(err.message, exception.message)
+        assert_includes(err.message, "Ruby agent internal error")
       end
 
       def test_errors_not_noticed_when_disabled

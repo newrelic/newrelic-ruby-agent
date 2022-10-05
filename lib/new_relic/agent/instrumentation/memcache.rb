@@ -2,8 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# NOTE there are multiple implementations of the MemCache client in Ruby,
-# each with slightly different API's and semantics.
+# NOTE: there are multiple implementations of the Memcached client in Ruby,
+# each with slightly different APIs and semantics.
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)
 #     http://seattlerb.rubyforge.org/memcache-client/ (Gem: memcache-client)
@@ -55,7 +55,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_prependers do |client_class, instrumenting_module|
-        prepend_instrument client_class, instrumenting_module, "MemecacheDalli"
+        prepend_instrument client_class, instrumenting_module, "MemcachedDalli"
       end
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::Dalli
@@ -78,7 +78,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_cas_prependers do |client_class, instrumenting_module|
-        prepend_instrument client_class, instrumenting_module, "MemecacheDalliCAS"
+        prepend_instrument client_class, instrumenting_module, "MemcachedDalliCAS"
       end
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS

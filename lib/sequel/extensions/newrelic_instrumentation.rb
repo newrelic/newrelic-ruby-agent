@@ -62,7 +62,7 @@ module Sequel
     # block in the sequel Plugin instrumentation. A simple ORM operation from the Plugin
     # instrumentation may trigger a number of calls to this method. We want to append
     # the statements that come from the disable_all_tracing block into this node's
-    # statement, otherwise we would end up ovewriting the sql statement with the
+    # statement, otherwise we would end up overwriting the sql statement with the
     # last one executed.
     def notice_sql(sql)
       return unless txn = NewRelic::Agent::Tracer.current_transaction

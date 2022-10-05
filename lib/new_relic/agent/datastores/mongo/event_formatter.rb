@@ -10,10 +10,10 @@ module NewRelic
       module Mongo
         module EventFormatter
           # Keys that will get their values replaced with '?'.
-          OBFUSCATE_KEYS = ['filter', 'query', 'pipeline'].freeze
+          OBFUSCATE_KEYS = %w[filter query pipeline].freeze
 
           # Keys that will get completely removed from the statement.
-          DENYLISTED_KEYS = ['deletes', 'documents', 'updates'].freeze
+          DENYLISTED_KEYS = %w[deletes documents updates].freeze
 
           def self.format(command_name, database_name, command)
             return nil unless NewRelic::Agent.config[:'mongo.capture_queries']

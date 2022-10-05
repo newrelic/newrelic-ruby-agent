@@ -59,43 +59,50 @@ module NewRelic
       include NewRelic::Agent::Shutdown
 
       def initialize
+        init_basics
+        init_components
+        init_event_handlers
+        setup_attribute_filter
+      end
+
+      private
+
+      def init_basics
         @started = false
         @event_loop = nil
         @worker_thread = nil
-
-        @service = NewRelicService.new
-
-        @events = EventListener.new
-        @stats_engine = StatsEngine.new
-        @transaction_sampler = TransactionSampler.new
-        @sql_sampler = SqlSampler.new
-        @agent_command_router = Commands::AgentCommandRouter.new(@events)
-        @monitors = Monitors.new(@events)
-        @error_collector = ErrorCollector.new(@events)
-        @transaction_rules = RulesEngine.new
-        @harvest_samplers = SamplerCollection.new(@events)
-        @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
-        @javascript_instrumentor = JavascriptInstrumentor.new(@events)
-        @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
-          Agent.config[:sampling_target_period_in_seconds])
-
-        @harvester = Harvester.new(@events)
-        @after_fork_lock = Mutex.new
-
-        @transaction_event_recorder = TransactionEventRecorder.new(@events)
-        @custom_event_aggregator = CustomEventAggregator.new(@events)
-        @span_event_aggregator = SpanEventAggregator.new(@events)
-        @log_event_aggregator = LogEventAggregator.new(@events)
-
         @connect_state = :pending
         @connect_attempts = 0
         @waited_on_connect = nil
         @connected_pid = nil
-
         @wait_on_connect_mutex = Mutex.new
+        @after_fork_lock = Mutex.new
         @wait_on_connect_condition = ConditionVariable.new
+      end
 
-        setup_attribute_filter
+      def init_components
+        @service = NewRelicService.new
+        @events = EventListener.new
+        @stats_engine = StatsEngine.new
+        @transaction_sampler = TransactionSampler.new
+        @sql_sampler = SqlSampler.new
+        @transaction_rules = RulesEngine.new
+        @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
+        @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
+          Agent.config[:sampling_target_period_in_seconds])
+      end
+
+      def init_event_handlers
+        @agent_command_router = Commands::AgentCommandRouter.new(@events)
+        @monitors = Monitors.new(@events)
+        @error_collector = ErrorCollector.new(@events)
+        @harvest_samplers = SamplerCollection.new(@events)
+        @javascript_instrumentor = JavaScriptInstrumentor.new(@events)
+        @harvester = Harvester.new(@events)
+        @transaction_event_recorder = TransactionEventRecorder.new(@events)
+        @custom_event_aggregator = CustomEventAggregator.new(@events)
+        @span_event_aggregator = SpanEventAggregator.new(@events)
+        @log_event_aggregator = LogEventAggregator.new(@events)
       end
 
       def setup_attribute_filter
@@ -105,6 +112,8 @@ module NewRelic
           refresh_attribute_filter
         end
       end
+
+      public
 
       def refresh_attribute_filter
         @attribute_filter = AttributeFilter.new(Agent.config)
@@ -153,7 +162,7 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_accessor :transaction_rules
-        # Responsbile for restarting the harvest thread
+        # Responsible for restarting the harvest thread
         attr_reader :harvester
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
@@ -181,7 +190,7 @@ module NewRelic
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.
         #
-        # The call is idempotent, but not re-entrant.
+        # The call is idempotent, but not reentrant.
         #
         # * It clears any metrics carried over from the parent process
         # * Restarts the sampler thread if necessary
@@ -197,17 +206,7 @@ module NewRelic
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
         def after_fork(options = {})
-          needs_restart = false
-          @after_fork_lock.synchronize do
-            needs_restart = @harvester.needs_restart?
-            @harvester.mark_started
-          end
-
-          return if !needs_restart ||
-            !Agent.config[:agent_enabled] ||
-            !Agent.config[:monitor_mode] ||
-            disconnected? ||
-            !control.security_settings_valid?
+          return unless needs_after_fork_work?
 
           ::NewRelic::Agent.logger.debug("Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking.")
 
@@ -219,6 +218,22 @@ module NewRelic
           drop_buffered_data
 
           setup_and_start_agent(options)
+        end
+
+        def needs_after_fork_work?
+          needs_restart = false
+          @after_fork_lock.synchronize do
+            needs_restart = @harvester.needs_restart?
+            @harvester.mark_started
+          end
+
+          return false if !needs_restart ||
+            !Agent.config[:agent_enabled] ||
+            !Agent.config[:monitor_mode] ||
+            disconnected? ||
+            !control.security_settings_valid?
+
+          true
         end
 
         def install_pipe_service(channel_id)
@@ -295,12 +310,7 @@ module NewRelic
 
         def flush_pipe_data
           if connected? && @service.is_a?(PipeService)
-            transmit_data
-            transmit_analytic_event_data
-            transmit_custom_event_data
-            transmit_error_event_data
-            transmit_span_event_data
-            transmit_log_event_data
+            transmit_data_types
           end
         end
 
@@ -515,12 +525,7 @@ module NewRelic
         #   forking off from a parent process.
         #
         def connect(options = {})
-          defaults = {
-            :keep_retrying => Agent.config[:keep_retrying],
-            :force_reconnect => Agent.config[:force_reconnect]
-          }
-          opts = defaults.merge(options)
-
+          opts = connect_options(options)
           return unless should_connect?(opts[:force_reconnect])
 
           ::NewRelic::Agent.logger.debug("Connecting Process to New Relic: #$0")
@@ -535,21 +540,32 @@ module NewRelic
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
         rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
+          retry if retry_from_error?(e, opts)
+        rescue Exception => e
+          ::NewRelic::Agent.logger.error("Exception of unexpected type during Agent#connect():", e)
+
+          raise
+        end
+
+        def connect_options(options)
+          {
+            keep_retrying: Agent.config[:keep_retrying],
+            force_reconnect: Agent.config[:force_reconnect]
+          }.merge(options)
+        end
+
+        def retry_from_error?(e, opts)
           # Allow a killed (aborting) thread to continue exiting during shutdown.
           # See: https://github.com/newrelic/newrelic-ruby-agent/issues/340
           raise if Thread.current.status == 'aborting'
 
           log_error(e)
-          if opts[:keep_retrying]
-            note_connect_failure
-            ::NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
-            sleep(connect_retry_period)
-            retry
-          end
-        rescue Exception => e
-          ::NewRelic::Agent.logger.error("Exception of unexpected type during Agent#connect():", e)
+          return false unless opts[:keep_retrying]
 
-          raise
+          note_connect_failure
+          ::NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
+          sleep(connect_retry_period)
+          true
         end
 
         # Delegates to the control class to determine the root
@@ -734,13 +750,7 @@ module NewRelic
 
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive
-            harvest_and_send_errors
-            harvest_and_send_error_event_data
-            harvest_and_send_transaction_traces
-            harvest_and_send_slowest_sql
-            harvest_and_send_timeslice_data
-            harvest_and_send_span_event_data
-            harvest_and_send_log_event_data
+            harvest_and_send_data_types
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands
@@ -764,19 +774,9 @@ module NewRelic
               @service.request_timeout = 10
 
               @events.notify(:before_shutdown)
-              transmit_data
-              transmit_analytic_event_data
-              transmit_custom_event_data
-              transmit_error_event_data
-              transmit_span_event_data
-              transmit_log_event_data
+              transmit_data_types
+              shutdown_service
 
-              if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-                ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
-                @service.shutdown
-              else
-                ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
-              end
               ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
             rescue Timeout::Error, StandardError => e
               ::NewRelic::Agent.logger.debug("Error when disconnecting #{e.class.name}: #{e.message}")
@@ -785,6 +785,34 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Bypassing graceful disconnect - agent not connected")
           end
         end
+      end
+
+      def shutdown_service
+        if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
+          ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
+          @service.shutdown
+        else
+          ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
+        end
+      end
+
+      def transmit_data_types
+        transmit_data
+        transmit_analytic_event_data
+        transmit_custom_event_data
+        transmit_error_event_data
+        transmit_span_event_data
+        transmit_log_event_data
+      end
+
+      def harvest_and_send_data_types
+        harvest_and_send_errors
+        harvest_and_send_error_event_data
+        harvest_and_send_transaction_traces
+        harvest_and_send_slowest_sql
+        harvest_and_send_timeslice_data
+        harvest_and_send_span_event_data
+        harvest_and_send_log_event_data
       end
 
       extend ClassMethods

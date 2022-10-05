@@ -60,7 +60,7 @@ module NewRelic::Agent
       100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
       assert_equal(0, buffer.size)
-      assert_equal([], buffer.to_a)
+      assert_empty(buffer.to_a)
     end
 
     def test_to_a_returns_copy_of_items_array
@@ -83,7 +83,7 @@ module NewRelic::Agent
 
       buffer.reset!
 
-      assert_equal([], buffer.to_a)
+      assert_empty(buffer.to_a)
     end
 
     def test_buffer_full_works_properly
@@ -91,12 +91,12 @@ module NewRelic::Agent
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
-        assert_equal(false, buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full")
+        refute buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full"
       end
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
-        assert_equal(true, buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
+        assert(buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
       end
     end
 

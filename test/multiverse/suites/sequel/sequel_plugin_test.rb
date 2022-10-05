@@ -29,7 +29,7 @@ if Sequel.const_defined?(:MAJOR) &&
     end
 
     def test_sequel_model_instrumentation_is_loaded
-      assert Post.respond_to?(:trace_execution_scoped)
+      assert_respond_to Post, :trace_execution_scoped
     end
 
     def test_model_enumerator_generates_metrics
@@ -192,7 +192,7 @@ if Sequel.const_defined?(:MAJOR) &&
           model_class[11]
         end
         assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
-        assert_equal([], node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
+        assert_empty(node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
       end
     end
 
@@ -220,7 +220,7 @@ if Sequel.const_defined?(:MAJOR) &&
         expected_metric_name = "Datastore/statement/#{product_name}/Post/all"
         recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
 
-        assert recorded_metric_names.include?(expected_metric_name)
+        assert_includes(recorded_metric_names, expected_metric_name)
       end
     end
   end

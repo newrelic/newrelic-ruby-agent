@@ -22,11 +22,11 @@ module NewRelic::Agent
 
     def test_in_background_transaction
       in_transaction(:category => :task) do |txn|
-        assert !txn.recording_web_transaction?
+        refute txn.recording_web_transaction?
       end
     end
 
-    def test_in_request_tranasction
+    def test_in_request_transaction
       in_web_transaction do |txn|
         assert txn.recording_web_transaction?
       end
@@ -57,8 +57,7 @@ module NewRelic::Agent
       variables.each do |ivar|
         value = state.instance_variable_get(ivar)
         empties = [0, nil, false, []]
-        assert empties.include?(value),
-          "Expected #{ivar} to reset, but was #{value}"
+        assert_includes(empties, value, "Expected #{ivar} to reset, but was #{value}")
       end
     end
   end

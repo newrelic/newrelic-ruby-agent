@@ -26,7 +26,7 @@ class AgentLoggerTest < Minitest::Test
   # Tests
   #
 
-  def test_initalizes_from_config
+  def test_initializes_from_config
     logger = NewRelic::Agent::AgentLogger.new
 
     wrapped_logger = logger.instance_variable_get(:@log)
@@ -38,7 +38,7 @@ class AgentLoggerTest < Minitest::Test
     assert_equal(expected_logpath, logdev.filename)
   end
 
-  def test_initalizes_from_override
+  def test_initializes_from_override
     override_logger = Logger.new('/dev/null')
     logger = NewRelic::Agent::AgentLogger.new("", override_logger)
     assert_equal override_logger, logger.instance_variable_get(:@log)
@@ -221,7 +221,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     e = Exception.new("howdy")
-    e.set_backtrace(["wiggle", "wobble", "topple"])
+    e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:info, e)
 
@@ -233,7 +233,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     e = Exception.new("howdy")
-    e.set_backtrace(["wiggle", "wobble", "topple"])
+    e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:warn, e, :info)
 
@@ -306,12 +306,12 @@ class AgentLoggerTest < Minitest::Test
     with_config(:log_level => 'warn') do
       logger = create_basic_logger
 
-      block_was_evalutated = false
+      block_was_evaluated = false
       logger.info do
-        block_was_evalutated = true
+        block_was_evaluated = true
       end
 
-      refute block_was_evalutated
+      refute block_was_evaluated
     end
   end
 
