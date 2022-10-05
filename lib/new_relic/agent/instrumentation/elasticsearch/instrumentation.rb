@@ -10,22 +10,17 @@ module NewRelic::Agent::Instrumentation
 
     def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
-      # add a config option to collect paramters or not
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
         operation: OPERATION,
         host: host,
         port_path_or_id: path || port,
-        database_name: cluster_name # do we need to get this every time, or will it stay the same?
+        database_name: cluster_name
       )
       begin
-        response = nil
-
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { response = yield }
-
-        response
+        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
-        add_attributes(segment, params: reported_query(params), body: reported_query(body), method: method)
+        segment.notice_nosql_statement(reported_query(body || params))
         segment.finish if segment
       end
     end
