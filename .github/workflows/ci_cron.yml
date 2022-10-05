@@ -373,3 +373,23 @@ jobs:
           channel: ruby-agent-notifications
           status: FAILED
           color: danger
+
+  notify_slack_success:
+    name: Notify slack success
+    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+    runs-on: ubuntu-22.04
+    if: always()
+    steps:
+      - uses: technote-space/workflow-conclusion-action@v3
+      - uses: Mercymeilya/last-workflow-status@v0.3.2
+        id: last_status
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: voxmedia/github-action-slack-notify-build@v1
+        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+        with:
+          channel: ruby-agent-notifications
+          status: SUCCESS
+          color: good

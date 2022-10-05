@@ -24,13 +24,12 @@ This project uses the internal Ruby Gem Updates Slackbot to post notifications. 
 ## Relevant Project Files
 
 **Gem Version Updates** 
-* [notifications_script](.github/workflows/scripts/slack_gem_notifications/notifications_script.rb)
-* [notifications_methods](.github/workflows/scripts/slack_gem_notifications/notifications_methods.rb)
+* [gem_notifier](.github/workflows/scripts/slack_notifications/gem_notifier.rb)
 
 **Ruby CVE Updates**
-* [cve_methods](.github/workflows/scripts/slack_gem_notifications/cve_methods.rb)
-* [cve_script](.github/workflows/scripts/slack_gem_notifications/cve_script.rb)
+* [cve_methods](.github/workflows/scripts/slack_notifications/cve_notifier.rb)
 
 **Shared**
-* [gem_notifications](.github/workflows/gem_notifications.yml)
-* [gem_notifications_tests](test/new_relic/gem_notifications_tests.rb)
+* [slack_notifications](.github/workflows/slack_notifications.yml)
+* [slack_notifier](.github/workflows/scripts/slack_notifications/slack_notifier.rb)
+* [slack_notifications_tests](test/new_relic/slack_notifications_tests)

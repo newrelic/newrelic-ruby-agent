@@ -32,7 +32,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   def test_gets_at_an_underlying_class_from_a_singleton_class
     with_config(:'code_level_metrics.enabled' => true) do
       klass = NewRelic::Agent::MethodTracerHelpers.send(:klassify_singleton, The::Example.singleton_class)
-      assert The::Example, klass
+      assert_equal klass, The::Example
     end
   end
 
@@ -113,7 +113,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       helped.code_information(::The::Example, :instance_method)
       memoized = helped.instance_variable_get(:@code_information)
       assert memoized
-      assert memoized.keys.size == 1
+      assert_equal(1, memoized.keys.size)
       assert memoized.keys.first.frozen?
       assert memoized.values.first.frozen?
     end

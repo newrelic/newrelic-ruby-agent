@@ -118,18 +118,18 @@ module NewRelic
         return statement.explain || []
       end
 
-      KNOWN_OPERATIONS = [
-        'alter',
-        'select',
-        'update',
-        'delete',
-        'insert',
-        'create',
-        'show',
-        'set',
-        'exec',
-        'execute',
-        'call'
+      KNOWN_OPERATIONS = %w[
+        alter
+        select
+        update
+        delete
+        insert
+        create
+        show
+        set
+        exec
+        execute
+        call
       ]
       OTHER_OPERATION = 'other'.freeze
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze

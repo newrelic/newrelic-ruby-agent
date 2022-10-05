@@ -35,8 +35,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     NewRelic::Agent::PipeChannelManager.register_report_channel(1)
     pipe = NewRelic::Agent::PipeChannelManager.channels[1]
 
-    assert pipe.out.kind_of?(IO)
-    assert pipe.in.kind_of?(IO)
+    assert_kind_of(IO, pipe.out)
+    assert_kind_of(IO, pipe.in)
 
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
   end

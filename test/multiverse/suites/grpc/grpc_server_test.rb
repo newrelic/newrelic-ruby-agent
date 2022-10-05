@@ -119,7 +119,7 @@ class GrpcServerTest < Minitest::Test
   end
 
   # make it all the way to the final yield in #handle_with_tracing, then
-  # verify that raised execptions are noticed
+  # verify that raised exceptions are noticed
   def test_errors_from_handled_requests_are_noticed
     desc = basic_grpc_desc
     def desc.trace_with_newrelic?; true; end # force a true response from this method
@@ -212,8 +212,8 @@ class GrpcServerTest < Minitest::Test
   def test_host_and_port_are_not_added_if_info_is_not_available
     server = basic_grpc_server
     server.add_http2_port_with_tracing('bogus_host', :this_port_is_insecure) {}
-    refute server.instance_variables.include?(host_var)
-    refute server.instance_variables.include?(port_var)
+    refute_includes server.instance_variables, host_var
+    refute_includes server.instance_variables, port_var
   end
 
   def test_host_and_port_and_method_are_added_on_the_desc

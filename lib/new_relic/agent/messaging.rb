@@ -285,7 +285,7 @@ module NewRelic
       # @param message_properties [Hash] Metadata about the message and opaque
       #   application-level data (optional)
       #
-      # @param exchange_type [Symbol] Type of AMQP exchange the message was recieved
+      # @param exchange_type [Symbol] Type of AMQP exchange the message was received
       #   from (see NewRelic::Agent::Transaction::MessageBrokerSegment::DESTINATION_TYPES)
       #
       # @param queue_name [String] name of the AMQP queue on which the message was

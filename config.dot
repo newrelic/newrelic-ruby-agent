@@ -90,7 +90,7 @@ digraph AgentEnabled {
   "Agent#log_seed_token"
   "Agent#log_error"
   "Agent#monitoring?"
-  "Agent#check_trasaction_sampler_status"
+  "Agent#check_transaction_sampler_status"
   "Agent#check_sql_sampler_status"
   "Agent#config_transaction_tracer"
   "Agent#set_sql_recording!"
@@ -134,8 +134,8 @@ digraph AgentEnabled {
 
   "MetricFrame.update_apdex"
 
-  "TranactionInfo#force_persist_sample?"
-  "TranactionInfo#include_guid?"
+  "TransactionInfo#force_persist_sample?"
+  "TransactionInfo#include_guid?"
 
   "TransactionSampleBuilder#initialize"
   "TransactionSampleBuilder#set_transaction_info"
@@ -257,8 +257,8 @@ digraph AgentEnabled {
 
   "MetricFrame.update_apdex" -> "[apdex_t]"
 
-  "TranactionInfo#force_persist_sample?" -> "[apdex_t]"
-  "TranactionInfo#include_guid?" -> "[apdex_t]"
+  "TransactionInfo#force_persist_sample?" -> "[apdex_t]"
+  "TransactionInfo#include_guid?" -> "[apdex_t]"
 
   "TransactionSampleBuilder#initialize" -> "[transaction_tracer.limit_segments]"
   "TransactionSampleBuilder#set_transaction_info" -> "[capture_params]"

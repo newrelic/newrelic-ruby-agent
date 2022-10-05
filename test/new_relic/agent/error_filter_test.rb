@@ -18,7 +18,7 @@ module NewRelic::Agent
       end
 
       def test_ignore_classes
-        with_config(:'error_collector.ignore_classes' => ['TestExceptionA', 'TestExceptionC']) do
+        with_config(:'error_collector.ignore_classes' => %w[TestExceptionA TestExceptionC]) do
           @error_filter.load_all
           assert @error_filter.ignore?(TestExceptionA.new)
           refute @error_filter.ignore?(TestExceptionB.new)
@@ -108,7 +108,7 @@ module NewRelic::Agent
       end
 
       def test_expected_classes
-        with_config(:'error_collector.expected_classes' => ['TestExceptionA', 'TestExceptionC']) do
+        with_config(:'error_collector.expected_classes' => %w[TestExceptionA TestExceptionC]) do
           @error_filter.load_all
           assert @error_filter.expected?(TestExceptionA.new)
           refute @error_filter.expected?(TestExceptionB.new)
@@ -152,7 +152,7 @@ module NewRelic::Agent
         @error_filter.reset
         refute @error_filter.expected?(TestExceptionA.new)
 
-        @error_filter.expect('401,405-409', ['500', '505-509'])
+        @error_filter.expect('401,405-409', %w[500 505-509])
         assert @error_filter.expected?(TestExceptionA.new, 401)
         assert @error_filter.expected?(TestExceptionA.new, 407)
         assert @error_filter.expected?(TestExceptionA.new, 500)

@@ -56,7 +56,7 @@ module NewRelic
         begin
           result = namespace.const_get(name)
 
-          # const_get looks up the inheritence chain, so if it's a class
+          # const_get looks up the inheritance chain, so if it's a class
           # in the constant make sure we found the one in our namespace.
           #
           # Can't help if the constant isn't a class...

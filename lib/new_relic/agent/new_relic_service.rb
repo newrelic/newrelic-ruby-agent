@@ -21,6 +21,9 @@ module NewRelic
       # underlying TCP connection may be in a bad state.
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
 
+      # The maximum number of times to attempt an HTTP request
+      MAX_ATTEMPTS = 2
+
       # Don't perform compression on the payload unless its uncompressed size is
       # greater than or equal to this number of bytes. In testing with
       # Ruby 2.2 - 3.1, we determined an absolute minimum value for ASCII to be
@@ -47,14 +50,22 @@ module NewRelic
         @request_headers_map = nil
         reset_remote_method_uris
 
+        prep_audit_logger
+        prep_marshaller
+      end
+
+      def prep_audit_logger
         @audit_logger = ::NewRelic::Agent::AuditLogger.new
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
           @audit_logger.enabled = enabled
         end
+      end
 
+      def prep_marshaller
         Agent.config.register_callback(:marshaller) do |marshaller|
           if marshaller != 'json'
-            ::NewRelic::Agent.logger.warn("Non-JSON marshaller '#{marshaller}' requested but not supported, using JSON marshaller instead. pruby marshalling has been removed as of version 3.14.0.")
+            ::NewRelic::Agent.logger.warn("Non-JSON marshaller '#{marshaller}' requested but not supported, using " \
+              "JSON marshaller instead. pruby marshalling has been removed as of version 3.14.0.")
           end
 
           @marshaller = JsonMarshaller.new
@@ -130,12 +141,11 @@ module NewRelic
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
-        result = invoke_remote(
+        invoke_remote(
           :metric_data,
           [@agent_id, timeslice_start, timeslice_end, metric_data_array],
           :item_count => metric_data_array.size
         )
-        result
       end
 
       def error_data(unsent_errors)
@@ -323,25 +333,29 @@ module NewRelic
       end
 
       def create_http_connection
-        if Agent.config[:proxy_host]
-          ::NewRelic::Agent.logger.debug("Using proxy server #{Agent.config[:proxy_host]}:#{Agent.config[:proxy_port]}")
-
-          proxy = Net::HTTP::Proxy(
-            Agent.config[:proxy_host],
-            Agent.config[:proxy_port],
-            Agent.config[:proxy_user],
-            Agent.config[:proxy_pass]
-          )
-          conn = proxy.new(@collector.name, @collector.port)
-        else
-          conn = Net::HTTP.new(@collector.name, @collector.port)
-        end
-
+        conn = prep_connection
         setup_connection_for_ssl(conn)
         setup_connection_timeouts(conn)
 
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{conn.address}:#{conn.port}")
         conn
+      end
+
+      def prep_connection
+        return Net::HTTP.new(@collector.name, @collector.port) unless Agent.config[:proxy_host]
+
+        ::NewRelic::Agent.logger.debug("Using proxy server #{Agent.config[:proxy_host]}:#{Agent.config[:proxy_port]}")
+        prep_proxy_connection
+      end
+
+      def prep_proxy_connection
+        proxy = Net::HTTP::Proxy(
+          Agent.config[:proxy_host],
+          Agent.config[:proxy_port],
+          Agent.config[:proxy_user],
+          Agent.config[:proxy_pass]
+        )
+        proxy.new(@collector.name, @collector.port)
       end
 
       def create_and_start_http_connection
@@ -375,6 +389,116 @@ module NewRelic
       # A shorthand for NewRelic::Control.instance
       def control
         NewRelic::Control.instance
+      end
+
+      def prep_headers(opts)
+        headers = {
+          'Content-Encoding' => opts[:encoding],
+          'Host' => opts[:collector].name
+        }
+        headers.merge!(@request_headers_map) if @request_headers_map
+        headers
+      end
+
+      def prep_request(opts)
+        headers = prep_headers(opts)
+        if Agent.config[:put_for_data_send]
+          request = Net::HTTP::Put.new(opts[:uri], headers)
+        else
+          request = Net::HTTP::Post.new(opts[:uri], headers)
+        end
+        @audit_logger.log_request_headers(opts[:uri], headers)
+        request['user-agent'] = user_agent
+        request.content_type = "application/octet-stream"
+        request.body = opts[:data]
+        request
+      end
+
+      def relay_request(request, opts)
+        response = nil
+        attempts = 0
+
+        begin
+          attempts += 1
+          response = attempt_request(request, opts)
+        rescue *CONNECTION_ERRORS => e
+          close_shared_connection
+          if attempts < MAX_ATTEMPTS
+            ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
+            retry
+          else
+            raise ServerConnectionException, "Recoverable error talking to #{@collector} after #{attempts} attempts: #{e}"
+          end
+        end
+
+        log_response(response)
+        response
+      end
+
+      def attempt_request(request, opts)
+        response = nil
+        conn = http_connection
+        ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}")
+        Timeout.timeout(@request_timeout) do
+          response = conn.request(request)
+        end
+        response
+      end
+
+      def handle_error_response(response, endpoint)
+        case response
+        when Net::HTTPRequestTimeOut,
+             Net::HTTPTooManyRequests,
+             Net::HTTPInternalServerError,
+             Net::HTTPServiceUnavailable
+          handle_server_connection_exception(response, endpoint)
+        when Net::HTTPBadRequest,
+             Net::HTTPForbidden,
+             Net::HTTPNotFound,
+             Net::HTTPMethodNotAllowed,
+             Net::HTTPProxyAuthenticationRequired,
+             Net::HTTPLengthRequired,
+             Net::HTTPRequestEntityTooLarge,
+             Net::HTTPRequestURITooLong,
+             Net::HTTPUnsupportedMediaType,
+             Net::HTTPExpectationFailed,
+             Net::HTTPUnsupportedMediaType,
+             Net::HTTPRequestHeaderFieldsTooLarge
+          handle_unrecoverable_server_exception(response, endpoint)
+        when Net::HTTPConflict,
+             Net::HTTPUnauthorized
+          handle_unauthorized_error_response(response, endpoint)
+          raise ForceRestartException, "#{response.code}: #{response.message}"
+        when Net::HTTPGone
+          handle_gone_response(response, endpoint)
+        else
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          record_error_response_supportability_metrics(response.code)
+          raise UnrecoverableServerException, "#{response.code}: #{response.message}"
+        end
+        response
+      end
+
+      def handle_server_connection_exception(response, endpoint)
+        record_endpoint_attempts_supportability_metrics(endpoint)
+        raise ServerConnectionException, "#{response.code}: #{response.message}"
+      end
+
+      def handle_unrecoverable_server_exception(response, endpoint)
+        record_endpoint_attempts_supportability_metrics(endpoint)
+        record_error_response_supportability_metrics(response.code)
+        raise UnrecoverableServerException, "#{response.code}: #{response.message}"
+      end
+
+      def handle_unauthorized_error_response(response, endpoint)
+        record_endpoint_attempts_supportability_metrics(endpoint)
+        record_error_response_supportability_metrics(response.code)
+      end
+
+      def handle_gone_response(response, endpoint)
+        record_endpoint_attempts_supportability_metrics(endpoint)
+        record_error_response_supportability_metrics(response.code)
+        raise ForceDisconnectException, "#{response.code}: #{response.message}"
       end
 
       def remote_method_uri(method)
@@ -415,42 +539,14 @@ module NewRelic
       # server may return
       def invoke_remote(method, payload = [], options = {})
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-        data, size, serialize_finish_ts, request_send_ts, response_check_ts = nil
-        begin
-          data = @marshaller.dump(payload, options)
-        rescue StandardError, SystemStackError => e
-          handle_serialization_error(method, e)
-        end
-        serialize_finish_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-        size = data.size # only the uncompressed size is reported
-        data, encoding = compress_request_if_needed(data, method)
-
-        # Preconnect needs to always use the configured collector host, not the redirect host
-        # We reset it here so we are always using the configured collector during our creation of the new connection
-        # and we also don't want to keep the previous redirect host around anymore
-        if method == :preconnect
-          @collector = @configured_collector
-        end
-
-        uri = remote_method_uri(method)
-        full_uri = "#{@collector}#{uri}"
-
-        @audit_logger.log_request(full_uri, payload, @marshaller)
-        request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        response = send_request(:data => data,
-          :uri       => uri,
-          :encoding  => encoding,
-          :collector => @collector,
-          :endpoint  => method)
-        response_check_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        request_send_ts, response_check_ts = nil
+        data, encoding, size, serialize_finish_ts = marshal_payload(method, payload, options)
+        prep_collector(method)
+        response, request_send_ts, response_check_ts = invoke_remote_send_request(method, payload, data, encoding)
         @marshaller.load(decompress_response(response))
       ensure
         record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
-        if size
-          record_size_supportability_metrics(method, size, options[:item_count])
-        end
+        record_size_supportability_metrics(method, size, options[:item_count]) if size
       end
 
       def handle_serialization_error(method, e)
@@ -512,86 +608,11 @@ module NewRelic
       #                    contact
       #  - :data => the data to send as the body of the request
       def send_request(opts)
-        headers = {
-          'Content-Encoding' => opts[:encoding],
-          'Host' => opts[:collector].name
-        }
-        headers.merge!(@request_headers_map) if @request_headers_map
+        request = prep_request(opts)
+        response = relay_request(request, opts)
+        return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
 
-        if Agent.config[:put_for_data_send]
-          request = Net::HTTP::Put.new(opts[:uri], headers)
-        else
-          request = Net::HTTP::Post.new(opts[:uri], headers)
-        end
-        @audit_logger.log_request_headers(opts[:uri], headers)
-        request['user-agent'] = user_agent
-        request.content_type = "application/octet-stream"
-        request.body = opts[:data]
-
-        response = nil
-        attempts = 0
-        max_attempts = 2
-        endpoint = opts[:endpoint]
-
-        begin
-          attempts += 1
-          conn = http_connection
-          ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}")
-          Timeout.timeout(@request_timeout) do
-            response = conn.request(request)
-          end
-        rescue *CONNECTION_ERRORS => e
-          close_shared_connection
-          if attempts < max_attempts
-            ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
-            retry
-          else
-            raise ServerConnectionException, "Recoverable error talking to #{@collector} after #{attempts} attempts: #{e}"
-          end
-        end
-
-        log_response(response)
-
-        case response
-        when Net::HTTPSuccess,
-             Net::HTTPAccepted
-          true # do nothing
-        when Net::HTTPRequestTimeOut,
-             Net::HTTPTooManyRequests,
-             Net::HTTPInternalServerError,
-             Net::HTTPServiceUnavailable
-          record_endpoint_attempts_supportability_metrics(endpoint)
-          raise ServerConnectionException, "#{response.code}: #{response.message}"
-        when Net::HTTPBadRequest,
-             Net::HTTPForbidden,
-             Net::HTTPNotFound,
-             Net::HTTPMethodNotAllowed,
-             Net::HTTPProxyAuthenticationRequired,
-             Net::HTTPLengthRequired,
-             Net::HTTPRequestEntityTooLarge,
-             Net::HTTPRequestURITooLong,
-             Net::HTTPUnsupportedMediaType,
-             Net::HTTPExpectationFailed,
-             Net::HTTPUnsupportedMediaType,
-             Net::HTTPRequestHeaderFieldsTooLarge
-          record_endpoint_attempts_supportability_metrics(endpoint)
-          record_error_response_supportability_metrics(response.code)
-          raise UnrecoverableServerException, "#{response.code}: #{response.message}"
-        when Net::HTTPConflict,
-             Net::HTTPUnauthorized
-          record_endpoint_attempts_supportability_metrics(endpoint)
-          record_error_response_supportability_metrics(response.code)
-          raise ForceRestartException, "#{response.code}: #{response.message}"
-        when Net::HTTPGone
-          record_endpoint_attempts_supportability_metrics(endpoint)
-          record_error_response_supportability_metrics(response.code)
-          raise ForceDisconnectException, "#{response.code}: #{response.message}"
-        else
-          record_endpoint_attempts_supportability_metrics(endpoint)
-          record_error_response_supportability_metrics(response.code)
-          raise UnrecoverableServerException, "#{response.code}: #{response.message}"
-        end
-        response
+        handle_error_response(response, opts[:endpoint])
       end
 
       def log_response(response)
@@ -611,11 +632,9 @@ module NewRelic
       # Decompresses the response from the server, if it is gzip
       # encoded, otherwise returns it verbatim
       def decompress_response(response)
-        if response['content-encoding'] == 'gzip'
-          Zlib::GzipReader.new(StringIO.new(response.body)).read
-        else
-          response.body
-        end
+        return response.body unless response['content-encoding'] == 'gzip'
+
+        Zlib::GzipReader.new(StringIO.new(response.body)).read
       end
 
       # Sets the user agent for connections to the server, to
@@ -624,10 +643,45 @@ module NewRelic
       # that may cause corrupt compression if there is a problem.
       def user_agent
         if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
-          ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " # note the trailing space!
+          ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " # NOTE: the trailing space!
         end
         zlib_version = "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
+      end
+
+      def marshal_payload(method, payload, options)
+        begin
+          data = @marshaller.dump(payload, options)
+        rescue StandardError, SystemStackError => e
+          handle_serialization_error(method, e)
+        end
+        serialize_finish_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+        size = data.size # only the uncompressed size is reported
+        data, encoding = compress_request_if_needed(data, method)
+
+        [data, encoding, size, serialize_finish_ts]
+      end
+
+      def prep_collector(method)
+        # Preconnect needs to always use the configured collector host, not the redirect host
+        # We reset it here so we are always using the configured collector during our creation of the new connection
+        # and we also don't want to keep the previous redirect host around anymore
+        @collector = @configured_collector if method == :preconnect
+      end
+
+      def invoke_remote_send_request(method, payload, data, encoding)
+        uri = remote_method_uri(method)
+        full_uri = "#{@collector}#{uri}"
+
+        @audit_logger.log_request(full_uri, payload, @marshaller)
+        request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        response = send_request(:data => data,
+          :uri       => uri,
+          :encoding  => encoding,
+          :collector => @collector,
+          :endpoint  => method)
+        [response, request_send_ts, Process.clock_gettime(Process::CLOCK_MONOTONIC)]
       end
     end
   end

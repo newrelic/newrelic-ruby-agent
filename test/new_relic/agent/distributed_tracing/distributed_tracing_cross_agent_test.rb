@@ -168,7 +168,7 @@ module NewRelic::Agent
 
         (test_case_attributes['expected'] || []).each do |key|
           msg = %Q(Missing expected #{event_type} attribute "#{key}")
-          assert actual_attributes.has_key?(key), msg
+          assert actual_attributes.has_key?(key), msg # rubocop:disable Minitest/AssertWithExpectedArgument
         end
 
         (test_case_attributes['unexpected'] || []).each do |key|

@@ -58,7 +58,7 @@ module NewRelic::Agent
       # If the port is declared on the host entry, it overrides the port entry because otherwise
       # we'd need to figure out if user supplied the port or if the default source config set
       # the port.  To help with debugging configuration issues, we log whenever the port entry
-      # is overriden by the presence of the port on the host entry.
+      # is overridden by the presence of the port on the host entry.
       def port_from_host_entry
         port_str = NewRelic::Agent.config[:'infinite_tracing.trace_observer.host'].scan(%r{:(\d+)$}).flatten
         if port = (port_str[0] and port_str[0].to_i)
@@ -74,7 +74,7 @@ module NewRelic::Agent
       end
 
       # The scheme is based on whether the Trace Observer is running locally or remotely.
-      # Remote unsecure (unencypted) streaming is disallowed!
+      # Remote unsecure (unencrypted) streaming is disallowed!
       def trace_observer_scheme
         local? ? NewRelic::HTTP : NewRelic::HTTPS
       end

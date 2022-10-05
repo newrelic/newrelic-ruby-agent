@@ -1,5 +1,5 @@
 name: 'Annotate Errors'
-description: 'Annotates errors if an errrors.txt file is present'
+description: 'Annotates errors if an errors.txt file is present'
 author: New Relic
 runs:
   using: 'node12'

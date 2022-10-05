@@ -74,7 +74,7 @@ module NewRelic
         # We've seen that often the backtrace on a SystemStackError is bunk
         # so massage the caller instead at a known depth.
         #
-        # Tests keep us honest about minmum method depth our log calls add.
+        # Tests keep us honest about minimum method depth our log calls add.
         return caller.drop(5) if e.is_a?(SystemStackError)
 
         e.backtrace

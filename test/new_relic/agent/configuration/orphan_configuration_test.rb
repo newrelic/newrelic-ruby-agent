@@ -24,7 +24,7 @@ class OrphanedConfigTest < Minitest::Test
 
         config_keys.each do |key|
           msg = "#{file}:#{index} - Configuration key #{key} is not described in default_source.rb.\n"
-          assert @default_keys.include?(key), msg
+          assert_includes(@default_keys, key, msg)
         end
       end
     end

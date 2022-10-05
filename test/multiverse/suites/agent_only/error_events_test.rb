@@ -19,7 +19,7 @@ class ErrorEventsTest < Minitest::Test
     assert_equal txn.best_name, intrinsics["transactionName"]
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "Big Controller", intrinsics["error.message"]
-    assert_equal false, intrinsics["error.expected"]
+    refute intrinsics["error.expected"]
     assert_equal "TransactionError", intrinsics["type"]
     assert_equal txn.payload[:duration], intrinsics["duration"]
   end
@@ -31,7 +31,7 @@ class ErrorEventsTest < Minitest::Test
 
     intrinsics, _, _ = last_error_event
 
-    assert_equal true, intrinsics["error.expected"]
+    assert intrinsics["error.expected"]
   end
 
   def test_records_supportability_metrics
@@ -113,7 +113,7 @@ class ErrorEventsTest < Minitest::Test
 
     _, custom_attributes, _ = last_error_event
 
-    assert_equal({}, custom_attributes)
+    assert_empty(custom_attributes)
   end
 
   def test_error_events_outside_txn_abide_by_custom_attributes_config
@@ -125,7 +125,7 @@ class ErrorEventsTest < Minitest::Test
 
     _, custom_attributes, _ = last_error_event
 
-    assert_equal({}, custom_attributes)
+    assert_empty(custom_attributes)
   end
 
   def generate_errors(num_errors = 1, options = {})

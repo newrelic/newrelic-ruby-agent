@@ -70,7 +70,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     NewRelic::Helper.stubs('run_command').with('uname -s').raises(NewRelic::CommandRunFailedError)
     NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, 'java') do
       platform = NewRelic::Agent::Samplers::MemorySampler.platform
-      assert_equal platform, 'unknown'
+      assert_equal 'unknown', platform
     end
   end
 

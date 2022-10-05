@@ -96,7 +96,7 @@ module NewRelic
             refute_metrics_recorded [basic_segment_name, BasicSegment::ALL_NAME]
           end
 
-          # local metrics will be merged into global store at the end of the transction
+          # local metrics will be merged into global store at the end of the transaction
           assert_metrics_recorded [basic_segment_name, BasicSegment::ALL_NAME]
         end
 
@@ -257,14 +257,14 @@ module NewRelic
 
         def test_code_level_metrics_attributes_are_empty_if_the_metrics_are_empty
           with_segment do |segment|
-            assert_equal(segment.code_attributes, {})
+            assert_empty segment.code_attributes
           end
         end
 
         def test_code_level_metrics_are_all_or_nothing
           with_segment do |segment|
             segment.code_information = clm_info.reject { |key| key == :namespace }
-            assert_equal(segment.code_attributes, {})
+            assert_empty(segment.code_attributes)
           end
         end
 

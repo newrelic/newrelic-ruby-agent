@@ -10,7 +10,7 @@ module NewRelic
     class CollectorResponseCodeTest < Minitest::Test
       def setup
         @agent = NewRelic::Agent::Agent.new
-        @errors = ["e1", "e2"]
+        @errors = %w[e1 e2]
       end
 
       def stub_service(response)
