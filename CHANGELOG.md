@@ -2,18 +2,47 @@
 
   ## v8.11.0
 
+  Version 8.11.0 of the agent updates the `newrelic deployments` command to work with API keys issued to newer accounts, fixes a memory leak in the instrumentation of Curb error handling, further preps for Ruby 3.2.0 support, and includes several community member driven cleanup and improvement efforts. Thank you to everyone involved!
+
+
   * **Added support for New Relic REST API v2 when using `newrelic deployments` command**
 
     Previously, the `newrelic deployments` command only supported the older version of the deployments api, which does not currently support newer license keys. Now you can use the New Relic REST API v2 to record deployments by providing your user api key to the agent configuration using `api_key`. When this configuration option is present, the `newrelic deployments` command will automatically use the New Relic REST API v2 deployment endpoint. [PR#1461](https://github.com/newrelic/newrelic-ruby-agent/pull/1461)
 
-    Thank you to @Arkham for bringing this to our attention!
+    Thank you to [@Arkham](https://github.com/Arkham) for bringing this to our attention!
 
 
-  * **Bugfix: Fix memory leak in the Curb instrumentation
+  * **Cleanup: Performance tests, constants, rubocop-minitest assertions and refutations**
 
-    With [PR #1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518) community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks.
+    Community member [@esquith](https://github.com/esquith) contributed a whole slew of cleanup successes for our performance test configuration, orphaned constants in our code base, and RuboCop related improvements. [PR#1406](https://github.com/newrelic/newrelic-ruby-agent/pull/1406) [PR#1408](https://github.com/newrelic/newrelic-ruby-agent/pull/1408) [PR#1409](https://github.com/newrelic/newrelic-ruby-agent/pull/1409) [PR#1411](https://github.com/newrelic/newrelic-ruby-agent/pull/1411)
 
-    Many thanks, [@charkost](https://github.com/charkost)!
+    Thank you [@esquith](https://github.com/esquith) for these great contributions!
+
+
+  * **CI: Notify on a change from failure to success**
+
+    A super handy, much beloved feature of certain CI and build systems is to not only notify when builds start to fail, but also to notify again when the builds once again start to go green. Community member [@luigieai](https://github.com/luigieai) was able to figure out how to configure our existing complex, multiple-3rd-party-action based GitHub Actions pipeline to notify on a switch back to success from failure. [PR#1519](https://github.com/newrelic/newrelic-ruby-agent/pull/1519)
+
+    This is much appreciated! Thank you, [@luigieai](https://github.com/luigieai).
+
+
+  * **Spelling corrections**
+
+    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive once over than a simple dictionary based check would have been able to provide, and the changes are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
+
+    Thank you very much, [@jsoref](https://github.com/jsoref)!
+
+
+  * **Ruby 3.2.0-preview2 compatibility**
+
+    Ruby 3.2.0-preview1 introduced a change to the way that Ruby reports VM stats and the approach was changed yet again to a 3rd approach with the preview2 release. New Relic reports on Ruby VM stats and is keeping track of the Ruby 3.2 development process to help ensure our customers with a smooth and worthwhile upgrade process once Ruby 3.2.0 (non-preview) is released. [PR#1436](https://github.com/newrelic/newrelic-ruby-agent/pull/1436)
+
+
+  * **Bugfix: Fix memory leak in the Curb instrumentation**
+
+    Community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks. [PR#1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518)
+
+    Many thanks for both the heads up on the issue and the fix, [@charkost](https://github.com/charkost)!
 
 
   ## v8.10.1
