@@ -9,11 +9,11 @@
     Thank you to @Arkham for bringing this to our attention!
 
 
-  * **BugFix: Fix memory leak in the Curb instrumentation
+  * **Bugfix: Fix memory leak in the Curb instrumentation
 
-    With [PR #1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518) community member [charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks.
+    With [PR #1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518) community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks.
 
-    Many thanks, [charkost](https://github.com/charkost)!
+    Many thanks, [@charkost](https://github.com/charkost)!
 
 
   ## v8.10.1
