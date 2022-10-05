@@ -114,12 +114,23 @@ jobs:
           discovery.type: single-node
         ports:
           - 9200:9200
+         options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       elasticsearch8:
         image: elasticsearch:8.4.2
         env:
           discovery.type: single-node
+          xpack.security.enabled: false
         ports:
           - 9250:9250
+        options: >-
+          --health-cmd "curl http://localhost:9250/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       postgres:
         image: postgres:latest
         env:
@@ -184,7 +195,7 @@ jobs:
           sleep 60
           curl -X GET http://localhost:9200/
 
-      - name: check elasticsearch7
+      - name: check elasticsearch8
         run: curl -X GET http://localhost:9250/
 
       - name: Install Ruby ${{ matrix.ruby-version }}
