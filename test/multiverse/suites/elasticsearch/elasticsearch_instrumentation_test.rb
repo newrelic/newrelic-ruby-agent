@@ -11,5 +11,8 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
-  # Add tests Here
+  def test_test
+    client = Elasticsearch::Client.new
+    puts client.search(q: 'test')
+  end
 end
