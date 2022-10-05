@@ -19,7 +19,7 @@
     Thank you [@esquith](https://github.com/esquith) for these great contributions!
 
 
-  * **CI: Nofify on a change from failure to success**
+  * **CI: Notify on a change from failure to success**
 
     A super handy, much beloved feature of certain CI and build systems is to not only notify when builds start to fail, but also to notify again when the builds once again start to go green. Community member [@luigieai](https://github.com/luigieai) was able to figure out how to configure our existing complex, multiple-3rd-party-action based GitHub Actions pipeline to notify on a switch back to success from failure. [PR#1519](https://github.com/newrelic/newrelic-ruby-agent/pull/1519)
 
@@ -28,7 +28,7 @@
 
   * **Spelling corrections**
 
-    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive once over than a simple dictionary based check would have been able to provide, and the changs are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
+    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive once over than a simple dictionary based check would have been able to provide, and the changes are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
 
     Thank you very much, [@jsoref](https://github.com/jsoref)!
 
