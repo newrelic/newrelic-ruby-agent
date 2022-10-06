@@ -10,7 +10,7 @@ DependencyDetection.defer do
   named :elasticsearch
 
   depends_on do
-    defined?(::Elasticsearch) || defined?(::Elastic)
+    defined?(::Elasticsearch)
   end
 
   executes do
@@ -18,7 +18,7 @@ DependencyDetection.defer do
     # why didn't this work when we looked at defined?(::Elastic)
     # why was the name changed?
     # perform_request is also defined in Transport::Base
-    to_instrument = if defined?(::Elasticsearch)
+    to_instrument = if ::Gem::Version.create(::Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
       ::Elasticsearch::Transport::Client
     else
       ::Elastic::Transport::Client

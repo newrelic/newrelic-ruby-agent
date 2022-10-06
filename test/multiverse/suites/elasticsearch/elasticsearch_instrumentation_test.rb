@@ -158,5 +158,17 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     @client.stub(:search, raise(::Elastic::Transport::Transport::Error.new)) do
       @client.search(index: 'my-index', q: 'title')
     end
+  def port
+    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
+      9200 # 9200 for elasticsearch 7
+    else
+      9250 # 9250 for elasticsearch 8
+    end
+  end
+
+  def test_test
+    # only works on 7 rn for some reason
+    client = Elasticsearch::Client.new(hosts: "localhost:#{port}")
+    puts client.search(q: 'test')
   end
 end

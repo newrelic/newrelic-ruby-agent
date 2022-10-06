@@ -5,17 +5,16 @@
 module NewRelic::Agent::Instrumentation
   module Elasticsearch
     def self.instrument!
-      to_instrument = if defined?(::Elastic)
-        ::Elastic::Transport::Client
-      else
+      to_instrument = if ::Gem::Version.create(::Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
         ::Elasticsearch::Transport::Client
+      else
+        ::Elastic::Transport::Client
       end
 
       to_instrument.class_eval do
         include NewRelic::Agent::Instrumentation::Elasticsearch
 
-        alias_method(:perform_request_without_tracing, :perform_request)
-        alias_method(:perform_request, :perform_request_with_tracing)
+        alias_method(:perform_request_without_new_relic, :perform_request)
 
         def perform_request(*args)
           perform_request_with_tracing(*args) do

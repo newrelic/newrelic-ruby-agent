@@ -18,7 +18,11 @@ module NewRelic::Agent::Instrumentation
         database_name: cluster_name
       )
       begin
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        response = nil
+        NewRelic::Agent::Tracer.capture_segment_error(segment) { response = yield }
+
+        # binding.irb
+        response
       ensure
         segment.notice_nosql_statement(reported_query(body || params))
         segment.finish if segment
@@ -44,7 +48,12 @@ module NewRelic::Agent::Instrumentation
     end
 
     def cluster_name
-      NewRelic::Agent.disable_all_tracing { cluster.stats['cluster_name'] }
+      # NewRelic::Agent.disable_all_tracing { cluster.stats['cluster_name'] }
+      NewRelic::Agent.disable_all_tracing do
+        # binding.irb
+      end
+
+      'cluster-name!'
     end
 
     def hosts
