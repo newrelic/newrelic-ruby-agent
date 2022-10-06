@@ -3,11 +3,15 @@
 # frozen_string_literal: true
 
 require 'elasticsearch'
+require 'socket'
 
 class ElasticsearchInstrumentationTest < Minitest::Test
   def setup
     # Keeping the log off prevents noisy test output
-    @client = ::Elasticsearch::Client.new(log: false)
+    @client = ::Elasticsearch::Client.new(
+      log: false,
+      hosts: "localhost:#{port}"
+    )
     # Ensure the client is running before the tests start
     @client.cluster.health
     # TODO: Update this to use constants, perhaps a hash?
@@ -27,6 +31,8 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     @segment = txn.segments[1]
   end
 
+  # TODO! TEST METRIC GENERATION!!!
+
   def test_datastore_segment_created
     search
     assert_equal NewRelic::Agent::Transaction::DatastoreSegment, @segment.class
@@ -43,9 +49,8 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def test_segment_host
-    skip('need to figure out how to stub this')
     search
-    assert_equal 'host', @segment.host
+    assert_equal Socket.gethostname, @segment.host
   end
 
   def test_segment_port_path_or_id_uses_path_if_present
@@ -53,15 +58,9 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_equal 'my-index/_search', @segment.port_path_or_id
   end
 
-  def test_segment_port_path_or_id_uses_port_if_path_absent
-    skip('need to figure out how to stub this')
-    search
-    assert_equal 'port', @segment.port_path_or_id
-  end
-
   def test_segment_database_name
     search
-    assert_equal 'cluster_name!', @segment.database_name
+    assert_equal 'cluster-name!', @segment.database_name
   end
 
   def test_nosql_statement_recorded_params_obfuscated
@@ -138,7 +137,6 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_segment_error_captured_if_raised
     txn = nil
-    transport_error_class = ::Elastic::Transport::Transport::Error
     begin
       in_transaction('elastic') do |elastic_txn|
         txn = elastic_txn
@@ -155,10 +153,19 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   private
 
   def simulate_transport_error
-    @client.stub(:search, raise(::Elastic::Transport::Transport::Error.new)) do
+    @client.stub(:search, raise(transport_error_class.new)) do
       @client.search(index: 'my-index', q: 'title')
     end
   end
+
+  def transport_error_class
+    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
+      ::Elasticsearch::Transport::Transport::Error
+    else
+      ::Elastic::Transport::Transport::Error
+    end
+  end
+
   def port
     if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
       9200 # 9200 for elasticsearch 7
