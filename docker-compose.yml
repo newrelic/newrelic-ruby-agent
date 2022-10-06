@@ -7,8 +7,8 @@ services:
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    mem_limit: 2g
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    mem_limit: 1g
   elasticsearch8:
     image: elasticsearch:8.4.2
     ports:
@@ -18,8 +18,8 @@ services:
       - xpack.security.enabled=false
       - http.port=9250
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    mem_limit: 2g
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    mem_limit: 1g
   mysql:
     image: mysql:5.7
     restart: always
