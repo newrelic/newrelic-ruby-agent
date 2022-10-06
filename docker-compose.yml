@@ -6,14 +6,20 @@ services:
       - "9200:9200"
     environment:
       - discovery.type=single-node
-  # elasticsearch8:
-  #   image: elasticsearch:8.4.2
-  #   ports:
-  #     - "9250:9200"
-  #   environment:
-  #     - discovery.type=single-node
-  #     - ES_JAVA_OPTS="-Xms1g -Xmx1g"
-  #     - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    mem_limit: 2g
+  elasticsearch8:
+    image: elasticsearch:8.4.2
+    ports:
+      - "9250:9250"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - http.port=9250
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    mem_limit: 2g
   mysql:
     image: mysql:5.7
     restart: always
@@ -82,6 +88,8 @@ services:
     volumes:
       - ".:/usr/src/app"
     depends_on:
+      - elasticsearch7
+      - elasticsearch8
       - mysql
       - memcached
       - mongodb
