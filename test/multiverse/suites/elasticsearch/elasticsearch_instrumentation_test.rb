@@ -60,7 +60,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_segment_database_name
     search
-    assert_equal 'cluster-name!', @segment.database_name
+    assert_equal 'docker-cluster', @segment.database_name
   end
 
   def test_nosql_statement_recorded_params_obfuscated
@@ -172,11 +172,5 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     else
       9250 # 9250 for elasticsearch 8
     end
-  end
-
-  def test_test
-    # only works on 7 rn for some reason
-    client = Elasticsearch::Client.new(hosts: "localhost:#{port}")
-    puts client.search(q: 'test')
   end
 end
