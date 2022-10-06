@@ -13,51 +13,43 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
         operation: OPERATION,
-        host: host,
+        host: nr_hosts[:host],
         port_path_or_id: path,
-        database_name: cluster_name
+        database_name: nr_cluster_name
       )
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
-        segment.notice_nosql_statement(reported_query(body || params))
+        segment.notice_nosql_statement(nr_reported_query(body || params))
         segment.finish if segment
       end
     end
 
     private
 
-    def reported_query(query)
+    def nr_reported_query(query)
       return unless NewRelic::Agent.config[:'elasticsearch.capture_queries']
       return query unless NewRelic::Agent.config[:'elasticsearch.obfuscate_queries']
 
       NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(query)
     end
 
-    def add_attributes(segment, attributes_hash)
-      return unless segment
+    def nr_cluster_name
+      return @nr_cluster_name if @nr_cluster_name
+      return NewRelic::EMPTY_STRING if nr_hosts.empty?
 
-      attributes_hash.each do |attr, value|
-        segment.add_agent_attribute(attr, value)
-      end
-      segment.record_agent_attributes = true
-    end
-
-    def cluster_name
-      # NewRelic::Agent.disable_all_tracing { cluster.stats['cluster_name'] }
       NewRelic::Agent.disable_all_tracing do
-        # binding.irb
+        url = "#{nr_hosts[:protocol]}://#{nr_hosts[:host]}:#{nr_hosts[:port]}"
+        response = JSON.parse(Net::HTTP.get(URI(url)))
+        @nr_cluster_name ||= response["cluster_name"]
       end
-
-      'cluster-name!'
+    rescue => e
+      NewRelic::Agent.logger.error("Failed to get cluster name for elasticsearch", e)
+      NewRelic::EMPTY_STRING
     end
 
-    def hosts
-      (transport.hosts.first || NewRelic::EMPTY_HASH)
-    end
-
-    def host
-      hosts[:host]
+    def nr_hosts
+      @nr_hosts ||= (transport.hosts.first || NewRelic::EMPTY_HASH)
     end
   end
 end
