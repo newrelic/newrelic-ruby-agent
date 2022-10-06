@@ -244,7 +244,8 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[elasticsearch,verbose]
+          command:  bundle exec rake test:multiverse[group=database,debug]
+          # command:  bundle exec rake test:multiverse[elasticsearch,verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
