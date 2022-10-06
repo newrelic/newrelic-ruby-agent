@@ -1,6 +1,7 @@
 name: Scheduled Continuous Integration
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -21,103 +22,103 @@ jobs:
       - run: bundle
       - run: rubocop
 
-  unit_tests:
-    needs: run_rubocop
-    runs-on: ubuntu-22.04
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - "3306:3306"
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2, jruby-9.3.8.0]
+  # unit_tests:
+  #   needs: run_rubocop
+  #   runs-on: ubuntu-22.04
+  #   services:
+  #     mysql:
+  #       image: mysql:5.7
+  #       env:
+  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+  #       ports:
+  #         - "3306:3306"
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2, jruby-9.3.8.0]
 
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+  #       # - curl is needed for Curb
+  #       # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+  #       # - sasl is needed for memcached
+  #     - name: Install OS packages
+  #       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Install Ruby ${{ matrix.ruby-version }}
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Set up mini-envs for ruby version
-        uses: kanga333/variable-mapper@master
-        with:
-          key: ${{ matrix.ruby-version }}
-          map: |
-            {
-              "2.2.10": {
-                "rails": "norails,rails41,rails40,rails32"
-              },
-              "2.3.8": {
-                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
-              },
-              "2.4.10": {
-                "rails": "norails,rails52,rails51,rails42,rails32"
-              },
-              "2.5.9": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
-              },
-              "2.6.10": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
-              },
-              "2.7.6": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
-              },
-              "3.0.4": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
-              },
-              "3.1.2": {
-                "rails": "norails,rails61,rails70,railsedge"
-              },
-              "3.2.0-preview2": {
-                "rails": "norails,rails61,rails70,railsedge"
-              },
-              "jruby-9.3.8.0": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
-              }
-            }
+  #     - name: Set up mini-envs for ruby version
+  #       uses: kanga333/variable-mapper@master
+  #       with:
+  #         key: ${{ matrix.ruby-version }}
+  #         map: |
+  #           {
+  #             "2.2.10": {
+  #               "rails": "norails,rails41,rails40,rails32"
+  #             },
+  #             "2.3.8": {
+  #               "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
+  #             },
+  #             "2.4.10": {
+  #               "rails": "norails,rails52,rails51,rails42,rails32"
+  #             },
+  #             "2.5.9": {
+  #               "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+  #             },
+  #             "2.6.10": {
+  #               "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+  #             },
+  #             "2.7.6": {
+  #               "rails": "norails,rails61,rails60,rails70,railsedge"
+  #             },
+  #             "3.0.4": {
+  #               "rails": "norails,rails61,rails60,rails70,railsedge"
+  #             },
+  #             "3.1.2": {
+  #               "rails": "norails,rails61,rails70,railsedge"
+  #             },
+  #             "3.2.0-preview2": {
+  #               "rails": "norails,rails61,rails70,railsedge"
+  #             },
+  #             "jruby-9.3.8.0": {
+  #               "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
+  #             }
+  #           }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.8.0'
-        name: Cache mysql55
-        id: mysql55-cache
-        uses: john-shaffer/cache@sudo-tar
-        with:
-          path: /usr/local/mysql55
-          key: mysql55-install
+  #     - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.8.0'
+  #       name: Cache mysql55
+  #       id: mysql55-cache
+  #       uses: john-shaffer/cache@sudo-tar
+  #       with:
+  #         path: /usr/local/mysql55
+  #         key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.8.0')
-        name: Install mysql55
-        run: sudo ./test/script/install_mysql55
+  #     - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10' || matrix.ruby-version == 'jruby-9.3.8.0')
+  #       name: Install mysql55
+  #       run: sudo ./test/script/install_mysql55
 
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-          RAILS_VERSION: ${{ env.rails }}
+  #     - name: Setup bundler
+  #       run: ./.github/workflows/scripts/setup_bundler
+  #       env:
+  #         RUBY_VERSION: ${{ matrix.ruby-version }}
+  #         RAILS_VERSION: ${{ env.rails }}
 
-      - name: Run Unit Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 30
-          max_attempts: 2
-          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
-        env:
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev
+  #     - name: Run Unit Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 30
+  #         max_attempts: 2
+  #         command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+  #       env:
+  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         JRUBY_OPTS: --dev
 
   multiverse:
     needs: run_rubocop
@@ -200,7 +201,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        # multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2]
     steps:
       - name: Configure git
@@ -243,7 +244,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command:  bundle exec rake test:multiverse[elasticsearch,verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -258,38 +259,38 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-  infinite_tracing:
-    needs: run_rubocop
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2]
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+  # infinite_tracing:
+  #   needs: run_rubocop
+  #   runs-on: ubuntu-22.04
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2]
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
 
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Install Ruby ${{ matrix.ruby-version }}
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Bundle
-        run: bundle install
+  #     - name: Bundle
+  #       run: bundle install
 
-      - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 15
-          max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
-        env:
-          SERIALIZE: 1
+  #     - name: Run Multiverse Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 15
+  #         max_attempts: 2
+  #         command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+  #       env:
+  #         SERIALIZE: 1
 
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+  #     - name: Annotate errors
+  #       if: ${{ failure() }}
+  #       uses: ./.github/actions/annotate
 
   jruby_multiverse:
     needs: run_rubocop
@@ -363,8 +364,8 @@ jobs:
           --health-retries 5
     strategy:
       fail-fast: false
-      matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+      # matrix:
+      #   multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
       - name: Set the default Java version
         run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
@@ -395,7 +396,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 1
-          command:  jruby -v; bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command:  jruby -v; bundle exec rake test:multiverse[elasticsearch,verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
@@ -406,38 +407,38 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-  notify_slack_fail:
-    name: Notify slack fail
-    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
-    runs-on: ubuntu-22.04
-    if: always()
-    steps:
-      - uses: technote-space/workflow-conclusion-action@v3
-      - uses: voxmedia/github-action-slack-notify-build@v1
-        if: env.WORKFLOW_CONCLUSION == 'failure'
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        with:
-          channel: ruby-agent-notifications
-          status: FAILED
-          color: danger
+  # notify_slack_fail:
+  #   name: Notify slack fail
+  #   needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+  #   runs-on: ubuntu-22.04
+  #   if: always()
+  #   steps:
+  #     - uses: technote-space/workflow-conclusion-action@v3
+  #     - uses: voxmedia/github-action-slack-notify-build@v1
+  #       if: env.WORKFLOW_CONCLUSION == 'failure'
+  #       env:
+  #         SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+  #       with:
+  #         channel: ruby-agent-notifications
+  #         status: FAILED
+  #         color: danger
 
-  notify_slack_success:
-    name: Notify slack success
-    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
-    runs-on: ubuntu-22.04
-    if: always()
-    steps:
-      - uses: technote-space/workflow-conclusion-action@v3
-      - uses: Mercymeilya/last-workflow-status@v0.3.2
-        id: last_status
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: voxmedia/github-action-slack-notify-build@v1
-        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        with:
-          channel: ruby-agent-notifications
-          status: SUCCESS
-          color: good
+  # notify_slack_success:
+  #   name: Notify slack success
+  #   needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+  #   runs-on: ubuntu-22.04
+  #   if: always()
+  #   steps:
+  #     - uses: technote-space/workflow-conclusion-action@v3
+  #     - uses: Mercymeilya/last-workflow-status@v0.3.2
+  #       id: last_status
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #     - uses: voxmedia/github-action-slack-notify-build@v1
+  #       if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' }}
+  #       env:
+  #         SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+  #       with:
+  #         channel: ruby-agent-notifications
+  #         status: SUCCESS
+  #         color: good
