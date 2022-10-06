@@ -7,7 +7,7 @@
 
   * **Added support for New Relic REST API v2 when using `newrelic deployments` command**
 
-    Previously, the `newrelic deployments` command only supported the older version of the deployments api, which does not currently support newer license keys. Now you can use the New Relic REST API v2 to record deployments by providing your user api key to the agent configuration using `api_key`. When this configuration option is present, the `newrelic deployments` command will automatically use the New Relic REST API v2 deployment endpoint. [PR#1461](https://github.com/newrelic/newrelic-ruby-agent/pull/1461)
+    Previously, the `newrelic deployments` command only supported the older version of the deployments api, which does not currently support newer license keys. Now you can use the New Relic REST API v2 to record deployments by providing your user API key to the agent configuration using `api_key`. When this configuration option is present, the `newrelic deployments` command will automatically use the New Relic REST API v2 deployment endpoint. [PR#1461](https://github.com/newrelic/newrelic-ruby-agent/pull/1461)
 
     Thank you to [@Arkham](https://github.com/Arkham) for bringing this to our attention!
 
@@ -28,7 +28,7 @@
 
   * **Spelling corrections**
 
-    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive once over than a simple dictionary based check would have been able to provide, and the changes are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
+    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive review than a simple dictionary based check would have been able to provide, and the changes are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
 
     Thank you very much, [@jsoref](https://github.com/jsoref)!
 
