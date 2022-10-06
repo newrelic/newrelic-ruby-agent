@@ -158,6 +158,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     @client.stub(:search, raise(::Elastic::Transport::Transport::Error.new)) do
       @client.search(index: 'my-index', q: 'title')
     end
+  end
   def port
     if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
       9200 # 9200 for elasticsearch 7
