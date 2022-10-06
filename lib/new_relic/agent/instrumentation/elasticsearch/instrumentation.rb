@@ -20,8 +20,10 @@ module NewRelic::Agent::Instrumentation
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
-        segment.notice_nosql_statement(nr_reported_query(body || params))
-        segment.finish if segment
+        if segment
+          segment.notice_nosql_statement(nr_reported_query(body || params))
+          segment.finish
+        end
       end
     end
 
@@ -39,9 +41,7 @@ module NewRelic::Agent::Instrumentation
       return NewRelic::EMPTY_STRING if nr_hosts.empty?
 
       NewRelic::Agent.disable_all_tracing do
-        url = "#{nr_hosts[:protocol]}://#{nr_hosts[:host]}:#{nr_hosts[:port]}"
-        response = JSON.parse(Net::HTTP.get(URI(url)))
-        @nr_cluster_name ||= response["cluster_name"]
+        @nr_cluster_name ||= perform_request('GET', '_cluster/health').body["cluster_name"]
       end
     rescue => e
       NewRelic::Agent.logger.error("Failed to get cluster name for elasticsearch", e)
