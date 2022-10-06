@@ -4,6 +4,16 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
-  gem 'elasticsearch'
-RB
+ELASTICSEARCH_VERSIONS = [
+  [nil, 2.5],
+  ['7.17.1', 2.4]
+]
+
+def gem_list(elasticsearch_version = nil)
+  <<-RB
+    gem 'elasticsearch'#{elasticsearch_version}
+    #{ruby3_gem_webrick}
+  RB
+end
+
+create_gemfiles(ELASTICSEARCH_VERSIONS, gem_list)
