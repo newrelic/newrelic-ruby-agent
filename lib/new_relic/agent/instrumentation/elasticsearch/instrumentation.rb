@@ -14,15 +14,11 @@ module NewRelic::Agent::Instrumentation
         product: PRODUCT_NAME,
         operation: OPERATION,
         host: host,
-        port_path_or_id: path || port,
+        port_path_or_id: path,
         database_name: cluster_name
       )
       begin
-        response = nil
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { response = yield }
-
-        # binding.irb
-        response
+        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
         segment.notice_nosql_statement(reported_query(body || params))
         segment.finish if segment
@@ -62,10 +58,6 @@ module NewRelic::Agent::Instrumentation
 
     def host
       hosts[:host]
-    end
-
-    def port
-      hosts[:port]
     end
   end
 end
