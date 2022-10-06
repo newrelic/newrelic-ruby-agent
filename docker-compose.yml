@@ -1,5 +1,19 @@
 version: "3.9"
 services:
+  elasticsearch7:
+    image: elasticsearch:7.16.2
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+  # elasticsearch8:
+  #   image: elasticsearch:8.4.2
+  #   ports:
+  #     - "9250:9200"
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ES_JAVA_OPTS="-Xms1g -Xmx1g"
+  #     - xpack.security.enabled=false
   mysql:
     image: mysql:5.7
     restart: always
