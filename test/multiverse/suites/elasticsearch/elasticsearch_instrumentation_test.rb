@@ -61,7 +61,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_segment_database_name
     search
-    assert_equal 'cluster_name', @segment.database_name
+    assert_equal 'cluster_name!', @segment.database_name
   end
 
   def test_nosql_statement_recorded_params_obfuscated
