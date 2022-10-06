@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
 
         def perform_request(*args)
           perform_request_with_tracing(*args) do
-            perform_request_without_new_relic(*args)
+            perform_request_without_tracing(*args)
           end
         end
       end
