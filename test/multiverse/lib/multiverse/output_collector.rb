@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -8,11 +7,13 @@
 # of failing tests) at the end of the process.
 
 require 'thread'
+require_relative 'time_report_output'
 
 module Multiverse
   module OutputCollector
     include Color
     extend Color
+    extend TimeReportOutput
 
     @output_lock = Mutex.new
     @buffer_lock = Mutex.new
@@ -55,6 +56,7 @@ module Multiverse
         output(*to_output)
         save_output_to_error_file(failing_output)
       end
+      sort_and_print_test_times
     end
 
     def self.failing_output_header

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -367,12 +366,12 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       assert_equal 'bar', @redis.get('foo')
       assert_equal 1, @redis.del('foo')
 
-      assert_equal ['OK', 'OK'], @redis.multi { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
-      assert_equal ['bar', 'bat'], @redis.multi { @redis.get('foo'); @redis.get('baz') }
+      assert_equal %w[OK OK], @redis.multi { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
+      assert_equal %w[bar bat], @redis.multi { @redis.get('foo'); @redis.get('baz') }
       assert_equal 2, @redis.del('foo', 'baz')
 
-      assert_equal ['OK', 'OK'], @redis.pipelined { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
-      assert_equal ['bar', 'bat'], @redis.pipelined { @redis.get('foo'); @redis.get('baz') }
+      assert_equal %w[OK OK], @redis.pipelined { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
+      assert_equal %w[bar bat], @redis.pipelined { @redis.get('foo'); @redis.get('baz') }
       assert_equal 2, @redis.del('foo', 'baz')
     end
 

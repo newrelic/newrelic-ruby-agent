@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -62,7 +61,7 @@ module NewRelic
         assert_equal "6789", payload.parent_app_id
         assert_equal "f85f42fd82a4cf1d", payload.id
         assert_equal "164d3b4b0d09cb05", payload.transaction_id
-        assert_equal true, payload.sampled
+        assert payload.sampled
         assert_equal 0.123, payload.priority
       end
 
@@ -95,7 +94,7 @@ module NewRelic
         assert_equal "6789", payload.parent_app_id
         assert_equal "f85f42fd82a4cf1d", payload.id
         assert_equal "164d3b4b0d09cb05", payload.transaction_id
-        assert_equal true, payload.sampled
+        assert payload.sampled
         assert_equal 0.123, payload.priority
       end
 

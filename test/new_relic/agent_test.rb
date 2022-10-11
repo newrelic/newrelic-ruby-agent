@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -38,7 +37,7 @@ module NewRelic
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40, :some_absurd_setting => true)
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
-      assert !NewRelic::Agent.config[:some_absurd_setting]
+      refute NewRelic::Agent.config[:some_absurd_setting]
     end
 
     def test_shutdown_removes_server_config
@@ -59,7 +58,7 @@ module NewRelic
         NewRelic::Agent.instance, NewRelic::Agent.config
       )
       with_config_low_priority({
-        :'transction_tracer.enabled' => true,
+        :'transaction_tracer.enabled' => true,
         :'error_collector.enabled' => true
       }) do
         response_handler.configure_agent(
@@ -135,49 +134,52 @@ module NewRelic
 
     def test_is_sql_recorded_true
       NewRelic::Agent::Tracer.state.record_sql = true
-      assert_equal(true, NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is set')
+      assert(NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
       NewRelic::Agent::Tracer.state.record_sql = nil
-      assert_equal(true, NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is not set')
+      assert(NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
       NewRelic::Agent::Tracer.state.record_sql = false
-      assert_equal(false, NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
+      refute(NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
       NewRelic::Agent::Tracer.state.untraced = [true, true]
-      assert_equal(true, NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is set')
+      assert(NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is set')
     end
 
     def test_is_execution_traced_blank
       NewRelic::Agent::Tracer.state.untraced = nil
-      assert_equal(true, NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is not set')
+      assert(NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is not set')
     end
 
     def test_is_execution_traced_empty
       NewRelic::Agent::Tracer.state.untraced = []
-      assert_equal(true, NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is an empty array')
+      assert(NewRelic::Agent.tl_is_execution_traced?,
+        'should be true since the thread local is an empty array')
     end
 
     def test_is_execution_traced_false
       NewRelic::Agent::Tracer.state.untraced = [true, false]
-      assert_equal(false, NewRelic::Agent.tl_is_execution_traced?, 'should be false since the thread local stack has the last element false')
+      refute(NewRelic::Agent.tl_is_execution_traced?,
+        'should be false since the thread local stack has the last element false')
     end
 
     def test_instance
       NewRelic::Agent.manual_start
-      assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance, "should return the same agent for both identical methods")
+      assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance,
+        "should return the same agent for both identical methods")
       NewRelic::Agent.shutdown
     end
 
     def test_register_report_channel
       NewRelic::Agent.register_report_channel(:channel_id)
-      assert NewRelic::Agent::PipeChannelManager.channels[:channel_id] \
-        .kind_of?(NewRelic::Agent::PipeChannelManager::Pipe)
+      assert_kind_of(NewRelic::Agent::PipeChannelManager::Pipe,
+        NewRelic::Agent::PipeChannelManager.channels[:channel_id])
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
     end
 

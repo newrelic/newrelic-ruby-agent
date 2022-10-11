@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -24,7 +23,7 @@ class CurbTest < Minitest::Test
       end
     end
 
-    assert !headers.empty?
+    refute_empty headers
   end
 
   def test_shouldnt_clobber_existing_completion_callback
@@ -41,7 +40,7 @@ class CurbTest < Minitest::Test
   def test_get_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run the test_get test
     # again
-    @get_response_proc = Proc.new do |url|
+    @get_response_proc = proc do |url|
       Curl.get(url || default_url)
     end
     test_get
@@ -51,7 +50,7 @@ class CurbTest < Minitest::Test
 
   def test_background_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run test_background again
-    @get_response_proc = Proc.new do |url|
+    @get_response_proc = proc do |url|
       Curl.get(url || default_url)
     end
     test_background
@@ -146,6 +145,117 @@ class CurbTest < Minitest::Test
     assert Curl::Easy.new.method(:to_s).call.is_a?(String), 'Failed to create #to_s method'
   end
 
+  def test_a_noticeable_error_is_created_on_failure_if_a_segment_exists
+    multi = Curl::Multi.new
+    request = OpenStruct.new
+    error = [OpenStruct.new(name: 'name'), 'last']
+    prep_on_failure(request)
+    def multi.remove_failure_callback(request); end
+    segment = MiniTest::Mock.new
+    segment.expect :notice_error, nil, [NewRelic::Agent::NoticeableError]
+    multi.install_failure_callback(request, nil, segment)
+    segment.verify
+  end
+
+  # this doesn't assert anything directly, but confirms that something undesired
+  # did not take place, and exercises a branch of the method being tested
+  def test_a_noticeable_error_is_not_created_on_failure_if_a_segment_is_absent
+    multi = Curl::Multi.new
+    request = OpenStruct.new
+    error = [OpenStruct.new(name: 'name'), 'last']
+    prep_on_failure(request)
+    def multi.remove_failure_callback(request); end
+    # if noticeable error creation attempt, explode
+    NewRelic::Agent::NoticeableError.stub(:new, -> { raise 'kaboom' }) do
+      multi.install_failure_callback(request, nil, nil)
+    end
+  end
+
+  # we need to verify that the original callback does not receive #call if it
+  # is nil. this test does so and exercises a branch of the method being tested.
+  # should the nil check fail, this test will fail, even though it does not
+  # assert or refute anything explicitly
+  def test_an_original_callback_is_not_invoked_when_absent
+    multi = Curl::Multi.new
+    request = OpenStruct.new
+    error = [OpenStruct.new(name: 'name'), 'last']
+    prep_on_failure_without_original_callback(request)
+    def multi.remove_failure_callback(request); end
+    multi.install_failure_callback(request, nil, nil)
+  end
+
+  # if the guard against installing already-installed callbacks were to fail,
+  # the 'request' mock would receive a second _nr_instrumented call and error
+  # out. so while there is no explicit assert/refute being performed, the
+  # desired behavior is being verified
+  def test_callbacks_are_not_installed_again_if_they_have_already_been_installed
+    multi = Curl::Multi.new
+    request = MiniTest::Mock.new
+    segment = MiniTest::Mock.new
+    segment.expect :add_request_headers, nil, [MiniTest::Mock]
+    request.expect :_nr_instrumented, true
+    def multi.wrap_request(req)
+      wrapped_request = MiniTest::Mock.new
+      wrapped_request.expect :type, nil
+      wrapped_request.expect :uri, nil
+      wrapped_request.expect :method, nil
+      [wrapped_request, nil]
+    end
+    NewRelic::Agent::Tracer.stub :start_external_request_segment, segment do
+      multi.hook_pending_request(request)
+    end
+    request.verify
+    segment.verify
+  end
+
+  def test_callback_installation_errors_are_logged
+    multi = Curl::Multi.new
+    def multi.wrap_request(req); raise 'kaboom'; end
+    logger = MiniTest::Mock.new
+    logger.expect :error, nil, [/^Untrapped/, RuntimeError]
+    NewRelic::Agent.stub :logger, logger do
+      multi.hook_pending_request(nil)
+    end
+    logger.verify
+  end
+
+  def test_segment_finished_on_complete
+    multi = Curl::Multi.new
+    request = Curl::Easy.new
+    segment = MiniTest::Mock.new
+    segment.expect :process_response_headers, nil, [nil]
+    segment.expect :finish, nil
+    multi.install_completion_callback(request, nil, segment)
+    request.on_complete.call
+    segment.verify
+  end
+
+  # a simple test of #install_completion_callback with a nil value for the
+  # segment argument to exercise a branch
+  def test_segment_does_not_receive_a_finish_call_if_absent_on_complete
+    multi = Curl::Multi.new
+    request = Curl::Easy.new
+    multi.install_completion_callback(request, nil, nil)
+    request.on_complete.call
+  end
+
+  def test_first_request_is_serial_if_false_unless_there_is_a_first_request
+    multi = Curl::Multi.new
+    def multi.requests; []; end
+    refute multi.send(:first_request_is_serial?)
+  end
+
+  def test_first_request_is_serial_get_first_from_array
+    multi = Curl::Multi.new
+    def multi.requests
+      first = MiniTest::Mock.new
+      first.expect :_nr_serial, true
+      first.expect :is_a?, false, [Array]
+      [first]
+    end
+    assert multi.send(:first_request_is_serial?)
+  end
+
   #
   # Helper functions
   #
@@ -208,5 +318,21 @@ class CurbTest < Minitest::Test
     end
 
     return res
+  end
+
+  def prep_on_failure(obj)
+    def obj.on_failure(&block)
+      if block
+        yield(nil, [OpenStruct.new(name: 'name'), 'message'])
+      else
+        proc { |_failed, _error| 'original' }
+      end
+    end
+  end
+
+  def prep_on_failure_without_original_callback(obj)
+    def obj.on_failure(&block)
+      yield(nil, [OpenStruct.new(name: 'name'), 'message']) if block
+    end
   end
 end

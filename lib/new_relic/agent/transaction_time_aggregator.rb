@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -108,7 +107,7 @@ module NewRelic
         end
 
         # ObjectSpace is faster on MRI, but disabled by default on JRuby for
-        # perfomance reasons. We have two implmentations of `thread_by_id`
+        # performance reasons. We have two implementations of `thread_by_id`
         # based on ruby implementation.
         if RUBY_ENGINE == 'jruby'
           def thread_by_id(thread_id)

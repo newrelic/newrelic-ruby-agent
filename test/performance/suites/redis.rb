@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -20,7 +19,7 @@ class RedisTest < Performance::TestCase
 
   def test_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      commands = ["argumentative", "commands", "get", "called", "a", "bunch"]
+      commands = %w[argumentative commands get called a bunch]
       measure do
         NewRelic::Agent::Datastores::Redis.format_command(commands)
       end

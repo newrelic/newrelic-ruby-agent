@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -74,7 +73,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     assert_equal MyFirstDatabase::THE_OBJECT, MyFirstDatabase.new.find
   end
 
-  def test_method_retains_visbility
+  def test_method_retains_visibility
     private_methods = MyFirstDatabase.private_instance_methods.map(&:to_sym)
     assert_includes private_methods, :internal
   end
@@ -122,7 +121,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def test_wrap_calls_notice
     noticed = nil
-    notice = Proc.new do |*args|
+    notice = proc do |*args|
       noticed = args
     end
 

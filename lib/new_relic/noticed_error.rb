@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -135,10 +134,8 @@ class NewRelic::NoticedError
 
   def build_error_attributes
     @attributes_from_notice_error ||= {}
-    @attributes_from_notice_error.merge!({
-      ERROR_MESSAGE_KEY => string(message),
-      ERROR_CLASS_KEY => string(exception_class_name)
-    })
+    @attributes_from_notice_error[ERROR_MESSAGE_KEY] = string(message)
+    @attributes_from_notice_error[ERROR_CLASS_KEY] = string(exception_class_name)
 
     @attributes_from_notice_error[ERROR_EXPECTED_KEY] = true if expected
   end
@@ -189,7 +186,7 @@ class NewRelic::NoticedError
     if exception.nil?
       @exception_class_name = UNKNOWN_ERROR_CLASS_NAME
       @message = NIL_ERROR_MESSAGE
-    elsif exception.is_a?(NewRelic::Agent::NoticibleError)
+    elsif exception.is_a?(NewRelic::Agent::NoticeableError)
       @exception_class_name = exception.class_name
       @message = exception.message
     else

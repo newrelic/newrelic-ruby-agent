@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -27,7 +26,7 @@ module NewRelic
             captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
             captures.flatten.compact.each do |key|
-              default_keys.delete(key.gsub("'", "").to_sym)
+              default_keys.delete(key.delete("'").to_sym)
             end
             # Remove any config keys that are annotated with the 'dynamic_name' setting
             # This indicates that the names of these keys are constructed dynamically at

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -14,7 +13,7 @@ module NewRelic
 
         # These are configuration options that have a value of a Hash
         # This is used in YamlSource#dot_flattened prevent flattening these values
-        CONFIG_WITH_HASH_VALUE = ['expected_messages', 'ignore_messages']
+        CONFIG_WITH_HASH_VALUE = %w[expected_messages ignore_messages]
 
         def initialize(path, env)
           @path = path
@@ -156,7 +155,7 @@ module NewRelic
 
         def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|
-            next if val == nil
+            next if val.nil?
             if val.respond_to?(:has_key?) && !CONFIG_WITH_HASH_VALUE.include?(key)
               dot_flattened(val, names + [key], result)
             else

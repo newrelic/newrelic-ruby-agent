@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -12,7 +11,7 @@ module NewRelic
     def normalize_params(params)
       case params
         when Hash
-          # optimize for empty hash since that is often what this is called with.
+          # Optimize for empty hash since that is often what this is called with.
           return params if params.empty?
           new_params = {}
           params.each do |key, value|

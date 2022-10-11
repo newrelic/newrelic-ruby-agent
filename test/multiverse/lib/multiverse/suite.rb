@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -28,7 +27,7 @@ module Multiverse
     end
 
     def self.encode_options(decoded_opts)
-      Base64.encode64(Marshal.dump(decoded_opts)).gsub("\n", "")
+      Base64.encode64(Marshal.dump(decoded_opts)).delete("\n")
     end
 
     def self.decode_options(encoded_opts)
@@ -136,7 +135,7 @@ module Multiverse
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
       return version if version.to_s == ""
-      test_version = `bundle #{version} --version` =~ /Could not find command/
+      test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? "" : version
     end
 
@@ -301,10 +300,12 @@ module Multiverse
     def minitest_version
       if RUBY_VERSION >= '2.6'
         '5.16.2'
-      elsif RUBY_VERSION >= '2.4'
+      elsif RUBY_VERSION >= '2.5'
         '5.15.0'
+      elsif RUBY_VERSION >= '2.4'
+        '5.10.1'
       else
-        '5.3.3'
+        '4.7.5'
       end
     end
 
@@ -697,9 +698,23 @@ module Multiverse
       env_count = filter_env ? 1 : environments.size
       env_plural = env_count > 1 ? 'environments' : 'environment'
       opening = "\nRunning \"#{suite}\" suite in"
-      body = environments.instrumentation_permutations.map { |p| "#{env_count} #{p.upcase} #{env_plural}" }
       ending = "in #{label}"
-      message = [opening, body.join(' and '), ending].join(' ')
+      message = [opening, execution_message_body(env_count, env_plural).join(' and '), ending].join(' ')
+    end
+
+    def execution_message_body(env_count, env_plural)
+      filtered_instrumentations.map { |p| "#{env_count} #{p.upcase} #{env_plural}" }
+    end
+
+    def filtered_instrumentations
+      return environments.instrumentation_permutations unless opts.key?(:method)
+
+      unless environments.instrumentation_permutations.include?(opts[:method])
+        raise "The :method filter specified a value of #{opts[:method]}, but the only possible methods are " \
+          "#{environments.instrumentation_permutations.join('|')}"
+      end
+
+      [opts[:method]]
     end
   end
 end
@@ -714,7 +729,7 @@ if $0 == __FILE__ && $already_running.nil?
   # feeds into the OutputCollector above.
   $stderr.reopen($stdout)
 
-  # Ugly, but seralized args passed along to #popen when kicking child off
+  # Ugly, but serialized args passed along to #popen when kicking child off
   dir, env_index, encoded_opts, _ = *ARGV
   opts = Multiverse::Suite.decode_options(encoded_opts)
   instrumentation_method = opts.delete(:instrumentation_method)

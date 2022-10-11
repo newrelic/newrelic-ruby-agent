@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -36,8 +35,10 @@ class FrameworkTest < Minitest::Test
     end
 
     # does the path match "rails\d" (ex: rails7) or "railsedge"?
-    if ENV['BUNDLE_GEMFILE'].match(/rails(?:\d|edge)/)
+    if ENV['BUNDLE_GEMFILE'] =~ /rails(?:\d|edge)/
+      # rubocop:disable Performance/StringInclude
       assert_truthy NewRelic::Agent.config[:framework].match(/rails/)
+      # rubocop:enable Performance/StringInclude
     else
       assert_equal :sinatra, NewRelic::Agent.config[:framework]
     end

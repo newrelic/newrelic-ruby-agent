@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,10 +8,10 @@ class RulesEngineTest < Minitest::Test
   def test_rule_defaults
     rule = create_rule('match_expression' => '.*',
       'replacement'      => '*')
-    assert !rule.terminate_chain
-    assert !rule.each_segment
-    assert !rule.ignore
-    assert !rule.replace_all
+    refute rule.terminate_chain
+    refute rule.each_segment
+    refute rule.ignore
+    refute rule.replace_all
     assert_equal 0, rule.eval_order
   end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -47,7 +46,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
           assert_equal num_logical_processors, info[:num_logical_processors]
         end
       end
-    elsif File.basename(file) =~ /malformed/
+    elsif File.basename(file).include?('malformed')
       define_method("test_#{File.basename(file)}") do
         cpuinfo = File.read(file)
         info = @sysinfo.parse_cpuinfo(cpuinfo)
@@ -123,7 +122,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_processor_info_is_darwin
     info = 'darwin'
-    info_stub = Proc.new { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
+    info_stub = proc { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
     NewRelic::Agent::SystemInfo.stub(:darwin?, true) do
       NewRelic::Agent::SystemInfo.stub(:processor_info_darwin, info_stub) do
         NewRelic::Agent::SystemInfo.stub(:remove_bad_values, nil) do
@@ -135,7 +134,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_processor_info_is_linux
     info = 'linux'
-    info_stub = Proc.new { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
+    info_stub = proc { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
     NewRelic::Agent::SystemInfo.stub(:darwin?, false) do
       NewRelic::Agent::SystemInfo.stub(:linux?, true) do
         NewRelic::Agent::SystemInfo.stub(:processor_info_linux, info_stub) do
@@ -149,7 +148,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_processor_info_is_bsd
     info = 'bsd'
-    info_stub = Proc.new { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
+    info_stub = proc { NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info) }
     NewRelic::Agent::SystemInfo.stub(:darwin?, false) do
       NewRelic::Agent::SystemInfo.stub(:linux?, false) do
         NewRelic::Agent::SystemInfo.stub(:bsd?, true) do
@@ -166,7 +165,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_processor_info_darwin
     mappings = {'hw.packages' => :num_physical_packages, 'hw.physicalcpu_max' => :num_physical_cores, 'hw.logicalcpu_max' => :num_logical_processors}
     counts = {'hw.packages' => 1, 'hw.physicalcpu_max' => 2, 'hw.logicalcpu_max' => 3}
-    sysctl_stub = Proc.new { |param| counts[param] }
+    sysctl_stub = proc { |param| counts[param] }
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
@@ -184,7 +183,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
               'hw.physicalcpu' => 1,
               'hw.logicalcpu' => 0,
               'hw.ncpu' => 3}
-    sysctl_stub = Proc.new { |param| counts[param] }
+    sysctl_stub = proc { |param| counts[param] }
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)

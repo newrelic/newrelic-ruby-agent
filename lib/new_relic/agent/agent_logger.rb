@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -75,7 +74,7 @@ module NewRelic
         # We've seen that often the backtrace on a SystemStackError is bunk
         # so massage the caller instead at a known depth.
         #
-        # Tests keep us honest about minmum method depth our log calls add.
+        # Tests keep us honest about minimum method depth our log calls add.
         return caller.drop(5) if e.is_a?(SystemStackError)
 
         e.backtrace
@@ -86,7 +85,7 @@ module NewRelic
         if block
           return unless @log.send("#{level}?")
 
-          msgs = Array(block.call)
+          msgs = Array(yield)
         end
 
         msgs.flatten.each do |item|
@@ -133,7 +132,7 @@ module NewRelic
       end
 
       def wants_stdout?
-        ::NewRelic::Agent.config[:log_file_path].upcase == "STDOUT"
+        ::NewRelic::Agent.config[:log_file_path].casecmp("STDOUT").zero?
       end
 
       def find_or_create_file_path(path_setting, root)
@@ -165,7 +164,7 @@ module NewRelic
       def set_log_format!
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
-        @log.formatter = Proc.new do |severity, timestamp, progname, msg|
+        @log.formatter = proc do |severity, timestamp, progname, msg|
           "#{@prefix}[#{timestamp.strftime("%F %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
       end

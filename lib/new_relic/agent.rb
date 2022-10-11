@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -30,7 +29,7 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/noticed_error'
-    require 'new_relic/agent/noticible_error'
+    require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
 
     require 'new_relic/agent/encoding_normalizer'
@@ -199,15 +198,9 @@ module NewRelic
 
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new
-
-        stats.call_count = value[:count] if value[:count]
-        stats.total_call_time = value[:total] if value[:total]
-        stats.total_exclusive_time = value[:total] if value[:total]
-        stats.min_call_time = value[:min] if value[:min]
-        stats.max_call_time = value[:max] if value[:max]
-        stats.sum_of_squares = value[:sum_of_squares] if value[:sum_of_squares]
-        value = stats
+        value = stats.hash_merge(value)
       end
+
       agent.stats_engine.tl_record_unscoped_metrics(metric_name, value)
     end
 
@@ -238,7 +231,7 @@ module NewRelic
     # @!group Recording custom errors
 
     # Set a filter to be applied to errors that the Ruby Agent will
-    # track.  The block should evalute to the exception to track
+    # track.  The block should evaluate to the exception to track
     # (which could be different from the original exception) or nil to
     # ignore this exception.
     #
@@ -290,7 +283,7 @@ module NewRelic
       record_api_supportability_metric(:notice_error)
 
       Transaction.notice_error(exception, options)
-      nil # don't return a noticed error datastructure. it can only hurt.
+      nil # don't return a noticed error data structure. it can only hurt.
     end
 
     # @!endgroup
@@ -586,13 +579,17 @@ module NewRelic
 
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment
-          # Make sure not to override existing segment-level custom attributes
-          segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
-          segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
+          add_new_segment_attributes(params, segment)
         end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
+    end
+
+    def add_new_segment_attributes(params, segment)
+      # Make sure not to override existing segment-level custom attributes
+      segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
+      segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
     end
 
     # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the
@@ -673,7 +670,7 @@ module NewRelic
 
     # Yield to a block that is run with a database metric name context.  This means
     # the Database instrumentation will use this for the metric name if it does not
-    # otherwise know about a model.  This is re-entrant.
+    # otherwise know about a model.  This is reentrant.
     #
     # @param [String,Class,#to_s] model the DB model class
     #

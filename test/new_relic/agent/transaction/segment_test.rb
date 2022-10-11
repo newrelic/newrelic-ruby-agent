@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -271,29 +270,6 @@ module NewRelic
           assert_equal t, segment.start_time
         end
 
-        def test_generates_guid_when_running_out_of_file_descriptors
-          # SecureRandom.hex raises an exception when the ruby interpreter
-          # uses up all of its allotted file descriptors.
-          # See also: https://github.com/newrelic/newrelic-ruby-agent/issues/303
-          file_descriptors = []
-          begin
-            # Errno::EMFILE is raised when the system runs out of file
-            # descriptors
-            # If the segment constructor fails to create a random guid, the
-            # exception would be a RuntimeError
-            # When Docker Compose is used with this test file accessible via
-            # a volume, the error is Errno::EIO instead
-            assert_raises(Errno::EIO, Errno::EMFILE, Errno::ENFILE) do
-              while true
-                file_descriptors << IO.sysopen(__FILE__)
-                Segment.new("Test #{file_descriptors[-1]}")
-              end
-            end
-          ensure
-            file_descriptors.map { |fd| IO::new(fd).close }
-          end
-        end
-
         def test_adding_agent_attributes
           in_transaction do |txn|
             txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
@@ -305,7 +281,7 @@ module NewRelic
 
         def test_request_attributes_in_agent_attributes
           request_attributes = {
-            :referer => "/referered",
+            :referer => "/referred",
             :path => "/",
             :content_length => 0,
             :content_type => "application/json",
@@ -320,7 +296,7 @@ module NewRelic
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
 
-          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/referred", actual[:'request.headers.referer']
           assert_equal "/", actual[:'request.uri']
           assert_equal 0, actual[:'request.headers.contentLength']
           assert_equal "application/json", actual[:"request.headers.contentType"]
@@ -345,13 +321,13 @@ module NewRelic
 
         def test_referer_in_agent_attributes
           segment = nil
-          request = stub('request', :referer => "/referered", :path => "/")
+          request = stub('request', :referer => "/referred", :path => "/")
           txn = in_transaction(:request => request) do
           end
 
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
-          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/referred", actual[:'request.headers.referer']
         end
 
         private

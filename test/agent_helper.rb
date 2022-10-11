@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -31,15 +30,8 @@ def fake_guid(length = 16)
   NewRelic::Agent::GuidGenerator.generate_guid(length)
 end
 
-def assert_match(matcher, obj, msg = nil)
-  msg = message(msg) { "Expected #{mu_pp(matcher)} to match #{mu_pp(obj)}" }
-  assert_respond_to matcher, :"=~"
-  matcher = Regexp.new(Regexp.escape(matcher)) if String === matcher
-  assert matcher =~ obj, msg
-end
-
 def assert_between(floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}")
-  assert((floor <= value && value <= ceiling), message)
+  assert((floor <= value && value <= ceiling), message) # rubocop:disable Minitest/AssertWithExpectedArgument
 end
 
 def assert_in_delta(expected, actual, delta)
@@ -56,8 +48,7 @@ end
 
 def assert_has_traced_error(error_class)
   errors = harvest_error_traces!
-  assert \
-    errors.find { |e| e.exception_class_name == error_class.name } != nil, \
+  refute_nil errors.find { |e| e.exception_class_name == error_class.name }, \
     "Didn't find error of class #{error_class}"
 end
 
@@ -89,23 +80,17 @@ def last_error_event
   harvest_error_events!.last.last
 end
 
-unless defined? assert_block
-  def assert_block(*msgs)
-    assert yield, *msgs
-  end
-end
-
 unless defined? assert_includes
   def assert_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
-    assert_block(msg) { collection.include?(member) }
+    assert_includes collection, member, msg
   end
 end
 
 unless defined? assert_not_includes
   def assert_not_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
-    assert !collection.include?(member), msg
+    refute_includes collection, member, msg
   end
 end
 
@@ -122,8 +107,7 @@ end
 
 def assert_log_contains(log, message)
   lines = log.array
-  failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
-  assert (lines.any? { |line| line.match(message) }), failure_message
+  assert (lines.any? { |line| line.match(message) })
 end
 
 def assert_audit_log_contains(audit_log_contents, needle)
@@ -133,7 +117,7 @@ def assert_audit_log_contains(audit_log_contents, needle)
   regex = /[:"]/
   needle = needle.gsub(regex, '')
   haystack = audit_log_contents.gsub(regex, '')
-  assert(haystack.include?(needle), "Expected log to contain '#{needle}'")
+  assert_includes(haystack, needle, "Expected log to contain '#{needle}'")
 end
 
 # Because we don't generate a strictly machine-readable representation of
@@ -243,7 +227,7 @@ def assert_metrics_recorded(expected)
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
       msg += "\nAll specs in there were: #{format_metric_spec_list(all_specs)}"
 
-      assert(actual_stats, msg)
+      assert(actual_stats, msg) # rubocop:disable Minitest/AssertWithExpectedArgument
     end
     assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
   end
@@ -276,12 +260,12 @@ def assert_metrics_recorded_exclusive(expected, options = {})
   expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s) }
 
   unexpected_metrics = recorded_metrics - expected_metrics
-  unexpected_metrics.reject! { |m| m.name =~ /GC\/Transaction/ }
+  unexpected_metrics.reject! { |m| m.name.include?('GC/Transaction') }
 
   assert_equal(0, unexpected_metrics.size, "Found unexpected metrics: #{format_metric_spec_list(unexpected_metrics)}")
 end
 
-def assert_newrelic_metdata_present(metadata)
+def assert_newrelic_metadata_present(metadata)
   assert metadata.key?('newrelic')
   refute_nil metadata['newrelic']
 end
@@ -316,7 +300,7 @@ def assert_metrics_not_recorded(not_expected)
       found_but_not_expected << spec
     end
   end
-  assert_equal([], found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
+  assert_empty(found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
 end
 
 alias :refute_metrics_recorded :assert_metrics_not_recorded
@@ -327,8 +311,7 @@ def assert_no_metrics_match(regex)
     matching_metrics << metric if metric.match(regex)
   end
 
-  assert_equal(
-    [],
+  assert_empty(
     matching_metrics,
     "Found unexpected metrics:\n" + matching_metrics.map { |m| "  '#{m}'" }.join("\n") + "\n\n"
   )
@@ -345,17 +328,17 @@ end
 
 def assert_truthy(expected, msg = nil)
   msg ||= "Expected #{expected.inspect} to be truthy"
-  assert !!expected, msg
+  refute !expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
   msg ||= "Expected #{expected.inspect} to be falsy"
-  assert !expected, msg
+  refute expected, msg
 end
 
 unless defined? assert_false
   def assert_false(expected)
-    assert_equal false, expected
+    refute expected
   end
 end
 
@@ -386,8 +369,7 @@ def in_transaction(*args, &blk)
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
-  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
-                                        args.first || 'dummy'
+  name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) : args.first || 'dummy'
 
   state = NewRelic::Agent::Tracer.state
   txn = nil
@@ -412,7 +394,7 @@ def with_disabled_defaults_transformer(key)
 end
 
 # Convenience wrapper to stand up a transaction and provide a segment within
-# that transaction to work with.  The same arguements as provided to in_transaction
+# that transaction to work with.  The same arguments as provided to in_transaction
 # may be supplied.
 def with_segment(*args, &blk)
   segment = nil
@@ -871,7 +853,7 @@ def load_cross_agent_test(name)
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
   data = ::JSON.load(data)
-  data.each { |testcase| testcase['testname'].gsub!(' ', '_') if String === testcase['testname'] }
+  data.each { |testcase| testcase['testname'].tr!(' ', '_') if String === testcase['testname'] }
   data
 end
 

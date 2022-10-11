@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -112,7 +111,7 @@ module NewRelic::Agent::Threading
     end
 
     def assert_thread_completed(t)
-      assert_equal false, t.status
+      refute t.status
     end
 
     def assert_thread_died_from_exception(t)
@@ -124,7 +123,7 @@ module NewRelic::Agent::Threading
         report_on_exception_original_value = Thread.report_on_exception
         Thread.report_on_exception = false
       end
-      blk.call
+      yield
       if Thread.respond_to?(:report_on_exception)
         Thread.report_on_exception = report_on_exception_original_value
       end

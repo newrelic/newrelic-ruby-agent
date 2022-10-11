@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -21,14 +20,14 @@ module NewRelic
         attr_accessor :thread_profiler_session, :backtrace_service
 
         def initialize(event_listener = nil)
-          @handlers = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
+          @handlers = Hash.new { |*| proc { |cmd| self.unrecognized_agent_command(cmd) } }
 
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
 
-          @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
-          @handlers['stop_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
+          @handlers['start_profiler'] = proc { |cmd| thread_profiler_session.handle_start_command(cmd) }
+          @handlers['stop_profiler'] = proc { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
           if event_listener
             event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))

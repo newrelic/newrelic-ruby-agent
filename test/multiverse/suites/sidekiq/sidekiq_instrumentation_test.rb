@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -182,9 +181,10 @@ class SidekiqTest < Minitest::Test
     metric_data = $collector.calls_for('metric_data')
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
 
-    metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
-    assert(metric, "Could not find metric named #{name}. Did have metrics:\n" +
-                   metric_data.first.metrics.map { |m| m[0]['name'] }.join("\t\n"))
+    metrics = metric_data.first.metrics
+    metric = metrics.find { |m| m[0]['name'] == name }
+    message = "Could not find metric named #{name}. Did have metrics:\n" + metrics.map { |m| m[0]['name'] }.join("\t\n")
+    assert(metric, message) # rubocop:disable Minitest/AssertWithExpectedArgument
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -62,7 +61,7 @@ class DependencyDetectionTest < Minitest::Test
     end
     DependencyDetection.detect!
 
-    assert !executed
+    refute executed
   end
 
   def test_short_circuits_on_failure
@@ -76,7 +75,7 @@ class DependencyDetectionTest < Minitest::Test
     end
     DependencyDetection.detect!
 
-    assert !executed
+    refute executed
   end
 
   def test_named_disabling_defaults_to_allowed
@@ -118,7 +117,7 @@ class DependencyDetectionTest < Minitest::Test
       DependencyDetection.detect!
     end
 
-    assert !executed
+    refute executed
   end
 
   def test_config_defaults_to_auto

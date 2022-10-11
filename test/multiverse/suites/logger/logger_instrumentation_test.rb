@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -178,7 +177,7 @@ class LoggerInstrumentationTest < Minitest::Test
     @logger.clear_skip_instrumenting
     NewRelic::Agent::Instrumentation::Logger.mark_skip_instrumenting(@logger)
     NewRelic::Agent::Instrumentation::Logger.clear_skip_instrumenting(@logger)
-    assert !@logger.instance_variable_defined?(:@skip_instrumenting), "instance variable should not be defined"
+    refute @logger.instance_variable_defined?(:@skip_instrumenting), "instance variable should not be defined"
   end
 
   def assert_logging_instrumentation(level, count = 1)

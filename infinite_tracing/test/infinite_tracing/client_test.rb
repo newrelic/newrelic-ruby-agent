@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -154,6 +153,36 @@ module NewRelic
             end
 
             assert_equal 5, client.buffer.queue.length
+          end
+        end
+
+        def test_record_spans_is_used_if_batching_is_not_enabled
+          with_config('infinite_tracing.batching': false) do
+            mock_channel = MiniTest::Mock.new
+            mock_channel.expect :wait_for_agent_connect, nil
+            Connection.stub :instance, mock_channel do
+              client = Client.new
+              # verify that it is #record_spans that gets called (not #record_span_batches)
+              # by overriding #record_spans to return a known canned string
+              def client.record_spans(*args); 'correct'; end
+              client.start_streaming
+              assert_equal 'correct', client.instance_variable_get(:@response_handler)
+            end
+          end
+        end
+
+        def test_record_span_batches_is_used_if_batching_is_enabled
+          with_config('infinite_tracing.batching': true) do
+            mock_channel = MiniTest::Mock.new
+            mock_channel.expect :wait_for_agent_connect, nil
+            Connection.stub :instance, mock_channel do
+              client = Client.new
+              # verify that it is #record_span_batches that gets called (not #record_spans)
+              # by overriding #record_span_batches to return a known canned string
+              def client.record_span_batches(*args); 'correct'; end
+              client.start_streaming
+              assert_equal 'correct', client.instance_variable_get(:@response_handler)
+            end
           end
         end
       end

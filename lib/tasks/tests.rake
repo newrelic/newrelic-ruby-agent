@@ -1,7 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+
+require_relative 'helpers/matches'
+include Matches
 
 begin
   require 'rake/testtask'
@@ -10,13 +12,6 @@ end
 
 if defined? Rake::TestTask
   namespace :test do
-    def look_for_seed(tasks)
-      matches = tasks.map { |t| /(seed=.*?)[,\]]/.match(t) }.compact
-      if matches.any?
-        matches.first[1]
-      end
-    end
-
     tasks = Rake.application.top_level_tasks
     ENV["TESTOPTS"] ||= ""
     if tasks.any? { |t| t.include?("verbose") }

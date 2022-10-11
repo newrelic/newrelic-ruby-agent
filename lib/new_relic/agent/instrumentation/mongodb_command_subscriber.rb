@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -38,7 +37,7 @@ module NewRelic
             return unless segment
 
             # operations that succeed but have errors return CommandSucceeded
-            # with an error_key that is populated with error specfics
+            # with an error_key that is populated with error specifics
             if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
               attributes = event.reply[error_key][-1]

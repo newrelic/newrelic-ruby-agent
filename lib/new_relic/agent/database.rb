@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -119,18 +118,18 @@ module NewRelic
         return statement.explain || []
       end
 
-      KNOWN_OPERATIONS = [
-        'alter',
-        'select',
-        'update',
-        'delete',
-        'insert',
-        'create',
-        'show',
-        'set',
-        'exec',
-        'execute',
-        'call'
+      KNOWN_OPERATIONS = %w[
+        alter
+        select
+        update
+        delete
+        insert
+        create
+        show
+        set
+        exec
+        execute
+        call
       ]
       OTHER_OPERATION = 'other'.freeze
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
@@ -158,7 +157,7 @@ module NewRelic
           return connection if connection
 
           begin
-            @connections[config] = connector.call(config)
+            @connections[config] = yield(config)
           rescue => e
             ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain.", e)
             nil

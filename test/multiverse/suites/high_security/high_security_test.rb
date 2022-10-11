@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -223,7 +222,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_blocks_log_capture
-    Logger.new(StringIO.new()).fatal("Ooops")
+    Logger.new(StringIO.new()).fatal("Oops")
 
     run_harvest
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -12,7 +11,7 @@ class EventListenerTest < Minitest::Test
     @called = false
     @called_with = nil
 
-    @check_method = Proc.new do |*args|
+    @check_method = proc do |*args|
       @called = true
       @called_with = args
     end
@@ -27,7 +26,7 @@ class EventListenerTest < Minitest::Test
   end
 
   def assert_was_not_called
-    assert !@called, "Event was called"
+    refute @called, "Event was called"
   end
 
   #

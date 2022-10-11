@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -696,7 +695,7 @@ module NewRelic::Agent
               segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
             end
             refute_empty l.array, "process_response_metadata should log error on invalid ID"
-            assert l.array.first =~ %r{invalid/non-trusted ID}
+            assert_includes l.array.first, 'invalid/non-trusted ID'
 
             assert_equal 'External/example.com/foo/get', segment.name
           end
@@ -722,7 +721,7 @@ module NewRelic::Agent
               segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
             end
             refute_empty l.array, "process_response_metadata should log error on invalid ID"
-            assert l.array.first =~ %r{invalid/non-trusted ID}
+            assert_includes l.array.first, 'invalid/non-trusted ID'
 
             assert_equal 'External/example.com/foo/get', segment.name
           end

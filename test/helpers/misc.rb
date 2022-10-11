@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -113,7 +112,7 @@ end
 def wait_until_not_nil(give_up_after = 3, &block)
   total_tries = give_up_after * 10
   current_tries = 0
-  while block.call.nil? and current_tries < total_tries
+  while yield.nil? and current_tries < total_tries
     sleep(0.1)
     current_tries += 1
   end

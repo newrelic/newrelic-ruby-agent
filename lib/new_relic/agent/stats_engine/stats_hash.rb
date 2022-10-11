@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -128,7 +127,7 @@ module NewRelic
         hash[key] = stats
         # Try to restore the default_proc so we won't continually trip the error
         if hash.respond_to?(:default_proc=)
-          hash.default_proc = Proc.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+          hash.default_proc = proc { |h, k| h[k] = NewRelic::Agent::Stats.new }
         end
         stats
       end

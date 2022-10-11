@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -374,7 +373,7 @@ class DataMapperTest < Minitest::Test
     msg.stubs(:duration).returns(1)
     msg.stubs(:query).returns(q)
 
-    assert_equal false, msg.query.valid_encoding?
+    refute msg.query.valid_encoding?
     db.send(:log, msg)
   end
 
@@ -390,7 +389,7 @@ class DataMapperTest < Minitest::Test
       end
     end
 
-    refute last_traced_error.message.include?(invalid_query)
+    refute_includes last_traced_error.message, invalid_query
   end
 
   def test_error_noticing_on_segments
@@ -418,7 +417,7 @@ class DataMapperTest < Minitest::Test
       NewRelic::Agent.notice_error(e)
     end
 
-    refute last_traced_error.message.include?('&password='),
+    refute_includes last_traced_error.message, '&password=',
       "error message expected not to contain '&password=' but did: #{last_traced_error && last_traced_error.message}"
   end
 

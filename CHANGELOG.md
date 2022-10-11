@@ -1,5 +1,49 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.11.0
+
+  Version 8.11.0 of the agent updates the `newrelic deployments` command to work with API keys issued to newer accounts, fixes a memory leak in the instrumentation of Curb error handling, further preps for Ruby 3.2.0 support, and includes several community member driven cleanup and improvement efforts. Thank you to everyone involved!
+
+
+  * **Added support for New Relic REST API v2 when using `newrelic deployments` command**
+
+    Previously, the `newrelic deployments` command only supported the older version of the deployments api, which does not currently support newer license keys. Now you can use the New Relic REST API v2 to record deployments by providing your user API key to the agent configuration using `api_key`. When this configuration option is present, the `newrelic deployments` command will automatically use the New Relic REST API v2 deployment endpoint. [PR#1461](https://github.com/newrelic/newrelic-ruby-agent/pull/1461)
+
+    Thank you to [@Arkham](https://github.com/Arkham) for bringing this to our attention!
+
+
+  * **Cleanup: Performance tests, constants, rubocop-minitest assertions and refutations**
+
+    Community member [@esquith](https://github.com/esquith) contributed a whole slew of cleanup successes for our performance test configuration, orphaned constants in our code base, and RuboCop related improvements. [PR#1406](https://github.com/newrelic/newrelic-ruby-agent/pull/1406) [PR#1408](https://github.com/newrelic/newrelic-ruby-agent/pull/1408) [PR#1409](https://github.com/newrelic/newrelic-ruby-agent/pull/1409) [PR#1411](https://github.com/newrelic/newrelic-ruby-agent/pull/1411)
+
+    Thank you [@esquith](https://github.com/esquith) for these great contributions!
+
+
+  * **CI: Notify on a change from failure to success**
+
+    A super handy, much beloved feature of certain CI and build systems is to not only notify when builds start to fail, but also to notify again when the builds once again start to go green. Community member [@luigieai](https://github.com/luigieai) was able to figure out how to configure our existing complex, multiple-3rd-party-action based GitHub Actions pipeline to notify on a switch back to success from failure. [PR#1519](https://github.com/newrelic/newrelic-ruby-agent/pull/1519)
+
+    This is much appreciated! Thank you, [@luigieai](https://github.com/luigieai).
+
+
+  * **Spelling corrections**
+
+    Community member [@jsoref](https://github.com/jsoref), author of the [Check Spelling](https://github.com/marketplace/actions/check-spelling) GitHub Action, contributed a significant number of spelling corrections throughout the code base. The intelligent issues that were flagged made for a more comprehensive review than a simple dictionary based check would have been able to provide, and the changes are much appreciated. [PR#1508](https://github.com/newrelic/newrelic-ruby-agent/pull/1508)
+
+    Thank you very much, [@jsoref](https://github.com/jsoref)!
+
+
+  * **Ruby 3.2.0-preview2 compatibility**
+
+    Ruby 3.2.0-preview1 introduced a change to the way that Ruby reports VM stats and the approach was changed yet again to a 3rd approach with the preview2 release. New Relic reports on Ruby VM stats and is keeping track of the Ruby 3.2 development process to help ensure our customers with a smooth and worthwhile upgrade process once Ruby 3.2.0 (non-preview) is released. [PR#1436](https://github.com/newrelic/newrelic-ruby-agent/pull/1436)
+
+
+  * **Bugfix: Fix memory leak in the Curb instrumentation**
+
+    Community member [@charkost](https://github.com/charkost) was able to rework the `on_failure` callback logic prepped via the agent's Curb instrumentation in order to avoid some nesting that was causing memory leaks. [PR#1518](https://github.com/newrelic/newrelic-ruby-agent/pull/1518)
+
+    Many thanks for both the heads up on the issue and the fix, [@charkost](https://github.com/charkost)!
+
 
   ## v8.10.1
 
@@ -41,7 +85,7 @@
 
   * **Performance: Rework timing range overlap calculations for multiple transaction segments**
 
-    Many thanks to GitHub community members @bmulholland and @hkdnet. @bmulholland alerted us to [rmosolgo/graphql-ruby#3945](https://github.com/rmosolgo/graphql-ruby/issues/3945). That Issue essentially notes that the New Relic Ruby agent incurs a significant perfomance hit when the `graphql` RubyGem (which ships with New Relic Ruby agent support) is used with DataLoader to generate a high number of transactions. Then @hkdnet diagnosed the root cause in the Ruby agent and put together both a proof of concept fix and a full blown PR to resolve the problem. The agent keeps track multiple segments that are concurrently in play for a given transaction in order to merge the ones whose start and stop times intersect. The logic for doing this find-and-merge operation has been reworked to a) be deferred entirely until the transaction is ready to be recorded, and b) made more performant when it is needed. GraphQL DataLoader users and other users who generate lots of activity for monitoring within a short amount of time will hopefully see some good performance gains from these changes.
+    Many thanks to GitHub community members @bmulholland and @hkdnet. @bmulholland alerted us to [rmosolgo/graphql-ruby#3945](https://github.com/rmosolgo/graphql-ruby/issues/3945). That Issue essentially notes that the New Relic Ruby agent incurs a significant performance hit when the `graphql` RubyGem (which ships with New Relic Ruby agent support) is used with DataLoader to generate a high number of transactions. Then @hkdnet diagnosed the root cause in the Ruby agent and put together both a proof of concept fix and a full blown PR to resolve the problem. The agent keeps track multiple segments that are concurrently in play for a given transaction in order to merge the ones whose start and stop times intersect. The logic for doing this find-and-merge operation has been reworked to a) be deferred entirely until the transaction is ready to be recorded, and b) made more performant when it is needed. GraphQL DataLoader users and other users who generate lots of activity for monitoring within a short amount of time will hopefully see some good performance gains from these changes.
 
 
   * **Performance: Make frozen string literals the default for the agent**
@@ -76,7 +120,6 @@
   * **Bugfix: Don't modify frozen Logger**
 
     Previously the agent would modify each instance of the Logger class by adding a unique instance variable as part of the instrumentation. This could cause the error `FrozenError: can't modify frozen Logger` to be thrown if the Logger instance had been frozen. The agent will now check if the object is frozen before attempting to modify the object. Thanks to @mkcosta for bringing this issue to our attention.
-
 
 
   ## v8.9.0
@@ -119,7 +162,7 @@
 
   * **APM logs-in-context log forwarding on by default**
 
-    Automatic application log forwarding is now enabled by default. This version of the agent will automatically send enriched application logs to New Relic. To learn more about about this feature see [here](https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/get-started-logs-context/), and additional configuration options are available [here](https://docs.newrelic.com/docs/logs/logs-context/configure-logs-context-ruby). To learn about how to toggle log ingestion on or off by account see [here](https://docs.newrelic.com/docs/logs/logs-context/disable-automatic-logging).
+    Automatic application log forwarding is now enabled by default. This version of the agent will automatically send enriched application logs to New Relic. To learn more about this feature see [here](https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/get-started-logs-context/), and additional configuration options are available [here](https://docs.newrelic.com/docs/logs/logs-context/configure-logs-context-ruby). To learn about how to toggle log ingestion on or off by account see [here](https://docs.newrelic.com/docs/logs/logs-context/disable-automatic-logging).
 
   * **Improved async support and Thread instrumentation**
 
@@ -128,7 +171,7 @@
     New configuration options included in this release:
     | Configuration name | Default | Behavior |
     | ----------- | ----------- |----------- |
-    | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asyncronous transaction   |
+    | `instrumentation.thread`  | `auto` (enabled) | Allows the agent to correctly nest spans inside of an asynchronous transaction   |
     | `instrumentation.thread.tracing` | `false` (disabled)   |  Automatically add tracing to all Threads created in the application. This may be enabled by default in a future release. |
 
     We'd like to thank @mikeantonelli for sharing a gist with us that provided our team with an entry point for this feature.
@@ -217,7 +260,7 @@
 
     Previously, unit tests would fail with unexpected invocation errors when `NEW_RELIC_LICENSE_KEY` and `NEW_RELIC_HOST` environment variables were present. Now, tests will discard these environment variables before running.
 
-  * **Bugfix: Curb - satify method_with_tracing's verb argument requirement**
+  * **Bugfix: Curb - satisfy method_with_tracing's verb argument requirement**
 
     When Curb instrumentation is used (either via prepend or chain), be sure to always pass the verb argument over to `method_with_tracing` which requires it. Thank you to @knarewski for bringing this issue to our attention, for providing a means of reproducing an error, and for providing a fix. That fix has been replicated by the agent team with permission. See [Issue 1033](https://github.com/newrelic/newrelic-ruby-agent/issues/1033) for more details.
 
@@ -399,7 +442,7 @@
 
   * **Update configuration option default value for `span_events.max_samples_stored` from 1000 to 2000**
 
-    For more information about this congfiguration option, visit [the Ruby agent documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored).
+    For more information about this configuration option, visit [the Ruby agent documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored).
 
   * **Agent now enforces server supplied maximum value for configuration option `span_events.max_samples_stored`**
 
@@ -473,7 +516,7 @@
 
   * **Bugfix: resolves "can't add a new key into hash during iteration" Errors**
 
-    Thanks to @wyhaines for this fix that prevents "can't add a new key into hash during iteration" errors from occuring when iterating over environment data.
+    Thanks to @wyhaines for this fix that prevents "can't add a new key into hash during iteration" errors from occurring when iterating over environment data.
 
   * **Bugfix: kwarg support fixed for Rack middleware instrumentation**
 
@@ -530,7 +573,7 @@
 
   * **Ruby Agent 6.x to 7.x Migration Guide Available**
 
-    Please see our [Ruby Agent 6.x to 7.x migration guide](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/migration-7x-guide/) for helpful strategies and tips for migrating from earlier versions of the Ruby agent to 7.0.0.  We cover new configuration settings, diagnosiing and installing SSL CA certificates and deprecated items and their replacements in this guide.
+    Please see our [Ruby Agent 6.x to 7.x migration guide](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/migration-7x-guide/) for helpful strategies and tips for migrating from earlier versions of the Ruby agent to 7.0.0.  We cover new configuration settings, diagnosing and installing SSL CA certificates and deprecated items and their replacements in this guide.
 
   * **Ruby 2.0 and 2.1 Dropped**
 
@@ -649,7 +692,7 @@
   * **Default prepend_net_instrumentation to false**
 
     Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of
-    unexpected compatibilty issues.
+    unexpected compatibility issues.
 
   ## v6.14.0
 
@@ -659,14 +702,14 @@
 
   * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
 
-    Previously, the agent was erroneousy separating positional and keyword arguments on the instrumented method calls into
+    Previously, the agent was erroneously separating positional and keyword arguments on the instrumented method calls into
     Delayed Job's library.  The led to Delayed job not auto-instrumenting correctly and has been fixed.
 
   * **Bugfix: Ruby 2.7+ methods sometimes erroneously attributed compiler warnings to the Agent's `add_method_tracer`**
 
     The specific edge cases presented are now fixed by this release of the agent.  There are still some known corner-cases
     that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding
-    method tracers and compiler warnings raised, please continue to submit small repoducible examples.
+    method tracers and compiler warnings raised, please continue to submit small reproducible examples.
 
   * **Bugfix: Ruby 2.7+ fix for keyword arguments on Rack apps is unnecessary and removed**
 
@@ -683,14 +726,14 @@
 
     Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find
     the `.erb` file because it was not in the list of files searched at startup.  The Ruby agent has long supported this as a
-    means of configuring the agent programatically.  The `newrelic.yml.erb` filename is restored to the search
+    means of configuring the agent programmatically.  The `newrelic.yml.erb` filename is restored to the search
     path and will be utilized if present.  NOTE:  `newrelic.yml` still takes precedence over `newrelic.yml.erb`  If found,
     the `.yml` file is used instead of the `.erb` file.  Search directories and order of traversal remain unchanged.
 
   * **Bugfix: dependency detection of Redis now works without raising an exception**
 
     Previously, when detecting if Redis was available to instrument, the dependency detection would fail with an Exception raised
-    (with side effect of not attempting to instrument Redis).  This is now fixed with a better dependency check that resolves falsly without raising an `Exception`.
+    (with side effect of not attempting to instrument Redis).  This is now fixed with a better dependency check that resolves falsely without raising an `Exception`.
 
   * **Bugfix: Gracefully handles NilClass as a Middleware Class when instrumenting**
 
@@ -815,10 +858,10 @@
     Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify"
     for versions 2.1 through 2.5 was fixed.
 
-  * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
+  * **Bugfix: Priority Sampler causes crash in high throughput environments in rare cases**
 
     Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
-    environments once capacity is reached and the sampling algorthym engages.  This issue is fixed.
+    environments once capacity is reached and the sampling algorithm engages.  This issue is fixed.
 
   * **Additional Transaction Information applied to Span Events**
 
@@ -1537,7 +1580,7 @@
 
     Prior to this version, using an SSL connection to New Relic was
     the default behavior, but could be overridden. SSL connections are
-    now enforced (not overrideable).
+    now enforced (not overridable).
 
   * Additional security checking before trying to explain
     multi-statement SQL queries
@@ -1703,7 +1746,7 @@
   The agent will now collect slow SQL explain plans, if configured to, on
   connections using the PostGIS adapter. Thanks Ari Pollak for the contribution!
 
-  * Lazily intialize New Relic Config
+  * Lazily initialize New Relic Config
 
   The agent will lazily initialize the New Relic config. This allows the agent
   to pickup configuration from environment variables set by dotenv and similar
@@ -1950,7 +1993,7 @@
   * Include ControllerInstrumentation module with ActiveSupport.on_load
 
   The agent will now use the `on_load :action_controller` hook to include
-  the ControllerInstrumentation module in to both the `Base` and `API`
+  the ControllerInstrumentation module into both the `Base` and `API`
   classes of ActionController for Rails 5. This ensures that the proper
   load order is retained, minimizing side-effects of having the agent in
   an application.
@@ -1995,7 +2038,7 @@
   better compatibility between our ActiveRecord Instrumentation and
   other third party gems that modify ActiveRecord using `Module#prepend`.
 
-  * Use license key passed in to NewRelic::Agent.manual_start
+  * Use license key passed into NewRelic::Agent.manual_start
 
   Previously, the license key passed in when manually starting the agent
   with NewRelic::Agent.manual_start was not referenced when setting up
@@ -3128,7 +3171,7 @@
   runtime relative to the directory that the host process is started from.
 
   In cases where the host process was started from outside of the application's
-  root directory (for example, if the process is started from from '/'), it will
+  root directory (for example, if the process is started from '/'), it will
   now also attempt to locate its configuration file based on the value of
   Rails.root for Rails applications.
 
@@ -3177,7 +3220,7 @@
   Rack::Builder, or via Rails' middleware stack in Rails 3.0+.
 
   This instrumentation may be disabled with the
-  disable_middlware_instrumentation configuration setting.
+  disable_middleware_instrumentation configuration setting.
 
   For more details, see the documentation for this feature:
 
@@ -3315,7 +3358,7 @@
   * Separate in-transaction GC timings for web and background processes
 
   Previously, an application with GC instrumentation enabled, and both web and
-  background processes reporting in to it would show an overly inflated GC band
+  background processes reporting into it would show an overly inflated GC band
   on the application overview graph, because data from both web and non-web
   transactions would be included. This has been fixed, and GC time during web
   and non-web transactions is now tracked separately.
@@ -3543,7 +3586,7 @@
 
   The agent's ActiveRecord 4.0 instrumentation could not gather SQL explain
   plans on JRuby by default because of a dependency on ObjectSpace, which isn't
-  avialable by default. This has been fixed.
+  available by default. This has been fixed.
 
   * Fix for Curb http_put_with_newrelic
 
@@ -4176,7 +4219,7 @@
 
  * corrupt marshal data from pipe children crashing agent
 
-   If the agent received corrupted data from the Reqsue worker child agent
+   If the agent received corrupted data from the Resque worker child agent
    it could crash the agent itself. fixed.
 
  * should reset RubyBench GC counter between polls
@@ -4230,7 +4273,7 @@
   * fix for issues with RAILS_ROOT deprecation warnings
   * fixed incorrect 1.9 GC time reporting
   * obfuscation for Slow SQL queries respects transaction trace config
-  * fix for RUM instrumentation repoting bad timing info in some cases
+  * fix for RUM instrumentation reporting bad timing info in some cases
   * refactored ActiveRecord instrumentation, no longer requires Rails
 
 ## v3.3.0

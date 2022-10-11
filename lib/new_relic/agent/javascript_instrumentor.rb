@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,7 +8,7 @@ require 'new_relic/agent/obfuscator'
 
 module NewRelic
   module Agent
-    class JavascriptInstrumentor
+    class JavaScriptInstrumentor
       include NewRelic::Coerce
 
       RUM_KEY_LENGTH = 13

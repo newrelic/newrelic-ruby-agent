@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -40,7 +39,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
     assert_nil worker_loop.instance_variable_get(:@deadline)
 
     worker_loop.run(0.001) {}
-    assert !worker_loop.instance_variable_get(:@deadline).nil?
+    refute_nil worker_loop.instance_variable_get(:@deadline)
   end
 
   def test_loop_limit

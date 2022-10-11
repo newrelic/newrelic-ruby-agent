@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -119,7 +118,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new { |env| inner_app.call(env) }
+      proc { |env| inner_app.call(env) }
     end
   end
 
@@ -134,7 +133,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new { |env| inner_app.call(env) }
+      proc { |env| inner_app.call(env) }
     end
   end
 end

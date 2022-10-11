@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -44,14 +43,14 @@ module NewRelic
           config_setting = original_config_setting.to_s
 
           if config_setting.include?('.')
-            config_alias = config_setting.gsub(/\./, '_').to_sym
+            config_alias = config_setting.tr('.', '_').to_sym
             self.alias_map[config_alias] = original_config_setting
           end
         end
 
         def set_log_file
           if ENV['NEW_RELIC_LOG']
-            if ENV['NEW_RELIC_LOG'].upcase == 'STDOUT'
+            if ENV['NEW_RELIC_LOG'].casecmp('STDOUT').zero?
               self[:log_file_path] = self[:log_file_name] = 'STDOUT'
             else
               self[:log_file_path] = File.dirname(ENV['NEW_RELIC_LOG'])
@@ -96,7 +95,7 @@ module NewRelic
           elsif type == NewRelic::Agent::Configuration::Boolean
             if value =~ /false|off|no/i
               self[config_key] = false
-            elsif value != nil
+            elsif !value.nil?
               self[config_key] = true
             end
           else

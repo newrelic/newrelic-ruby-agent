@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -166,7 +165,7 @@ if Rails::VERSION::STRING >= "4.2.0"
 
     def test_doesnt_interfere_with_params_on_job
       MyJobWithParams.perform_later("1", "2")
-      assert_equal(["1", "2"], MyJobWithParams.last_params)
+      assert_equal(%w[1 2], MyJobWithParams.last_params)
     end
 
     def test_captures_errors

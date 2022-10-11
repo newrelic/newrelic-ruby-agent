@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -21,6 +20,8 @@ require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
 require 'mocha/setup'
+
+require_relative 'minitest/test_time_reporter'
 
 Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -356,7 +355,7 @@ class BunnyTest < Minitest::Test
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
 
-    yield(queue) if block_given?
+    yield(queue) if block
 
     @chan.queue(queue.name).purge
   end

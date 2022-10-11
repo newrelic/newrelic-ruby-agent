@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -17,9 +16,9 @@ module NewRelic
   module BasicDataContainerMethodTests
     def test_should_respond_to_required_methods
       c = create_container
-      assert c.respond_to?(:harvest!)
-      assert c.respond_to?(:reset!)
-      assert c.respond_to?(:merge!)
+      assert_respond_to c, :harvest!
+      assert_respond_to c, :reset!
+      assert_respond_to c, :merge!
     end
   end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -134,7 +133,7 @@ module NewRelic
         # call the provided block for this node and each
         # of the called nodes
         def each_node(&block)
-          block.call(self)
+          yield(self)
 
           if @children
             @children.each do |node|
@@ -146,7 +145,7 @@ module NewRelic
         # call the provided block for this node and each
         # of the called nodes while keeping track of nested nodes
         def each_node_with_nest_tracking(&block)
-          summary = block.call(self)
+          summary = yield(self)
           summary.current_nest_count += 1 if summary
 
           if @children

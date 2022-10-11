@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -133,7 +132,12 @@ module NewRelic
           at_exit do
             # The agent's default at_exit might not default to installing, but
             # if we are running an instrumented rake task, we always want it.
+            # No code coverage, as the strategy for mocking Kernel.exit prevents
+            # the at_exit block from being executed, and not mocking results in
+            # an early unwanted exit of MiniTest.
+            # :nocov:
             NewRelic::Agent.shutdown
+            # :nocov:
           end
 
           @installed_at_exit = true

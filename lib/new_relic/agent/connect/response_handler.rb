@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -20,7 +19,7 @@ module NewRelic
         # Can accommodate most arbitrary data - anything extra is
         # ignored unless we say to do something with it here.
         def configure_agent(config_data)
-          return if config_data == nil
+          return if config_data.nil?
 
           @agent.agent_id = config_data['agent_run_id']
 

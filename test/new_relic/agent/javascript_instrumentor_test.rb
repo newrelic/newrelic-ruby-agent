@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -7,7 +6,7 @@ require_relative '../../test_helper'
 require "new_relic/agent/javascript_instrumentor"
 require "base64"
 
-class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
+class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   attr_reader :instrumentor
 
   def setup
@@ -23,7 +22,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     NewRelic::Agent.config.add_config_for_testing(@config)
 
     events = stub(:subscribe => nil)
-    @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
+    @instrumentor = NewRelic::Agent::JavaScriptInstrumentor.new(events)
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially
@@ -274,7 +273,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
-  def test_html_safe_if_needed_unsafed
+  def test_html_safe_if_needed_unsafe
     string = mock('string')
     # here to handle 1.9 encoding - we stub this out because it should
     # be handled automatically and is outside the scope of this test
@@ -283,7 +282,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     assert_equal(string, instrumentor.html_safe_if_needed(string))
   end
 
-  def test_html_safe_if_needed_safed
+  def test_html_safe_if_needed_safe
     string = mock('string')
     string.expects(:respond_to?).with(:html_safe).returns(true)
     string.expects(:html_safe).returns(string)
@@ -312,7 +311,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def assert_has_text(snippet, footer)
-    assert(footer.include?(snippet), "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
+    assert_includes(footer, snippet, "Expected footer to include snippet: #{snippet}, but instead was #{footer}")
   end
 
   def assert_attributes_are(expected)
@@ -330,7 +329,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def pack(text)
-    [text].pack("m0").gsub("\n", "")
+    [text].pack("m0").delete("\n")
   end
 
   def unpack_to_object(text)

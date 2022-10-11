@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -52,7 +51,7 @@ class ThreadProfilingTest < Minitest::Test
 
   # These are potentially fragile for being timing based
   # START_COMMAND with 0.01 sampling and 0.5 duration expects to get
-  # roughly 50 polling cycles in. We check signficiantly less than that.
+  # roughly 50 polling cycles in. We check significantly less than that.
 
   # STOP_COMMAND when immediately issued after a START_COMMAND is expected
   # go only let a few cycles through, so we check less than 10
@@ -131,6 +130,6 @@ class ThreadProfilingTest < Minitest::Test
     traces_for_type = profile_data.traces[type]
     assert traces_for_type, "Missing key for type #{type} in profile_data"
     assert_kind_of Array, traces_for_type
-    assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
+    refute_empty profile_data.traces[type], "Zero #{type} traces seen"
   end
 end

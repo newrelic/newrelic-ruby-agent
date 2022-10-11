@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -19,8 +18,8 @@ class EnvironmentReportTest < Minitest::Test
   def test_converts_to_array
     ::NewRelic::EnvironmentReport.report_on("something") { "awesome" }
     data = Array(::NewRelic::EnvironmentReport.new)
-    expected = ["something", "awesome"]
-    assert data.include?(expected), "expected to find #{expected} in #{data.inspect}"
+    expected = %w[something awesome]
+    assert_includes(data, expected, "expected to find #{expected} in #{data.inspect}")
   end
 
   def test_register_a_value_to_report_on
@@ -41,7 +40,7 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("What time is it?") do
       nil
     end
-    assert !NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
+    refute NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
   end
 
   def test_can_set_an_environment_value_directly

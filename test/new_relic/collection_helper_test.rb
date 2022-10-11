@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -32,15 +31,15 @@ class NewRelic::CollectionHelperTest < Minitest::Test
 
   def test_boolean
     np = normalize_params('monitor_mode' => false)
-    assert_equal false, np['monitor_mode']
+    refute np['monitor_mode']
   end
 
   def test_string__singleton
     val = String.new('This String')
     def val.hello; end
     assert_equal 'This String', normalize_params(val)
-    assert val.respond_to?(:hello)
-    assert !normalize_params(val).respond_to?(:hello)
+    assert_respond_to val, :hello
+    refute_respond_to normalize_params(val), :hello
   end
 
   class MyString < String; end

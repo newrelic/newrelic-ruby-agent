@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -169,7 +168,7 @@ module NewRelic::Agent
 
         (test_case_attributes['expected'] || []).each do |key|
           msg = %Q(Missing expected #{event_type} attribute "#{key}")
-          assert actual_attributes.has_key?(key), msg
+          assert actual_attributes.has_key?(key), msg # rubocop:disable Minitest/AssertWithExpectedArgument
         end
 
         (test_case_attributes['unexpected'] || []).each do |key|

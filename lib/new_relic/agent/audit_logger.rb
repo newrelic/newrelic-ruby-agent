@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -95,13 +94,13 @@ module NewRelic
       end
 
       def wants_stdout?
-        ::NewRelic::Agent.config[:'audit_log.path'].upcase == "STDOUT"
+        ::NewRelic::Agent.config[:'audit_log.path'].casecmp("STDOUT").zero?
       end
 
       def create_log_formatter
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
-        Proc.new do |severity, time, progname, msg|
+        proc do |severity, time, progname, msg|
           "#{@prefix}[#{time} #{@hostname} (#{$$})] : #{msg}\n"
         end
       end

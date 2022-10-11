@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -60,7 +59,7 @@ module NewRelic
       @id_counter = 0
       @mock = {
         'preconnect' => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
-        'connect' => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
+        'connect' => Response.new(200, proc { {'return_value' => {"agent_run_id" => agent_run_id}} }),
         'get_agent_commands' => Response.new(200, {'return_value' => []}),
         'agent_command_results' => Response.new(200, {'return_value' => []}),
         'metric_data' => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
@@ -104,7 +103,7 @@ module NewRelic
 
     def stub_wait(method, wait_time, status = 200)
       self.mock[method] ||= default_response
-      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""} })
+      self.mock[method].override(status, proc { sleep(wait_time); {'return_value' => ""} })
     end
 
     def method_from_request(req)
@@ -124,7 +123,7 @@ module NewRelic
       uri = URI.parse(req.url)
       method = method_from_request(req)
 
-      if @mock.keys.include?(method)
+      if @mock.key?(method)
         status, body = @mock[method].evaluate
         res.status = status
         res.write(::JSON.dump(body))

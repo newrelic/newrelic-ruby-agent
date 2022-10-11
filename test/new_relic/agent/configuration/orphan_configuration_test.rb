@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -20,12 +19,12 @@ class OrphanedConfigTest < Minitest::Test
         next unless config_match
 
         config_keys = config_match.captures.map do |key|
-          key.gsub("'", "").to_sym
+          key.delete("'").to_sym
         end
 
         config_keys.each do |key|
           msg = "#{file}:#{index} - Configuration key #{key} is not described in default_source.rb.\n"
-          assert @default_keys.include?(key), msg
+          assert_includes(@default_keys, key, msg)
         end
       end
     end

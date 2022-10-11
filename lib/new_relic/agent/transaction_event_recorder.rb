@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,7 +8,7 @@ require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
   module Agent
-    # This is responsibile for recording transaction events and managing
+    # This is responsible for recording transaction events and managing
     # the relationship between events generated from synthetics requests
     # vs normal requests.
     class TransactionEventRecorder

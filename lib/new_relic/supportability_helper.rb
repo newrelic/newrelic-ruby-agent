@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -72,7 +71,7 @@ module NewRelic
     def valid_api_argument_class?(arg, name, klass)
       return true if arg.is_a?(klass)
 
-      caller_location = caller_locations.first.label
+      caller_location = caller_locations(1..1).first.label
 
       message = "Bad argument passed to ##{caller_location}. " \
         "Expected #{klass} for `#{name}` but got #{arg.class}"

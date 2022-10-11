@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -10,7 +9,7 @@ module NewRelic
     @@forkable = nil
     def can_fork?
       # this is expensive to check, so we should only check once
-      return @@forkable if @@forkable != nil
+      return @@forkable if !@@forkable.nil?
       @@forkable = Process.respond_to?(:fork)
     end
 
@@ -57,7 +56,7 @@ module NewRelic
         begin
           result = namespace.const_get(name)
 
-          # const_get looks up the inheritence chain, so if it's a class
+          # const_get looks up the inheritance chain, so if it's a class
           # in the constant make sure we found the one in our namespace.
           #
           # Can't help if the constant isn't a class...

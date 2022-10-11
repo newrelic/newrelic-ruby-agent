@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -185,7 +184,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     e = Exception.new('Buffy FOREVER')
     e.stubs(:original_exception).returns(nil)
     error = NewRelic::NoticedError.new(@path, e, @time)
-    assert_equal(error.message.to_s, 'Buffy FOREVER')
+    assert_equal('Buffy FOREVER', error.message.to_s)
   end
 
   if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
@@ -193,7 +192,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       orig = FooError.new
       e = mock('exception', original_exception: orig)
       error = NewRelic::NoticedError.new(@path, e, @time)
-      assert_equal(error.exception_class_name, 'FooError')
+      assert_equal('FooError', error.exception_class_name)
     end
   end
 
@@ -232,7 +231,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes
 
-      assert_equal({}, error.custom_attributes)
+      assert_empty(error.custom_attributes)
     end
   end
 
@@ -257,7 +256,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
       error.attributes = attributes
 
-      assert_equal({}, error.agent_attributes)
+      assert_empty(error.agent_attributes)
     end
   end
 

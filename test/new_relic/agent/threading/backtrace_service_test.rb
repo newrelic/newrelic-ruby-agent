@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -50,7 +49,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert @service.running?
 
         @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
-        assert !@service.running?
+        refute @service.running?
       end
 
       def test_stops_only_once_all_subscriptions_are_removed
@@ -64,7 +63,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert @service.running?
 
         @service.unsubscribe('foo')
-        assert !@service.running?
+        refute @service.running?
       end
 
       def test_stop_clears_buffered_backtraces
@@ -227,7 +226,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo')
         @service.subscribe('bar')
-        assert !@service.profile_agent_code
+        refute @service.profile_agent_code
       end
 
       def test_unsubscribe_sets_profile_agent_code
@@ -238,7 +237,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert @service.profile_agent_code
 
         @service.unsubscribe('foo')
-        assert !@service.profile_agent_code
+        refute @service.profile_agent_code
       end
 
       def test_sample_thread_does_not_backtrace_if_no_subscriptions

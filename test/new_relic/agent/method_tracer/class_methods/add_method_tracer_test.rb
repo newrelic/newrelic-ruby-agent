@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -30,7 +29,7 @@ module NewRelic
               self.class.expects(:method_defined?).returns(false)
               self.class.expects(:private_method_defined?).returns(false)
 
-              assert !self.class.newrelic_method_exists?('test_method')
+              refute self.class.newrelic_method_exists?('test_method')
             end
 
             def test_check_for_illegal_keys_positive

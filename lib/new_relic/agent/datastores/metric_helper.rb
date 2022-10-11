@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -8,9 +7,6 @@ module NewRelic
     module Datastores
       module MetricHelper
         ROLLUP_METRIC = "Datastore/all".freeze
-        WEB_ROLLUP_METRIC = "Datastore/allWeb".freeze
-        OTHER_ROLLUP_METRIC = "Datastore/allOther".freeze
-        DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
         OTHER = "Other".freeze
 
         ALL = "all".freeze

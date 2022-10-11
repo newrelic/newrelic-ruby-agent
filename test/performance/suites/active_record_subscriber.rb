@@ -1,12 +1,11 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-# Note: This test was cobbled together from the AR Subscriber Unit Test and
-# by cut & paste of ActiveSupport::Notifcations::Event from Rails source.
+# NOTE: This test was cobbled together from the AR Subscriber Unit Test and
+# by cut & paste of ActiveSupport::Notifications::Event from Rails source.
 # This test is here because it's useful, not because it's well written.
 # If you have a desire to improve this test, do it!
 

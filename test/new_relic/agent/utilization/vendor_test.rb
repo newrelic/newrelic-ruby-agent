@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -14,7 +13,7 @@ module NewRelic
           vendor_name "example"
           endpoint "http://169.254.169.254/metadata"
           headers "meta" => "yes"
-          keys ["vm_type", "vm_id", "vm_zone"]
+          keys %w[vm_type vm_id vm_zone]
           key_transforms :to_sym
         end
 

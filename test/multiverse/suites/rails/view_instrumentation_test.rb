@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -86,6 +85,7 @@ end
 
 class ViewInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
+  RENDERING_OPTIONS = [:js_render, :xml_render, :proc_render, :json_render]
 
   setup_and_teardown_agent do
     # ActiveSupport testing keeps blowing away my subscribers on
@@ -98,7 +98,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  (ViewsController.action_methods - ['raise_render', 'collection_render', 'haml_render']).each do |method|
+  (ViewsController.action_methods - %w[raise_render collection_render haml_render]).each do |method|
     define_method("test_sanity_#{method}") do
       get "/views/#{method}"
       assert_equal 200, status
@@ -187,7 +187,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
 
-    [:js_render, :xml_render, :proc_render, :json_render].each do |action|
+    RENDERING_OPTIONS.each do |action|
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = last_transaction_trace

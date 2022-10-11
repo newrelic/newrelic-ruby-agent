@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -13,7 +12,7 @@ class NewRelic::MetricSpecTest < Minitest::Test
     assert spec1.eql?(NewRelic::MetricSpec.new('Controller'))
     assert spec2.eql?(NewRelic::MetricSpec.new('Controller', nil))
     assert spec1.eql?(spec2)
-    assert !spec2.eql?(NewRelic::MetricSpec.new('Controller', '/dude'))
+    refute spec2.eql?(NewRelic::MetricSpec.new('Controller', '/dude'))
   end
 
   define_method(:'test_<=>') do

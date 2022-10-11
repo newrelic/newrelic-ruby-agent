@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -65,7 +64,7 @@ module NewRelic
         assert_equal 'TestAggregator', TestAggregator.named
       end
 
-      def test_enabled_relects_config_value
+      def test_enabled_reflects_config_value
         assert @aggregator.enabled?, "Expected enabled? to be true"
 
         with_server_source(:enabled_key => false) do

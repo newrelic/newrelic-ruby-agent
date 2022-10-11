@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -80,12 +79,14 @@ bazbangbarn:
 
   def assert_config_read_from(path, manual_config_options = {})
     setup_config(path, manual_config_options)
-    assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
+    assert_equal("success!!", NewRelic::Agent.config[:foo],
+      "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}")
   end
 
   def assert_config_not_read_from(path)
     setup_config(path)
-    assert NewRelic::Agent.config[:foo] != "success!!", "Read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
+    refute_equal NewRelic::Agent.config[:foo], "success!!",
+      "Read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
   end
 
   def test_config_loads_from_config_newrelic_yml

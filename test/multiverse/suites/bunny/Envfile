@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -7,8 +6,7 @@ suite_condition("bunny not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-instrumentation_methods :prepend
-# instrumentation_methods :chain, :prepend
+instrumentation_methods :chain, :prepend
 
 BUNNY_VERSIONS = [
   [nil, 2.3],

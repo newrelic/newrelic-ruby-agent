@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -50,7 +49,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             @collection.drop
           end
 
-          def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+          def test_noticed_error_at_segment_and_txn_when_violating_unique_constraints
             expected_error_class = /Mongo\:\:Error/
             txn = nil
             begin
@@ -510,7 +509,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             statement = node.params[:statement]
 
-            refute statement.keys.include?(:documents), "Noticed NoSQL should not include documents: #{statement}"
+            refute statement.key?(:documents), "Noticed NoSQL should not include documents: #{statement}"
           end
 
           def test_noticed_nosql_does_not_contain_selector_values
@@ -524,7 +523,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             statement = node.params[:statement]
 
-            refute statement.inspect.include?('$ecret')
+            refute_includes statement.inspect, '$ecret'
             assert_equal '?', statement['filter']['password']
           end
 
@@ -570,7 +569,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
           def statement_metric(action)
             metrics = build_test_metrics(action, true)
-            metrics.select { |m| m.start_with?("Datastore/statement") }.first
+            metrics.find { |m| m.start_with?("Datastore/statement") }
           end
 
           def assert_mongo_operation(expected_value, query)

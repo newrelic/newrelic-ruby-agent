@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -286,7 +285,7 @@ module NewRelic
       # @param message_properties [Hash] Metadata about the message and opaque
       #   application-level data (optional)
       #
-      # @param exchange_type [Symbol] Type of AMQP exchange the message was recieved
+      # @param exchange_type [Symbol] Type of AMQP exchange the message was received
       #   from (see NewRelic::Agent::Transaction::MessageBrokerSegment::DESTINATION_TYPES)
       #
       # @param queue_name [String] name of the AMQP queue on which the message was

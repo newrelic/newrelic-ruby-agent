@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -408,13 +407,13 @@ module NewRelic
 
         def thread_block_with_current_transaction(*args, &block)
           current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].is_execution_traced?
-          Proc.new do
+          proc do
             begin
               if current_txn
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
                 segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
               end
-              block.call(*args) if block.respond_to?(:call)
+              yield(*args) if block.respond_to?(:call)
             ensure
               segment.finish if segment
             end

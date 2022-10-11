@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -97,11 +96,11 @@ class LinuxProcessDataProvider < ProcessDataProvider
   end
 
   def procline
-    File.read(proc_path('cmdline')).gsub("\000", " ")
+    File.read(proc_path('cmdline')).tr("\000", " ")
   end
 
   def environment
-    File.read(proc_path('environ')).gsub("\000", "\n")
+    File.read(proc_path('environ')).tr("\000", "\n")
   end
 end
 
@@ -134,25 +133,9 @@ class RubyProcess
     backtrace_file = Tempfile.new('nrdebug_ruby_bt')
     File.chmod(0666, backtrace_file.path)
 
-    backtrace_gathering_code = 'Thread.list.each { |t| bt = t.backtrace rescue nil; puts \"#{t.inspect}\n#{bt && bt.join(\"\n\")}\n\n\" }'
-    gdb_script_body = <<-END
-      attach #{pid}
-      t a a bt
-      call (void)close(1)
-      call (void)close(2)
-      call (int)open("#{backtrace_file.path}", 2, 0)
-      call (int)open("#{backtrace_file.path}", 2, 0)
-      call (void)rb_backtrace()
-      call (void)fflush(0)
-      call (void)rb_eval_string_protect("#{backtrace_gathering_code}",(int*)0)
-      call (void)fflush(0)
-      quit
-    END
-    Logger.log("Using gdb script:\n#{gdb_script_body}")
+    body = gdb_script_body(backtrace_file)
 
-    script_file = Tempfile.new('nrdebug_gdb_script')
-    script_file.write(gdb_script_body)
-    script_file.close
+    script_file = write_script_file(body)
 
     gdb_stderr = Tempfile.new('nrdebug_gdb_stderr')
 
@@ -165,6 +148,34 @@ class RubyProcess
     gdb_stderr.close!
 
     [gdb_output, ruby_backtrace]
+  end
+
+  private
+
+  def gdb_script_body(backtrace_file)
+    backtrace_gathering_code = 'Thread.list.each { |t| bt = t.backtrace rescue nil; ' \
+      'puts \"#{t.inspect}\n#{bt && bt.join(\"\n\")}\n\n\" }'
+    <<-END
+      attach #{pid}
+      t a a bt
+      call (void)close(1)
+      call (void)close(2)
+      call (int)open("#{backtrace_file.path}", 2, 0)
+      call (int)open("#{backtrace_file.path}", 2, 0)
+      call (void)rb_backtrace()
+      call (void)fflush(0)
+      call (void)rb_eval_string_protect("#{backtrace_gathering_code}",(int*)0)
+      call (void)fflush(0)
+      quit
+    END
+  end
+
+  def write_script_file(body)
+    Logger.log("Using gdb script:\n#{body}")
+    script_file = Tempfile.new('nrdebug_gdb_script')
+    script_file.write(body)
+    script_file.close
+    script_file
   end
 end
 
@@ -201,18 +212,11 @@ class ProcessReport
 
   def generate
     open do |f|
-      section(f, "Time") { Time.now }
-      section(f, "PID") { @target.pid }
-      section(f, "Command") { @target.procline }
-      section(f, "RSS") { @target.rss }
-      section(f, "CPU") { @target.cpu }
-      section(f, "Parent PID") { @target.ppid }
-      section(f, "OS") { ShellWrapper.execute('uname -a') }
-      section(f, "Environment") { @target.environment }
+      add_environment_sections(f)
 
       section(f) do
         c_backtraces, ruby_backtraces = @target.gather_backtraces
-        if c_backtraces.match(/could not attach/i)
+        if c_backtraces =~ /could not attach/i
           fail("Failed to attach to target process. Please try again with sudo.")
         end
         section(f, "C Backtraces") { c_backtraces }
@@ -226,23 +230,38 @@ class ProcessReport
       end
     end
   end
+
+  private
+
+  def add_environment_sections(handle)
+    section(handle, "Time") { Time.now }
+    section(handle, "PID") { @target.pid }
+    section(handle, "Command") { @target.procline }
+    section(handle, "RSS") { @target.rss }
+    section(handle, "CPU") { @target.cpu }
+    section(handle, "Parent PID") { @target.ppid }
+    section(handle, "OS") { ShellWrapper.execute('uname -a') }
+    section(handle, "Environment") { @target.environment }
+  end
 end
 
 def prompt_for_confirmation(target_pid, target_cmd)
-  puts "Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?"
-  puts ''
-  puts '************************** !WARNING! **************************'
-  puts "Extracting debug information from this process may cause it to CRASH OR HANG."
-  puts ''
-  puts "It is highly recommended that you only run this script against processes that"
-  puts "are already unresponsive."
-  puts ''
-  puts "Additionally, the output may contain sensitive information from the program's"
-  puts "command line arguments, environment, or open file list. Please examine the"
-  puts "output before sharing it."
-  puts '************************** !WARNING! **************************'
-  puts ''
-  puts "To continue, type 'continue':"
+  puts <<-PROMPT
+  Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?
+  
+  ************************** !WARNING! **************************
+  Extracting debug information from this process may cause it to CRASH OR HANG.
+  
+  It is highly recommended that you only run this script against processes that
+  are already unresponsive.
+  
+  Additionally, the output may contain sensitive information from the program's
+  command line arguments, environment, or open file list. Please examine the
+  output before sharing it.
+  ************************** !WARNING! **************************
+  
+  To continue, type 'continue':
+  PROMPT
 
   until $stdin.gets.strip == 'continue'
     puts "Please type 'continue' to continue, or ctrl-c to abort."
@@ -257,7 +276,8 @@ fail("Could not find gdb, please ensure it is installed and in your PATH") if gd
 
 target = RubyProcess.new(target_pid)
 if !target.attachable?
-  fail("You do not appear to have permissions to attach to the target process.\nPlease check the process owner and try again with sudo if necessary")
+  fail("You do not appear to have permissions to attach to the target process.\nPlease check the process owner " \
+    'and try again with sudo if necessary')
 end
 if !target.alive?
   fail("Could not find process with PID #{target_pid}")

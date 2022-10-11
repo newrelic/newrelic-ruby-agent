@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -78,7 +77,7 @@ module NewRelic
         load_cross_agent_test("utilization_vendor_specific/gcp").each do |test_case|
           test_case = symbolize_keys_in_object(test_case)
 
-          define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
+          define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
             uri_obj = test_case[:uri][:'http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true']
             if uri_obj[:timeout]
               @vendor.stubs(:request_metadata).returns(nil)

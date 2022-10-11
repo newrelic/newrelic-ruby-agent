@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -45,7 +44,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_should_not_connect_if_disconnected
     @connect_state = :disconnected
-    assert(!should_connect?, "should not attempt to connect if force disconnected")
+    refute should_connect?, "should not attempt to connect if force disconnected"
   end
 
   def test_should_connect_if_forced
@@ -214,7 +213,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_environment_for_connect_negative
     with_config(:send_environment_info => false) do
-      assert_equal [], environment_for_connect
+      assert_empty(environment_for_connect)
     end
   end
 

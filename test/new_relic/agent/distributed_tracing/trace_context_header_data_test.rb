@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -11,7 +10,7 @@ module NewRelic
       class TraceContext
         class TraceContextHeaderDataTest < Minitest::Test
           def test_tracestate_built_from_array
-            other_entries = ['one', 'two']
+            other_entries = %w[one two]
             header_data = HeaderData.new('traceparent', 'tracestate_entry', other_entries, 0, '')
 
             assert_nil header_data.instance_variable_get(:@trace_state)

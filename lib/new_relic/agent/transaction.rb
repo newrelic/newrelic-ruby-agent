@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -37,7 +36,6 @@ module NewRelic
       ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
       WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
-      TRANSACTION_NAMING_SOURCES = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS = ["Middleware/all"].freeze
       WEB_SUMMARY_METRIC = "HttpDispatcher"
@@ -129,7 +127,7 @@ module NewRelic
       end
 
       def self.nested_transaction_name(name)
-        if name.start_with?(CONTROLLER_PREFIX) || name.start_with?(OTHER_TRANSACTION_PREFIX)
+        if name.start_with?(CONTROLLER_PREFIX, OTHER_TRANSACTION_PREFIX)
           "#{NESTED_TRANSACTION_PREFIX}#{name}"
         else
           name
@@ -317,7 +315,7 @@ module NewRelic
         @request_attributes && @request_attributes.port
       end
 
-      # This transaction-local hash may be used as temprory storage by
+      # This transaction-local hash may be used as temporary storage by
       # instrumentation that needs to pass data from one instrumentation point
       # to another.
       #
@@ -671,7 +669,7 @@ module NewRelic
       end
 
       def is_synthetics_request?
-        synthetics_payload != nil && raw_synthetics_header != nil
+        !synthetics_payload.nil? && !raw_synthetics_header.nil?
       end
 
       def synthetics_version

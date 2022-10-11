@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -35,8 +34,8 @@ module NewRelic
     end
 
     def initialize
-      # Extend self with any any submodules of LocalEnvironment.  These can override
-      # the discover methods to discover new framworks and dispatchers.
+      # Extend self with any submodules of LocalEnvironment.  These can override
+      # the discover methods to discover new frameworks and dispatchers.
       NewRelic::LocalEnvironment.constants.each do |const|
         mod = NewRelic::LocalEnvironment.const_get(const)
         self.extend(mod) if mod.instance_of?(Module)
@@ -183,7 +182,7 @@ module NewRelic
     end
 
     def check_for_litespeed
-      if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
+      if caller.pop.include?('fcgi-bin/RailsRunner.rb')
         @discovered_dispatcher = :litespeed
       end
     end

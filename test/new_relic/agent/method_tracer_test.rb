@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -189,7 +188,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.class_method', attributes['code.function']
-      assert_equal 58, attributes['code.lineno']
+      assert_equal 57, attributes['code.lineno']
       assert_equal 'MyClass', attributes['code.namespace']
     end
   end
@@ -210,7 +209,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.module_method', attributes['code.function']
-      assert_equal 68, attributes['code.lineno']
+      assert_equal 67, attributes['code.lineno']
       assert_equal 'MyModule', attributes['code.namespace']
     end
   end
@@ -245,7 +244,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       attributes = txn.segments.last.code_attributes
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'instance_method', attributes['code.function']
-      assert_equal 221, attributes['code.lineno']
+      assert_equal 220, attributes['code.lineno']
       assert_equal '(Anonymous)', attributes['code.namespace']
     end
   end
@@ -277,7 +276,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_method_traced?
-    assert !self.class.method_traced?(:method_to_be_traced)
+    refute self.class.method_traced?(:method_to_be_traced)
     self.class.add_method_tracer(:method_to_be_traced, METRIC)
     assert self.class.method_traced?(:method_to_be_traced)
     begin
@@ -296,7 +295,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       method_c1
     end
 
-    assert_metrics_recorded(['c1', 'c3'])
+    assert_metrics_recorded(%w[c1 c3])
     assert_metrics_not_recorded('c2')
   end
 
@@ -432,7 +431,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     assert_metrics_recorded({
-      ["YY", "test_txn"] => {:call_count => 1}
+      %w[YY test_txn] => {:call_count => 1}
     })
   end
 
@@ -443,7 +442,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     assert_metrics_recorded([
-      ['XX', 'test_txn'],
+      %w[XX test_txn],
       'YY',
       'ZZ'
     ])
@@ -461,9 +460,9 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     added_methods = host_instance_methods - plain_instance_methods
 
-    public_api_methods = [
-      'trace_execution_unscoped',
-      'trace_execution_scoped'
+    public_api_methods = %w[
+      trace_execution_unscoped
+      trace_execution_scoped
     ]
 
     assert_equal(public_api_methods.sort, added_methods.map(&:to_s).sort)
@@ -487,7 +486,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       method_to_be_traced(1, 2, 3, false, 'X')
     end
 
-    assert_metrics_not_recorded ['X', 'test_txn']
+    assert_metrics_not_recorded %w[X test_txn]
   end
 
   def check_time(t1, t2)
@@ -498,16 +497,16 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   # test methods to be traced
   def method_to_be_traced(x, y, z, is_traced, expected_metric)
     advance_process_time(0.05)
-    assert x == 1
-    assert y == 2
-    assert z == 3
+    assert_equal(1, x)
+    assert_equal(2, y)
+    assert_equal(3, z)
   end
 
   def method_with_block(x, y, z, is_traced, expected_metric, &block)
     advance_process_time(0.05)
-    assert x == 1
-    assert y == 2
-    assert z == 3
+    assert_equal(1, x)
+    assert_equal(2, y)
+    assert_equal(3, z)
     yield
   end
 

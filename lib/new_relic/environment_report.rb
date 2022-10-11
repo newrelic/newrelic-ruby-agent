@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -94,20 +93,9 @@ module NewRelic
       @data = self.class.registered_reporters.inject(Hash.new) do |data, (key, logic)|
         begin
           value = logic.call
-          if value
-            data[key] = value
-
-            Agent.record_metric("Supportability/EnvironmentReport/success", 0.0)
-            Agent.record_metric("Supportability/EnvironmentReport/success/#{key}", 0.0)
-          else
-            Agent.logger.debug("EnvironmentReport ignoring value for #{key.inspect} which came back falsey: #{value.inspect}")
-            Agent.record_metric("Supportability/EnvironmentReport/empty", 0.0)
-            Agent.record_metric("Supportability/EnvironmentReport/empty/#{key}", 0.0)
-          end
+          value ? record_value(data, key, value) : record_empty_value(key, value)
         rescue => e
-          Agent.logger.debug("EnvironmentReport failed to retrieve value for #{key.inspect}: #{e}")
-          Agent.record_metric("Supportability/EnvironmentReport/error", 0.0)
-          Agent.record_metric("Supportability/EnvironmentReport/error/#{key}", 0.0)
+          rescue_initialize(key, e)
         end
         data
       end
@@ -123,6 +111,27 @@ module NewRelic
 
     def to_a
       @data.to_a
+    end
+
+    private
+
+    def record_value(data, key, value)
+      data[key] = value
+
+      Agent.record_metric("Supportability/EnvironmentReport/success", 0.0)
+      Agent.record_metric("Supportability/EnvironmentReport/success/#{key}", 0.0)
+    end
+
+    def record_empty_value(key, value)
+      Agent.logger.debug("EnvironmentReport ignoring value for #{key.inspect} which came back falsey: #{value.inspect}")
+      Agent.record_metric("Supportability/EnvironmentReport/empty", 0.0)
+      Agent.record_metric("Supportability/EnvironmentReport/empty/#{key}", 0.0)
+    end
+
+    def rescue_initialize(key, exception)
+      Agent.logger.debug("EnvironmentReport failed to retrieve value for #{key.inspect}: #{exception}")
+      Agent.record_metric("Supportability/EnvironmentReport/error", 0.0)
+      Agent.record_metric("Supportability/EnvironmentReport/error/#{key}", 0.0)
     end
   end
 end

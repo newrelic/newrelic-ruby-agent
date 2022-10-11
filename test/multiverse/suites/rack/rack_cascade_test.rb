@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -34,7 +33,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     def test_insert_js_does_not_fire_for_rack_cascade_404_responses
       rsp = get('/', {'body' => '<html><head></head><body></body></html>', 'override-response-code' => 404})
-      refute(rsp.body.include?('script'), "\nExpected\n---\n#{rsp.body}\n---\nnot to include 'script'.")
+      refute_includes rsp.body, 'script', "\nExpected\n---\n#{rsp.body}\n---\nnot to include 'script'."
     end
 
     def test_rack_cascade_transactions_are_named_for_the_last_app

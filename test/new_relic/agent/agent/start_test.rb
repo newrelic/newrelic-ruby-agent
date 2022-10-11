@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -25,7 +24,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_already_started_negative
     self.expects(:started?).returns(false)
-    assert !already_started?
+    refute already_started?
   end
 
   def test_disabled_positive
@@ -36,7 +35,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_disabled_negative
     with_config(:agent_enabled => true) do
-      assert !disabled?
+      refute disabled?
     end
   end
 
@@ -119,7 +118,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     with_config(:send_data_on_exit => false) do
       install_exit_handler
     end
-    # should not raise excpetion
+    # should not raise exception
   end
 
   def test_force_install_exit_handler_negative
@@ -127,7 +126,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     with_config(:send_data_on_exit => false, :force_install_exit_handler => true) do
       install_exit_handler
     end
-    # should not raise excpetion
+    # should not raise exception
   end
 
   def test_install_exit_handler_weird_ruby
@@ -145,7 +144,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_monitoring_negative
     with_config(:monitor_mode => false) do
-      assert !monitoring?
+      refute monitoring?
     end
   end
 
@@ -157,7 +156,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_has_license_key_negative
     with_config(:license_key => false) do
-      assert !has_license_key?
+      refute has_license_key?
     end
   end
 
@@ -169,7 +168,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_has_correct_license_key_negative
     self.expects(:has_license_key?).returns(false)
-    assert !has_correct_license_key?
+    refute has_correct_license_key?
   end
 
   def test_correct_license_length_positive
@@ -180,7 +179,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_correct_license_length_negative
     with_config(:license_key => 'a' * 30) do
-      assert !correct_license_length
+      refute correct_license_length
     end
   end
 
@@ -192,7 +191,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_using_forking_dispatcher_negative
     with_config(:dispatcher => :frobnitz) do
-      assert !using_forking_dispatcher?
+      refute using_forking_dispatcher?
     end
   end
 

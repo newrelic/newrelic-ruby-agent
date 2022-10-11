@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -23,6 +22,11 @@ module Multiverse
   # suites dir from env var, default to <ruby_agent>/test/multiverse/suites
   #
   SUITES_DIRECTORY = ENV['SUITES_DIRECTORY'] || File.expand_path('suites', ROOT)
+
+  # This path is from the perspective of the files within the multiverse dir.
+  # It is used to hold test timing information between suite runs so that the
+  # slowest tests can be evaluated across suites
+  TEST_TIME_REPORT_PATH = File.join(File.expand_path('../../..', __FILE__), 'minitest/minitest_time_report')
 end
 
 require 'multiverse/bundler_patch'

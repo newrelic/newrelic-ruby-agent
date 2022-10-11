@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -29,7 +28,7 @@ module SequelHelpers
   # be able to specify a flavor (e.g., :sqlite, :postgres, :mysql, etc.)
   def assert_node_has_explain_plan(node, msg = nil)
     msg = "Expected #{node.inspect} to have an explain plan"
-    assert_block(msg) { node.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
+    assert_match SQLITE_EXPLAIN_PLAN_COLUMNS_RE, node.params[:explain_plan].join, msg
   end
 
   def last_node_for(options = {})

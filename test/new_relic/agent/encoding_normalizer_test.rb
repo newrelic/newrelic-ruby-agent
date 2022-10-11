@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -11,7 +10,7 @@ class EncodingNormalizerTest < Minitest::Test
 
   def test_normalize_object_converts_symbol_values_to_strings
     result = EncodingNormalizer.normalize_object([:foo, :bar])
-    assert_equal(['foo', 'bar'], result)
+    assert_equal(%w[foo bar], result)
   end
 
   def test_normalize_object_converts_symbols_in_hash_to_strings
@@ -55,7 +54,7 @@ class EncodingNormalizerTest < Minitest::Test
     assert_equal(string, result.encode('UTF-16LE'))
   end
 
-  def test_normalize_string_returns_munged_copy_if_other_non_convertible_enocding
+  def test_normalize_string_returns_munged_copy_if_other_non_convertible_encoding
     # Attempting to convert from UTF-7 to UTF-8 in Ruby will raise an
     # Encoding::ConverterNotFoundError, which is what we're trying to
     # replicate for this test case.

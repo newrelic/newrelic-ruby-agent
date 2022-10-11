@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -109,7 +108,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 150 ms Custom/test/other\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
   end
 
-  def test_to_debug_str_multichild
+  def test_to_debug_str_multi_child
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/other', 0.1)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/extra', 0.11)
@@ -137,7 +136,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_children_default
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    assert_equal([], s.children)
+    assert_empty(s.children)
   end
 
   def test_children_with_nodes
@@ -217,7 +216,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_params
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
 
-    assert_equal({}, s.params)
+    assert_empty(s.params)
 
     # should otherwise take the value from the @params var
     s.instance_eval { @params = {:foo => 'correct'} }

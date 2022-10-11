@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -46,11 +45,11 @@ module NewRelic::Agent::Configuration
 
     def test_forces_unrecognized_values_to_off
       local_settings = {
-        :'transaction_tracer.record_sql' => 'jibberish',
+        :'transaction_tracer.record_sql' => 'gibberish',
         :'slow_sql.record_sql' => 'junk'
       }
 
-      expects_logging(:info, includes('jibberish'))
+      expects_logging(:info, includes('gibberish'))
 
       source = HighSecuritySource.new(local_settings)
 
@@ -87,7 +86,7 @@ module NewRelic::Agent::Configuration
 
       source = HighSecuritySource.new(local_settings)
 
-      assert_equal(false, source[:'transaction_tracer.record_redis_arguments'])
+      refute source[:'transaction_tracer.record_redis_arguments']
     end
 
     def test_forces_attributes_include_empty

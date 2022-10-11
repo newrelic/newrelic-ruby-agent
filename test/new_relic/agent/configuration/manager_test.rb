@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -58,7 +57,7 @@ module NewRelic::Agent::Configuration
 
       assert_equal 3, @manager['data_report_period']
       assert_equal 'bar', @manager['bar']
-      assert_equal false, @manager['capture_params']
+      refute @manager['capture_params']
     end
 
     def test_identifying_config_source
@@ -75,8 +74,8 @@ module NewRelic::Agent::Configuration
     def test_callable_value_for_config_should_return_computed_value
       source = {
         :foo => 'bar',
-        :simple_value => Proc.new { '666' },
-        :reference => Proc.new { self['foo'] }
+        :simple_value => proc { '666' },
+        :reference => proc { self['foo'] }
       }
       @manager.add_config_for_testing(source)
 
@@ -87,9 +86,9 @@ module NewRelic::Agent::Configuration
 
     def test_manager_resolves_nested_procs_from_default_source
       source = {
-        :foo => Proc.new { self[:bar] },
-        :bar => Proc.new { self[:baz] },
-        :baz => Proc.new { 'Russian Nesting Dolls!' }
+        :foo => proc { self[:bar] },
+        :bar => proc { self[:baz] },
+        :baz => proc { 'Russian Nesting Dolls!' }
       }
       @manager.add_config_for_testing(source)
 
@@ -133,7 +132,7 @@ module NewRelic::Agent::Configuration
 
     def test_to_collector_hash
       @manager.delete_all_configs_for_testing
-      @manager.add_config_for_testing(:eins => Proc.new { self[:one] })
+      @manager.add_config_for_testing(:eins => proc { self[:one] })
       @manager.add_config_for_testing(:one => 1)
       @manager.add_config_for_testing(:two => 2)
       @manager.add_config_for_testing(:nested => {:madness => 'test'})
@@ -146,7 +145,7 @@ module NewRelic::Agent::Configuration
     # Necessary to keep the pruby marshaller happy
     def test_to_collector_hash_returns_bare_hash
       @manager.delete_all_configs_for_testing
-      @manager.add_config_for_testing(:eins => Proc.new { self[:one] })
+      @manager.add_config_for_testing(:eins => proc { self[:one] })
 
       assert_equal(::Hash, @manager.to_collector_hash.class)
     end
@@ -162,15 +161,15 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_masks
-      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { true }
+      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = proc { true }
 
       @manager.add_config_for_testing(:boo => 1)
 
-      assert_equal false, @manager.to_collector_hash.has_key?(:boo)
+      refute @manager.to_collector_hash.has_key?(:boo)
     end
 
     def test_config_masks_conditionally
-      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = Proc.new { false }
+      NewRelic::Agent::Configuration::MASK_DEFAULTS[:boo] = proc { false }
 
       @manager.add_config_for_testing(:boo => 1)
 
@@ -216,8 +215,8 @@ module NewRelic::Agent::Configuration
       @manager.register_callback(:test) do |value|
         actual = value
       end
-      @manager.add_config_for_testing(:test => Proc.new { "value" })
-      assert actual.class != Proc, 'Callback returned Proc'
+      @manager.add_config_for_testing(:test => proc { "value" })
+      refute_equal actual.class, Proc, 'Callback returned Proc'
     end
 
     def test_callback_not_called_if_no_change
@@ -236,10 +235,10 @@ module NewRelic::Agent::Configuration
 
     def test_finished_configuring
       @manager.add_config_for_testing(:layer => "yo")
-      assert_equal false, @manager.finished_configuring?
+      refute @manager.finished_configuring?
 
       @manager.replace_or_add_config(ServerSource.new({}))
-      assert_equal true, @manager.finished_configuring?
+      assert @manager.finished_configuring?
     end
 
     def test_notifies_finished_configuring
@@ -247,7 +246,7 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.instance.events.subscribe(:initial_configuration_complete) { called = true }
       @manager.replace_or_add_config(ServerSource.new({}))
 
-      assert_equal true, called
+      assert called
     end
 
     def test_doesnt_notify_unless_finished
@@ -258,7 +257,7 @@ module NewRelic::Agent::Configuration
       @manager.replace_or_add_config(ManualSource.new(:manual => true))
       @manager.replace_or_add_config(YamlSource.new("", "test"))
 
-      assert_equal false, called
+      refute called
     end
 
     def test_high_security_enables_strip_exception_messages
@@ -294,20 +293,20 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_is_correctly_initialized
-      assert @manager.config_classes_for_testing.include?(EnvironmentSource)
-      assert @manager.config_classes_for_testing.include?(DefaultSource)
-      refute @manager.config_classes_for_testing.include?(ManualSource)
-      refute @manager.config_classes_for_testing.include?(ServerSource)
-      refute @manager.config_classes_for_testing.include?(YamlSource)
-      refute @manager.config_classes_for_testing.include?(HighSecuritySource)
-      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      assert_includes(@manager.config_classes_for_testing, EnvironmentSource)
+      assert_includes(@manager.config_classes_for_testing, DefaultSource)
+      refute_includes @manager.config_classes_for_testing, ManualSource
+      refute_includes @manager.config_classes_for_testing, ServerSource
+      refute_includes @manager.config_classes_for_testing, YamlSource
+      refute_includes @manager.config_classes_for_testing, HighSecuritySource
+      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
     end
 
     def test_high_security_source_addable
-      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
       @manager.replace_or_add_config(security_policy_source)
-      assert @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
     load_cross_agent_test("labels").each do |testcase|
@@ -387,7 +386,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_apply_transformations
-      transform = Proc.new { |value| value.gsub('foo', 'baz') }
+      transform = proc { |value| value.gsub('foo', 'baz') }
       ::NewRelic::Agent::Configuration::DefaultSource.stubs(:transform_for).returns(transform)
 
       assert_equal 'bazbar', @manager.apply_transformations(:test, 'foobar')
@@ -400,7 +399,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_fetch_skips_the_config_layer_if_transformation_raises_error
-      bomb = Proc.new do |value|
+      bomb = proc do |value|
         if value == 'boom'
           raise StandardError.new
         else
@@ -410,7 +409,7 @@ module NewRelic::Agent::Configuration
       @manager.stubs(:transform_from_default).returns(bomb)
 
       with_config(:'rules.ignore_url_regexes' => 'boom') do
-        assert_equal [], @manager.fetch(:'rules.ignore_url_regexes')
+        assert_empty(@manager.fetch(:'rules.ignore_url_regexes'))
       end
     end
 
@@ -450,7 +449,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
-      callable = Proc.new { 'test' }
+      callable = proc { 'test' }
       assert_equal 'test', @manager.evaluate_procs(callable)
     end
 
@@ -459,7 +458,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_apply_transformations_logs_error_if_transformation_fails
-      bomb = Proc.new { raise StandardError.new }
+      bomb = proc { raise StandardError.new }
       @manager.stubs(:transform_from_default).returns(bomb)
 
       expects_logging(:error, includes("Error applying transformation"), any_parameters)
@@ -470,7 +469,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_apply_transformations_reraises_errors
-      bomb = Proc.new { raise StandardError.new }
+      bomb = proc { raise StandardError.new }
       @manager.stubs(:transform_from_default).returns(bomb)
 
       assert_raises StandardError do

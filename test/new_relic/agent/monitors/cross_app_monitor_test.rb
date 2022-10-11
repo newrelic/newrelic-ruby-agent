@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -172,7 +171,7 @@ module NewRelic::Agent
         request = for_id(REQUEST_CROSS_APP_ID)
         @events.notify(:before_call, request)
 
-        assert !Transaction.tl_current.name_frozen?
+        refute Transaction.tl_current.name_frozen?
         @events.notify(:after_call, request, [200, @response, ''])
         assert Transaction.tl_current.name_frozen?
       end

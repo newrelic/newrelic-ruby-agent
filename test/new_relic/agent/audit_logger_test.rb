@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -40,7 +39,7 @@ class AuditLoggerTest < Minitest::Test
 
   def assert_log_contains_string(str)
     log_body = read_log_body
-    assert(log_body.include?(str), "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
+    assert_includes(log_body, str, "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
   end
 
   def read_log_body
@@ -52,7 +51,7 @@ class AuditLoggerTest < Minitest::Test
     with_config(:'audit_log.enabled' => false) do
       logger = NewRelic::Agent::AuditLogger.new
       logger.log_request(@uri, "hi there", @marshaller)
-      assert(!logger.setup?, "Expected logger to not have been setup")
+      refute logger.setup?, "Expected logger to not have been setup"
     end
   end
 

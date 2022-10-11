@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -100,7 +99,7 @@ module NewRelic::Agent
       end
 
       def test_failure_in_exclude_block
-        @error_collector.class.ignore_error_filter = Proc.new do
+        @error_collector.class.ignore_error_filter = proc do
           raise "HAHAHAHAH, error in the filter for ignoring errors!"
         end
 
@@ -116,7 +115,7 @@ module NewRelic::Agent
       end
 
       def test_failure_block_assigned_with_different_instance
-        @error_collector.class.ignore_error_filter = Proc.new do |*_|
+        @error_collector.class.ignore_error_filter = proc do |*_|
           # meh, ignore 'em all!
           nil
         end
@@ -265,20 +264,20 @@ module NewRelic::Agent
 
       def test_trace_truncated_with_config
         with_config(:'error_collector.max_backtrace_frames' => 2) do
-          trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'])
+          trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4])
           assert_equal ['error1', '<truncated 2 additional frames>', 'error4'], trace
         end
       end
 
       def test_trace_truncated_with_nil_config
         with_config(:'error_collector.max_backtrace_frames' => nil) do
-          trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'])
+          trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4])
           assert_equal 4, trace.length
         end
       end
 
       def test_short_trace_not_truncated
-        trace = @error_collector.truncate_trace(['error', 'error', 'error'], 6)
+        trace = @error_collector.truncate_trace(%w[error error error], 6)
         assert_equal 3, trace.length
       end
 
@@ -288,12 +287,12 @@ module NewRelic::Agent
       end
 
       def test_keeps_correct_frames_if_keep_frames_is_even
-        trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'], 2)
+        trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4], 2)
         assert_equal ['error1', '<truncated 2 additional frames>', 'error4'], trace
       end
 
       def test_keeps_correct_frames_if_keep_frames_is_odd
-        trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'], 3)
+        trace = @error_collector.truncate_trace(%w[error1 error2 error3 error4], 3)
         assert_equal ['error1', 'error2', '<truncated 1 additional frames>', 'error4'], trace
       end
 
@@ -374,7 +373,7 @@ module NewRelic::Agent
 
       def test_filtered_by_error_filter_positive
         saw_error = nil
-        NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+        NewRelic::Agent::ErrorCollector.ignore_error_filter = proc do |e|
           saw_error = e
           false
         end
@@ -387,7 +386,7 @@ module NewRelic::Agent
 
       def test_filtered_by_error_filter_negative
         saw_error = nil
-        NewRelic::Agent::ErrorCollector.ignore_error_filter = Proc.new do |e|
+        NewRelic::Agent::ErrorCollector.ignore_error_filter = proc do |e|
           saw_error = e
           true
         end
@@ -448,8 +447,8 @@ module NewRelic::Agent
         trace_attrs = traces[0].to_collector_array[4]
 
         # nil isn't good enough!
-        assert_equal false, event_attrs['error.expected'], "Intrinsic attributes should have 'error.expected' set to false"
-        assert_equal false, trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to false"
+        refute event_attrs['error.expected'], "Intrinsic attributes should have 'error.expected' set to false"
+        refute trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to false"
       end
 
       def test_expected_error_does_not_increment_metrics
@@ -588,7 +587,7 @@ module NewRelic::Agent
       end
 
       def wrapped_filter_proc
-        Proc.new do |e|
+        proc do |e|
           if e.is_a?(IOError)
             return nil
           else

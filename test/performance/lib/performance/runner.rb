@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -70,7 +69,7 @@ module Performance
         end
       end
       test_case.on(:after_each) do |test, test_name, result|
-        instrumentors.reverse.each { |i| i.after(test, test_name) }
+        instrumentors.reverse_each { |i| i.after(test, test_name) }
         instrumentors.each do |i|
           result.measurements.merge!(i.results)
           result.artifacts.concat(i.artifacts)

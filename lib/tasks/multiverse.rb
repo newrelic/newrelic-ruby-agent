@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -36,6 +35,9 @@
 #   # Runs with a specific test seed
 #   bundle exec rake test:multiverse[my_gem,seed=1337]
 
+require_relative 'helpers/removers'
+include Removers
+
 namespace :test do
   desc "Run functional test suite for New Relic"
   task :multiverse, [:suite, :param1, :param2, :param3, :param4] => ['multiverse:env'] do |_, args|
@@ -43,34 +45,6 @@ namespace :test do
   end
 
   namespace :multiverse do
-    def remove_local_multiverse_databases
-      list_databases_command = %(echo "show databases" | mysql -u root)
-      databases = `#{list_databases_command}`.chomp!.split("\n").select { |s| s =~ /multiverse/ }
-      databases.each do |database|
-        puts "Dropping #{database}"
-        `echo "drop database #{database}" | mysql -u root`
-      end
-    rescue => error
-      puts "ERROR: Cannot get MySQL databases..."
-      puts error.message
-    end
-
-    def remove_generated_gemfiles
-      file_path = File.expand_path("test/multiverse/suites")
-      Dir.glob(File.join(file_path, "**", "Gemfile*")).each do |fn|
-        puts "Removing #{fn.gsub(file_path, '.../suites')}"
-        FileUtils.rm(fn)
-      end
-    end
-
-    def remove_generated_gemfile_lockfiles
-      file_path = File.expand_path("test/environments")
-      Dir.glob(File.join(file_path, "**", "Gemfile.lock")).each do |fn|
-        puts "Removing #{fn.gsub(file_path, '.../environments')}"
-        FileUtils.rm(fn)
-      end
-    end
-
     task :env do
       # ENV['SUITES_DIRECTORY'] = File.expand_path('../../test/multiverse/suites', __FILE__)
       require File.expand_path('../../../test/multiverse/lib/multiverse', __FILE__)

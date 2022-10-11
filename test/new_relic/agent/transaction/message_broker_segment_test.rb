@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -63,7 +62,7 @@ module NewRelic
           end
         end
 
-        def test_allows_symbol_exhange_names
+        def test_allows_symbol_exchange_names
           in_transaction("test_txn") do
             segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,

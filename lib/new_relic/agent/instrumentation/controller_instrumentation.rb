@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -416,14 +415,14 @@ module NewRelic
           end
         end
 
-        # overrideable method to determine whether to trace an action
+        # overridable method to determine whether to trace an action
         # or not - you may override this in your controller and supply
         # your own logic for ignoring transactions.
         def do_not_trace?
           _is_filtered?(NR_DO_NOT_TRACE_KEY)
         end
 
-        # overrideable method to determine whether to trace an action
+        # overridable method to determine whether to trace an action
         # for purposes of apdex measurement - you can use this to
         # ignore things like api calls or other fast non-user-facing
         # actions

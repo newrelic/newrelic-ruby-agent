@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -12,7 +11,7 @@ class RenameRuleTest < Minitest::Test
       {'match_expression' => 'Nothing', 'replacement' => 'Something'}
     ]
     segment_terms_rules = [
-      {'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two']}
+      {'prefix' => 'other/qux', 'terms' => %w[Nothing one two]}
     ]
     collector.stub('connect', {
       'agent_run_id' => 666,

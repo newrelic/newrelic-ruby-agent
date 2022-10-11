@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -11,7 +10,7 @@ module NewRelic
     class CollectorResponseCodeTest < Minitest::Test
       def setup
         @agent = NewRelic::Agent::Agent.new
-        @errors = ["e1", "e2"]
+        @errors = %w[e1 e2]
       end
 
       def stub_service(response)

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -43,7 +42,7 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
-    assert(!block_ran, "Expected block passed to #session to have not run")
+    refute block_ran, "Expected block passed to #session to have not run"
   end
 
   def test_session_block_reuses_http_handle_with_aggressive_keepalive_off
@@ -65,7 +64,7 @@ class NewRelicServiceTest < Minitest::Test
     assert(block_ran)
 
     assert_equal([:start, :finish], handle1.calls)
-    assert_equal([], handle2.calls)
+    assert_empty(handle2.calls)
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
@@ -136,7 +135,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:start, :request, :finish], conn0.calls)
     assert_equal([:start, :request, :request, :request], conn1.calls)
-    assert_equal([], conn2.calls)
+    assert_empty(conn2.calls)
   end
 
   def test_repeated_connection_failures
@@ -199,7 +198,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:request], conn0.calls)
     assert_equal([:request], conn1.calls)
-    assert_equal([], conn2.calls)
+    assert_empty(conn2.calls)
   end
 
   def test_no_default_cert_file_path
@@ -318,7 +317,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
     with_config(:security_policies_token => 'please-check-these-policies') do
-      assert_equal @service.preconnect['redirect_host'], 'localhost'
+      assert_equal 'localhost', @service.preconnect['redirect_host']
     end
   end
 
@@ -513,7 +512,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
     response = @service.agent_command_results({'1' => {}})
-    assert_equal({}, response)
+    assert_empty(response)
   end
 
   def test_request_timeout
@@ -591,7 +590,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_for_endpoint_response_time
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.send(:invoke_remote, :foobar, payload)
 
@@ -617,7 +616,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_json_marshaller_handles_responses_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
+    assert_equal %w[beep boop], marshaller.load('{"return_value": ["beep","boop"]}')
   end
 
   def test_json_marshaller_returns_nil_on_empty_response_from_collector
@@ -816,7 +815,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_with_item_count
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.send(:invoke_remote, :foobar, payload, :item_count => 12)
 
@@ -876,7 +875,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_without_item_count
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.send(:invoke_remote, :foobar, payload)
 
@@ -899,7 +898,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_with_serialization_failure
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.marshaller.stubs(:dump).raises(StandardError.new)
 
@@ -1114,7 +1113,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     def address
-      'whereever.com'
+      'wherever.com'
     end
 
     def port

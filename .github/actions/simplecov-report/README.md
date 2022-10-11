@@ -11,7 +11,7 @@ The action works only with `pull_request` event.
 ### Inputs
 
 - `token` - The GITHUB_TOKEN secret.
-- `failedThreshold` - Failed threshold. (default: `90`)
+- `failedThreshold` - Failed threshold. (default: `93`)
 - `resultPath` - Path to last_run json file. (default: `coverage/.last_run.json`)
 
 ## Example

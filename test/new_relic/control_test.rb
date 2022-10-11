@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -23,10 +22,10 @@ class NewRelic::ControlTest < Minitest::Test
   end
 
   def test_root
-    assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
-    if defined?(Rails::VERSION)
-      assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root + "/lib"
-    end
+    assert File.directory?(NewRelic::Control.newrelic_root)
+    return unless defined?(Rails::VERSION)
+
+    assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib"))
   end
 
   def test_info
@@ -59,15 +58,15 @@ class NewRelic::ControlTest < Minitest::Test
 
   def test_transaction_tracer_disabled
     with_config(:'transaction_tracer.enabled' => false, :monitor_mode => true) do
-      assert(!NewRelic::Agent.instance.transaction_sampler.enabled?,
-        'transaction tracer enabled when config calls for disabled')
+      refute NewRelic::Agent.instance.transaction_sampler.enabled?,
+        'transaction tracer enabled when config calls for disabled'
     end
   end
 
   def test_sql_tracer_disabled
     with_config(:'slow_sql.enabled' => false, :monitor_mode => true) do
-      assert(!NewRelic::Agent.instance.sql_sampler.enabled?,
-        'sql tracer enabled when config calls for disabled')
+      refute NewRelic::Agent.instance.sql_sampler.enabled?,
+        'sql tracer enabled when config calls for disabled'
     end
   end
 

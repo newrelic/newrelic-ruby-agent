@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -33,10 +32,10 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_booleans
-      assert_equal true, @source[:tval]
-      assert_equal false, @source[:fval]
+      assert @source[:tval]
+      refute @source[:fval]
       assert_nil @source[:not_in_yaml_val]
-      assert_equal true, @source[:yval]
+      assert @source[:yval]
       assert_equal 'sure', @source[:sval]
     end
 

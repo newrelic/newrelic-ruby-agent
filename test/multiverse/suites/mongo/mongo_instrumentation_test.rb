@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -34,7 +33,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
       NewRelic::Agent.drop_buffered_data
     end
 
-    def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+    def test_noticed_error_at_segment_and_txn_when_violating_unique_constraints
       expected_error_class = "Mongo::OperationFailure"
       txn = nil
       begin
@@ -51,7 +50,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
       assert_transaction_noticed_error txn, expected_error_class
     end
 
-    def test_noticed_error_only_at_segment_when_violating_unique_contraints
+    def test_noticed_error_only_at_segment_when_violating_unique_constraints
       expected_error_class = "Mongo::OperationFailure"
       txn = nil
       in_transaction do |db_txn|

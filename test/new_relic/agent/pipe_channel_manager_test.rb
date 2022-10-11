@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -36,8 +35,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     NewRelic::Agent::PipeChannelManager.register_report_channel(1)
     pipe = NewRelic::Agent::PipeChannelManager.channels[1]
 
-    assert pipe.out.kind_of?(IO)
-    assert pipe.in.kind_of?(IO)
+    assert_kind_of(IO, pipe.out)
+    assert_kind_of(IO, pipe.in)
 
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
   end
@@ -271,7 +270,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       mutex = Mutex.new
       mutex.lock
       tried_to_close = false
-      pipe_out.singleton_class.send(:define_method, :closed?, Proc.new do
+      pipe_out.singleton_class.send(:define_method, :closed?, proc do
         tried_to_close = true
         mutex.synchronize do
         end
@@ -310,7 +309,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     wake_mock = MiniTest::Mock.new
     out_mock = MiniTest::Mock.new
     4.times { wake_mock.expect(:out, out_mock) }
-    error_stub = Proc.new { |msg| desired_error_messages_seen += 1 if msg =~ /^(?:Issue while|Ready pipes)/ }
+    error_stub = proc { |msg| desired_error_messages_seen += 1 if msg =~ /^(?:Issue while|Ready pipes)/ }
     ready_pipes_mock = MiniTest::Mock.new
 
     ::IO.stub(:select, [ready_pipes_mock]) do

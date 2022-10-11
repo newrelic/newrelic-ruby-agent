@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -90,7 +89,7 @@ module NewRelic::Agent::Configuration
 
     def test_transform_for_returns_something_callable
       transform = DefaultSource.transform_for(:'rules.ignore_url_regexes')
-      assert transform.respond_to?(:call)
+      assert_respond_to transform, :call
     end
 
     def test_transform_for_returns_nil_for_settings_that_do_not_have_a_transform
@@ -99,7 +98,7 @@ module NewRelic::Agent::Configuration
 
     def test_convert_to_list
       result = DefaultSource.convert_to_list("Foo,Bar,Baz")
-      assert_equal ['Foo', 'Bar', 'Baz'], result
+      assert_equal %w[Foo Bar Baz], result
     end
 
     def test_convert_to_list_returns_original_argument_given_array
@@ -171,17 +170,17 @@ module NewRelic::Agent::Configuration
         key = "#{type}attributes.exclude".to_sym
 
         with_config(key => 'foo,bar,baz') do
-          expected = ["foo", "bar", "baz"]
+          expected = %w[foo bar baz]
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} to convert comma delimited string into array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
-          assert expected == result, message
+          assert_equal(expected, result, message)
         end
 
         key = "#{type}attributes.include".to_sym
 
         with_config(key => 'foo,bar,baz') do
-          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+          assert_equal %w[foo bar baz], NewRelic::Agent.config[key]
         end
       end
     end
@@ -193,18 +192,18 @@ module NewRelic::Agent::Configuration
       types.each do |type|
         key = "#{type}attributes.exclude".to_sym
 
-        with_config(key => ['foo', 'bar', 'baz']) do
-          expected = ["foo", "bar", "baz"]
+        with_config(key => %w[foo bar baz]) do
+          expected = %w[foo bar baz]
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} not to modify settings from YAML array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
-          assert expected == result, message
+          assert_equal expected, result, message
         end
 
         key = "#{type}attributes.include".to_sym
 
         with_config(key => 'foo,bar,baz') do
-          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+          assert_equal %w[foo bar baz], NewRelic::Agent.config[key]
         end
       end
     end
@@ -218,7 +217,9 @@ module NewRelic::Agent::Configuration
           unspecified_keys << key
         end
 
-        if ![true, false].include?(spec[:allowed_from_server])
+        booleans = [true, false]
+
+        if !booleans.include?(spec[:allowed_from_server])
           bad_value_keys << key
         end
       end

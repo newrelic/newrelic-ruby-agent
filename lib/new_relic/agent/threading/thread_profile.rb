@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -79,7 +78,7 @@ module NewRelic
             comparison = b.runnable_count <=> a.runnable_count
             # we secondarily prefer lower depth
             comparison = a.depth <=> b.depth if comparison == 0
-            # it is thus impossible for any child to preceed their parent
+            # it is thus impossible for any child to precede their parent
             comparison
           end
 

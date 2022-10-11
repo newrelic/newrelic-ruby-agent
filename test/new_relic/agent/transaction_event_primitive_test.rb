@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -21,7 +20,7 @@ module NewRelic
         assert_equal "Transaction", intrinsics['type']
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "Controller/whatever", intrinsics['name']
-        assert_equal false, intrinsics['error']
+        refute intrinsics['error']
         assert_equal 0.1, intrinsics['duration']
         assert intrinsics["priority"].is_a?(Numeric)
       end

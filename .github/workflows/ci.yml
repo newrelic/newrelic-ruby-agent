@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.7.0]
+        ruby-version: [2.2.10, 3.1.2, jruby-9.3.8.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -58,12 +58,12 @@ jobs:
               "3.1.2": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.3.7.0": {
+              "jruby-9.3.8.0": {
                 "rails": "norails,rails61,rails52,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.8.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -71,7 +71,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.7.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.8.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -130,7 +130,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: mongo:5.0.11
+        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
           - 27017:27017
       rabbitmq:
@@ -344,7 +344,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.7.0
+          ruby-version: jruby-9.3.8.0
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
@@ -373,7 +373,7 @@ jobs:
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
-    if: github.repository_owner == 'newrelic'
+    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -397,5 +397,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
-          failedThreshold: 90
-          failedThresholdBranch: 80
+          failedThreshold: 93
+          failedThresholdBranch: 84

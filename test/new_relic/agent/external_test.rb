@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -89,7 +88,7 @@ module NewRelic
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
             refute_empty l.array, "process_request_metadata should log error on invalid ID"
-            assert l.array.first =~ %r{invalid/non-trusted ID}
+            assert_includes l.array.first, 'invalid/non-trusted ID'
 
             refute txn.distributed_tracer.cross_app_payload
           end
@@ -107,7 +106,7 @@ module NewRelic
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
             refute_empty l.array, "process_request_metadata should log error on invalid ID"
-            assert l.array.first =~ %r{invalid/non-trusted ID}
+            assert_includes l.array.first, 'invalid/non-trusted ID'
 
             refute txn.distributed_tracer.cross_app_payload
           end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -28,7 +27,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
   def test_sanitize_environment_report_cannot_be_serialized
     @service.stubs(:valid_to_marshal?).returns(false)
-    assert_equal [], @request_builder.sanitize_environment_report(['not empty'])
+    assert_empty(@request_builder.sanitize_environment_report(['not empty']))
   end
 
   def test_connect_settings
@@ -50,7 +49,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
       settings = @request_builder.connect_payload
 
-      assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
+      assert_equal "ruby:lo-calhost:a,b,c", settings[:identifier]
     end
   end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -174,7 +173,7 @@ module NewRelic
       end
 
       def self.docker_container_id
-        return unless ruby_os_identifier =~ /linux/
+        return unless ruby_os_identifier.include?('linux')
 
         cgroup_info = proc_try_read('/proc/self/cgroup')
         return unless cgroup_info

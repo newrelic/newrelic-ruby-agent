@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -7,12 +6,15 @@ require 'new_relic/agent/null_logger'
 require 'new_relic/agent/memory_logger'
 require 'new_relic/agent/agent_logger'
 
+require_relative 'private_instance_methods'
+
 module NewRelic
   class Control
     # Contains methods that relate to the runtime usage of the control
     # object. Note that these are subject to override in the
     # NewRelic::Control::Framework classes that are actually instantiated
     module InstanceMethods
+      include PrivateInstanceMethods
       # The env is the setting used to identify which section of the newrelic.yml
       # to load.  This defaults to a framework specific value, such as ENV['RAILS_ENV']
       # but can be overridden as long as you set it before calling #init_plugin
@@ -53,9 +55,7 @@ module NewRelic
         configure_agent(env, options)
 
         # Be sure to only create once! RUBY-1020
-        if ::NewRelic::Agent.logger.is_startup_logger?
-          ::NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new(root, options.delete(:log))
-        end
+        create_logger(options)
 
         # Merge the stringified options into the config as overrides:
         environment_name = options.delete(:env) and self.env = environment_name
@@ -68,17 +68,7 @@ module NewRelic
         Module.send(:include, NewRelic::Agent::MethodTracer)
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-
-        if !security_settings_valid?
-          handle_invalid_security_settings
-        elsif Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
-          start_agent
-          install_instrumentation
-        elsif !Agent.config[:agent_enabled]
-          install_shim
-        else
-          DependencyDetection.detect!
-        end
+        init_instrumentation
       end
 
       def determine_env(options)
@@ -86,11 +76,13 @@ module NewRelic
         env = env.to_s
 
         if @started_in_env && @started_in_env != env
-          Agent.logger.error("Attempted to start agent in #{env.inspect} environment, but agent was already running in #{@started_in_env.inspect}",
-            "The agent will continue running in #{@started_in_env.inspect}. To alter this, ensure the desired environment is set before the agent starts.")
+          Agent.logger.error("Attempted to start agent in #{env.inspect} environment, but agent was already running " \
+            "in #{@started_in_env.inspect}", "The agent will continue running in #{@started_in_env.inspect}. To " \
+            "alter this, ensure the desired environment is set before the agent starts.")
         else
-          Agent.logger.info("Starting the New Relic agent version #{NewRelic::VERSION::STRING} in #{env.inspect} environment.",
-            "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+          Agent.logger.info("Starting the New Relic agent version #{NewRelic::VERSION::STRING} in #{env.inspect} " \
+            "environment.", "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or " \
+            "modify the #{env.inspect} section of your newrelic.yml.")
         end
 
         env
@@ -99,33 +91,20 @@ module NewRelic
       def configure_agent(env, options)
         manual = Agent::Configuration::ManualSource.new(options)
         Agent.config.replace_or_add_config(manual)
-
-        config_file_path = @config_file_override || Agent.config[:config_path]
         yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
-        if yaml_source.failed?
-          yaml_source.failures.each do |msg|
-            stdout.puts Agent::AgentLogger.format_fatal_error(msg)
-          end
-        end
+        log_yaml_source_failures(yaml_source) if yaml_source.failed?
         Agent.config.replace_or_add_config(yaml_source)
-
-        if security_settings_valid? && Agent.config[:high_security]
-          Agent.logger.info("Installing high security configuration based on local configuration")
-          Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
-        end
+        configure_high_security
       end
 
       def security_settings_valid?
-        !Agent.config[:high_security] ||
-          Agent.config[:security_policies_token].empty?
+        !Agent.config[:high_security] || Agent.config[:security_policies_token].empty?
       end
 
       def handle_invalid_security_settings
-        NewRelic::Agent.logger.error("Security Policies and High Security " \
-          "Mode cannot both be present in the agent configuration. If " \
-          "Security Policies have been set for your account, please " \
-          "ensure the security_policies_token is set but high_security is " \
-          "disabled (default).")
+        NewRelic::Agent.logger.error("Security Policies and High Security Mode cannot both be present in the agent " \
+          "configuration. If Security Policies have been set for your account, please ensure the " \
+          "security_policies_token is set but high_security is disabled (default).")
         install_shim
       end
 
@@ -168,10 +147,8 @@ module NewRelic
         @install_lock = Mutex.new
         @local_env = local_env
         @started_in_env = nil
-
         @instrumented = nil
         @instrumentation_files = []
-
         @config_file_override = config_file_override
       end
 

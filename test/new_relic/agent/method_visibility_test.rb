@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -75,16 +74,16 @@ class MethodVisibilityTest < Minitest::Test
 
   %w[ public private protected ].each do |visibility|
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_method" do
-      assert @instance.send("#{visibility}_methods").map { |s| s.to_sym }.include?(:"#{visibility}_method!"), "Method #{visibility}_method should be #{visibility}"
+      assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_method!", "Method #{visibility}_method should be #{visibility}")
     end
 
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_transaction" do
-      assert @instance.send("#{visibility}_methods").map { |s| s.to_sym }.include?(:"#{visibility}_transaction!"), "Transcation #{visibility}_transaction should be #{visibility}"
+      assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_transaction!", "Transaction #{visibility}_transaction should be #{visibility}")
     end
   end
 
   def test_tracing_non_public_methods_doesnt_add_public_methods
-    assert_equal [], ObjectWithTracers.public_instance_methods - ObjectWithInstrumentation.public_instance_methods
+    assert_empty(ObjectWithTracers.public_instance_methods - ObjectWithInstrumentation.public_instance_methods)
   end
 
   # FIXME: Currently including MethodTracer and ControllerInstrumentation

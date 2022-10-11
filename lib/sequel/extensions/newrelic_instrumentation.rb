@@ -1,5 +1,4 @@
 # -*- ruby -*-
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -63,7 +62,7 @@ module Sequel
     # block in the sequel Plugin instrumentation. A simple ORM operation from the Plugin
     # instrumentation may trigger a number of calls to this method. We want to append
     # the statements that come from the disable_all_tracing block into this node's
-    # statement, otherwise we would end up ovewriting the sql statement with the
+    # statement, otherwise we would end up overwriting the sql statement with the
     # last one executed.
     def notice_sql(sql)
       return unless txn = NewRelic::Agent::Tracer.current_transaction
@@ -83,7 +82,7 @@ module Sequel
     ].freeze
 
     def explainer_for(sql)
-      Proc.new do |*|
+      proc do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[sql].explain
         else

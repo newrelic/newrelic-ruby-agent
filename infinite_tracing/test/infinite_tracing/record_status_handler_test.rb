@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -24,7 +23,7 @@ module NewRelic::Agent::InfiniteTracing
     end
 
     def test_processes_multiple_items_and_stops
-      items = 5.times.map { |i| RecordStatus.new(messages_seen: i + 1) }
+      items = Array.new(5) { |i| RecordStatus.new(messages_seen: i + 1) }
       queue = EnumeratorQueue.new.preload(items)
 
       handler = build_handler(queue)

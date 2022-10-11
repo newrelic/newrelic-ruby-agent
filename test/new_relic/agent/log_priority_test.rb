@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -15,7 +14,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_random_value_if_no_transction
+    def test_random_value_if_no_transaction
       LogPriority.stubs(:rand).returns(0.1)
       assert_equal 0.1, LogPriority.priority_for(nil)
     end

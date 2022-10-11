@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -12,7 +11,7 @@ module NewRelic
         vendor_name "gcp"
         endpoint "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true"
         headers "Metadata-Flavor" => "Google"
-        keys ["id", "machineType", "name", "zone"]
+        keys %w[id machineType name zone]
         key_transforms :to_sym
 
         MACH_TYPE = 'machineType'.freeze

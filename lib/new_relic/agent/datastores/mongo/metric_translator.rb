@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -57,8 +56,6 @@ module NewRelic
             NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
             nil
           end
-
-          MONGO_PRODUCT_NAME = "MongoDB".freeze
 
           def self.collection_in_selector?(payload)
             payload[:collection] == '$cmd' && payload[:selector]
@@ -122,7 +119,7 @@ module NewRelic
             name == :findandmodify && payload[:selector] && payload[:selector][:remove]
           end
 
-          def self.create_indexes?(name, paylod)
+          def self.create_indexes?(name, _payload)
             name == :createIndexes
           end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -13,9 +12,9 @@ class AutostartTest < Minitest::Test
 
   if defined?(::Rails)
     def test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined
-      assert !defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
+      refute defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
       Rails.const_set(:Console, Class.new)
-      assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in Rails Console session"
+      refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart in Rails Console session"
     ensure
       Rails.send(:remove_const, :Console)
     end
@@ -32,7 +31,7 @@ class AutostartTest < Minitest::Test
 
   def test_agent_wont_start_if_dollar_0_is_irb
     @orig_dollar_0, $0 = $0, '/foo/bar/irb'
-    assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by irb"
+    refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by irb"
   ensure
     $0 = @orig_dollar_0
   end
@@ -48,21 +47,21 @@ class AutostartTest < Minitest::Test
     test:uncommitted time:zones:all tmp:clear tmp:create ].each do |task|
     define_method("test_agent_wont_autostart_if_top_level_rake_task_is_#{task}") do
       Rake.stubs(:application => stub(:top_level_tasks => [task]))
-      assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't start during #{task.inspect} rake task"
+      refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't start during #{task.inspect} rake task"
     end
   end
 
   MY_CONST = true
   def test_denylisted_constants_can_be_configured
     with_config('autostart.denylisted_constants' => "IRB,::AutostartTest::MY_CONST") do
-      assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when environment contains denylisted constant"
+      refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when environment contains denylisted constant"
     end
   end
 
   def test_denylisted_executable_can_be_configured
     @orig_dollar_0, $0 = $0, '/foo/bar/baz'
     with_config('autostart.denylisted_executables' => 'boo,baz') do
-      assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by denylisted executable"
+      refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by denylisted executable"
     end
   ensure
     $0 = @orig_dollar_0
@@ -71,7 +70,7 @@ class AutostartTest < Minitest::Test
   def test_denylisted_rake_tasks_can_be_configured
     with_config('autostart.denylisted_rake_tasks' => 'foo,bar,baz:bang') do
       Rake.stubs(:application => stub(:top_level_tasks => ['biz', 'baz:bang']))
-      assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during denylisted rake task"
+      refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during denylisted rake task"
     end
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -14,7 +13,7 @@ module NewRelic
             result = headers[key]
 
             # Typhoeus 0.5.3 has a bug where asking the headers hash for a
-            # non-existent header will return the hash itself, not what we want.
+            # nonexistent header will return the hash itself, not what we want.
             result == headers ? nil : result
           end
         end

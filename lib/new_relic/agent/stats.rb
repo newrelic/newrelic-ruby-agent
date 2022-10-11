@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -50,8 +49,14 @@ module NewRelic
         self
       end
 
-      def to_s
-        "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s / #{'%.4f' % total_exclusive_time.to_f}s ex]"
+      def hash_merge(hash)
+        @call_count = hash[:count] if hash[:count]
+        @total_call_time = hash[:total] if hash[:total]
+        @total_exclusive_time = hash[:total] if hash[:total]
+        @min_call_time = hash[:min] if hash[:min]
+        @max_call_time = hash[:max] if hash[:max]
+        @sum_of_squares = hash[:sum_of_squares] if hash[:sum_of_squares]
+        self
       end
 
       def to_json(*_)
@@ -63,6 +68,10 @@ module NewRelic
           'total_exclusive_time' => total_exclusive_time.to_f,
           'sum_of_squares' => sum_of_squares.to_f
         }.to_json(*_)
+      end
+
+      def to_s
+        "[#{'%2i' % call_count.to_i} calls #{'%.4f' % total_call_time.to_f}s / #{'%.4f' % total_exclusive_time.to_f}s ex]"
       end
 
       def record(value = nil, aux = nil, &blk)

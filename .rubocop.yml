@@ -10,7 +10,10 @@ require:
 
 AllCops:
   TargetRubyVersion: 2.7
-  Exclude: []
+  # Rubocop shouldn't run on auto generated files.
+  Exclude:
+    - 'test/multiverse/suites/active_record/db/schema.rb'
+    - 'test/multiverse/suites/active_record_pg/db/schema.rb'
   NewCops: enable
 
 Bundler/DuplicatedGem:
@@ -852,9 +855,6 @@ Lint/IncompatibleIoSelectWithFiberScheduler:
 Lint/RequireRelativeSelfPath:
   Enabled: true
 
-Metrics/AbcSize:
-  Enabled: false
-
 Metrics/BlockLength:
   Enabled: false
 
@@ -940,172 +940,33 @@ Naming/VariableName:
 Naming/VariableNumber:
   Enabled: false
 
-Performance/AncestorsInclude:
-  Enabled: false
-
-Performance/ArraySemiInfiniteRangeSlice:
-  Enabled: false
-
-Performance/BigDecimalWithNumericArgument:
-  Enabled: true
-
-# Disabled for support of older ruby versions
+# TODO: OLD RUBIES - Requires 2.7
 Performance/BindCall:
   Enabled: false
 
-# Disabling for now
-Performance/BlockGivenWithExplicitBlock:
-  Enabled: false
-
-# Disabling for now
-Performance/Caller:
-  Enabled: false
-
-Performance/CaseWhenSplat:
-  Enabled: false
-
-Performance/Casecmp:
-  Enabled: false
-
-Performance/ChainArrayAllocation:
-  Enabled: false
-
-Performance/CollectionLiteralInLoop:
-  Enabled: false
-
-Performance/CompareWithBlock:
-  Enabled: true
-
-Performance/ConcurrentMonotonicTime:
-  Enabled: true
-
-# Disabling for now
-Performance/ConstantRegexp:
-  Enabled: false
-
-# Disabling for now
-Performance/Count:
-  Enabled: false
-
+# TODO: OLD RUBIES - Requites 2.5
 Performance/DeletePrefix:
   Enabled: false
 
-Performance/DeleteSuffix:
-  Enabled: false
-
-# Disabling for now
-Performance/Detect:
-  Enabled: false
-
-# Disabling for now
-Performance/DoubleStartEndWith:
-  Enabled: false
-  # IncludeActiveSupportAliases: false
-
-Performance/EndWith:
-  Enabled: true
-
-Performance/FixedSize:
-  Enabled: true
-
-Performance/FlatMap:
-  Enabled: true
-  EnabledForFlattenWithoutParams: false
-
-# Disabling for now
-Performance/InefficientHashSearch:
-  Enabled: false
-  # Safe: false
-
-Performance/IoReadlines:
-  Enabled: false
-
+# TODO: OLD RUBIES - Requires 2.7
 Performance/MapCompact:
   Enabled: false
 
+# TODO: Enable when time can be spent on it (no autocorrect)
 Performance/MethodObjectAsBlock:
   Enabled: false
 
-Performance/OpenStruct:
-  Enabled: false
-
-Performance/RangeInclude:
-  Enabled: true
-  Safe: false
-
-Performance/RedundantBlockCall:
-  Enabled: false
-
-Performance/RedundantEqualityComparisonBlock:
-  Enabled: false
-
-# Disabling for now
-Performance/RedundantMatch:
-  Enabled: false
-
-# Disabling for now
-Performance/RedundantMerge:
-  Enabled: false
-  # MaxKeyValuePairs: 2
-
-Performance/RedundantSortBlock:
-  Enabled: true
-
-Performance/RedundantSplitRegexpArgument:
-  Enabled: true
-
-Performance/RedundantStringChars:
-  Enabled: true
-
-# Disabling for now
+# TODO: OLD RUBIES - Requires 2.4
 Performance/RegexpMatch:
   Enabled: false
 
-# Disabling for now
-Performance/ReverseEach:
-  Enabled: false
-
-Performance/ReverseFirst:
-  Enabled: true
-
-Performance/SelectMap:
-  Enabled: false
-
-Performance/Size:
-  Enabled: true
-
-Performance/SortReverse:
-  Enabled: true
-
-Performance/Squeeze:
-  Enabled: true
-
-# Disabling for now
-Performance/StartWith:
-  Enabled: false
-
-Performance/StringIdentifierArgument:
-  Enabled: true
-
-Performance/StringInclude:
-  Enabled: false
-
-# Disabling for now
-Performance/StringReplacement:
-  Enabled: false
-
+# TODO: OLD RUBIES - Requires 2.4
 Performance/Sum:
   Enabled: false
 
-Performance/TimesMap:
-  Enabled: false
-
-# Disabling for now
+# TODO: OLD RUBIES - Requires 2.3
 Performance/UnfreezeString:
   Enabled: false
-
-Performance/UriDefaultParser:
-  Enabled: true
 
 # Disabling for now
 Security/Eval:
@@ -1240,9 +1101,6 @@ Style/CommandLiteral:
   # EnforcedStyle: mixed
   # AllowInnerBackticks: false
 
-Style/CommentAnnotation:
-  Enabled: false
-
 Style/CommentedKeyword:
   Enabled: false
 
@@ -1317,10 +1175,6 @@ Style/EmptyLiteral:
 Style/EmptyMethod:
   Enabled: false
   # EnforcedStyle: expanded
-
-# Disabling for now
-Style/Encoding:
-  Enabled: false
 
 Style/EndBlock:
   Enabled: true
@@ -1476,14 +1330,17 @@ Style/MapToHash:
 Style/MethodCallWithArgsParentheses:
   Enabled: true
   AllowedMethods:
-    - puts
-    - require
-    - raise
-    - include
-    - fail
-    - print
     - add_dependency
     - add_development_dependency
+    - expect
+    - fail
+    - include
+    - print
+    - puts
+    - raise
+    - require
+    - skip
+    - stub
   AllowedPatterns: [^assert, ^refute]
 
 Style/MethodCallWithoutArgsParentheses:
@@ -1536,9 +1393,6 @@ Style/MultilineMemoization:
   # EnforcedStyle: keyword
 
 Style/MultilineMethodSignature:
-  Enabled: false
-
-Style/MultilineTernaryOperator:
   Enabled: false
 
 Style/MultilineWhenThen:
@@ -1595,18 +1449,8 @@ Style/Next:
   Enabled: false
 
 # Disabling for now
-Style/NilComparison:
-  Enabled: false
-  # EnforcedStyle: predicate
-
-# Disabling for now
 Style/NilLambda:
   Enabled: false
-
-# Disabling for now
-Style/NonNilCheck:
-  Enabled: false
-  # IncludeSemanticChanges: false
 
 Style/Not:
   Enabled: true
@@ -1641,10 +1485,6 @@ Style/OptionalArguments:
 Style/OptionalBooleanParameter:
   Enabled: false
 
-# Disabling for now
-Style/OrAssignment:
-  Enabled: false
-
 Style/ParallelAssignment:
   Enabled: false
 
@@ -1670,10 +1510,6 @@ Style/PerlBackrefs:
   Enabled: false
 
 Style/PreferredHashMethods:
-  Enabled: false
-
-# Disabling for now
-Style/Proc:
   Enabled: false
 
 Style/QuotedSymbols:
@@ -1961,9 +1797,6 @@ Style/WhileUntilDo:
   Enabled: true
 
 Style/WhileUntilModifier:
-  Enabled: false
-
-Style/WordArray:
   Enabled: false
 
 # Disabling for now

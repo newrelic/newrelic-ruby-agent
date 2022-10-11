@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -11,13 +10,15 @@ ENV['RAILS_ENV'] = 'test'
 agent_test_path = File.expand_path('../../../test', __FILE__)
 $LOAD_PATH << agent_test_path
 
-require 'rubygems'
-require 'rake'
+require 'infinite_tracing'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'mocha/setup'
 require 'newrelic_rpm'
-require 'infinite_tracing'
+require 'rake'
+require 'rubygems'
+
+require_relative '../../test/minitest/test_time_plugin'
 
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
@@ -39,11 +40,11 @@ Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 def timeout_cap(duration = 1.0)
   Timeout::timeout(duration) { yield }
 rescue Timeout::Error => error
-  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject { |r| r =~ /gems\/minitest/ }.join("\n")}"
+  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject { |r| r.include?('gems/minitest') }.join("\n")}"
 end
 
 def deferred_span(segment)
-  Proc.new { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
+  proc { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
 end
 
 def reset_infinite_tracer
@@ -63,7 +64,7 @@ TRACE_POINT_ENABLED = false
 
 def trace
   @trace ||= TracePoint.new(:call, :b_call) do |tp|
-    next unless tp.defined_class.to_s =~ /InfiniteTracing/
+    next unless tp.defined_class.to_s.include?('InfiniteTracing')
     next unless [
       :record_spans,
       :record_span,

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -7,7 +6,7 @@ module NewRelic
   module Agent
     # This class implements a min Heap. The first element is always the one with the
     # lowest priority. It is a tree structure that is represented as an array. The
-    # relationship between between nodes in the tree and indices in the array are as
+    # relationship between nodes in the tree and indices in the array are as
     # follows:
     #
     # parent_index      = (child_index -  1) / 2
@@ -19,7 +18,7 @@ module NewRelic
     #
 
     class Heap
-      # @param [Array] items an optional array of items to intialize the heap
+      # @param [Array] items an optional array of items to initialize the heap
       #
       # @param [Callable] priority_fn an optional priority function used to
       #   to compute the priority for an item. If it's not supplied priority

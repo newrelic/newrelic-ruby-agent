@@ -1,5 +1,4 @@
 # -*- ruby -*-
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -37,11 +36,11 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
   #
 
   def assert_supported_on_platform
-    assert_equal NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, true, "should be supported on this platform"
+    assert NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, "should be supported on this platform"
   end
 
   def refute_supported_on_platform
-    assert_equal NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, false, "should not be supported on this platform"
+    refute NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, "should not be supported on this platform"
   end
 
   def set_jruby_version_constant(string)

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -6,7 +5,7 @@
 require_relative '../../test_helper'
 require 'new_relic/agent/transaction_time_aggregator'
 
-class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
+class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
   def setup
     nr_freeze_process_time
     NewRelic::Agent.agent.stats_engine.clear_stats
@@ -116,7 +115,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     stats = NewRelic::Agent::TransactionTimeAggregator.instance_variable_get(:@stats)
 
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
-    workers = 100.times.map do
+    workers = Array.new(100) do
       Thread.new do
         ::NewRelic::Agent::TransactionTimeAggregator.transaction_start(t0 + 15)
         # thread dies before transaction completes

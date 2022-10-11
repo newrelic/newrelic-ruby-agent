@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -21,7 +20,6 @@ module NewRelic
       TRACE_ID_KEY = 'traceId'
       GUID_KEY = 'guid'
       PARENT_ID_KEY = 'parentId'
-      GRANDPARENT_ID_KEY = 'grandparentId'
       TRANSACTION_ID_KEY = 'transactionId'
       SAMPLED_KEY = 'sampled'
       PRIORITY_KEY = 'priority'

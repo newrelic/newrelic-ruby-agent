@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -85,7 +84,7 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          # TODO: Dalli - 3.1.0 renamed send_multiget to piplined_get, but the method is otherwise the same
+          # TODO: Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
           if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
             def pipelined_get(keys)
               send_multiget_with_newrelic_tracing(keys) { super }

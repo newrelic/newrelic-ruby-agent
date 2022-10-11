@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -52,7 +51,7 @@ module NewRelic::Agent
         # so we're able to signal the client to restart when connectivity to the
         # server is disrupted.
         def record_span_batches(client, enumerator, exponential_backoff)
-          instance.record_span_batch(client, enumerator, exponential_backoff)
+          instance.record_span_batches(client, enumerator, exponential_backoff)
         end
 
         def metadata
@@ -155,7 +154,7 @@ module NewRelic::Agent
         rescue => exception
           retry_connection_period = retry_connection_period(exponential_backoff)
           ::NewRelic::Agent.logger.error("Error establishing connection with infinite tracing service:", exception)
-          ::NewRelic::Agent.logger.info("Will re-attempt infinte tracing connection in #{retry_connection_period} seconds")
+          ::NewRelic::Agent.logger.info("Will re-attempt infinite tracing connection in #{retry_connection_period} seconds")
           sleep(retry_connection_period)
           note_connect_failure
           retry

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -49,7 +48,7 @@ class HelperTest < Minitest::Test
     end
   end
 
-  def test_run_commmand_happy
+  def test_run_command_happy
     stubbed = 'Jinba ittai'
     NewRelic::Helper.stubs('executable_in_path?').returns(true)
     Open3.stubs('capture2e').returns([stubbed, OpenStruct.new(success?: true)])
@@ -57,7 +56,7 @@ class HelperTest < Minitest::Test
     assert_equal result, stubbed
   end
 
-  def test_run_command_sad_unsucessful
+  def test_run_command_sad_unsuccessful
     NewRelic::Helper.stubs('executable_in_path?').returns(true)
     Open3.stubs('capture2e').returns([nil, OpenStruct.new(success?: false)])
     assert_raises(NewRelic::CommandRunFailedError) do

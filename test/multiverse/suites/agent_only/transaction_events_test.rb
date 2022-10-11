@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -41,7 +40,7 @@ class TransactionEventsTest < Minitest::Test
 
     _, custom_attributes, _ = last_transaction_event
 
-    assert_equal({}, custom_attributes)
+    assert_empty(custom_attributes)
   end
 
   def last_transaction_event

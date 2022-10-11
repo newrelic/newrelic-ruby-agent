@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -228,19 +227,19 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_namer_determines_prefix
       in_transaction do |txn|
-        assert_equal @txn_namer.prefix_for_category(txn, :controller), 'Controller/'
-        assert_equal @txn_namer.prefix_for_category(txn, :web), 'Controller/'
-        assert_equal @txn_namer.prefix_for_category(txn, :task), 'OtherTransaction/Background/'
-        assert_equal @txn_namer.prefix_for_category(txn, :background), 'OtherTransaction/Background/'
-        assert_equal @txn_namer.prefix_for_category(txn, :rack), 'Controller/Rack/'
-        assert_equal @txn_namer.prefix_for_category(txn, :sinatra), 'Controller/Sinatra/'
-        assert_equal @txn_namer.prefix_for_category(txn, :uri), 'Controller/'
-        assert_equal @txn_namer.prefix_for_category(txn, :middleware), 'Middleware/Rack/'
-        assert_equal @txn_namer.prefix_for_category(txn, :grape), 'Controller/Grape/'
-        assert_equal @txn_namer.prefix_for_category(txn, :rake), 'OtherTransaction/Rake/'
-        assert_equal @txn_namer.prefix_for_category(txn, :action_cable), 'Controller/ActionCable/'
-        assert_equal @txn_namer.prefix_for_category(txn, :message), 'OtherTransaction/Message/'
-        assert_equal @txn_namer.prefix_for_category(txn, :foo), 'foo/'
+        assert_equal 'Controller/', @txn_namer.prefix_for_category(txn, :controller)
+        assert_equal 'Controller/', @txn_namer.prefix_for_category(txn, :web)
+        assert_equal 'OtherTransaction/Background/', @txn_namer.prefix_for_category(txn, :task)
+        assert_equal 'OtherTransaction/Background/', @txn_namer.prefix_for_category(txn, :background)
+        assert_equal 'Controller/Rack/', @txn_namer.prefix_for_category(txn, :rack)
+        assert_equal 'Controller/Sinatra/', @txn_namer.prefix_for_category(txn, :sinatra)
+        assert_equal 'Controller/', @txn_namer.prefix_for_category(txn, :uri)
+        assert_equal 'Middleware/Rack/', @txn_namer.prefix_for_category(txn, :middleware)
+        assert_equal 'Controller/Grape/', @txn_namer.prefix_for_category(txn, :grape)
+        assert_equal 'OtherTransaction/Rake/', @txn_namer.prefix_for_category(txn, :rake)
+        assert_equal 'Controller/ActionCable/', @txn_namer.prefix_for_category(txn, :action_cable)
+        assert_equal 'OtherTransaction/Message/', @txn_namer.prefix_for_category(txn, :message)
+        assert_equal 'foo/', @txn_namer.prefix_for_category(txn, :foo)
       end
     end
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -20,7 +19,7 @@ class MongoServerTest < Test::Unit::TestCase
   end
 
   def test_new_server_has_a_locked_port
-    assert File.exist?(@server.port_lock_path)
+    assert_path_exists(@server.port_lock_path)
   end
 
   def test_creating_a_new_server_after_locking_port_uses_the_next_port
@@ -43,9 +42,9 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_release_port_deletes_the_port_lock_file
     path = @server.port_lock_path
-    assert File.exist?(path)
+    assert_path_exists(path)
     @server.release_port
-    refute File.exist?(path)
+    refute_path_exists(path)
   end
 
   def test_all_port_lock_files_returns_all_file_names
@@ -78,16 +77,16 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_stop_releases_port
     @server.start
-    assert File.exist?(@server.port_lock_path)
+    assert_path_exists(@server.port_lock_path)
     @server.stop
-    refute File.exist?(@server.port_lock_path)
+    refute_path_exists(@server.port_lock_path)
   end
 
   def test_stop_deletes_pid_file
     @server.start
-    assert File.exist?(@server.pid_path)
+    assert_path_exists(@server.pid_path)
     @server.stop
-    refute File.exist?(@server.pid_path)
+    refute_path_exists(@server.pid_path)
   end
 
   def test_pingable_returns_true_if_ping_is_ok

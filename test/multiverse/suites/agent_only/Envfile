@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 gemfile <<-RB
-  gem 'minitest', '5.3.3'
+  gem 'minitest', "#{RUBY_VERSION >= '3.0.0' ? '5.3.3' : '4.7.5'}"
   gem 'rack', '< 2.1.0'
   gem 'rack-test', '>= 0.8.0'
   #{ruby3_gem_webrick}

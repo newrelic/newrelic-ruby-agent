@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -21,7 +20,7 @@ module NewRelic
 
             assert_equal 'obfuscated', source[:'transaction_tracer.record_sql']
             assert_equal 'obfuscated', source[:'slow_sql.record_sql']
-            assert_equal true, source[:'mongo.obfuscate_queries']
+            assert source[:'mongo.obfuscate_queries']
           end
         end
 
@@ -35,7 +34,7 @@ module NewRelic
 
             assert_equal 'off', source[:'transaction_tracer.record_sql']
             assert_equal 'off', source[:'slow_sql.record_sql']
-            assert_equal false, source[:'mongo.capture_queries']
+            refute source[:'mongo.capture_queries']
           end
         end
 
@@ -71,13 +70,13 @@ module NewRelic
             :'transaction_segments.attributes.include'   => ['sql_statement']) do
             source = SecurityPolicySource.new(policies)
 
-            assert_equal [], source[:'attributes.include']
-            assert_equal [], source[:'transaction_tracer.attributes.include']
-            assert_equal [], source[:'transaction_events.attributes.include']
-            assert_equal [], source[:'error_collector.attributes.include']
-            assert_equal [], source[:'browser_monitoring.attributes.include']
-            assert_equal [], source[:'span_events.attributes.include']
-            assert_equal [], source[:'transaction_segments.attributes.include']
+            assert_empty(source[:'attributes.include'])
+            assert_empty(source[:'transaction_tracer.attributes.include'])
+            assert_empty(source[:'transaction_events.attributes.include'])
+            assert_empty(source[:'error_collector.attributes.include'])
+            assert_empty(source[:'browser_monitoring.attributes.include'])
+            assert_empty(source[:'span_events.attributes.include'])
+            assert_empty(source[:'transaction_segments.attributes.include'])
           end
         end
 
@@ -95,7 +94,7 @@ module NewRelic
           with_config(:'strip_exception_messages.enabled' => true) do
             source = SecurityPolicySource.new(policies)
 
-            assert_equal false, source[:'strip_exception_messages.enabled']
+            refute source[:'strip_exception_messages.enabled']
           end
         end
 
@@ -113,7 +112,7 @@ module NewRelic
           with_config(:'custom_insights_events.enabled' => true) do
             source = SecurityPolicySource.new(policies)
 
-            assert_equal false, source[:'custom_insights_events.enabled']
+            refute source[:'custom_insights_events.enabled']
           end
         end
 
@@ -145,7 +144,7 @@ module NewRelic
           with_config(:'message_tracer.segment_parameters.enabled' => true) do
             source = SecurityPolicySource.new(policies)
 
-            assert_equal false, source[:'message_tracer.segment_parameters.enabled']
+            refute source[:'message_tracer.segment_parameters.enabled']
           end
         end
 
@@ -166,8 +165,8 @@ module NewRelic
             :'sidekiq.capture_params' => true) do
             source = SecurityPolicySource.new(policies)
 
-            assert_equal false, source[:'resque.capture_params']
-            assert_equal false, source[:'sidekiq.capture_params']
+            refute source[:'resque.capture_params']
+            refute source[:'sidekiq.capture_params']
           end
         end
 

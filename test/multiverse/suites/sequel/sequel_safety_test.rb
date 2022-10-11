@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -23,7 +22,7 @@ class SequelSafetyTest < Minitest::Test
       require 'newrelic_rpm'
 
       DB.transaction do
-        assert_equal(true, DB.in_transaction?)
+        assert DB.in_transaction?
       end
     end
   end

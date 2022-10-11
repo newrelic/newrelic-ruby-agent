@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -286,7 +285,7 @@ module HttpClientTestCases
       decoded = decode_payload(transaction_data)
 
       assert_equal(guid, decoded[0])
-      assert_equal(false, decoded[1])
+      refute(decoded[1])
       assert_equal(guid, decoded[2])
       assert_equal(path_hash, decoded[3])
     end
@@ -295,7 +294,7 @@ module HttpClientTestCases
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     in_transaction { get_response }
-    assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
+    refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
@@ -303,7 +302,7 @@ module HttpClientTestCases
       :'distributed_tracing.enabled' => false,
       :cross_process_id => "") do
       in_transaction { get_response }
-      assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
+      refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
     end
   end
 
@@ -314,7 +313,7 @@ module HttpClientTestCases
       :encoding_key => ""
     ) do
       in_transaction { get_response }
-      assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
+      refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
     end
   end
 
@@ -391,7 +390,7 @@ module HttpClientTestCases
     ])
   end
 
-  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_crossprocess_id
+  def test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
       make_app_data_payload("88#88#88", "invalid", 1, 2, 4096, TRANSACTION_GUID))
 
@@ -633,7 +632,7 @@ module HttpClientTestCases
   end
 
   def http_header_name_to_rack_key(name)
-    "HTTP_" + name.upcase.gsub('-', '_')
+    "HTTP_" + name.upcase.tr('-', '_')
   end
 
   def make_app_data_payload(*args)

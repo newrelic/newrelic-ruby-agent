@@ -39,15 +39,15 @@ jobs:
       - run: script/runner -B
       - uses: actions/checkout@v3
       - run: bundle
-      - run: script/runner -C > performance_results.txt
+      - run: script/runner -C -M > performance_results.md
       - name: Save performance results
         uses: actions/upload-artifact@v3
         with:
           name: performance-test-results
-          path: ./test/performance/performance_results.txt
+          path: ./test/performance/performance_results.md
       - name: Slack results
         uses: adrey/slack-file-upload-action@1.0.5
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-          path: ./test/performance/performance_results.txt
+          path: ./test/performance/performance_results.md
           channel: ruby-agent-notifications
