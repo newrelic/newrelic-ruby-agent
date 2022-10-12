@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.12.0
+
+  Version 8.12.0 of the agent delivers some valuable code cleanup.
+
+  * **Cleanup: Remove orphaned code from unit tests**
+
+    As outlined by [newrelic/newrelic-ruby-agent#1181](https://github.com/newrelic/newrelic-ruby-agent/issues/1181), the project's unit tests have ended up with orphaned content that has become vestigal. Some good related cleanup was performed for this release. [PR#1537](https://github.com/newrelic/newrelic-ruby-agent/pull/1537)
+
+    Thank you to [@ohbarye](https://github.com/ohbarye) for contributing this helpful cleanup!
+
+
   ## v8.11.0
 
   Version 8.11.0 of the agent updates the `newrelic deployments` command to work with API keys issued to newer accounts, fixes a memory leak in the instrumentation of Curb error handling, further preps for Ruby 3.2.0 support, and includes several community member driven cleanup and improvement efforts. Thank you to everyone involved!
