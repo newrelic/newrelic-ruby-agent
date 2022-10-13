@@ -6,7 +6,7 @@
 
   * **Support for Elasticsearch instrumentation**
 
-    This release adds support to automatically instrument the [elasticsearch](https://rubygems.org/gems/elasticsearch) gem. Versions 7.x and 8.x are supported. 
+    This release adds support to automatically instrument the [elasticsearch](https://rubygems.org/gems/elasticsearch) gem. Versions 7.x and 8.x are supported. [PR#1525](https://github.com/newrelic/newrelic-ruby-agent/pull/1525)
 
     | Configuration name | Default | Behavior |
     | ----------- | ----------- |----------- |
