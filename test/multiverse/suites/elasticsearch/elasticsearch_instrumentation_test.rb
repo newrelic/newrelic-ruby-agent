@@ -14,7 +14,6 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     )
     # Ensure the client is running before the tests start
     @client.cluster.health
-    # TODO: Update this to use constants, perhaps a hash?
     @client.index(index: 'my-index', id: 1, body: {title: 'Test'})
     @client.indices.refresh(index: 'my-index')
   end

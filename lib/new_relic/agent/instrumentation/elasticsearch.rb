@@ -15,9 +15,7 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info('Installing elasticsearch instrumentation')
-    # why didn't this work when we looked at defined?(::Elastic)
-    # why was the name changed?
-    # perform_request is also defined in Transport::Base
+
     to_instrument = if ::Gem::Version.create(::Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
       ::Elasticsearch::Transport::Client
     else
