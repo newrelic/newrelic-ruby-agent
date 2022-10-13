@@ -32,6 +32,7 @@ module NewRelic
       # Take care not to the dup the query more than once as
       # correctly encoded may also dup the query.
       def capture_query(query)
+        return unless query
         id = query.object_id
         query = Helper.correctly_encoded(truncate_query(query))
         if query.object_id == id
