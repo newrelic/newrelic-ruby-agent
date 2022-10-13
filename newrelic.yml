@@ -145,7 +145,7 @@ common: &default_settings
 
   # Specify a maximum number of custom Insights events to buffer in memory at a
   # time.
-  # custom_insights_events.max_samples_stored: 1000
+  # custom_insights_events.max_samples_stored: 3000
 
   # If false, the agent will not add database_name parameter to transaction or #
   # slow sql traces.
