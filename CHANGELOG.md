@@ -2,7 +2,18 @@
 
   ## v8.12.0
 
-  Version 8.12.0 of the agent delivers some valuable code cleanup.
+  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation and some valuable code cleanup.
+
+  * **Support for Elasticsearch instrumentation**
+
+    This release adds support to automatically instrument the [elasticsearch](https://rubygems.org/gems/elasticsearch) gem. Versions 7.x and 8.x are supported. 
+
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.elasticsearch` | auto | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+    | `elasticsearch.capture_queries` | true | If `true`, the agent captures Elasticsearch queries in transaction traces. |
+    | `elasticsearch.obfuscate_queries` | true |  If `true`, the agent obfuscates Elasticsearch queries in transaction traces. |
+
 
   * **Cleanup: Remove orphaned code from unit tests**
 
