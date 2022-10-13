@@ -11,7 +11,7 @@ class EventDataCollectionTest < Minitest::Test
     expected = {
       'harvest_limits' => {
         "analytic_event_data" => 1200,
-        "custom_event_data" => 1000,
+        "custom_event_data" => 3000,
         "error_event_data" => 100,
         "span_event_data" => 2000,
         "log_event_data" => 10000
@@ -30,7 +30,7 @@ class EventDataCollectionTest < Minitest::Test
         "report_period_ms" => 5000,
         "harvest_limits" => {
           "analytic_event_data" => 1200,
-          "custom_event_data" => 1000,
+          "custom_event_data" => 3000,
           "error_event_data" => 100,
           "log_event_data" => 10000
         }
@@ -51,7 +51,7 @@ class EventDataCollectionTest < Minitest::Test
         "report_period_ms" => 5000,
         "harvest_limits" => {
           "analytic_event_data" => 1200,
-          "custom_event_data" => 1000,
+          "custom_event_data" => 3000,
           "error_event_data" => 100,
           "log_event_data" => 10000
         }
