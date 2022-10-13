@@ -155,9 +155,8 @@ module Multiverse
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
-    def bundle_install(dir, exact_version = nil)
+    def bundle_install(dir)
       puts "Bundling in #{dir}..."
-      bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config(dir, bundle_cmd)
       bundle_show_env(bundle_cmd)
@@ -699,7 +698,7 @@ module Multiverse
       env_plural = env_count > 1 ? 'environments' : 'environment'
       opening = "\nRunning \"#{suite}\" suite in"
       ending = "in #{label}"
-      message = [opening, execution_message_body(env_count, env_plural).join(' and '), ending].join(' ')
+      [opening, execution_message_body(env_count, env_plural).join(' and '), ending].join(' ')
     end
 
     def execution_message_body(env_count, env_plural)
