@@ -30,8 +30,6 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     @segment = txn.segments[1]
   end
 
-  # TODO! TEST METRIC GENERATION!!!
-
   def test_datastore_segment_created
     search
     assert_equal NewRelic::Agent::Transaction::DatastoreSegment, @segment.class
@@ -42,9 +40,28 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_equal NewRelic::Agent::Instrumentation::Elasticsearch::PRODUCT_NAME, @segment.product
   end
 
-  def test_segment_operation
+  def test_segment_operation_is_search_when_search_method_called
     search
-    assert_equal NewRelic::Agent::Instrumentation::Elasticsearch::OPERATION, @segment.operation
+    assert_equal 'search', @segment.operation
+  end
+
+  def test_segment_operation_is_index_when_index_method_called
+    txn = in_transaction do
+      @client.index(index: 'my-index', id: 1, body: {title: 'Test'})
+    end
+
+    segment = txn.segments[1]
+    assert_equal 'index', segment.operation
+  end
+
+  def test_segment_operation_returns_OPERATION_when_api_not_called
+    # stubbing the constant to make sure it takes over when there's a nil value for nr_operation
+    NewRelic::Agent::Instrumentation::Elasticsearch.stub_const(:OPERATION, 'subdued-excitement') do
+      txn = in_transaction { @client.perform_request('GET', '/_search', {q: 'hi'}) }
+      segment = txn.segments[1]
+
+      assert_equal NewRelic::Agent::Instrumentation::Elasticsearch::OPERATION, segment.operation
+    end
   end
 
   def test_segment_host
