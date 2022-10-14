@@ -2,7 +2,7 @@
 
   ## v8.12.0
 
-  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, some valuable code cleanup, and increases the default number of recorded Custom Events.
+  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, some valuable code cleanup, increases the default number of recorded Custom Events, and announces the deprecation of Ruby 2.3.
 
   * **Support for Elasticsearch instrumentation**
 
@@ -23,6 +23,11 @@
   * **Increase default for `custom_insights_events.max_samples_stored`**
 
     New Relic has discovered a large number of [Custom Events](https://docs.newrelic.com/docs/data-apis/custom-data/custom-events/report-custom-event-data/) are dropped due to the configured value for `custom_insights_events.max_samples_stored`. In an effort to help customers receive more of their custom events, we're raising the default maximum value for custom events stored per minute from 1,000 events to 3,000 events. The highest possible number of events that can be sent per minute is 100,000.
+
+  * **Deprecate support for Ruby 2.3**
+
+    Ruby 2.3 reached end of life on March 31, 2019. The Ruby agent has deprecated support for Ruby 2.3 and will make breaking changes for this version in its next major release, v9.0.0 (release date not yet planned). All 8.x.x versions of the agent will remain compatible with Ruby 2.3.
+
 
   ## v8.11.0
 
