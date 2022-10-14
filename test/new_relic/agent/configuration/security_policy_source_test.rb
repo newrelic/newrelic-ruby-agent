@@ -38,6 +38,35 @@ module NewRelic
           end
         end
 
+        def test_record_sql_enabled_elasticsearch
+          policies = generate_security_policies(default: false, enabled: ['record_sql'])
+
+          with_config(:'transaction_tracer.record_sql' => 'raw',
+            :'slow_sql.record_sql' => 'raw',
+            :'elasticsearch.capture_queries'         => true,
+            :'elasticsearch.obfuscate_queries'       => false) do
+            source = SecurityPolicySource.new(policies)
+
+            assert_equal 'obfuscated', source[:'transaction_tracer.record_sql']
+            assert_equal 'obfuscated', source[:'slow_sql.record_sql']
+            assert source[:'elasticsearch.obfuscate_queries']
+          end
+        end
+
+        def test_record_sql_disabled_elasticsearch
+          policies = generate_security_policies(default: true, disabled: ['record_sql'])
+
+          with_config(:'transaction_tracer.record_sql' => 'raw',
+            :'slow_sql.record_sql' => 'raw',
+            :'elasticsearch.capture_queries' => true) do
+            source = SecurityPolicySource.new(policies)
+
+            assert_equal 'off', source[:'transaction_tracer.record_sql']
+            assert_equal 'off', source[:'slow_sql.record_sql']
+            refute source[:'elasticsearch.capture_queries']
+          end
+        end
+
         def test_attributes_include_enabled
           policies = generate_security_policies(default: false, enabled: ['attributes_include'])
           with_config(:'attributes.include' => ['request.parameters.*'],

@@ -3,11 +3,11 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module <%= @class_name %>
+  module Elasticsearch::Prepend
+    include NewRelic::Agent::Instrumentation::Elasticsearch
 
-    def <%= @method.downcase %>_with_new_relic<%= "(#{@args})" unless @args.empty? %>
-      # add instrumentation content here
-      yield
+    def perform_request(*args)
+      perform_request_with_tracing(*args) { super }
     end
   end
 end

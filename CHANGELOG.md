@@ -2,7 +2,17 @@
 
   ## v8.12.0
 
-  Version 8.12.0 of the agent delivers some valuable code cleanup, increases the default number of recorded Custom Events, and announces the deprecation of Ruby 2.3.
+  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, some valuable code cleanup, increases the default number of recorded Custom Events, and announces the deprecation of Ruby 2.3.
+
+  * **Support for Elasticsearch instrumentation**
+
+    This release adds support to automatically instrument the [elasticsearch](https://rubygems.org/gems/elasticsearch) gem. Versions 7.x and 8.x are supported. [PR#1525](https://github.com/newrelic/newrelic-ruby-agent/pull/1525)
+
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.elasticsearch` | auto | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+    | `elasticsearch.capture_queries` | true | If `true`, the agent captures Elasticsearch queries in transaction traces. |
+    | `elasticsearch.obfuscate_queries` | true |  If `true`, the agent obfuscates Elasticsearch queries in transaction traces. |
 
   * **Cleanup: Remove orphaned code from unit tests**
 
@@ -17,6 +27,7 @@
   * **Deprecate support for Ruby 2.3**
 
     Ruby 2.3 reached end of life on March 31, 2019. The Ruby agent has deprecated support for Ruby 2.3 and will make breaking changes for this version in its next major release, v9.0.0 (release date not yet planned). All 8.x.x versions of the agent will remain compatible with Ruby 2.3.
+
 
   ## v8.11.0
 

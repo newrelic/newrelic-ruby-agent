@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 gem_name = ARGV[0]
 raise "gem name sans version must be supplied" if gem_name.to_s == ""
 
@@ -21,7 +22,7 @@ result = `#{cmd}`
 if $?.to_i.zero?
   puts "#{gem_filename} successfully pushed to rubygems.org!"
 else
-  if result =~ /Repushing of gem versions is not allowed/
+  if result.include?('Repushing of gem versions is not allowed')
     puts "Pushing #{gem_filename} skipped because this version is already published to rubygems.org!"
     exit 0
   else

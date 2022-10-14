@@ -449,6 +449,11 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(query, NewRelic::Agent::Database.capture_query(query))
   end
 
+  def test_capture_query_nil
+    query = nil
+    assert_equal(query, NewRelic::Agent::Database.capture_query(query))
+  end
+
   def test_capture_query_long_query
     query = 'a' * NewRelic::Agent::Database::MAX_QUERY_LENGTH
     truncated_query = NewRelic::Agent::Database.capture_query(query)

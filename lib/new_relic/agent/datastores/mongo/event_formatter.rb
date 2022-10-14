@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'new_relic/agent/datastores/mongo/obfuscator'
+require_relative '../nosql_obfuscator'
 
 module NewRelic
   module Agent
@@ -39,7 +39,7 @@ module NewRelic
 
           def self.obfuscate(statement)
             if NewRelic::Agent.config[:'mongo.obfuscate_queries']
-              statement = Obfuscator.obfuscate_statement(statement)
+              statement = NewRelic::Agent::Datastores::NosqlObfuscator.obfuscate_statement(statement)
             end
             statement
           end

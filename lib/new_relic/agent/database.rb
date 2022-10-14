@@ -32,6 +32,8 @@ module NewRelic
       # Take care not to the dup the query more than once as
       # correctly encoded may also dup the query.
       def capture_query(query)
+        return unless query
+
         id = query.object_id
         query = Helper.correctly_encoded(truncate_query(query))
         if query.object_id == id
@@ -42,6 +44,8 @@ module NewRelic
       end
 
       def truncate_query(query)
+        return unless query
+
         if query.length > (MAX_QUERY_LENGTH - 4)
           query[0..MAX_QUERY_LENGTH - 4] << ELLIPSIS
         else
