@@ -33,7 +33,7 @@ module NewRelic::Agent::Instrumentation
     def nr_operation
       operation_index = caller_locations.index do |line|
         string = line.to_s
-        string.include?('lib/elasticsearch/api') && !string.include?('perform_request')
+        string.include?('lib/elasticsearch/api') && !string.include?(OPERATION)
       end
       return nil unless operation_index
 
