@@ -165,6 +165,7 @@ module DependencyDetection
 
     def config_key
       return nil if self.config_name.nil?
+
       @config_key ||= "instrumentation.#{self.config_name}".to_sym
     end
 
@@ -193,6 +194,7 @@ module DependencyDetection
 
     def config_value
       return AUTO_CONFIG_VALUE unless config_key
+
       fetch_config_value(config_key)
     end
 

@@ -42,6 +42,7 @@ module NewRelic
 
         def stop(report_data)
           return unless running?
+
           NewRelic::Agent.logger.debug("Stopping Thread Profiler.")
           @finished_profile = @backtrace_service.harvest(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
           @backtrace_service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)

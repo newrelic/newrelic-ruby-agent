@@ -114,6 +114,7 @@ module NewRelic
       # in a report period, selected for shipment to New Relic
       def explain_sql(statement)
         return nil unless statement.sql && statement.explainer && statement.config
+
         statement.sql = statement.sql.split(";\n")[0] # only explain the first
         return statement.explain || []
       end
@@ -223,6 +224,7 @@ module NewRelic
 
         def explain
           return unless explainable?
+
           handle_exception_in_explain do
             start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             plan = @explainer.call(self)
@@ -238,6 +240,7 @@ module NewRelic
 
         def append_sql(new_sql)
           return if new_sql.empty?
+
           @sql = Database.truncate_query(@sql << NEWLINE << new_sql)
         end
 

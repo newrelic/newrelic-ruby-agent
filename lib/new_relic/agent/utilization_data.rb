@@ -87,6 +87,7 @@ module NewRelic
       def append_vendor_info(collector_hash)
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
+
           vendor = klass.new
 
           if vendor.detect
@@ -125,6 +126,7 @@ module NewRelic
 
       def append_kubernetes_info(collector_hash)
         return unless Agent.config[:'utilization.detect_kubernetes']
+
         if host = ENV[KUBERNETES_SERVICE_HOST]
           collector_hash[:vendors] ||= {}
           collector_hash[:vendors][:kubernetes] = {
@@ -136,6 +138,7 @@ module NewRelic
       def append_full_hostname(collector_hash)
         full_hostname = fqdn
         return if full_hostname.nil? || full_hostname.empty?
+
         collector_hash[:full_hostname] = full_hostname
       end
 

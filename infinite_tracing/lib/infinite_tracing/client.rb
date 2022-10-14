@@ -33,6 +33,7 @@ module NewRelic::Agent
       # client (if any) and returns self (so we chain the call)
       def transfer(previous_client)
         return self unless previous_client
+
         previous_client.buffer.transfer(buffer)
         self
       end
@@ -108,6 +109,7 @@ module NewRelic::Agent
       # The Suspended Streaming Buffer will be installed in this state.
       def suspend
         return if suspended?
+
         @lock.synchronize do
           @suspended = true
           @buffer = new_streaming_buffer
@@ -138,6 +140,7 @@ module NewRelic::Agent
 
       def stop
         return unless @response_handler
+
         @lock.synchronize do
           @response_handler.stop
           @response_handler = nil

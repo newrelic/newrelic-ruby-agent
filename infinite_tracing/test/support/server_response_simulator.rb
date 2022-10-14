@@ -21,12 +21,14 @@ module NewRelic
 
         def enumerator
           return enum_for(:enumerator) unless block_given?
+
           loop do
             if return_value = @buffer.pop(false)
               # grpc raises any errors it gets rather than yielding them, this mimics that behavior
               if return_value.is_a?(GRPC::BadStatus) && !return_value.is_a?(GRPC::Ok)
                 raise return_value
               end
+
               yield(return_value)
             end
           end

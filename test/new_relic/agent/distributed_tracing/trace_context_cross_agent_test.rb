@@ -124,6 +124,7 @@ module NewRelic
 
         def assign_not_nil_value(headers, key, value)
           return if value.nil?
+
           headers[newrelic_key(key)] = value
         end
 
@@ -210,6 +211,7 @@ module NewRelic
           end
 
           return {} unless (intrinsics = test_case['intrinsics'])
+
           target_events = intrinsics['target_events'] || []
           return {} unless target_events.include?(event_type)
 
@@ -289,6 +291,7 @@ module NewRelic
 
         def verify_outbound_payloads(test_case, actual_payloads)
           return unless (test_case_payloads = test_case['outbound_payloads'])
+
           assert_equal test_case_payloads.count, actual_payloads.count
 
           test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|

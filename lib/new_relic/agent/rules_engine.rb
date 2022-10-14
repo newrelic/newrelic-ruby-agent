@@ -72,6 +72,7 @@ module NewRelic
       def rename(original_string)
         renamed = apply_rules(@rules, original_string)
         return nil unless renamed
+
         renamed = apply_rules(@segment_term_rules, renamed)
         renamed
       end

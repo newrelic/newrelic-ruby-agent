@@ -136,6 +136,7 @@ module NewRelic
 
       def notify_if_full
         return unless !@notified_full && @buffer.full?
+
         NewRelic::Agent.logger.debug("#{self.class.named} capacity of #{@buffer.capacity} reached, beginning sampling")
         @notified_full = true
       end

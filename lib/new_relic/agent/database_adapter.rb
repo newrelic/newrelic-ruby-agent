@@ -13,6 +13,7 @@ module NewRelic
 
       def self.value
         return unless defined? ActiveRecord::Base
+
         new(::NewRelic::Control.instance.env, ActiveRecord::VERSION::STRING).value
       end
 
@@ -26,6 +27,7 @@ module NewRelic
       def value
         match = VERSIONS.keys.find { |key| version >= Gem::Version.new(key) }
         return unless match
+
         VERSIONS[match].call(env)
       end
     end

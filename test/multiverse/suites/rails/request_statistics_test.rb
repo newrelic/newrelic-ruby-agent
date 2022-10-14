@@ -185,6 +185,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
   def assert_encoding(encname, string)
     return unless string.respond_to?(:encoding)
+
     expected_encoding = Encoding.find(encname) or raise "no such encoding #{encname.dump}"
     msg = "Expected encoding of %p to be %p, but it was %p" %
       [string, expected_encoding, string.encoding]

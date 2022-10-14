@@ -22,8 +22,10 @@ module NewRelic::Agent
 
       def status
         return "error" if error?
+
         @lock.synchronize do
           return "stopped" if @worker_thread.nil?
+
           @worker_thread.status || "idle"
         end
       end
@@ -34,6 +36,7 @@ module NewRelic::Agent
 
       def join(timeout = nil)
         return unless @worker_thread
+
         NewRelic::Agent.logger.debug("joining worker #{@name} thread...")
         @worker_thread.join(timeout)
       end
@@ -41,6 +44,7 @@ module NewRelic::Agent
       def stop
         @lock.synchronize do
           return unless @worker_thread
+
           NewRelic::Agent.logger.debug("stopping worker #{@name} thread...")
           @worker_thread.kill
           @worker_thread = nil

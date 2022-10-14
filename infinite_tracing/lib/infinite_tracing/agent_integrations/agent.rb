@@ -33,6 +33,7 @@ module NewRelic::Agent
     def close_infinite_tracer
       NewRelic::Agent.logger.debug("Closing infinite tracer threads")
       return unless @infinite_tracer_thread
+
       @infinite_tracer_thread.join
       @infinite_tracer_thread.stop
       @infinite_tracer_thread = nil

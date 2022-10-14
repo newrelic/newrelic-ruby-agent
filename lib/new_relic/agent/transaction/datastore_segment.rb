@@ -63,6 +63,7 @@ module NewRelic
         # @api private
         def _notice_sql(sql, config = nil, explainer = nil, binds = nil, name = nil)
           return unless record_sql?
+
           @sql_statement = Database::Statement.new(sql, config, explainer, binds, name, host, port_path_or_id, database_name)
         end
 
@@ -85,6 +86,7 @@ module NewRelic
 
         def notice_nosql_statement(nosql_statement)
           return unless record_sql?
+
           @nosql_statement = Database.truncate_query(nosql_statement)
           nil
         end
@@ -119,6 +121,7 @@ module NewRelic
 
         def add_backtrace_parameter
           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
+
           params[:backtrace] = caller.join(NEWLINE)
         end
 

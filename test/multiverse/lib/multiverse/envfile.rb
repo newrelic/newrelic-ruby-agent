@@ -91,6 +91,7 @@ module Multiverse
       unless valid_modes.member?(mode)
         raise ArgumentError, "#{mode.inspect} is not a valid execute mode.  Valid modes: #{valid_modes.inspect}"
       end
+
       @mode = mode
     end
 
@@ -121,11 +122,13 @@ module Multiverse
 
     def last_supported_ruby_version?(last_supported_ruby_version)
       return false if last_supported_ruby_version.nil?
+
       last_supported_ruby_version && RUBY_VERSION.to_f > last_supported_ruby_version
     end
 
     def first_supported_ruby_version?(first_supported_ruby_version)
       return false if first_supported_ruby_version.nil?
+
       RUBY_VERSION.to_f < first_supported_ruby_version
     end
   end

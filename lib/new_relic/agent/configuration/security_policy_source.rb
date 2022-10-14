@@ -212,6 +212,7 @@ module NewRelic
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
             SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
+
               if policy_settings[ENABLED]
                 if policy[:enabled_fn].call(policy[:option])
                   if permitted_fn = policy[:permitted_fn]

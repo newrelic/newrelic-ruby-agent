@@ -159,6 +159,7 @@ module NewRelic
       def marshal_dump
         instance_variables.each_with_object({}) do |name, instance_copy|
           next if SKIP_MARSHALLING.include?(name)
+
           instance_copy[name] = instance_variable_get(name)
         end
       end

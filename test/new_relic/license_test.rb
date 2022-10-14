@@ -22,6 +22,7 @@ class LicenseTest < Minitest::Test
       File.open(file, 'r') do |f|
         f.each_line do |line|
           break unless line.start_with?('#')
+
           lines << line
         end
       end

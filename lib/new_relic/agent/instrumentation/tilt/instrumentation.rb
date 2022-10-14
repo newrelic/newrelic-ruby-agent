@@ -14,6 +14,7 @@ module NewRelic
         # So here we are only grabbing the file name and name of directory it is in
         def create_filename_for_metric(file)
           return file unless defined?(::Sinatra) && defined?(::Sinatra::Base)
+
           file.split('/')[-2..-1].join('/')
         rescue NoMethodError
           file

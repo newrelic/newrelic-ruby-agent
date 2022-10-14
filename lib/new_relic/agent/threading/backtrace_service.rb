@@ -151,6 +151,7 @@ module NewRelic
         # This method is expected to be called with @lock held
         def stop
           return unless @running
+
           @running = false
           self.worker_loop.stop
 

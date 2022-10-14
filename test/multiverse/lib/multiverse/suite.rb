@@ -67,6 +67,7 @@ module Multiverse
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
       gemfiles.each do |f|
         next unless File.exist?(f)
+
         File.delete(f)
       end
     end
@@ -111,6 +112,7 @@ module Multiverse
       yield
     rescue Bundler::LockfileError => error
       raise if @retried
+
       if verbose?
         puts "Encountered Bundler error: #{error.message}"
         puts "Currently Active Bundler Version: #{Bundler::VERSION}"
@@ -135,12 +137,14 @@ module Multiverse
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
       return version if version.to_s == ""
+
       test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? "" : version
     end
 
     def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f < 2.3
+
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")
@@ -148,6 +152,7 @@ module Multiverse
 
     def bundle_show_env(bundle_cmd)
       return unless ENV["BUNDLE_SHOW_ENV"]
+
       puts `#{bundle_cmd} env`
     end
 
@@ -334,6 +339,7 @@ module Multiverse
       gems = with_potentially_mismatched_bundler do
         Bundler.definition.specs.inject([]) do |m, s|
           next m if s.name == 'bundler'
+
           m.push("#{s.name} (#{s.version})")
           m
         end
@@ -365,6 +371,7 @@ module Multiverse
     # the JVM.
     def optimize_jruby_startups
       return unless RUBY_PLATFORM == "java"
+
       ENV["JRUBY_OPTS"] = "--dev"
     end
 
@@ -434,6 +441,7 @@ module Multiverse
     # loads a new JVM for the tests to run in.
     def execute(instrumentation_method)
       return unless check_environment_condition
+
       configure_instrumentation_method(instrumentation_method)
 
       environments.before.call if environments.before
@@ -474,12 +482,14 @@ module Multiverse
     def with_each_environment
       environments.each_with_index do |gemfile_text, i|
         next unless should_run_environment?(i)
+
         yield(gemfile_text, i)
       end
     end
 
     def should_run_environment?(index)
       return true unless filter_env
+
       return filter_env == index
     end
 
@@ -647,6 +657,7 @@ module Multiverse
       ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
         next if exclude?(file)
+
         require "./" + File.basename(file, ".rb")
       end
     end

@@ -55,6 +55,7 @@ module NewRelic
         def start
           @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
           return unless transaction
+
           parent.child_start(self) if parent
         end
 
@@ -63,6 +64,7 @@ module NewRelic
           @duration = end_time - start_time
 
           return unless transaction
+
           run_complete_callbacks
           finalize if record_on_finish?
         rescue => e
@@ -201,6 +203,7 @@ module NewRelic
 
         def noticed_error_attributes
           return unless @noticed_error
+
           @noticed_error.attributes_from_notice_error
         end
 

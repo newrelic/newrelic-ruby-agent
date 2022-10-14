@@ -14,6 +14,7 @@ module NewRelic
         def started(event)
           begin
             return unless NewRelic::Agent::Tracer.tracing_enabled?
+
             segments[event.operation_id] = start_segment(event)
           rescue Exception => e
             log_notification_error('started', e)
@@ -33,6 +34,7 @@ module NewRelic
         def completed(event)
           begin
             return unless NewRelic::Agent::Tracer.tracing_enabled?
+
             segment = segments.delete(event.operation_id)
             return unless segment
 

@@ -411,6 +411,7 @@ end
 def build_deferred_error_attributes(segment)
   return unless segment.noticed_error
   return if segment.noticed_error_attributes.frozen?
+
   segment.noticed_error.build_error_attributes
 end
 
@@ -454,6 +455,7 @@ end
 
 def last_transaction_trace
   return unless last_sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+
   NewRelic::Agent::Transaction::TraceBuilder.build_trace(last_sample)
 end
 
@@ -639,6 +641,7 @@ def constant_path(name, opts = {})
     if !path.last.constants.include?(part.to_sym)
       return allow_partial ? path : nil
     end
+
     path << path.last.const_get(part)
   end
   path
@@ -655,6 +658,7 @@ def undefine_constant(constant_symbol)
   parent = get_parent(const_str)
   const_name = const_str.gsub(/.*::/, '')
   return yield unless parent && parent.constants.include?(const_name.to_sym)
+
   removed_constant = parent.send(:remove_const, const_name)
   yield
 ensure
@@ -929,6 +933,7 @@ def mock_http_response(headers, wrap_it = true)
     net_http_resp.add_field(key.to_s, value)
   end
   return net_http_resp unless wrap_it
+
   NewRelic::Agent::HTTPClients::NetHTTPResponse.new(net_http_resp)
 end
 
@@ -974,6 +979,7 @@ def refute_raises(*exp)
   rescue MiniTest::Skip => e
     puts "SKIP REPORTS: #{e.inspect}"
     return e if exp.include?(MiniTest::Skip)
+
     raise e
   rescue Exception => e
     puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"

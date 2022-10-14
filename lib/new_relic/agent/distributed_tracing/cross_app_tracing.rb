@@ -64,6 +64,7 @@ module NewRelic
 
       def add_message_cat_headers(headers)
         return unless CrossAppTracing.cross_app_enabled?
+
         @is_cross_app_caller = true
         insert_message_headers(headers,
           transaction.guid,
@@ -112,9 +113,11 @@ module NewRelic
         end
 
         return unless transaction.include_guid?
+
         payload[:guid] = transaction.guid
 
         return unless is_cross_app?
+
         trip_id = cat_trip_id
         path_hash = cat_path_hash
         referring_path_hash = cat_referring_path_hash

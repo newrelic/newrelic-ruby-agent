@@ -47,6 +47,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       job = IWantToWait.new.delay.take_action
 
       return unless job.respond_to?(:fail!)
+
       job.fail!
 
       @sampler.poll

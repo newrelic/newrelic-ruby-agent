@@ -67,6 +67,7 @@ module NewRelic
 
         def [](key)
           return nil unless @request.options && @request.options[:headers]
+
           @request.options[:headers][key]
         end
 

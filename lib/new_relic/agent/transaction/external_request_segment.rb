@@ -82,6 +82,7 @@ module NewRelic
         def read_response_headers(response)
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
+
           unless data = CrossAppTracing.extract_appdata(response)
             NewRelic::Agent.logger.debug("Couldn't extract_appdata from external segment response")
             return

@@ -71,6 +71,7 @@ module NewRelic
 
         def name
           return @name if @name
+
           @name = METRIC_PREFIX + library
           @name << SLASH << TYPES[destination_type] << SLASH << ACTIONS[action] << SLASH
 

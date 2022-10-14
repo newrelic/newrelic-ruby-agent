@@ -48,6 +48,7 @@ class MongoServer
 
   def ping
     return unless self.client
+
     self.client['admin'].command({'ping' => 1})
   end
 
@@ -163,6 +164,7 @@ class MongoServer
       self.client = client_class.new('localhost', self.port, :connect_timeout => 10)
     rescue Mongo::ConnectionFailure => e
       raise e unless message == "Failed to connect to a master node at localhost:#{port}"
+
       retry
     end
   end
@@ -189,6 +191,7 @@ class MongoServer
 
   def running?
     return false unless pid
+
     Process.kill(0, pid) == 1
   rescue Errno::ESRCH
     false

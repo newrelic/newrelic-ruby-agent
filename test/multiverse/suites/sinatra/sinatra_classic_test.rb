@@ -53,6 +53,7 @@ get('/error', :error_condition => true) {}
 set(:precondition_check) do |_|
   condition do
     raise "Boo" if $precondition_already_checked
+
     $precondition_already_checked = true
   end
 end

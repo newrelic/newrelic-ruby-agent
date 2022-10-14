@@ -74,6 +74,7 @@ module NewRelic
 
         def insert_headers(headers)
           return unless NewRelic::Agent.agent.connected?
+
           insert_trace_context_header(headers)
           insert_distributed_trace_header(headers)
           insert_cross_app_header(headers)
@@ -100,12 +101,14 @@ module NewRelic
         def insert_distributed_trace_header(headers)
           return unless dt_enabled?
           return if Agent.config[:'exclude_newrelic_header']
+
           payload = create_distributed_trace_payload
           headers[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
         end
 
         def insert_cat_headers(headers)
           return unless CrossAppTracing.cross_app_enabled?
+
           @is_cross_app_caller = true
           insert_message_headers(headers,
             transaction.guid,
@@ -161,6 +164,7 @@ module NewRelic
           decoded_id = encoded_id.nil? ? EMPTY_STRING : deobfuscate(encoded_id)
 
           return unless CrossAppTracing.trusted_valid_cross_app_id?(decoded_id)
+
           txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
           txn_info = ::JSON.load(deobfuscate(txn_header))
           payload = CrossAppPayload.new(decoded_id, transaction, txn_info)

@@ -26,6 +26,7 @@ module NewRelic
 
             command.each do |key, value|
               next if DENYLISTED_KEYS.include?(key)
+
               if OBFUSCATE_KEYS.include?(key)
                 obfuscated = obfuscate(value)
                 result[key] = obfuscated if obfuscated

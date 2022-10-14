@@ -51,6 +51,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   # doing now for explain plans in AR4 instrumentation
   def test_explain_sql_with_mysql2_activerecord_result
     return unless defined?(::ActiveRecord::Result)
+
     config = {:adapter => 'mysql2'}
     sql = 'SELECT * FROM spells where id=1'
 
@@ -67,6 +68,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_explain_sql_obfuscates_for_postgres_activerecord_result
     return unless defined?(::ActiveRecord::Result)
+
     config = {:adapter => 'postgres'}
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
 

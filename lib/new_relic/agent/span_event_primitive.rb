@@ -52,6 +52,7 @@ module NewRelic
       # an error is present.  Otherwise, returns nil when no error present.
       def error_attributes(segment)
         return if Agent.config[:high_security] || !segment.noticed_error
+
         segment.noticed_error.build_error_attributes
         segment.noticed_error_attributes
       end

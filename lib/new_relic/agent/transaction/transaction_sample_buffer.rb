@@ -34,6 +34,7 @@ module NewRelic
 
         def store(sample)
           return unless enabled?
+
           if allow_sample?(sample)
             add_sample(sample)
             truncate_samples_if_needed
@@ -42,6 +43,7 @@ module NewRelic
 
         def store_previous(previous_samples)
           return unless enabled?
+
           previous_samples.each do |sample|
             add_sample(sample) if allow_sample?(sample)
           end
