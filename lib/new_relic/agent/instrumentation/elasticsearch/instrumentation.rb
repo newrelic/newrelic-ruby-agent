@@ -6,13 +6,14 @@ require_relative '../../datastores/nosql_obfuscator'
 module NewRelic::Agent::Instrumentation
   module Elasticsearch
     PRODUCT_NAME = 'Elasticsearch'
-    OPERATION = 'query'
+    OPERATION = 'perform_request'
 
     def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
+
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
-        operation: OPERATION,
+        operation: nr_operation || OPERATION,
         host: nr_hosts[:host],
         port_path_or_id: path,
         database_name: nr_cluster_name
@@ -28,6 +29,16 @@ module NewRelic::Agent::Instrumentation
     end
 
     private
+
+    def nr_operation
+      operation_index = caller_locations.index do |line|
+        string = line.to_s
+        string.include?('lib/elasticsearch/api') && !string.include?('perform_request')
+      end
+      return nil unless operation_index
+
+      caller_locations[operation_index].to_s.split('`')[-1].gsub(/\W/, "")
+    end
 
     def nr_reported_query(query)
       return unless NewRelic::Agent.config[:'elasticsearch.capture_queries']
