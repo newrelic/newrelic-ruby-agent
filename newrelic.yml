@@ -322,6 +322,10 @@ common: &default_settings
   # May be one of [auto|prepend|chain|disabled].
   # instrumentation.delayed_job: auto
 
+  # Controls auto-instrumentation of the elasticsearch library at start up.
+  # May be one of [auto|prepend|chain|disabled].
+  # instrumentation.elasticsearch: auto
+
   # Controls auto-instrumentation of Excon at start up.
   # May be one of [enabled|disabled].
   # instrumentation.excon: auto
@@ -458,10 +462,6 @@ common: &default_settings
 
   # If true, the agent obfuscates Mongo queries in transaction traces.
   # mongo.obfuscate_queries: true
-
-# Controls auto-instrumentation of the elasticsearch library at start up. 
-# May be one of [auto|prepend|chain|disabled].
-# instrumentation.elasticsearch: auto
 
   # If true, the agent captures Elasticsearch queries in transaction traces.
   # elasticsearch.capture_queries: true
