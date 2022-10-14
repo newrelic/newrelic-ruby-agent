@@ -9,6 +9,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def run_task_inner(n)
     return if n == 0
+
     run_task_inner(n - 1)
   end
 

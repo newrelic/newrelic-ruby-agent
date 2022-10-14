@@ -12,6 +12,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       class EventListener
         def still_subscribed(event)
           return [] if @events[event].nil?
+
           @events[event].select { |e| e.inspect.include?('infinite_tracing') }
         end
       end
@@ -200,6 +201,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               @mock_thread = Thread.new do
                 enum.each do |span|
                   break if span.nil? # how grpc knows the stream is over
+
                   seen_spans << span unless span.nil? || simulate_broken_server
                 end
               end

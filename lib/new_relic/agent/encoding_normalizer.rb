@@ -19,9 +19,11 @@ module NewRelic
           normalize_string(object.to_s)
         when Array
           return object if object.empty?
+
           object.map { |x| normalize_object(x) }
         when Hash
           return object if object.empty?
+
           hash = {}
           object.each_pair do |k, v|
             k = normalize_string(k) if k.is_a?(String)

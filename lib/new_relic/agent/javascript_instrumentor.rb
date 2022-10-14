@@ -118,6 +118,7 @@ module NewRelic
 
       def create_nonce(nonce = nil)
         return '' unless nonce
+
         " nonce=\"#{nonce.to_s}\""
       end
 

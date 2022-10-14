@@ -54,6 +54,7 @@ module NewRelic
 
         def unique_thread_count
           return 0 if @unique_threads.nil?
+
           @unique_threads.length
         end
 
@@ -84,10 +85,12 @@ module NewRelic
 
           all_nodes.each_with_index do |n, i|
             break if i >= count_to_keep
+
             n.mark_for_array_conversion
           end
           all_nodes.each_with_index do |n, i|
             break if i >= count_to_keep
+
             n.complete_array_conversion
           end
         end

@@ -47,6 +47,7 @@ module NewRelic
           if wrapped_response.nil?
             raise ArgumentError, WHINY_NIL_ERROR % self.class
           end
+
           @wrapped_response = wrapped_response
         end
 
@@ -64,6 +65,7 @@ module NewRelic
 
         def get_status_code_using(method_name)
           return unless @wrapped_response.respond_to?(method_name)
+
           code = @wrapped_response.send(method_name).to_i
           code == 0 ? nil : code
         end

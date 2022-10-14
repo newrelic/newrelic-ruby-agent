@@ -31,6 +31,7 @@ module NewRelic
           node_count = 0
           each_node do |node|
             next if node == root_node
+
             node_count += 1
           end
           node_count
@@ -51,6 +52,7 @@ module NewRelic
 
         def create_node(time_since_start, metric_name = nil)
           raise FinishedTraceError.new("Can't create additional node for finished trace.") if self.finished
+
           self.node_count += 1
           NewRelic::Agent::Transaction::TraceNode.new(metric_name, time_since_start)
         end
@@ -75,6 +77,7 @@ module NewRelic
 
         def collect_explain_plans!
           return unless NewRelic::Agent::Database.should_collect_explain_plans?
+
           threshold = NewRelic::Agent.config[:'transaction_tracer.explain_threshold']
 
           each_node do |node|
@@ -87,6 +90,7 @@ module NewRelic
         def prepare_sql_for_transmission!
           each_node do |node|
             next unless node[:sql]
+
             node[:sql] = node[:sql].safe_sql
           end
         end

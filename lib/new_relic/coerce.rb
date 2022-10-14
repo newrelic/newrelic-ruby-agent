@@ -22,6 +22,7 @@ module NewRelic
 
     def int_or_nil(value, context = nil)
       return nil if value.nil?
+
       Integer(value)
     rescue => error
       log_failure(value, Integer, context, error)
@@ -31,6 +32,7 @@ module NewRelic
     def float(value, context = nil)
       result = Float(value)
       raise "Value #{result.inspect} is not finite." unless result.finite?
+
       result
     rescue => error
       log_failure(value, Float, context, error)
@@ -39,6 +41,7 @@ module NewRelic
 
     def string(value, context = nil)
       return value if value.nil?
+
       String(value)
     rescue => error
       log_failure(value.class, String, context, error)
@@ -62,6 +65,7 @@ module NewRelic
 
     def int!(value)
       return nil unless value_or_nil(value)
+
       Integer(value)
     end
 
@@ -74,11 +78,13 @@ module NewRelic
 
     def float!(value, precision = NewRelic::PRIORITY_PRECISION)
       return nil unless value_or_nil(value)
+
       value.to_f.round(precision)
     end
 
     def value_or_nil(value)
       return nil if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+
       value
     end
 

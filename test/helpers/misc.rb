@@ -41,6 +41,7 @@ def fixture_tcp_socket(response)
     stubs(:sysread) do |size, buf = ''|
       @data ||= response.to_s
       raise EOFError if @data.empty?
+
       buf.replace(@data.slice!(0, size))
       buf
     end

@@ -91,6 +91,7 @@ module NewRelic::Agent
       # application thread.
       def enumerator
         return enum_for(:enumerator) unless block_given?
+
         loop do
           if segment = @queue.pop(false)
             NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
@@ -117,6 +118,7 @@ module NewRelic::Agent
       # application thread.
       def batch_enumerator
         return enum_for(:enumerator) unless block_given?
+
         loop do
           if proc_or_segment = @queue.pop(false)
             NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)

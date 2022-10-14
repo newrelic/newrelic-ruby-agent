@@ -44,6 +44,7 @@ module NewRelic
           if defined?(JRuby)
             return JRUBY_VERSION >= '1.7.0'
           end
+
           true
         end
 

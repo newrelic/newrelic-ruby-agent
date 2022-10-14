@@ -52,6 +52,7 @@ class SinatraModularTestApp < Sinatra::Base
 
   condition do
     raise "Boo" if $precondition_already_checked
+
     $precondition_already_checked = true
   end
   get('/precondition') { 'precondition only happened once' }

@@ -28,6 +28,7 @@ module NewRelic
 
         def select_allowed_params(params)
           return unless params
+
           params.select do |p|
             NewRelic::Agent.instance.attribute_filter.allows_key?(p, AttributeFilter::DST_TRANSACTION_SEGMENTS)
           end

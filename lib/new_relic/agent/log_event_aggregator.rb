@@ -227,6 +227,7 @@ module NewRelic
 
       def truncate_message(message)
         return message if message.bytesize <= MAX_BYTES
+
         message.byteslice(0...MAX_BYTES)
       end
     end

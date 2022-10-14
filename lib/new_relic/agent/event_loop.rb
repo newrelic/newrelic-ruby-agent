@@ -34,6 +34,7 @@ module NewRelic
         def calculate_next_fire_time
           now = Process.clock_gettime(Process::CLOCK_REALTIME)
           return now if @interval == 0
+
           fire_time = @last_fired_at || now
           while fire_time <= now
             fire_time += @interval
@@ -80,6 +81,7 @@ module NewRelic
 
       def next_timeout
         return nil if @timers.empty?
+
         timeout = @timers.values.map(&:next_fire_time).min - Process.clock_gettime(Process::CLOCK_REALTIME)
         timeout < 0 ? 0 : timeout
       end

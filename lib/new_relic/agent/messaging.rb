@@ -121,6 +121,7 @@ module NewRelic
 
         state = Tracer.state
         return yield if state.current_transaction
+
         txn = nil
 
         begin

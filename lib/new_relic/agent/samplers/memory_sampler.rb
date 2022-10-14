@@ -75,12 +75,14 @@ module NewRelic
 
           def can_run?
             return false if @broken
+
             m = get_memory rescue nil
             m && m > 0
           end
 
           def get_sample
             return nil if @broken
+
             begin
               m = get_memory
               if m.nil?
@@ -99,6 +101,7 @@ module NewRelic
         class JavaHeapSampler < Base
           def get_memory
             raise "Can't sample Java heap unless running in JRuby" unless defined? JRuby
+
             java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f rescue nil
           end
 
@@ -121,6 +124,7 @@ module NewRelic
             # if for some reason the ps command doesn't work on the resident os,
             # then don't execute it any more.
             raise "Faulty command: `#{@command} #{process}`" if memory.nil? || memory <= 0
+
             memory
           end
 
@@ -140,6 +144,7 @@ module NewRelic
             if proc_status =~ /RSS:\s*(\d+) kB/i
               return $1.to_f / 1024.0
             end
+
             raise "Unable to find RSS in #{proc_status_file}"
           end
 

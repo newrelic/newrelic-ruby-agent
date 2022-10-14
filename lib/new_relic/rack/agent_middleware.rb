@@ -33,11 +33,13 @@ module NewRelic
       # response code before it goes back to the client.
       def capture_http_response_code(state, result)
         return if NewRelic::Agent.config[:disable_middleware_instrumentation]
+
         super
       end
 
       def capture_response_content_type(state, result)
         return if NewRelic::Agent.config[:disable_middleware_instrumentation]
+
         super
       end
     end

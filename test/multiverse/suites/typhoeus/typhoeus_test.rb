@@ -160,6 +160,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       trace.each_node do |node|
         next if node.metric_name == "ROOT"
+
         assert node.params.key?(:exclusive_duration_millis), "Expected all nodes (except ROOT) to have :exclusive_duration_millis"
       end
 

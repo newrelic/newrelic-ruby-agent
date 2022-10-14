@@ -151,6 +151,7 @@ module NewRelic::Agent
         end
 
         return {} unless (intrinsics = test_case['intrinsics'])
+
         target_events = intrinsics['target_events'] || []
         return {} unless target_events.include?(event_type)
 
@@ -209,6 +210,7 @@ module NewRelic::Agent
 
       def verify_outbound_payloads(test_case, actual_payloads)
         return unless (test_case_payloads = test_case['outbound_payloads'])
+
         assert_equal test_case_payloads.count, actual_payloads.count
 
         test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|

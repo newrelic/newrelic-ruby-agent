@@ -11,6 +11,7 @@ module NewRelic::Agent
       def time
         return 0 if @@values.empty?
         raise "too many calls" if @@index >= @@values.size
+
         @@curtime ||= 0
         @@curtime += (@@values[@@index] * 1e09).to_i
         @@index += 1

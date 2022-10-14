@@ -76,6 +76,7 @@ module NewRelic
           # defensive.
           return if defined?(exception_object)
           return unless defined?(::ActiveSupport::VERSION)
+
           if ::ActiveSupport::VERSION::STRING < "5.0.0"
             # Earlier versions of Rails did not add the exception itself to the
             # payload accessible via :exception_object, so we create a stand-in
@@ -85,6 +86,7 @@ module NewRelic
             def exception_object(payload)
               exception_class, message = payload[:exception]
               return nil unless exception_class
+
               NewRelic::Agent::NoticeableError.new(exception_class, message)
             end
           else

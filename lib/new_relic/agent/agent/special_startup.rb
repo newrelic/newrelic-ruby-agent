@@ -57,11 +57,13 @@ module NewRelic
 
       def should_install_exit_handler?
         return false unless Agent.config[:send_data_on_exit]
+
         !sinatra_classic_app? || Agent.config[:force_install_exit_handler]
       end
 
       def install_exit_handler
         return unless should_install_exit_handler?
+
         NewRelic::Agent.logger.debug("Installing at_exit handler")
         at_exit { shutdown }
       end

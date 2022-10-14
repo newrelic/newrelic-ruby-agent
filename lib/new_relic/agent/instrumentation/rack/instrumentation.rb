@@ -23,6 +23,7 @@ module NewRelic
 
         def check_for_late_instrumentation(app)
           return if defined?(@checked_for_late_instrumentation) && @checked_for_late_instrumentation
+
           @checked_for_late_instrumentation = true
           if middleware_instrumentation_enabled?
             if ::NewRelic::Agent::Instrumentation::MiddlewareProxy.needs_wrapping?(app)
@@ -49,12 +50,14 @@ module NewRelic
 
         def run_with_tracing(app)
           return yield(app) unless middleware_instrumentation_enabled?
+
           yield(::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true))
         end
 
         def use_with_tracing(middleware_class)
           return if middleware_class.nil?
           return yield(middleware_class) unless middleware_instrumentation_enabled?
+
           yield(::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class))
         end
       end

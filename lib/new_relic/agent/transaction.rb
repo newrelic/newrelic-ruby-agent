@@ -268,6 +268,7 @@ module NewRelic
         current_thread_id = ::Thread.current.object_id
         return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
         return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
+
         current_segment_by_thread[@starting_thread_id]
       end
 
@@ -285,6 +286,7 @@ module NewRelic
 
       def sampled?
         return unless Agent.config[:'distributed_tracing.enabled']
+
         if @sampled.nil?
           @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
         end
@@ -347,6 +349,7 @@ module NewRelic
 
       def set_default_transaction_name(name, category)
         return log_frozen_name(name) if name_frozen?
+
         if influences_transaction_name?(category)
           self.default_name = name
           @category = category if category
@@ -355,6 +358,7 @@ module NewRelic
 
       def set_overriding_transaction_name(name, category)
         return log_frozen_name(name) if name_frozen?
+
         if influences_transaction_name?(category)
           self.overridden_name = name
           @category = category if category
@@ -510,6 +514,7 @@ module NewRelic
 
       def finish
         return unless state.is_execution_traced?
+
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @duration = @end_time - @start_time
         freeze_name_and_execute_if_not_ignored
@@ -879,11 +884,13 @@ module NewRelic
 
       def normal_cpu_burn
         return unless @process_cpu_start
+
         process_cpu - @process_cpu_start
       end
 
       def jruby_cpu_burn
         return unless @jruby_cpu_start
+
         jruby_cpu_time - @jruby_cpu_start
       end
 
@@ -919,15 +926,18 @@ module NewRelic
 
       def process_cpu
         return nil if defined? JRuby
+
         p = Process.times
         p.stime + p.utime
       end
 
       def jruby_cpu_time
         return nil unless @@java_classes_loaded
+
         threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean()
 
         return nil unless threadMBean.isCurrentThreadCpuTimeSupported
+
         java_utime = threadMBean.getCurrentThreadUserTime() # ns
 
         -1 == java_utime ? 0.0 : java_utime / 1e9

@@ -38,6 +38,7 @@ module NewRelic
 
         def merge_untrusted_agent_attributes(agent_attributes, prefix, default_destinations)
           return if agent_attributes.nil?
+
           attributes.merge_untrusted_agent_attributes(agent_attributes, prefix, default_destinations)
         end
 

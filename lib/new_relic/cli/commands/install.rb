@@ -42,6 +42,7 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
     if File.exist?(dest_file) && !@force
       raise NewRelic::Cli::Command::CommandFailure, "newrelic.yml file already exists.  Use --force flag to overwrite."
     end
+
     File.open(dest_file, 'w') { |out| out.puts(content) }
 
     puts <<-EOF unless quiet

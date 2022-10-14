@@ -8,6 +8,7 @@ module NewRelic
       class Monitor < InboundRequestMonitor
         def on_finished_configuring(events)
           return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+
           events.subscribe(:before_call, &method(:on_before_call))
         end
 

@@ -26,6 +26,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     super
     mocha_teardown
     return unless @deployment
+
     puts @deployment.errors
     puts @deployment.messages
     puts @deployment.exit_status

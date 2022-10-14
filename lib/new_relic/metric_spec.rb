@@ -44,6 +44,7 @@ class NewRelic::MetricSpec
 
   def to_s
     return name if scope.empty?
+
     "#{name}:#{scope}"
   end
 
@@ -59,6 +60,7 @@ class NewRelic::MetricSpec
   def <=>(o)
     namecmp = self.name <=> o.name
     return namecmp if namecmp != 0
+
     return (self.scope || '') <=> (o.scope || '')
   end
 end

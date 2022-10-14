@@ -55,6 +55,7 @@ if defined?(Memcached)
 
     def test_get_multi_in_web
       return unless Memcached::VERSION >= '1.8.0'
+
       key = set_key_for_testcase
 
       expected_metrics = expected_web_metrics(:multi_get)

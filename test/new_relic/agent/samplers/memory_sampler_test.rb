@@ -23,6 +23,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
 
   def test_memory__linux
     return if RUBY_PLATFORM.include?('darwin')
+
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns('linux')
     stub_sampler_get_memory
     s = NewRelic::Agent::Samplers::MemorySampler.new
@@ -35,6 +36,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
 
   def test_memory__solaris
     return if defined? JRuby
+
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns('solaris')
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns(999)
     s = NewRelic::Agent::Samplers::MemorySampler.new
@@ -44,6 +46,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
 
   def test_memory__windows
     return if defined? JRuby
+
     NewRelic::Agent::Samplers::MemorySampler.any_instance.stubs(:platform).returns('win32')
     assert_raises NewRelic::Agent::Sampler::Unsupported do
       NewRelic::Agent::Samplers::MemorySampler.new

@@ -29,6 +29,7 @@ module NewRelic
 
       def log_request_headers(uri, headers)
         return unless enabled? && allowed_endpoint?(uri)
+
         @log.info("REQUEST HEADERS: #{headers}")
       rescue StandardError, SystemStackError, SystemCallError => e
         ::NewRelic::Agent.logger.warn("Failed writing request headers to audit log", e)

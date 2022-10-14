@@ -53,6 +53,7 @@ module NewRelic
 
         def obfuscate_single_quote_literals(sql)
           return sql unless sql =~ COMPONENTS_REGEX_MAP[:single_quotes]
+
           sql.gsub(COMPONENTS_REGEX_MAP[:single_quotes], PLACEHOLDER)
         end
 
