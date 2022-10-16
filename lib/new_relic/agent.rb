@@ -102,8 +102,6 @@ module NewRelic
     # An error while serializing data for the collector
     class SerializationError < StandardError; end
 
-    class BackgroundLoadingError < StandardError; end
-
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
