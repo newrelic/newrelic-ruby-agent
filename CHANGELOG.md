@@ -14,9 +14,9 @@
     | `elasticsearch.capture_queries` | true | If `true`, the agent captures Elasticsearch queries in transaction traces. |
     | `elasticsearch.obfuscate_queries` | true |  If `true`, the agent obfuscates Elasticsearch queries in transaction traces. |
 
-  * **Cleanup: Remove orphaned code from unit tests**
+  * **Cleanup: Remove orphaned code**
 
-    As outlined by [newrelic/newrelic-ruby-agent#1181](https://github.com/newrelic/newrelic-ruby-agent/issues/1181), the project's unit tests have ended up with orphaned content that has become vestigal. Some good related cleanup was performed for this release. [PR#1537](https://github.com/newrelic/newrelic-ruby-agent/pull/1537)
+    In both the agent and unit tests, changes have taken place over the years that have left certain bits of code unreachable. This orphaned code can complicate code maintenance and refactoring so getting it squared away can be very helpful. Commmuniy member [@ohbarye](https://github.com/ohbarye) has contribued 2 separate cleanup PRs for this release; one for the agent and one for the tests. [PR#1537](https://github.com/newrelic/newrelic-ruby-agent/pull/1537) [PR#1548](https://github.com/newrelic/newrelic-ruby-agent/pull/1548)
 
     Thank you to [@ohbarye](https://github.com/ohbarye) for contributing this helpful cleanup!
 
