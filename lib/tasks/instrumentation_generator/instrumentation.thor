@@ -11,6 +11,7 @@ class Instrumentation < Thor
   INSTRUMENTATION_ROOT = 'lib/new_relic/agent/instrumentation/'
   MULTIVERSE_SUITE_ROOT = 'test/multiverse/suites/'
   DEFAULT_SOURCE_LOCATION = 'lib/new_relic/agent/configuration/default_source.rb'
+  NEWRELIC_YML_LOCATION = 'newrelic.yml'
 
   desc('scaffold NAME', 'Scaffold the required files for adding new instrumentation')
   long_desc <<-LONGDESC
@@ -37,7 +38,8 @@ class Instrumentation < Thor
 
     empty_directory(base_path)
     create_instrumentation_files(base_path)
-    create_configuration(name)
+    append_to_default_source(name)
+    append_to_newrelic_yml(name)
     create_tests(name)
   end
 
@@ -76,7 +78,7 @@ class Instrumentation < Thor
     template('templates/newrelic.yml.tt', "#{base_path}/config/newrelic.yml")
   end
 
-  def create_configuration(name)
+  def append_to_default_source(name)
     insert_into_file(
       DEFAULT_SOURCE_LOCATION,
       config_block(name.downcase),
@@ -85,17 +87,37 @@ class Instrumentation < Thor
     )
   end
 
-  def config_block(library)
+  def append_to_newrelic_yml(name)
+    insert_into_file(
+      NEWRELIC_YML_LOCATION,
+      yaml_block(name),
+      after: "# instrumentation.bunny: auto\n"
+    )
+  end
+
+  def config_block(name)
     <<-CONFIG
-        :'instrumentation.#{library}' => {
+        :'instrumentation.#{name.downcase}' => {
           :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the #{library} library at start up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the #{name} library at start up. May be one of [auto|prepend|chain|disabled].'
         },
     CONFIG
+  end
+
+  # TODO: OLD RUBIES - RUBY_VERSION 2.2
+  # When we only support 2.3+ this can be changed to a sqiggle heredoc (<<~)
+  # and use standard indentation
+  def yaml_block(name)
+<<HEREDOC # rubocop:disable Layout/IndentationWidth
+
+  # Controls auto-instrumentation of #{name} at start up.
+  # May be one of [auto|prepend|chain|disabled]
+  # instrumentation.#{name.downcase}: auto
+HEREDOC
   end
 end
 
