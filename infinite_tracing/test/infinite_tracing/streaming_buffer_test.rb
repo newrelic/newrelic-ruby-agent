@@ -74,6 +74,29 @@ module NewRelic
           end
         end
 
+        #################### WIP ######################
+        def test_streams_multiple_segments_batches_time_limit
+          with_serial_lock do
+            total_spans = 5
+            buffer, segments = stream_segments(total_spans)
+
+            batches = consume_batches(buffer)
+
+            assert_equal total_spans, spans.size
+            batches.each_with_index do |batch, index|
+              assert_kind_of NewRelic::Agent::InfiniteTracing::SpanBatch, batch
+            end
+
+            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+            })
+            assert_watched_threads_finished buffer
+          end
+        end
+        ######################################
+
         def test_streams_multiple_segments_in_threads
           with_serial_lock do
             total_spans = 5
@@ -191,6 +214,14 @@ module NewRelic
         def consume_spans(buffer)
           buffer.enumerator.map(&:itself)
         end
+
+ ######## WIP ###########
+
+        # pops all the serializable batches off the buffer and returns them.
+        def consume_batches(buffer)
+          buffer.batch_enumerator.map(&:itself)
+        end
+ ####################
 
         # starts a watched thread that will generate segments asynchronously.
         def prepare_to_stream_segments(count, max_buffer_size = 100_000)
