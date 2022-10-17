@@ -108,6 +108,9 @@ class Instrumentation < Thor
     CONFIG
   end
 
+  # TODO: OLD RUBIES - RUBY_VERSION 2.2
+  # When we only support 2.3+ this can be changed to a sqiggle heredoc (<<~)
+  # and use standard indentation
   def yaml_block(name)
 <<HEREDOC # rubocop:disable Layout/IndentationWidth
 
