@@ -29,6 +29,7 @@ running.
 
 The full list of data handling software used by the tests is as follows:
 
+* [Elasticsearch](https://www.elastic.co/)
 * [memcached](https://memcached.org)
 * [MongoDB](https://www.mongodb.com)
 * [MySQL](https://www.mysql.com)
@@ -54,6 +55,7 @@ brew bundle
 The [Brewfile](../../../Brewfile) file will cause all of the following
 Homebrew services to be installed:
 
+* `elasticsearch`
 * `memcached`
 * `mongodb-community`
 * `mysql`
@@ -120,13 +122,6 @@ rake 'test:multiverse[agent_only,name=test_resets_event_report_period_on_reconne
 Occasionally, it may be necessary to clean up your environment when migration scripts change or Gemfile lock files get out of sync.  Similar to Rails' `rake assets:clobber`, multiverse has a clobber task that will drop all multiverse databases in MySQL and remove all Gemfile.* and Gemfile.*.lock files housed under test/multiverse/suites/**
 
     rake test:multiverse:clobber
-
-
-
-
-
-
-
 
 ## Adding a test suite
 
