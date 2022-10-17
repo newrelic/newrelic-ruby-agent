@@ -119,12 +119,14 @@ module NewRelic::Agent
       def batch_enumerator
         return enum_for(:enumerator) unless block_given?
 
+        last_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         loop do
           if proc_or_segment = @queue.pop(false)
             NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
             @batch << transform(proc_or_segment)
-            if @batch.size >= BATCH_SIZE
+            if @batch.size >= BATCH_SIZE || Process.clock_gettime(Process::CLOCK_REALTIME) - last_time < 5
               yield(SpanBatch.new(spans: @batch))
+              last_time = Process.clock_gettime(Process::CLOCK_REALTIME)
               @batch.clear
             end
 
