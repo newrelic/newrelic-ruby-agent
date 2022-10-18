@@ -271,7 +271,7 @@ common: &default_settings
 
   # Forces the exit handler that sends all cached data to collector before
   # shutting down to be installed regardless of detecting scenarios where it
-  # generally should bot be. Known use-case for this option is where Sinatra is
+  # generally should not be. Known use-case for this option is where Sinatra is
   # running as an embedded service within another framework and the agent is
   # detecting the Sinatra app and skipping the at_exit handler as a result.
   # Sinatra classically runs the entire application in an at_exit block and would
@@ -434,7 +434,7 @@ common: &default_settings
   # instrumentation.grpc.host_denylist: ""
 
   # A dictionary of label names and values that will be applied to the data sent
-  # from this agent. May also be expressed asa semicolon-delimited ; string of
+  # from this agent. May also be expressed as a semicolon-delimited ; string of
   # colon-separated : pairs.
   # For example,<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>.
   # labels: ""
