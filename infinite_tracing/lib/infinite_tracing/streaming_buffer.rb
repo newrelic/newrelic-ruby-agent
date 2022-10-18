@@ -117,7 +117,7 @@ module NewRelic::Agent
       # the gRPC call's thread rather than in the main
       # application thread.
       def batch_enumerator
-        return enum_for(:enumerator) unless block_given?
+        return enum_for(:batch_enumerator) unless block_given?
 
         last_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         loop do
