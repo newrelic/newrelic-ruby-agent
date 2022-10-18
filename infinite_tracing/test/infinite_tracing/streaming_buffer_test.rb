@@ -74,28 +74,38 @@ module NewRelic
           end
         end
 
-        #################### WIP ######################
-        def test_streams_multiple_segments_batches_time_limit
-          with_serial_lock do
-            total_spans = 5
-            buffer, segments = stream_segments(total_spans)
+        def test_batch_ready_size_true
+          NewRelic::Agent::InfiniteTracing.stub_const(:BATCH_SIZE, 2) do
+            buffer = StreamingBuffer.new
+            buffer.instance_variable_set(:@batch, [1, 2])
 
-            batches = consume_batches(buffer)
-
-            assert_equal total_spans, spans.size
-            batches.each_with_index do |batch, index|
-              assert_kind_of NewRelic::Agent::InfiniteTracing::SpanBatch, batch
-            end
-
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
-            })
-            assert_watched_threads_finished buffer
+            assert buffer.send(:batch_ready?, Process.clock_gettime(Process::CLOCK_REALTIME))
           end
         end
-        ######################################
+
+        def test_batch_ready_size_false
+          NewRelic::Agent::InfiniteTracing.stub_const(:BATCH_SIZE, 2) do
+            buffer = StreamingBuffer.new
+            buffer.instance_variable_set(:@batch, [1])
+
+            refute buffer.send(:batch_ready?, Process.clock_gettime(Process::CLOCK_REALTIME))
+          end
+        end
+
+        def test_batch_ready_time_limit_true
+          buffer = StreamingBuffer.new
+          current_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+          advance_process_time(5)
+
+          assert buffer.send(:batch_ready?, current_time)
+        end
+
+        def test_batch_ready_time_limit_false
+          buffer = StreamingBuffer.new
+          current_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+
+          refute buffer.send(:batch_ready?, current_time)
+        end
 
         def test_streams_multiple_segments_in_threads
           with_serial_lock do
@@ -214,14 +224,6 @@ module NewRelic
         def consume_spans(buffer)
           buffer.enumerator.map(&:itself)
         end
-
- ######## WIP ###########
-
-        # pops all the serializable batches off the buffer and returns them.
-        def consume_batches(buffer)
-          buffer.batch_enumerator.map(&:itself)
-        end
- ####################
 
         # starts a watched thread that will generate segments asynchronously.
         def prepare_to_stream_segments(count, max_buffer_size = 100_000)

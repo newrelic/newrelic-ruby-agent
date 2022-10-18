@@ -124,7 +124,7 @@ module NewRelic::Agent
           if proc_or_segment = @queue.pop(false)
             NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
             @batch << transform(proc_or_segment)
-            if @batch.size >= BATCH_SIZE || Process.clock_gettime(Process::CLOCK_REALTIME) - last_time < 5
+            if batch_ready?(last_time)
               yield(SpanBatch.new(spans: @batch))
               last_time = Process.clock_gettime(Process::CLOCK_REALTIME)
               @batch.clear
@@ -138,6 +138,10 @@ module NewRelic::Agent
       end
 
       private
+
+      def batch_ready?(last_time)
+        @batch.size >= BATCH_SIZE || Process.clock_gettime(Process::CLOCK_REALTIME) - last_time > 5
+      end
 
       def span_event(proc_or_segment)
         if proc_or_segment.is_a?(Proc)
