@@ -185,6 +185,31 @@ module NewRelic
             end
           end
         end
+
+        def test_streams_multiple_batches
+          with_config(:'infinite_tracing.batching' => true) do
+            with_serial_lock do
+              NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+              total_spans = 5
+              batches, segments = emulate_streaming_segments(total_spans, batch: true)
+
+              assert_equal total_spans, batches[0].spans.size
+              assert_equal total_spans, segments.size
+              batches.each_with_index do |batch, index|
+                assert_kind_of NewRelic::Agent::InfiniteTracing::SpanBatch, batch
+                batch.spans.each_with_index do |span, index|
+                  assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
+                end
+              end
+
+              refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+              assert_metrics_recorded({
+                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
+                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+              })
+            end
+          end
+        end
       end
     end
   end
