@@ -17,6 +17,9 @@ module NewRelic::Agent
       DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY = 0.005
       MAX_FLUSH_WAIT = 3 # three seconds
+      # The backend tracks traces for 10 seconds. A conservative
+      # 5 second batch hold prevents trace fragmentation.
+      MAX_BATCH_HOLD = 5
 
       attr_reader :queue
 
@@ -140,7 +143,7 @@ module NewRelic::Agent
       private
 
       def batch_ready?(last_time)
-        @batch.size >= BATCH_SIZE || Process.clock_gettime(Process::CLOCK_REALTIME) - last_time > 5
+        @batch.size >= BATCH_SIZE || Process.clock_gettime(Process::CLOCK_REALTIME) - last_time >= MAX_BATCH_HOLD
       end
 
       def span_event(proc_or_segment)
