@@ -17,8 +17,9 @@ module NewRelic::Agent
       DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY = 0.005
       MAX_FLUSH_WAIT = 3 # three seconds
-      # The backend tracks traces for 10 seconds. A conservative
-      # 5 second batch hold prevents trace fragmentation.
+      # To ensure that two bits of info for the same transaction
+      # are recognized as belonging together, set a maximum time
+      # in seconds to elapse between batch submissions.
       MAX_BATCH_HOLD = 5
 
       attr_reader :queue
