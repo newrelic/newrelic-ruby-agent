@@ -302,7 +302,8 @@ jobs:
 
   jruby_multiverse:
     needs: check_jruby_multiverse
-    if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
+    # if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
+    if: ${{ always() }}
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:
