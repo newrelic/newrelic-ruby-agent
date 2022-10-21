@@ -16,9 +16,6 @@ def gem_list(psych_version = nil)
     # various places.
     gem 'fakefs', :require => false
 
-    # Because we delay the agent, order of jruby-openssl matters
-    gem 'jruby-openssl' if RUBY_PLATFORM == 'java'
-
     gem 'psych'#{psych_version}
     gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java' 
 

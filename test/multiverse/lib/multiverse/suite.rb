@@ -264,7 +264,6 @@ module Multiverse
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
@@ -291,10 +290,6 @@ module Multiverse
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "gem 'newrelic_rpm', :path => '#{path}'"
       line
-    end
-
-    def jruby_openssl_line
-      "gem 'jruby-openssl', '~> 0.11.0', :require => false, :platforms => [:jruby]"
     end
 
     def minitest_line
