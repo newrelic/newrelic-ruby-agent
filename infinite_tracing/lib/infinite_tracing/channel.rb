@@ -30,7 +30,7 @@ module NewRelic::Agent
       end
 
       def compression_enabled?
-        compression_level != :none
+        true
       end
 
       def compression_level
@@ -47,7 +47,7 @@ module NewRelic::Agent
 
       def compression_options
         {default_algorithm: :gzip,
-         default_level: 'high'}
+         default_level: compression_level}
       end
 
       def configured_compression_level
