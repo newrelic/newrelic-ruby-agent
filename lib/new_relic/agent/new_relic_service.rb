@@ -539,12 +539,10 @@ module NewRelic
       # enough to be worth compressing, and handles any errors the
       # server may return
       def invoke_remote(method, payload = [], options = {})
-        unallowed_methods = %i[
-          metric_data error_data transaction_sample_data
-          sql_trace_data profile_data analytic_event_data
-          custom_event_data log_event_data error_event_data span_event_data
+        allowed_methods = %i[
+          connect preconnect shutdown
         ]
-        return NewRelic::Agent.logger.debug('Skipping #invoke_remote for 8T batching and compression tests') if unallowed_methods.include?(method)
+        return NewRelic::Agent.logger.debug('Skipping #invoke_remote for 8T batching and compression tests') unless allowed_methods.include?(method.to_sym)
 
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         request_send_ts, response_check_ts = nil
