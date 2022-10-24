@@ -51,7 +51,7 @@ module NewRelic::Agent
       end
 
       def configured_compression_level
-        NewRelic::Agent.config[:'infinite_tracing.compression_level']
+        NewRelic::Agent.config[:'infinite_tracing.compression_level'].to_sym
       end
 
       def credentials
