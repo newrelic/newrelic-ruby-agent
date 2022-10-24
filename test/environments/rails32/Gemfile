@@ -15,7 +15,6 @@ gem "newrelic_rpm", :path => "../../.."
 platforms :jruby do
   gem "activerecord-jdbcmysql-adapter"
   gem "activerecord-jdbcsqlite3-adapter"
-  gem "jruby-openssl"
 end
 
 platforms :ruby, :rbx do

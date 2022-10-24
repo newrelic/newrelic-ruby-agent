@@ -467,7 +467,7 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :public => false,
           :type => Array,
           :allowed_from_server => false,
-          :description => "An array of candidate locations for the agent\'s configuration file."
+          :description => "An array of candidate locations for the agent's configuration file."
         },
         :dispatcher => {
           :default => DefaultSource.dispatcher,
@@ -1195,7 +1195,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem\'s additional CAS client support.")
+          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem's additional CAS client support.")
         },
         :disable_memcache_instrumentation => {
           :default => false,
@@ -1994,7 +1994,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic\'s data collection service."
+          :description => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
         },
         :'rules.ignore_url_regexes' => {
           :default => [],

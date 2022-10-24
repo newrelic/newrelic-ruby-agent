@@ -2,7 +2,7 @@
 
   ## v8.12.0
 
-  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, some valuable code cleanup, increases the default number of recorded Custom Events, and announces the deprecation of Ruby 2.3.
+  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increases the default number of recorded Custom Events, announces the deprecation of Ruby 2.3, and brings some valuable code cleanup.
 
   * **Support for Elasticsearch instrumentation**
 
@@ -14,19 +14,19 @@
     | `elasticsearch.capture_queries` | true | If `true`, the agent captures Elasticsearch queries in transaction traces. |
     | `elasticsearch.obfuscate_queries` | true |  If `true`, the agent obfuscates Elasticsearch queries in transaction traces. |
 
-  * **Cleanup: Remove orphaned code**
+  * **Custom Event Limit Increase**
 
-    In both the agent and unit tests, changes have taken place over the years that have left certain bits of code unreachable. This orphaned code can complicate code maintenance and refactoring so getting it squared away can be very helpful. Commmuniy member [@ohbarye](https://github.com/ohbarye) has contribued 2 separate cleanup PRs for this release; one for the agent and one for the tests. [PR#1537](https://github.com/newrelic/newrelic-ruby-agent/pull/1537) [PR#1548](https://github.com/newrelic/newrelic-ruby-agent/pull/1548)
-
-    Thank you to [@ohbarye](https://github.com/ohbarye) for contributing this helpful cleanup!
-
-  * **Increase default for `custom_insights_events.max_samples_stored`**
-
-    New Relic has discovered a large number of [Custom Events](https://docs.newrelic.com/docs/data-apis/custom-data/custom-events/report-custom-event-data/) are dropped due to the configured value for `custom_insights_events.max_samples_stored`. In an effort to help customers receive more of their custom events, we're raising the default maximum value for custom events stored per minute from 1,000 events to 3,000 events. The highest possible number of events that can be sent per minute is 100,000.
+    This version increases the default limit of custom events from 1000 events per minute to 3000 events per minute. In the scenario that custom events were being limited, this change will allow more custom events to be sent to New Relic. There is also a new configurable maximum limit of 100,000 events per minute. To change the limits, see the documentation for [max_samples_stored](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#custom_insights_events-max_samples_stored). To learn more about the change and how to determine if custom events are being dropped, see our Explorers Hub [post](https://discuss.newrelic.com/t/send-more-custom-events-with-the-latest-apm-agents/190497). [PR#1541](https://github.com/newrelic/newrelic-ruby-agent/pull/1541)
 
   * **Deprecate support for Ruby 2.3**
 
     Ruby 2.3 reached end of life on March 31, 2019. The Ruby agent has deprecated support for Ruby 2.3 and will make breaking changes for this version in its next major release, v9.0.0 (release date not yet planned). All 8.x.x versions of the agent will remain compatible with Ruby 2.3.
+
+  * **Cleanup: Remove orphaned code**
+
+    In both the agent and unit tests, changes have taken place over the years that have left certain bits of code unreachable. This orphaned code can complicate code maintenance and refactoring, so getting it squared away can be very helpful. Commmuniy member [@ohbarye](https://github.com/ohbarye) contributed two separate cleanup PRs for this release; one for the agent and one for the tests. [PR#1537](https://github.com/newrelic/newrelic-ruby-agent/pull/1537) [PR#1548](https://github.com/newrelic/newrelic-ruby-agent/pull/1548)
+
+    Thank you to [@ohbarye](https://github.com/ohbarye) for contributing this helpful cleanup!
 
 
   ## v8.11.0
