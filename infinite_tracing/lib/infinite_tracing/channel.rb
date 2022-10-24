@@ -24,7 +24,7 @@ module NewRelic::Agent
       end
 
       def channel_args
-        return NewRelic::EMPTY_HASH unless compression_enabled?
+        # return NewRelic::EMPTY_HASH unless compression_enabled?
 
         GRPC::Core::CompressionOptions.new(compression_options).to_channel_arg_hash
       end
@@ -47,7 +47,7 @@ module NewRelic::Agent
 
       def compression_options
         {default_algorithm: :gzip,
-         default_level: compression_level}
+         default_level: 'high'}
       end
 
       def configured_compression_level
