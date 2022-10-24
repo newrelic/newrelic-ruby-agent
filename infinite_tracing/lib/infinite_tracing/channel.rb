@@ -47,11 +47,11 @@ module NewRelic::Agent
 
       def compression_options
         {default_algorithm: :gzip,
-         default_level: compression_level}
+         default_level: 'high'}
       end
 
       def configured_compression_level
-        @configured_compression_level ||= NewRelic::Agent.config[:'infinite_tracing.compression_level'].to_sym
+        NewRelic::Agent.config[:'infinite_tracing.compression_level'].to_sym
       end
 
       def credentials
