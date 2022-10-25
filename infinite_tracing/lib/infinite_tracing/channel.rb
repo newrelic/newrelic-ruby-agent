@@ -5,8 +5,8 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Channel
-      COMPRESSION_LEVELS = %w[none low medium high].freeze
-      DEFAULT_COMPRESSION_LEVEL = 'none'
+      COMPRESSION_LEVELS = %i[none low medium high].freeze
+      DEFAULT_COMPRESSION_LEVEL = :none
 
       def stub
         NewRelic::Agent.logger.debug("Infinite Tracer Opening Channel to #{host_and_port}")
@@ -51,7 +51,7 @@ module NewRelic::Agent
       end
 
       def configured_compression_level
-        NewRelic::Agent.config[:'infinite_tracing.compression_level']
+        NewRelic::Agent.config[:'infinite_tracing.compression_level'].to_sym
       end
 
       def credentials
@@ -67,7 +67,7 @@ module NewRelic::Agent
         {
           'grpc.minimal_stack' => 1,
           'grpc.enable_deadline_checking' => 0
-        }
+        }.merge!(channel_args)
       end
 
       def valid_compression_level?(level)
