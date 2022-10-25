@@ -2470,7 +2470,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => "Configures the TCP/IP port for the Trace Observer Host"
         },
         :'infinite_tracing.compression_level' => {
-          :default => 'high',
+          :default => 'none',
           :public => false,
           :type => String,
           :allowed_from_server => false,
