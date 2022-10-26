@@ -2479,7 +2479,7 @@ A map of error classes to a list of messages. When an error of one of the classe
                           "[none|low|medium|high]\nBy default, compression is not used (level = none)"
         },
         :'infinite_tracing.batching' => {
-          :default => false,
+          :default => true,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
