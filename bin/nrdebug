@@ -219,6 +219,7 @@ class ProcessReport
         if c_backtraces =~ /could not attach/i
           fail("Failed to attach to target process. Please try again with sudo.")
         end
+
         section(f, "C Backtraces") { c_backtraces }
         section(f, "Ruby Backtrace(s)") { ruby_backtraces }
       end
@@ -282,6 +283,7 @@ end
 if !target.alive?
   fail("Could not find process with PID #{target_pid}")
 end
+
 target_cmd = target.procline
 
 prompt_for_confirmation(target_pid, target_cmd)

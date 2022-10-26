@@ -224,6 +224,7 @@ module NewRelic
         cgroup_info.split("\n").each do |line|
           parts = line.split(':')
           next unless parts.size == 3
+
           _, subsystems, cgroup_id = parts
           subsystems = subsystems.split(',')
           subsystems.each do |subsystem|
@@ -240,6 +241,7 @@ module NewRelic
       # for details on why we do it this way.
       def self.proc_try_read(path)
         return nil unless File.exist?(path)
+
         content = String.new('')
         File.open(path) do |f|
           loop do
@@ -281,6 +283,7 @@ module NewRelic
 
       def self.boot_id
         return nil unless linux?
+
         if bid = proc_try_read('/proc/sys/kernel/random/boot_id')
           bid.chomp!
 

@@ -160,6 +160,7 @@ module NewRelic
 
         def start
           return if @started == true
+
           @started = true
           @thread = NewRelic::Agent::Threading::AgentThread.create('Pipe Channel Manager') do
             now = nil
@@ -207,6 +208,7 @@ module NewRelic
 
         def stop
           return unless @started == true
+
           stop_listener_thread
           close_all_pipes
           @wake.close

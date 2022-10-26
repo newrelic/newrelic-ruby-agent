@@ -25,6 +25,7 @@ module Format
     sections = Hash.new { |hash, key| hash[key] = [] }
     NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
       next unless value[:public]
+
       key = key.to_s
       section_key = section_key(key, key.split('.'))
       sections[section_key] << format_sections(key, value)
@@ -55,6 +56,7 @@ module Format
 
   def format_default_value(spec)
     return spec[:documentation_default] if !spec[:documentation_default].nil?
+
     if spec[:default].is_a?(Proc)
       '(Dynamic)'
     else
@@ -71,6 +73,7 @@ module Format
 
   def format_env_var(key)
     return "None" if NON_ENV_CONFIGS.include?(key)
+
     "NEW_RELIC_#{key.tr(".", "_").upcase}"
   end
 

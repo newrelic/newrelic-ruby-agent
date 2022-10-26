@@ -13,6 +13,7 @@ $LOAD_PATH << agent_test_path
 require 'infinite_tracing'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
+require 'minitest/stub_const'
 require 'mocha/setup'
 require 'newrelic_rpm'
 require 'rake'
@@ -80,6 +81,7 @@ def trace
       :notice_span,
       :wait_for_notice
     ].include?(tp.method_id)
+
     p([tp.lineno, tp.defined_class, tp.method_id, tp.event])
   end
 end

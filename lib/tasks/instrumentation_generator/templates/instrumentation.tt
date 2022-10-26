@@ -5,8 +5,9 @@
 module NewRelic::Agent::Instrumentation
   module <%= @class_name %>
 
-    def <%= @method.downcase %>_with_tracing<%= "(#{@args})" unless @args.empty? %>
+    def <%= @method.downcase %>_with_new_relic<%= "(#{@args})" unless @args.empty? %>
       # add instrumentation content here
+      yield
     end
   end
 end

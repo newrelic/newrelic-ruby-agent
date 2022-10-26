@@ -127,6 +127,7 @@ module NewRelic
 
         def split_transaction_at_harvest(timestamp, thread_id = nil)
           raise ArgumentError, 'thread_id required' unless thread_id
+
           @stats[thread_id].transaction_started_at = timestamp
           @stats[thread_id].elapsed_transaction_time = 0.0
         end

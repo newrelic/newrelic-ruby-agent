@@ -467,7 +467,7 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :public => false,
           :type => Array,
           :allowed_from_server => false,
-          :description => "An array of candidate locations for the agent\'s configuration file."
+          :description => "An array of candidate locations for the agent's configuration file."
         },
         :dispatcher => {
           :default => DefaultSource.dispatcher,
@@ -916,6 +916,14 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.elasticsearch' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the elasticsearch library at start up. May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.httprb' => {
           :default => instrumentation_value_of(:disable_httprb),
           :documentation_default => 'auto',
@@ -1187,7 +1195,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem\'s additional CAS client support.")
+          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem's additional CAS client support.")
         },
         :disable_memcache_instrumentation => {
           :default => false,
@@ -1406,6 +1414,20 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If `true`, the agent obfuscates Mongo queries in transaction traces.'
+        },
+        :'elasticsearch.capture_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent captures Elasticsearch queries in transaction traces.'
+        },
+        :'elasticsearch.obfuscate_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent obfuscates Elasticsearch queries in transaction traces.'
         },
         :'error_collector.enabled' => {
           :default => true,
@@ -1972,7 +1994,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic\'s data collection service."
+          :description => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
         },
         :'rules.ignore_url_regexes' => {
           :default => [],
@@ -2004,7 +2026,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'If `true`, the agent captures [custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
         },
         :'custom_insights_events.max_samples_stored' => {
-          :default => 1000,
+          :default => 3000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,

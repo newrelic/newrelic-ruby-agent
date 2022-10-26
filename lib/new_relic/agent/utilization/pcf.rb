@@ -15,6 +15,7 @@ module NewRelic
         def detect
           begin
             return false unless pcf_keys_present?
+
             process_response(ENV)
           rescue
             NewRelic::Agent.logger.error("Error occurred detecting: #{vendor_name}", e)

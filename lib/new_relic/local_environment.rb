@@ -85,6 +85,7 @@ module NewRelic
     def check_for_torquebox
       return unless defined?(::JRuby) &&
         (org.torquebox::TorqueBox rescue nil)
+
       @discovered_dispatcher = :torquebox
     end
 
@@ -93,11 +94,13 @@ module NewRelic
         (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
           defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
          (jruby_rack? && defined?(::GlassFish::Server)))
+
       @discovered_dispatcher = :glassfish
     end
 
     def check_for_trinidad
       return unless defined?(::JRuby) && jruby_rack? && defined?(::Trinidad::Server)
+
       @discovered_dispatcher = :trinidad
     end
 
@@ -107,17 +110,20 @@ module NewRelic
 
     def check_for_webrick
       return unless defined?(::WEBrick) && defined?(::WEBrick::VERSION)
+
       @discovered_dispatcher = :webrick
     end
 
     def check_for_fastcgi
       return unless defined?(::FCGI)
+
       @discovered_dispatcher = :fastcgi
     end
 
     # this case covers starting by mongrel_rails
     def check_for_mongrel
       return unless defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
+
       @discovered_dispatcher = :mongrel
     end
 

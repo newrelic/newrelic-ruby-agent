@@ -1,5 +1,34 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.12.0
+
+  Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increases the default number of recorded Custom Events, announces the deprecation of Ruby 2.3, and brings some valuable code cleanup.
+
+  * **Support for Elasticsearch instrumentation**
+
+    This release adds support to automatically instrument the [elasticsearch](https://rubygems.org/gems/elasticsearch) gem. Versions 7.x and 8.x are supported. [PR#1525](https://github.com/newrelic/newrelic-ruby-agent/pull/1525)
+
+    | Configuration name | Default | Behavior |
+    | ----------- | ----------- |----------- |
+    | `instrumentation.elasticsearch` | auto | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+    | `elasticsearch.capture_queries` | true | If `true`, the agent captures Elasticsearch queries in transaction traces. |
+    | `elasticsearch.obfuscate_queries` | true |  If `true`, the agent obfuscates Elasticsearch queries in transaction traces. |
+
+  * **Custom Event Limit Increase**
+
+    This version increases the default limit of custom events from 1000 events per minute to 3000 events per minute. In the scenario that custom events were being limited, this change will allow more custom events to be sent to New Relic. There is also a new configurable maximum limit of 100,000 events per minute. To change the limits, see the documentation for [max_samples_stored](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#custom_insights_events-max_samples_stored). To learn more about the change and how to determine if custom events are being dropped, see our Explorers Hub [post](https://discuss.newrelic.com/t/send-more-custom-events-with-the-latest-apm-agents/190497). [PR#1541](https://github.com/newrelic/newrelic-ruby-agent/pull/1541)
+
+  * **Deprecate support for Ruby 2.3**
+
+    Ruby 2.3 reached end of life on March 31, 2019. The Ruby agent has deprecated support for Ruby 2.3 and will make breaking changes for this version in its next major release, v9.0.0 (release date not yet planned). All 8.x.x versions of the agent will remain compatible with Ruby 2.3.
+
+  * **Cleanup: Remove orphaned code**
+
+    In both the agent and unit tests, changes have taken place over the years that have left certain bits of code unreachable. This orphaned code can complicate code maintenance and refactoring, so getting it squared away can be very helpful. Commmuniy member [@ohbarye](https://github.com/ohbarye) contributed two separate cleanup PRs for this release; one for the agent and one for the tests. [PR#1537](https://github.com/newrelic/newrelic-ruby-agent/pull/1537) [PR#1548](https://github.com/newrelic/newrelic-ruby-agent/pull/1548)
+
+    Thank you to [@ohbarye](https://github.com/ohbarye) for contributing this helpful cleanup!
+
+
   ## v8.11.0
 
   Version 8.11.0 of the agent updates the `newrelic deployments` command to work with API keys issued to newer accounts, fixes a memory leak in the instrumentation of Curb error handling, further preps for Ruby 3.2.0 support, and includes several community member driven cleanup and improvement efforts. Thank you to everyone involved!
@@ -49,15 +78,15 @@
 
 
   * **Bugfix: Missing unscoped metrics when instrumentation.thread.tracing is enabled**
-    
+
     Previously, when `instrumentation.thread.tracing` was set to true, some puma applications encountered a bug where a varying number of unscoped metrics would be missing. The agent now will correctly store and send all unscoped metrics.
-    
+
     Thank you to @texpert for providing details of their situation to help resolve the issue.
-  
-  
+
+
   * **Bugfix: gRPC instrumentation causes ArgumentError when other Google gems are present**
 
-    Previously, when the agent had gRPC instrumentation enabled in an application using other gems (such as google-ads-googleads), the instrumentation could cause the error `ArgumentError: wrong number of arguments (given 3, expected 2)`. The gRPC instrumentation has been updated to prevent this issue from occurring in the future. 
+    Previously, when the agent had gRPC instrumentation enabled in an application using other gems (such as google-ads-googleads), the instrumentation could cause the error `ArgumentError: wrong number of arguments (given 3, expected 2)`. The gRPC instrumentation has been updated to prevent this issue from occurring in the future.
 
     Thank you to @FeminismIsAwesome for bringing this issue to our attention.
 
@@ -94,26 +123,26 @@
 
 
   * **Bugfix: Error when setting the yaml configuration with `transaction_tracer.transaction_threshold: apdex_f`**
-    
-    Originally, the agent was only checking the `transaction_tracer.transaction_threshold` from the newrelic.yml correctly if it was on two lines. 
+
+    Originally, the agent was only checking the `transaction_tracer.transaction_threshold` from the newrelic.yml correctly if it was on two lines.
 
     Example:
 
     ```
     # newrelic.yml
     transaction_tracer:
-      transaction_threshold: apdex_f 
+      transaction_threshold: apdex_f
     ```
 
-    When this was instead changed to be on one line, the agent was not able to correctly identify the value of apdex_f. 
+    When this was instead changed to be on one line, the agent was not able to correctly identify the value of apdex_f.
 
     Example:
     ```
     # newrelic.yml
     transaction_tracer.transaction_threshold: apdex_f
     ```
-    This would cause prevent transactions from finishing due to the error `ArgumentError: comparison of Float with String failed`. This has now been corrected and the agent is able to process newrelic.yml with a one line `transaction_tracer.transaction_threshold: apdex_f` correctly now. 
-    
+    This would cause prevent transactions from finishing due to the error `ArgumentError: comparison of Float with String failed`. This has now been corrected and the agent is able to process newrelic.yml with a one line `transaction_tracer.transaction_threshold: apdex_f` correctly now.
+
     Thank you to @oboxodo for bringing this to our attention.
 
 
@@ -123,8 +152,8 @@
 
 
   ## v8.9.0
-  
-  
+
+
   * **Add support for Dalli 3.1.0 to Dalli 3.2.2**
 
     Dalli versions 3.1.0 and above include breaking changes where the agent previously hooked into the gem. We have updated our instrumentation to correctly hook into Dalli 3.1.0 and above. At this time, 3.2.2 is the latest Dalli version and is confirmed to be supported.
@@ -136,9 +165,9 @@
 
   * **Bugfix: Use read_nonblock instead of read on pipe**
 
-    Previously, our PipeChannelManager was using read which could cause Resque jobs to get stuck in some versions. This change updates the PipeChannelManager to use read_nonblock instead. This method can leverage error handling to allow the instrumentation to gracefully log a message and exit the stuck Resque job. 
+    Previously, our PipeChannelManager was using read which could cause Resque jobs to get stuck in some versions. This change updates the PipeChannelManager to use read_nonblock instead. This method can leverage error handling to allow the instrumentation to gracefully log a message and exit the stuck Resque job.
 
-    
+
   ## v8.8.0
 
   * **Support Makara database adapters with ActiveRecord**
@@ -235,7 +264,7 @@
   * **Bugfix: Error events missing attributes when created outside of a transaction**
 
     Previously the agent was not assigning a priority to error events that were created by calling notice_error outside the scope of a transaction. This caused issues with sampling when the error event buffer was full, resulting in a `NoMethodError: undefined method '<' for nil:NilClass` in the newrelic_agent.log. This bugfix ensures that a priority is always assigned on error events so that the agent will be able to sample these error events correctly. Thank you to @olleolleolle for bringing this issue to our attention.
-    
+
 
 
   ## v8.6.0

@@ -132,9 +132,6 @@ Layout/EmptyComment:
   AllowBorderComment: true
   AllowMarginComment: true
 
-Layout/EmptyLineAfterGuardClause:
-  Enabled: false
-
 # Disabling for now
 Layout/EmptyLineAfterMagicComment:
   Enabled: false

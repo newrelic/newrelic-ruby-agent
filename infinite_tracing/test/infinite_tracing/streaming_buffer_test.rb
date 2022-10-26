@@ -74,6 +74,39 @@ module NewRelic
           end
         end
 
+        def test_batch_ready_size_true
+          NewRelic::Agent::InfiniteTracing.stub_const(:BATCH_SIZE, 2) do
+            buffer = StreamingBuffer.new
+            buffer.instance_variable_set(:@batch, [1, 2])
+
+            assert buffer.send(:batch_ready?, Process.clock_gettime(Process::CLOCK_REALTIME))
+          end
+        end
+
+        def test_batch_ready_size_false
+          NewRelic::Agent::InfiniteTracing.stub_const(:BATCH_SIZE, 2) do
+            buffer = StreamingBuffer.new
+            buffer.instance_variable_set(:@batch, [1])
+
+            refute buffer.send(:batch_ready?, Process.clock_gettime(Process::CLOCK_REALTIME))
+          end
+        end
+
+        def test_batch_ready_time_limit_true
+          buffer = StreamingBuffer.new
+          current_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+          advance_process_time(5)
+
+          assert buffer.send(:batch_ready?, current_time)
+        end
+
+        def test_batch_ready_time_limit_false
+          buffer = StreamingBuffer.new
+          current_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+
+          refute buffer.send(:batch_ready?, current_time)
+        end
+
         def test_streams_multiple_segments_in_threads
           with_serial_lock do
             total_spans = 5

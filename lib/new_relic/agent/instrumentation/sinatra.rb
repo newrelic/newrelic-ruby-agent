@@ -45,6 +45,7 @@ DependencyDetection.defer do
 
   executes do
     next unless Gem::Version.new(Sinatra::VERSION) < Gem::Version.new('2.0.0')
+
     deprecation_msg = 'The Ruby Agent is dropping support for Sinatra versions below 2.0.0 ' \
       'in version 9.0.0. Please upgrade your Sinatra version to continue receiving full compatibility. ' \
 

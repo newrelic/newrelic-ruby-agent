@@ -80,6 +80,15 @@ module NewRelic
               }
             },
             {
+              option: :'elasticsearch.capture_queries',
+              supported: true,
+              enabled_fn: method(:enabled?),
+              disabled_value: false,
+              permitted_fn: proc { |policies|
+                change_setting(policies, :'elasticsearch.obfuscate_queries', true)
+              }
+            },
+            {
               option: :'transaction_tracer.record_redis_arguments',
               supported: true,
               enabled_fn: method(:enabled?),
@@ -212,6 +221,7 @@ module NewRelic
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
             SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
+
               if policy_settings[ENABLED]
                 if policy[:enabled_fn].call(policy[:option])
                   if permitted_fn = policy[:permitted_fn]

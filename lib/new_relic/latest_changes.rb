@@ -56,6 +56,7 @@ EOS
           version_count += 1
         end
         break if version_count >= 2
+
         changes << line.sub(/^  \* /, "* ").chomp
       end
       changes

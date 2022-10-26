@@ -102,8 +102,6 @@ module NewRelic
     # An error while serializing data for the collector
     class SerializationError < StandardError; end
 
-    class BackgroundLoadingError < StandardError; end
-
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
@@ -115,6 +113,7 @@ module NewRelic
     # The singleton Agent instance.  Used internally.
     def agent # :nodoc:
       return @agent if @agent
+
       NewRelic::Agent.logger.warn("Agent unavailable as it hasn't been started.")
       NewRelic::Agent.logger.warn(caller.join("\n"))
       nil
@@ -217,6 +216,7 @@ module NewRelic
 
     def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
       return unless agent
+
       if amount == 1
         metrics = [metric_name, SUPPORTABILITY_INCREMENT_METRIC]
         agent.stats_engine.tl_record_unscoped_metrics(metrics) { |stats| stats.increment_count }
@@ -347,6 +347,7 @@ module NewRelic
     #
     def manual_start(options = {})
       raise "Options must be a hash" unless Hash === options
+
       NewRelic::Control.instance.init_plugin({:agent_enabled => true, :sync_startup => true}.merge(options))
       record_api_supportability_metric(:manual_start)
     end
@@ -757,6 +758,7 @@ module NewRelic
       record_api_supportability_metric(:browser_timing_header)
 
       return EMPTY_STR unless agent
+
       agent.javascript_instrumentor.browser_timing_header(nonce)
     end
 

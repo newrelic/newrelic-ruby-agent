@@ -1152,6 +1152,7 @@ class NewRelicServiceTest < Minitest::Test
       if route
         response = @route_table[route]
         raise response if response.kind_of?(Exception)
+
         response
       else
         create_response_mock('not found', :code => 404)

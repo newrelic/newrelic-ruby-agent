@@ -32,6 +32,8 @@ module NewRelic
       # Take care not to the dup the query more than once as
       # correctly encoded may also dup the query.
       def capture_query(query)
+        return unless query
+
         id = query.object_id
         query = Helper.correctly_encoded(truncate_query(query))
         if query.object_id == id
@@ -42,6 +44,8 @@ module NewRelic
       end
 
       def truncate_query(query)
+        return unless query
+
         if query.length > (MAX_QUERY_LENGTH - 4)
           query[0..MAX_QUERY_LENGTH - 4] << ELLIPSIS
         else
@@ -114,6 +118,7 @@ module NewRelic
       # in a report period, selected for shipment to New Relic
       def explain_sql(statement)
         return nil unless statement.sql && statement.explainer && statement.config
+
         statement.sql = statement.sql.split(";\n")[0] # only explain the first
         return statement.explain || []
       end
@@ -223,6 +228,7 @@ module NewRelic
 
         def explain
           return unless explainable?
+
           handle_exception_in_explain do
             start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             plan = @explainer.call(self)
@@ -238,6 +244,7 @@ module NewRelic
 
         def append_sql(new_sql)
           return if new_sql.empty?
+
           @sql = Database.truncate_query(@sql << NEWLINE << new_sql)
         end
 

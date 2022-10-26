@@ -34,6 +34,7 @@ module NewRelic
           set_dotted_alias(config_setting)
 
           return unless value[:aliases]
+
           value[:aliases].each do |config_alias|
             self.alias_map[config_alias] = config_setting
           end

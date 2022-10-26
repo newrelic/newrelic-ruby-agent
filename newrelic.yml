@@ -145,7 +145,7 @@ common: &default_settings
 
   # Specify a maximum number of custom Insights events to buffer in memory at a
   # time.
-  # custom_insights_events.max_samples_stored: 1000
+  # custom_insights_events.max_samples_stored: 3000
 
   # If false, the agent will not add database_name parameter to transaction or #
   # slow sql traces.
@@ -271,7 +271,7 @@ common: &default_settings
 
   # Forces the exit handler that sends all cached data to collector before
   # shutting down to be installed regardless of detecting scenarios where it
-  # generally should bot be. Known use-case for this option is where Sinatra is
+  # generally should not be. Known use-case for this option is where Sinatra is
   # running as an embedded service within another framework and the agent is
   # detecting the Sinatra app and skipping the at_exit handler as a result.
   # Sinatra classically runs the entire application in an at_exit block and would
@@ -321,6 +321,10 @@ common: &default_settings
   # Controls auto-instrumentation of Delayed Job at start up.
   # May be one of [auto|prepend|chain|disabled].
   # instrumentation.delayed_job: auto
+
+  # Controls auto-instrumentation of the elasticsearch library at start up.
+  # May be one of [auto|prepend|chain|disabled].
+  # instrumentation.elasticsearch: auto
 
   # Controls auto-instrumentation of Excon at start up.
   # May be one of [enabled|disabled].
@@ -434,7 +438,7 @@ common: &default_settings
   # instrumentation.grpc.host_denylist: ""
 
   # A dictionary of label names and values that will be applied to the data sent
-  # from this agent. May also be expressed asa semicolon-delimited ; string of
+  # from this agent. May also be expressed as a semicolon-delimited ; string of
   # colon-separated : pairs.
   # For example,<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>.
   # labels: ""
@@ -458,6 +462,12 @@ common: &default_settings
 
   # If true, the agent obfuscates Mongo queries in transaction traces.
   # mongo.obfuscate_queries: true
+
+  # If true, the agent captures Elasticsearch queries in transaction traces.
+  # elasticsearch.capture_queries: true
+
+  # If true, the agent obfuscates Elasticsearch queries in transaction traces.
+  # elasticsearch.obfuscate_queries: true
 
   # When true, the agent transmits data about your app to the New Relic collector.
   # monitor_mode: true

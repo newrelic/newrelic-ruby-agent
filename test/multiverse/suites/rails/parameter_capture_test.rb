@@ -11,6 +11,7 @@ class ParameterCaptureController < ApplicationController
 
   def create
     raise 'problem' if params[:raise]
+
     render(body: 'created')
   end
 

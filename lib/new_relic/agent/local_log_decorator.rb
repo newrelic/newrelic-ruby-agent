@@ -29,6 +29,7 @@ module NewRelic
 
       def escape_entity_name(entity_name)
         return unless entity_name
+
         URI::DEFAULT_PARSER.escape(entity_name)
       end
     end

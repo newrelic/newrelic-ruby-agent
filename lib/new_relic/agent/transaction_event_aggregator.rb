@@ -33,6 +33,7 @@ module NewRelic
 
       def after_harvest(metadata)
         return unless enabled?
+
         record_sampling_rate(metadata)
       end
 

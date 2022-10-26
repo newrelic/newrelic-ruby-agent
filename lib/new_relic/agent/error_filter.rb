@@ -155,6 +155,7 @@ module NewRelic
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)
+
           m = code.match(/(\d{3})(-\d{3})?/)
           if m.nil? || m[1].nil?
             ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")

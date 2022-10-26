@@ -45,6 +45,7 @@ module NewRelic::Agent::Instrumentation
 
       def handle_transaction(endpoint, class_name, version)
         return unless endpoint && route = endpoint.route
+
         name_transaction(route, class_name, version)
         capture_params(endpoint)
       end

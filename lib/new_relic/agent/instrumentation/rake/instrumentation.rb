@@ -37,6 +37,7 @@ module NewRelic
 
         def safe_from_third_party_gem?
           return true unless NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
+
           ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
           false
         end

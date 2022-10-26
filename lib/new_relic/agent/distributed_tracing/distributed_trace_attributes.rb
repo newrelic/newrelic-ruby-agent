@@ -25,6 +25,7 @@ module NewRelic
       # inserts them into the specified destination.
       def copy_to_hash(transaction_payload, destination)
         return unless enabled?
+
         INTRINSIC_KEYS.each do |key|
           value = transaction_payload[key]
           destination[key] = value unless value.nil?
@@ -35,8 +36,10 @@ module NewRelic
       # inserts them as intrinsics in the specified transaction_attributes
       def copy_to_attributes(transaction_payload, destination)
         return unless enabled?
+
         INTRINSIC_KEYS.each do |key|
           next unless transaction_payload.key?(key)
+
           destination.add_intrinsic_attribute(key, transaction_payload[key])
         end
       end

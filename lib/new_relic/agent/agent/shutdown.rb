@@ -9,6 +9,7 @@ module NewRelic
       # data.
       def shutdown
         return unless started?
+
         ::NewRelic::Agent.logger.info("Starting Agent shutdown")
 
         stop_event_loop

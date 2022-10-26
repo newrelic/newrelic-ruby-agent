@@ -187,11 +187,13 @@ module NewRelic
 
         def create_distributed_trace_payload
           return unless txn = current_transaction
+
           txn.distributed_tracer.create_distributed_trace_payload
         end
 
         def accept_distributed_trace_payload(payload)
           return unless txn = current_transaction
+
           txn.distributed_tracer.accept_distributed_trace_payload(payload)
         end
 
@@ -202,6 +204,7 @@ module NewRelic
         # @api public
         def current_segment
           return unless txn = current_transaction
+
           txn.current_segment
         end
 
@@ -348,6 +351,7 @@ module NewRelic
         # is effectively just a yield to the given &block
         def capture_segment_error(segment)
           return unless block_given?
+
           yield
         rescue => exception
           if segment && segment.is_a?(Transaction::AbstractSegment)

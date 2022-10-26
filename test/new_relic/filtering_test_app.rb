@@ -14,6 +14,7 @@ class FilteringTestApp
     txn.filtered_params = filtered
     txn.merge_request_parameters(filtered)
     raise "Intentional error" if params["raise"]
+
     [200, {}, ["Filters applied"]]
   end
 end

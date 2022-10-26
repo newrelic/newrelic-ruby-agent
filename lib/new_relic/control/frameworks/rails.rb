@@ -68,11 +68,14 @@ module NewRelic
 
         def install_agent_hooks(config)
           return if defined?(@agent_hooks_installed) && @agent_hooks_installed
+
           @agent_hooks_installed = true
           return if config.nil? || !config.respond_to?(:middleware)
+
           begin
             require 'new_relic/rack/agent_hooks'
             return unless NewRelic::Rack::AgentHooks.needed?
+
             config.middleware.use(NewRelic::Rack::AgentHooks)
             ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
           rescue => e
@@ -83,8 +86,10 @@ module NewRelic
         def install_browser_monitoring(config)
           @install_lock.synchronize do
             return if defined?(@browser_monitoring_installed) && @browser_monitoring_installed
+
             @browser_monitoring_installed = true
             return if config.nil? || !config.respond_to?(:middleware) || !Agent.config[:'browser_monitoring.auto_instrument']
+
             begin
               require 'new_relic/rack/browser_monitoring'
               config.middleware.use(NewRelic::Rack::BrowserMonitoring)

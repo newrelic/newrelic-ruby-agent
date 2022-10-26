@@ -17,6 +17,10 @@ module NewRelic::Agent
       DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY = 0.005
       MAX_FLUSH_WAIT = 3 # three seconds
+      # To ensure that two bits of info for the same transaction
+      # are recognized as belonging together, set a maximum time
+      # in seconds to elapse between batch submissions.
+      MAX_BATCH_HOLD = 5
 
       attr_reader :queue
 
@@ -91,6 +95,7 @@ module NewRelic::Agent
       # application thread.
       def enumerator
         return enum_for(:enumerator) unless block_given?
+
         loop do
           if segment = @queue.pop(false)
             NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
@@ -116,13 +121,16 @@ module NewRelic::Agent
       # the gRPC call's thread rather than in the main
       # application thread.
       def batch_enumerator
-        return enum_for(:enumerator) unless block_given?
+        return enum_for(:batch_enumerator) unless block_given?
+
+        last_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         loop do
           if proc_or_segment = @queue.pop(false)
             NewRelic::Agent.increment_metric(SPANS_SENT_METRIC)
             @batch << transform(proc_or_segment)
-            if @batch.size >= BATCH_SIZE
+            if batch_ready?(last_time)
               yield(SpanBatch.new(spans: @batch))
+              last_time = Process.clock_gettime(Process::CLOCK_REALTIME)
               @batch.clear
             end
 
@@ -134,6 +142,10 @@ module NewRelic::Agent
       end
 
       private
+
+      def batch_ready?(last_time)
+        @batch.size >= BATCH_SIZE || Process.clock_gettime(Process::CLOCK_REALTIME) - last_time >= MAX_BATCH_HOLD
+      end
 
       def span_event(proc_or_segment)
         if proc_or_segment.is_a?(Proc)

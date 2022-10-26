@@ -11,6 +11,7 @@ module NewRelic
         def self.init
           @initialized ||= nil
           return @profiler if @initialized
+
           @profiler = if RailsBenchProfiler.enabled?
             RailsBenchProfiler.new
           elsif CoreGCProfiler.enabled?

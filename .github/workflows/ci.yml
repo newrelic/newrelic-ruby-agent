@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.8.0]
+        ruby-version: [2.2.10, 3.1.2, jruby-9.3.9.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -58,12 +58,12 @@ jobs:
               "3.1.2": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.3.8.0": {
+              "jruby-9.3.9.0": {
                 "rails": "norails,rails61,rails52,rails42"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.8.0'
+      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0'
         name: Cache mysql55
         id: mysql55-cache
         uses: john-shaffer/cache@sudo-tar
@@ -71,7 +71,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.8.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -101,6 +101,42 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.4.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+        ports:
+          - 27017:27017
       mysql:
         image: mysql:5.7
         env:
@@ -120,19 +156,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
-        ports:
-          - 27017:27017
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -142,12 +165,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      memcached:
-        image: memcached:latest
+      redis:
+        image: redis
         ports:
-          - 11211:11211
+          - 6379:6379
         options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -282,6 +305,42 @@ jobs:
     if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
     runs-on: ubuntu-22.04
     services:
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.4.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:5.0.11
+        ports:
+          - 27017:27017
       mysql:
         image: mysql:5.7
         env:
@@ -293,19 +352,6 @@ jobs:
         image: postgres:latest
         ports:
           - 5432:5432
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: mongo:5.0.11
-        ports:
-          - 27017:27017
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -315,12 +361,12 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      memcached:
-        image: memcached:latest
+      redis:
+        image: redis
         ports:
-          - 11211:11211
+          - 6379:6379
         options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -344,7 +390,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.8.0
+          ruby-version: jruby-9.3.9.0
         env:
           JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 

@@ -18,10 +18,12 @@ class EnumeratorQueue
 
   def each_item
     return enum_for(:each_item) unless block_given?
+
     loop do
       value = @queue.pop
       break if value.nil?
       fail value if value.is_a?(Exception)
+
       yield(value)
     end
   end

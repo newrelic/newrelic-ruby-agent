@@ -19,6 +19,7 @@ module NewRelic::Agent
 
       def stop
         return if @worker.nil?
+
         @lock.synchronize do
           NewRelic::Agent.logger.debug("gRPC Stopping Response Handler")
           @worker.stop
@@ -31,6 +32,7 @@ module NewRelic::Agent
       def handle_response
         @enumerator.each do |response|
           break if response.nil? || response.is_a?(Exception)
+
           @lock.synchronize do
             @messages_seen = response
             NewRelic::Agent.logger.debug("gRPC Infinite Tracer Observer saw #{messages_seen} messages")

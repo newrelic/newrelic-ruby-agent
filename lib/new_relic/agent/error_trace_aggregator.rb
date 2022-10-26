@@ -44,6 +44,7 @@ module NewRelic
       # floor after logging a warning.
       def add_to_error_queue(noticed_error)
         return unless enabled?
+
         @lock.synchronize do
           if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
             @errors << noticed_error

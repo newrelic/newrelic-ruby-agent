@@ -86,6 +86,7 @@ module NewRelic
       def trace_execution_unscoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric(:trace_execution_unscoped) unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
+
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
           yield
@@ -251,6 +252,7 @@ module NewRelic
         # may get removed as well.
         def remove_method_tracer(method_name) # :nodoc:
           return unless Agent.config[:agent_enabled]
+
           if _nr_traced_method_module.method_defined?(method_name)
             _nr_traced_method_module.send(:remove_method, method_name)
             ::NewRelic::Agent.logger.debug("removed method tracer #{method_name}\n")
@@ -264,6 +266,7 @@ module NewRelic
         def _nr_add_method_tracer_now(method_name, metric_name, options)
           NewRelic::Agent.record_api_supportability_metric(:add_method_tracer)
           return unless newrelic_method_exists?(method_name)
+
           remove_method_tracer(method_name) if method_traced?(method_name)
 
           options = _nr_validate_method_tracer_options(method_name, options)
@@ -304,6 +307,7 @@ module NewRelic
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
+
               scoped_metric_eval, unscoped_metrics_eval = nil, []
 
               scoped_metric_eval = case scoped_metric

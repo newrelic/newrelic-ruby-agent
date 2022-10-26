@@ -57,6 +57,7 @@ if !defined?(MyApp)
     class SinatraTestApp < Sinatra::Base
       get '/' do
         raise "Intentional error" if params["raise"]
+
         "SinatraTestApp#index"
       end
     end

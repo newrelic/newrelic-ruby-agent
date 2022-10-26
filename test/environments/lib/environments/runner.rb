@@ -55,6 +55,7 @@ module Environments
       original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib" }
 
       return original_dirs if envs.empty?
+
       dirs = []
       envs.each do |dir|
         dirs.concat(original_dirs.select { |d| File.basename(d).index(dir) == 0 })
@@ -65,12 +66,14 @@ module Environments
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
       return version if version.to_s == ""
+
       test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? "" : version
     end
 
     def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f <= 2.3
+
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")

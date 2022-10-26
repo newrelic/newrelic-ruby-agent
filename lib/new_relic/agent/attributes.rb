@@ -58,6 +58,7 @@ module NewRelic
       def merge_custom_attributes(other)
         return unless Agent.config[:'custom_attributes.enabled']
         return if other.empty?
+
         AttributeProcessing.flatten_and_coerce(other) do |k, v|
           add_custom_attribute(k, v)
         end

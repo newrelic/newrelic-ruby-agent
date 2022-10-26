@@ -12,6 +12,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       class EventListener
         def still_subscribed(event)
           return [] if @events[event].nil?
+
           @events[event].select { |e| e.inspect.include?('infinite_tracing') }
         end
       end
@@ -185,7 +186,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # simulate_broken_server tells us whether we are expecting the mock server to be actually consuming spans
           # expect_mock tells us if we are expecting the mock server to actually be reached in that test
           # &block  code we want to execute on "SERVER" thread
-          def create_grpc_mock(simulate_broken_server: false, expect_mock: true, &block)
+          def create_grpc_mock(simulate_broken_server: false, expect_mock: true, expect_batch: false, &block)
             seen_spans = [] # array of how many spans our mock sees
             @mock_thread = nil # keep track of the thread for our mock server
             @server_response_enum = ServerResponseSimulator.new
@@ -194,12 +195,14 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # some tests will never reach the mock grpc server
             # so this allows us to use the same structure and simply change the expectation
             expectation = expect_mock ? :at_least_once : :never
+            expected_method = expect_batch ? :record_span_batch : :record_span
 
             # stubs out the record_span to keep track of what the agent passes to grpc (and bypass using grpc in the tests)
-            mock_rpc.expects(:record_span).send(expectation).with do |enum, metadata|
+            mock_rpc.expects(expected_method).send(expectation).with do |enum, metadata|
               @mock_thread = Thread.new do
                 enum.each do |span|
                   break if span.nil? # how grpc knows the stream is over
+
                   seen_spans << span unless span.nil? || simulate_broken_server
                 end
               end
@@ -225,8 +228,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             sleep(0.1) if !@server_response_enum.empty?
           end
 
-          def emulate_streaming_segments(count, max_buffer_size = 100_000, &block)
-            spans = create_grpc_mock
+          def emulate_streaming_segments(count, max_buffer_size = 100_000, batch: false, &block)
+            spans = create_grpc_mock(expect_batch: batch)
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size, &block)
             join_grpc_mock
             return spans, segments

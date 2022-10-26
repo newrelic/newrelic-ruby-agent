@@ -524,6 +524,7 @@ module NewRelic
         uri = String.new('/agent_listener/invoke_raw_method?')
         uri << params.map do |k, v|
           next unless v
+
           "#{k}=#{v}"
         end.compact.join('&')
         uri
@@ -592,6 +593,7 @@ module NewRelic
       # than the limit configured in the control object
       def check_post_size(post_string, endpoint)
         return if post_string.size < Agent.config[:max_payload_size_in_bytes]
+
         ::NewRelic::Agent.logger.debug("Tried to send too much data: #{post_string.size} bytes")
         NewRelic::Agent.increment_metric("Supportability/Agent/Collector/#{endpoint}/MaxPayloadSizeLimit")
         raise UnrecoverableServerException.new('413 Request Entity Too Large')

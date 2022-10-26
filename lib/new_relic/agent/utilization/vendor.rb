@@ -134,6 +134,7 @@ module NewRelic
         def valid_chars?(value)
           value.each_char do |ch|
             next if ch =~ VALID_CHARS
+
             code_point = ch[0].ord # this works in Ruby 1.8.7 - 2.1.2
             next if code_point >= 0x80
 
@@ -145,6 +146,7 @@ module NewRelic
 
         def transform_key(key)
           return key unless key_transforms
+
           key_transforms.inject(key) { |memo, transform| memo.send(transform) }
         end
 

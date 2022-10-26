@@ -37,6 +37,7 @@ module NewRelic
       def check_config_and_start_agent
         return unless monitoring? && has_correct_license_key?
         return if using_forking_dispatcher?
+
         setup_and_start_agent
       end
 

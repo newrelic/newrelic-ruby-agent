@@ -36,6 +36,7 @@ module NewRelic
 
         def add_config_for_testing(source, level = 0)
           raise 'Invalid config type for testing' unless [Hash, DottedHash].include?(source.class)
+
           invoke_callbacks(:add, source)
           @configs_for_testing << [source.freeze, level]
           reset_cache
@@ -110,6 +111,7 @@ module NewRelic
         def fetch(key)
           config_stack.each do |config|
             next unless config
+
             accessor = key.to_sym
 
             if config.has_key?(accessor)
@@ -160,6 +162,7 @@ module NewRelic
 
         def invoke_callbacks(direction, source)
           return unless source
+
           source.keys.each do |key|
             begin
               # we need to evaluate and apply transformations for the value to deal with procs as values

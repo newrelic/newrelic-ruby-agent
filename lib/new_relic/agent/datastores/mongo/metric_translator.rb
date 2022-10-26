@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'new_relic/agent/datastores/mongo/obfuscator'
+require 'new_relic/agent/datastores/nosql_obfuscator'
 require 'new_relic/agent/datastores/metric_helper'
 
 module NewRelic

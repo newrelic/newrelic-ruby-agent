@@ -123,11 +123,13 @@ module NewRelic
 
       def exception_tagged_with?(ivar, exception)
         return false if exception_is_java_object?(exception)
+
         exception.instance_variable_defined?(ivar)
       end
 
       def tag_exception_using(ivar, exception)
         return if exception_is_java_object?(exception) || exception.frozen?
+
         begin
           exception.instance_variable_set(ivar, true)
         rescue => e
@@ -137,6 +139,7 @@ module NewRelic
 
       def tag_exception(exception)
         return if exception_is_java_object?(exception) || exception.frozen?
+
         begin
           exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
         rescue => e

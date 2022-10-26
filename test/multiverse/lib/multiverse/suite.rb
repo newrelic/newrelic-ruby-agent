@@ -67,6 +67,7 @@ module Multiverse
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
       gemfiles.each do |f|
         next unless File.exist?(f)
+
         File.delete(f)
       end
     end
@@ -111,6 +112,7 @@ module Multiverse
       yield
     rescue Bundler::LockfileError => error
       raise if @retried
+
       if verbose?
         puts "Encountered Bundler error: #{error.message}"
         puts "Currently Active Bundler Version: #{Bundler::VERSION}"
@@ -135,12 +137,14 @@ module Multiverse
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
       return version if version.to_s == ""
+
       test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? "" : version
     end
 
     def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f < 2.3
+
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")
@@ -148,6 +152,7 @@ module Multiverse
 
     def bundle_show_env(bundle_cmd)
       return unless ENV["BUNDLE_SHOW_ENV"]
+
       puts `#{bundle_cmd} env`
     end
 
@@ -155,9 +160,8 @@ module Multiverse
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
-    def bundle_install(dir, exact_version = nil)
+    def bundle_install(dir)
       puts "Bundling in #{dir}..."
-      bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config(dir, bundle_cmd)
       bundle_show_env(bundle_cmd)
@@ -260,7 +264,6 @@ module Multiverse
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
@@ -287,10 +290,6 @@ module Multiverse
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "gem 'newrelic_rpm', :path => '#{path}'"
       line
-    end
-
-    def jruby_openssl_line
-      "gem 'jruby-openssl', '~> 0.11.0', :require => false, :platforms => [:jruby]"
     end
 
     def minitest_line
@@ -335,6 +334,7 @@ module Multiverse
       gems = with_potentially_mismatched_bundler do
         Bundler.definition.specs.inject([]) do |m, s|
           next m if s.name == 'bundler'
+
           m.push("#{s.name} (#{s.version})")
           m
         end
@@ -366,6 +366,7 @@ module Multiverse
     # the JVM.
     def optimize_jruby_startups
       return unless RUBY_PLATFORM == "java"
+
       ENV["JRUBY_OPTS"] = "--dev"
     end
 
@@ -435,6 +436,7 @@ module Multiverse
     # loads a new JVM for the tests to run in.
     def execute(instrumentation_method)
       return unless check_environment_condition
+
       configure_instrumentation_method(instrumentation_method)
 
       environments.before.call if environments.before
@@ -475,12 +477,14 @@ module Multiverse
     def with_each_environment
       environments.each_with_index do |gemfile_text, i|
         next unless should_run_environment?(i)
+
         yield(gemfile_text, i)
       end
     end
 
     def should_run_environment?(index)
       return true unless filter_env
+
       return filter_env == index
     end
 
@@ -648,6 +652,7 @@ module Multiverse
       ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
         next if exclude?(file)
+
         require "./" + File.basename(file, ".rb")
       end
     end
@@ -699,7 +704,7 @@ module Multiverse
       env_plural = env_count > 1 ? 'environments' : 'environment'
       opening = "\nRunning \"#{suite}\" suite in"
       ending = "in #{label}"
-      message = [opening, execution_message_body(env_count, env_plural).join(' and '), ending].join(' ')
+      [opening, execution_message_body(env_count, env_plural).join(' and '), ending].join(' ')
     end
 
     def execution_message_body(env_count, env_plural)

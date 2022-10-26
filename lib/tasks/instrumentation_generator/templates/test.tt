@@ -11,5 +11,5 @@ class <%= @class_name %>InstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
-  # Add tests Here
+  # Add tests here
 end

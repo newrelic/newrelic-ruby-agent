@@ -23,6 +23,7 @@ module NewRelic
 
       def record_metrics_for_transaction(transaction)
         return unless Agent.config[:'distributed_tracing.enabled']
+
         dt = transaction.distributed_tracer
         payload = dt.distributed_trace_payload || dt.trace_state_payload
 

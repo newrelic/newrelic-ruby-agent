@@ -62,6 +62,7 @@ module NewRelic
 
     def run
       return if running?
+
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)
@@ -72,6 +73,7 @@ module NewRelic
 
     def stop
       return unless running?
+
       @server.shutdown
       @server = nil
       @thread.join if running?
