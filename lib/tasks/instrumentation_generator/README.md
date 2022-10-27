@@ -58,6 +58,6 @@ Furthermore, we also create very similar snippets inside the default source conf
 
 ## Outcome
 
-A prototype outside the agent has been created that generates the required files to create new instrumentation. This prototype accepts three arguments: name (name of the library), method (method to instrument), args (arguments for the method).
+A prototype outside the agent was first created. This prototype generated the required files to add instrumentation. The prototype accepted three arguments: name (name of the library), method (method to instrument), args (arguments for the method). This prototype has evolved into the current directory.
 
-The Ruby gem Thor, a toolkit for building powerful command-line interfaces used in Bundler, Vagrant, Rails and others powers this CLI.
+This project leverages the Ruby gem Thor, a toolkit for building powerful command-line interfaces used in Bundler, Vagrant, Rails and others powers this CLI.
