@@ -64,7 +64,7 @@ module NewRelic
       private
 
       def rails_filter_class?
-        defined?(RAILS_FILTER_CLASS) || (RAILS_FILTER_CLASS.nil?)
+        defined?(RAILS_FILTER_CLASS) && !RAILS_FILTER_CLASS.nil?
       end
     end
   end
