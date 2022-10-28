@@ -34,7 +34,7 @@ module NewRelic
       end
 
       def filter_using_rails(params, filters)
-        return params if rails_filter_class?
+        return params unless rails_filter_class?
 
         pre_filtered_params = filter_rails_request_parameters(params)
         RAILS_FILTER_CLASS.new(filters).filter(pre_filtered_params)
@@ -64,7 +64,7 @@ module NewRelic
       private
 
       def rails_filter_class?
-        !defined?(RAILS_FILTER_CLASS) || (RAILS_FILTER_CLASS.nil?)
+        defined?(RAILS_FILTER_CLASS) || (RAILS_FILTER_CLASS.nil?)
       end
     end
   end
