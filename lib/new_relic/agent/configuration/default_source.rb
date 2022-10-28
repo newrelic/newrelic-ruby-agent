@@ -325,21 +325,9 @@ module NewRelic
         'webpacker:compile'
       ].join(',').freeze
 
-      DEFAULTS = {
-        :license_key => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Your New Relic [license key](/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key).'
-        },
-        :api_key => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Your New Relic API key. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
-        },
+      DEFAULTS = (CRITICAL.merge(OPTIONAL)).freeze
+
+      CRITICAL = {
         :agent_enabled => {
           :default => DefaultSource.agent_enabled,
           :documentation_default => true,
@@ -348,14 +336,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, allows the Ruby agent to run.'
         },
-        :enabled => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :aliases => [:enable],
-          :allowed_from_server => false,
-          :description => 'Enable or disable the agent.'
-        },
         :app_name => {
           :default => DefaultSource.app_name,
           :public => true,
@@ -363,6 +343,38 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_list_on_semicolon),
           :description => 'Specify the [application name](/docs/apm/new-relic-apm/installation-configuration/name-your-application) used to aggregate data in the New Relic UI. To report data to [multiple apps at the same time](/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app), specify a list of names separated by a semicolon `;`. For example, `MyApp` or `MyStagingApp;Instance1`.'
+        },
+        :license_key => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Your New Relic [license key](/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key).'
+        },
+        :log_level => {
+          :default => 'info',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `error`, `warn`, `info` or `debug`.'
+        }
+      }
+
+      OPTIONAL = {
+        :api_key => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Your New Relic API key. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
+        },
+        :enabled => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :aliases => [:enable],
+          :allowed_from_server => false,
+          :description => 'Enable or disable the agent.'
         },
         :entity_guid => {
           :default => nil,
@@ -386,13 +398,6 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Used in tests for the agent to start up, but not connect to the collector. Formerly used `developer_mode` in test config for this purpose.'
-        },
-        :log_level => {
-          :default => 'info',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `error`, `warn`, `info` or `debug`.'
         },
         :high_security => {
           :default => false,
@@ -2488,7 +2493,7 @@ A map of error classes to a list of messages. When an error of one of the classe
                           "span being sent individually"
 
         }
-      }.freeze
+      }
     end
   end
 end
