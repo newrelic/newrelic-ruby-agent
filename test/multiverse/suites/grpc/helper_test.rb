@@ -22,17 +22,20 @@ class GrpcHelperTest < Minitest::Test
   def test_cleans_method_names
     input = '/method/with/leading/slash'
     output = 'method/with/leading/slash'
+
     assert_equal output, helped_class.cleaned_method(input)
   end
 
   def test_cleans_method_names_as_symbols
     input = :'/method/with/leading/slash'
     output = 'method/with/leading/slash'
+
     assert_equal output, helped_class.cleaned_method(input)
   end
 
   def test_does_not_clean_methods_that_do_not_need_cleaning
     input = 'method/without/leading/slash'
+
     assert_equal input, helped_class.cleaned_method(input)
   end
 

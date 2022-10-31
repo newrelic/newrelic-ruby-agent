@@ -19,6 +19,7 @@ class NewRelic::SupportabilityHelperTest < Minitest::Test
   def test_valid_api_argument_class_falsey
     log = with_array_logger do
       NewRelic::Agent.manual_start
+
       refute valid_api_argument_class?("bogus", "headers", Hash)
     end
 

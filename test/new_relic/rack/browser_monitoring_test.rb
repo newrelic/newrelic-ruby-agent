@@ -118,6 +118,7 @@ if defined?(::Rack::Test)
 
     def test_insert_header_should_mark_environment
       get('/')
+
       assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
     end
 
@@ -197,6 +198,7 @@ if defined?(::Rack::Test)
         "Content-Type" => "text/html"
       }
       headers = headers_from_request(original_headers, "<html><body></body></html>")
+
       assert_equal "390", headers["Content-Length"]
     end
 
@@ -206,6 +208,7 @@ if defined?(::Rack::Test)
         "Content-Type" => "text/html"
       }
       headers = headers_from_request(original_headers, "<html><body>☃</body></html>")
+
       assert_equal "393", headers["Content-Length"]
     end
 
@@ -215,6 +218,7 @@ if defined?(::Rack::Test)
         "Content-Type" => "text/html"
       }
       headers = headers_from_request(original_headers, nil)
+
       assert_equal "0", headers["Content-Length"]
     end
 

@@ -32,6 +32,7 @@ class SlackNotifierTests < Minitest::Test
     SlackNotifier.stub(:sleep, nil) do
       HTTParty.stub(:post, nil) do
         SlackNotifier.send_slack_message("I am a notification message!")
+
         assert_empty SlackNotifier.errors_array
       end
     end
@@ -40,6 +41,7 @@ class SlackNotifierTests < Minitest::Test
   def test_errors_array_one_error
     HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
       SlackNotifier.send_slack_message("I am a notification message!")
+
       assert_equal 1, SlackNotifier.errors_array.length
     end
     clear_errors_array
@@ -49,6 +51,7 @@ class SlackNotifierTests < Minitest::Test
     HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
       SlackNotifier.send_slack_message("I am a notification message!")
       SlackNotifier.send_slack_message("I am a another notification message!")
+
       assert_equal 2, SlackNotifier.errors_array.length
     end
     clear_errors_array
@@ -63,6 +66,7 @@ class SlackNotifierTests < Minitest::Test
     exception = assert_raises StandardError do
       SlackNotifier.report_errors
     end
+
     assert_equal('SomeError', exception.message)
     clear_errors_array
   end
@@ -73,6 +77,7 @@ class SlackNotifierTests < Minitest::Test
     exception = assert_raises StandardError do
       SlackNotifier.report_errors
     end
+
     assert_equal("SomeError\nAnotherError", exception.message)
     clear_errors_array
   end

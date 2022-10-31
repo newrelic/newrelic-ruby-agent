@@ -1334,6 +1334,7 @@ Style/MethodCallWithArgsParentheses:
     - include
     - print
     - puts
+    - pp
     - raise
     - require
     - skip

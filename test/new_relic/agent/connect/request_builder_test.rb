@@ -22,11 +22,13 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   def test_sanitize_environment_report
     environment_report = ['not empty']
     @service.stubs(:valid_to_marshal?).returns(true)
+
     assert_equal environment_report, @request_builder.sanitize_environment_report(environment_report)
   end
 
   def test_sanitize_environment_report_cannot_be_serialized
     @service.stubs(:valid_to_marshal?).returns(false)
+
     assert_empty(@request_builder.sanitize_environment_report(['not empty']))
   end
 
@@ -56,6 +58,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   def test_connect_settings_includes_labels_from_config
     with_config({:labels => {'Server' => 'East'}}) do
       expected = [{"label_type" => "Server", "label_value" => "East"}]
+
       assert_equal expected, @request_builder.connect_payload[:labels]
     end
   end
@@ -65,12 +68,14 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
       expected = [
         {"label_type" => "Server", "label_value" => "West"}
       ]
+
       assert_equal expected, @request_builder.connect_payload[:labels]
     end
   end
 
   def test_environment_metadata_empty
     expected = {}
+
     assert_equal expected, @request_builder.connect_payload[:metadata]
   end
 
@@ -80,6 +85,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
     expected = {key => value}
 
     ENV[key] = value
+
     assert_equal expected, @request_builder.connect_payload[:metadata]
   ensure
     ENV[key] = nil

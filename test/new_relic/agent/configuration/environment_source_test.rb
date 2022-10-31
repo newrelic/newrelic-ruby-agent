@@ -40,20 +40,26 @@ module NewRelic::Agent::Configuration
     %w[ NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED ].each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
+
         assert EnvironmentSource.new[:enabled]
         ENV[var] = 'on'
+
         assert EnvironmentSource.new[:enabled]
         ENV[var] = 'yes'
+
         assert EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
+
         refute EnvironmentSource.new[:enabled]
         ENV[var] = 'off'
+
         refute EnvironmentSource.new[:enabled]
         ENV[var] = 'no'
+
         refute EnvironmentSource.new[:enabled]
         ENV.delete(var)
       end
@@ -62,20 +68,26 @@ module NewRelic::Agent::Configuration
     %w[ NEWRELIC_DISABLE_HARVEST_THREAD NEW_RELIC_DISABLE_HARVEST_THREAD ].each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
+
         assert EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'on'
+
         assert EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'yes'
+
         assert EnvironmentSource.new[:disable_harvest_thread]
         ENV.delete(var)
       end
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
+
         refute EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'off'
+
         refute EnvironmentSource.new[:disable_harvest_thread]
         ENV[var] = 'no'
+
         refute EnvironmentSource.new[:disable_harvest_thread]
         ENV.delete(var)
       end
@@ -84,6 +96,7 @@ module NewRelic::Agent::Configuration
     def test_set_log_config_from_environment
       ENV['NEW_RELIC_LOG'] = 'off/in/space.log'
       source = EnvironmentSource.new
+
       assert_equal 'off/in', source[:log_file_path]
       assert_equal 'space.log', source[:log_file_name]
     end
@@ -91,6 +104,7 @@ module NewRelic::Agent::Configuration
     def test_set_log_config_STDOUT_from_environment
       ENV['NEW_RELIC_LOG'] = 'STDOUT'
       source = EnvironmentSource.new
+
       assert_equal 'STDOUT', source[:log_file_name]
       assert_equal 'STDOUT', source[:log_file_path]
     end
@@ -121,24 +135,28 @@ module NewRelic::Agent::Configuration
     def test_set_value_from_environment_variable
       ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
       @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
+
       assert_equal 'super rad', @environment_source[:license_key]
     end
 
     def test_set_key_by_type_uses_the_default_type
       ENV['NEW_RELIC_TEST'] = 'true'
       @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
+
       assert @environment_source[:enabled]
     end
 
     def test_set_key_by_type_converts_comma_lists_to_array
       ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi,bye'
       @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
+
       assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
     def test_set_key_by_type_converts_comma_lists_with_spaces_to_array
       ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi, bye'
       @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
+
       assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
@@ -152,11 +170,13 @@ module NewRelic::Agent::Configuration
 
     def test_does_not_set_key_without_new_relic_related_prefix
       ENV['CONFIG_PATH'] = 'boom'
+
       refute_equal 'boom', EnvironmentSource.new[:config_path]
     end
 
     def test_convert_environment_key_to_config_key
       result = @environment_source.convert_environment_key_to_config_key('NEW_RELIC_IS_RAD')
+
       assert_equal :is_rad, result
     end
 
@@ -173,6 +193,7 @@ module NewRelic::Agent::Configuration
       keys.each { |key| ENV[key] = 'true' }
 
       result = @environment_source.collect_new_relic_environment_variable_keys
+
       assert_equal keys, result
     end
 
@@ -186,24 +207,28 @@ module NewRelic::Agent::Configuration
 
     def assert_applied_string(env_var, config_var)
       ENV[env_var] = 'test value'
+
       assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
 
     def assert_applied_symbol(env_var, config_var)
       ENV[env_var] = 'test value'
+
       assert_equal :'test value', EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
 
     def assert_applied_fixnum(env_var, config_var)
       ENV[env_var] = '3000'
+
       assert_equal 3000, EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
 
     def assert_applied_boolean(env_var, config_var)
       ENV[env_var] = 'true'
+
       assert EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end

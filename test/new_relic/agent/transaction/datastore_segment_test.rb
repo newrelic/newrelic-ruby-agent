@@ -24,11 +24,13 @@ module NewRelic
 
         def test_datastore_segment_name_with_collection
           segment = DatastoreSegment.new("SQLite", "insert", "Blog")
+
           assert_equal "Datastore/statement/SQLite/Blog/insert", segment.name
         end
 
         def test_datastore_segment_name_with_operation
           segment = DatastoreSegment.new("SQLite", "select")
+
           assert_equal "Datastore/operation/SQLite/select", segment.name
         end
 
@@ -205,6 +207,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_empty last_span_events
         end
 
@@ -224,6 +227,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_empty last_span_events
         end
 
@@ -260,6 +264,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_equal 2, last_span_events.size
           intrinsics, _, agent_attributes = last_span_events[0]
           root_span_event = last_span_events[1][0]
@@ -308,6 +313,7 @@ module NewRelic
             end
 
             last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
             assert_equal 2, last_span_events.size
             event = last_span_events[0][0]
 
@@ -336,10 +342,12 @@ module NewRelic
             end
 
             last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
             assert_equal 2, last_span_events.size
             _, _, agent_attributes = last_span_events[0]
 
             obfuscated_sql = "SELECT * FROM mytable WHERE super_secret=?"
+
             assert_equal obfuscated_sql, agent_attributes["db.statement"]
           end
         end
@@ -364,6 +372,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_equal 2, last_span_events.size
           _, _, agent_attributes = last_span_events[0]
 
@@ -555,6 +564,7 @@ module NewRelic
               assert_equal(2.0, duration)
             end
             segment.finish
+
             assert_equal("select * from blogs", segment.params[:sql].sql)
           end
         end
@@ -568,6 +578,7 @@ module NewRelic
               operation: "select"
             )
             segment.notice_sql("select * from blogs")
+
             assert_nil segment.sql_statement
             segment.finish
           end
@@ -582,6 +593,7 @@ module NewRelic
             )
             segment.record_sql = false
             segment.notice_sql("select * from blogs")
+
             assert_nil segment.sql_statement
             segment.finish
           end
@@ -625,6 +637,7 @@ module NewRelic
             )
             segment.notice_sql("select * from blogs where " + ("something is nothing" * 16_384))
             segment.finish
+
             assert_equal(16_384, segment.params[:sql].sql.length)
           end
         end
@@ -644,6 +657,7 @@ module NewRelic
               assert_equal(2.0, duration)
             end
             segment.finish
+
             assert_equal("select * from blogs", segment.params[:sql].sql)
           end
         end
@@ -659,6 +673,7 @@ module NewRelic
             advance_process_time(2.0)
 
             segment.finish
+
             assert_equal segment.params[:statement], statement
           end
         end
@@ -672,6 +687,7 @@ module NewRelic
               operation: "select"
             )
             segment.notice_nosql_statement("hgetall somehash")
+
             assert_nil segment.nosql_statement
             segment.finish
           end
@@ -681,6 +697,7 @@ module NewRelic
         def test_set_instance_info_with_valid_data
           segment = DatastoreSegment.new("SQLite", "select", nil)
           segment.set_instance_info('jonan.gummy_planet', 1337807)
+
           assert_equal 'jonan.gummy_planet', segment.host
           assert_equal '1337807', segment.port_path_or_id
         end
@@ -688,6 +705,7 @@ module NewRelic
         def test_set_instance_info_with_empty_host
           segment = DatastoreSegment.new("SQLite", "select", nil)
           segment.set_instance_info(nil, 1337807)
+
           assert_equal 'unknown', segment.host
           assert_equal '1337807', segment.port_path_or_id
         end
@@ -695,6 +713,7 @@ module NewRelic
         def test_set_instance_info_with_empty_port_path_or_id
           segment = DatastoreSegment.new("SQLite", "select", nil)
           segment.set_instance_info('jonan.gummy_planet', nil)
+
           assert_equal 'jonan.gummy_planet', segment.host
           assert_equal 'unknown', segment.port_path_or_id
         end
@@ -702,10 +721,12 @@ module NewRelic
         def test_set_instance_info_with_empty_data
           segment = DatastoreSegment.new("SQLite", "select", nil)
           segment.set_instance_info(nil, nil)
+
           assert_nil segment.host
           assert_nil segment.port_path_or_id
 
           segment.set_instance_info('', '')
+
           assert_nil segment.host
           assert_nil segment.port_path_or_id
         end
@@ -729,6 +750,7 @@ module NewRelic
 
           sample = last_transaction_trace
           node = find_node_with_name_matching(sample, /^Datastore/)
+
           assert_nil node.params[:backtrace]
         end
 
@@ -751,6 +773,7 @@ module NewRelic
 
           sample = last_transaction_trace
           node = find_node_with_name_matching(sample, /^Datastore/)
+
           refute_nil node.params[:backtrace]
         end
 
@@ -763,6 +786,7 @@ module NewRelic
             s.finish
           end
           node = find_last_transaction_node(last_transaction_trace)
+
           assert_equal orig_sql, node[:sql].sql
           assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
         end

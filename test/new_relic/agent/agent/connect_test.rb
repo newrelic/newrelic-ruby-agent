@@ -39,18 +39,22 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_should_connect_if_pending
     @connect_state = :pending
+
     assert(should_connect?, "should attempt to connect if pending")
   end
 
   def test_should_not_connect_if_disconnected
     @connect_state = :disconnected
+
     refute should_connect?, "should not attempt to connect if force disconnected"
   end
 
   def test_should_connect_if_forced
     @connect_state = :disconnected
+
     assert(should_connect?(true), "should connect if forced")
     @connect_state = :connected
+
     assert(should_connect?(true), "should connect if forced")
   end
 

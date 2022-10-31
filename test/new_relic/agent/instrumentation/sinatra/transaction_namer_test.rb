@@ -14,6 +14,7 @@ module NewRelic
             env = {"newrelic.last_route" => /^\/the_route$/}
             request = stub(:request_method => "GET")
             result = TransactionNamer.transaction_name_for_route(env, request)
+
             assert_equal "GET the_route", result
           end
 
@@ -30,6 +31,7 @@ module NewRelic
             env = {"newrelic.last_route" => /\A\/\z/}
             request = stub(:request_method => "GET")
             result = TransactionNamer.transaction_name_for_route(env, request)
+
             assert_equal "GET /", result
           end
 

@@ -45,6 +45,7 @@ class TransactionEventsTest < Minitest::Test
 
   def last_transaction_event
     post = last_transaction_event_post
+
     assert_equal(1, post.events.size)
     post.events.last
   end

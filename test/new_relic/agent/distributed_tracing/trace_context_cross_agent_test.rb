@@ -282,6 +282,7 @@ module NewRelic
 
           harvested_events = NewRelic::Agent.agent.span_event_aggregator.harvest!
           last_span_events = harvested_events[1]
+
           refute_empty last_span_events, "no span events harvested!"
 
           actual_intrinsics = last_span_events[0][0]

@@ -461,6 +461,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
         Order.first
       end
     end
+
     refute last_transaction_trace
     assert_metrics_recorded_exclusive([
       "Supportability/API/disable_all_tracing",
@@ -475,9 +476,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     sample = last_transaction_trace
     metric = "Datastore/statement/#{current_product}/Order/find"
     node = find_node_with_name(sample, metric)
+
     assert_equal(metric, node.metric_name)
 
     statement = node.params[:sql]
+
     assert_match(/^SELECT /, statement.sql)
 
     assert_match(statement.adapter.to_s, adapter.to_s)
@@ -514,6 +517,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
 
       metric = "Datastore/statement/#{current_product}/Order/find"
+
       refute_nil find_sql_trace(metric)
     end
   end

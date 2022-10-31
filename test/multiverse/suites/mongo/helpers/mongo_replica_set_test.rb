@@ -22,23 +22,27 @@ class MongoReplicaSetTest < Test::Unit::TestCase
 
   def test_start_starts_all_servers
     @replica.start
+
     assert_equal [true], @replica.servers.map(&:running?).uniq
   end
 
   def test_stop_stops_all_servers
     @replica.start
     @replica.stop
+
     assert_equal [false], @replica.servers.map(&:running?).uniq
   end
 
   def test_running_returns_true_for_started_replica_set
     @replica.start
+
     assert @replica.running?
   end
 
   def test_running_returns_false_for_stopped_replica_set
     @replica.start
     @replica.stop
+
     refute @replica.running?
   end
 
@@ -52,6 +56,7 @@ class MongoReplicaSetTest < Test::Unit::TestCase
   def test_config_returns_nil_unless_servers_are_running
     @replica.start
     @replica.stop
+
     refute @replica.config
   end
 
@@ -72,11 +77,13 @@ class MongoReplicaSetTest < Test::Unit::TestCase
 
   def test_server_connections_returns_the_hosts_and_ports_for_the_servers
     expected = ['localhost:27017', 'localhost:27018', 'localhost:27019']
+
     assert_equal expected, @replica.server_connections
   end
 
   def test_start_creates_a_replica_set_client_connection
     @replica.start
+
     assert @replica.client
   end
 end

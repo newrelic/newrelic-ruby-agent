@@ -93,6 +93,7 @@ module NewRelic
         with_server_source(:'error_collector.capture_events' => false) do
           generate_error
           errors = last_error_events
+
           assert_empty errors
         end
       end
@@ -105,6 +106,7 @@ module NewRelic
         with_server_source(config) do
           generate_error
           errors = last_error_events
+
           assert_empty errors
         end
       end

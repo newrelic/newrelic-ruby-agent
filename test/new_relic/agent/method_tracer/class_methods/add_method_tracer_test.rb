@@ -22,6 +22,7 @@ module NewRelic
 
             def test_newrelic_method_exists_positive
               self.expects(:method_defined?).returns(true)
+
               assert newrelic_method_exists?('test_method')
             end
 
@@ -45,11 +46,13 @@ module NewRelic
 
             def test_traced_method_exists_positive
               self._nr_traced_method_module.expects(:method_defined?).returns(true)
+
               assert method_traced?('test_method')
             end
 
             def test_traced_method_exists_negative
               self._nr_traced_method_module.expects(:method_defined?).returns(false)
+
               refute method_traced?('test_method')
             end
 

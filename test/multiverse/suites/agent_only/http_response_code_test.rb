@@ -14,6 +14,7 @@ class HttpResponseCodeTest < Minitest::Test
     $collector.stub_exception('metric_data', {'error_type' => 'RuntimeError', 'message' => 'too much'}, 413)
 
     NewRelic::Agent.increment_metric('Custom/too_big')
+
     assert_metrics_recorded(['Custom/too_big'])
 
     agent.send(:harvest_and_send_timeslice_data)
@@ -27,6 +28,7 @@ class HttpResponseCodeTest < Minitest::Test
     $collector.stub_exception('metric_data', {'error_type' => 'RuntimeError', 'message' => 'looks bad'}, 415)
 
     NewRelic::Agent.increment_metric('Custom/too_big')
+
     assert_metrics_recorded(['Custom/too_big'])
 
     agent.send(:harvest_and_send_timeslice_data)

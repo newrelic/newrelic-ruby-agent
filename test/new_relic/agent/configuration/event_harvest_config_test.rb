@@ -59,6 +59,7 @@ module NewRelic::Agent::Configuration
         :'application_logging.forwarding.max_samples_stored' => 833,
         :'event_report_period.log_event_data' => 5
       }
+
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
 
@@ -86,6 +87,7 @@ module NewRelic::Agent::Configuration
         :'application_logging.forwarding.max_samples_stored' => 833,
         :'event_report_period.log_event_data' => 5
       }
+
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
 
@@ -104,6 +106,7 @@ module NewRelic::Agent::Configuration
         :'event_report_period.log_event_data' => 5,
         :event_report_period => 5
       }
+
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
   end

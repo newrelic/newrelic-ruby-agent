@@ -23,6 +23,7 @@ class NewRelic::Control::ClassMethodsTest < Minitest::Test
   def test_instance
     assert_nil(@base.instance_variable_get(:@instance), 'instance should start out nil')
     @base.expects(:new_instance).returns('a new instance')
+
     assert_equal('a new instance', @base.instance, "should return the result from the #new_instance call")
   end
 

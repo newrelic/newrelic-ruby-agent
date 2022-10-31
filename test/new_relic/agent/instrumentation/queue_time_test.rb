@@ -17,16 +17,19 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
 
   def test_parse_frontend_timestamp_given_queue_start_header
     header = {'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60)}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_given_request_start_header
     header = {'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60)}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_given_middleware_start_header
     header = {'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60)}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
@@ -48,22 +51,26 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
 
   def test_parse_frontend_timestamp_from_header_in_seconds
     header = {'HTTP_X_QUEUE_START' => "t=#{Process.clock_gettime(Process::CLOCK_REALTIME) - 60}"}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_in_milliseconds
     header = {'HTTP_X_QUEUE_START' => "t=#{(Process.clock_gettime(Process::CLOCK_REALTIME) - 60) * 1_000}"}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_with_multiple_servers
     now = Process.clock_gettime(Process::CLOCK_REALTIME)
     header = {'HTTP_X_QUEUE_START' => "servera t=#{now - 60}, serverb t=#{now - 30}"}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_missing_t_equals
     header = {'HTTP_X_REQUEST_START' => (Process.clock_gettime(Process::CLOCK_REALTIME) - 60).to_s}
+
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
@@ -71,6 +78,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
     now = Process.clock_gettime(Process::CLOCK_REALTIME)
     the_future = now + 60
     header = {'HTTP_X_REQUEST_START' => the_future.to_s}
+
     assert_in_delta(now, QueueTime.parse_frontend_timestamp(header, now), 0.001)
   end
 
@@ -82,6 +90,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
 
   def test_parse_timestamp_can_identify_unit
     now = Process.clock_gettime(Process::CLOCK_REALTIME)
+
     assert_in_delta(now, QueueTime.parse_timestamp(now.to_s).to_f, 0.001)
     assert_in_delta(now, QueueTime.parse_timestamp((now * 1_000).to_s).to_f, 0.001)
     assert_in_delta(now, QueueTime.parse_timestamp((now * 1_000_000).to_s).to_f, 0.001)
@@ -99,6 +108,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
     stats_engine = NewRelic::Agent.instance.stats_engine
     stats_engine.clear_stats
     yield
+
     assert_in_delta(expected, stats_engine.get_stats(metric_name).total_call_time, delta)
   end
 end

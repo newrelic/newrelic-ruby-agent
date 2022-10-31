@@ -87,12 +87,14 @@ module NewRelic::Agent
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
       in_transaction("test_txn") do |txn|
         payload = DistributedTracePayload.for_transaction(txn)
+
         refute payload.sampled
       end
 
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
       in_transaction("test_txn2") do |txn|
         payload = DistributedTracePayload.for_transaction(txn)
+
         assert payload.sampled
       end
     end

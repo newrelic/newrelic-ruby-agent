@@ -29,6 +29,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           "request.parameters.title" => "blah",
           "request.parameters.file" => "[FILE]"
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -42,6 +43,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           "request.parameters.name" => "name",
           "request.parameters.password" => "mypass"
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end

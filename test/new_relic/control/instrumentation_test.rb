@@ -36,6 +36,7 @@ class NewRelic::Control::InstrumentationTest < Minitest::Test
     @test_class.instance_eval { @instrumented = false }
     @test_class.add_instrumentation(expected_pattern)
     result = @test_class.instance_variable_get(:@instrumentation_files)
+
     assert_equal [expected_pattern], result
   end
 end

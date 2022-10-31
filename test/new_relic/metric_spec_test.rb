@@ -18,26 +18,31 @@ class NewRelic::MetricSpecTest < Minitest::Test
   define_method(:'test_<=>') do
     s1 = NewRelic::MetricSpec.new('ActiveRecord')
     s2 = NewRelic::MetricSpec.new('Controller')
+
     assert_equal [s1, s2].sort, [s1, s2]
     assert_equal [s2, s1].sort, [s1, s2]
 
     s1 = NewRelic::MetricSpec.new('Controller', nil)
     s2 = NewRelic::MetricSpec.new('Controller', 'hap')
+
     assert_equal [s2, s1].sort, [s1, s2]
     assert_equal [s1, s2].sort, [s1, s2]
 
     s1 = NewRelic::MetricSpec.new('Controller', 'hap')
     s2 = NewRelic::MetricSpec.new('Controller', nil)
+
     assert_equal [s2, s1].sort, [s2, s1]
     assert_equal [s1, s2].sort, [s2, s1]
 
     s1 = NewRelic::MetricSpec.new('Controller')
     s2 = NewRelic::MetricSpec.new('Controller')
+
     assert_equal [s2, s1].sort, [s2, s1] # unchanged due to no sort criteria
     assert_equal [s1, s2].sort, [s1, s2] # unchanged due to no sort criteria
 
     s1 = NewRelic::MetricSpec.new('Controller', nil)
     s2 = NewRelic::MetricSpec.new('Controller', nil)
+
     assert_equal [s2, s1].sort, [s2, s1] # unchanged due to no sort criteria
     assert_equal [s1, s2].sort, [s1, s2] # unchanged due to no sort criteria
   end
@@ -71,6 +76,7 @@ class NewRelic::MetricSpecTest < Minitest::Test
     long_name = "a" * 300
     long_scope = "b" * 300
     spec = NewRelic::MetricSpec.new(long_name, long_scope)
+
     assert_equal("a" * 255, spec.name, "should have shortened the name")
     assert_equal("b" * 255, spec.scope, "should have shortened the scope")
   end

@@ -79,12 +79,14 @@ bazbangbarn:
 
   def assert_config_read_from(path, manual_config_options = {})
     setup_config(path, manual_config_options)
+
     assert_equal("success!!", NewRelic::Agent.config[:foo],
       "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}")
   end
 
   def assert_config_not_read_from(path)
     setup_config(path)
+
     refute_equal NewRelic::Agent.config[:foo], "success!!",
       "Read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
   end
@@ -107,6 +109,7 @@ bazbangbarn:
 
   def test_config_loads_from_config_path_option_to_manual_start
     path = File.join(@cwd, 'otherplace', 'newrelic.yml')
+
     assert_config_read_from(path, :config_path => path)
   end
 
@@ -190,6 +193,7 @@ boom:
 
   def test_config_loads_from_env_NRCONFIG
     ENV["NRCONFIG"] = "/tmp/foo/bar.yml"
+
     assert_config_read_from("/tmp/foo/bar.yml")
   ensure
     ENV["NRCONFIG"] = nil
@@ -205,6 +209,7 @@ boom:
     # pass an env key to NewRelic::Agent.manual_start which should cause it to
     # load that section of newrelic.yml
     setup_config(path, {:env => 'bazbangbarn'})
+
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
   end
 
@@ -232,12 +237,14 @@ bazbangbarn:
     setup_agent
 
     log = with_array_logger { NewRelic::Agent.manual_start }
+
     assert_equal 'success!!', NewRelic::Agent.config[:foo]
   end
 
   def refute_log_contains(log, message)
     lines = log.array
     failure_message = "Found unexpected '#{message}' in log. Log contained:\n#{lines.join('')}"
+
     refute (lines.any? { |line| line.match(message) }), failure_message
   end
 end

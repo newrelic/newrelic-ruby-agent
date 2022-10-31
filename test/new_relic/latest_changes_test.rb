@@ -8,12 +8,14 @@ module NewRelic
   class LatestChangesTest < MiniTest::Test
     def test_read_default_changelog
       result = NewRelic::LatestChanges.read
+
       assert_match(/# New Relic Ruby Agent Release Notes #/, result)
       assert_match(/## v\d\.\d{1,2}\.\d{1,2}/, result)
     end
 
     def test_latest_changes_from_fakechangelog
       result = NewRelic::LatestChanges.read(File.join(File.dirname(__FILE__), 'FAKECHANGELOG'))
+
       assert_match(/3.7.2/, result)
     end
 

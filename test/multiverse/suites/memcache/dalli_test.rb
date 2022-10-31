@@ -46,6 +46,7 @@ if defined?(Dalli)
           end
           trace = last_transaction_trace
           segment = find_node_with_name(trace, 'Datastore/operation/Memcached/get_multi_request')
+
           assert_equal "get_multi_request [\"#{key}\"]", segment[:statement]
         end
       end

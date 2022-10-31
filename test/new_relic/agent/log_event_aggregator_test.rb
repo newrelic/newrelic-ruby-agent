@@ -173,6 +173,7 @@ module NewRelic::Agent
         end
 
         metadata, results = @aggregator.harvest!
+
         assert_equal(n, metadata[:events_seen])
         assert_equal(max_samples, metadata[:reservoir_size])
         assert_equal(max_samples, results.size)
@@ -190,6 +191,7 @@ module NewRelic::Agent
         end
 
         metadata, results = @aggregator.harvest!
+
         assert_equal(n, metadata[:events_seen])
         assert_equal(max_samples, metadata[:reservoir_size])
         assert_equal(max_samples, results.size)
@@ -269,6 +271,7 @@ module NewRelic::Agent
       smaller_count = original_count - 10
       with_config(CAPACITY_KEY => smaller_count) do
         metadata, results = @aggregator.harvest!
+
         assert_equal(smaller_count, metadata[:reservoir_size])
         assert_equal(original_count, metadata[:events_seen])
         assert_equal(smaller_count, results.size)
@@ -431,12 +434,14 @@ module NewRelic::Agent
     def test_does_not_record_if_message_is_nil
       @aggregator.record(nil, "DEBUG")
       _, events = @aggregator.harvest!
+
       assert_empty events
     end
 
     def test_does_not_record_if_message_empty_string
       @aggregator.record('', "DEBUG")
       _, events = @aggregator.harvest!
+
       assert_empty events
     end
   end

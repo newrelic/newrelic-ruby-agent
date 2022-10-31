@@ -18,12 +18,14 @@ module NewRelic
       def test_statement_metric_for
         expected = "Datastore/statement/JonanDB/wiggles/select"
         result = Datastores::MetricHelper.statement_metric_for(@product, @collection, @operation)
+
         assert_equal expected, result
       end
 
       def test_operation_metric_for
         expected = "Datastore/operation/JonanDB/select"
         result = Datastores::MetricHelper.operation_metric_for(@product, @operation)
+
         assert_equal expected, result
       end
 
@@ -32,6 +34,7 @@ module NewRelic
         port = "1337807"
         expected = "Datastore/instance/JonanDB/#{host}/#{port}"
         result = Datastores::MetricHelper.instance_metric_for(@product, host, port)
+
         assert_equal expected, result
       end
 
@@ -47,6 +50,7 @@ module NewRelic
         ]
 
         result = Datastores::MetricHelper.metrics_for(@product, @operation, @collection)
+
         assert_equal expected, result
       end
 
@@ -62,18 +66,21 @@ module NewRelic
         ]
 
         result = Datastores::MetricHelper.metrics_for(@product, @operation, @collection)
+
         assert_equal expected, result
       end
 
       def test_scoped_metric_for_with_collection
         expected = "Datastore/statement/JonanDB/wiggles/select"
         result = Datastores::MetricHelper.scoped_metric_for(@product, @operation, @collection)
+
         assert_equal expected, result
       end
 
       def test_scoped_metric_for_without_collection
         expected = "Datastore/operation/JonanDB/select"
         result = Datastores::MetricHelper.scoped_metric_for(@product, @operation)
+
         assert_equal expected, result
       end
 
@@ -88,6 +95,7 @@ module NewRelic
         ]
 
         result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, @collection)
+
         assert_equal expected, result
       end
 
@@ -102,6 +110,7 @@ module NewRelic
         ]
 
         result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, @collection)
+
         assert_equal expected, result
       end
 
@@ -115,6 +124,7 @@ module NewRelic
         ]
 
         result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation)
+
         assert_equal expected, result
       end
 
@@ -129,6 +139,7 @@ module NewRelic
         ]
 
         result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost", "1337807")
+
         assert_equal expected, result
       end
 
@@ -143,6 +154,7 @@ module NewRelic
           ]
 
           result = Datastores::MetricHelper.unscoped_metrics_for(@product, @operation, nil, "localhost/1337807")
+
           assert_equal expected, result
         end
       end
@@ -152,6 +164,7 @@ module NewRelic
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
             result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
             expected = [@product, "new_method", "Model"]
+
             assert_equal expected, result
           end
         end
@@ -162,6 +175,7 @@ module NewRelic
           NewRelic::Agent.with_database_metric_name("Model", nil) do
             result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
             expected = [@product, "original_method", "Model"]
+
             assert_equal expected, result
           end
         end
@@ -172,6 +186,7 @@ module NewRelic
           NewRelic::Agent.with_database_metric_name("Model", "new_method", "FauxDB") do
             result = Datastores::MetricHelper.product_operation_collection_for(@product, "original_method")
             expected = [@product, "original_method", nil]
+
             assert_equal expected, result
           end
         end
@@ -182,6 +197,7 @@ module NewRelic
           NewRelic::Agent.with_database_metric_name("Model", "new_method") do
             result = Datastores::MetricHelper.product_operation_collection_for("MoreSpecificDB", "original_method", nil, @product)
             expected = %w[MoreSpecificDB new_method Model]
+
             assert_equal expected, result
           end
         end
@@ -190,12 +206,14 @@ module NewRelic
       def test_operation_from_sql
         sql = "SELECT * FROM blogs where id = 5"
         operation = Datastores::MetricHelper.operation_from_sql(sql)
+
         assert_equal "select", operation
       end
 
       def test_operation_from_sql_returns_other_for_unrecognized_operation
         sql = "DESCRIBE blogs"
         operation = Datastores::MetricHelper.operation_from_sql(sql)
+
         assert_equal "Other", operation
       end
     end

@@ -58,17 +58,20 @@ class ResqueTest < Minitest::Test
 
   def test_all_jobs_ran
     run_jobs
+
     assert_equal(JOB_COUNT, JobForTesting.count)
   end
 
   def test_agent_posts_correct_metric_data
     run_jobs
+
     assert_metric_and_call_count('Instance/Busy', 1)
     assert_metric_and_call_count('OtherTransaction/ResqueJob/all', JOB_COUNT)
   end
 
   def test_agent_still_running_after_inline_job
     run_jobs
+
     assert NewRelic::Agent.instance.started?
   end
 
@@ -76,6 +79,7 @@ class ResqueTest < Minitest::Test
     stub_for_span_collection
 
     run_jobs
+
     refute_attributes_on_transaction_traces
     refute_attributes_on_events
   end
@@ -114,16 +118,20 @@ class ResqueTest < Minitest::Test
 
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
+
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
+
     assert(metric, "could not find metric named #{name}")
 
     call_count = metric[1][0]
+
     assert_equal(expected_call_count, call_count, "expected #{expected_call_count} calls but got #{call_count}")
   end
 
   def assert_attributes_on_transaction_traces
     transaction_samples = $collector.calls_for('transaction_sample_data')
+
     assert_false transaction_samples.empty?
 
     transaction_samples.each do |post|
@@ -136,6 +144,7 @@ class ResqueTest < Minitest::Test
 
   def refute_attributes_on_transaction_traces
     transaction_samples = $collector.calls_for('transaction_sample_data')
+
     assert_false transaction_samples.empty?
 
     transaction_samples.each do |post|

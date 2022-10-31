@@ -153,11 +153,13 @@ module NewRelic
           routing_key: "red"
         ) do
           txn = NewRelic::Agent::Tracer.current_transaction
+
           assert_equal 'OtherTransaction/Message/AwesomeBunniez/Exchange/Named/Default', txn.best_name
           tap.tap
         end
 
         txn = last_transaction_trace
+
         assert txn.finished, "Expected transaction to be finished"
       end
 
@@ -176,6 +178,7 @@ module NewRelic
         ) { tap.tap }
 
         transaction_event = last_transaction_event
+
         assert Array === transaction_event, "expected Array, actual: #{transaction_event.class}"
         assert_equal 3, transaction_event.length, "expected Array of 3 elements, actual: #{transaction_event.length}"
         # rubocop:disable Performance/RedundantEqualityComparisonBlock
@@ -185,6 +188,7 @@ module NewRelic
         assert_equal "red", transaction_event[2][:'message.routingKey']
 
         span_event = last_span_event
+
         assert span_event[2].key?(:'message.routingKey'), "expected span event attributes to have key :'message.routingKey', actual: #{span_event[2].keys.join(',')}"
         assert_equal "red", span_event[2][:'message.routingKey']
       end
@@ -203,6 +207,7 @@ module NewRelic
           ) { tap.tap }
 
           event = last_transaction_event
+
           assert_equal "foo", event[2][:"message.headers.token"], "Expected header attributes to be added, actual attributes: #{event[2]}"
         end
       end
@@ -221,6 +226,7 @@ module NewRelic
           ) { tap.tap }
 
           event = last_transaction_event
+
           refute event[2].has_key?(:"message.headers.NewRelicID"), "Expected CAT headers to be omitted from message attributes"
         end
       end
@@ -238,6 +244,7 @@ module NewRelic
         ) { tap.tap }
 
         event = last_transaction_event
+
         refute event[2].has_key?(:"message.headers.token"), "Expected header attributes not to be added"
       end
 
@@ -262,9 +269,11 @@ module NewRelic
         end
 
         transaction_event = last_transaction_event
+
         assert_nil transaction_event[2][:"message.routingKey"]
 
         span_event = last_span_event
+
         assert_nil span_event[2][:"message.routingKey"]
       end
 
@@ -324,6 +333,7 @@ module NewRelic
           destination_name: "Default",
           headers: {}
         )
+
         refute segment.params[:headers], "expected no :headers key in segment params"
       end
 
@@ -334,6 +344,7 @@ module NewRelic
           delivery_info: {routing_key: "foo", exchange_name: "bar"},
           message_properties: {headers: {}}
         )
+
         refute segment.params[:headers], "expected no :headers key in segment params"
       end
 
@@ -344,6 +355,7 @@ module NewRelic
           delivery_info: {routing_key: "foo", exchange_name: "bar"},
           message_properties: {headers: {'hi' => 'there', 'NewRelicID' => '123#456', 'NewRelicTransaction' => 'abcdef'}}
         )
+
         refute segment.params[:headers].key?('NewRelicID'), "expected segment params to not have CAT header 'NewRelicID'"
         refute segment.params[:headers].key?('NewRelicTransaction'), "expected segment params to not have CAT header 'NewRelicTransaction'"
         assert segment.params[:headers].key?('hi'), "expected segment params to have application defined headers"
@@ -357,6 +369,7 @@ module NewRelic
           delivery_info: {routing_key: "foo", exchange_name: "bar"},
           message_properties: {headers: {'hi' => 'there', 'NewRelicSynthetics' => 'abcdef12345'}}
         )
+
         refute segment.params[:headers].key?('NewRelicSynthetics'), "expected segment params to not have Synthetics header"
         assert segment.params[:headers].key?('hi'), "expected segment params to have application defined headers"
         assert_equal 'there', segment.params[:headers]['hi']
@@ -369,6 +382,7 @@ module NewRelic
           delivery_info: {routing_key: "foo", exchange_name: "bar"},
           message_properties: {headers: {'NewRelicID' => '123#456', 'NewRelicTransaction' => 'abcdef', 'NewRelicSynthetics' => 'qwerasdfzxcv'}}
         )
+
         refute segment.params[:headers], "expected no :headers key in segment params"
       end
 
@@ -390,6 +404,7 @@ module NewRelic
           ) { tap.tap }
 
           transaction_event = last_transaction_event
+
           assert_equal "blue", transaction_event[2][:'message.routingKey']
           assert_equal "reply.key", transaction_event[2][:'message.replyTo']
           assert_equal "correlate", transaction_event[2][:'message.correlationId']
@@ -399,6 +414,7 @@ module NewRelic
           refute transaction_event[2].has_key?(:'message.headers.NewRelicID')
 
           span_event = last_span_event
+
           assert_equal "blue", span_event[2][:'message.routingKey']
           assert_equal "reply.key", span_event[2][:'message.replyTo']
           assert_equal "correlate", span_event[2][:'message.correlationId']
@@ -456,6 +472,7 @@ module NewRelic
           ) do
             txn = NewRelic::Agent::Tracer.current_transaction
             payload = txn.distributed_tracer.cross_app_payload
+
             assert_equal cross_process_id, payload.id
             assert_equal payload.referring_guid, raw_txn_info[0]
             assert_equal payload.referring_trip_id, raw_txn_info[2]

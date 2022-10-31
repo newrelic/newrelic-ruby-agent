@@ -93,6 +93,7 @@ module NewRelic
         _, _, agent_attrs = create_event(:error_options => {:attributes => attributes})
 
         expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
+
         assert_equal expected, agent_attrs
       end
 

@@ -29,12 +29,14 @@ if RUBY_VERSION >= '2.7.0'
       setup
       reporter = TestTimeReporter.new
       reporter.record(result)
+
       assert_equal([PARSED_RESULT], reporter.instance_variable_get(:@test_times))
     end
 
     def test_report_prints_outside_multiverse
       setup
       ::Multiverse.send(:remove_const, :ROOT)
+
       refute(defined?(::Multiverse::ROOT), 'Multiverse::ROOT is defined.')
       @reporter.instance_variable_set(:@test_times, [PARSED_RESULT])
       assert_output(/Ten slowest tests/) { @reporter.report }
@@ -53,6 +55,7 @@ if RUBY_VERSION >= '2.7.0'
       setup
       TestTimeReporter.stub_const(:TEST_TIME_REPORT, time_report) do
         @reporter.report
+
         assert_match(/#{result.instance_variable_get(:@NAME)}/, File.read(time_report))
       end
       File.delete(time_report)

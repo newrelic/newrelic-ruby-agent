@@ -133,9 +133,11 @@ RUBY
 
   def assert_runs_without_errors(command)
     output = `#{command}`
+
     assert_equal 0, $?.exitstatus
 
     problems = output.scan(/ERROR : .*/)
+
     assert_empty problems
   end
 

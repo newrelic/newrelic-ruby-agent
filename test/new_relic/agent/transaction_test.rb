@@ -98,29 +98,35 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.apdex_start = 1000
         txn.start_time = 1500
+
         assert_equal 500, txn.queue_time
       end
     end
 
     def test_apdex_bucket_counts_errors_as_frustrating
       bucket = Transaction.apdex_bucket(0.1, true, 2)
+
       assert_equal(:apdex_f, bucket)
     end
 
     def test_apdex_bucket_counts_values_under_apdex_t_as_satisfying
       bucket = Transaction.apdex_bucket(0.5, false, 1)
+
       assert_equal(:apdex_s, bucket)
     end
 
     def test_apdex_bucket_counts_values_of_1_to_4x_apdex_t_as_tolerating
       bucket = Transaction.apdex_bucket(1.01, false, 1)
+
       assert_equal(:apdex_t, bucket)
       bucket = Transaction.apdex_bucket(3.99, false, 1)
+
       assert_equal(:apdex_t, bucket)
     end
 
     def test_apdex_bucket_count_values_over_4x_apdex_t_as_frustrating
       bucket = Transaction.apdex_bucket(4.01, false, 1)
+
       assert_equal(:apdex_f, bucket)
     end
 
@@ -254,6 +260,7 @@ module NewRelic::Agent
       end
 
       expected = {:min_call_time => 2.5, :max_call_time => 2.5}
+
       assert_metrics_recorded(
         'ApdexAll' => expected,
         'Apdex' => expected,
@@ -350,6 +357,7 @@ module NewRelic::Agent
     def test_set_default_transaction_name_without_category
       in_transaction('foo', :category => :controller) do |txn|
         Transaction.set_default_transaction_name('bar')
+
         assert_equal("Controller/bar", txn.best_name)
       end
     end
@@ -357,6 +365,7 @@ module NewRelic::Agent
     def test_set_default_transaction_name_with_category
       in_transaction('foo', :category => :controller) do |txn|
         Transaction.set_default_transaction_name('bar', :rack)
+
         assert_equal("Controller/Rack/bar", txn.best_name)
       end
     end
@@ -379,6 +388,7 @@ module NewRelic::Agent
       with_transaction_renaming_rules(rules) do
         in_transaction('Controller/foo/1/bar/22') do |txn|
           Transaction.tl_current.freeze_name_and_execute_if_not_ignored
+
           assert_equal 'Controller/foo/*/bar/*', txn.best_name
         end
       end
@@ -512,12 +522,15 @@ module NewRelic::Agent
 
       with_config(:apdex_t => 1.0) do
         in_web_transaction { advance_process_time(0.5) }
+
         assert_equal('S', apdex)
 
         in_web_transaction { advance_process_time(1.5) }
+
         assert_equal('T', apdex)
 
         in_web_transaction { advance_process_time(4.5) }
+
         assert_equal('F', apdex)
       end
     end
@@ -532,6 +545,7 @@ module NewRelic::Agent
 
       with_config(:apdex_t => 1.0) do
         in_background_transaction { advance_process_time(0.5) }
+
         assert_nil apdex
       end
     end
@@ -549,12 +563,15 @@ module NewRelic::Agent
 
       with_config(:apdex_t => 1.0, :web_transactions_apdex => key_transactions) do
         in_background_transaction(txn_name) { advance_process_time(0.5) }
+
         assert_equal('S', apdex)
 
         in_background_transaction(txn_name) { advance_process_time(1.5) }
+
         assert_equal('T', apdex)
 
         in_background_transaction(txn_name) { advance_process_time(4.5) }
+
         assert_equal('F', apdex)
       end
     end
@@ -611,6 +628,7 @@ module NewRelic::Agent
     def test_is_not_synthetic_request_without_payload
       in_transaction do |txn|
         txn.raw_synthetics_header = ""
+
         refute txn.is_synthetics_request?
       end
     end
@@ -618,6 +636,7 @@ module NewRelic::Agent
     def test_is_not_synthetic_request_without_header
       in_transaction do |txn|
         txn.synthetics_payload = [1, 2, 3, 4, 5]
+
         refute txn.is_synthetics_request?
       end
     end
@@ -626,6 +645,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.raw_synthetics_header = ""
         txn.synthetics_payload = [1, 2, 3, 4, 5]
+
         assert txn.is_synthetics_request?
       end
     end
@@ -687,6 +707,7 @@ module NewRelic::Agent
       with_config(:high_security => true) do
         in_transaction do |txn|
           NewRelic::Agent.add_custom_attributes(:failure => "is an option")
+
           assert_empty attributes_for(txn, :custom)
         end
       end
@@ -695,6 +716,7 @@ module NewRelic::Agent
     def test_notice_error_in_current_transaction_saves_it_for_finishing
       in_transaction('failing') do |txn|
         Transaction.notice_error("")
+
         assert_equal 1, txn.exceptions.count
       end
     end
@@ -705,6 +727,7 @@ module NewRelic::Agent
       end
       errors = harvest_error_traces!
       error = errors.first
+
       assert_equal txn.attributes, error.attributes
     end
 
@@ -714,6 +737,7 @@ module NewRelic::Agent
       end
       Transaction.notice_error("")
       errors = harvest_error_traces!
+
       assert_equal 1, errors.count
     end
 
@@ -721,6 +745,7 @@ module NewRelic::Agent
       cleanup_transaction
       Transaction.notice_error("")
       errors = harvest_error_traces!
+
       assert_equal 1, errors.count
     end
 
@@ -731,15 +756,18 @@ module NewRelic::Agent
       end
 
       errors = harvest_error_traces!
+
       assert_equal 1, errors.count
 
       error = errors.first
+
       assert_equal "/here", error.request_uri
     end
 
     def test_notice_error_sets_expected_attribute
       Transaction.notice_error(RuntimeError.new, expected: true)
       errors = harvest_error_traces!
+
       assert errors.first.expected, "Error should have had expected attribute set"
     end
 
@@ -749,6 +777,7 @@ module NewRelic::Agent
       end
 
       errors = harvest_error_traces!
+
       assert errors.first.expected, "Error should have had expected attribute set"
     end
 
@@ -756,6 +785,7 @@ module NewRelic::Agent
       Transaction.notice_error(RuntimeError.new, expected: true)
 
       error_event = last_error_event
+
       refute error_event[0].has_key?("spanId"), "Did not expect spanId intrinsic attribute"
     end
 
@@ -767,6 +797,7 @@ module NewRelic::Agent
       end
 
       error_event = last_error_event
+
       assert_equal span_id, error_event[0]["spanId"]
     end
 
@@ -808,6 +839,7 @@ module NewRelic::Agent
       end
 
       trace = txn.transaction_trace
+
       assert_equal(42, attributes_for(trace, :intrinsic)[:gc_time])
     end
 
@@ -841,6 +873,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.instance_variable_set(:@process_cpu_start, 3)
         txn.stubs(:process_cpu).returns(4)
+
         assert_equal 1, txn.normal_cpu_burn
       end
     end
@@ -849,6 +882,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.instance_variable_set(:@process_cpu_start, nil)
         txn.expects(:process_cpu).never
+
         assert_nil txn.normal_cpu_burn
       end
     end
@@ -857,6 +891,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.instance_variable_set(:@jruby_cpu_start, nil)
         txn.expects(:jruby_cpu_time).never
+
         assert_nil txn.jruby_cpu_burn
       end
     end
@@ -874,6 +909,7 @@ module NewRelic::Agent
           bean = mock(:getCurrentThreadUserTime => -1)
           bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+
           assert_equal 0.0, txn.send(:jruby_cpu_time)
         end
       end
@@ -886,6 +922,7 @@ module NewRelic::Agent
           bean = stub(:getCurrentThreadUserTime => java_utime)
           bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+
           assert_equal java_utime / 1e9, txn.send(:jruby_cpu_time)
         end
       end
@@ -960,6 +997,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.stubs(:normal_cpu_burn).returns(1)
         txn.expects(:jruby_cpu_burn).never
+
         assert_equal 1, txn.cpu_burn
       end
     end
@@ -968,6 +1006,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.stubs(:normal_cpu_burn).returns(nil)
         txn.stubs(:jruby_cpu_burn).returns(2)
+
         assert_equal 2, txn.cpu_burn
       end
     end
@@ -1009,6 +1048,7 @@ module NewRelic::Agent
     def test_ignored_returns_true_for_an_ignored_transaction
       in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore!
+
         assert txn.ignore?
       end
     end
@@ -1016,6 +1056,7 @@ module NewRelic::Agent
     def test_ignore_apdex_returns_true_if_apdex_is_ignored
       in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore_apdex!
+
         assert txn.ignore_apdex?
       end
     end
@@ -1029,6 +1070,7 @@ module NewRelic::Agent
     def test_ignore_enduser_returns_true_if_enduser_is_ignored
       in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore_enduser!
+
         assert txn.ignore_enduser?
       end
     end
@@ -1105,6 +1147,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         e0 = error_class.new('err')
         e1 = error_class.new('err')
+
         assert_equal(e0, e1)
         txn.notice_error(e0)
         txn.notice_error(e1)
@@ -1153,6 +1196,7 @@ module NewRelic::Agent
       with_config(:rules => {:ignore_url_regexes => [rule]}) do
         in_transaction do |txn|
           txn.stubs(:request_path).returns(rule + '/path')
+
           assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
         end
       end
@@ -1162,6 +1206,7 @@ module NewRelic::Agent
       with_config(:rules => {:ignore_url_regexes => ['notempty']}) do
         in_transaction do |txn|
           txn.stubs(:uri).returns('http://foo bar.com')
+
           refute txn.user_defined_rules_ignore?
         end
       end
@@ -1179,6 +1224,7 @@ module NewRelic::Agent
       in_transaction('boo') do
         # nothing
       end
+
       assert_metrics_not_recorded(['WebFrontend/QueueTime'])
     end
 
@@ -1188,6 +1234,7 @@ module NewRelic::Agent
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
+
       assert_metrics_recorded('WebFrontend/QueueTime' => {:call_count => 1, :total_call_time => 10.0})
       assert_metrics_not_recorded(
         [['WebFrontend/QueueTime', 'boo']]
@@ -1200,6 +1247,7 @@ module NewRelic::Agent
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
+
       assert_metrics_not_recorded(['WebFrontend/QueueTime'])
     end
 
@@ -1234,6 +1282,7 @@ module NewRelic::Agent
 
       in_transaction('test', :category => web_category) do |txn|
         frame = stub(:category => :other)
+
         refute txn.similar_category?(frame)
       end
     end
@@ -1241,6 +1290,7 @@ module NewRelic::Agent
     def test_similar_category_returns_true_with_nonweb_categories
       in_transaction('test', :category => :other) do |txn|
         frame = stub(:category => :other)
+
         assert txn.similar_category?(frame)
       end
     end
@@ -1260,6 +1310,7 @@ module NewRelic::Agent
     def test_instrumentation_state
       in_transaction do |txn|
         txn.instrumentation_state[:a] = 42
+
         assert_equal(42, txn.instrumentation_state[:a])
       end
     end
@@ -1269,6 +1320,7 @@ module NewRelic::Agent
         in_transaction do |txn|
           NewRelic::Agent.add_custom_attributes(:foo => "bar")
           actual = txn.attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
           assert_equal({"foo" => "bar"}, actual)
         end
       end
@@ -1279,6 +1331,7 @@ module NewRelic::Agent
         in_transaction do |txn|
           txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
           actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
           assert_equal({:foo => "bar"}, actual)
         end
       end
@@ -1289,6 +1342,7 @@ module NewRelic::Agent
         in_transaction do |txn|
           Transaction.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
           actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
           assert_equal({:foo => "bar"}, actual)
         end
       end
@@ -1304,6 +1358,7 @@ module NewRelic::Agent
         txn.attributes.add_intrinsic_attribute(:foo, "bar")
 
         actual = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
         assert_equal({:foo => "bar"}, actual)
       end
     end
@@ -1316,6 +1371,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal 100, result[:synthetics_resource_id]
       assert_equal 200, result[:synthetics_job_id]
       assert_equal 300, result[:synthetics_monitor_id]
@@ -1327,6 +1383,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal 10.0, result[:gc_time]
     end
 
@@ -1343,6 +1400,7 @@ module NewRelic::Agent
         end
 
         result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
         assert_equal 'PDX-NRT', result[:trip_id]
       end
     end
@@ -1355,6 +1413,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal priority, result[:priority]
     end
 
@@ -1366,6 +1425,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_nil result[:trip_id]
     end
 
@@ -1379,6 +1439,7 @@ module NewRelic::Agent
         end
 
         result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
         assert_equal path_hash, result[:path_hash]
       end
     end
@@ -1390,6 +1451,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_nil result[:synthetics_resource_id]
       assert_nil result[:synthetics_job_id]
       assert_nil result[:synthetics_monitor_id]
@@ -1401,6 +1463,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal 22.0, result[:cpu_time]
     end
 
@@ -1411,6 +1474,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal "bar", actual['request.parameters.foo']
     end
 
@@ -1423,6 +1487,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal "bar", actual['request.parameters.foo']
       assert_equal "qux", actual['request.parameters.bar']
     end
@@ -1437,6 +1502,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_empty actual
     end
 
@@ -1446,6 +1512,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_equal 418, actual[:"http.statusCode"]
     end
 
@@ -1462,6 +1529,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR)
+
       assert_equal "/referred", actual[:'request.headers.referer']
     end
 
@@ -1471,6 +1539,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       refute_includes actual, :'request.headers.referer'
     end
 
@@ -1585,6 +1654,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         with_config(config) do
           txn.stubs(:apdex_t).returns(1.5)
+
           assert_equal 4.0, txn.threshold
         end
       end
@@ -1615,6 +1685,7 @@ module NewRelic::Agent
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do
           NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+
           assert_equal 1, Transaction.tl_current.logs.size
         end
       end
@@ -1631,11 +1702,13 @@ module NewRelic::Agent
 
           NewRelic::Agent.agent.log_event_aggregator.reset!
           NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+
           assert_equal 1, Transaction.tl_current.logs.size
         end
       end
 
       _, items = NewRelic::Agent.agent.log_event_aggregator.harvest!
+
       assert_empty items
     end
 
@@ -1651,6 +1724,7 @@ module NewRelic::Agent
           100.times do
             NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
           end
+
           assert_equal limit, Transaction.tl_current.logs.size
         end
       end

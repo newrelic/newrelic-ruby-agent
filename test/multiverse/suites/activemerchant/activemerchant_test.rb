@@ -71,6 +71,7 @@ class ActiveMerchantTest < Minitest::Test
     rescue StandardError => e
       # NOP -- allowing span and transaction to notice error
     end
+
     assert_segment_noticed_error txn, /ActiveMerchant\/gateway/, expected_error_class, /whoops/i
     assert_transaction_noticed_error txn, expected_error_class
   end
@@ -103,6 +104,7 @@ class ActiveMerchantTest < Minitest::Test
 
       gateway.send(operation, *args)
     end
+
     assert_metrics_recorded([
       ["ActiveMerchant/gateway/BogusGateway/#{operation}", "txn"],
       "ActiveMerchant/gateway/BogusGateway",

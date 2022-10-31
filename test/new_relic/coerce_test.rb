@@ -61,6 +61,7 @@ class CoerceTest < Minitest::Test
     expects_logging(:warn, all_of(includes("TestingInfinity"), includes("Float"), includes("'Infinity'")), anything)
     infinity = 1337807.0 / 0.0
     result = float(infinity, "TestingInfinity")
+
     assert_equal 0.0, result
   end
 
@@ -68,6 +69,7 @@ class CoerceTest < Minitest::Test
     expects_logging(:warn, all_of(includes("TestingNaN"), includes("Float"), includes("'NaN'")), anything)
     nan = 0.0 / 0.0
     result = float(nan, "TestingNaN")
+
     assert_equal 0.0, result
   end
 

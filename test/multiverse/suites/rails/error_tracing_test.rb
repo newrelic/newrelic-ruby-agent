@@ -107,21 +107,25 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_capture_routing_error
     get('/bad_route')
+
     assert_error_reported_once('this is an uncaught routing error', nil, nil)
   end
 
   def test_should_capture_errors_raised_in_middleware_before_call
     get('/error/middleware_error/before')
+
     assert_error_reported_once('middleware error', nil, nil)
   end
 
   def test_should_capture_errors_raised_in_middleware_after_call
     get('/error/middleware_error/after')
+
     assert_error_reported_once('middleware error', nil, nil)
   end
 
   def test_should_capture_request_uri_and_params
     get('/error/controller_error?eat=static')
+
     assert_equal('/error/controller_error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
 
     expected_params = {
@@ -137,36 +141,42 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_capture_error_raised_in_view
     get('/error/view_error')
+
     assert_equal 1, errors.size
     assert_includes ['this is an uncaught view error', 'ActionView::Template::Error'], errors[0].message
   end
 
   def test_should_capture_error_raised_in_controller
     get('/error/controller_error')
+
     assert_error_reported_once('this is an uncaught controller error',
       'Controller/error/controller_error')
   end
 
   def test_should_capture_error_raised_in_model
     get('/error/model_error')
+
     assert_error_reported_once('this is an uncaught model error',
       'Controller/error/model_error')
   end
 
   def test_should_capture_noticed_error_in_controller
     get('/error/noticed_error')
+
     assert_error_reported_once('this error should be noticed',
       'Controller/error/noticed_error')
   end
 
   def test_should_capture_frozen_errors
     get('/error/frozen_error')
+
     assert_error_reported_once("frozen errors make a refreshing treat on a hot summer day",
       "Controller/error/frozen_error")
   end
 
   def test_should_capture_string_noticed_errors
     get('/error/string_noticed_error')
+
     assert_error_reported_once("trilobites died out millions of years ago",
       "Controller/error/string_noticed_error")
   end
@@ -185,12 +195,14 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_capture_manually_noticed_error
     NewRelic::Agent.notice_error(RuntimeError.new('this is a noticed error'))
+
     assert_error_reported_once('this is a noticed error', nil, nil)
   end
 
   def test_should_apply_parameter_filtering
     get('/error/controller_error?secret=shouldnotbecaptured&other=whatever')
     attributes = agent_attributes_for_single_error_posted
+
     assert_equal('[FILTERED]', attributes['request.parameters.secret'])
     assert_equal('whatever', attributes['request.parameters.other'])
   end
@@ -198,24 +210,28 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_apply_parameter_filtering_for_non_standard_errors
     get('/error/exception_error?secret=shouldnotbecaptured&other=whatever')
     attributes = agent_attributes_for_single_error_posted
+
     assert_equal('[FILTERED]', attributes['request.parameters.secret'])
     assert_equal('whatever', attributes['request.parameters.other'])
   end
 
   def test_should_not_notice_errors_from_ignored_action
     get('/error/ignored_action')
+
     assert_empty(errors,
       'Noticed an error that should have been ignored')
   end
 
   def test_should_not_notice_ignored_error_classes
     get('/error/ignored_error')
+
     assert_empty(errors,
       'Noticed an error that should have been ignored')
   end
 
   def test_should_not_fail_apdex_for_ignored_error_class_noticed
     get('/error/ignored_error')
+
     assert_metrics_recorded({
       'Apdex' => {:apdex_f => 0},
       'Apdex/error/ignored_error' => {:apdex_f => 0}
@@ -245,15 +261,18 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_notice_server_ignored_error_if_no_server_side_config
     get('/error/server_ignored_error')
+
     assert_error_reported_once('this is a server ignored error')
   end
 
   def test_captured_errors_should_include_custom_params
     with_config(:'error_collector.attributes.enabled' => true) do
       get('/error/error_with_custom_params')
+
       assert_error_reported_once('bad things')
 
       attributes = user_attributes_for_single_error_posted
+
       assert_equal({'texture' => 'chunky'}, attributes)
     end
   end
@@ -261,9 +280,11 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_captured_errors_should_include_custom_params_with_legacy_setting
     with_config(:'error_collector.capture_attributes' => true) do
       get('/error/error_with_custom_params')
+
       assert_error_reported_once('bad things')
 
       attributes = user_attributes_for_single_error_posted
+
       assert_equal({'texture' => 'chunky'}, attributes)
     end
   end
@@ -271,9 +292,11 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_captured_errors_should_not_include_custom_params_if_config_says_no
     with_config(:'error_collector.attributes.enabled' => false) do
       get('/error/error_with_custom_params')
+
       assert_error_reported_once('bad things')
 
       attributes = user_attributes_for_single_error_posted
+
       assert_empty attributes
     end
   end
@@ -281,9 +304,11 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_captured_errors_should_not_include_custom_params_if_legacy_setting_says_no
     with_config(:'error_collector.capture_attributes' => false) do
       get('/error/error_with_custom_params')
+
       assert_error_reported_once('bad things')
 
       attributes = user_attributes_for_single_error_posted
+
       assert_empty attributes
     end
   end
@@ -315,6 +340,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def assert_errors_reported(message, queued_count, total_count = queued_count, txn_name = nil, apdex_f = 1)
     expected = {:call_count => total_count}
+
     assert_metrics_recorded("Errors/all" => expected)
     assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
 

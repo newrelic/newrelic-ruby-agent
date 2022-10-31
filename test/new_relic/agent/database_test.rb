@@ -13,36 +13,42 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   def test_adapter_from_config_string
     config = {:adapter => 'mysql'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_symbol
     config = {:adapter => :mysql}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_postgresql
     config = {:uri => "jdbc:postgresql://host/database?user=postgres"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
     assert_equal(:postgres, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_mysql
     config = {:uri => "jdbc:mysql://host/database"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_sqlite
     config = {:uri => "jdbc:sqlite::memory"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
     assert_equal(:sqlite, statement.adapter)
   end
 
   def test_adapter_from_config_string_postgis
     config = {:adapter => 'postgis'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
     assert_equal(:postgres, statement.adapter)
   end
 
@@ -87,6 +93,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
+
       assert_equal(expected_result, result)
     end
   end
@@ -216,6 +223,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
+
       assert_equal expected_result, result
     end
   end
@@ -237,6 +245,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_sql' => 'raw') do
       result = NewRelic::Agent::Database.explain_sql(statement)
+
       assert_equal expected_result, result
     end
   end
@@ -295,11 +304,13 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_explain_sql_no_sql
     statement = NewRelic::Agent::Database::Statement.new('', nil)
+
     assert_nil(NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_non_select
     statement = NewRelic::Agent::Database::Statement.new('foo', mock('config'), mock('explainer'))
+
     assert_empty(NewRelic::Agent::Database.explain_sql(statement))
   end
 
@@ -309,6 +320,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, 'Unable to collect explain plan for truncated query.')
+
     assert_empty(NewRelic::Agent::Database.explain_sql(statement))
   end
 
@@ -318,6 +330,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, 'Unable to collect explain plan for parameter-less parameterized query.')
+
     assert_empty NewRelic::Agent::Database.explain_sql(statement)
   end
 
@@ -351,6 +364,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, "Not collecting explain plan because an unknown connection adapter ('dorkdb') was used.")
+
     assert_empty NewRelic::Agent::Database.explain_sql(statement)
   end
 
@@ -360,11 +374,13 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
 
     expects_logging(:debug, 'Unable to collect explain plan for multiple queries.')
+
     assert_empty NewRelic::Agent::Database.explain_sql(statement)
   end
 
   def test_explain_sql_no_connection_config
     statement = NewRelic::Agent::Database::Statement.new('select foo', nil)
+
     assert_nil(NewRelic::Agent::Database.explain_sql(statement))
   end
 
@@ -388,6 +404,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_obfuscation_of_truncated_query
     insert = "INSERT INTO data (blah) VALUES ('abcdefg..."
+
     assert_equal("Query too large (over 16k characters) to safely obfuscate",
       NewRelic::Agent::Database.obfuscate_sql(insert))
   end
@@ -441,22 +458,26 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   def test_default_sql_obfuscator_obfuscates_double_quoted_literals_with_unknown_adapter
     expected = "SELECT * FROM ? WHERE ? = ?"
     result = NewRelic::Agent::Database.obfuscate_sql("SELECT * FROM \"table\" WHERE \"col\" = 'value'")
+
     assert_equal expected, result
   end
 
   def test_capture_query_short_query
     query = 'a query'
+
     assert_equal(query, NewRelic::Agent::Database.capture_query(query))
   end
 
   def test_capture_query_nil
     query = nil
+
     assert_equal(query, NewRelic::Agent::Database.capture_query(query))
   end
 
   def test_capture_query_long_query
     query = 'a' * NewRelic::Agent::Database::MAX_QUERY_LENGTH
     truncated_query = NewRelic::Agent::Database.capture_query(query)
+
     assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
@@ -468,6 +489,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expected_query = INVALID_UTF8_STRING.dup
     expected_query.force_encoding('ASCII-8BIT') if expected_query.respond_to?(:force_encoding)
     captured = NewRelic::Agent::Database.capture_query(query)
+
     assert_equal(original_encoding, query.encoding) # input query encoding should remain untouched
     assert_equal(expected_query, captured)
   end
@@ -476,6 +498,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     query = INVALID_UTF8_STRING
     expected = "select"
     parsed = NewRelic::Agent::Database.parse_operation_from_query(query)
+
     assert_equal(expected, parsed)
   end
 
@@ -483,6 +506,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   sql_parsing_tests.each_with_index do |test_case, i|
     define_method("test_sql_parsing_#{i}") do
       result = NewRelic::Agent::Database.parse_operation_from_query(test_case['input'])
+
       assert_equal(test_case['operation'], result)
     end
   end
@@ -492,6 +516,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = "select * from #{table_name}"
     expected_sql = sql.dup
     statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
+
     refute_equal sql, statement.sql
     assert_equal expected_sql, sql
   end

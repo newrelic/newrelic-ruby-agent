@@ -14,10 +14,13 @@ module NewRelic::Agent::InfiniteTracing
       worker = Worker.new("simple") do
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Worker", 0.0)
       end
+
       assert_equal "run", worker.status
       worker.join
+
       assert_equal "idle", worker.status
       worker.stop
+
       assert_equal "stopped", worker.status
 
       assert_equal "simple", worker.name

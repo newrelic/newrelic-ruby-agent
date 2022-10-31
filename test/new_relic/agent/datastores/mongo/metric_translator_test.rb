@@ -15,12 +15,14 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_insert
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:insert, {:collection => @collection_name})
+
     assert_equal ['insert', @collection_name], result
   end
 
   def test_operation_and_collection_for_is_graceful_if_exceptions_are_raised
     NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:find_one?).raises("Boom")
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, {})
+
     assert_nil result
   end
 

@@ -109,6 +109,7 @@ module NewRelic
 
         valid_payloads.each do |payload_str|
           payload = TraceContextPayload.from_s(payload_str)
+
           assert payload.valid?, "Payload should be valid: '#{payload_str}'"
         end
 
@@ -122,6 +123,7 @@ module NewRelic
 
         invalid_payloads.each do |payload_str|
           payload = TraceContextPayload.from_s(payload_str)
+
           refute payload.valid?, "Payload should be invalid: '#{payload_str}'"
         end
       end

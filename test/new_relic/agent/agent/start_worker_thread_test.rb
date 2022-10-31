@@ -62,6 +62,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
       @runs += 1
       raise error unless @runs > 2
     end
+
     assert_equal 3, @runs, 'should retry the block when it fails'
   end
 

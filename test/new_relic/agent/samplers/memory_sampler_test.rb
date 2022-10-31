@@ -18,6 +18,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     s.poll
     s.poll
     s.poll
+
     assert_metrics_recorded "Memory/Physical" => {:call_count => 3, :total_call_time => 999}
   end
 
@@ -41,6 +42,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     NewRelic::Agent::Samplers::MemorySampler::ShellPS.any_instance.stubs(:get_memory).returns(999)
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
+
     assert_metrics_recorded "Memory/Physical" => {:call_count => 1, :total_call_time => 999}
   end
 
@@ -55,6 +57,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
 
   def test_memory__is_supported
     NewRelic::Agent::Samplers::MemorySampler.stubs(:platform).returns('windows')
+
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
   end
 
@@ -64,6 +67,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     NewRelic::Helper.stubs('run_command').with('uname -s').returns(stubbed)
     NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, 'java') do
       platform = NewRelic::Agent::Samplers::MemorySampler.platform
+
       assert_equal platform, stubbed.downcase
     end
   end
@@ -73,6 +77,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     NewRelic::Helper.stubs('run_command').with('uname -s').raises(NewRelic::CommandRunFailedError)
     NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, 'java') do
       platform = NewRelic::Agent::Samplers::MemorySampler.platform
+
       assert_equal 'unknown', platform
     end
   end
@@ -82,6 +87,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     stubbed = 'ENCOM OS-12'
     NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, stubbed) do
       platform = NewRelic::Agent::Samplers::MemorySampler.platform
+
       assert_equal platform, stubbed.downcase
     end
   end

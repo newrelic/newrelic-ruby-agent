@@ -24,12 +24,14 @@ class NewRelic::Agent::Instrumentation::RackTest < Minitest::Test
   def test_basic_rack_app
     # should return what we send in, even when instrumented
     x = generate_minimal_rack_app([200, {}, ["whee"]])
+
     assert_equal [200, {}, ["whee"]], x.call({})
     assert_metrics_recorded(['Controller/Middleware/Rack/MinimalRackApp/call'])
   end
 
   def test_basic_rack_app_404
     x = generate_minimal_rack_app([404, {}, ["whee"]])
+
     assert_equal [404, {}, ["whee"]], x.call({})
     assert_metrics_recorded(['Controller/Middleware/Rack/MinimalRackApp/call'])
   end

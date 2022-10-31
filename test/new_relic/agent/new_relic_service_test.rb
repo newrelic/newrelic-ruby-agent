@@ -54,6 +54,7 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:aggressive_keepalive => false) do
       @service.session do
         block_ran = true
+
         assert(@service.http_connection)
 
         # check we get the same object back each time we call http_connection in the block
@@ -61,6 +62,7 @@ class NewRelicServiceTest < Minitest::Test
         assert_equal(@service.http_connection.object_id, handle1.object_id)
       end
     end
+
     assert(block_ran)
 
     assert_equal([:start, :finish], handle1.calls)
@@ -71,6 +73,7 @@ class NewRelicServiceTest < Minitest::Test
     handle1 = create_http_handle
     handle2 = create_http_handle
     @service.stubs(:create_http_connection).returns(handle1, handle2)
+
     assert_equal(@service.http_connection.object_id, handle1.object_id)
     assert_equal(@service.http_connection.object_id, handle2.object_id)
   end
@@ -215,6 +218,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_initialize_uses_license_key_from_config
     with_config(:license_key => 'abcde') do
       service = NewRelic::Agent::NewRelicService.new
+
       assert_equal 'abcde', service.send(:license_key)
     end
   end
@@ -229,6 +233,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_connect_sets_agent_id_and_config_data
     response = @service.connect
+
     assert_equal 1, response['agent_run_id']
     assert_equal 'some config directives', response['config']
   end
@@ -236,6 +241,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_connect_sets_redirect_host
     assert_equal 'somewhere.example.com', @service.collector.name
     @service.connect
+
     assert_equal 'localhost', @service.collector.name
   end
 
@@ -245,6 +251,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:connect, 'agent_run_id' => 1)
 
     @service.connect
+
     assert_equal 'somewhere.example.com', @service.collector.name
   end
 
@@ -254,25 +261,30 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:connect, 'agent_run_id' => 666)
 
     @service.connect
+
     assert_equal 666, @service.agent_id
   end
 
   def test_preconnect_never_uses_redirect_host
     # Use locally configured collector for initial preconnect
     initial_preconnect_log = with_array_logger(level = :debug) { @service.preconnect }
+
     assert_log_contains initial_preconnect_log, 'Sending request to somewhere.example.com'
 
     # Connect has set the redirect host as the collector
     initial_connect_log = with_array_logger(level = :debug) { @service.connect }
+
     assert_log_contains initial_connect_log, 'Sending request to localhost'
 
     # If we need to reconnect, preconnect should use the locally configured collector again
     reconnect_log = with_array_logger(level = :debug) { @service.preconnect }
+
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
   end
 
   def test_preconnect_with_no_token_and_no_lasp
     response = @service.preconnect
+
     assert_equal 'localhost', response['redirect_host']
     assert_nil response['security_policies']
   end
@@ -284,6 +296,7 @@ class NewRelicServiceTest < Minitest::Test
 
     with_config(:security_policies_token => 'please-use-lasp') do
       response = @service.preconnect
+
       assert_equal 'localhost', response['redirect_host']
       refute_empty response['security_policies']
     end
@@ -339,12 +352,14 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:high_security => true) do
       @service.preconnect
       payload = @http_handle.last_request_payload.first
+
       assert payload['high_security']
     end
 
     with_config(:high_security => false) do
       @service.preconnect
       payload = @http_handle.last_request_payload.first
+
       refute_nil payload['high_security']
       refute payload['high_security']
     end
@@ -358,6 +373,7 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:security_policies_token => 'please-use-lasp') do
       @service.connect
       payload = @http_handle.last_request_payload.first
+
       refute_empty payload['security_policies']
       assert_equal policies.keys, payload['security_policies'].keys
     end
@@ -370,6 +386,7 @@ class NewRelicServiceTest < Minitest::Test
 
     with_config(:security_policies_token => 'please-use-lasp') do
       response = @service.connect
+
       refute_empty response['security_policies']
       assert_equal policies.keys, response['security_policies'].keys
     end
@@ -379,12 +396,14 @@ class NewRelicServiceTest < Minitest::Test
     @service.agent_id = 666
     @http_handle.respond_to(:shutdown, 'shut this bird down')
     response = @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))
+
     assert_equal 'shut this bird down', response
   end
 
   def test_should_not_shutdown_if_never_connected
     @http_handle.respond_to(:shutdown, 'shut this bird down')
     response = @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))
+
     assert_nil response
   end
 
@@ -409,6 +428,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
+
     assert_in_delta(t0, harvest_timestamp, 0.0001)
 
     t1 = advance_process_time(10)
@@ -417,6 +437,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
+
     assert_in_delta(t1, harvest_timestamp, 0.0001)
     assert_in_delta(t0, last_harvest_timestamp, 0.0001)
   end
@@ -434,48 +455,56 @@ class NewRelicServiceTest < Minitest::Test
     @service.metric_data(stats_hash)
 
     timeslice_start = @http_handle.last_request_payload[1]
+
     assert_in_delta(timeslice_start, t0.to_f + 10, 0.0001)
   end
 
   def test_error_data
     @http_handle.respond_to(:error_data, 'too human')
     response = @service.error_data([])
+
     assert_equal 'too human', response
   end
 
   def test_transaction_sample_data
     @http_handle.respond_to(:transaction_sample_data, 'MPC1000')
     response = @service.transaction_sample_data([])
+
     assert_equal 'MPC1000', response
   end
 
   def test_sql_trace_data
     @http_handle.respond_to(:sql_trace_data, 'explain this')
     response = @service.sql_trace_data([])
+
     assert_equal 'explain this', response
   end
 
   def test_analytic_event_data
     @http_handle.respond_to(:analytic_event_data, 'some analytic events')
     response = @service.analytic_event_data([{}, []])
+
     assert_equal 'some analytic events', response
   end
 
   def test_error_event_data
     @http_handle.respond_to(:error_event_data, 'some error events')
     response = @service.error_event_data([{}, []])
+
     assert_equal 'some error events', response
   end
 
   def test_span_event_data
     @http_handle.respond_to(:span_event_data, 'some span events')
     response = @service.span_event_data([{}, []])
+
     assert_equal 'some span events', response
   end
 
   def test_log_event_data
     @http_handle.respond_to(:log_event_data, 'some log events')
     response = @service.log_event_data([{}, []])
+
     assert_equal 'some log events', response
   end
 
@@ -484,6 +513,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data([])
+
     assert_equal({"profile" => 123}, response)
   end
 
@@ -498,6 +528,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:get_agent_commands, [1, 2, 3])
 
     response = @service.get_agent_commands
+
     assert_equal [1, 2, 3], response
   end
 
@@ -506,18 +537,21 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:get_agent_commands, nil)
 
     response = @service.get_agent_commands
+
     assert_nil response
   end
 
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
     response = @service.agent_command_results({'1' => {}})
+
     assert_empty(response)
   end
 
   def test_request_timeout
     with_config(:timeout => 600) do
       service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
+
       assert_equal 600, service.request_timeout
     end
   end
@@ -616,16 +650,19 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_json_marshaller_handles_responses_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+
     assert_equal %w[beep boop], marshaller.load('{"return_value": ["beep","boop"]}')
   end
 
   def test_json_marshaller_returns_nil_on_empty_response_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+
     assert_nil marshaller.load('')
   end
 
   def test_json_marshaller_returns_nil_on_nil_response_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
+
     assert_nil marshaller.load(nil)
   end
 
@@ -657,8 +694,10 @@ class NewRelicServiceTest < Minitest::Test
   def test_json_marshaller_handles_binary_strings
     input_string = (0..255).to_a.pack("C*")
     roundtripped_string = roundtrip_data(input_string)
+
     assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
     expected = force_to_utf8(input_string.dup)
+
     assert_equal(expected, roundtripped_string)
   end
 
@@ -668,6 +707,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal(Encoding.find('UTF-8'), input_string.encoding)
     expected = input_string.dup.force_encoding('ISO-8859-1').encode('UTF-8')
+
     assert_equal(expected, roundtripped_string)
   end
 
@@ -695,6 +735,7 @@ class NewRelicServiceTest < Minitest::Test
     result = roundtrip_data(data)
 
     expected_string = force_to_utf8(binary_string)
+
     assert_equal(expected_string, result[0])
   end
 
@@ -704,6 +745,7 @@ class NewRelicServiceTest < Minitest::Test
     result = roundtrip_data(data)
 
     expected_string = force_to_utf8(binary_string)
+
     assert_equal(expected_string, result[0])
 
     base64_encoded_compressed_json_field = result[1]
@@ -718,6 +760,7 @@ class NewRelicServiceTest < Minitest::Test
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
     zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
+
     assert_equal(large_payload, zstream.inflate(body))
     assert_equal('gzip', encoding)
   end
@@ -726,6 +769,7 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:compressed_content_encoding => 'deflate') do
       large_payload = 'a' * 65 * 1024
       body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
+
       assert_equal(large_payload, Zlib::Inflate.inflate(body))
       assert_equal('deflate', encoding)
     end
@@ -734,6 +778,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_compress_request_if_needed_passes_thru_small_payloads
     payload = 'a' * 100
     body, encoding = @service.compress_request_if_needed(payload, :foobar)
+
     assert_equal(payload, body)
     assert_equal('identity', encoding)
   end
@@ -748,10 +793,12 @@ class NewRelicServiceTest < Minitest::Test
     identity_encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
     prepared = marshaller.prepare(dummy, :encoder => identity_encoder)
+
     assert_equal(dummy, prepared)
 
     prepared = marshaller.prepare(dummy, :encoder => ReverseEncoder)
     decoded = prepared.map { |x| x.reverse }
+
     assert_equal(dummy, decoded)
   end
 
@@ -763,6 +810,7 @@ class NewRelicServiceTest < Minitest::Test
     dummy = [[inner_array]]
     marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
     prepared = marshaller.prepare(dummy, :encoder => ReverseEncoder)
+
     assert_equal([[['dcba']]], prepared)
   end
 
@@ -779,6 +827,7 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal(2, metric_data_array.size)
     metric_data_1 = metric_data_array.find { |md| md.metric_spec == spec1 }
     metric_data_2 = metric_data_array.find { |md| md.metric_spec == spec2 }
+
     assert_equal(hash[spec1], metric_data_1.stats)
     assert_equal(hash[spec2], metric_data_2.stats)
   end
@@ -792,9 +841,11 @@ class NewRelicServiceTest < Minitest::Test
     hash.record(spec2) { |s| s.call_count = 0 }
 
     metric_data_array = @service.build_metric_data_array(hash)
+
     assert_equal(1, metric_data_array.size)
 
     metric_data = metric_data_array.first
+
     assert_equal(spec1, metric_data.metric_spec)
   end
 
@@ -804,11 +855,13 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_not_valid_to_marshal
     @service.marshaller.stubs(:dump).raises(StandardError.new("Failed to marshal"))
+
     refute @service.valid_to_marshal?({})
   end
 
   def test_not_valid_to_marshal_with_system_stack_error
     @service.marshaller.stubs(:dump).raises(SystemStackError.new)
+
     refute @service.valid_to_marshal?({})
   end
 
@@ -924,6 +977,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_force_restart_closes_shared_connections
     @service.establish_shared_connection
     @service.force_restart
+
     refute @service.has_shared_connection?
   end
 

@@ -75,11 +75,13 @@ module NewRelic
         def test_start_segment
           in_transaction("test_txn") do |txn|
             segment = Tracer.start_segment(name: "Custom/segment/method")
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
 
             advance_process_time(1)
             segment.finish
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           end
         end
@@ -108,11 +110,13 @@ module NewRelic
               operation: "insert",
               collection: "Blog"
             )
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
 
             advance_process_time(1)
             segment.finish
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           end
         end
@@ -158,6 +162,7 @@ module NewRelic
               segment.finish
             end
           end
+
           assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
           refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
         end
@@ -170,15 +175,19 @@ module NewRelic
               operation: "insert",
               collection: "Blog"
             )
+
             assert_equal ds_segment, txn.current_segment
 
             segment = Tracer.start_segment(name: "Custom/basic/segment")
+
             assert_equal segment, txn.current_segment
 
             segment.finish
+
             assert_equal ds_segment, txn.current_segment
 
             ds_segment.finish
+
             assert_equal txn.initial_segment, txn.current_segment
           end
         end
@@ -192,9 +201,11 @@ module NewRelic
               operation: "insert",
               collection: "Blog"
             )
+
             assert_equal txn.initial_segment, ds_segment.parent
 
             segment = Tracer.start_segment(name: "Custom/basic/segment")
+
             assert_equal ds_segment, segment.parent
 
             segment.finish
@@ -221,6 +232,7 @@ module NewRelic
               uri: "http://site.com/endpoint",
               procedure: "GET"
             )
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
             assert_equal "Net::HTTP", segment.library
@@ -229,6 +241,7 @@ module NewRelic
 
             advance_process_time(1)
             segment.finish
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           end
         end
@@ -288,6 +301,7 @@ module NewRelic
               segment.finish
             end
           end
+
           assert_equal limit, txn.segments.size
         end
 
@@ -351,6 +365,7 @@ module NewRelic
 
             expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
             deepest_node = find_last_transaction_node(last_sample)
+
             assert_empty(deepest_node.children)
             assert_equal(expected_sql, deepest_node[:sql].sql)
           end
@@ -436,6 +451,7 @@ module NewRelic
           with_config(:'transaction_tracer.transaction_threshold' => 2.0) do
             in_transaction {}
             trace = last_transaction_trace
+
             assert_equal 2.0, trace.threshold
           end
         end

@@ -20,6 +20,7 @@ module NewRelic
 
         def test_all_infinite_tracing_config_keys_are_used
           scan_and_remove_used_entries(@default_keys, non_test_files)
+
           assert_empty @default_keys
         end
 
@@ -101,6 +102,7 @@ module NewRelic
           error = assert_raises RuntimeError do
             Config.trace_observer_uri
           end
+
           assert_match(/not configured/, error.message)
         end
 

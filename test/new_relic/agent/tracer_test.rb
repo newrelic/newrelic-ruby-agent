@@ -13,6 +13,7 @@ module NewRelic
 
       def test_tracer_aliases
         state = Tracer.state
+
         refute_nil state
       end
 
@@ -56,11 +57,13 @@ module NewRelic
           # with sampled explicity set true, assert that it's true
           in_transaction do |txn|
             txn.sampled = true
+
             assert Tracer.sampled?
           end
           # with sampled explicity set false, assert that it's false
           in_transaction do |txn|
             txn.sampled = false
+
             refute Tracer.sampled?
           end
         end
@@ -82,9 +85,11 @@ module NewRelic
             NewRelic::Agent.disable_all_tracing do
               refute Tracer.tracing_enabled?
             end
+
             refute Tracer.tracing_enabled?
           end
         end
+
         assert Tracer.tracing_enabled?
       end
 
@@ -138,6 +143,7 @@ module NewRelic
         assert_equal txn, Tracer.current_transaction
 
         txn.finish
+
         assert_nil Tracer.current_transaction
       end
 
@@ -164,6 +170,7 @@ module NewRelic
         assert_equal finishable, Tracer.current_transaction
 
         finishable.finish
+
         assert_nil Tracer.current_transaction
       end
 
@@ -178,6 +185,7 @@ module NewRelic
           assert_equal finishable, Tracer.current_transaction.current_segment
 
           finishable.finish
+
           refute_nil Tracer.current_transaction
         end
 
@@ -266,9 +274,11 @@ module NewRelic
         assert_nil Tracer.current_segment
 
         txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+
         assert_equal txn.initial_segment, Tracer.current_segment
 
         segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+
         assert_equal segment, Tracer.current_segment
 
         txn.finish
@@ -279,6 +289,7 @@ module NewRelic
       def test_current_segment_without_transaction
         assert_nil Tracer.current_segment
         Tracer.start_segment(name: "Custom/MyClass/myoperation")
+
         assert_nil Tracer.current_segment
       end
 
@@ -286,15 +297,18 @@ module NewRelic
         assert_nil Tracer.current_segment
 
         txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+
         assert_equal txn.initial_segment, Tracer.current_segment
         threads = []
 
         threads << ::NewRelic::TracedThread.new do
           segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+
           assert_equal segment, Tracer.current_segment
 
           threads << ::NewRelic::TracedThread.new do
             segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
+
             assert_equal segment2, Tracer.current_segment
             segment2.finish
           end
@@ -307,6 +321,7 @@ module NewRelic
         assert_equal txn.initial_segment, Tracer.current_segment
         threads.each(&:join)
         txn.finish
+
         assert_nil Tracer.current_segment
       end
 
@@ -315,15 +330,18 @@ module NewRelic
           assert_nil Tracer.current_segment
 
           txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+
           assert_equal txn.initial_segment, Tracer.current_segment
           threads = []
 
           threads << ::Thread.new do
             segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+
             assert_equal segment, Tracer.current_segment
 
             threads << Thread.new do
               segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
+
               assert_equal segment2, Tracer.current_segment
               segment2.finish
             end
@@ -336,6 +354,7 @@ module NewRelic
           assert_equal txn.initial_segment, Tracer.current_segment
           threads.each(&:join)
           txn.finish
+
           assert_nil Tracer.current_segment
         end
       end

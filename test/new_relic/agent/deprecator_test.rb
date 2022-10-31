@@ -47,6 +47,7 @@ class DeprecatorTest < Minitest::Test
 
   def test_deprecator_reports_a_supportability_metric
     NewRelic::Agent::Deprecator.deprecate(:deprecated_supportability_test)
+
     assert_metrics_recorded("Supportability/Deprecated/deprecated_supportability_test")
   end
 end

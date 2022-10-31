@@ -30,6 +30,7 @@ module NewRelic
             # setting the entry size to something <= 12 shouldn't trim the trace state
             new_entry = 'a' * 12
             trace_state = header_data.trace_state(new_entry)
+
             assert_equal 512, trace_state.length
           end
 
@@ -44,6 +45,7 @@ module NewRelic
             trace_state = header_data.trace_state(new_entry)
 
             expected_size = 499 - 9 + 13
+
             assert_equal expected_size, trace_state.bytesize
           end
 
@@ -60,6 +62,7 @@ module NewRelic
             # will be 50 nine byte entries plus 49 commas plus the new entry,
             # which is 9 more bytes, plus one more comma, so 50*9 + 49 + 9 + 1
             expected_size = (50 * 9) + 49 + 9 + 1
+
             assert_equal expected_size, trace_state.bytesize
           end
 
@@ -73,6 +76,7 @@ module NewRelic
 
             trace_state = header_data.trace_state('new=entry')
             expected_trace_state = "new=entry,#{trace_state_array.join(',')}"
+
             assert_equal expected_trace_state, trace_state
           end
 

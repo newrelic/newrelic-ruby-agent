@@ -24,6 +24,7 @@ module NewRelic
         end
 
         stats = NewRelic::Agent.instance.adaptive_sampler.stats
+
         assert_equal 0, stats[:seen_last]
         assert_equal 20, stats[:seen]
         assert_equal sampled_count, stats[:sampled_count]
@@ -33,6 +34,7 @@ module NewRelic
         in_transaction("test_txn_20") {}
 
         stats = NewRelic::Agent.instance.adaptive_sampler.stats
+
         assert_equal 1, stats[:seen]
         assert_equal 20, stats[:seen_last]
       end

@@ -37,6 +37,7 @@ module NewRelic::Agent
     def test_doesnt_record_synthetics_state_without_header
       in_transaction do
         @events.notify(:before_call, {})
+
         assert_no_synthetics_payload
       end
     end
@@ -68,6 +69,7 @@ module NewRelic::Agent
       with_synthetics_headers(synthetics_payload, key) do
         state = NewRelic::Agent::Tracer.state
         txn = state.current_transaction
+
         assert_equal @last_encoded_header, txn.raw_synthetics_header
         assert_equal synthetics_payload, txn.synthetics_payload
       end

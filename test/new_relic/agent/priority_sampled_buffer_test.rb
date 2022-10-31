@@ -42,12 +42,14 @@ module NewRelic::Agent
 
     def test_should_not_discard_items_if_not_needed_when_capacity_is_reset
       buffer = PrioritySampledBuffer.new(10)
+
       assert_equal(10, buffer.capacity)
 
       events = create_events(1..10)
       events.each { |e| buffer.append(event: e) }
 
       buffer.capacity = 20
+
       assert_equal(10, buffer.size)
       assert_equal(20, buffer.capacity)
       assert_equal(10, buffer.num_seen)
@@ -59,6 +61,7 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(10)
       100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
+
       assert_equal(0, buffer.size)
       assert_empty(buffer.to_a)
     end
@@ -91,11 +94,13 @@ module NewRelic::Agent
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
+
         refute buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full"
       end
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
+
         assert(buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
       end
     end
@@ -118,6 +123,7 @@ module NewRelic::Agent
       10.times { |i| buffer.append(event: create_event(priority: i)) }
 
       buffer.capacity = 5
+
       assert_equal(5, buffer.size)
 
       expected = (5..9).map { |i| create_event(priority: i) }
@@ -129,12 +135,15 @@ module NewRelic::Agent
 
     def test_num_seen_counts_all_seen_samples_since_last_reset
       buffer = PrioritySampledBuffer.new(10)
+
       assert_equal(0, buffer.num_seen)
 
       20.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_equal(20, buffer.num_seen)
 
       buffer.reset!
+
       assert_equal(0, buffer.num_seen)
     end
 
@@ -142,9 +151,11 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(5)
 
       5.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_equal(0, buffer.num_dropped)
 
       5.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_equal(5, buffer.num_dropped)
     end
 
@@ -164,20 +175,25 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(5)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_equal(5, buffer.num_dropped)
 
       buffer.reset!
+
       assert_equal(0, buffer.num_dropped)
     end
 
     def test_sample_rate
       buffer = PrioritySampledBuffer.new(10)
+
       assert_equal(0, buffer.sample_rate)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_equal(1.0, buffer.sample_rate)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_equal(0.5, buffer.sample_rate)
     end
 
@@ -203,15 +219,18 @@ module NewRelic::Agent
 
       100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
+
       assert_equal(100, buffer.seen_lifetime)
 
       100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
+
       assert_equal(200, buffer.seen_lifetime)
     end
 
     def test_sample_rate_lifetime
       buffer = PrioritySampledBuffer.new(10)
+
       assert_equal(0, buffer.sample_rate_lifetime)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
@@ -221,6 +240,7 @@ module NewRelic::Agent
 
       30.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
+
       assert_equal(0.5, buffer.sample_rate_lifetime)
     end
 

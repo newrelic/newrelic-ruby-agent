@@ -24,6 +24,7 @@ class OrphanedConfigTest < Minitest::Test
 
         config_keys.each do |key|
           msg = "#{file}:#{index} - Configuration key #{key} is not described in default_source.rb.\n"
+
           assert_includes(@default_keys, key, msg)
         end
       end
@@ -40,6 +41,7 @@ class OrphanedConfigTest < Minitest::Test
     @default_keys.delete_if do |key_name|
       NewRelic::Agent::Configuration::DEFAULTS[key_name][:external] || NewRelic::Agent::Configuration::DEFAULTS[key_name][:deprecated]
     end
+
     assert_empty @default_keys
   end
 

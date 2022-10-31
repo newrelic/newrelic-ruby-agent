@@ -143,6 +143,7 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => "disabled") do
       executed = false
       DependencyDetection.detect!
+
       assert dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       refute dd.allowed_by_config?
@@ -152,6 +153,7 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => "enabled") do
       executed = false
       DependencyDetection.detect!
+
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       assert dd.allowed_by_config?
@@ -162,6 +164,7 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:disable_testing => true) do
       executed = false
       DependencyDetection.detect!
+
       refute dd.disabled_configured?
       assert dd.deprecated_disabled_configured?
       refute dd.allowed_by_config?
@@ -180,6 +183,7 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => "enabled") do
       executed = false
       DependencyDetection.detect!
+
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       assert executed
@@ -188,6 +192,7 @@ class DependencyDetectionTest < Minitest::Test
 
     with_config(:'instrumentation.testing' => "auto") do
       DependencyDetection.detect!
+
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       assert dd.use_prepend?
@@ -195,6 +200,7 @@ class DependencyDetectionTest < Minitest::Test
 
     with_config(:'instrumentation.testing' => "prepend") do
       DependencyDetection.detect!
+
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       assert dd.use_prepend?
@@ -202,6 +208,7 @@ class DependencyDetectionTest < Minitest::Test
 
     with_config(:'instrumentation.testing' => "chain") do
       DependencyDetection.detect!
+
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       refute dd.use_prepend?
@@ -216,18 +223,21 @@ class DependencyDetectionTest < Minitest::Test
 
     with_config({}) do
       DependencyDetection.detect!
+
       assert_equal :auto, dd.config_value
       assert dd.use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "prepend") do
       DependencyDetection.detect!
+
       assert_equal :prepend, dd.config_value
       assert dd.use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "disabled") do
       DependencyDetection.detect!
+
       refute dd.use_prepend?
     end
   end
@@ -242,6 +252,7 @@ class DependencyDetectionTest < Minitest::Test
 
     with_config(:'instrumentation.testing' => "chain") do
       DependencyDetection.detect!
+
       refute dd.use_prepend?
       assert_equal :chain, dd.config_value
       assert executed
@@ -364,6 +375,7 @@ class DependencyDetectionTest < Minitest::Test
     log = with_array_logger do
       DependencyDetection::Dependent.new.log_and_instrument(method, 'actor', supportability_name) { 'Given Circumstances' }
     end
+
     assert_metrics_recorded("Supportability/Instrumentation/#{supportability_name}/#{method}")
     assert_log_contains(log, /#{supportability_name}/)
     assert_log_contains(log, /#{method}/)

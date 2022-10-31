@@ -180,6 +180,7 @@ module NewRelic
           in_transaction("test_txn") do |txn|
             refute txn.sampled?
             txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
+
             assert txn.sampled?
           end
         end
@@ -192,6 +193,7 @@ module NewRelic
           in_transaction("test_txn") do |txn|
             assert txn.sampled?
             txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
+
             refute txn.sampled?
           end
         end
@@ -236,9 +238,11 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
+
           assert_equal transaction.trace_id, intrinsics['traceId']
 
           transaction.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
           assert_equal transaction.trace_id, intrinsics['traceId']
         end
 
@@ -310,6 +314,7 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
+
           refute intrinsics["sampled"]
         end
 
@@ -344,6 +349,7 @@ module NewRelic
           inbound_payload = transaction.distributed_tracer.distributed_trace_payload
 
           transport_type = transaction.distributed_tracer.caller_transport_type
+
           assert_equal inbound_payload.parent_type, intrinsics["parent.type"]
           assert_equal transport_type, intrinsics["parent.transportType"]
           assert_equal inbound_payload.parent_app_id, intrinsics["parent.app"]
@@ -367,6 +373,7 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_error_event
+
           refute intrinsics["sampled"]
         end
 
@@ -483,6 +490,7 @@ module NewRelic
 
           in_transaction do |txn|
             txn.distributed_tracer.create_distributed_trace_payload
+
             refute txn.distributed_tracer.accept_distributed_trace_payload(payload)
           end
 
@@ -527,6 +535,7 @@ module NewRelic
 
           in_transaction do |txn|
             txn.distributed_tracer.stubs(:check_valid_version).raises(ArgumentError.new("oops!"))
+
             refute txn.distributed_tracer.accept_distributed_trace_payload(payload)
           end
 
@@ -536,6 +545,7 @@ module NewRelic
         def test_supportability_metric_recorded_when_payload_creation_successful
           in_transaction do |txn|
             payload = txn.distributed_tracer.create_distributed_trace_payload
+
             refute_nil payload
           end
 
@@ -578,11 +588,13 @@ module NewRelic
               txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
             end
           end
+
           assert_equal 0, adaptive_sampler.stats[:seen]
 
           20.times do
             in_transaction {}
           end
+
           assert_equal 20, adaptive_sampler.stats[:seen]
         end
 

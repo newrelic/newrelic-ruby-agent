@@ -54,6 +54,7 @@ class AttributesTest < Minitest::Test
     attributes = create_attributes
     params = {:foo => {:bar => "baz"}}
     attributes.merge_custom_attributes(params)
+
     assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
@@ -85,6 +86,7 @@ class AttributesTest < Minitest::Test
     attributes.add_intrinsic_attribute(:foo, "bar")
 
     expected = {:foo => "bar"}
+
     assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
     assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR))
 
@@ -98,6 +100,7 @@ class AttributesTest < Minitest::Test
       attributes.add_intrinsic_attribute(:foo, "bar")
 
       expected = {:foo => "bar"}
+
       assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
       assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR))
 
@@ -117,6 +120,7 @@ class AttributesTest < Minitest::Test
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
+
     assert result.valid_encoding?
     assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
@@ -130,6 +134,7 @@ class AttributesTest < Minitest::Test
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
+
     assert result.valid_encoding?
     assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
@@ -222,6 +227,7 @@ class AttributesTest < Minitest::Test
       attributes = create_attributes
       params = {:foo => {:bar => "baz"}}
       attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
+
       assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
     end
   end
@@ -234,6 +240,7 @@ class AttributesTest < Minitest::Test
         "foo" => "bar"
       }
       attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
+
       assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
     end
   end
@@ -244,6 +251,7 @@ class AttributesTest < Minitest::Test
       params = {"sneaky" => "code"}
 
       attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
+
       assert_empty agent_attributes(attributes)
     end
   end
