@@ -42,9 +42,8 @@ class NewRelic::Agent::StatsTest < Minitest::Test
       b.min_call_time = 1.0
       b.max_call_time = 4.0
     end
-
-    assert_equal(0.5, merged.min_call_time)
-    assert_equal(4.0, merged.max_call_time)
+    assert_in_delta(0.5, merged.min_call_time)
+    assert_in_delta(4.0, merged.max_call_time)
   end
 
   def test_simple
@@ -168,7 +167,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s1.trace_call(3.to_r)
     s1.trace_call(7.to_r)
 
-    assert_equal 3.0, JSON.load(s1.to_json)['min_call_time']
+    assert_in_delta(3.0, JSON.load(s1.to_json)['min_call_time'])
   end
 
   private

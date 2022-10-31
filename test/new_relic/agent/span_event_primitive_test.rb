@@ -167,7 +167,7 @@ module NewRelic
             event, custom_attrs, _ = SpanEventPrimitive.for_segment(segment)
 
             assert_equal 'Span', event['type']
-            assert_equal 0.0, event['duration']
+            assert_in_delta(0.0, event['duration'])
 
             assert_equal 'giraffe', custom_attrs['type']
             assert_equal 'hippo', custom_attrs['duration']

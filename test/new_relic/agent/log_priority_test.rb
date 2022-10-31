@@ -16,8 +16,7 @@ module NewRelic::Agent
 
     def test_random_value_if_no_transaction
       LogPriority.stubs(:rand).returns(0.1)
-
-      assert_equal 0.1, LogPriority.priority_for(nil)
+      assert_in_delta(0.1, LogPriority.priority_for(nil))
     end
   end
 end

@@ -61,7 +61,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_correctly_handle_floats
-      assert_equal 1.1, @source[:apdex_t]
+      assert_in_delta(1.1, @source[:apdex_t])
     end
 
     def test_should_not_log_error_by_default

@@ -833,7 +833,7 @@ module NewRelic::Agent
           assert_equal sampled, external_intrinsics.fetch('sampled')
           assert_equal priority, external_intrinsics.fetch('priority')
           assert_equal timestamp, external_intrinsics.fetch('timestamp')
-          assert_equal 1.0, external_intrinsics.fetch('duration')
+          assert_in_delta(1.0, external_intrinsics.fetch('duration'))
           assert_equal expected_name, external_intrinsics.fetch('name')
           assert_equal segment.library, external_intrinsics.fetch('component')
           assert_equal segment.procedure, external_intrinsics.fetch('http.method')

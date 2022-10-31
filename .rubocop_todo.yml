@@ -16,11 +16,6 @@ Metrics/AbcSize:
 
 # Offense count: 145
 # This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertInDelta:
-  Enabled: false
-
-# Offense count: 145
-# This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertPredicate:
   Enabled: false
 

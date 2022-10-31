@@ -72,8 +72,8 @@ module NewRelic
           end
 
           assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
-          assert_equal 1.0, segment.duration
-          assert_equal 1.0, segment.exclusive_duration
+          assert_in_delta(1.0, segment.duration)
+          assert_in_delta(1.0, segment.exclusive_duration)
         end
 
         def test_segment_records_metrics

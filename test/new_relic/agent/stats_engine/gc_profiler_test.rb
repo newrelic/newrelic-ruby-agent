@@ -54,8 +54,7 @@ class NewRelic::Agent::StatsEngine
         end_snapshot = GCProfiler::GCSnapshot.new(2.5, 3)
 
         result = GCProfiler.record_delta(start_snapshot, end_snapshot)
-
-        assert_equal(1.5, result)
+        assert_in_delta(1.5, result)
       end
 
       def test_record_delta_records_gc_time_and_call_count_in_metric
@@ -96,7 +95,7 @@ class NewRelic::Agent::StatsEngine
 
         snapshot = GCProfiler.take_snapshot
 
-        assert_equal(5.0, snapshot.gc_time_s)
+        assert_in_delta(5.0, snapshot.gc_time_s)
         assert_equal(10, snapshot.gc_call_count)
       end
 
@@ -116,8 +115,7 @@ class NewRelic::Agent::StatsEngine
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
-
-        assert_equal(3.0, attributes_for(tracer.last_sample, :intrinsic)[:gc_time])
+        assert_in_delta(3.0, attributes_for(tracer.last_sample, :intrinsic)[:gc_time])
       end
 
       def test_collect_gc_data_web

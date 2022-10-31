@@ -44,8 +44,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_create_node
     result = @trace.create_node(0.0, 'goo')
-
-    assert_equal 0.0, result.entry_timestamp
+    assert_in_delta(0.0, result.entry_timestamp)
     assert_equal 'goo', result.metric_name
   end
 
@@ -62,7 +61,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_root_node
-    assert_equal 0.0, @trace.root_node.entry_timestamp
+    assert_in_delta(0.0, @trace.root_node.entry_timestamp)
     assert_equal "ROOT", @trace.root_node.metric_name
   end
 

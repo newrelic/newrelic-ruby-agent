@@ -45,7 +45,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_set_apdex_t
-      assert_equal 1.0, @source[:apdex_t]
+      assert_in_delta(1.0, @source[:apdex_t])
     end
 
     def test_should_set_agent_config_values
@@ -97,7 +97,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_not_dot_the_web_transactions_apdex_hash
-      assert_equal 1.5, @source[:web_transactions_apdex]['Controller/some/txn']
+      assert_in_delta(1.5, @source[:web_transactions_apdex]['Controller/some/txn'])
     end
 
     def test_should_set_analytics_events_max_samples
