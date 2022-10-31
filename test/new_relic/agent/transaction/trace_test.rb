@@ -44,6 +44,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_create_node
     result = @trace.create_node(0.0, 'goo')
+
     assert_in_delta(0.0, result.entry_timestamp)
     assert_equal 'goo', result.metric_name
   end

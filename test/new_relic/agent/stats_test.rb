@@ -42,6 +42,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
       b.min_call_time = 1.0
       b.max_call_time = 4.0
     end
+
     assert_in_delta(0.5, merged.min_call_time)
     assert_in_delta(4.0, merged.max_call_time)
   end

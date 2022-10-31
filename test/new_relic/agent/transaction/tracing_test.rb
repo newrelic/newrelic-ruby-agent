@@ -451,6 +451,7 @@ module NewRelic
           with_config(:'transaction_tracer.transaction_threshold' => 2.0) do
             in_transaction {}
             trace = last_transaction_trace
+
             assert_in_delta(2.0, trace.threshold)
           end
         end

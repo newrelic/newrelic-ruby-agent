@@ -909,6 +909,7 @@ module NewRelic::Agent
           bean = mock(:getCurrentThreadUserTime => -1)
           bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
+
           assert_in_delta(0.0, txn.send(:jruby_cpu_time))
         end
       end
@@ -1382,6 +1383,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_in_delta(10.0, result[:gc_time])
     end
 
@@ -1461,6 +1463,7 @@ module NewRelic::Agent
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+
       assert_in_delta(22.0, result[:cpu_time])
     end
 
@@ -1651,6 +1654,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         with_config(config) do
           txn.stubs(:apdex_t).returns(1.5)
+
           assert_in_delta(4.0, txn.threshold)
         end
       end

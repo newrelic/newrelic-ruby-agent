@@ -238,6 +238,7 @@ module NewRelic::Agent
 
       30.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
+
       assert_in_delta(0.5, buffer.sample_rate_lifetime)
     end
 
