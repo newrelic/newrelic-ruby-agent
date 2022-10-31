@@ -451,7 +451,6 @@ module NewRelic
       begin
         raise "WTF"
       rescue => e
-
         assert_nil ::NewRelic::Agent.notice_error(e)
       end
     end
