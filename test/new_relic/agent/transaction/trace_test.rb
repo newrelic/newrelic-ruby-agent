@@ -34,6 +34,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_create_node_increases_node_count
     @trace.create_node(0.0, 'foo')
+
     assert_equal 1, @trace.node_count
   end
 
@@ -43,6 +44,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_create_node
     result = @trace.create_node(0.0, 'goo')
+
     assert_equal 0.0, result.entry_timestamp
     assert_equal 'goo', result.metric_name
   end
@@ -55,6 +57,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_collector_array_contains_start_time
     expected = NewRelic::Helper.time_to_millis(@start_time)
+
     assert_collector_array_contains(:start_time, expected)
   end
 
@@ -65,6 +68,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_prepare_to_send_returns_self
     result = @trace.prepare_to_send!
+
     assert_equal @trace, result
   end
 
@@ -72,6 +76,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.prepare_to_send!
 
     result = @trace.prepare_to_send!
+
     assert_equal @trace, result
   end
 
@@ -123,6 +128,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.root_node.children << node
 
     @trace.prepare_to_send!
+
     assert_equal "select * from pelicans where name = ?;", node[:sql]
   end
 
@@ -209,6 +215,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
+
     assert_equal "select * from pelicans where name = ?;", node[:sql]
   end
 
@@ -220,6 +227,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
+
     assert_equal "select * from pelicans where name = '1337807';", node[:sql]
   end
 
@@ -231,6 +239,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
+
     refute node[:sql]
   end
 
@@ -248,16 +257,19 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_collector_array_contains_root_node_duration
     @trace.root_node.end_trace(1)
+
     assert_collector_array_contains(:duration, 1000)
   end
 
   def test_collector_array_contains_transaction_name
     @trace.transaction_name = 'zork'
+
     assert_collector_array_contains(:transaction_name, 'zork')
   end
 
   def test_transaction_name_gets_coerced_into_a_string
     @trace.transaction_name = 1337807
+
     assert_collector_array_contains(:transaction_name, '1337807')
   end
 
@@ -265,6 +277,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @fake_attributes.add_agent_attribute(:'request.uri',
       'http://windows95tips.com/',
       NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
     assert_collector_array_contains(:uri, 'http://windows95tips.com/')
   end
 
@@ -272,6 +285,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @fake_attributes.add_agent_attribute(:'request.uri',
       95,
       NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
     assert_collector_array_contains(:uri, '95')
   end
 
@@ -281,11 +295,13 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_collector_array_contains_guid
     @trace.guid = 'DEADBEEF8BADF00D'
+
     assert_collector_array_contains(:guid, 'DEADBEEF8BADF00D')
   end
 
   def test_guid_gets_coerced_into_a_string
     @trace.guid = 42
+
     assert_collector_array_contains(:guid, '42')
   end
 
@@ -295,6 +311,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_collector_array_contains_synthetics_resource_id
     @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, '31415926')
+
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
   end
 
@@ -306,6 +323,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_synthetics_resource_id_gets_coerced_to_a_string
     @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, 31415926)
+
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
   end
 

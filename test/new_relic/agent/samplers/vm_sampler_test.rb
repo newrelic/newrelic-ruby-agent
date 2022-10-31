@@ -41,6 +41,7 @@ module NewRelic
 
         def test_records_transaction_count
           generate_transactions(10)
+
           assert_equal(10, @sampler.transaction_count)
         end
 
@@ -48,6 +49,7 @@ module NewRelic
           generate_transactions(10)
 
           old_count = @sampler.reset_transaction_count
+
           assert_equal(10, old_count)
           assert_equal(0, @sampler.transaction_count)
         end
@@ -56,6 +58,7 @@ module NewRelic
           stub_snapshot(:thread_count => 2)
 
           @sampler.poll
+
           assert_metrics_recorded(
             'RubyVM/Threads/all' => {
               :call_count => 2,

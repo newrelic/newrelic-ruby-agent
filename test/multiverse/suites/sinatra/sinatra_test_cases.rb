@@ -62,34 +62,40 @@ module SinatraTestCases
   # https://support.newrelic.com/tickets/24779
   def test_lower_priority_route_conditions_arent_applied_to_higher_priority_routes
     get('/user/login')
+
     assert_equal 200, last_response.status
     assert_equal 'please log in', last_response.body
   end
 
   def test_conditions_are_applied_to_an_action_that_uses_them
     get('/user/1')
+
     assert_equal 404, last_response.status
   end
 
   def test_queue_time_headers_are_passed_to_agent
     get('/user/login', {}, {'HTTP_X_REQUEST_START' => 't=1360973845'})
+
     assert_metrics_recorded(["WebFrontend/QueueTime"])
   end
 
   def test_shown_errors_get_caught
     get('/raise')
     errors = harvest_error_traces!
+
     assert_equal 1, errors.size
   end
 
   def test_does_not_break_pass
     get('/pass')
+
     assert_equal 200, last_response.status
     assert_equal "I'm not a teapot.", last_response.body
   end
 
   def test_does_not_break_error_handling
     get('/error')
+
     assert_equal 200, last_response.status
     assert_equal "nothing happened", last_response.body
   end
@@ -97,23 +103,27 @@ module SinatraTestCases
   def test_sees_handled_error
     get('/error')
     errors = harvest_error_traces!
+
     assert_equal 1, errors.size
   end
 
   def test_correct_pattern
     get('/route/match')
+
     assert_equal 'first route', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{route_name_segment}"])
   end
 
   def test_finds_second_route
     get('/route/no_match')
+
     assert_equal 'second route', last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{route_no_match_segment}"])
   end
 
   def test_with_regex_pattern
     get('/regexes')
+
     assert_equal "Yeah, regex's!", last_response.body
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{regex_segment}"])
   end

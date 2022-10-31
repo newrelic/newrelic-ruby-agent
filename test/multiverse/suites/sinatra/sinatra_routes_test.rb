@@ -38,12 +38,14 @@ class SinatraRoutesTest < Minitest::Test
   # https://support.newrelic.com/tickets/24779
   def test_lower_priority_route_conditions_arent_applied_to_higher_priority_routes
     get('/user/login')
+
     assert_equal 200, last_response.status
     assert_equal 'please log in', last_response.body
   end
 
   def test_conditions_are_applied_to_an_action_that_uses_them
     get('/user/1')
+
     assert_equal 404, last_response.status
   end
 end

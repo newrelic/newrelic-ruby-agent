@@ -74,21 +74,25 @@ class GemNotifierTests < Minitest::Test
 
   def test_get_gem_info_returns_array
     versions = GemNotifier.gem_versions(http_get_response)
+
     assert_instance_of Array, versions
   end
 
   def test_get_gem_info_max_size
     versions = GemNotifier.gem_versions(http_get_response)
+
     assert_equal 2, versions.size
   end
 
   def test_newest_version_can_be_a_preview_or_rc_or_beta_release
     versions = GemNotifier.gem_versions(http_get_response)
+
     assert_equal '4.0.0.preview', versions.first['number']
   end
 
   def test_previous_version_must_be_a_stable_release
     versions = GemNotifier.gem_versions(http_get_response)
+
     assert_equal '3.0.0', versions.last['number']
   end
 
@@ -107,6 +111,7 @@ class GemNotifierTests < Minitest::Test
 
   def test_interpolate_github_url
     gem_name, newest, previous = "stegosaurus", "2.0", "1.0"
+
     assert_kind_of String, GemNotifier.interpolate_github_url(gem_name, newest, previous)
   end
 
@@ -116,6 +121,7 @@ class GemNotifierTests < Minitest::Test
 
   def test_interpolate_rubygems_url
     gem_name = "velociraptor"
+
     assert_kind_of String, GemNotifier.interpolate_rubygems_url(gem_name)
   end
 

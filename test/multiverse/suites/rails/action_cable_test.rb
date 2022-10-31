@@ -53,6 +53,7 @@ if defined?(ActionCable::Channel)
       @channel.perform_action({'action' => :test_action, 'content' => 'hello'})
 
       last_sample = last_transaction_trace
+
       assert_equal('Controller/ActionCable/ActionCableTest::TestChannel/test_action', last_sample.transaction_name)
     end
 

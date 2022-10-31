@@ -41,9 +41,11 @@ module NewRelic::Agent::Configuration
 
         if @defaults[key][:allow_nil]
           assertion = (NilClass === config_value) || (expected_type === config_value)
+
           assert assertion, "Default value for #{key} should be NilClass or #{expected_type}, is #{actual_type}."
         else
           assertion = expected_type === config_value
+
           assert assertion, "Default value for #{key} should be #{expected_type}, is #{actual_type}."
         end
       end
@@ -64,6 +66,7 @@ module NewRelic::Agent::Configuration
     def test_config_search_paths_include_application_root
       NewRelic::Control.instance.stubs(:root).returns('app_root')
       paths = DefaultSource.config_search_paths.call
+
       assert paths.any? { |p| p.include?('app_root') }
     end
 
@@ -89,6 +92,7 @@ module NewRelic::Agent::Configuration
 
     def test_transform_for_returns_something_callable
       transform = DefaultSource.transform_for(:'rules.ignore_url_regexes')
+
       assert_respond_to transform, :call
     end
 
@@ -98,11 +102,13 @@ module NewRelic::Agent::Configuration
 
     def test_convert_to_list
       result = DefaultSource.convert_to_list("Foo,Bar,Baz")
+
       assert_equal %w[Foo Bar Baz], result
     end
 
     def test_convert_to_list_returns_original_argument_given_array
       result = DefaultSource.convert_to_list(['Foo'])
+
       assert_equal ['Foo'], result
     end
 
@@ -121,6 +127,7 @@ module NewRelic::Agent::Configuration
     def test_config_search_paths_with_home
       with_environment("HOME" => "/home") do
         paths = DefaultSource.config_search_paths.call()
+
         assert_includes paths, "/home/.newrelic/newrelic.yml"
         assert_includes paths, "/home/newrelic.yml"
       end
@@ -174,6 +181,7 @@ module NewRelic::Agent::Configuration
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} to convert comma delimited string into array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
+
           assert_equal(expected, result, message)
         end
 
@@ -197,6 +205,7 @@ module NewRelic::Agent::Configuration
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} not to modify settings from YAML array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
+
           assert_equal expected, result, message
         end
 

@@ -28,6 +28,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     in_transaction('test_txn') { simulate_query(2) }
 
     metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+
     assert_metrics_recorded(
       metric_name => {:call_count => 1, :total_call_time => 2.0}
     )
@@ -39,6 +40,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     in_transaction('test_txn') { simulate_query(2) }
 
     metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+
     assert_metrics_recorded(
       [metric_name, 'test_txn'] => {:call_count => 1, :total_call_time => 2}
     )
@@ -106,6 +108,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
     sample = last_transaction_trace
     node = find_node_with_name_matching(sample, /Datastore\//)
+
     refute node.params.key?(:database_name)
   end
 
@@ -129,6 +132,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
 
     metric_name = 'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find'
+
     assert_metrics_not_recorded([metric_name])
   end
 
@@ -190,6 +194,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     payload = {:connection_id => @connection.object_id}
 
     result = @subscriber.active_record_config(payload)
+
     assert_equal expected_config, result
   end
 
@@ -199,15 +204,18 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     payload = {:connection => @connection}
 
     result = @subscriber.active_record_config(payload)
+
     assert_equal expected_config, result
   end
 
   def test_segment_created
     in_transaction('test') do
       txn = NewRelic::Agent::Tracer.current_transaction
+
       assert_equal 1, txn.segments.size
 
       simulate_query(1)
+
       assert_equal 2, txn.segments.size
       assert txn.segments.last.finished?, "Segment '#{txn.segments.last.name}'' was never finished.  "
       assert_equal \

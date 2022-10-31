@@ -49,6 +49,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       :total_call_time => 20,
       :total_exclusive_time => 10
     }
+
     assert_metrics_recorded(
       'a' => expected,
       'b' => expected
@@ -62,6 +63,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       :total_call_time => 20,
       :total_exclusive_time => 10
     }
+
     assert_metrics_recorded(
       'a' => expected,
       'b' => expected
@@ -70,6 +72,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
   def test_record_unscoped_metrics_takes_single_metric_name
     @engine.tl_record_unscoped_metrics('a', 20)
+
     assert_metrics_recorded(
       'a' => {
         :call_count => 1,
@@ -88,6 +91,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {:total_call_time => 42, :call_count => 99}
+
     assert_metrics_recorded('a' => expected)
   end
 
@@ -98,6 +102,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {:total_call_time => 42, :call_count => 99}
+
     assert_metrics_recorded('a' => expected)
   end
 
@@ -125,6 +130,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_record_scoped_and_unscoped_metrics_records_scoped_and_unscoped
     in_transaction('txn') do
       @engine.tl_record_scoped_and_unscoped_metrics('a', nil, 20, 10)
+
       assert_metrics_not_recorded('a')
     end
 
@@ -133,6 +139,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       :total_call_time => 20,
       :total_exclusive_time => 10
     }
+
     assert_metrics_recorded(
       'a' => expected,
       %w[a txn] => expected
@@ -148,6 +155,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {:total_call_time => 42, :call_count => 99}
+
     assert_metrics_recorded(
       'a' => expected,
       %w[a txn] => expected,
@@ -158,6 +166,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_record_scoped_and_unscoped_metrics_records_multiple_unscoped_metrics
     in_transaction('txn') do
       @engine.tl_record_scoped_and_unscoped_metrics('a', %w[b c], 20, 10)
+
       assert_metrics_not_recorded(%w[a b c])
     end
 
@@ -166,6 +175,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       :total_call_time => 20,
       :total_exclusive_time => 10
     }
+
     assert_metrics_recorded(
       'a' => expected,
       %w[a txn] => expected,
@@ -198,6 +208,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {:call_count => nthreads * iterations}
+
     assert_metrics_recorded(
       'm1' => expected,
       'm2' => expected,
@@ -228,6 +239,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {:call_count => nthreads * iterations}
+
     assert_metrics_recorded(
       'm1' => expected,
       'm2' => expected,
@@ -298,6 +310,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     refute harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/3/bar/44'))
     refute harvested.has_key?(NewRelic::MetricSpec.new('Custom/foo/5/bar/66'))
     merged = harvested[NewRelic::MetricSpec.new('Custom/foo/*/bar/*')]
+
     assert_equal(3, merged.call_count)
   end
 
@@ -321,6 +334,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
   def test_harvest_with_merge
     @engine.tl_record_unscoped_metrics("a", 1)
+
     assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 1}
 
     harvest = @engine.harvest!
@@ -328,6 +342,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     assert_metrics_not_recorded "a"
 
     @engine.tl_record_unscoped_metrics("a", 2)
+
     assert_metrics_recorded "a" => {:call_count => 1, :total_call_time => 2}
 
     # this should merge the contents of the previous harvest,
@@ -335,6 +350,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     @engine.merge!(harvest)
     harvest = @engine.harvest!
     stats = harvest[NewRelic::MetricSpec.new("a")]
+
     assert_equal 2, stats.call_count
     assert_equal 3, stats.total_call_time
   end
@@ -357,6 +373,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_harvest_adds_harvested_at_time
     t0 = nr_freeze_process_time
     result = @engine.harvest!
+
     assert_equal(t0, result.harvested_at)
   end
 
@@ -364,6 +381,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     in_transaction('scopey') do
       @engine.tl_record_unscoped_metrics('foo', 42)
     end
+
     assert_metrics_recorded('foo' => {:call_count => 1, :total_call_time => 42})
     assert_metrics_not_recorded([%w[foo scopey]])
   end
@@ -371,6 +389,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_record_supportability_metric_count_records_counts_only
     @engine.tl_record_supportability_metric_count('foo/bar', 1)
     @engine.tl_record_supportability_metric_count('foo/bar', 42)
+
     assert_metrics_recorded(['Supportability/foo/bar'] => {
       :call_count => 42,
       :total_call_time => 0

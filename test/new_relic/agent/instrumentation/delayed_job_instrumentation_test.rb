@@ -15,6 +15,7 @@ module NewRelic::Agent::Instrumentation
     def test_legacy_performable_method
       payload_string = DummyPayload.new.tap { |dp| dp.object = 'LOAD;Foo' }
       payload_fixnum = DummyPayload.new.tap { |dp| dp.object = 123 }
+
       assert DummyPayload.new.send(:legacy_performable_method?, payload_string)
       refute DummyPayload.new.send(:legacy_performable_method?, payload_fixnum)
     end

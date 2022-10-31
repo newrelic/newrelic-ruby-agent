@@ -117,6 +117,7 @@ class AgentCommandRouterTest < Minitest::Test
 
     def test_harvest_not_started
       result = agent_commands.harvest!
+
       assert_empty(result)
     end
 
@@ -124,6 +125,7 @@ class AgentCommandRouterTest < Minitest::Test
       start_profile('duration' => 1.0)
 
       result = agent_commands.harvest!
+
       assert_empty(result)
     end
 
@@ -143,6 +145,7 @@ class AgentCommandRouterTest < Minitest::Test
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest!
+
       refute_empty result
     end
 
@@ -152,12 +155,14 @@ class AgentCommandRouterTest < Minitest::Test
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest!
+
       refute_empty result
     end
 
     def test_harvest_following_before_shutdown_with_no_profile
       @events.notify(:before_shutdown)
       result = agent_commands.harvest!
+
       assert_empty result
     end
 
@@ -166,6 +171,7 @@ class AgentCommandRouterTest < Minitest::Test
 
       @events.notify(:before_shutdown)
       result = agent_commands.harvest!
+
       refute_empty result
     end
 

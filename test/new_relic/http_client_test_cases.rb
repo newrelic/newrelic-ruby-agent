@@ -64,6 +64,7 @@ module HttpClientTestCases
 
   def test_validate_request_wrapper
     req = request_instance
+
     assert_implements req, :type
     assert_implements req, :host
     assert_implements req, :host_from_header
@@ -75,6 +76,7 @@ module HttpClientTestCases
 
   def test_validate_response_wrapper
     res = response_instance
+
     assert_implements res, :get_status_code
     assert_implements res, :[], "foo"
     assert_implements res, :to_hash
@@ -84,6 +86,7 @@ module HttpClientTestCases
   # has made breaking changes on their Response objects
   def test_status_code_is_present
     res = get_wrapped_response(default_url)
+
     assert_equal 200, res.status_code
   end
 
@@ -100,6 +103,7 @@ module HttpClientTestCases
 
   def test_response_wrapper_ignores_case_in_header_keys
     res = response_instance('NAMCO' => 'digdug')
+
     assert_equal 'digdug', res['namco']
   end
 
@@ -157,6 +161,7 @@ module HttpClientTestCases
       end
 
       expected = {:call_count => n}
+
       assert_externals_recorded_for("localhost", "GET", :counts => expected)
     end
   end
@@ -202,6 +207,7 @@ module HttpClientTestCases
     end
 
     last_node = find_last_transaction_node()
+
     assert_equal "External/localhost/#{client_name}/GET", last_node.metric_name
   end
 
@@ -217,21 +223,25 @@ module HttpClientTestCases
 
   def test_head
     in_transaction { head_response }
+
     assert_externals_recorded_for("localhost", "HEAD")
   end
 
   def test_post
     in_transaction { post_response }
+
     assert_externals_recorded_for("localhost", "POST")
   end
 
   def test_put
     in_transaction { put_response }
+
     assert_externals_recorded_for("localhost", "PUT")
   end
 
   def test_delete
     in_transaction { delete_response }
+
     assert_externals_recorded_for("localhost", "DELETE")
   end
 
@@ -254,6 +264,7 @@ module HttpClientTestCases
     NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
     with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
+
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
     NewRelic::Agent::Agent.any_instance.unstub(:connected?)
@@ -263,6 +274,7 @@ module HttpClientTestCases
     NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
     with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
+
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
     NewRelic::Agent::Agent.any_instance.unstub(:connected?)
@@ -280,6 +292,7 @@ module HttpClientTestCases
       end
 
       transaction_data = server.requests.last["HTTP_X_NEWRELIC_TRANSACTION"]
+
       refute_empty(transaction_data)
 
       decoded = decode_payload(transaction_data)
@@ -294,6 +307,7 @@ module HttpClientTestCases
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     in_transaction { get_response }
+
     refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
   end
 
@@ -302,6 +316,7 @@ module HttpClientTestCases
       :'distributed_tracing.enabled' => false,
       :cross_process_id => "") do
       in_transaction { get_response }
+
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
     end
   end
@@ -313,6 +328,7 @@ module HttpClientTestCases
       :encoding_key => ""
     ) do
       in_transaction { get_response }
+
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
     end
   end
@@ -353,6 +369,7 @@ module HttpClientTestCases
     end
 
     last_node = find_last_transaction_node()
+
     assert_includes last_node.params.keys, :transaction_guid
     assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
 
@@ -377,6 +394,7 @@ module HttpClientTestCases
     end
 
     last_node = find_last_transaction_node()
+
     assert_includes last_node.params.keys, :transaction_guid
     assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
 
@@ -450,6 +468,7 @@ module HttpClientTestCases
 
     last_node = find_last_transaction_node()
     filtered_uri = default_url
+
     assert_equal filtered_uri, last_node.params[:uri]
   end
 
@@ -505,6 +524,7 @@ module HttpClientTestCases
       end
 
       last_node = find_last_transaction_node()
+
       assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
 
       evil_server.stop
@@ -527,6 +547,7 @@ module HttpClientTestCases
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction do
         get_response
+
         refute_includes server.requests.last.keys, "HTTP_X_NEWRELIC_SYNTHETICS"
       end
     end
@@ -577,6 +598,7 @@ module HttpClientTestCases
         end
 
         event = get_last_analytics_event
+
         assert_event_attributes(
           event,
           test_case['name'],
@@ -619,11 +641,13 @@ module HttpClientTestCases
 
           header_specs['expectedHeader'].each do |key, value|
             expected_key = http_header_name_to_rack_key(key)
+
             assert_equal(value, last_outbound_request[expected_key])
           end
 
           header_specs['nonExpectedHeader'].each do |key|
             non_expected_key = http_header_name_to_rack_key(key)
+
             refute_includes(last_outbound_request.keys, non_expected_key)
           end
         end
@@ -682,6 +706,7 @@ module HttpClientTestCases
     rescue StandardError => e
       # NOP -- allowing span and transaction to notice error
     end
+
     assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
     assert_transaction_noticed_error txn, timeout_error_class.name
   end
@@ -722,6 +747,7 @@ module HttpClientTestCases
     end
 
     segment = txn.segments.detect { |s| s.name =~ /GET$/ }
+
     assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
 
     assert_equal 403, segment.http_status_code
@@ -740,6 +766,7 @@ module HttpClientTestCases
     end
 
     segment = txn.segments.detect { |s| s.name =~ /GET$/ }
+
     assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
 
     assert_equal 500, segment.http_status_code

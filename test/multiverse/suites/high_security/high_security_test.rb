@@ -49,17 +49,20 @@ class HighSecurityTest < Minitest::Test
   def test_connects_via_ssl_no_matter_what
     assert_equal 1, $collector.calls_for('connect').size
     trigger_agent_reconnect(:ssl => false)
+
     assert_equal 2, $collector.calls_for('connect').size
   end
 
   def test_sends_high_security_flag_in_connect
     data = $collector.calls_for('connect')
+
     assert data.first.body["high_security"]
   end
 
   # RUBY-2242 - helps with CSP adoptability
   def test_sends_high_security_flag_in_preconnect
     data = $collector.calls_for('preconnect')
+
     assert data.first.body.first["high_security"]
   end
 
@@ -74,6 +77,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     trace = single_transaction_trace_posted
+
     assert_empty trace.custom_attributes
     assert_empty trace.agent_attributes
   end
@@ -88,6 +92,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     error = single_error_posted
+
     assert_empty error.agent_attributes
     assert_empty error.custom_attributes
   end
@@ -99,6 +104,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     event = single_event_posted
+
     assert_empty event[1]
     assert_empty event[2]
   end
@@ -121,6 +127,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     trace = single_transaction_trace_posted
+
     assert_empty trace.custom_attributes
     assert_empty trace.agent_attributes
   end
@@ -136,6 +143,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     error = single_error_posted
+
     assert_empty error.agent_attributes
     assert_empty error.custom_attributes
   end
@@ -148,6 +156,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     event = single_event_posted
+
     assert_empty event[1]
     assert_empty event[2]
   end
@@ -171,6 +180,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     expected = {"http.statusCode" => 200}
+
     assert_equal expected, single_transaction_trace_posted.agent_attributes
   end
 
@@ -185,6 +195,7 @@ class HighSecurityTest < Minitest::Test
     run_harvest
 
     expected = {"http.statusCode" => 500}
+
     assert_equal expected, single_error_posted.agent_attributes
   end
 
@@ -197,6 +208,7 @@ class HighSecurityTest < Minitest::Test
       run_harvest
 
       intrinsic_attributes = single_transaction_trace_posted.intrinsic_attributes
+
       refute_nil intrinsic_attributes['cpu_time']
       refute_nil intrinsic_attributes['trip_id']
       refute_nil intrinsic_attributes['path_hash']
@@ -215,6 +227,7 @@ class HighSecurityTest < Minitest::Test
       run_harvest
 
       intrinsic_attributes = single_error_posted.intrinsic_attributes
+
       refute_nil intrinsic_attributes['cpu_time']
       refute_nil intrinsic_attributes['trip_id']
       refute_nil intrinsic_attributes['path_hash']

@@ -31,6 +31,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     in_transaction { simulate_query }
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
+
     assert_metrics_recorded(
       metric_name => {:call_count => 1, :total_call_time => 2.0}
     )
@@ -40,6 +41,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     in_transaction('test_txn') { simulate_query }
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
+
     assert_metrics_recorded(
       [metric_name, 'test_txn'] => {:call_count => 1, :total_call_time => 2}
     )
@@ -48,6 +50,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
   def test_records_nothing_if_tracing_disabled
     NewRelic::Agent.disable_all_tracing { simulate_query }
     metric_name = 'Datastore/statement/MongoDB/users/find'
+
     assert_metrics_not_recorded([metric_name])
   end
 
@@ -68,6 +71,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
   def test_records_instance_metrics_for_tcp_connection
     in_transaction { simulate_query }
+
     assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server/27017')
   end
 
@@ -75,12 +79,14 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     address = stub('address', :host => "/tmp/mongodb-27017.sock", :port => nil)
     @started_event.stubs(:address).returns(address)
     in_transaction { simulate_query }
+
     assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server//tmp/mongodb-27017.sock')
   end
 
   def test_records_unknown_unknown_metric_when_error_gathering_instance_data
     @started_event.stubs(:address).returns(nil)
     in_transaction { simulate_query }
+
     assert_metrics_recorded('Datastore/instance/MongoDB/unknown/unknown')
   end
 
@@ -100,6 +106,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     address = stub('address', :host => "", :port => "")
     @started_event.stubs(:address).returns(address)
     in_transaction { simulate_query }
+
     assert_metrics_not_recorded('Datastore/instance/MongoDB/unknown/unknown')
   end
 

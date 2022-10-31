@@ -38,6 +38,7 @@ module NewRelic
         assert_kind_of(NewRelic::Agent::PipeService, @agent.service,
           'Agent should use PipeService when directed to report to pipe channel')
         NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never
+
         assert_equal 123, @agent.service.channel_id
       end
 
@@ -46,6 +47,7 @@ module NewRelic
           @agent.stubs(:connected?).returns(true)
           @agent.stubs(:in_resque_child_process?).returns(false)
           @agent.after_fork
+
           refute_nil @agent.environment_report
         end
       end
@@ -68,6 +70,7 @@ module NewRelic
 
         @agent.stubs(:connected?).returns(false)
         @agent.after_fork(:report_to_channel => 123)
+
         assert(@agent.disconnected?)
       end
 
@@ -101,6 +104,7 @@ module NewRelic
         with_config(:monitor_mode => true) do
           refute @agent.started?
           @agent.after_fork
+
           assert @agent.started?
         end
       end
@@ -147,6 +151,7 @@ module NewRelic
         got_it = false
         @agent.events.subscribe(:before_harvest) { got_it = true }
         @agent.instance_eval { transmit_data }
+
         assert(got_it)
       end
 
@@ -282,6 +287,7 @@ module NewRelic
         @agent.merge_data_for_endpoint(:error_data, errors)
 
         error_traces = @agent.error_collector.error_trace_aggregator.harvest!
+
         assert_equal 20, error_traces.length
 
         # This method should NOT increment error counts, since that has already
@@ -318,6 +324,7 @@ module NewRelic
         service.stubs(:connect).raises(Timeout::Error).then.returns(nil)
         @agent.stubs(:connect_retry_period).returns(0)
         @agent.send(:connect)
+
         assert(@agent.connected?)
       end
 
@@ -326,6 +333,7 @@ module NewRelic
         service.stubs(:connect).raises(ServerConnectionException).then.returns(nil)
         @agent.stubs(:connect_retry_period).returns(0)
         @agent.send(:connect)
+
         assert(@agent.connected?)
       end
 
@@ -337,6 +345,7 @@ module NewRelic
       def test_connect_does_not_retry_on_license_error
         @agent.service.expects(:connect).raises(NewRelic::Agent::LicenseException)
         @agent.send(:connect)
+
         assert(@agent.disconnected?)
       end
 
@@ -503,6 +512,7 @@ module NewRelic
       def test_wait_when_already_connected
         @agent.stubs(:connected?).returns(true)
         @agent.wait_on_connect(2)
+
         refute @agent.waited_on_connect?
       end
 
@@ -557,6 +567,7 @@ module NewRelic
         harvested_items = %w[foo bar baz]
         container.expects(:harvest!).returns(harvested_items)
         items = @agent.send(:harvest_from_container, container, 'digglewumpus')
+
         assert_equal(harvested_items, items)
       end
 
@@ -655,6 +666,7 @@ module NewRelic
         end
         @agent.stubs(:connected?).returns(true)
         @agent.send(:graceful_disconnect)
+
         assert_equal(1, before_shutdown_call_count)
       end
 
@@ -691,12 +703,14 @@ module NewRelic
         Agent.config.replace_or_add_config(server_config)
 
         config_classes = NewRelic::Agent.config.config_classes_for_testing
+
         assert_includes config_classes, NewRelic::Agent::Configuration::ManualSource
         assert_includes config_classes, NewRelic::Agent::Configuration::ServerSource
 
         @agent.revert_to_default_configuration
 
         config_classes = NewRelic::Agent.config.config_classes_for_testing
+
         refute_includes config_classes, NewRelic::Agent::Configuration::ManualSource
         refute_includes config_classes, NewRelic::Agent::Configuration::ServerSource
       end
@@ -718,6 +732,7 @@ module NewRelic
         end
 
         matching_lines = log_results.array.grep(/, restarting\./)
+
         refute_empty matching_lines, 'logs should say the agent is restarting'
       end
 
@@ -731,6 +746,7 @@ module NewRelic
         end
 
         matching_lines = log_results.array.grep(/, disconnecting\./)
+
         refute_empty matching_lines, 'logs should say the agent is disconnecting'
       end
 
@@ -742,6 +758,7 @@ module NewRelic
         end
 
         matching_lines = log_results.array.grep(/, discarding\./)
+
         refute_empty matching_lines, 'logs should say the agent is discarding'
       end
 

@@ -10,22 +10,26 @@ class EncodingNormalizerTest < Minitest::Test
 
   def test_normalize_object_converts_symbol_values_to_strings
     result = EncodingNormalizer.normalize_object([:foo, :bar])
+
     assert_equal(%w[foo bar], result)
   end
 
   def test_normalize_object_converts_symbols_in_hash_to_strings
     result = EncodingNormalizer.normalize_object({:key => :value})
+
     assert_equal({'key' => 'value'}, result)
   end
 
   def test_normalize_object_converts_rationals_to_floats
     result = EncodingNormalizer.normalize_object({:key => Rational(3, 2)})
+
     assert_equal({'key' => 1.5}, result)
   end
 
   def test_normalize_string_returns_input_if_correctly_encoded_utf8
     string = "i want a pony"
     result = EncodingNormalizer.normalize_string(string)
+
     assert_same(string, result)
     assert_equal(Encoding.find('UTF-8'), result.encoding)
   end
@@ -33,6 +37,7 @@ class EncodingNormalizerTest < Minitest::Test
   def test_normalize_string_returns_munged_copy_if_ascii_8bit
     string = (0..255).to_a.pack("C*")
     result = EncodingNormalizer.normalize_string(string)
+
     refute_same(string, result)
     assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
     assert_equal(string, result.dup.force_encoding('ASCII-8BIT'))
@@ -41,6 +46,7 @@ class EncodingNormalizerTest < Minitest::Test
   def test_normalize_string_returns_munged_copy_if_invalid_utf8
     string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
     result = EncodingNormalizer.normalize_string(string)
+
     refute_same(result, string)
     assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
     assert_equal(string, result.dup.force_encoding('UTF-8'))
@@ -49,6 +55,7 @@ class EncodingNormalizerTest < Minitest::Test
   def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
     string = "i want a pony".encode('UTF-16LE')
     result = EncodingNormalizer.normalize_string(string)
+
     refute_same(result, string)
     assert_equal(Encoding.find('UTF-8'), result.encoding)
     assert_equal(string, result.encode('UTF-16LE'))
@@ -61,8 +68,10 @@ class EncodingNormalizerTest < Minitest::Test
     # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
     string = String.new('Jyv+AOQ-skyl+AOQ-')
     input = string.dup.force_encoding('UTF-7')
+
     assert input.valid_encoding?
     result = EncodingNormalizer.normalize_string(input)
+
     refute_same(result, input)
     assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
     assert_equal(string.dup.force_encoding('ISO-8859-1'), result)

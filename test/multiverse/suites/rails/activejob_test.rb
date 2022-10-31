@@ -139,6 +139,7 @@ if Rails::VERSION::STRING >= "4.2.0"
 
     def test_starts_transaction_if_there_isnt_one
       MyJob.perform_later
+
       assert_metrics_recorded([PERFORM_TRANSACTION_ROLLUP,
         PERFORM_TRANSACTION_NAME])
     end
@@ -165,6 +166,7 @@ if Rails::VERSION::STRING >= "4.2.0"
 
     def test_doesnt_interfere_with_params_on_job
       MyJobWithParams.perform_later("1", "2")
+
       assert_equal(%w[1 2], MyJobWithParams.last_params)
     end
 
@@ -173,6 +175,7 @@ if Rails::VERSION::STRING >= "4.2.0"
       assert_raises ArgumentError do
         MyFailure.perform_later
       end
+
       assert_metrics_recorded(["Errors/all"])
     end
   end

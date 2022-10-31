@@ -95,6 +95,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for do
           @posts[:id => 11]
         end
+
         assert_match %r{select \* from `posts` where \(?`id` = 11\)?( limit 1)?}i, node.params[:sql]
         assert_node_has_explain_plan(node)
       end
@@ -105,6 +106,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for do
           @posts.insert(:title => 'title', :content => 'content')
         end
+
         assert_match %r{insert into `posts` \([^\)]*\) values \([^\)]*\)}i, node.params[:sql]
       end
     end
@@ -118,6 +120,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for(:record_sql => :obfuscated) do
           @posts[:id => 11]
         end
+
         assert_match %r{select \* from `posts` where \(?`id` = \?\)?}i, node.params[:sql]
         assert_node_has_explain_plan(node)
       end
@@ -132,6 +135,7 @@ if Sequel.const_defined?(:MAJOR) &&
         in_web_transaction { @posts.all }
         expected_metric_name = "Datastore/operation/#{product_name}/select"
         recorded_metric_names = NewRelic::Agent.agent.sql_sampler.sql_traces.values.map(&:database_metric_name)
+
         assert_includes recorded_metric_names, expected_metric_name
       end
     end

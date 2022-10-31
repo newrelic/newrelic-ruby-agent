@@ -33,6 +33,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install?
         expected = [{},
           [{},
             [{"statement" => "Couldn't trace concurrent prereq tasks: named:before, named:during, named:after"}]]]
+
         assert_equal expected, single_transaction_trace_posted.tree.node_params
       end
     end

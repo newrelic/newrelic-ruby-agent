@@ -22,12 +22,14 @@ class LogEventsTest < Minitest::Test
     end
 
     last_log = last_log_event
+
     assert_equal "Deadly", last_log["message"]
     assert_equal "FATAL", last_log["level"]
     assert_equal trace_id, last_log["trace.id"]
     assert_equal span_id, last_log["span.id"]
 
     common = last_logs_common
+
     assert_nil common["attributes"]["entity.type"]
     assert_equal NewRelic::Agent::Hostname.get, common["attributes"]["hostname"]
   end
@@ -40,18 +42,21 @@ class LogEventsTest < Minitest::Test
     end
 
     last_log = last_log_event
+
     assert_equal "Deadly", last_log["message"]
     assert_equal "FATAL", last_log["level"]
     assert_nil last_log["trace.id"]
     assert_nil last_log["span.id"]
 
     common = last_logs_common
+
     assert_nil common["attributes"]["entity.type"]
     assert_equal NewRelic::Agent::Hostname.get, common["attributes"]["hostname"]
   end
 
   def last_log_event
     post = last_log_post
+
     assert_equal(1, post.logs.size)
     post.logs.last
   end

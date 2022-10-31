@@ -69,6 +69,7 @@ class CurbTest < Minitest::Test
     # Make sure there are no lines that appear multiple times, which would
     # happen if we installed callbacks repeatedly on one request.
     header_lines = header_str.split
+
     assert_equal(header_lines.uniq.size, header_lines.size,
       "Found some header lines appearing multiple times in header_str:\n#{header_str}")
   end
@@ -86,6 +87,7 @@ class CurbTest < Minitest::Test
 
   def test_get_doesnt_destroy_ability_to_call_status
     status_code = Curl.get(default_url).status.to_i
+
     assert_equal(200, status_code)
   end
 
@@ -112,6 +114,7 @@ class CurbTest < Minitest::Test
     end
 
     last_node = find_last_transaction_node()
+
     assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
   end
 
@@ -137,6 +140,7 @@ class CurbTest < Minitest::Test
     end
 
     last_node = find_last_transaction_node()
+
     assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
   end
 
@@ -242,6 +246,7 @@ class CurbTest < Minitest::Test
   def test_first_request_is_serial_if_false_unless_there_is_a_first_request
     multi = Curl::Multi.new
     def multi.requests; []; end
+
     refute multi.send(:first_request_is_serial?)
   end
 
@@ -253,6 +258,7 @@ class CurbTest < Minitest::Test
       first.expect :is_a?, false, [Array]
       [first]
     end
+
     assert multi.send(:first_request_is_serial?)
   end
 

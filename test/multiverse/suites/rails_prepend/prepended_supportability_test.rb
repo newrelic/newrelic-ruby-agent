@@ -9,6 +9,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
 
   def test_action_view_prepended_metrics
     value_for_haml_version = Gem::Version.new(Haml::VERSION) >= Gem::Version.new('6.0.0') ? 1 : 2
+
     assert_metrics_recorded({
 
       # haml prepends a module on ActionView::Base
@@ -23,6 +24,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   def test_action_controller_prepended_metrics
     metrics = ["Supportability/PrependedModules/ActionController::Base"]
     metrics << "Supportability/PrependedModules/ActionController::API" if ::Rails::VERSION::MAJOR.to_i == 5
+
     assert_metrics_recorded(metrics.reduce({}) { |h, m| h[m] = metric_values_for(1); h })
   end
 

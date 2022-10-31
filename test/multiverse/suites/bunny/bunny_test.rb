@@ -23,6 +23,7 @@ class BunnyTest < Minitest::Test
       in_transaction("test_txn") do
         queue.publish("test_msg")
       end
+
       assert_metrics_recorded [
         ["MessageBroker/RabbitMQ/Exchange/Produce/Named/Default", "test_txn"],
         "MessageBroker/RabbitMQ/Exchange/Produce/Named/Default"
@@ -76,6 +77,7 @@ class BunnyTest < Minitest::Test
     in_transaction("test_txn") do
       x.publish("hi")
     end
+
     assert_metrics_recorded [
       ["MessageBroker/RabbitMQ/Exchange/Produce/Named/activity.events", "test_txn"],
       "MessageBroker/RabbitMQ/Exchange/Produce/Named/activity.events"
@@ -311,6 +313,7 @@ class BunnyTest < Minitest::Test
       end
 
       msg = queue.pop
+
       assert_equal "test_msg", msg[2]
 
       assert_metrics_recorded ["Custom/blah/method"]
@@ -342,6 +345,7 @@ class BunnyTest < Minitest::Test
 
       in_transaction("test_txn") do
         msg = queue.pop
+
         assert_equal "test_msg", msg[2]
       end
 

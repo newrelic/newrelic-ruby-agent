@@ -16,6 +16,7 @@ module NewRelic
   module BasicDataContainerMethodTests
     def test_should_respond_to_required_methods
       c = create_container
+
       assert_respond_to c, :harvest!
       assert_respond_to c, :reset!
       assert_respond_to c, :merge!
@@ -41,6 +42,7 @@ module NewRelic
       c = create_container
       populate_container(c, num_data_items)
       results = c.harvest!
+
       assert_equal(num_data_items, harvest_size(c, results))
     end
 
@@ -50,6 +52,7 @@ module NewRelic
 
       c.harvest! # clears container
       results = c.harvest!
+
       assert_equal(0, harvest_size(c, results))
     end
 
@@ -57,10 +60,12 @@ module NewRelic
       container = create_container
       populate_container(container, num_data_items)
       results = container.harvest!
+
       assert_equal(num_data_items, harvest_size(container, results))
 
       populate_container(container, num_data_items)
       results = container.harvest!
+
       assert_equal(num_data_items, harvest_size(container, results))
     end
   end
@@ -73,6 +78,7 @@ module NewRelic
       populate_container(c, 5)
       c.reset!
       results = c.harvest!
+
       assert_equal(0, harvest_size(c, results))
     end
 
@@ -81,6 +87,7 @@ module NewRelic
       populate_container(c, 5)
       c.merge!(c.harvest!)
       results = c.harvest!
+
       assert_equal(5, harvest_size(c, results))
     end
   end

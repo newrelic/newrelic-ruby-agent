@@ -38,6 +38,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
 
     def test_middleware_gets_used
       get('/')
+
       assert last_response.headers['MiddlewareOne']
       assert last_response.headers['MiddlewareTwo']
       assert last_response.headers['MiddlewareThree']
@@ -45,16 +46,19 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
 
     def test_status_code_is_preserved
       get('/')
+
       assert_equal 200, last_response.status
     end
 
     def test_header_is_preserved
       get('/')
+
       assert last_response.headers['ExampleApp']
     end
 
     def test_body_is_preserved
       get('/')
+
       assert_equal 'A barebones rack app.', last_response.body
     end
 
@@ -88,6 +92,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
     def test_middlewares_record_metrics
       NewRelic::Agent.agent.stats_engine.reset!
       get('/')
+
       assert_metrics_recorded_exclusive(
         [
           "Apdex",
@@ -156,6 +161,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? 
     def test_middleware_that_returns_early_middleware_all_has_correct_call_times
       nr_freeze_process_time
       get('/?return-early=true')
+
       assert_metrics_recorded('Middleware/all' => {:total_exclusive_time => 3.0, :call_count => 2})
     end
 

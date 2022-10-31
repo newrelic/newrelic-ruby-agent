@@ -47,6 +47,7 @@ class PadrinoRoutesTest < Minitest::Test
 
   def test_basic_route
     get('/user/login')
+
     assert_equal 200, last_response.status
     assert_equal 'please log in', last_response.body
 
@@ -58,6 +59,7 @@ class PadrinoRoutesTest < Minitest::Test
 
   def test_regex_route
     get('/regexes')
+
     assert_equal 200, last_response.status
     assert_equal "with extra regexes please!", last_response.body
 

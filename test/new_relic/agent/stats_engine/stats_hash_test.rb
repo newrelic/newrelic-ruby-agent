@@ -12,6 +12,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
   def test_creates_default_entries
     stats = @hash[NewRelic::MetricSpec.new('a/b/c/d')]
+
     assert_kind_of(NewRelic::Agent::Stats, stats)
   end
 
@@ -75,6 +76,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     2.times { @hash.record(spec, :apdex_t, apdex_t) }
     3.times { @hash.record(spec, :apdex_f, apdex_t) }
     stats = @hash[spec]
+
     assert_equal(1, stats.apdex_s)
     assert_equal(2, stats.apdex_t)
     assert_equal(3, stats.apdex_f)
@@ -117,6 +119,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     hash1 = NewRelic::Agent::StatsHash.new(t1)
 
     hash1.merge!(hash0)
+
     assert_equal(t0.to_f, hash1.started_at)
   end
 
@@ -152,6 +155,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     @hash.record(NewRelic::MetricSpec.new('bar'), 2)
 
     copy = Marshal.load(Marshal.dump(@hash))
+
     assert_equal(@hash, copy)
     assert_equal(@hash.started_at, copy.started_at)
   end
@@ -182,6 +186,7 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
 
       @hash.record(NewRelic::MetricSpec.new('something/else/entirely'), 1)
       errors = harvest_error_traces!
+
       assert_equal 0, errors.size
     end
   end

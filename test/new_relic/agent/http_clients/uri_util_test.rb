@@ -78,6 +78,7 @@ class URIUtilTest < Minitest::Test
     test_urls.each do |original|
       to_obfuscate = original.dup
       NewRelic::Agent::HTTPClients::URIUtil.obfuscated_uri(to_obfuscate).to_s
+
       assert_equal original, to_obfuscate
     end
   end

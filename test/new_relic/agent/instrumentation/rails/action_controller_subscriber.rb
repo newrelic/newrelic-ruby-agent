@@ -61,6 +61,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     expected_values = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded(
       'Controller/test/index' => expected_values,
       'HttpDispatcher' => expected_values
@@ -73,6 +74,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     expected_values = {:apdex_f => 0, :apdex_t => 1, :apdex_s => 0}
+
     assert_metrics_recorded(
       'Apdex/test/index' => expected_values,
       'Apdex' => expected_values
@@ -90,6 +92,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     expected_values = {:apdex_f => 1, :apdex_t => 0, :apdex_s => 0}
+
     assert_metrics_recorded(
       'Apdex/test/index' => expected_values,
       'Apdex' => expected_values
@@ -127,11 +130,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_format_metric_name
     metric_name = @subscriber.format_metric_name('index', TestController)
+
     assert_equal 'Controller/test/index', metric_name
   end
 
   def test_sets_default_transaction_name_on_start
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
+
     assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.tl_current.best_name
   ensure
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
@@ -141,12 +146,14 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     txn = NewRelic::Agent::Transaction.tl_current
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
+
     assert_equal 'Controller/test/index', txn.best_name
   end
 
   def test_sets_transaction_name
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     NewRelic::Agent.set_transaction_name('something/else')
+
     assert_equal 'Controller/something/else', NewRelic::Agent::Transaction.tl_current.best_name
   ensure
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
@@ -157,6 +164,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     txn = NewRelic::Agent::Transaction.tl_current
     NewRelic::Agent.set_transaction_name('something/else')
     @subscriber.finish('process_action.action_controller', :id, @entry_payload)
+
     assert_equal 'Controller/something/else', txn.best_name
   end
 
@@ -199,6 +207,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     advance_process_time(1)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_metrics_recorded('Instance/Busy' => {:call_count => 1, :total_call_time => 1.0})
   end
 
@@ -280,6 +289,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     sample = last_transaction_trace
+
     assert_equal('666', attributes_for(sample, :agent)['request.parameters.number'])
   end
 
@@ -292,6 +302,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     sample = last_transaction_trace
+
     assert_equal('[FILTERED]', attributes_for(sample, :agent)['request.parameters.password'])
   end
 
@@ -301,6 +312,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     sample = last_transaction_trace
+
     assert_equal('666', attributes_for(sample, :custom)['number'])
   end
 

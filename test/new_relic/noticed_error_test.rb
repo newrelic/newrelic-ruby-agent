@@ -41,6 +41,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         :'error.expected' => false
       }
     ]
+
     assert_equal expected, error.to_collector_array
   end
 
@@ -71,6 +72,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     error = create_error(e)
 
     actual = extract_attributes(error)
+
     assert_equal({:agent => "attribute"}, actual["agentAttributes"])
   end
 
@@ -80,6 +82,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     error = create_error(e)
 
     actual = extract_attributes(error)
+
     assert_equal({:intrinsic => "attribute"}, actual["intrinsics"])
   end
 
@@ -98,6 +101,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         :'error.expected' => false
       }
     ]
+
     assert_equal expected, error.to_collector_array
   end
 
@@ -115,12 +119,14 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         'intrinsics' => {}
       }
     ]
+
     assert_equal expected, error.to_collector_array
   end
 
   def test_handles_non_string_exception_messages
     e = Exception.new({:non => :string})
     error = NewRelic::NoticedError.new(@path, e, @time)
+
     assert_equal(String, error.message.class)
   end
 
@@ -137,6 +143,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     # yes, times 500. it's a 5000 byte string. Assuming strings are
     # still 1 byte / char.
     err = create_error(StandardError.new("1234567890" * 500))
+
     assert_equal 4096, err.message.length
     assert_equal ('1234567890' * 500)[0..4095], err.message
   end
@@ -184,6 +191,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     e = Exception.new('Buffy FOREVER')
     e.stubs(:original_exception).returns(nil)
     error = NewRelic::NoticedError.new(@path, e, @time)
+
     assert_equal('Buffy FOREVER', error.message.to_s)
   end
 
@@ -192,6 +200,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       orig = FooError.new
       e = mock('exception', original_exception: orig)
       error = NewRelic::NoticedError.new(@path, e, @time)
+
       assert_equal('FooError', error.exception_class_name)
     end
   end
@@ -205,6 +214,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error.attributes = attributes
 
       serialized_attributes = extract_attributes(error)
+
       assert_equal({:intrinsic => "attribute"}, serialized_attributes["intrinsics"])
     end
   end
@@ -244,6 +254,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error.attributes = attributes
 
       expected = {:"request.headers.referer" => "http://blog.site/home"}
+
       assert_equal expected, error.agent_attributes
     end
   end

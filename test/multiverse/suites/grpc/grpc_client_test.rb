@@ -48,6 +48,7 @@ class GrpcClientTest < Minitest::Test
   ## Tests
   def test_trace_by_default
     client = basic_grpc_client
+
     assert client.send(:trace_with_newrelic?)
     assert client.instance_variable_get(TRACE_WITH_NEWRELIC)
   end
@@ -55,12 +56,14 @@ class GrpcClientTest < Minitest::Test
   def test_do_not_trace_interceptors
     client = basic_grpc_client
     def client.interceptor?; true; end
+
     refute client.send(:trace_with_newrelic?)
     refute client.instance_variable_get(TRACE_WITH_NEWRELIC)
   end
 
   def test_do_not_trace_when_a_denylisted_host_is_involved
     client = ::GRPC::ClientStub.new('tracing.edge.nr-data.not.a.real.endpoint', CHANNEL)
+
     refute client.send(:trace_with_newrelic?)
     refute client.instance_variable_get(TRACE_WITH_NEWRELIC)
   end
@@ -75,6 +78,7 @@ class GrpcClientTest < Minitest::Test
       result = grpc_client.issue_request_with_tracing(nil, nil, nil, nil, nil,
         deadline: nil, return_op: nil, parent: nil, credentials: nil,
         metadata: nil) { return_value }
+
       assert_equal return_value, result
       # in_transaction always creates one segment, we don't want a second segment
       assert_equal 1, txn.segments.count
@@ -99,6 +103,7 @@ class GrpcClientTest < Minitest::Test
           credentials: nil,
           metadata: {}
         ) { return_value }
+
         assert_equal return_value, result
       end
     end
@@ -109,6 +114,7 @@ class GrpcClientTest < Minitest::Test
 
     assert_equal 2, transaction.segments.count
     segment = transaction.segments.last
+
     assert_includes segment.class.name, 'ExternalRequest'
     assert_includes segment.name, HOST
   end
@@ -128,9 +134,11 @@ class GrpcClientTest < Minitest::Test
     successful_grpc_client_issue_request_with_tracing
     spans = harvest_span_events!
     span = spans.select { |s| s.is_a?(Array) }
+
     assert span
 
     info_pair = span.first.detect { |s| s.last.key?('http.url') }
+
     assert info_pair
     assert_equal 'gRPC', info_pair.first['component']
     assert_equal METHOD, info_pair.first['http.method']
@@ -139,6 +147,7 @@ class GrpcClientTest < Minitest::Test
 
   def test_external_metric_recorded
     successful_grpc_client_issue_request_with_tracing
+
     assert_metrics_recorded("External/#{HOST}/gRPC/#{METHOD}")
   end
 
@@ -168,6 +177,7 @@ class GrpcClientTest < Minitest::Test
     end
 
     segment = txn.segments.last
+
     assert_segment_noticed_error txn, /gRPC/, exception_class.name, /2:unknown cause/i
     assert_transaction_noticed_error txn, exception_class.name
   end
@@ -176,24 +186,28 @@ class GrpcClientTest < Minitest::Test
     grpc_client = basic_grpc_client
     grpc_client.instance_variable_set(:@host, HOST)
     result = grpc_client.send(:method_uri, METHOD)
+
     assert_equal "grpc://#{HOST}/#{METHOD}", result
   end
 
   def test_does_not_format_a_uri_unless_there_is_a_host
     grpc_client = basic_grpc_client
     grpc_client.remove_instance_variable(:@host)
+
     assert_nil grpc_client.send(:method_uri, 'a method')
   end
 
   def test_does_not_format_a_uri_unless_there_is_a_method
     grpc_client = basic_grpc_client
     grpc_client.instance_variable_set(:@host, 'a host')
+
     assert_nil grpc_client.send(:method_uri, nil)
   end
 
   def test_gleaning_info_from_an_exception_returns_early
     exception = MiniTest::Mock.new
     exception.expect(:message, 'a message that does not match the expected format')
+
     refute basic_grpc_client.send(:grpc_status_and_message_from_exception, exception)
   end
 
@@ -204,6 +218,7 @@ class GrpcClientTest < Minitest::Test
     exception = MiniTest::Mock.new
     exception.expect(:message, "#{status}:#{message}. He liked to work alone. So did I. So we worked together to keep " \
                                'it that way.')
+
     assert_equal [status, message], basic_grpc_client.send(:grpc_status_and_message_from_exception, exception)
   end
 end

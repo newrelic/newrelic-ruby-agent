@@ -15,6 +15,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
       @worker_loop.stop
       @x = true
     end
+
     assert @x
   end
 
@@ -30,15 +31,18 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
 
     count = 0
     worker_loop.run(period) { count += 1 }
+
     assert_equal 3, count
   end
 
   def test_duration_clock_starts_with_run
     # This test is a little on the nose, but any timing based test WILL fail in CI
     worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 0.01)
+
     assert_nil worker_loop.instance_variable_get(:@deadline)
 
     worker_loop.run(0.001) {}
+
     refute_nil worker_loop.instance_variable_get(:@deadline)
   end
 
@@ -46,6 +50,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
     worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 2)
     iterations = 0
     worker_loop.run(0) { iterations += 1 }
+
     assert_equal 2, iterations
   end
 
@@ -58,6 +63,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
       done = true
       raise "Standard Error Test"
     end
+
     assert done
   end
 

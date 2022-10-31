@@ -9,18 +9,21 @@ module NewRelic::Agent::Threading
   class AgentThreadTest < Minitest::Test
     def test_sets_label
       t = AgentThread.create("labelled") {}
+
       assert_equal "labelled", t[:newrelic_label]
       t.join
     end
 
     def test_bucket_thread_as_agent_when_profiling
       t = AgentThread.create("labelled") {}
+
       assert_equal :agent, AgentThread.bucket_thread(t, true)
       t.join
     end
 
     def test_bucket_thread_as_agent_when_not_profiling
       t = AgentThread.create("labelled") {}
+
       assert_equal :ignore, AgentThread.bucket_thread(t, false)
       t.join
     end
@@ -41,7 +44,8 @@ module NewRelic::Agent::Threading
         end
       end
 
-      q0.pop # wait until thread has had a chance to start up
+      q0.pop
+ # wait until thread has had a chance to start up
       assert_equal :request, AgentThread.bucket_thread(t, DONT_CARE)
 
       q1.push('unblock background thread')
@@ -64,7 +68,8 @@ module NewRelic::Agent::Threading
         end
       end
 
-      q0.pop # wait until thread pushes to q
+      q0.pop
+ # wait until thread pushes to q
       assert_equal :background, AgentThread.bucket_thread(t, DONT_CARE)
 
       q1.push('unblock background thread')
@@ -73,6 +78,7 @@ module NewRelic::Agent::Threading
 
     def test_bucket_thread_as_other
       t = ::Thread.new {}
+
       assert_equal :other, AgentThread.bucket_thread(t, DONT_CARE)
       t.join
     end
@@ -137,11 +143,13 @@ module NewRelic::Agent::Threading
 
     def test_scrubs_backtrace_when_not_profiling_agent_code
       result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE.dup), false)
+
       assert_equal [TRACE[0], TRACE[2]], result
     end
 
     def test_doesnt_scrub_backtrace_when_profiling_agent_code
       result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE.dup), true)
+
       assert_equal TRACE, result
     end
 
@@ -153,6 +161,7 @@ module NewRelic::Agent::Threading
 
     def test_scrub_backtrace_handles_nil_backtrace
       bt = AgentThread.scrub_backtrace(stub(:backtrace => nil), false)
+
       assert_nil(bt)
     end
 

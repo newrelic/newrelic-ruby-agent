@@ -89,6 +89,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       rescue StandardError => e
         # NOP -- allowing span and transaction to notice error
       end
+
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
       # Typhoeus doesn't raise errors, so transactions never see it,
@@ -128,6 +129,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       end
 
       last_node = find_last_transaction_node
+
       assert_equal "External/localhost/Typhoeus/GET", last_node.metric_name
     end
 
@@ -183,6 +185,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
       get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
+
       assert_equal 5, get_segments.size
       assert get_segments.all? { |s| s.noticed_error }, "Expected every GET to notice an error"
 
@@ -195,6 +198,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       def test_get_with_uri
         res = nil
         in_transaction { res = get_response(default_uri) }
+
         assert_match %r{<head>}i, body(res)
         assert_externals_recorded_for("localhost", "GET")
       end
@@ -207,6 +211,7 @@ else
     def test_works_without_instrumentation
       # Typhoeus.get wasn't supported back before 0.5.x
       Typhoeus::Request.get("http://localhost/not/there")
+
       assert_metrics_not_recorded(["External/all"])
     end
   end

@@ -42,6 +42,7 @@ module NewRelic
         assert_equal 1, errors.length
 
         err = errors.first
+
         assert_equal 'message', err.message
         assert_equal '/myurl/', err.request_uri
         assert_equal 'path', err.path
@@ -50,6 +51,7 @@ module NewRelic
         # the collector should now return an empty array since nothing
         # has been added since its last harvest
         errors = error_trace_aggregator.harvest!
+
         assert_empty errors
       end
 
@@ -72,6 +74,7 @@ module NewRelic
         notice_error(StandardError.new("message"), :metric => 'last')
 
         errors = error_trace_aggregator.harvest!
+
         assert_equal 2, errors.length
         assert_equal 'first', errors.first.path
         assert_equal 'last', errors.last.path
@@ -97,6 +100,7 @@ module NewRelic
             :custom_params => {:x => test[0]})
           error = error_trace_aggregator.harvest![0].to_collector_array
           actual = error.last["userAttributes"]["x"]
+
           assert_equal test[1], actual
         end
       end
@@ -139,10 +143,12 @@ module NewRelic
         end
 
         errors = error_trace_aggregator.harvest!
+
         assert_equal(max_q_length, errors.length)
         errors.each_index do |i|
           error = errors.shift
           actual = error.to_collector_array.last["userAttributes"]["x"]
+
           assert_equal i.to_s, actual
         end
       end
@@ -156,6 +162,7 @@ module NewRelic
       def test_notices_agent_error
         error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
         errors = error_trace_aggregator.harvest!
+
         assert_equal 1, errors.size
       end
 
@@ -163,6 +170,7 @@ module NewRelic
         error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
         error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
         errors = error_trace_aggregator.harvest!
+
         assert_equal 1, errors.size
       end
 
@@ -171,6 +179,7 @@ module NewRelic
         error_trace_aggregator.notice_agent_error(DifficultToDebugAgentError.new)
         error_trace_aggregator.notice_agent_error(AnotherToughAgentError.new)
         errors = error_trace_aggregator.harvest!
+
         assert_equal 2, errors.size
       end
 
@@ -251,6 +260,7 @@ module NewRelic
         with_config(:'error_collector.enabled' => false) do
           notice_error(StandardError.new("Red hands"))
           errors = error_trace_aggregator.harvest!
+
           assert_empty errors
         end
       end
@@ -263,6 +273,7 @@ module NewRelic
         with_config(config) do
           notice_error(StandardError.new("Red hands"))
           errors = error_trace_aggregator.harvest!
+
           assert_equal 1, errors.size
         end
       end
@@ -273,6 +284,7 @@ module NewRelic
 
           with_config(:'error_collector.enabled' => false) do
             errors = error_trace_aggregator.harvest!
+
             assert_empty errors
           end
         end

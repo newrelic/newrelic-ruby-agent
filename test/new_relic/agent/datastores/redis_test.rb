@@ -11,6 +11,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
+
       assert_equal expected, result
     end
   end
@@ -23,6 +24,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, key, 'redoctober'])
+
       assert_equal expected, result
     end
   end
@@ -33,6 +35,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command(command)
+
       assert result.length <= NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH
     end
   end
@@ -40,6 +43,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   def test_format_command_with_record_arguments_false
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
+
       assert_nil result
     end
   end
@@ -49,6 +53,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
+
       assert_equal expected, result
     end
   end
@@ -59,6 +64,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
       result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:set, 'foo', 'bar'])
+
       assert_equal expected, result
     end
   end
@@ -69,6 +75,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
+
       assert_equal expected, result
     end
   end
@@ -79,6 +86,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
       result = String.new('')
       NewRelic::Agent::Datastores::Redis.append_pipeline_command(result, [:multi])
+
       assert_equal expected, result
     end
   end
@@ -90,6 +98,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
+
       assert_equal result.length, NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH
       assert result.end_with?("012345...")
     end
@@ -100,6 +109,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', true])
+
       assert_equal expected, result
     end
   end
@@ -110,6 +120,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
+
       assert_equal expected, result
     end
   end
@@ -120,6 +131,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', binary_string])
+
       assert_equal expected, result
     end
   end

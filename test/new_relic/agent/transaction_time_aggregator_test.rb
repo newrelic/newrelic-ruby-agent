@@ -25,6 +25,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     advance_process_time(27)
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_equal 0.5, busy_fraction
   end
 
@@ -42,6 +43,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_process_time(5)
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_equal 0.25, busy_fraction
 
     # ...and 0-5s in the second harvest:
@@ -50,6 +52,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     advance_process_time(55)
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_equal 1.0 / 12.0, busy_fraction
   end
 
@@ -68,6 +71,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     worker.join
 
     busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest!(t0 + 60)
+
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
@@ -85,6 +89,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     worker.join
 
     busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest!(t0 + 60)
+
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
@@ -98,6 +103,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
 
     spec = NewRelic::MetricSpec.new("Instance/Busy")
     stats = NewRelic::Agent.instance.stats_engine.to_h[spec]
+
     refute_nil stats
 
     assert_equal 1.0, stats.call_count
@@ -107,6 +113,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
   def test_disable_metrics
     with_config(report_instance_busy: false) do
       NewRelic::Agent::TransactionTimeAggregator.harvest!
+
       assert_metrics_not_recorded 'Instance/Busy'
     end
   end
@@ -125,6 +132,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     workers.each { |w| w.join }
 
     ::NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_equal 0, stats.size, 'Aggregator did not cull dead threads'
   end
 end

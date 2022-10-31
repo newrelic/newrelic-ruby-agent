@@ -19,6 +19,7 @@ class AgentRunIdHandlingTest < Minitest::Test
   def test_handles_non_numeric_agent_run_ids
     NewRelic::Agent.agent.send(:transmit_data)
     metric_data_post = $collector.calls_for('metric_data').last
+
     assert_equal(NON_NUMERIC_RUN_ID, metric_data_post[0])
   end
 
@@ -27,6 +28,7 @@ class AgentRunIdHandlingTest < Minitest::Test
   def test_handles_non_numeric_agent_run_id_on_slow_sql_traces
     simulate_slow_sql_trace
     sql_data_post = $collector.calls_for('sql_trace_data').last
+
     assert_equal(NON_NUMERIC_RUN_ID, sql_data_post.query_params['run_id'])
   end
 

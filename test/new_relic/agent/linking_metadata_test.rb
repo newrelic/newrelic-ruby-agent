@@ -39,6 +39,7 @@ module NewRelic::Agent
           "entity.type" => "SERVICE",
           "hostname" => "localhost"
         }
+
         assert_equal(expected, result)
       end
 
@@ -57,6 +58,7 @@ module NewRelic::Agent
           "entity.type" => "SERVICE",
           "hostname" => "localhost"
         }
+
         assert_equal(expected, result)
       end
 
@@ -69,6 +71,7 @@ module NewRelic::Agent
       def test_trace_metadata_empty
         result = Hash.new
         LinkingMetadata.append_trace_linking_metadata(result)
+
         assert_empty(result)
       end
 
@@ -83,6 +86,7 @@ module NewRelic::Agent
           "trace.id" => "trace_id",
           "span.id" => "span_id"
         }
+
         assert_equal(expected, result)
       end
 

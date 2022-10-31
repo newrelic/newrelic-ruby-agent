@@ -19,6 +19,7 @@ class HelperTest < Minitest::Test
     File.stubs(:file?).with(executable_path).returns(true)
     File.stubs(:executable?).with(executable_path).returns(true)
     exists = NewRelic::Helper.executable_in_path?(executable)
+
     assert_truthy exists
   end
 
@@ -29,12 +30,14 @@ class HelperTest < Minitest::Test
     executable_path = File.join(fake_dir, executable)
     File.stubs(:exist?).with(executable_path).returns(false)
     exists = NewRelic::Helper.executable_in_path?(executable)
+
     assert_false exists
   end
 
   def test_path_does_not_exist
     ENV.stubs(:[]).with('PATH').returns(nil)
     exists = NewRelic::Helper.executable_in_path?('Whisper of the Heart')
+
     assert_false exists
   end
 
@@ -53,6 +56,7 @@ class HelperTest < Minitest::Test
     NewRelic::Helper.stubs('executable_in_path?').returns(true)
     Open3.stubs('capture2e').returns([stubbed, OpenStruct.new(success?: true)])
     result = NewRelic::Helper.run_command('figlet Zoom Zoom')
+
     assert_equal result, stubbed
   end
 

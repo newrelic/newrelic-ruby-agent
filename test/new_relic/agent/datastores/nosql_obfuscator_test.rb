@@ -23,6 +23,7 @@ module NewRelic
           }
 
           obfuscated = NosqlObfuscator.obfuscate_statement(selector)
+
           assert_equal expected, obfuscated
         end
 
@@ -40,6 +41,7 @@ module NewRelic
           }
 
           obfuscated = NosqlObfuscator.obfuscate_statement(selector, [:benign, :operation])
+
           assert_equal expected, obfuscated
         end
 
@@ -65,6 +67,7 @@ module NewRelic
           }
 
           obfuscated = NosqlObfuscator.obfuscate_statement(selector)
+
           assert_equal expected, obfuscated
         end
 
@@ -73,6 +76,7 @@ module NewRelic
           expected = [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
 
           obfuscated = NosqlObfuscator.obfuscate_statement(statement)
+
           assert_equal expected, obfuscated
         end
 
@@ -88,6 +92,7 @@ module NewRelic
           }
 
           obfuscated = NosqlObfuscator.obfuscate_statement(selector)
+
           assert_equal expected, obfuscated
         end
       end

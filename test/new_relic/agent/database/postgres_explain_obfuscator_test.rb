@@ -23,6 +23,7 @@ module NewRelic::Agent::Database
         explain = File.read(input_file)
         expected_obfuscated = File.read(obfuscated_filename(input_file))
         actual_obfuscated = PostgresExplainObfuscator.obfuscate(explain)
+
         assert_equal(expected_obfuscated, actual_obfuscated)
       end
     end

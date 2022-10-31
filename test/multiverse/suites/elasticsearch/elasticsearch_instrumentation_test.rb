@@ -32,16 +32,19 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_datastore_segment_created
     search
+
     assert_equal NewRelic::Agent::Transaction::DatastoreSegment, @segment.class
   end
 
   def test_segment_elasticsearch_product
     search
+
     assert_equal NewRelic::Agent::Instrumentation::Elasticsearch::PRODUCT_NAME, @segment.product
   end
 
   def test_segment_operation_is_search_when_search_method_called
     search
+
     assert_equal 'search', @segment.operation
   end
 
@@ -51,6 +54,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     end
 
     segment = txn.segments[1]
+
     assert_equal 'index', segment.operation
   end
 
@@ -66,16 +70,19 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_segment_host
     search
+
     assert_equal Socket.gethostname, @segment.host
   end
 
   def test_segment_port_path_or_id_uses_path_if_present
     search
+
     assert_equal 'my-index/_search', @segment.port_path_or_id
   end
 
   def test_segment_database_name
     search
+
     assert_equal 'docker-cluster', @segment.database_name
   end
 
@@ -88,6 +95,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
       end
       segment = txn.segments[1]
       obfuscated_query = {q: '?'}
+
       assert_equal obfuscated_query, segment.nosql_statement
     end
   end
@@ -101,6 +109,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
       end
       segment = txn.segments[1]
       not_obfuscated_query = {q: 'title'}
+
       assert_equal not_obfuscated_query, segment.nosql_statement
     end
   end
@@ -113,6 +122,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
       end
       segment = txn.segments[1]
       obfuscated_query = {query: {match: {title: '?'}}}
+
       assert_equal obfuscated_query, segment.nosql_statement
     end
   end
@@ -124,6 +134,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
         @client.search(index: 'my-index', body: query)
       end
       segment = txn.segments[1]
+
       assert_equal query, segment.nosql_statement
     end
   end
@@ -136,6 +147,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
         @client.search(index: 'my-index', body: query)
       end
       segment = txn.segments[1]
+
       assert_equal ob_query, segment.nosql_statement
     end
   end
@@ -147,6 +159,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
         @client.search(index: 'my-index', body: query)
       end
       segment = txn.segments[1]
+
       assert_nil segment.nosql_statement
     end
   end

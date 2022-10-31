@@ -15,18 +15,21 @@ class LabelsTest < Minitest::Test
   def test_yaml_makes_it_to_the_collector
     # Relies on the agent_only/config/newrelic.yml!
     trigger_agent_reconnect
+
     assert_connect_had_labels(YML_EXPECTED)
   end
 
   def test_labels_from_config_hash_make_it_to_the_collector
     with_config("labels" => {"Server" => "East"}) do
       trigger_agent_reconnect
+
       assert_connect_had_labels(EXPECTED)
     end
   end
 
   def test_labels_from_manual_start_hash_make_it_to_the_collector
     trigger_agent_reconnect(:labels => {"Server" => "East"})
+
     assert_connect_had_labels(EXPECTED)
   end
 
@@ -35,6 +38,7 @@ class LabelsTest < Minitest::Test
     expected = [
       {'label_type' => 'Server', 'label_value' => '42'}
     ]
+
     assert_connect_had_labels(expected)
   end
 
@@ -43,6 +47,7 @@ class LabelsTest < Minitest::Test
     expected = [
       {'label_type' => 'Server', 'label_value' => 'true'}
     ]
+
     assert_connect_had_labels(expected)
   end
 
@@ -52,12 +57,14 @@ class LabelsTest < Minitest::Test
     define_method("test_#{testcase['name']}_from_config_string") do
       with_config("labels" => testcase["labelString"]) do
         trigger_agent_reconnect
+
         assert_connect_had_labels(testcase["expected"])
       end
     end
 
     define_method("test_#{testcase['name']}_from_manual_start") do
       trigger_agent_reconnect(:labels => testcase["labelString"])
+
       assert_connect_had_labels(testcase["expected"])
     end
 
@@ -68,6 +75,7 @@ class LabelsTest < Minitest::Test
         NewRelic::Agent.config.reset_to_defaults
 
         trigger_agent_reconnect
+
         assert_connect_had_labels(testcase["expected"])
       ensure
         ENV['NEW_RELIC_LABELS'] = nil
@@ -77,6 +85,7 @@ class LabelsTest < Minitest::Test
 
   def assert_connect_had_labels(expected)
     result = $collector.calls_for('connect').last['labels']
+
     assert_equal expected.sort_by { |h| h['label_type'] },
       result.sort_by { |h| h['label_type'] }
   end

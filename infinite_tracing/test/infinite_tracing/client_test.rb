@@ -166,6 +166,7 @@ module NewRelic
               # by overriding #record_spans to return a known canned string
               def client.record_spans(*args); 'correct'; end
               client.start_streaming
+
               assert_equal 'correct', client.instance_variable_get(:@response_handler)
             end
           end
@@ -181,6 +182,7 @@ module NewRelic
               # by overriding #record_span_batches to return a known canned string
               def client.record_span_batches(*args); 'correct'; end
               client.start_streaming
+
               assert_equal 'correct', client.instance_variable_get(:@response_handler)
             end
           end

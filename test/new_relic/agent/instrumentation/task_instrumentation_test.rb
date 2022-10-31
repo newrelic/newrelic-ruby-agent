@@ -44,6 +44,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def test_should_run
     run_task_inner(0)
+
     assert_metrics_recorded_exclusive([
       'Supportability/API/perform_action_with_newrelic_trace',
       'Supportability/API/recording_web_transaction?',
@@ -61,6 +62,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def test_should_handle_single_recursive_invocation
     run_task_inner(1)
+
     assert_metrics_recorded_exclusive(
       [
         'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
@@ -83,6 +85,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def test_should_handle_recursive_task_invocations
     run_task_inner(3)
+
     assert_metrics_recorded_exclusive(
       [
         'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
@@ -117,6 +120,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def test_should_handle_nested_task_invocations
     run_task_outer(3)
+
     assert_metrics_recorded({
       'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task' => {:call_count => 1},
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => {:call_count => 1}
@@ -155,6 +159,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
     assert_metrics_recorded(['Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/hello'])
     sample = @agent.transaction_sampler.last_sample
+
     refute_nil(sample)
     assert_equal(account, attributes_for(sample, :agent)['request.parameters.account'])
   end
@@ -172,15 +177,18 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     assert_equal(1, errors.size)
 
     error = errors.first
+
     assert_equal("Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception", error.path)
     refute_nil(error.stack_trace)
 
     result = error.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
     refute_nil(result["custom_one"])
   end
 
   def test_instrument_background_job
     run_background_job
+
     assert_metrics_recorded([
       'OtherTransaction/Background/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_background_job',
       'OtherTransaction/Background/all',

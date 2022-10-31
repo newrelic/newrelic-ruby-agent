@@ -140,6 +140,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
         'ptoo'
       end
     end
+
     assert_metrics_recorded 'yeap' => {:call_count => 1}
   end
 
@@ -169,6 +170,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/#{self.class.name}/simple_method"
+
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -178,6 +180,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/MyClass/Class/class_method"
+
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -186,6 +189,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       MyClass.class_method
 
       attributes = txn.segments.last.code_attributes
+
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.class_method', attributes['code.function']
       assert_equal 57, attributes['code.lineno']
@@ -199,6 +203,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/MyModule/Class/module_method"
+
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -207,6 +212,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       MyModule.module_method
 
       attributes = txn.segments.last.code_attributes
+
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'self.module_method', attributes['code.function']
       assert_equal 67, attributes['code.lineno']
@@ -232,6 +238,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/AnonymousClass/instance_method"
+
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -242,6 +249,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       cls.new.instance_method
 
       attributes = txn.segments.last.code_attributes
+
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'instance_method', attributes['code.function']
       assert_equal 220, attributes['code.lineno']
@@ -259,6 +267,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/#{self.class.name}/simple_method"
+
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -278,6 +287,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def test_method_traced?
     refute self.class.method_traced?(:method_to_be_traced)
     self.class.add_method_tracer(:method_to_be_traced, METRIC)
+
     assert self.class.method_traced?(:method_to_be_traced)
     begin
       self.class.remove_method_tracer(:method_to_be_traced)
@@ -316,6 +326,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     })
 
     sample = last_transaction_trace
+
     refute_nil sample
   end
 
@@ -497,6 +508,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   # test methods to be traced
   def method_to_be_traced(x, y, z, is_traced, expected_metric)
     advance_process_time(0.05)
+
     assert_equal(1, x)
     assert_equal(2, y)
     assert_equal(3, z)
@@ -504,6 +516,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def method_with_block(x, y, z, is_traced, expected_metric, &block)
     advance_process_time(0.05)
+
     assert_equal(1, x)
     assert_equal(2, y)
     assert_equal(3, z)

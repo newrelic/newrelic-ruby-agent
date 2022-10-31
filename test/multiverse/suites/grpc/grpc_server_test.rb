@@ -96,6 +96,7 @@ class GrpcServerTest < Minitest::Test
       # code proceeds beyond the early return. this gives us confidence that the
       # early return is activated
       result = desc.handle_with_tracing(nil, nil, nil, nil) { return_value }
+
       assert_equal return_value, result
       refute new_transaction_called
     end
@@ -113,6 +114,7 @@ class GrpcServerTest < Minitest::Test
       # (with expectations) to have methods called on them and return
       # appropriate responses
       result = desc.handle_with_tracing(nil, nil, method, nil) { return_value }
+
       assert_equal return_value, result
       assert new_transaction_called
     end
@@ -134,6 +136,7 @@ class GrpcServerTest < Minitest::Test
         assert_raises(RuntimeError) do
           result = desc.handle_with_tracing(nil, nil, method, nil) { raise raised_error }
         end
+
         assert_equal raised_error, received_error
         assert new_transaction_called
       end
@@ -150,6 +153,7 @@ class GrpcServerTest < Minitest::Test
     # force finishable to be nil
     NewRelic::Agent::Tracer.stub(:start_transaction_or_segment, nil) do
       result = desc.handle_with_tracing(nil, nil, method, nil) { return_value }
+
       assert_equal return_value, result
       # MiniTest does not have a wont_raise, but this test would fail if
       # finishable called #finish when nil
@@ -158,6 +162,7 @@ class GrpcServerTest < Minitest::Test
 
   def test_use_empty_metadata_if_an_active_call_is_absent
     desc = basic_grpc_desc
+
     assert_equal NewRelic::EMPTY_HASH, desc.send(:metadata_for_call, nil)
   end
 
@@ -165,6 +170,7 @@ class GrpcServerTest < Minitest::Test
     desc = basic_grpc_desc
     active_call = MiniTest::Mock.new
     active_call.expect(:metadata, nil)
+
     assert_equal NewRelic::EMPTY_HASH, desc.send(:metadata_for_call, active_call)
   end
 
@@ -172,7 +178,8 @@ class GrpcServerTest < Minitest::Test
     desc = basic_grpc_desc
     active_call = MiniTest::Mock.new
     active_call.expect(:metadata, metadata_hash)
-    active_call.expect(:metadata, metadata_hash) # #metadata is called twice
+    active_call.expect(:metadata, metadata_hash)
+ # #metadata is called twice
     assert_equal metadata_hash, desc.send(:metadata_for_call, active_call)
   end
 
@@ -199,12 +206,14 @@ class GrpcServerTest < Minitest::Test
     NewRelic::Agent::DistributedTracing.stub(:accept_distributed_trace_headers, dt_stub) do
       desc.send(:process_distributed_tracing_headers, metadata_hash)
     end
+
     assert_equal [metadata_hash, 'Other'], received_args
   end
 
   def test_host_and_port_are_added_on_the_server_instance
     server = basic_grpc_server
     server.add_http2_port_with_tracing("#{host}:#{port}", :this_port_is_insecure) {}
+
     assert_equal(server.instance_variable_get(host_var), host)
     assert_equal(server.instance_variable_get(port_var), port)
   end
@@ -212,6 +221,7 @@ class GrpcServerTest < Minitest::Test
   def test_host_and_port_are_not_added_if_info_is_not_available
     server = basic_grpc_server
     server.add_http2_port_with_tracing('bogus_host', :this_port_is_insecure) {}
+
     refute_includes server.instance_variables, host_var
     refute_includes server.instance_variables, port_var
   end
@@ -223,38 +233,45 @@ class GrpcServerTest < Minitest::Test
     desc = basic_grpc_desc
     server.instance_variable_set(:@rpc_descs, method_name => desc)
     server.run_with_tracing {}
+
     assert_equal desc.instance_variable_get(method_var), method_name
   end
 
   def test_host_and_port_from_host_string_when_string_is_valid
     results = basic_grpc_server.send(:host_and_port_from_host_string, "#{host}:#{port}")
+
     assert_equal [host, port], results
   end
 
   def test_host_and_port_from_host_string_when_string_is_nil
     results = basic_grpc_server.send(:host_and_port_from_host_string, nil)
+
     assert_nil results
   end
 
   def test_host_and_port_from_host_string_when_string_is_invalid
     results = basic_grpc_server.send(:host_and_port_from_host_string, 'string_without_a_colon')
+
     assert_nil results
   end
 
   def test_trace_with_newrelic_leverages_an_instance_var_set_to_true
     desc = basic_grpc_desc
     desc.instance_variable_set(:@trace_with_newrelic, true)
+
     assert desc.send(:trace_with_newrelic?)
   end
 
   def test_trace_with_newrelic_leverages_an_instance_var_set_to_false
     desc = basic_grpc_desc
     desc.instance_variable_set(:@trace_with_newrelic, false)
+
     refute desc.send(:trace_with_newrelic?)
   end
 
   def test_trace_with_newrelic_if_the_host_is_unknown
     desc = basic_grpc_desc
+
     assert desc.send(:trace_with_newrelic?)
   end
 
@@ -289,6 +306,7 @@ class GrpcServerTest < Minitest::Test
     input = NewRelic::Agent::Instrumentation::GRPC::Server::DT_KEYS.each_with_object(expected.dup) do |key, hash|
       hash[key] = true
     end
+
     assert_equal (expected.keys.size + NewRelic::Agent::Instrumentation::GRPC::Server::DT_KEYS.size), input.keys.size
     assert_equal expected, basic_grpc_desc.send(:grpc_headers, input)
   end
@@ -298,6 +316,7 @@ class GrpcServerTest < Minitest::Test
     desc.instance_variable_set(NewRelic::Agent::Instrumentation::GRPC::Server::INSTANCE_VAR_METHOD, method_name)
     expected = {category: NewRelic::Agent::Instrumentation::GRPC::Server::CATEGORY,
                 transaction_name: "Controller/#{method_name}"}
+
     assert_equal expected, desc.send(:trace_options)
   end
 
@@ -313,6 +332,7 @@ class GrpcServerTest < Minitest::Test
                 'request.method': method_name,
                 'request.grpc_type': type}
     result = desc.send(:grpc_params, metadata_hash, type)
+
     assert_equal expected, result
   end
 end

@@ -17,15 +17,19 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.fire_after(3, :event)
 
     @loop.run_once(true)
+
     assert_equal(0, call_count)
 
     advance_loop(1)
+
     assert_equal(0, call_count)
 
     advance_loop(2)
+
     assert_equal(1, call_count)
 
     advance_loop(5)
+
     assert_equal(1, call_count)
   end
 
@@ -39,15 +43,19 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.fire_every(3, :event)
 
     @loop.run_once(true)
+
     assert_equal(0, call_count)
 
     advance_loop(2)
+
     assert_equal(0, call_count)
 
     advance_loop(1)
+
     assert_equal(1, call_count)
 
     advance_loop(4)
+
     assert_equal(2, call_count)
   end
 
@@ -60,12 +68,15 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     advance_loop(5)
     @loop.fire(:event)
     @loop.run_once(true)
+
     assert_equal(1, call_count)
 
     advance_loop(5)
+
     assert_equal(1, call_count)
 
     advance_loop(5)
+
     assert_equal(2, call_count)
   end
 
@@ -77,16 +88,20 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.run_once(true)
 
     advance_loop(9)
+
     assert_equal(0, call_count)
 
     @loop.fire_every(15, :e)
     @loop.run_once(true)
+
     assert_equal(0, call_count)
 
     advance_loop(1)
+
     assert_equal(0, call_count)
 
     advance_loop(5)
+
     assert_equal(1, call_count)
   end
 
@@ -96,19 +111,24 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.fire_every(10, :e)
 
     @loop.run_once(true)
+
     assert_equal(0, call_count)
 
     advance_loop(5)
+
     assert_equal(0, call_count)
 
     @loop.fire_every(2, :e)
     @loop.run_once(true)
+
     assert_equal(1, call_count)
 
     advance_loop(1)
+
     assert_equal(1, call_count)
 
     advance_loop(1)
+
     assert_equal(2, call_count)
   end
 
@@ -119,6 +139,7 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     end
     @loop.fire(:evt)
     @loop.run_once(true)
+
     assert_equal(1, call_count)
   end
 
@@ -129,6 +150,7 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     end
     @loop.fire(:evt, 42)
     @loop.run_once(true)
+
     assert_equal(42, call_count)
   end
 
@@ -138,16 +160,20 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.fire_every(4, :e)
 
     advance_loop(3)
+
     assert_equal(0, call_count)
 
     @loop.fire(:e)
     @loop.run_once(true)
+
     assert_equal(1, call_count)
 
     advance_loop(3)
+
     assert_equal(1, call_count)
 
     advance_loop(1)
+
     assert_equal(2, call_count)
   end
 
@@ -160,6 +186,7 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.fire(:e)
 
     @loop.run_once(true)
+
     assert_equal(1, call_count)
   end
 
@@ -171,25 +198,32 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     @loop.fire_every(5, :e)
     @loop.fire_after(31, :reset_period)
 
-    advance_loop(3) # total time 3
+    advance_loop(3)
+ # total time 3
     assert_equal(0, call_count)
 
-    advance_loop(2) # total time 5
+    advance_loop(2)
+ # total time 5
     assert_equal(1, call_count)
 
-    advance_loop(5) # total time 10
+    advance_loop(5)
+ # total time 10
     assert_equal(2, call_count)
 
-    advance_loop(20) # total time 30
+    advance_loop(20)
+ # total time 30
     assert_equal(6, call_count)
 
-    advance_loop(29) # total time 59
+    advance_loop(29)
+ # total time 59
     assert_equal(6, call_count)
 
-    advance_loop(1) # total time 60
+    advance_loop(1)
+ # total time 60
     assert_equal(7, call_count)
 
-    advance_loop(60) # total time 120
+    advance_loop(60)
+ # total time 120
     assert_equal(9, call_count)
   end
 

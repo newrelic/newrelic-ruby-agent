@@ -28,12 +28,14 @@ class NestedMiddlewareTest < Minitest::Test
 
   def test_inner_transaction
     get('/main')
+
     assert_metrics_recorded(["Controller/Sinatra/MainApp/#{name_for_route('main')}"])
     assert_metrics_not_recorded(["Controller/Sinatra/MiddlewareApp/GET (unknown)"])
   end
 
   def test_outer_transaction
     get('/middle')
+
     assert_metrics_recorded(["Controller/Sinatra/MiddlewareApp/#{name_for_route('middle')}"])
   end
 

@@ -20,6 +20,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   def test_inherited_should_append_subclasses_to_sampler_classes
     test_class = Class.new(NewRelic::Agent::Sampler)
     sampler_classes = NewRelic::Agent::Sampler.instance_variable_get(:@sampler_classes)
+
     assert_includes(sampler_classes, test_class, "Sampler classes (#{sampler_classes.inspect}) does not include #{test_class.inspect}")
     # cleanup the sampler created above
     NewRelic::Agent::Sampler.instance_eval { @sampler_classes.delete(test_class) }
@@ -27,6 +28,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
 
   def test_sampler_classes_should_be_an_array
     sampler_classes = NewRelic::Agent::Sampler.instance_variable_get(:@sampler_classes)
+
     assert(sampler_classes.is_a?(Array), 'Sampler classes should be saved as an array')
     assert_includes(sampler_classes, NewRelic::Agent::Samplers::CpuSampler, 'Sampler classes should include the CPU sampler')
   end
@@ -45,11 +47,13 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
 
   def test_initialize_should_set_id_from_passed_id
     sampler = DummySampler.new(:larry)
+
     assert_equal(:larry, sampler.id)
   end
 
   def test_initialize_should_set_id_from_name_if_no_passed_id
     sampler = DummySampler.new
+
     assert_equal(:dummy, sampler.id)
   end
 

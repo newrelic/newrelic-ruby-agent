@@ -164,16 +164,19 @@ module NewRelic::Agent
       def verify_attributes(test_case_attributes, actual_attributes, event_type)
         (test_case_attributes['exact'] || []).each do |k, v|
           msg = %Q(Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect})
+
           assert_equal v, actual_attributes[k.to_s], msg
         end
 
         (test_case_attributes['expected'] || []).each do |key|
           msg = %Q(Missing expected #{event_type} attribute "#{key}")
+
           assert actual_attributes.has_key?(key), msg # rubocop:disable Minitest/AssertWithExpectedArgument
         end
 
         (test_case_attributes['unexpected'] || []).each do |key|
           msg = %Q(Unexpected #{event_type} attribute "#{key}")
+
           refute actual_attributes.has_key?(key), msg
         end
       end

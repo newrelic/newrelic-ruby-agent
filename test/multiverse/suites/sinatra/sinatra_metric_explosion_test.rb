@@ -37,6 +37,7 @@ class SinatraMetricExplosionTest < Minitest::Test
 
   def test_sinatra_returns_properly
     get('/hello/world')
+
     assert_equal 'hello world', last_response.body
   end
 
@@ -48,6 +49,7 @@ class SinatraMetricExplosionTest < Minitest::Test
     else
       'GET hello/([^/?#]+)'
     end
+
     assert_metrics_recorded([
       "Controller/Sinatra/SinatraTestApp/#{segment}",
       "Apdex/Sinatra/SinatraTestApp/#{segment}"
@@ -56,6 +58,7 @@ class SinatraMetricExplosionTest < Minitest::Test
 
   def test_transaction_name_from_path
     get('/wrong')
+
     assert_metrics_recorded([
       'Controller/Sinatra/SinatraTestApp/GET (unknown)',
       'Apdex/Sinatra/SinatraTestApp/GET (unknown)'

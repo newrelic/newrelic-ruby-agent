@@ -25,6 +25,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/model/index.html.erb/Rendering' => expected)
   end
 
@@ -41,6 +42,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/file/Rendering' => expected)
   end
 
@@ -57,6 +59,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/inline template/Rendering' => expected)
   end
 
@@ -69,6 +72,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/text template/Rendering' => expected)
   end
 
@@ -85,6 +89,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_partial.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/model/_form.html.erb/Partial' => expected)
   end
 
@@ -101,6 +106,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_collection.action_view', :id, params)
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/model/_user.html.erb/Partial' => expected)
   end
 
@@ -114,6 +120,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
         :virtual_path => 'layouts/application')
     end
     expected = {:call_count => 1, :total_call_time => 2.0}
+
     assert_metrics_recorded('View/layouts/application/Rendering' => expected)
   end
 
@@ -130,6 +137,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     end
 
     expected = {:call_count => 1}
+
     assert_metrics_recorded(
       ['View/model/index.html.erb/Rendering', 'test_txn'] => expected
     )

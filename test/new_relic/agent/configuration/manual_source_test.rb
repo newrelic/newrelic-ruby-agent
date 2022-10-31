@@ -12,6 +12,7 @@ module NewRelic::Agent::Configuration
         :outer => {:inner => "stuff"},
         :'outer.inner' => "stuff"
       }
+
       assert_equal(expected, source)
     end
   end

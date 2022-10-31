@@ -15,6 +15,7 @@ class EncodingHandlingTest < Minitest::Test
         segment.notice_sql(bad_string)
         segment.finish
       end
+
       assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
     end
   end
@@ -27,6 +28,7 @@ class EncodingHandlingTest < Minitest::Test
         # nothin
       end
     end
+
     assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
   end
 
@@ -36,6 +38,7 @@ class EncodingHandlingTest < Minitest::Test
         NewRelic::Agent.add_custom_attributes(:foo => bad_string)
       end
     end
+
     assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
   end
 
@@ -43,21 +46,25 @@ class EncodingHandlingTest < Minitest::Test
     in_transaction(:category => :controller) do
       NewRelic::Agent.add_custom_attributes(:foo => bad_string)
     end
+
     assert_endpoint_received_string('analytic_event_data', normalized_bad_string)
   end
 
   def test_handles_mis_encoded_custom_attributes_on_errors
     NewRelic::Agent.notice_error('bad news', :custom_params => {'foo' => bad_string})
+
     assert_endpoint_received_string('error_data', normalized_bad_string)
   end
 
   def test_handles_mis_encoded_exception_message
     NewRelic::Agent.notice_error(bad_string)
+
     assert_endpoint_received_string('error_data', normalized_bad_string)
   end
 
   def test_handles_mis_encoded_metric_names
     NewRelic::Agent.record_metric(bad_string, 42)
+
     assert_endpoint_received_string('metric_data', normalized_bad_string)
   end
 
@@ -68,6 +75,7 @@ class EncodingHandlingTest < Minitest::Test
       end
     end
     expected_transaction_name = "other/#{normalized_bad_string}"
+
     assert_endpoint_received_string('transaction_sample_data', expected_transaction_name)
   end
 
@@ -79,6 +87,7 @@ class EncodingHandlingTest < Minitest::Test
     end
     agent.instance_variable_set(:@environment_report, agent.environment_for_connect)
     agent.connect_to_server
+
     assert_endpoint_received_string('connect', normalized_bad_string)
   end
 
@@ -89,15 +98,18 @@ class EncodingHandlingTest < Minitest::Test
     agent.send(:transmit_error_event_data)
     agent.send(:transmit_span_event_data)
     requests = $collector.calls_for(endpoint)
+
     assert_equal(1, requests.size)
     request = requests.first
     request.decode! if request.respond_to?(:decode!)
+
     assert_contains_string(request, string)
   end
 
   def assert_contains_string(request, string)
     object_graph = request.body
     object_graph = request.samples if request.respond_to?(:samples)
+
     assert object_graph_contains_string?(request.body, string), "Did not find desired string in #{request.body.inspect}"
   end
 

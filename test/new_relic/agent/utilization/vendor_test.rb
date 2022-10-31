@@ -39,6 +39,7 @@ module NewRelic
 
         def test_has_headers
           expected = {"meta" => "yes"}
+
           assert_equal expected, @vendor.headers
         end
 
@@ -49,6 +50,7 @@ module NewRelic
         def test_assigns_expected_keys
           stubbed_response = stub(:code => '200', :body => '{"vm_type":"large","vm_id":"x123", "vm_zone":"danger_zone", "whatever":"nothing"}')
           @vendor.stubs(:request_metadata).returns(stubbed_response)
+
           assert @vendor.detect
 
           expected = {

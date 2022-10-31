@@ -60,6 +60,7 @@ module NewRelic
       def test_record_accepts_a_block
         payload = generate_payload
         @event_aggregator.record(priority: 0.5) { TransactionEventPrimitive.create(payload) }
+
         assert_equal 1, last_transaction_events.size
       end
 
@@ -115,6 +116,7 @@ module NewRelic
 
       def last_transaction_event
         events = last_transaction_events
+
         assert_equal 1, events.size
         events.first
       end

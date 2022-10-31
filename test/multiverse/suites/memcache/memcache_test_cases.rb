@@ -63,6 +63,7 @@ module MemcacheTestCases
     rescue StandardError
       # NOP -- allowing span and transaction to notice error
     end
+
     assert_segment_noticed_error txn, /Memcached\/set(_cas)?$/, simulated_error_class.name, /No server available/i
     assert_transaction_noticed_error txn, simulated_error_class.name
   end
@@ -339,6 +340,7 @@ module MemcacheTestCases
       end
       trace = last_transaction_trace
       segment = find_node_with_name(trace, 'Datastore/operation/Memcached/get')
+
       assert_equal "get \"#{key}\"", segment[:statement]
     end
   end

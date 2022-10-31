@@ -70,6 +70,7 @@ module NewRelic
               simulate_connect_to_collector(fiddlesticks_config, 0.0) do |simulator|
                 simulator.join
                 metadata = connection.send(:metadata)
+
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "fiddlesticks", metadata["agent_run_token"]
 
@@ -88,6 +89,7 @@ module NewRelic
           with_serial_lock do
             total_spans = 5
             spans, segments = emulate_streaming_segments(total_spans)
+
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
           end
@@ -194,6 +196,7 @@ module NewRelic
         # Testing the backoff similarly to connect_test.rb
         def test_increment_retry_period
           unstub_reconnection
+
           assert_equal 15, next_retry_period
           assert_equal 15, next_retry_period
           assert_equal 30, next_retry_period

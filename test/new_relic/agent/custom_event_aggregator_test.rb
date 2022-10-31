@@ -63,6 +63,7 @@ module NewRelic::Agent
       end
 
       metadata, results = @aggregator.harvest!
+
       assert_equal(max_samples, metadata[:reservoir_size])
       assert_equal(n, metadata[:events_seen])
       assert_equal(max_samples, results.size)
@@ -78,6 +79,7 @@ module NewRelic::Agent
       new_max_samples = orig_max_samples - 10
       with_config(:'custom_insights_events.max_samples_stored' => new_max_samples) do
         metadata, results = @aggregator.harvest!
+
         assert_equal(new_max_samples, metadata[:reservoir_size])
         assert_equal(orig_max_samples, metadata[:events_seen])
         assert_equal(new_max_samples, results.size)

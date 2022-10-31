@@ -34,6 +34,7 @@ class ExclusiveTimeTest < Minitest::Test
     traced_class.new.outer_a
 
     txn_name = 'Controller/traced/outer_b'
+
     assert_metrics_recorded(
       txn_name => {
         :call_count => 1,
@@ -79,6 +80,7 @@ class ExclusiveTimeTest < Minitest::Test
     traced_class.new.outer
 
     txn_name = 'Controller/traced/outer'
+
     assert_metrics_recorded(
       txn_name => {
         :call_count => 1,
