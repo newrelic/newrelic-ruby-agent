@@ -14,6 +14,10 @@ Metrics/AbcSize:
     - test/**/*
     - infinite_tracing/test/**/*
 
+# This cop supports safe autocorrection (--autocorrect).
+Minitest/AssertInDelta:
+  Enabled: true
+
 # Offense count: 145
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertPredicate:
