@@ -23,7 +23,7 @@ class PipeManagerTest < Minitest::Test
     sleep(2)
     @listener.start
     sleep(0.5)
- # give the thread some time to start, and clean things up
+    # give the thread some time to start, and clean things up
     refute NewRelic::Agent::PipeChannelManager.channels[:timeout_test]
   end
 

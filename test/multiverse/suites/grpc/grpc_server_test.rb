@@ -179,7 +179,7 @@ class GrpcServerTest < Minitest::Test
     active_call = MiniTest::Mock.new
     active_call.expect(:metadata, metadata_hash)
     active_call.expect(:metadata, metadata_hash)
- # #metadata is called twice
+    # #metadata is called twice
     assert_equal metadata_hash, desc.send(:metadata_for_call, active_call)
   end
 
