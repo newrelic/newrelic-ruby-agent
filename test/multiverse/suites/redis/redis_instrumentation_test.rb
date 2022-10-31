@@ -163,9 +163,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_metrics_for_pipelined_commands
       in_transaction('test_txn') do
-        @redis.pipelined do
-          @redis.get('great log')
-          @redis.get('late log')
+        @redis.pipelined do |pipeline|
+          pipeline.get('great log')
+          pipeline.get('late log')
         end
       end
 
@@ -189,9 +189,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_commands_without_args_in_pipelined_block_by_default
       in_transaction do
-        @redis.pipelined do
-          @redis.set('late log', 'goof')
-          @redis.get('great log')
+        @redis.pipelined do |pipeline|
+          pipeline.set('late log', 'goof')
+          pipeline.get('great log')
         end
       end
 
@@ -203,9 +203,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_metrics_for_multi_blocks
       in_transaction('test_txn') do
-        @redis.multi do
-          @redis.get('darkpact')
-          @redis.get('chaos orb')
+        @redis.multi do |pipeline|
+          pipeline.get('darkpact')
+          pipeline.get('chaos orb')
         end
       end
 
@@ -229,9 +229,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_commands_without_args_in_tt_node_for_multi_blocks
       in_transaction do
-        @redis.multi do
-          @redis.set('darkpact', 'sorcery')
-          @redis.get('chaos orb')
+        @redis.multi do |pipeline|
+          pipeline.set('darkpact', 'sorcery')
+          pipeline.get('chaos orb')
         end
       end
 
@@ -244,9 +244,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_commands_with_args_in_tt_node_for_multi_blocks
       with_config(:'transaction_tracer.record_redis_arguments' => true) do
         in_transaction do
-          @redis.multi do
-            @redis.set('darkpact', 'sorcery')
-            @redis.get('chaos orb')
+          @redis.multi do |pipeline|
+            pipeline.set('darkpact', 'sorcery')
+            pipeline.get('chaos orb')
           end
         end
       end
@@ -289,8 +289,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_instance_parameters_on_tt_node_for_multi
       in_transaction do
-        @redis.multi do
-          @redis.get("foo")
+        @redis.multi do |pipeline|
+          pipeline.get("foo")
         end
       end
 
@@ -308,8 +308,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
-        redis.multi do
-          redis.get("foo")
+        redis.multi do |pipeline|
+          pipeline.get("foo")
         end
       end
 
@@ -379,12 +379,12 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       assert_equal 'bar', @redis.get('foo')
       assert_equal 1, @redis.del('foo')
 
-      assert_equal %w[OK OK], @redis.multi { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
-      assert_equal %w[bar bat], @redis.multi { @redis.get('foo'); @redis.get('baz') }
+      assert_equal %w[OK OK], @redis.multi { |pipeline| pipeline.set('foo', 'bar'); pipeline.set('baz', 'bat') }
+      assert_equal %w[bar bat], @redis.multi { |pipeline| pipeline.get('foo'); pipeline.get('baz') }
       assert_equal 2, @redis.del('foo', 'baz')
 
-      assert_equal %w[OK OK], @redis.pipelined { @redis.set('foo', 'bar'); @redis.set('baz', 'bat') }
-      assert_equal %w[bar bat], @redis.pipelined { @redis.get('foo'); @redis.get('baz') }
+      assert_equal %w[OK OK], @redis.pipelined { |pipeline| pipeline.set('foo', 'bar'); pipeline.set('baz', 'bat') }
+      assert_equal %w[bar bat], @redis.pipelined { |pipeline| pipeline.get('foo'); pipeline.get('baz') }
       assert_equal 2, @redis.del('foo', 'baz')
     end
 
