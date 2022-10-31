@@ -15,7 +15,7 @@ module Prompt
     puts
     print "Do you wish to continue? ('y' to continue, return to cancel) [n] "
     continue = STDIN.gets.chomp
-    if continue.casecmp('y').zero?
+    if continue.casecmp('y') == 0
       system(command)
     else
       puts 'Cancelled'
