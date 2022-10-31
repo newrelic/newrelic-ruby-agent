@@ -7,7 +7,7 @@ instrumentation_methods :chain, :prepend
 REDIS_VERSIONS = [
   # TODO: add support for redis v5+, re-enable nil
   # https://github.com/newrelic/newrelic-ruby-agent/issues/1361
-  # [nil, 2.4],
+  [nil, 2.4],
   ['4.7.1', 2.4],
   ['3.3.0']
 ]
