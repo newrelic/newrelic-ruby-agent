@@ -51,7 +51,7 @@ module NewRelic
 
         def set_log_file
           if ENV['NEW_RELIC_LOG']
-            if ENV['NEW_RELIC_LOG'].casecmp('STDOUT').zero?
+            if ENV['NEW_RELIC_LOG'].casecmp('STDOUT') == 0
               self[:log_file_path] = self[:log_file_name] = 'STDOUT'
             else
               self[:log_file_path] = File.dirname(ENV['NEW_RELIC_LOG'])
