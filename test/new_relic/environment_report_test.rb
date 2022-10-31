@@ -19,6 +19,7 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("something") { "awesome" }
     data = Array(::NewRelic::EnvironmentReport.new)
     expected = %w[something awesome]
+
     assert_includes(data, expected, "expected to find #{expected} in #{data.inspect}")
   end
 
@@ -26,6 +27,7 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("What time is it?") do
       "beer-o-clock"
     end
+
     assert_equal 'beer-o-clock', ::NewRelic::EnvironmentReport.new["What time is it?"]
   end
 
@@ -33,6 +35,7 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("What time is it?") do
       raise ArgumentError, "woah! something blew up"
     end
+
     assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
   end
 
@@ -40,17 +43,20 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("What time is it?") do
       nil
     end
+
     refute NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
   end
 
   def test_can_set_an_environment_value_directly
     @report['My Value'] = "so awesome!!"
+
     assert_equal "so awesome!!", @report['My Value']
   end
 
   def test_it_knows_what_gems_are_in_the_environment
     assert(@report['Gems'].size > 5, "Expected at least 5 gems in #{@report['Gems'].inspect}")
     rake = @report['Gems'].detect { |s| s.include?('rake') }
+
     assert_match(/^rake\([\d\.]+\)$/, rake)
   end
 
@@ -70,6 +76,7 @@ class EnvironmentReportTest < Minitest::Test
       :ruby_os_identifier => 'wiggleos'
     })
     report = ::NewRelic::EnvironmentReport.new
+
     assert_equal(8, report['Logical Processors'])
     assert_equal('x86_64', report['Arch'])
     assert_equal('WiggleOS 1.1.1', report['OS version'])

@@ -52,6 +52,7 @@ class MarshalingTest < Minitest::Test
     assert_equal('666', $collector.calls_for('metric_data')[0].run_id)
 
     custom_metric = $collector.reported_stats_for_metric('Custom/test/method')[0]
+
     assert_equal(expected, custom_metric)
   end
 
@@ -63,6 +64,7 @@ class MarshalingTest < Minitest::Test
     assert_equal('666', $collector.calls_for('error_data')[0].run_id)
 
     error_data = $collector.calls_for('error_data')[0][1][0]
+
     assert_equal('test error', error_data[2])
   end
 
@@ -76,6 +78,7 @@ class MarshalingTest < Minitest::Test
     agent.send(:harvest_and_send_slowest_sql)
 
     sql_data = $collector.calls_for('sql_trace_data')[0][0]
+
     assert_equal('select * from test', sql_data[0][3])
   end
 
@@ -84,6 +87,7 @@ class MarshalingTest < Minitest::Test
       'app_name' => 'test')
 
     connect_data = $collector.calls_for('connect').last
+
     assert_equal '9000', connect_data['agent_version']
   end
 end

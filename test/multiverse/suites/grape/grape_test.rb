@@ -19,6 +19,7 @@ class GrapeTest < Minitest::Test
 
     def test_nonexistent_route
       get('/not_grape_ape')
+
       assert_no_metrics_match(/grape_ape/)
     end
 
@@ -28,32 +29,38 @@ class GrapeTest < Minitest::Test
       end
 
       expected_txn_name = 'Controller/Grape/GrapeTestApi/self_destruct (GET)'
+
       assert_grape_metrics(expected_txn_name)
       assert_metrics_recorded(["Errors/#{expected_txn_name}"])
     end
 
     def test_getting_a_list_of_grape_apes
       get('/grape_ape')
+
       assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape (GET)')
     end
 
     def test_showing_a_grape_ape
       get('/grape_ape/1')
+
       assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (GET)')
     end
 
     def test_creating_a_grape_ape
       post('/grape_ape', {})
+
       assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape (POST)')
     end
 
     def test_updating_a_grape_ape
       put('/grape_ape/1', {})
+
       assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)')
     end
 
     def test_deleting_a_grape_ape
       delete('/grape_ape/1')
+
       assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)')
     end
 
@@ -76,6 +83,7 @@ class GrapeTest < Minitest::Test
         get('/grape_ape/10')
 
         expected = {}
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -87,6 +95,7 @@ class GrapeTest < Minitest::Test
         expected = {
           "request.parameters.id" => "10"
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -99,6 +108,7 @@ class GrapeTest < Minitest::Test
           'request.parameters.q' => '1234',
           'request.parameters.foo' => 'bar'
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -111,6 +121,7 @@ class GrapeTest < Minitest::Test
           'request.parameters.q' => '1234',
           'request.parameters.foo' => 'bar'
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -122,6 +133,7 @@ class GrapeTest < Minitest::Test
         end
 
         agent_attributes = attributes_for(last_traced_error, :agent)
+
         assert_equal('1234', agent_attributes['request.parameters.q'])
         assert_equal('fail', agent_attributes['request.parameters.foo'])
       end
@@ -132,6 +144,7 @@ class GrapeTest < Minitest::Test
         post('/grape_ape_fail_rescue', {'q' => '1234', 'foo' => 'fail'}.to_json, "CONTENT_TYPE" => "application/json")
 
         agent_attributes = attributes_for(last_traced_error, :agent)
+
         assert_equal('1234', agent_attributes['request.parameters.q'])
         assert_equal('fail', agent_attributes['request.parameters.foo'])
       end
@@ -146,6 +159,7 @@ class GrapeTest < Minitest::Test
           "request.parameters.ape.first_name" => "koko",
           "request.parameters.ape.last_name" => "gorilla"
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -162,6 +176,7 @@ class GrapeTest < Minitest::Test
           "request.parameters.title" => "blah",
           "request.parameters.file" => "[FILE]"
         }
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -170,6 +185,7 @@ class GrapeTest < Minitest::Test
       with_config(:capture_params => true) do
         post('/grape_catfish', {"foo" => "bar"})
         expected = {}
+
         assert_equal expected, last_transaction_trace_request_params
       end
     end
@@ -218,6 +234,7 @@ class GrapeTest < Minitest::Test
 
     def assert_grape_metrics(expected_txn_name)
       expected_node_name = 'Middleware/Grape/GrapeTestApi/call'
+
       assert_metrics_recorded([
         expected_node_name,
         [expected_node_name, expected_txn_name],
@@ -243,6 +260,7 @@ class GrapeApiInstanceTest < Minitest::Test
 
       expected_node_name = 'Middleware/Grape/GrapeApiInstanceTestApi/call'
       expected_txn_name = 'Controller/Grape/GrapeApiInstanceTestApi/banjaxing (GET)'
+
       assert_metrics_recorded([
         expected_node_name,
         [expected_node_name, expected_txn_name],

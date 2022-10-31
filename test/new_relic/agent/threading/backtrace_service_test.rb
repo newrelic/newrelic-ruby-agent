@@ -30,6 +30,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+
         assert @service.running?
       end
 
@@ -38,6 +39,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
           fake_worker_loop(@service)
 
           @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+
           refute @service.running?
         end
       end
@@ -46,9 +48,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
+
         assert @service.running?
 
         @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
+
         refute @service.running?
       end
 
@@ -57,12 +61,15 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo')
         @service.subscribe('bar')
+
         assert @service.running?
 
         @service.unsubscribe('bar')
+
         assert @service.running?
 
         @service.unsubscribe('foo')
+
         refute @service.running?
       end
 
@@ -83,6 +90,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
         harvested_profile = @service.harvest('foo')
+
         assert_same(profile, harvested_profile)
       end
 
@@ -123,6 +131,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         profile = @service.harvest('diggle')
+
         assert_nil(profile)
       end
 
@@ -190,9 +199,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         @service.subscribe('foo', 'sample_period' => 10)
+
         assert_has_period(10)
 
         @service.subscribe('bar', 'sample_period' => 5)
+
         assert_has_period(5)
       end
 
@@ -210,6 +221,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         @service.subscribe('foo', 'profile_agent_code' => true)
+
         assert @service.profile_agent_code
       end
 
@@ -218,6 +230,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo', 'profile_agent_code' => true)
         @service.subscribe('bar', 'profile_agent_code' => false)
+
         assert @service.profile_agent_code
       end
 
@@ -226,6 +239,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo')
         @service.subscribe('bar')
+
         refute @service.profile_agent_code
       end
 
@@ -234,9 +248,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo', 'profile_agent_code' => true)
         @service.subscribe('bar', 'profile_agent_code' => false)
+
         assert @service.profile_agent_code
 
         @service.unsubscribe('foo')
+
         refute @service.profile_agent_code
       end
 
@@ -269,6 +285,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.poll
 
         fake_transaction_finished('bar', 0, 1, thread)
+
         assert_empty @service.buffer
       end
 
@@ -382,10 +399,12 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         5.times { @service.poll }
+
         assert_equal(5, profile.poll_count)
 
         @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         5.times { @service.poll }
+
         assert_equal(5, profile.poll_count)
       end
 
@@ -417,6 +436,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.poll
 
         expected = {:call_count => 1, :total_call_time => 5}
+
         assert_metrics_recorded(
           {'Supportability/ThreadProfiler/PollingTime' => expected}
         )
@@ -431,9 +451,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         BacktraceService::MAX_BUFFER_LENGTH.times do
           @service.buffer_backtrace_for_thread(thread, Process.clock_gettime(Process::CLOCK_REALTIME), stub, :request)
         end
+
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
 
         @service.buffer_backtrace_for_thread(thread, Process.clock_gettime(Process::CLOCK_REALTIME), stub, :request)
+
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
         assert_metrics_recorded(["Supportability/ThreadProfiler/DroppedBacktraces"])
       end
@@ -442,6 +464,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         poll_for(0.01)
+
         assert_has_period 0.2
       end
 
@@ -449,6 +472,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         poll_for(0.001)
+
         assert_has_default_period
       end
 
@@ -456,9 +480,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
 
         poll_for(0.01)
+
         assert_has_period 0.2
 
         poll_for(0.001)
+
         assert_has_default_period
       end
 
@@ -468,6 +494,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         with_config(:'thread_profiler.max_profile_overhead' => 0.1) do
           poll_for(0.01)
+
           assert_has_default_period
         end
       end

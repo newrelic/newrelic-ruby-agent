@@ -194,9 +194,11 @@ module MultiverseHelpers
 
   def single_transaction_trace_posted
     posts = $collector.calls_for("transaction_sample_data")
+
     assert_equal 1, posts.length, "Unexpected post count"
 
     transactions = posts.first.samples
+
     assert_equal 1, transactions.length, "Unexpected trace count"
 
     transactions.first
@@ -245,6 +247,7 @@ module MultiverseHelpers
 
   def assert_transaction_trace_has_agent_attribute(attribute, expected)
     actual = single_transaction_trace_posted.agent_attributes[attribute]
+
     assert_equal expected, actual
   end
 
@@ -258,6 +261,7 @@ module MultiverseHelpers
 
   def assert_transaction_tracer_has_custom_attributes(attribute, expected)
     actual = single_transaction_trace_posted.custom_attributes[attribute]
+
     assert_equal expected, actual
   end
 
@@ -315,6 +319,7 @@ module MultiverseHelpers
 
   def refute_event_has_attribute(key)
     evt = single_event_posted
+
     refute_includes evt[0], key, "Found unexpected attribute #{key} in txn event intrinsics"
     refute_includes evt[1], key, "Found unexpected attribute #{key} in txn event custom attributes"
     refute_includes evt[2], key, "Found unexpected attribute #{key} in txn event agent attributes"

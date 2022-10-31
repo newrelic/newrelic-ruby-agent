@@ -13,11 +13,13 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
     with_constant_defined(:PhusionPassenger, Module.new) do
       NewRelic::Agent.reset_config
       e = NewRelic::LocalEnvironment.new
+
       assert_equal :passenger, e.discovered_dispatcher
       assert_equal :passenger, NewRelic::Agent.config[:dispatcher]
 
       with_config(:app_name => 'myapp') do
         e = NewRelic::LocalEnvironment.new
+
         assert_equal :passenger, e.discovered_dispatcher
       end
     end
@@ -93,11 +95,13 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
 
   def assert_resque(settings)
     e = NewRelic::LocalEnvironment.new
+
     assert_equal :resque, e.discovered_dispatcher, settings.inspect
   end
 
   def refute_resque(settings)
     e = NewRelic::LocalEnvironment.new
+
     refute_equal :resque, e.discovered_dispatcher, settings.inspect
   end
 end

@@ -95,6 +95,7 @@ class NewRelic::ControlTest < Minitest::Test
       :monitor_mode           => true,
       :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
+
       assert NewRelic::Agent.instance.harvest_samplers.any?
     end
   end
@@ -108,6 +109,7 @@ class NewRelic::ControlTest < Minitest::Test
       :monitor_mode           => true,
       :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
+
       refute NewRelic::Agent.instance.harvest_samplers.any?
     end
   end
@@ -123,6 +125,7 @@ class NewRelic::ControlTest < Minitest::Test
       :monitor_mode           => true,
       :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
+
       refute NewRelic::Agent.instance.already_started?
       refute NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -141,6 +144,7 @@ class NewRelic::ControlTest < Minitest::Test
       NewRelic::Control.instance.init_plugin
       NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(false)
       NewRelic::Agent.after_fork
+
       assert NewRelic::Agent.instance.already_started?
       assert NewRelic::Agent.instance.harvest_samplers.any?
     end

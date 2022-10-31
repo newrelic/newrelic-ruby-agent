@@ -42,6 +42,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
       b.min_call_time = 1.0
       b.max_call_time = 4.0
     end
+
     assert_equal(0.5, merged.min_call_time)
     assert_equal(4.0, merged.max_call_time)
   end
@@ -61,6 +62,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
   def test_to_s
     s1 = NewRelic::Agent::Stats.new
     s1.trace_call(10)
+
     assert_equal("[ 1 calls 10.0000s / 10.0000s ex]", s1.to_s)
   end
 
@@ -138,6 +140,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     begin
       # the following should throw an exception because s1 is frozen
       s1.trace_call(20)
+
       assert false
     rescue StandardError
       assert s1.frozen?

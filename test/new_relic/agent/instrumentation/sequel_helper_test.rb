@@ -29,6 +29,7 @@ module NewRelic
         end
 
         default_result = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter("YouDontKnowThisAdapter")
+
         assert_equal expected_default, default_result
       end
     end

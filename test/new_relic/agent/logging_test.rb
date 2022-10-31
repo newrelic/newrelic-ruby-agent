@@ -46,10 +46,12 @@ module NewRelic
 
           with_config(app_name: 'Unset') do
             logger.info('one')
+
             assert_equal 'Unset', last_message['entity.name']
 
             with_config(app_name: 'MyTotallySweetApplication') do
               logger.info('two')
+
               assert_equal 'MyTotallySweetApplication', last_message['entity.name']
             end
           end
@@ -60,6 +62,7 @@ module NewRelic
           shift_size = 10000
           logger = DecoratingLogger.new('/tmp/tmp.log', shift_age = 30, shift_size = 1000)
           device = logger.instance_variable_get(:@logdev)
+
           assert_equal '/tmp/tmp.log', device.instance_variable_get(:@filename)
           assert_equal 30, device.instance_variable_get(:@shift_age)
           assert_equal 1000, device.instance_variable_get(:@shift_size)
@@ -82,6 +85,7 @@ module NewRelic
           define_method "test_escape_message_#{name}" do
             logger = DecoratingLogger.new(@output)
             logger.info(message)
+
             assert_equal message, last_message['message']
           end
         end
@@ -93,6 +97,7 @@ module NewRelic
           logger = DecoratingLogger.new(@output)
 
           logger.info(input)
+
           assert_equal expectation, last_message['message']
         end
 
@@ -104,12 +109,14 @@ module NewRelic
           logger = DecoratingLogger.new(@output)
 
           logger.info(input)
+
           assert_equal expectation, last_message['message']
         end
 
         if RUBY_VERSION >= '2.4.0'
           def test_constructor_arguments_level
             logger = DecoratingLogger.new(@output, level: :error)
+
             assert_equal Logger::ERROR, logger.level
           end
 
@@ -118,6 +125,7 @@ module NewRelic
             logger.info('test')
 
             message = JSON.load(@output.string)
+
             assert_equal 'LoggingTest', message['logger.name']
           end
 
@@ -127,6 +135,7 @@ module NewRelic
             # it and use it to format messages?
             formatter = ::Logger::Formatter.new
             logger = DecoratingLogger.new(@output, formatter: formatter)
+
             refute_equal formatter, logger.formatter
           end
         end

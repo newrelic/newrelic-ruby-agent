@@ -38,6 +38,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     @app.process_route_with_tracing do
       yielded = true
     end
+
     assert yielded
   end
 
@@ -47,6 +48,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     @app.route_eval_with_tracing do
       yielded = true
     end
+
     assert yielded
   end
 

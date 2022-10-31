@@ -13,6 +13,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     NewRelic::Agent::Instrumentation::RackBuilder.track_deferred_detection(instance.class)
     instance.deferred_dependency_check
+
     assert instance.class._nr_deferred_detection_ran
   ensure
     def TestBuilderClass
@@ -74,6 +75,7 @@ class RackBuilderTest < Minitest::Test
     instance.instance_variable_set(:@checked_for_late_instrumentation, true)
     # to ensure an early return, overwrite #middleware_instrumentation-enabled to explode
     def instance.middleware_instrumentation_enabled?; raise 'kaboom'; end
+
     assert_nil instance.check_for_late_instrumentation(nil)
   end
 
@@ -83,6 +85,7 @@ class RackBuilderTest < Minitest::Test
     def instance.check_for_late_instrumentation(obj); instance_variable_set(:@object_given, obj); end
     arg = :the_arg
     instance.with_deferred_dependency_detection { arg }
+
     assert_equal instance.instance_variable_get(:@object_given), arg
   end
 
@@ -103,6 +106,7 @@ class RackBuilderTest < Minitest::Test
     # to ensure an early return, overwrite MiddlewareProxy.wrap to explode
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :wrap, -> { raise 'kaboom' } do
       app = :the_app
+
       assert_equal app, instance.run_with_tracing(app) { app }
     end
   end
@@ -122,6 +126,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     # ensure that middleware_instrumentation_enabled is not called
     def instance.middleware_instrumentation_enabled?; raise 'kaboom'; end
+
     assert_nil instance.use_with_tracing(nil) {}
   end
 
@@ -129,6 +134,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     def instance.middleware_instrumentation_enabled?; false; end
     middleware = :a_bit_of_strawberry_stuck_on_the_far_end_of_the_straw
+
     assert_nil instance.use_with_tracing(middleware) {}
   end
 
@@ -140,6 +146,7 @@ class RackBuilderTest < Minitest::Test
     map = {url => handler}
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :wrap, handler.reverse, [handler, true] do
       traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+
       assert_equal({url => handler.reverse}, traced_map)
     end
   end

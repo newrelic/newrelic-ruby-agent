@@ -9,6 +9,7 @@ class NewRelic::Agent::VM::SnapshotTestCase < Minitest::Test
   def test_records_taken_at_on_initialization
     t = nr_freeze_process_time
     snap = NewRelic::Agent::VM::Snapshot.new
+
     assert_equal(t, snap.taken_at)
   end
 end

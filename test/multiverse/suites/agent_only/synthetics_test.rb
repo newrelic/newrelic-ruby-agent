@@ -18,16 +18,20 @@ class SyntheticsTest < Minitest::Test
 
   def last_sent_analytics_event
     calls = $collector.calls_for(:analytic_event_data)
+
     assert_equal(1, calls.size)
     events = calls.first.events
+
     assert_equal(1, events.size)
     events.first
   end
 
   def last_sent_transaction_trace
     calls = $collector.calls_for(:transaction_sample_data)
+
     assert_equal(1, calls.size)
     traces = calls.first.samples
+
     assert_equal(1, traces.size)
     traces.first
   end
@@ -74,6 +78,7 @@ class SyntheticsTest < Minitest::Test
 
     non_expected_event_attrs.each do |key|
       msg = "Did not expect key '#{key}' on analytics event. Actual value was #{event[0][key]}"
+
       refute_includes(event[0].keys, key, msg)
     end
   end
@@ -91,12 +96,14 @@ class SyntheticsTest < Minitest::Test
     expected_attrs.each do |key, value|
       key = "#{key}"
       msg = "Incorrect value for transaction trace intrinsic '#{key}'. All intrinsics = #{trace_attrs.inspect}"
+
       assert_equal(value, trace_attrs[key], msg)
     end
 
     non_expected_attrs.each do |key|
       key = "#{key}"
       msg = "Did not expect key '#{key}' on transaction trace. Actual value was #{trace_attrs[key]}"
+
       refute_includes(trace_attrs.keys, key, msg)
     end
   end

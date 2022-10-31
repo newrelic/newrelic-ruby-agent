@@ -312,6 +312,7 @@ class DataMapperTest < Minitest::Test
     end
 
     sql_node = find_last_transaction_node(last_transaction_trace)
+
     refute_nil sql_node.obfuscated_sql
   end
 
@@ -434,6 +435,7 @@ class DataMapperTest < Minitest::Test
 
   def assert_basic_metrics(operation)
     yield
+
     assert_metrics_recorded([
       "Datastore/all",
       "Datastore/allOther",

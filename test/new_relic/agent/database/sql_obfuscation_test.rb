@@ -44,6 +44,7 @@ module NewRelic::Agent::Database
         define_method("test_sql_obfuscation_#{name}_#{statement.adapter}") do
           actual_obfuscated = NewRelic::Agent::Database.obfuscate_sql(statement)
           message = build_failure_message(statement, acceptable_outputs, actual_obfuscated)
+
           assert_includes(acceptable_outputs, actual_obfuscated, message)
         end
       end

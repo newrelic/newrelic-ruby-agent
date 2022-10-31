@@ -69,6 +69,7 @@ module NewRelic
           phony_imds_token = 'And with a token bird I made'
           mock_response = mock(code: '200', body: phony_imds_token)
           Net::HTTP.any_instance.stubs(:send_request).returns(mock_response)
+
           assert_equal @vendor.headers, "X-aws-ec2-metadata-token" => phony_imds_token
         end
 
@@ -102,6 +103,7 @@ module NewRelic
               detection = @vendor.detect
 
               expected = test_case[:expected_vendors_hash].nil? ? {aws: {}} : test_case[:expected_vendors_hash]
+
               assert_equal expected, {aws: @vendor.metadata}
 
               if test_case[:expected_metrics]
@@ -112,6 +114,7 @@ module NewRelic
                     else
                       assert detection, '@vendor.detect should have returned truthy'
                     end
+
                     assert_metrics_not_recorded [metric.to_s]
                   else
                     refute detection, '@vendor.detect should have returned false'

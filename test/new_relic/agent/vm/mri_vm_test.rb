@@ -18,12 +18,14 @@ unless NewRelic::LanguageSupport.jruby?
           def test_gather_gc_time_sets_gc_total_time_if_gc_profiler_is_enabled
             NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
             @vm.gather_gc_time(@snap)
+
             refute_nil @snap.gc_total_time
           end
 
           def test_gather_gc_time_does_not_set_gc_total_time_if_gc_profiler_is_disabled
             NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(false)
             @vm.gather_gc_time(@snap)
+
             assert_nil @snap.gc_total_time
           end
 
@@ -31,6 +33,7 @@ unless NewRelic::LanguageSupport.jruby?
             NewRelic::Agent.instance.monotonic_gc_profiler.stubs(:total_time_s).returns(999)
             NewRelic::LanguageSupport.stubs(:gc_profiler_enabled?).returns(true)
             @vm.gather_stats(@snap)
+
             assert_equal(999, @snap.gc_total_time)
           end
         end

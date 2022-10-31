@@ -123,12 +123,14 @@ module NewRelic::Agent
     def test_add_samples_holds_onto_previous_result
       sample = sample_with(:duration => 1)
       @sampler.merge!([sample])
+
       assert_equal([sample], @sampler.harvest!)
     end
 
     def test_merge_avoids_dups
       sample = sample_with(:duration => 1)
       @sampler.merge!([sample, sample])
+
       assert_equal([sample], @sampler.harvest!)
     end
 
@@ -185,6 +187,7 @@ module NewRelic::Agent
       end
 
       result = @sampler.harvest!
+
       assert_equal Transaction::TransactionSampleBuffer::SINGLE_BUFFER_MAX, result.length
     end
 
@@ -210,6 +213,7 @@ module NewRelic::Agent
         end
 
         sample = last_transaction_trace
+
         assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
       end
     ensure
@@ -252,6 +256,7 @@ module NewRelic::Agent
 
         slowest = @sampler.harvest![0]
         first_duration = slowest.duration
+
         assert((first_duration.round >= 2),
           "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
@@ -263,6 +268,7 @@ module NewRelic::Agent
         end
         @sampler.merge!([slowest])
         not_as_slow = @sampler.harvest![0]
+
         assert_equal(not_as_slow, slowest, "Should re-harvest the same transaction since it should be slower than the new transaction - expected #{slowest.inspect} but got #{not_as_slow.inspect}")
 
         # 1 second duration
@@ -274,6 +280,7 @@ module NewRelic::Agent
 
         @sampler.merge!([slowest])
         new_slowest = @sampler.harvest![0]
+
         assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
         assert_equal(10, new_slowest.duration.round, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
       end
@@ -286,6 +293,7 @@ module NewRelic::Agent
       samples[1].expects(:prepare_to_send!)
       @sampler.stubs(:harvest_from_sample_buffers).returns(samples)
       prepared = @sampler.harvest!
+
       assert_equal(samples, prepared)
     end
 
@@ -295,6 +303,7 @@ module NewRelic::Agent
       samples[1].expects(:prepare_to_send!)
       @sampler.stubs(:harvest_from_sample_buffers).returns(samples)
       prepared = @sampler.harvest!
+
       assert_equal([samples[1]], prepared)
     end
 
@@ -359,6 +368,7 @@ module NewRelic::Agent
       sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
       intrinsic_attributes = attributes_for(sample, :intrinsic)
+
       assert_nil sample.synthetics_resource_id
       assert_nil intrinsic_attributes[:synthetics_resource_id]
       assert_nil intrinsic_attributes[:synthetics_job_id]
@@ -374,6 +384,7 @@ module NewRelic::Agent
       sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
 
       intrinsic_attributes = attributes_for(sample, :intrinsic)
+
       assert_equal 100, sample.synthetics_resource_id
       assert_equal 100, intrinsic_attributes[:synthetics_resource_id]
       assert_equal 200, intrinsic_attributes[:synthetics_job_id]

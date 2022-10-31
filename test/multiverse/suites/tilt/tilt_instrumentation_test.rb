@@ -30,6 +30,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     expected = {call_count: 1}
+
     assert_metrics_recorded(haml_render_metric => expected)
   end
 
@@ -39,6 +40,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     expected = {call_count: 1}
+
     assert_metrics_recorded('View/Tilt::ERBTemplate/test.erb/Rendering' => expected)
   end
 
@@ -50,6 +52,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     expected = {call_count: 1}
+
     assert_metrics_recorded(haml_render_metric('layout.haml') => expected)
     assert_metrics_recorded(haml_render_metric => expected)
   end
@@ -62,6 +65,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     expected = {:call_count => 1}
+
     assert_metrics_recorded(
       [haml_render_metric, test_transaction] => expected
     )
@@ -186,6 +190,7 @@ class TiltInstrumentationTest < Minitest::Test
 
   def test_returns_file_if_no_method_error_raised
     String.any_instance.stubs(:split).raises(NoMethodError)
+
     assert_equal(
       call_create_filename_for_metric(long_non_nested_path),
       long_non_nested_path

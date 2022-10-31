@@ -22,12 +22,14 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
 
       def test_doesnt_trace_by_default
         run_rake("untraced")
+
         refute_any_rake_metrics
       end
 
       def test_doesnt_trace_with_an_empty_list
         with_tasks_traced("") do
           run_rake
+
           refute_any_rake_metrics
         end
       end
@@ -60,6 +62,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake
 
         trace = single_transaction_trace_posted
+
         assert_equal "OtherTransaction/Rake/invoke/default", trace.metric_name
 
         expected = ["ROOT",
@@ -75,6 +78,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake
 
         event = single_event_posted[0]
+
         assert_equal "OtherTransaction/Rake/invoke/default", event["name"]
       end
 
@@ -138,6 +142,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
           run_rake("boom", true)
 
           expected = "OtherTransaction/Rake/invoke/boom"
+
           assert_equal expected, single_error_posted.path
         end
       end
@@ -147,6 +152,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
           run_rake("argument[someone,somewhere,vigorously]")
 
           attributes = single_transaction_trace_posted.agent_attributes
+
           assert_equal "someone", attributes["job.rake.args.who"]
           assert_equal "somewhere", attributes["job.rake.args.where"]
           assert_equal "vigorously", attributes["job.rake.args.2"]
@@ -158,6 +164,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
           run_rake("argument[someone]")
 
           attributes = single_transaction_trace_posted.agent_attributes
+
           assert_equal "someone", attributes["job.rake.args.who"]
 
           refute_includes attributes, "job.rake.args.where"
@@ -171,6 +178,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
             run_rake("argument[someone,somewhere,vigorously]")
 
             attributes = single_transaction_trace_posted.agent_attributes
+
             refute_includes attributes, "job.rake.args.who"
             refute_includes attributes, "job.rake.args.where"
             refute_includes attributes, "job.rake.args.2"
@@ -183,6 +191,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
           run_rake("default")
 
           attributes = single_transaction_trace_posted.agent_attributes
+
           refute attributes.keys.any? { |key| key.start_with?("job.rake.args") }
         end
       end
@@ -192,6 +201,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
           run_rake("argument[someone] default")
 
           attributes = single_transaction_trace_posted.agent_attributes
+
           assert_includes attributes["job.rake.command"], "argument[someone]"
           assert_includes attributes["job.rake.command"], "default"
         end
@@ -203,6 +213,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
             run_rake("argument[someone] default")
 
             attributes = single_transaction_trace_posted.agent_attributes
+
             refute_includes attributes, "job.rake.command"
           end
         end

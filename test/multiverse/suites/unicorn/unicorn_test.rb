@@ -40,6 +40,7 @@ class UnicornTest < Minitest::Test
 
     flattened = logger.messages.flatten
     found = flattened.any? { |msg| msg.to_s.include?(expected) }
+
     assert(found, "Didn't see message '#{expected}'")
   end
 end

@@ -20,12 +20,14 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
   def test_configure_agent_replaces_server_config
     @response_handler.configure_agent('apdex_t' => 42)
+
     assert_equal 42, @config[:apdex_t]
     assert_kind_of NewRelic::Agent::Configuration::ServerSource, @config.source(:apdex_t)
 
     # this should create a new server source that replaces the existing one that
     # had apdex_t specified, rather than layering on top of the existing one.
     @response_handler.configure_agent('data_report_period' => 12)
+
     assert_kind_of NewRelic::Agent::Configuration::DefaultSource, @config.source(:apdex_t)
   end
 
@@ -40,6 +42,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
     with_config(:'transaction_tracer.enabled' => true) do
       @response_handler.configure_agent(config)
+
       assert_equal 'fishsticks', @agent.service.agent_id
       assert_equal 'raw', @config[:'transaction_tracer.record_sql']
     end
@@ -48,6 +51,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
   def test_configure_agent_without_config
     @agent.service.agent_id = 'blah'
     @response_handler.configure_agent(nil)
+
     assert_equal 'blah', @agent.service.agent_id
   end
 
@@ -63,6 +67,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     @response_handler.configure_agent(config)
 
     rules = @agent.transaction_rules
+
     assert_equal 2, rules.size
     assert(rules.find { |r| r.match_expression == /88/i && r.replacement == '**' },
       "rule not found among #{rules}")
@@ -85,6 +90,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     @response_handler.configure_agent(config)
 
     rules = @agent.stats_engine.metric_rules
+
     assert_equal 2, rules.size
     assert(rules.find { |r| r.match_expression == /77/i && r.replacement == '&&' },
       "rule not found among #{rules}")

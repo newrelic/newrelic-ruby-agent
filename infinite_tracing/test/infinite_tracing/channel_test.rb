@@ -70,6 +70,7 @@ module NewRelic
 
         def test_invalid_compression_level
           channel = Channel.new
+
           refute channel.valid_compression_level?(:bogus)
         end
 

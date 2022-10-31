@@ -13,12 +13,14 @@ class NewRelic::Agent::Transaction
     def test_doesnt_store_if_not_synthetics
       sample = stub(:synthetics_resource_id => nil)
       @buffer.store(sample)
+
       assert_empty @buffer.samples
     end
 
     def test_stores_if_synthetics
       sample = stub(:synthetics_resource_id => 42)
       @buffer.store(sample)
+
       assert_equal [sample], @buffer.samples
     end
 

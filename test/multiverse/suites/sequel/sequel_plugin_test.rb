@@ -166,6 +166,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for do
           Post[11]
         end
+
         assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
         assert_node_has_explain_plan(node)
       end
@@ -176,6 +177,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for do
           Post.create(:title => 'title', :content => 'content')
         end
+
         assert_match %r{insert into `posts` \([^\)]*\) values \([^\)]*\)}i, node.params[:sql]
       end
     end
@@ -191,6 +193,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for do
           model_class[11]
         end
+
         assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
         assert_empty(node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
       end
@@ -205,6 +208,7 @@ if Sequel.const_defined?(:MAJOR) &&
         node = last_node_for(:record_sql => :obfuscated) do
           Post[11]
         end
+
         assert_match %r{select \* from `posts` where `id` = \?}i, node.params[:sql]
         assert_node_has_explain_plan(node)
       end

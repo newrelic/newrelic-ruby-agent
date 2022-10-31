@@ -53,6 +53,7 @@ class ErrorEventsTest < Minitest::Test
       generate_errors(5)
 
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+
       assert_equal(0, $collector.calls_for(:error_event_data).size)
     end
   end
@@ -79,6 +80,7 @@ class ErrorEventsTest < Minitest::Test
     generate_errors(5)
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+
     assert_equal(0, $collector.calls_for(:error_event_data).size)
 
     # reset the collect_error_events flag so that the ErrorEventAggregator
@@ -136,6 +138,7 @@ class ErrorEventsTest < Minitest::Test
 
   def last_error_event
     post = last_error_event_post
+
     assert_equal(1, post.events.size)
     post.events.last
   end

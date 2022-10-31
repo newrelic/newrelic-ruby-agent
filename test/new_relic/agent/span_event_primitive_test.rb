@@ -23,6 +23,7 @@ module NewRelic
         def test_error_attributes_returns_nil_when_no_error
           with_segment do |segment|
             eh = SpanEventPrimitive::error_attributes(segment)
+
             refute segment.noticed_error, "segment.noticed_error expected to be nil!"
             refute eh, "expected nil when no error present on segment"
           end
@@ -32,6 +33,7 @@ module NewRelic
           segment, _ = capture_segment_with_error
 
           eh = SpanEventPrimitive::error_attributes(segment)
+
           assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
           assert eh.is_a?(Hash), "expected a Hash when error present on segment"
           assert_equal "oops!", eh["error.message"]
@@ -42,6 +44,7 @@ module NewRelic
           segment, _ = capture_segment_with_error
           segment.attributes.stubs(:agent_attributes_for).returns(NewRelic::EMPTY_HASH)
           _, _, attrs = SpanEventPrimitive.for_segment(segment)
+
           assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
           assert attrs.is_a?(Hash), "expected a Hash when error present on segment"
           assert_equal "oops!", attrs["error.message"]
@@ -53,6 +56,7 @@ module NewRelic
             segment, _ = capture_segment_with_error
 
             eh = SpanEventPrimitive::error_attributes(segment)
+
             refute segment.noticed_error, "segment.noticed_error should be nil!"
             refute eh, "expected nil when error present on segment and high_security is enabled"
           end
@@ -63,6 +67,7 @@ module NewRelic
             segment, _ = capture_segment_with_error
 
             eh = SpanEventPrimitive::error_attributes(segment)
+
             assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
             assert eh.is_a?(Hash), "expected a Hash when error present on segment"
             assert eh["error.message"].start_with?("Message removed by")
@@ -127,6 +132,7 @@ module NewRelic
               segment.notice_error(RuntimeError.new("oops!"))
               segment.notice_error(StandardError.new)
               error_attributes = SpanEventPrimitive::error_attributes(segment)
+
               assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
               assert_equal "StandardError", error_attributes["error.class"]
               # If no message given, we should see the class name as the new error message
@@ -139,6 +145,7 @@ module NewRelic
           in_transaction do |txn|
             txn.current_segment.attributes.merge_custom_attributes('bing' => 2)
             _, custom_attrs, _ = SpanEventPrimitive.for_segment(txn.current_segment)
+
             assert_equal 2, custom_attrs['bing']
           end
         end
@@ -148,6 +155,7 @@ module NewRelic
             with_segment do |segment|
               segment.attributes.merge_custom_attributes('bing' => 2)
               _, custom_attrs, _ = SpanEventPrimitive.for_segment(segment)
+
               assert_empty custom_attrs
             end
           end
@@ -290,6 +298,7 @@ module NewRelic
                                                     lineno: lineno,
                                                     namespace: namespace}
             _intrinsics, _custom, agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
+
             assert_equal [filepath, function, lineno, namespace],
               agent_attributes.values_at('code.filepath',
                 'code.function',
@@ -304,6 +313,7 @@ module NewRelic
             existence = %w[code.filepath code.function code.lineno code.namespace].map do |attribute|
               agent_attributes.key?(attribute)
             end
+
             assert_equal [false, false, false, false], existence
           end
         end
@@ -327,6 +337,7 @@ module NewRelic
                                        'span.kind' => 'client'}
                 expected_custom_attrs = {}
                 expected_agent_attrs = {'http.url' => 'uri'}
+
                 assert_equal [expected_intrinsics, expected_custom_attrs, expected_agent_attrs], result
               end
             end
@@ -354,6 +365,7 @@ module NewRelic
                                          'span.kind' => 'client'}
                   expected_custom_attrs = {}
                   expected_agent_attrs = {'http.url' => 'uri'}.merge(existing_agent_attributes)
+
                   assert_equal [expected_intrinsics, expected_custom_attrs, expected_agent_attrs], result
                 end
               end

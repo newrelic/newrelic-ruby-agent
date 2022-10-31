@@ -16,6 +16,7 @@ class SpanEventsTest < Minitest::Test
       NewRelic::Agent.agent.send(:harvest_and_send_span_event_data)
 
       last_event = last_span_event
+
       assert_equal event, last_event
     end
   end
@@ -42,6 +43,7 @@ class SpanEventsTest < Minitest::Test
 
   def last_span_event
     post = last_span_event_post
+
     assert_equal(1, post.events.size)
     post.events.last
   end

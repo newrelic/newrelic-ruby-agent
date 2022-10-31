@@ -61,6 +61,7 @@ if !NewRelic::LanguageSupport.jruby?
       elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
 
       trace = last_transaction_trace
+
       assert_in_range(elapsed, attributes_for(trace, :intrinsic)[:gc_time])
     end
 

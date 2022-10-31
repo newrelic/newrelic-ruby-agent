@@ -13,6 +13,7 @@ class NewRelic::Agent::Transaction
     def test_store_sample
       sample = stub(:duration => 2.0, :threshold => 1.0)
       @buffer.store(sample)
+
       assert_equal([sample], @buffer.samples)
     end
 

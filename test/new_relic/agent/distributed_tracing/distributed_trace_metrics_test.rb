@@ -40,6 +40,7 @@ module NewRelic::Agent
     def test_transaction_type_suffix
       in_transaction("test_txn") do |txn|
         txn.distributed_tracer.create_trace_state_payload
+
         assert_equal "allOther", DistributedTraceMetrics.transaction_type_suffix
       end
 
@@ -51,9 +52,11 @@ module NewRelic::Agent
     def test_prefix_for_metric
       in_transaction("test_txn", :category => :controller) do |txn|
         payload = txn.distributed_tracer.create_trace_state_payload
+
         assert payload, "payload should not be nil"
 
         prefix = DistributedTraceMetrics.prefix_for_metric("Test", txn, payload)
+
         assert_equal "Test/App/190/46954/Unknown", prefix
       end
     end
@@ -62,6 +65,7 @@ module NewRelic::Agent
       in_transaction("test_txn", :category => :controller) do |txn|
         advance_process_time(1.0)
         payload = txn.distributed_tracer.create_trace_state_payload
+
         assert payload, "payload should not be nil"
 
         DistributedTraceMetrics.record_metrics_for_transaction(txn)

@@ -43,6 +43,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_on_start_transaction
     assert_nil @sampler.tl_transaction_data
     @sampler.on_start_transaction(@state)
+
     refute_nil @sampler.tl_transaction_data
     @sampler.on_finishing_transaction(@state, 'txn')
 
@@ -61,6 +62,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.notice_sql("select * from test2", "Database/test2/select", nil, 1.3, @state)
     # this sql will not be captured
     @sampler.notice_sql("select * from test", "Database/test/select", nil, 0, @state)
+
     refute_nil @sampler.tl_transaction_data
     assert_equal 2, @sampler.tl_transaction_data.sql_data.size
   end
@@ -84,6 +86,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.on_start_transaction(@state)
     message = 'a' * 17_000
     @sampler.notice_sql(message, "Database/test/select", nil, 1.5, @state)
+
     assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
   end
 
@@ -126,6 +129,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.save_slow_sql(data)
 
     sql_traces = @sampler.harvest!
+
     assert_equal 2, sql_traces.size
   end
 
@@ -158,6 +162,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.save_slow_sql(data)
 
     sql_traces = @sampler.harvest!
+
     assert_equal 2, sql_traces.size
   end
 
@@ -212,6 +217,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data.sql_data.concat(queries)
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
+
       assert_nil(sql_traces[0].params[:explain_plan])
     end
   end
@@ -233,6 +239,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     end
 
     traces = sampler.harvest!
+
     assert_empty(traces)
   end
 
@@ -294,6 +301,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
         sampler.notice_sql(sql, "Database/test/insert", {:adapter => "postgres"}, 1.23)
       end
       sql_traces = sampler.harvest!
+
       assert_equal(%Q[INSERT INTO "items" ("name", "price") VALUES (?, ?) RETURNING "id"], sql_traces[0].sql)
     end
   end
@@ -418,6 +426,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     trace = NewRelic::Agent::SqlTrace.new(query, slow_sql, "txn_name", "uri")
 
     @sampler.merge!([trace])
+
     assert_equal(trace, @sampler.sql_traces[query])
   end
 
@@ -434,6 +443,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     @sampler.merge!([trace1])
 
     aggregated_trace = @sampler.sql_traces[query]
+
     assert_equal(2, aggregated_trace.call_count)
     assert_equal(3, aggregated_trace.total_call_time)
   end

@@ -164,6 +164,7 @@ module NewRelic::Agent::Configuration
         :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
+
       refute @source[:'error_collector.enabled']
       refute @source[:'slow_sql.enabled']
       refute @source[:'transaction_tracer.enabled']
@@ -186,6 +187,7 @@ module NewRelic::Agent::Configuration
         :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
+
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
@@ -206,6 +208,7 @@ module NewRelic::Agent::Configuration
         :'transaction_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
+
       refute @source[:'error_collector.enabled']
       refute @source[:'slow_sql.enabled']
       refute @source[:'transaction_tracer.enabled']
@@ -234,6 +237,7 @@ module NewRelic::Agent::Configuration
         :'custom_insights_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
+
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
@@ -251,6 +255,7 @@ module NewRelic::Agent::Configuration
         }
       }
       @source = ServerSource.new(rsp, {})
+
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
@@ -267,6 +272,7 @@ module NewRelic::Agent::Configuration
       }
 
       source = ServerSource.new(rsp, {})
+
       refute_includes source.keys, :'attributes.include'
       assert_includes source.keys, :'slow_sql.explain_threshold'
     end
@@ -279,6 +285,7 @@ module NewRelic::Agent::Configuration
       }
 
       source = ServerSource.new(rsp, {})
+
       refute_includes source.keys, :platypus
     end
 
@@ -287,6 +294,7 @@ module NewRelic::Agent::Configuration
         'slow_sql.explain_threshold' => 42
       }
       source = ServerSource.new(rsp, {})
+
       refute_includes source.keys, :'slow_sql.explain_threshold'
     end
 

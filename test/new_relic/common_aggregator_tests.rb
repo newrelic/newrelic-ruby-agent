@@ -25,18 +25,21 @@ module NewRelic
 
     def test_samples_on_transaction_finished_event
       generate_event
+
       assert_equal 1, last_events.length
     end
 
     def test_records_background_tasks
       generate_event('a', :type => :controller)
       generate_event('b', :type => :background)
+
       assert_equal 2, last_events.size
     end
 
     def test_can_disable_sampling_for_analytics
       with_container_disabled do
         generate_event
+
         assert_empty last_events
       end
     end
@@ -75,6 +78,7 @@ module NewRelic
         4.times { generate_event }
 
         aggregator.merge!(old_samples)
+
         assert_equal(5, last_events.size)
       end
     end
@@ -123,9 +127,11 @@ module NewRelic
       5.times { generate_event }
 
       reservoir_stats, _ = aggregator.harvest!
+
       assert_equal 5, reservoir_stats[:events_seen]
 
       reservoir_stats, _ = aggregator.harvest!
+
       assert_equal 0, reservoir_stats[:events_seen]
     end
 
@@ -156,10 +162,12 @@ module NewRelic
       with_config(aggregator.class.capacity_key => 100) do
         50.times { generate_event }
         events_before = last_events
+
         assert_equal 50, events_before.size
 
         150.times { generate_event }
         events_after = last_events
+
         assert_equal 100, events_after.size
       end
     end

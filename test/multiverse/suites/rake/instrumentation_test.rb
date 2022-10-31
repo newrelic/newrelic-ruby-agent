@@ -44,6 +44,7 @@ class RakeInstrumentationTest < Minitest::Test
       # make absolutely sure the .config call is not being made
       NewRelic::Agent.stub :config, -> { raise 'kaboom' } do
         result = :result
+
         assert_equal result, instance.invoke_with_newrelic_tracing { result }
       end
     end
@@ -126,6 +127,7 @@ class RakeInstrumentationTest < Minitest::Test
     task.prerequisite_tasks = []
     NewRelic::Agent::Instrumentation::Rake.instrument_execute(task)
     task.execute
+
     assert task.instance_variable_get(:@__newrelic_instrumented_execute)
   end
 
@@ -241,6 +243,7 @@ class RakeInstrumentationTest < Minitest::Test
     names = %w[name1 name2 name3]
     expected = {'name1' => 'arg1', 'name2' => 'arg2', 'name3' => nil}
     result = NewRelic::Agent::Instrumentation::Rake.name_the_args(args, names)
+
     assert_equal expected, result
   end
 
@@ -249,6 +252,7 @@ class RakeInstrumentationTest < Minitest::Test
     names = %w[name1 name2]
     expected = {'name1' => 'arg1', 'name2' => 'arg2'}
     result = NewRelic::Agent::Instrumentation::Rake.name_the_args(args, names)
+
     assert_equal expected, result
   end
 end

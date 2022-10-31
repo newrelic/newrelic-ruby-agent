@@ -39,6 +39,7 @@ class AuditLoggerTest < Minitest::Test
 
   def assert_log_contains_string(str)
     log_body = read_log_body
+
     assert_includes(log_body, str, "Expected log to contain string '#{str}'\nLog body was: #{log_body}")
   end
 
@@ -51,6 +52,7 @@ class AuditLoggerTest < Minitest::Test
     with_config(:'audit_log.enabled' => false) do
       logger = NewRelic::Agent::AuditLogger.new
       logger.log_request(@uri, "hi there", @marshaller)
+
       refute logger.setup?, "Expected logger to not have been setup"
     end
   end
@@ -72,6 +74,7 @@ class AuditLoggerTest < Minitest::Test
     msg = 'hello'
     result = formatter.call(Logger::INFO, time, 'bleh', msg)
     expected = "[2012-01-01 00:00:00 dummyhost (#{$$})] : hello\n"
+
     assert_equal(expected, result)
   end
 
@@ -84,6 +87,7 @@ class AuditLoggerTest < Minitest::Test
       msg = 'hello'
       result = formatter.call(Logger::INFO, time, 'bleh', msg)
       expected = "** [NewRelic][2012-01-01 00:00:00 dummyhost (#{$$})] : hello\n"
+
       assert_equal(expected, result)
     end
   end
@@ -92,6 +96,7 @@ class AuditLoggerTest < Minitest::Test
     with_config(:'audit_log.path' => '/really/really/not/a/path') do
       FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
       logger = NewRelic::Agent::AuditLogger.new
+
       assert_nil(logger.ensure_log_path)
     end
   end
@@ -133,6 +138,7 @@ class AuditLoggerTest < Minitest::Test
     setup_fake_logger
     json_marshaller = marshaller_cls.new
     @logger.log_request(@uri, @dummy_data, json_marshaller)
+
     assert_audit_log_contains_object(read_log_body, @dummy_data, :json)
   end
 
@@ -141,6 +147,7 @@ class AuditLoggerTest < Minitest::Test
     with_config(:'audit_log.endpoints' => ['metric_data']) do
       setup_fake_logger
       @logger.log_request('host/metric_data', fake_metrics, @marshaller)
+
       assert_log_contains_string(fake_metrics.inspect)
     end
   end
@@ -150,6 +157,7 @@ class AuditLoggerTest < Minitest::Test
     with_config(:'audit_log.endpoints' => ['metric_data']) do
       setup_fake_logger
       @logger.log_request('host/transaction_sample_data', fake_txn, @marshaller)
+
       assert_empty read_log_body
     end
   end
@@ -162,6 +170,7 @@ class AuditLoggerTest < Minitest::Test
     3.times do
       @logger.log_request(@uri, @dummy_data, @marshaller)
     end
+
     assert_log_contains_string(hostname)
   end
 
@@ -175,6 +184,7 @@ class AuditLoggerTest < Minitest::Test
     define_method("test_traps_#{error.class}") do
       setup_fake_logger_with_failure(error)
       @logger.log_request(@uri, @dummy_data, @marshaller)
+
       assert_empty read_log_body
     end
   end
@@ -200,6 +210,7 @@ class AuditLoggerTest < Minitest::Test
   def test_stdout_does_not_create_a_directory_named_stdout
     with_config(:'log_file_path' => 'stdout') do
       logger = NewRelic::Agent::AuditLogger.new
+
       refute_includes logger.ensure_log_path, 'stdout'
     end
   end

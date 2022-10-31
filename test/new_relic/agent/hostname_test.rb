@@ -24,6 +24,7 @@ module NewRelic
       def test_get_returns_socket_hostname_converted_to_utf8
         computer = String.new('Elronds’s-Computer')
         Socket.stubs(:gethostname).returns(computer.force_encoding(Encoding::ASCII_8BIT))
+
         assert_equal 'Elronds’s-Computer', NewRelic::Agent::Hostname.get
       end
 
@@ -48,6 +49,7 @@ module NewRelic
       def test_does_not_shorten_if_not_using_dyno_names
         with_dyno_name('Imladris', :'heroku.use_dyno_names' => false, :'heroku.dyno_name_prefixes_to_shorten' => ['Rivendell']) do
           Socket.stubs(:gethostname).returns(String.new('Rivendell.1'))
+
           assert_equal 'Rivendell.1', NewRelic::Agent::Hostname.get
         end
       end
@@ -81,6 +83,7 @@ module NewRelic
       def test_shortens_to_prefixes_with_unsupported_object
         with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => Object.new) do
           expects_logging(:error, includes('heroku.dyno_name_prefixes_to_shorten'), instance_of(ArgumentError))
+
           assert_equal 'Imladris.1', NewRelic::Agent::Hostname.get
         end
       end
@@ -122,6 +125,7 @@ module NewRelic
       # allow the real fqdn determination code to fire and make sure it works
       def test_get_fqdn_no_stubs
         fqdn = NewRelic::Agent::Hostname.get_fqdn
+
         refute_equal '', fqdn
       end
 
@@ -130,6 +134,7 @@ module NewRelic
         stubbed = String.new('Rivendell.Eriador.MiddleEarth')
         NewRelic::Helper.stubs('run_command').with('hostname -f').returns(stubbed)
         fqdn = NewRelic::Agent::Hostname.get_fqdn
+
         assert_equal stubbed, fqdn
       end
 
@@ -139,6 +144,7 @@ module NewRelic
         NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandRunFailedError)
         NewRelic::Helper.stubs('run_command').with('hostname').returns(stubbed)
         fqdn = NewRelic::Agent::Hostname.get_fqdn
+
         assert_equal stubbed, fqdn
       end
 
@@ -147,6 +153,7 @@ module NewRelic
         NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandRunFailedError)
         NewRelic::Helper.stubs('run_command').with('hostname').raises(NewRelic::CommandRunFailedError)
         fqdn = NewRelic::Agent::Hostname.get_fqdn
+
         assert_equal 'Rivendell', fqdn # stubbed in 'setup' above
       end
 
@@ -154,6 +161,7 @@ module NewRelic
       def test_get_fqdn_hostname_nonexistent
         NewRelic::Helper.stubs('run_command').with('hostname -f').raises(NewRelic::CommandExecutableNotFoundError)
         fqdn = NewRelic::Agent::Hostname.get_fqdn
+
         assert_equal 'Rivendell', fqdn # stubbed in 'setup' above
       end
 

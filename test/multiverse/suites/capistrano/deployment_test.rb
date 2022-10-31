@@ -14,6 +14,7 @@ class DeploymentTest < Minitest::Test
 
   def test_deploys_to_configured_application
     cap_it
+
     assert_deployment_value("application_id", "test")
   end
 
@@ -46,6 +47,7 @@ class DeploymentTest < Minitest::Test
     output = with_environment(default_env.merge(custom_env)) do
       `#{cmd}`
     end
+
     assert $?.success?, "cap command '#{cmd}' failed with output: #{output}"
   end
 end

@@ -25,6 +25,7 @@ class AuditLogTest < Minitest::Test
   def test_logs_nothing_by_default
     run_agent do
       perform_actions
+
       assert_equal('', audit_log_contents)
       assert_empty($collector.calls_for(:log_event_data))
     end
@@ -33,6 +34,7 @@ class AuditLogTest < Minitest::Test
   def test_logs_nothing_when_disabled
     run_agent(:'audit_log.enabled' => false) do
       perform_actions
+
       assert_equal('', audit_log_contents)
       assert_empty($collector.calls_for(:log_event_data))
     end
@@ -44,6 +46,7 @@ class AuditLogTest < Minitest::Test
       $collector.agent_data.each do |req|
         assert_audit_log_contains_object(audit_log_contents, req.body)
       end
+
       assert_empty($collector.calls_for(:log_event_data))
     end
   end

@@ -32,12 +32,14 @@ class StandaloneInstrumentationTest < Minitest::Test
   def test_instance_method_tracers_should_not_cause_errors
     args = [1, 2, 3]
     result = InstrumentedClass.new.instance_method(*args)
+
     assert_equal(args, result)
   end
 
   def test_class_method_tracer_should_not_cause_errors
     args = [1, 2, 3]
     result = InstrumentedClass.class_method(*args)
+
     assert_equal(args, result)
   end
 end

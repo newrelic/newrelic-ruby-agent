@@ -38,7 +38,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       NewRelic::Cli::Deployments.new("-h")
       fail "should have thrown"
     rescue NewRelic::Cli::Command::CommandFailure => c
-      assert_match(/^Usage/, c.message)
+      assert_match(/^Usage/, c.message) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
     end
     @deployment = nil
   end
@@ -56,6 +56,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       :revision => 3838,
       :user => 'Bill',
       :description => "Some lengthy description")
+
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal '3838', @deployment.revision
@@ -71,10 +72,12 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
         :application_id => "appid",
         :user => 'Bill',
         :description => "Some lengthy description")
+
       assert_nil @deployment.exit_status
       assert_nil @deployment.errors
       assert_equal '3838', @deployment.revision
       @deployment.run
+
       refute @deployment.api_v1?, "Using v1 when v2 should be used"
       @deployment = nil
     end
@@ -84,6 +87,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     mock_the_connection
     #    @mock_response.expects(:body).returns("<xml>deployment</xml>")
     @deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal '3838', @deployment.revision
@@ -100,10 +104,12 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     mock_the_connection
     with_config(:api_key => 'fake_api_key') do
       @deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill --appid=appid1234] << "Some lengthy description")
+
       assert_nil @deployment.exit_status
       assert_nil @deployment.errors
       assert_equal '3838', @deployment.revision
       @deployment.run
+
       refute @deployment.api_v1?, "Using v1 when v2 should be used"
       @deployment = nil
     end
@@ -146,6 +152,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       :user => 'Bill',
       :description => "Some lengthy description",
       :license_key => 'b' * 40)
+
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal 'b' * 40, @deployment.license_key
@@ -159,6 +166,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       :revision => 3838,
       :user => 'Bill',
       :description => "Some lengthy description")
+
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal 'a' * 40, @deployment.license_key
@@ -172,6 +180,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
     with_config(:api_key => 'fake_api_key') do
       @deployment = NewRelic::Cli::Deployments.new(%w[-a APP -r 3838 --user=Bill] << "Some lengthy description")
+
       assert_nil @deployment.exit_status
       assert_nil @deployment.errors
       assert_equal '3838', @deployment.revision

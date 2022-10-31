@@ -62,9 +62,11 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       get_node = tt.root_node.children[0].children[0]
+
       assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
 
       connect_node = get_node.children[0]
+
       assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
     end
 
@@ -81,6 +83,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/all" => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
+
       assert_metrics_recorded(expected)
     end
 
@@ -97,6 +100,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/all" => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
+
       assert_metrics_recorded(expected)
     end
 
@@ -113,6 +117,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/all" => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
+
       assert_metrics_recorded(expected)
     end
 
@@ -123,6 +128,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       tt = last_transaction_trace
       get_node = tt.root_node.children[0].children[0]
+
       assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
     end
 
@@ -151,6 +157,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/all" => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
+
       assert_metrics_recorded(expected)
     end
 
@@ -176,6 +183,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
       }
+
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
     end
 
@@ -215,6 +223,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
       }
+
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
     end
 
@@ -256,6 +265,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       get_node = tt.root_node.children[0].children[0]
+
       assert_includes(either_hostname, get_node[:host])
       assert_equal('6379', get_node[:port_path_or_id])
       assert_equal('0', get_node[:database_name])
@@ -272,6 +282,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       node = tt.root_node.children[0].children[0]
+
       assert_includes(either_hostname, node[:host])
       assert_equal('/tmp/redis.sock', node[:port_path_or_id])
     end
@@ -286,6 +297,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       node = tt.root_node.children[0].children[0]
+
       assert_includes(either_hostname, node[:host])
       assert_equal('6379', node[:port_path_or_id])
       assert_equal('0', node[:database_name])
@@ -304,6 +316,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       node = tt.root_node.children[0].children[0]
+
       assert_includes(either_hostname, node[:host])
       assert_equal('/tmp/redis.sock', node[:port_path_or_id])
     end

@@ -8,6 +8,7 @@ class RulesEngineTest < Minitest::Test
   def test_rule_defaults
     rule = create_rule('match_expression' => '.*',
       'replacement'      => '*')
+
     refute rule.terminate_chain
     refute rule.each_segment
     refute rule.ignore

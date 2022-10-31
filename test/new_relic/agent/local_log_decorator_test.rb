@@ -39,6 +39,7 @@ module NewRelic::Agent
           :'instrumentation.logger' => 'disabled'
         ) do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
+
           assert_equal MESSAGE, decorated_message
         end
       end
@@ -50,6 +51,7 @@ module NewRelic::Agent
           :'application_logging.local_decorating.enabled' => true
         ) do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
+
           assert_equal MESSAGE, decorated_message
         end
       end
@@ -61,6 +63,7 @@ module NewRelic::Agent
           :'application_logging.local_decorating.enabled' => true
         ) do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
+
           assert_equal MESSAGE, decorated_message
         end
       end
@@ -68,6 +71,7 @@ module NewRelic::Agent
       def test_decorates_if_enabled
         metadata_stubs
         decorated_message = LocalLogDecorator.decorate(MESSAGE)
+
         assert_equal decorated_message, "#{MESSAGE} #{METADATA_STRING}"
       end
 
@@ -75,12 +79,14 @@ module NewRelic::Agent
         metadata_stubs
         message = "This is a test of the Emergency Alert System\n this is only a test...."
         decorated_message = LocalLogDecorator.decorate(message)
+
         assert_equal decorated_message, "This is a test of the Emergency Alert System #{METADATA_STRING}\n this is only a test...."
       end
 
       def test_URI_encodes_entity_name
         with_config(app_name: "My App | Production") do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
+
           assert_includes decorated_message, "My%20App%20%7C%20Production"
         end
       end
@@ -88,6 +94,7 @@ module NewRelic::Agent
       def test_safe_without_entity_name
         with_config(app_name: nil) do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
+
           assert_includes decorated_message, '||'
         end
       end

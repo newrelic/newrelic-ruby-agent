@@ -94,6 +94,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
                 # NOP -- allowing ONLY span to notice error
               end
             end
+
             assert_segment_noticed_error txn, /bogus\/drop/i, expected_error_class, /ns not found/i
             refute_transaction_noticed_error txn, expected_error_class
           end
@@ -345,6 +346,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => {:call_count => 1}
             }
+
             assert_metrics_recorded_exclusive(expected,
               :ignore_filter => /^(Logging)/)
           end
@@ -405,6 +407,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             end
 
             metric = statement_metric(:insert)
+
             assert_metrics_recorded([[metric, "webby"]])
           end
 
@@ -414,6 +417,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             end
 
             metric = statement_metric(:insert)
+
             assert_metrics_recorded([[metric, "backed-up"]])
           end
 

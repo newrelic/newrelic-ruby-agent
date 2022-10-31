@@ -102,6 +102,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   def refute_deprecation_warning
     in_transaction do
       _out, err = capture_io { yield }
+
       refute_match KEYWORD_DEPRECATED_WARNING, err
       return err
     end
@@ -110,6 +111,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   def assert_deprecation_warning
     in_transaction do
       _out, err = capture_io { yield }
+
       assert_match KEYWORD_DEPRECATED_WARNING, err
       return err
     end

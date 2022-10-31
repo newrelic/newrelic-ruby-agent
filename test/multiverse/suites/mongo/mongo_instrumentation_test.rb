@@ -70,18 +70,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     def test_mongo_query_succeeds_if_metric_generation_fails
       NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:operation_and_collection_for).returns(nil)
       result = @collection.insert(@tribble)
+
       refute_nil result
     end
 
     def test_ensure_index_succeeds_if_metric_generation_fails
       NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:operation_and_collection_for).returns(nil)
       result = @collection.ensure_index(:"field#{fake_guid(10)}")
+
       refute_nil result
     end
 
     def test_records_metrics_for_save
       NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:operation_and_collection_for).returns(nil)
       result = @collection.save(@tribble)
+
       refute_nil result
     end
 

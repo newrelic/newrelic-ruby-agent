@@ -47,6 +47,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def assert_only_one_subscription_notifier
             still_subscribed = NewRelic::Agent.agent.events.still_subscribed(:server_source_configuration_added)
+
             assert_equal 1, still_subscribed.size
           end
 
@@ -55,6 +56,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             @mock_thread = nil
             @server_response_enum = nil
             reset_buffers_and_caches
+
             assert_only_one_subscription_notifier
             reset_infinite_tracer
             unstub_reconnection

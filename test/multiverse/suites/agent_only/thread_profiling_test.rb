@@ -65,6 +65,7 @@ class ThreadProfilingTest < Minitest::Test
     let_it_finish
 
     profile_data = $collector.calls_for('profile_data')[0]
+
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
     assert(profile_data.poll_count >= 2, "Expected sample_count >= 2, but was #{profile_data.poll_count}")
 
@@ -83,6 +84,7 @@ class ThreadProfilingTest < Minitest::Test
     harvest
 
     profile_data = $collector.calls_for('profile_data')[0]
+
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
     assert(profile_data.poll_count < 50, "Expected sample_count < 50, but was #{profile_data.poll_count}")
   end
@@ -128,6 +130,7 @@ class ThreadProfilingTest < Minitest::Test
   def assert_saw_traces(profile_data, type)
     assert_kind_of Hash, profile_data.traces
     traces_for_type = profile_data.traces[type]
+
     assert traces_for_type, "Missing key for type #{type} in profile_data"
     assert_kind_of Array, traces_for_type
     refute_empty profile_data.traces[type], "Zero #{type} traces seen"

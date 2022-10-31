@@ -12,6 +12,7 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_should_record_a_scoped_metric
     @metrics.record_scoped_and_unscoped('foo', 42, 12)
+
     assert_scoped_metrics(@metrics, ['foo'], {
       :call_count => 1,
       :total_call_time => 42,
@@ -22,6 +23,7 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_should_take_multiple_metrics
     @metrics.record_scoped_and_unscoped(%w[foo bar], 42, 12)
+
     assert_scoped_metrics(@metrics, %w[foo bar], {
       :call_count => 1,
       :total_call_time => 42,
@@ -36,6 +38,7 @@ class TransactionMetricsTest < Minitest::Test
       stats.total_call_time = 2
       stats.total_exclusive_time = 1
     end
+
     assert_scoped_metrics(@metrics, ['foo'], {
       :call_count => 3,
       :total_call_time => 2,
@@ -46,6 +49,7 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_unscoped_should_record_an_unscoped_metric
     @metrics.record_unscoped('foo', 42, 12)
+
     assert_unscoped_metrics(@metrics, ['foo'], {
       :call_count => 1,
       :total_call_time => 42,
@@ -56,6 +60,7 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_unscoped_should_take_multiple_metrics
     @metrics.record_unscoped(%w[foo bar], 42, 12)
+
     assert_unscoped_metrics(@metrics, %w[foo bar], {
       :call_count => 1,
       :total_call_time => 42,
@@ -70,6 +75,7 @@ class TransactionMetricsTest < Minitest::Test
       stats.total_call_time = 2
       stats.total_exclusive_time = 1
     end
+
     assert_unscoped_metrics(@metrics, ['foo'], {
       :call_count => 3,
       :total_call_time => 2,
@@ -81,6 +87,7 @@ class TransactionMetricsTest < Minitest::Test
   def test_square_brackets_look_up_unscoped_metrics
     @metrics.record_unscoped('foo', 42, 12)
     @metrics.record_scoped_and_unscoped('foo', 2, 1)
+
     assert_equal(42, @metrics['foo'].total_call_time)
   end
 

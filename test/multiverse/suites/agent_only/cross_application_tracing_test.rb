@@ -30,22 +30,26 @@ class CrossApplicationTracingTest < Minitest::Test
 
   def test_cross_app_doesnt_modify_without_header
     get('/')
+
     refute last_response.headers["X-NewRelic-App-Data"]
   end
 
   def test_cross_app_doesnt_modify_with_invalid_header
     get('/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('otherjunk')})
+
     refute last_response.headers["X-NewRelic-App-Data"]
   end
 
   def test_cross_app_writes_out_information
     get('/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
+
     refute_nil last_response.headers["X-NewRelic-App-Data"]
     assert_metrics_recorded(['ClientApplication/1#234/all'])
   end
 
   def test_cross_app_doesnt_modify_if_txn_is_ignored
     get('/', {'transaction_name' => 'ignored_transaction'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
+
     refute last_response.headers["X-NewRelic-App-Data"]
   end
 
@@ -87,6 +91,7 @@ class CrossApplicationTracingTest < Minitest::Test
         end
 
         event = get_last_analytics_event
+
         assert_event_attributes(
           event,
           test_case['name'],

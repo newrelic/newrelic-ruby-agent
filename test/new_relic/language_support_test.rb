@@ -10,6 +10,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
     require 'jruby'
     JRuby.objectspace = true
+
     assert_truthy NewRelic::LanguageSupport.object_space_usable?
   end
 
@@ -18,6 +19,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
     require 'jruby'
     JRuby.objectspace = false
+
     assert_falsy NewRelic::LanguageSupport.object_space_usable?
   end
 
@@ -42,16 +44,19 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   if NewRelic::LanguageSupport.gc_profiler_usable?
     def test_gc_profiler_disabled_when_enabled_is_falsy
       ::GC::Profiler.stubs(:enabled?).returns(false)
+
       refute NewRelic::LanguageSupport.gc_profiler_enabled?
     end
 
     def test_gc_profiler_enabled
       ::GC::Profiler.stubs(:enabled?).returns(true)
+
       assert NewRelic::LanguageSupport.gc_profiler_enabled?
     end
 
     def test_gc_profiler_enabled_when_response_is_only_truthy
       ::GC::Profiler.stubs(:enabled?).returns(0)
+
       assert NewRelic::LanguageSupport.gc_profiler_enabled?
     end
 
@@ -67,6 +72,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
     return unless defined?(::GC::Profiler) && NewRelic::LanguageSupport.jruby?
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
+
     refute NewRelic::LanguageSupport.gc_profiler_enabled?
   end
 
@@ -102,16 +108,19 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
   def test_should_camelize_names_with_hyphens
     name = 'concurrent-ruby'
+
     assert_equal 'ConcurrentRuby', NewRelic::LanguageSupport.camelize(name)
   end
 
   def test_should_camelize_names_with_underscores
     name = 'delayed_job'
+
     assert_equal 'DelayedJob', NewRelic::LanguageSupport.camelize(name)
   end
 
   def test_should_camelize_names_with_underscores_and_hyphens
     name = 'newrelic-infinite_tracing'
+
     assert_equal 'NewrelicInfiniteTracing', NewRelic::LanguageSupport.camelize(name)
   end
 end

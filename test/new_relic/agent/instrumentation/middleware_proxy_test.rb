@@ -78,6 +78,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
 
     name = wrapped_instance.transaction_options[:transaction_name]
+
     assert_equal("Middleware/Rack/AnonymousClass/call", name)
   end
 
@@ -89,6 +90,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
 
     name = wrapped_instance.transaction_options[:transaction_name]
+
     assert_equal("Middleware/Rack/#{BaseForAnonymous.name}/call", name)
   end
 
@@ -234,6 +236,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     NewRelic::Agent.instance.events.subscribe(:after_call) { after_call_count += 1 }
 
     wrapped_middleware.call({})
+
     assert_equal 1, before_call_count
     assert_equal 1, after_call_count
   end
@@ -248,6 +251,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     NewRelic::Agent.instance.events.subscribe(:before_call) { |env| env_from_before_call = env }
 
     wrapped_app.call(original_env)
+
     assert_same original_env, env_from_before_call
   end
 

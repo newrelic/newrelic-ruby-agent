@@ -26,6 +26,7 @@ module NewRelic
             stub_service(klass.new('1.1', response_code, 'Trash it'))
 
             @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
+
             assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
 
             @agent.send(:harvest_and_send_errors)

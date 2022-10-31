@@ -68,6 +68,7 @@ class SetTransactionNameTest < Minitest::Test
     TestTransactor.new.parent_txn do
       trace_execution_scoped('Custom/something') {}
     end
+
     assert_metrics_recorded(['Custom/something',
       'Controller/TestTransactor/child'])
   end
@@ -75,6 +76,7 @@ class SetTransactionNameTest < Minitest::Test
   def test_apply_to_traced_transactions
     TestTransactor.new.parent_txn
     sample = last_transaction_trace
+
     assert_equal('Controller/TestTransactor/child', sample.transaction_name)
   end
 
@@ -83,6 +85,7 @@ class SetTransactionNameTest < Minitest::Test
       NewRelic::Agent.notice_error(RuntimeError.new('toot'))
     end
     errors = harvest_error_traces!
+
     assert_equal('Controller/TestTransactor/child', errors.last.path)
   end
 
@@ -99,6 +102,7 @@ class SetTransactionNameTest < Minitest::Test
     trigger_agent_reconnect
 
     TestTransactor.new.parent_txn
+
     assert_metrics_recorded(['Controller/TestTransactor/kid'])
   end
 
@@ -109,12 +113,14 @@ class SetTransactionNameTest < Minitest::Test
 
       NewRelic::Agent.set_transaction_name('this/should/not/work')
     end
+
     assert_metrics_not_recorded(['Controller/this/should/not/work'])
     assert_metrics_recorded(['Controller/TestTransactor/parent'])
   end
 
   def test_ignoring_action
     TestTransactor.new.ignored_txn
+
     assert_metrics_not_recorded(['Controller/Ignore/me'])
   end
 end

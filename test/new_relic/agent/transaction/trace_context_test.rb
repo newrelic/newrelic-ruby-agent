@@ -50,6 +50,7 @@ module NewRelic::Agent
           assert txn.distributed_tracer.trace_context_inserted?
 
           expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
+
           assert_equal expected_trace_parent, carrier['traceparent']
 
           assert_equal trace_state, carrier['tracestate']
@@ -87,11 +88,13 @@ module NewRelic::Agent
           end
 
           expected_trace_parent = "00-#{trace_id}-#{parent_id}-00"
+
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have our entry at the front
           trace_state_entry_key = AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload.to_s},#{other_trace_state.join('.')}"
+
           assert_equal expected_trace_state, carrier['tracestate']
         end
 
@@ -118,6 +121,7 @@ module NewRelic::Agent
           # We expect trace state to now have our entry at the front
           trace_state_entry_key = AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload},#{other_trace_state.join(',')}"
+
           assert_equal expected_trace_state, carrier['tracestate']
         end
 
@@ -148,11 +152,13 @@ module NewRelic::Agent
           end
 
           expected_trace_parent = "00-#{parent_trace_context_header_data.trace_id}-#{parent_id}-01"
+
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have replaced our old entry with our new entry
           trace_state_entry_key = AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload}"
+
           assert_equal expected_trace_state, carrier['tracestate']
 
           # We expect the trace state not to be the same as the parent's trace state
@@ -282,6 +288,7 @@ module NewRelic::Agent
             assert txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected first trace context to be accepted"
             refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected second trace context not to be accepted"
           end
+
           assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/Multiple"
         end
 
@@ -310,6 +317,7 @@ module NewRelic::Agent
             trace_state_payload = txn.distributed_tracer.create_trace_state_payload
             trace_context_header_data = make_trace_context_header_data(trace_state_payload: trace_state_payload)
             trace_state_payload.stubs(:valid?).returns(false)
+
             refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected trace context to be rejected"
           end
 
@@ -326,6 +334,7 @@ module NewRelic::Agent
 
             refute txn.distributed_tracer.accept_trace_context(trace_context_header_data)
           end
+
           assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept"
         end
 

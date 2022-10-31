@@ -16,6 +16,7 @@ class CveNotifierTests < Minitest::Test
 
   def test_cve_message
     message = CveNotifier.cve_message("allosaurus", "dinotracker.com")
+
     assert_equal message == '{"text":":rotating_light: allosaurus\n<dinotracker.com|More info here>"}'
     assert_kind_of String, text
   end

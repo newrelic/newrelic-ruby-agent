@@ -75,6 +75,7 @@ module NewRelic
           @synthetics_event_aggregator.harvest!
 
           metric = 'Supportability/TransactionEventAggregator/synthetics_events_dropped'
+
           assert_metrics_not_recorded(metric)
         end
       end
@@ -88,6 +89,7 @@ module NewRelic
           @synthetics_event_aggregator.harvest!
 
           metric = 'Supportability/SyntheticsEventAggregator/synthetics_events_dropped'
+
           assert_metrics_recorded(metric => {:call_count => 10})
         end
       end
@@ -115,6 +117,7 @@ module NewRelic
         _, _, agent_attrs = last_synthetics_event
 
         expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
+
         assert_equal expected, agent_attrs
       end
 

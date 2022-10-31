@@ -13,6 +13,7 @@ if !::NewRelic::Agent::Instrumentation::Rake.should_install?
 
     def test_we_hear_nothing
       run_rake
+
       refute_any_rake_metrics
     end
   end

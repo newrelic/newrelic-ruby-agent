@@ -10,6 +10,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     spec = mock('metric_spec')
     stats = mock('stats')
     md = NewRelic::MetricData.new(spec, stats)
+
     assert_equal spec, md.metric_spec
     assert_equal stats, md.stats
   end
@@ -19,6 +20,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     md2 = NewRelic::MetricData.new(spec, stats)
+
     assert(md1.eql?(md2), "The example metric data objects should be eql?: #{md1.inspect} #{md2.inspect}")
     assert(md2.eql?(md1), "The example metric data objects should be eql?: #{md1.inspect} #{md2.inspect}")
   end
@@ -29,6 +31,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     md2 = NewRelic::MetricData.new(other_spec, stats)
+
     refute md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
     refute md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
   end
@@ -39,6 +42,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     other_stats = mock('other_stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     md2 = NewRelic::MetricData.new(spec, other_stats)
+
     refute md1.eql?(md2), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
     refute md2.eql?(md1), "The example metric data objects should not be eql?: #{md1.inspect} #{md2.inspect}"
   end
@@ -48,6 +52,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     original_spec = md1.instance_variable_get(:@original_spec)
+
     assert_nil(original_spec, "should start with a nil original spec, but was #{original_spec.inspect}")
     assert_equal(spec, md1.metric_spec, "should return the metric spec for original spec when original spec is nil, but was #{md1.original_spec}")
   end
@@ -56,12 +61,15 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(nil, stats)
     original_spec = md1.instance_variable_get(:@original_spec)
+
     assert_nil(original_spec, "should start with a nil original spec, but was #{original_spec.inspect}")
 
     new_spec = mock('new metric_spec')
+
     assert_equal(new_spec, md1.metric_spec = (new_spec), "should return the new spec")
 
     new_original_spec = md1.instance_variable_get(:@original_spec)
+
     assert_nil(new_original_spec, "should not set @original_spec, but was #{new_original_spec.inspect}")
   end
 
@@ -70,12 +78,15 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     original_spec = md1.instance_variable_get(:@original_spec)
+
     assert_nil(original_spec, "should start with a nil original spec, but was #{original_spec.inspect}")
 
     new_spec = mock('new metric_spec')
+
     assert_equal(new_spec, md1.metric_spec = (new_spec), "should return the new spec")
 
     new_original_spec = md1.instance_variable_get(:@original_spec)
+
     assert_equal(spec, new_original_spec, "should set @original_spec to the existing metric_spec  but was #{new_original_spec.inspect}")
   end
 
@@ -84,6 +95,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats = mock('stats')
     md1 = NewRelic::MetricData.new(spec, stats)
     expected = [spec, stats].hash
+
     assert_equal(expected, md1.hash, "expected #{expected} to equal #{md1.hash}")
   end
 
@@ -91,6 +103,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     def test_to_json
       md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
       json = md.to_json
+
       assert_includes(json, '"Custom/test/method"', "should include the metric spec in the json")
     end
 
@@ -100,6 +113,7 @@ class NewRelic::MetricDataTest < Minitest::Test
 
   def test_to_s_with_metric_spec
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
+
     assert_equal('Custom/test/method(): [ 0 calls 0.0000s / 0.0000s ex]', md.to_s, "should include the metric spec")
   end
 
@@ -110,6 +124,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', 'scope'), stats)
     expected = [{'name' => 'Custom/test/method', 'scope' => 'scope'},
       [2, 3.0, 2.0, 1.0, 2.0, 5.0]]
+
     assert_equal expected, md.to_collector_array
   end
 
@@ -126,6 +141,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     spec = NewRelic::MetricSpec.new('foo')
     md = NewRelic::MetricData.new(spec, stats)
     expected = [{"name" => "foo", "scope" => ""}, [1, 2.0, 3.0, 4.0, 5.0, 6.0]]
+
     assert_equal expected, md.to_collector_array
   end
 
@@ -141,6 +157,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     spec = NewRelic::MetricSpec.new('foo')
     md = NewRelic::MetricData.new(spec, stats)
     expected = [{"name" => "foo", "scope" => ""}, [0, 0, 0, 0, 0, 0]]
+
     assert_equal expected, md.to_collector_array
   end
 end
