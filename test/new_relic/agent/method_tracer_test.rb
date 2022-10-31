@@ -252,7 +252,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'instance_method', attributes['code.function']
-      assert_equal 220, attributes['code.lineno']
+      assert_equal 226, attributes['code.lineno']
       assert_equal '(Anonymous)', attributes['code.namespace']
     end
   end
