@@ -452,7 +452,7 @@ module NewRelic
             in_transaction {}
             trace = last_transaction_trace
 
-            assert_equal 2.0, trace.threshold
+            assert_in_delta(2.0, trace.threshold)
           end
         end
 
@@ -633,17 +633,17 @@ module NewRelic
             segment_d.finish
           end
 
-          assert_equal 6.0, segment_a.duration
-          assert_equal 2.0, segment_a.exclusive_duration
+          assert_in_delta(6.0, segment_a.duration)
+          assert_in_delta(2.0, segment_a.exclusive_duration)
 
-          assert_equal 3.0, segment_b.duration
-          assert_equal 3.0, segment_b.exclusive_duration
+          assert_in_delta(3.0, segment_b.duration)
+          assert_in_delta(3.0, segment_b.exclusive_duration)
 
-          assert_equal 3.0, segment_c.duration
-          assert_equal 3.0, segment_c.exclusive_duration
+          assert_in_delta(3.0, segment_c.duration)
+          assert_in_delta(3.0, segment_c.exclusive_duration)
 
-          assert_equal 8.0, segment_d.duration
-          assert_equal 8.0, segment_d.exclusive_duration
+          assert_in_delta(8.0, segment_d.duration)
+          assert_in_delta(8.0, segment_d.exclusive_duration)
         end
 
         # B and C are children of A and are running serially. C ends after
@@ -676,14 +676,14 @@ module NewRelic
             segment_c.finish
           end
 
-          assert_equal 6.0, segment_a.duration
-          assert_equal 1.0, segment_a.exclusive_duration
+          assert_in_delta(6.0, segment_a.duration)
+          assert_in_delta(1.0, segment_a.exclusive_duration)
 
-          assert_equal 2.0, segment_b.duration
-          assert_equal 2.0, segment_b.exclusive_duration
+          assert_in_delta(2.0, segment_b.duration)
+          assert_in_delta(2.0, segment_b.exclusive_duration)
 
-          assert_equal 7.0, segment_c.duration
-          assert_equal 7.0, segment_c.exclusive_duration
+          assert_in_delta(7.0, segment_c.duration)
+          assert_in_delta(7.0, segment_c.exclusive_duration)
         end
 
         # B, C, D are children of A. C and D are running concurrently after B completes.
@@ -725,17 +725,17 @@ module NewRelic
             segment_d.finish
           end
 
-          assert_equal 6.0, segment_a.duration
-          assert_equal 1.0, segment_a.exclusive_duration
+          assert_in_delta(6.0, segment_a.duration)
+          assert_in_delta(1.0, segment_a.exclusive_duration)
 
-          assert_equal 2.0, segment_b.duration
-          assert_equal 2.0, segment_b.exclusive_duration
+          assert_in_delta(2.0, segment_b.duration)
+          assert_in_delta(2.0, segment_b.exclusive_duration)
 
-          assert_equal 3.0, segment_c.duration
-          assert_equal 3.0, segment_c.exclusive_duration
+          assert_in_delta(3.0, segment_c.duration)
+          assert_in_delta(3.0, segment_c.exclusive_duration)
 
-          assert_equal 8.0, segment_d.duration
-          assert_equal 8.0, segment_d.exclusive_duration
+          assert_in_delta(8.0, segment_d.duration)
+          assert_in_delta(8.0, segment_d.exclusive_duration)
         end
 
         def test_transaction_detects_async_when_there_are_concurrent_children
@@ -817,9 +817,9 @@ module NewRelic
             segment_a.finish
           end
 
-          assert_equal 2000.0, segment_a.params[:exclusive_duration_millis]
-          assert_equal 3000.0, segment_b.params[:exclusive_duration_millis]
-          assert_equal 3000.0, segment_c.params[:exclusive_duration_millis]
+          assert_in_delta(2000.0, segment_a.params[:exclusive_duration_millis])
+          assert_in_delta(3000.0, segment_b.params[:exclusive_duration_millis])
+          assert_in_delta(3000.0, segment_c.params[:exclusive_duration_millis])
         end
 
         # B, C, D are children of A. C and D are running concurrently after B completes.
@@ -861,8 +861,8 @@ module NewRelic
             segment_a.finish
           end
 
-          assert_equal 7.0, transaction.duration
-          assert_equal 9.0, transaction.total_time
+          assert_in_delta(7.0, transaction.duration)
+          assert_in_delta(9.0, transaction.total_time)
 
           assert_metrics_recorded(
             "OtherTransactionTotalTime" =>
@@ -907,8 +907,8 @@ module NewRelic
             segment_a.finish
           end
 
-          assert_equal 7.0, transaction.duration
-          assert_equal 9.0, transaction.total_time
+          assert_in_delta(7.0, transaction.duration)
+          assert_in_delta(9.0, transaction.total_time)
 
           assert_metrics_recorded(
             "WebTransactionTotalTime" =>
@@ -969,25 +969,25 @@ module NewRelic
             segment_d.finish
           end
 
-          assert_equal 12.0, txn.duration
-          assert_equal 14.0, txn.total_time
+          assert_in_delta(12.0, txn.duration)
+          assert_in_delta(14.0, txn.total_time)
 
           wrapper_segment = txn.segments.first
 
-          assert_equal 12.0, wrapper_segment.duration
-          assert_equal 0.0, wrapper_segment.exclusive_duration
+          assert_in_delta(12.0, wrapper_segment.duration)
+          assert_in_delta(0.0, wrapper_segment.exclusive_duration)
 
-          assert_equal 6.0, segment_a.duration
-          assert_equal 1.0, segment_a.exclusive_duration
+          assert_in_delta(6.0, segment_a.duration)
+          assert_in_delta(1.0, segment_a.exclusive_duration)
 
-          assert_equal 2.0, segment_b.duration
-          assert_equal 2.0, segment_b.exclusive_duration
+          assert_in_delta(2.0, segment_b.duration)
+          assert_in_delta(2.0, segment_b.exclusive_duration)
 
-          assert_equal 3.0, segment_c.duration
-          assert_equal 3.0, segment_c.exclusive_duration
+          assert_in_delta(3.0, segment_c.duration)
+          assert_in_delta(3.0, segment_c.exclusive_duration)
 
-          assert_equal 8.0, segment_d.duration
-          assert_equal 8.0, segment_d.exclusive_duration
+          assert_in_delta(8.0, segment_d.duration)
+          assert_in_delta(8.0, segment_d.exclusive_duration)
         end
 
         # C, D, E are children of B. C, D, E are running concurrently.
@@ -1042,28 +1042,28 @@ module NewRelic
             segment_e.finish
           end
 
-          assert_equal 12.0, txn.duration
-          assert_equal 14.0, txn.total_time
+          assert_in_delta(12.0, txn.duration)
+          assert_in_delta(14.0, txn.total_time)
 
           wrapper_segment = txn.segments.first
 
-          assert_equal 12.0, wrapper_segment.duration
-          assert_equal 0.0, wrapper_segment.exclusive_duration
+          assert_in_delta(12.0, wrapper_segment.duration)
+          assert_in_delta(0.0, wrapper_segment.exclusive_duration)
 
-          assert_equal 8.0, segment_a.duration
-          assert_equal 1.0, segment_a.exclusive_duration
+          assert_in_delta(8.0, segment_a.duration)
+          assert_in_delta(1.0, segment_a.exclusive_duration)
 
-          assert_equal 6.0, segment_b.duration
-          assert_equal 0.0, segment_b.exclusive_duration
+          assert_in_delta(6.0, segment_b.duration)
+          assert_in_delta(0.0, segment_b.exclusive_duration)
 
-          assert_equal 2.0, segment_c.duration
-          assert_equal 2.0, segment_c.exclusive_duration
+          assert_in_delta(2.0, segment_c.duration)
+          assert_in_delta(2.0, segment_c.exclusive_duration)
 
-          assert_equal 3.0, segment_d.duration
-          assert_equal 3.0, segment_d.duration
+          assert_in_delta(3.0, segment_d.duration)
+          assert_in_delta(3.0, segment_d.duration)
 
-          assert_equal 8.0, segment_e.duration
-          assert_equal 8.0, segment_e.exclusive_duration
+          assert_in_delta(8.0, segment_e.duration)
+          assert_in_delta(8.0, segment_e.exclusive_duration)
         end
       end
     end

@@ -43,13 +43,13 @@ class CoerceTest < Minitest::Test
   end
 
   def test_float_coerce
-    assert_equal 1.0, float(1.0)
-    assert_equal 1.0, float("1.0")
-    assert_equal 1.0, float(1)
-    assert_equal 1.0, float(Rational(1, 1))
-    assert_equal 0.0, float("invalid")
-    assert_equal 0.0, float(nil)
-    assert_equal 0.0, float(:symbols_are_fun)
+    assert_in_delta(1.0, float(1.0))
+    assert_in_delta(1.0, float("1.0"))
+    assert_in_delta(1.0, float(1))
+    assert_in_delta(1.0, float(Rational(1, 1)))
+    assert_in_delta(0.0, float("invalid"))
+    assert_in_delta(0.0, float(nil))
+    assert_in_delta(0.0, float(:symbols_are_fun))
   end
 
   def test_float_coerce_logs_with_context
@@ -62,7 +62,7 @@ class CoerceTest < Minitest::Test
     infinity = 1337807.0 / 0.0
     result = float(infinity, "TestingInfinity")
 
-    assert_equal 0.0, result
+    assert_in_delta(0.0, result)
   end
 
   def test_float_coerce_with_nan_value_logs_and_returns_0_0
@@ -70,7 +70,7 @@ class CoerceTest < Minitest::Test
     nan = 0.0 / 0.0
     result = float(nan, "TestingNaN")
 
-    assert_equal 0.0, result
+    assert_in_delta(0.0, result)
   end
 
   def test_string_coerce
@@ -88,7 +88,7 @@ class CoerceTest < Minitest::Test
   end
 
   def test_float!
-    assert_equal 1.23456, float!('1.23456')
+    assert_in_delta(1.23456, float!('1.23456'))
   end
 
   def test_boolean_int!

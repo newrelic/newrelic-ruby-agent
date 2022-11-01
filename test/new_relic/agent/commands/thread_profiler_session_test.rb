@@ -229,7 +229,7 @@ else
       profile = @profiler.harvest
 
       assert_equal 42, profile.profile_id
-      assert_equal 0.02, profile.requested_period
+      assert_in_delta(0.02, profile.requested_period)
     end
   end
 end

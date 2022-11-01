@@ -116,7 +116,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     assert_equal 3, sql_trace.call_count
     assert_equal "slowest_tx_name", sql_trace.path
     assert_equal "slow_uri", sql_trace.url
-    assert_equal 1.5, sql_trace.max_call_time
+    assert_in_delta(1.5, sql_trace.max_call_time)
   end
 
   def test_harvest
@@ -514,7 +514,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       assert_equal txn.priority, sql_trace.params['priority']
       assert_equal sampled, sql_trace.params['sampled']
       assert_equal transport_type, sql_trace.params['parent.transportType']
-      assert_equal 2.0, sql_trace.params['parent.transportDuration'].round
+      assert_in_delta(2.0, sql_trace.params['parent.transportDuration'].round)
       assert_equal payload.parent_type, sql_trace.params['parent.type']
       assert_equal payload.parent_account_id, sql_trace.params['parent.account']
       assert_equal payload.parent_app_id, sql_trace.params['parent.app']

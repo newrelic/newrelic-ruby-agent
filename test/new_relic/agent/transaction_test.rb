@@ -138,11 +138,11 @@ module NewRelic::Agent
 
       with_config(config) do
         in_transaction('Controller/foo/bar') do |txn|
-          assert_equal 1.5, txn.apdex_t
+          assert_in_delta(1.5, txn.apdex_t)
         end
 
         in_transaction('Controller/some/other') do |txn|
-          assert_equal 2.0, txn.apdex_t
+          assert_in_delta(2.0, txn.apdex_t)
         end
       end
     end
@@ -410,7 +410,7 @@ module NewRelic::Agent
 
       assert_equal 'Controller/foo/1/bar/22', name
       assert_equal start_time, timestamp
-      assert_equal 5.0, duration
+      assert_in_delta(5.0, duration)
     end
 
     def test_end_fires_a_transaction_finished_event_with_overview_metrics
@@ -424,7 +424,7 @@ module NewRelic::Agent
         NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
       end
 
-      assert_equal 2.1, options['HttpDispatcher'].total_call_time
+      assert_in_delta(2.1, options['HttpDispatcher'].total_call_time)
     end
 
     def test_end_fires_a_transaction_finished_event_with_attributes_attached
@@ -910,7 +910,7 @@ module NewRelic::Agent
           bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
-          assert_equal 0.0, txn.send(:jruby_cpu_time)
+          assert_in_delta(0.0, txn.send(:jruby_cpu_time))
         end
       end
     end
@@ -1384,7 +1384,7 @@ module NewRelic::Agent
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-      assert_equal 10.0, result[:gc_time]
+      assert_in_delta(10.0, result[:gc_time])
     end
 
     def test_intrinsic_attributes_include_tripid
@@ -1464,7 +1464,7 @@ module NewRelic::Agent
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-      assert_equal 22.0, result[:cpu_time]
+      assert_in_delta(22.0, result[:cpu_time])
     end
 
     def test_request_params_included_in_agent_attributes
@@ -1639,11 +1639,11 @@ module NewRelic::Agent
     def test_has_correct_transaction_trace_threshold_when_default
       in_transaction do |txn|
         with_config(:apdex_t => 1.5) do
-          assert_equal 6.0, txn.threshold
+          assert_in_delta(6.0, txn.threshold)
         end
 
         with_config(:apdex_t => 2.0) do
-          assert_equal 8.0, txn.threshold
+          assert_in_delta(8.0, txn.threshold)
         end
       end
     end
@@ -1655,7 +1655,7 @@ module NewRelic::Agent
         with_config(config) do
           txn.stubs(:apdex_t).returns(1.5)
 
-          assert_equal 4.0, txn.threshold
+          assert_in_delta(4.0, txn.threshold)
         end
       end
     end
