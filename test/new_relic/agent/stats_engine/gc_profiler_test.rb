@@ -54,6 +54,7 @@ class NewRelic::Agent::StatsEngine
         end_snapshot = GCProfiler::GCSnapshot.new(2.5, 3)
 
         result = GCProfiler.record_delta(start_snapshot, end_snapshot)
+
         assert_in_delta(1.5, result)
       end
 
@@ -115,6 +116,7 @@ class NewRelic::Agent::StatsEngine
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
+
         assert_in_delta(3.0, attributes_for(tracer.last_sample, :intrinsic)[:gc_time])
       end
 
