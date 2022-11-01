@@ -9,6 +9,12 @@ module NewRelic::Agent::Instrumentation
         ::Redis::Client.class_eval do
           include NewRelic::Agent::Instrumentation::Redis
 
+          alias_method(:call_v_without_new_relic, :call_v)
+
+          def call_v(*args, &block)
+            call_with_tracing(args[0]) { call_v_without_new_relic(*args, &block) }
+          end
+
           alias_method(:call_without_new_relic, :call)
 
           def call(*args, &block)
