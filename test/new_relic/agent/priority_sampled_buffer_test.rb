@@ -189,9 +189,11 @@ module NewRelic::Agent
       assert_equal(0, buffer.sample_rate)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_in_delta(1.0, buffer.sample_rate)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
+
       assert_in_delta(0.5, buffer.sample_rate)
     end
 

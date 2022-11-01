@@ -25,6 +25,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     advance_process_time(27)
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_in_delta(0.5, busy_fraction)
   end
 
@@ -42,6 +43,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_process_time(5)
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
+
     assert_in_delta(0.25, busy_fraction)
 
     # ...and 0-5s in the second harvest:

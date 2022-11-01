@@ -38,7 +38,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       NewRelic::Cli::Deployments.new("-h")
       fail "should have thrown"
     rescue NewRelic::Cli::Command::CommandFailure => c
-      assert_match(/^Usage/, c.message)
+      assert_match(/^Usage/, c.message) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
     end
     @deployment = nil
   end
