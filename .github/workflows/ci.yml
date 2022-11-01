@@ -3,99 +3,99 @@ on:
   pull_request:
 
 jobs:
-  run_rubocop:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1'
-      - run: bundle
-      - run: rubocop
+  # run_rubocop:
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
+  #     - uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: '3.1'
+  #     - run: bundle
+  #     - run: rubocop
 
-  unit_tests:
-    needs: run_rubocop
-    runs-on: ubuntu-22.04
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - "3306:3306"
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-version: [2.2.10, 3.1.2, jruby-9.3.9.0]
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+  # unit_tests:
+  #   needs: run_rubocop
+  #   runs-on: ubuntu-22.04
+  #   services:
+  #     mysql:
+  #       image: mysql:5.7
+  #       env:
+  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+  #       ports:
+  #         - "3306:3306"
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       ruby-version: [2.2.10, 3.1.2, jruby-9.3.9.0]
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+  #       # - curl is needed for Curb
+  #       # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+  #       # - sasl is needed for memcached
+  #     - name: Install OS packages
+  #       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Install Ruby ${{ matrix.ruby-version }}
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Set up mini-envs for ruby version
-        uses: kanga333/variable-mapper@master
-        with:
-          key: ${{ matrix.ruby-version }}
-          map: |
-            {
-              "2.2.10": {
-                "rails": "norails,rails41,rails32"
-              },
-              "3.1.2": {
-                "rails": "norails,rails61,rails70"
-              },
-              "jruby-9.3.9.0": {
-                "rails": "norails,rails61,rails52,rails42"
-              }
-            }
+  #     - name: Set up mini-envs for ruby version
+  #       uses: kanga333/variable-mapper@master
+  #       with:
+  #         key: ${{ matrix.ruby-version }}
+  #         map: |
+  #           {
+  #             "2.2.10": {
+  #               "rails": "norails,rails41,rails32"
+  #             },
+  #             "3.1.2": {
+  #               "rails": "norails,rails61,rails70"
+  #             },
+  #             "jruby-9.3.9.0": {
+  #               "rails": "norails,rails61,rails52,rails42"
+  #             }
+  #           }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0'
-        name: Cache mysql55
-        id: mysql55-cache
-        uses: john-shaffer/cache@sudo-tar
-        with:
-          path: /usr/local/mysql55
-          key: mysql55-install
+  #     - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0'
+  #       name: Cache mysql55
+  #       id: mysql55-cache
+  #       uses: john-shaffer/cache@sudo-tar
+  #       with:
+  #         path: /usr/local/mysql55
+  #         key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0')
-        name: Install mysql55
-        run: sudo ./test/script/install_mysql55
+  #     - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0')
+  #       name: Install mysql55
+  #       run: sudo ./test/script/install_mysql55
 
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-          RAILS_VERSION: ${{ env.rails }}
-      - name: Run Unit Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 30
-          max_attempts: 2
-          command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
-        env:
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev --debug
-          COVERAGE: true
+  #     - name: Setup bundler
+  #       run: ./.github/workflows/scripts/setup_bundler
+  #       env:
+  #         RUBY_VERSION: ${{ matrix.ruby-version }}
+  #         RAILS_VERSION: ${{ env.rails }}
+  #     - name: Run Unit Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 30
+  #         max_attempts: 2
+  #         command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+  #       env:
+  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         JRUBY_OPTS: --dev --debug
+  #         COVERAGE: true
 
-      - name: Save coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-unit-tests
-          path: lib/coverage_*/.resultset.json
+  #     - name: Save coverage results
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: coverage-report-unit-tests
+  #         path: lib/coverage_*/.resultset.json
 
   multiverse:
     needs: run_rubocop
@@ -166,7 +166,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       redis:
-        image: redis
+        image: redis:latest
         ports:
           - 6379:6379
         options: >-
@@ -177,7 +177,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse: [database]
         ruby-version: [2.2.10, 3.1.2]
 
     steps:
@@ -244,45 +244,45 @@ jobs:
           path: lib/coverage_*/.resultset.json
           retention-days: 2
 
-  infinite_tracing:
-    needs: run_rubocop
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        ruby-version: [2.5.9, 3.1.2]
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+  # infinite_tracing:
+  #   needs: run_rubocop
+  #   runs-on: ubuntu-22.04
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       ruby-version: [2.5.9, 3.1.2]
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
 
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
+  #     - name: Install Ruby ${{ matrix.ruby-version }}
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Bundle
-        run: bundle install
+  #     - name: Bundle
+  #       run: bundle install
 
-      - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 15
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
-        env:
-          SERIALIZE: 1
-          COVERAGE: true
+  #     - name: Run Multiverse Tests
+  #       uses: nick-invision/retry@v1.0.0
+  #       with:
+  #         timeout_minutes: 15
+  #         max_attempts: 2
+  #         command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+  #       env:
+  #         SERIALIZE: 1
+  #         COVERAGE: true
 
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+  #     - name: Annotate errors
+  #       if: ${{ failure() }}
+  #       uses: ./.github/actions/annotate
 
-      - name: Save coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-infinite-tracing
-          path: lib/coverage_*/.resultset.json
+  #     - name: Save coverage results
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: coverage-report-infinite-tracing
+  #         path: lib/coverage_*/.resultset.json
 
   check_jruby_multiverse:
     needs: run_rubocop
@@ -416,32 +416,32 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-  simplecov:
-    needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-22.04
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1'
-      - run: bundle
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v3
-      - name: Collate Coverage Results
-        run: bundle exec rake coverage:report
-      - name: Upload coverage results
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report-combined
-          path: lib/coverage_results
-          retention-days: 2
-      - name: Simplecov Report
-        uses: ./.github/actions/simplecov-report
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          resultPath: lib/coverage_results/.last_run.json
-          failedThreshold: 93
-          failedThresholdBranch: 84
+  # simplecov:
+  #   needs: [unit_tests, multiverse, infinite_tracing]
+  #   runs-on: ubuntu-22.04
+  #   if: github.event.pull_request.head.repo.full_name == github.repository
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
+  #     - uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: '3.1'
+  #     - run: bundle
+  #     - name: Download all workflow run artifacts
+  #       uses: actions/download-artifact@v3
+  #     - name: Collate Coverage Results
+  #       run: bundle exec rake coverage:report
+  #     - name: Upload coverage results
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: coverage-report-combined
+  #         path: lib/coverage_results
+  #         retention-days: 2
+  #     - name: Simplecov Report
+  #       uses: ./.github/actions/simplecov-report
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }}
+  #         resultPath: lib/coverage_results/.last_run.json
+  #         failedThreshold: 93
+  #         failedThresholdBranch: 84
