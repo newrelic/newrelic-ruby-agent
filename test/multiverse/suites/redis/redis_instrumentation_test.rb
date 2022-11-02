@@ -89,7 +89,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       assert_metrics_recorded(expected)
     end
 
-    def test_records_metrics_for_get_in_web_transaction
+    def test_records_metrics_for_set_in_web_transaction
       in_web_transaction do
         @redis.set('prodigal', 'sorcerer')
       end
@@ -146,7 +146,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       refute get_node[:statement]
     end
 
-    def test_records_metrics_for_set_in_web_transaction
+    def test_records_metrics_for_get_in_web_transaction
       in_web_transaction do
         @redis.get('timetwister')
       end
