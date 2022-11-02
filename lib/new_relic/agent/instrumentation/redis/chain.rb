@@ -25,10 +25,28 @@ module NewRelic::Agent::Instrumentation
             end
           end
 
-          alias_method(:call_pipeline_without_new_relic, :call_pipeline)
+          if method_defined?(:call_pipeline)
+            alias_method(:call_pipeline_without_new_relic, :call_pipeline)
 
-          def call_pipeline(*args, &block)
-            call_pipeline_with_tracing(args[0]) { call_pipeline_without_new_relic(*args, &block) }
+            def call_pipeline(*args, &block)
+              call_pipeline_with_tracing(args[0]) { call_pipeline_without_new_relic(*args, &block) }
+            end
+          end
+
+          if method_defined?(:pipelined)
+            alias_method(:pipelined_without_new_relic, :pipelined)
+
+            def pipelined(&block)
+              pipelined_with_tracing { pipelined_without_new_relic(&block) }
+            end
+          end
+
+          if method_defined?(:multi)
+            alias_method(:multi_without_new_relic, :multi)
+
+            def multi(&block)
+              multi_with_tracing { multi_without_new_relic(&block) }
+            end
           end
 
           alias_method(:connect_without_new_relic, :connect)
