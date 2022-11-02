@@ -21,9 +21,12 @@ module NewRelic::Agent::Instrumentation
         call_pipeline_with_tracing(args[0]) { super }
       end
 
-      # Defined in version 5.x
-      def call_pipelined(*args, &block)
-        call_pipelined_with_tracing(args[0]) { super }
+      def pipelined
+        pipelined_with_tracing { super }
+      end
+
+      def multi
+        multi_with_tracing { super }
       end
 
       def connect(*args, &block)
