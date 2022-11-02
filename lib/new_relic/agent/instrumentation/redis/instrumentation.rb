@@ -25,6 +25,20 @@ module NewRelic::Agent::Instrumentation
       with_tracing(operation, statement) { yield }
     end
 
+    def pipelined_with_tracing
+      # How do we get the command? They're values within the block?
+      # This doesn't have the statement, how can we get it?
+      # Should we be getting pipelined statements for #get? something unique?
+      statement = 'FIX ME'
+      with_tracing(PIPELINE_OPERATION, statement) { yield }
+    end
+
+    def multi_with_tracing
+      # How can we get the dynamic statement name?
+      statement = 'FIX ME'
+      with_tracing(MULTI_OPERATION, statement) { yield }
+    end
+
     def connect_with_tracing
       with_tracing(CONNECT) { yield }
     end
