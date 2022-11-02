@@ -57,7 +57,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_connect_tt_node_within_call_that_triggered_it
       in_transaction do
-        redis = Redis.new(:host => redis_host)
+        redis = Redis.new
         redis.get("foo")
       end
 
@@ -274,7 +274,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
-      redis = Redis.new(:host => redis_host)
+      redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
@@ -306,7 +306,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
-      redis = Redis.new(:host => redis_host)
+      redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
@@ -324,7 +324,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
-      redis = Redis.new(:host => redis_host)
+      redis = Redis.new
       redis.send(client).stubs(:path).raises(StandardError.new)
       in_transaction do
         redis.get("foo")
@@ -354,6 +354,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       rescue StandardError => e
         # NOOP -- allowing span and transaction to notice error
       end
+
       assert_segment_noticed_error txn, /redis/, simulated_error_class.name, /Error connecting to Redis/i
       assert_transaction_noticed_error txn, simulated_error_class.name
     end
