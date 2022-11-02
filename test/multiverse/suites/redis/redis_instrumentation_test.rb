@@ -339,37 +339,36 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def simulate_read_error
       redis = Redis.new
-      redis.stub(:get, raise(simulated_error_class.new, "Error connecting to Redis")) do
-        redis.get("foo")
-      end
+      redis.send(client).stubs("connect").raises(simulated_error_class, "Error connecting to Redis")
+      redis.get("foo")
+    ensure
     end
 
     def test_noticed_error_at_segment_and_txn_on_error
       txn = nil
       begin
-        in_transaction('redis') do |redis_txn|
+        in_transaction do |redis_txn|
           txn = redis_txn
           simulate_read_error
         end
       rescue StandardError => e
         # NOOP -- allowing span and transaction to notice error
       end
-      assert_segment_noticed_error txn, /redis/, simulated_error_class.name, /Error connecting to Redis/i
+
+      assert_segment_noticed_error txn, /Redis\/get$/, simulated_error_class.name, /Error connecting to Redis/i
       assert_transaction_noticed_error txn, simulated_error_class.name
     end
 
     def test_noticed_error_only_at_segment_on_error
       txn = nil
       in_transaction do |redis_txn|
-        begin
-          txn = redis_txn
-          simulate_read_error
-        rescue StandardError => e
-          # NOP -- allowing ONLY span to notice error
-        end
+        txn = redis_txn
+        simulate_read_error
+      rescue StandardError => e
+        # NOOP -- allowing ONLY span to notice error
       end
 
-      assert_segment_noticed_error txn, /Redis\/connect$/, simulated_error_class.name, /error connecting/i
+      assert_segment_noticed_error txn, /Redis\/get$/, simulated_error_class.name, /Error connecting to Redis/i
       refute_transaction_noticed_error txn, simulated_error_class.name
     end
 
