@@ -57,7 +57,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_connect_tt_node_within_call_that_triggered_it
       in_transaction do
-        redis = Redis.new(:host => redis_host)
+        redis = Redis.new
         redis.get("foo")
       end
 
@@ -89,7 +89,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       assert_metrics_recorded(expected)
     end
 
-    def test_records_metrics_for_get_in_web_transaction
+    def test_records_metrics_for_set_in_web_transaction
       in_web_transaction do
         @redis.set('prodigal', 'sorcerer')
       end
@@ -146,7 +146,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       refute get_node[:statement]
     end
 
-    def test_records_metrics_for_set_in_web_transaction
+    def test_records_metrics_for_get_in_web_transaction
       in_web_transaction do
         @redis.get('timetwister')
       end
@@ -274,7 +274,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
-      redis = Redis.new(:host => redis_host)
+      redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
@@ -306,7 +306,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
-      redis = Redis.new(:host => redis_host)
+      redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
@@ -324,7 +324,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
-      redis = Redis.new(:host => redis_host)
+      redis = Redis.new
       redis.send(client).stubs(:path).raises(StandardError.new)
       in_transaction do
         redis.get("foo")
