@@ -2,7 +2,7 @@
 
   ## v8.13.0
 
-  Version 8.12.0 of the agent delivers a small bugfix.
+  Version 8.13.0 of the agent delivers a small bugfix.
 
   * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0.0**
 
