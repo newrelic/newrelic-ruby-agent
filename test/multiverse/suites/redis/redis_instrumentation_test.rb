@@ -362,10 +362,12 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_noticed_error_only_at_segment_on_error
       txn = nil
       in_transaction do |redis_txn|
-        txn = redis_txn
-        simulate_read_error
-      rescue StandardError => e
-        # NOOP -- allowing ONLY span to notice error
+        begin
+          txn = redis_txn
+          simulate_read_error
+        rescue StandardError => e
+          # NOOP -- allowing ONLY span to notice error
+        end
       end
 
       assert_segment_noticed_error txn, /Redis\/get$/, simulated_error_class.name, /Error connecting to Redis/i
