@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.13.0
+
+  Version 8.13.0 of the agent delivers a small bugfix.
+
+  * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0.0**
+
+    Unicorn, Rainbows, or FastCGI web applications using Rack v3.0.0 may previously have had the "dispatcher" value incorrectly reported as "Webrick" instead of "Unicorn", "Rainbows", or "FastCGI". This issue has now been addressed. [PR#1585](https://github.com/newrelic/newrelic-ruby-agent/pull/1585)
+
+
   ## v8.12.0
 
   Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increases the default number of recorded Custom Events, announces the deprecation of Ruby 2.3, and brings some valuable code cleanup.
