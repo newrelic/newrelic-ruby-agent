@@ -62,14 +62,24 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       tt = last_transaction_trace
+      # TODO: Does this difference matter? Do we need to take action so that the nesting remains the same?
+      if Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0')
+        get_node = tt.root_node.children[0].children[1]
 
-      get_node = tt.root_node.children[0].children[0]
+        assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
 
-      assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
+        connect_node = tt.root_node.children[0].children[0]
 
-      connect_node = get_node.children[0]
+        assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
+      else
+        get_node = tt.root_node.children[0].children[0]
 
-      assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
+        assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
+
+        connect_node = get_node.children[0]
+
+        assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
+      end
     end
 
     def test_records_metrics_for_set
@@ -239,8 +249,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       tt = last_transaction_trace
       pipeline_node = tt.root_node.children[0].children[0]
-
-      assert_equal("multi\nset ?\nget ?\nexec", pipeline_node[:statement])
+      # Redis 5.x returns MULTI and EXEC as capitalized, unlike 4.x, 3.x
+      assert_equal("multi\nset ?\nget ?\nexec", pipeline_node[:statement].downcase)
     end
 
     def test_records_commands_with_args_in_tt_node_for_multi_blocks
@@ -255,8 +265,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       tt = last_transaction_trace
       pipeline_node = tt.root_node.children[0].children[0]
-
-      assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement])
+      # Redis 5.x returns MULTI and EXEC as capitalized, unlike 4.x, 3.x
+      assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement].downcase)
     end
 
     def test_records_instance_parameters_on_tt_node_for_get

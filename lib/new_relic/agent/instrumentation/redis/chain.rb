@@ -9,44 +9,16 @@ module NewRelic::Agent::Instrumentation
         ::Redis::Client.class_eval do
           include NewRelic::Agent::Instrumentation::Redis
 
-          if method_defined?(:call_v)
-            alias_method(:call_v_without_new_relic, :call_v)
+          alias_method(:call_without_new_relic, :call)
 
-            def call_v(*args, &block)
-              call_with_tracing(args[0]) { call_v_without_new_relic(*args, &block) }
-            end
+          def call(*args, &block)
+            call_with_tracing(args[0]) { call_without_new_relic(*args, &block) }
           end
 
-          if method_defined?(:call)
-            alias_method(:call_without_new_relic, :call)
+          alias_method(:call_pipeline_without_new_relic, :call_pipeline)
 
-            def call(*args, &block)
-              call_with_tracing(args[0]) { call_without_new_relic(*args, &block) }
-            end
-          end
-
-          if method_defined?(:call_pipeline)
-            alias_method(:call_pipeline_without_new_relic, :call_pipeline)
-
-            def call_pipeline(*args, &block)
-              call_pipeline_with_tracing(args[0]) { call_pipeline_without_new_relic(*args, &block) }
-            end
-          end
-
-          if method_defined?(:pipelined)
-            alias_method(:pipelined_without_new_relic, :pipelined)
-
-            def pipelined(&block)
-              pipelined_with_tracing { pipelined_without_new_relic(&block) }
-            end
-          end
-
-          if method_defined?(:multi)
-            alias_method(:multi_without_new_relic, :multi)
-
-            def multi(&block)
-              multi_with_tracing { multi_without_new_relic(&block) }
-            end
+          def call_pipeline(*args, &block)
+            call_pipeline_with_tracing(args[0]) { call_pipeline_without_new_relic(*args, &block) }
           end
 
           alias_method(:connect_without_new_relic, :connect)
