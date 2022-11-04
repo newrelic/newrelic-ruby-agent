@@ -8,6 +8,7 @@ require 'new_relic/agent/datastores/redis'
 require_relative 'redis/instrumentation'
 require_relative 'redis/chain'
 require_relative 'redis/prepend'
+require_relative 'redis/middleware'
 
 DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
@@ -29,10 +30,18 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.info('Installing Redis Instrumentation')
-    if use_prepend?
-      prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
+    if redis_5_or_above? && defined?(::RedisClient)
+      ::RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
+      if use_prepend?
+        prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
+      else
+        chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
+      end
     end
+  end
+
+  def redis_5_or_above?
+    Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0')
   end
 end
