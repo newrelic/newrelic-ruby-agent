@@ -101,6 +101,14 @@ module NewRelic
         assert_metrics_recorded(['test'])
       end
 
+      def test_in_transaction_missing_category
+        assert_raises ArgumentError do
+          NewRelic::Agent::Tracer.in_transaction(name: 'test') do
+            # No-op
+          end
+        end
+      end
+
       def test_in_transaction_with_early_failure
         yielded = false
         NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Boom")
