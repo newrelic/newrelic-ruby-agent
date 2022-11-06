@@ -23,11 +23,8 @@ Minitest/AssertInDelta:
 Minitest/AssertPredicate:
   Enabled: false
 
-# Offense count: 7
 Minitest/AssertRaisesCompoundBody:
   Exclude:
-    - 'test/new_relic/agent/collector_response_code_test.rb'
-    - 'test/new_relic/agent/new_relic_service_test.rb'
     - 'test/new_relic/cli/commands/deployments_test.rb'
 
 # Offense count: 4

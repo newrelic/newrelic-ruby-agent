@@ -60,8 +60,8 @@ module NewRelic
             # than testing it directly, we'll just assert that our service
             # call raises the right exception.
             #
+            @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
             assert_raises(NewRelic::Agent::ForceRestartException) do
-              @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
               @agent.send(:harvest_and_send_errors)
             end
           end
