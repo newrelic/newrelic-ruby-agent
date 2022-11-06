@@ -58,7 +58,7 @@ module NewRelic
 
         def test_compression_enabled_returns_true
           with_config(remote_config.merge('infinite_tracing.compression_level': :high)) do
-            assert Channel.new.compression_enabled?
+            assert_predicate Channel.new, :compression_enabled?
           end
         end
 

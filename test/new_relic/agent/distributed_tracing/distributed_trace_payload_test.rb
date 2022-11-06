@@ -120,7 +120,7 @@ module NewRelic::Agent
       assert_equal referring_transaction.initial_segment.guid, payload.id
       assert_equal referring_transaction.guid, payload.transaction_id
       assert_equal referring_transaction.trace_id, payload.trace_id
-      assert payload.sampled?
+      assert_predicate payload, :sampled?
       assert_equal referring_transaction.priority, payload.priority
       assert_equal created_at.round, payload.timestamp
     end
@@ -146,7 +146,7 @@ module NewRelic::Agent
       assert_equal referring_transaction.initial_segment.guid, payload.id
       assert_equal referring_transaction.guid, payload.transaction_id
       assert_equal referring_transaction.trace_id, payload.trace_id
-      assert payload.sampled?
+      assert_predicate payload, :sampled?
       assert_equal referring_transaction.priority, payload.priority
       assert_equal created_at.round, payload.timestamp
     end

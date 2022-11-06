@@ -30,7 +30,7 @@ module NewRelic
         end
 
         def test_supported_on_this_platform?
-          assert VMSampler.supported_on_this_platform?
+          assert_predicate VMSampler, :supported_on_this_platform?
         end
 
         def test_enabled_should_return_false_if_disabled_via_config_setting

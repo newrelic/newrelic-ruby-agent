@@ -103,7 +103,7 @@ module NewRelic::Agent::Configuration
 
       source = YamlSource.new('fake.yml', 'test')
 
-      assert source.failed?
+      assert_predicate source, :failed?
     end
 
     def test_should_mark_erb_error_as_failure
@@ -111,13 +111,13 @@ module NewRelic::Agent::Configuration
 
       source = YamlSource.new(@test_yml_path, 'test')
 
-      assert source.failed?
+      assert_predicate source, :failed?
     end
 
     def test_should_mark_missing_section_as_failure
       source = YamlSource.new(@test_yml_path, 'yolo')
 
-      assert source.failed?
+      assert_predicate source, :failed?
     end
 
     def test_failure_should_include_message
@@ -140,7 +140,7 @@ module NewRelic::Agent::Configuration
         source = YamlSource.new(@test_yml_path, 'test')
         source.send(:booleanify_values, config, 'key')
 
-        assert source.failed?
+        assert_predicate source, :failed?
         expected_message = "Unexpected value (#{value}) for 'key' in #{@test_yml_path}"
 
         assert_includes source.failures, expected_message

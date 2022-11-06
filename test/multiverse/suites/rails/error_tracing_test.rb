@@ -102,7 +102,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_error_collector_should_be_enabled
     assert NewRelic::Agent.config[:agent_enabled]
     assert NewRelic::Agent.config[:'error_collector.enabled']
-    assert @error_collector.enabled?
+    assert_predicate @error_collector, :enabled?
   end
 
   def test_should_capture_routing_error

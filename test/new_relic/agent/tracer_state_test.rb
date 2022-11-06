@@ -28,7 +28,7 @@ module NewRelic::Agent
 
     def test_in_request_transaction
       in_web_transaction do |txn|
-        assert txn.recording_web_transaction?
+        assert_predicate txn, :recording_web_transaction?
       end
     end
 

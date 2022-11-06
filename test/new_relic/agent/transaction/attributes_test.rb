@@ -121,7 +121,7 @@ class AttributesTest < Minitest::Test
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
 
-    assert result.valid_encoding?
+    assert_predicate result, :valid_encoding?
     assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
 
@@ -135,7 +135,7 @@ class AttributesTest < Minitest::Test
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
 
-    assert result.valid_encoding?
+    assert_predicate result, :valid_encoding?
     assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
 

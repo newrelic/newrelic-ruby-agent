@@ -143,7 +143,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
       assert false
     rescue StandardError
-      assert s1.frozen?
+      assert_predicate s1, :frozen?
       validate(stats: s1, count: 1, total: 10, min: 10, max: 10)
     end
   end

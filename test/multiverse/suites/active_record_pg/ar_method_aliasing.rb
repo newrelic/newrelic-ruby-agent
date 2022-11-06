@@ -17,11 +17,11 @@ class InstrumentActiveRecordMethods < Minitest::Test
   def test_basic_creation
     a_user = User.new(:name => "Bob")
 
-    assert a_user.new_record?
+    assert_predicate a_user, :new_record?
     a_user.save!
 
-    assert User.connected?
-    assert a_user.persisted? if a_user.respond_to?(:persisted?)
+    assert_predicate User, :connected?
+    assert_predicate a_user, :persisted? if a_user.respond_to?(:persisted?)
   end
 
   def test_alias_collection_query_method
@@ -30,14 +30,14 @@ class InstrumentActiveRecordMethods < Minitest::Test
 
     a_user = User.first
 
-    assert User.connected?
+    assert_predicate User, :connected?
 
     an_alias = Alias.new(:user_id => a_user.id, :aka => "the Blob")
 
-    assert an_alias.new_record?
+    assert_predicate an_alias, :new_record?
     an_alias.save!
-    assert an_alias.persisted? if a_user.respond_to?(:persisted?)
+    assert_predicate an_alias, :persisted? if a_user.respond_to?(:persisted?)
     an_alias.destroy
-    assert an_alias.destroyed? if a_user.respond_to?(:destroyed?)
+    assert_predicate an_alias, :destroyed? if a_user.respond_to?(:destroyed?)
   end
 end

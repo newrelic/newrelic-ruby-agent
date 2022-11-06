@@ -38,7 +38,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => ('x' * 40))
       agent = NewRelic::Agent.instance
 
-      assert agent.started?
+      assert_predicate agent, :started?
       agent.shutdown
 
       refute agent.started?

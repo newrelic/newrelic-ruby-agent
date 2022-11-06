@@ -62,7 +62,7 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
     ))
     @test.configure_agent('invalid', {:config_path => config_path})
 
-    assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
+    assert_predicate NewRelic::Agent.config.instance_variable_get(:@yaml_source), :failed?
     expected_err = "** [NewRelic] FATAL : Unexpected value (cultured groats) for 'enabled' in #{config_path}\n"
 
     assert_equal expected_err, @test.stdout.string

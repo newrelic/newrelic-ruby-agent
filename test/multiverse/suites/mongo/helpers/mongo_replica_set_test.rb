@@ -36,7 +36,7 @@ class MongoReplicaSetTest < Test::Unit::TestCase
   def test_running_returns_true_for_started_replica_set
     @replica.start
 
-    assert @replica.running?
+    assert_predicate @replica, :running?
   end
 
   def test_running_returns_false_for_stopped_replica_set

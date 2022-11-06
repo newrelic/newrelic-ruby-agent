@@ -582,7 +582,7 @@ module NewRelic
             refute segment_a.concurrent_children?
             refute segment_b.concurrent_children?
             refute segment_c.concurrent_children?
-            assert segment_d.concurrent_children?
+            assert_predicate segment_d, :concurrent_children?
             refute segment_e.concurrent_children?
             refute segment_f.concurrent_children?
           end
@@ -755,7 +755,7 @@ module NewRelic
               parent: segment_a
             )
 
-            assert txn.async?
+            assert_predicate txn, :async?
 
             advance_process_time(1)
 
@@ -790,7 +790,7 @@ module NewRelic
             advance_process_time(4)
             segment_c.finish
 
-            assert txn.async?, "Expected transaction to be asynchronous"
+            assert_predicate txn, :async?, "Expected transaction to be asynchronous"
           end
         end
 

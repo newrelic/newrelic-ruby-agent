@@ -417,7 +417,7 @@ module NewRelic::Agent
             segment.process_response_headers(response)
             segment.finish
 
-            assert segment.cross_app_request?
+            assert_predicate segment, :cross_app_request?
             assert_equal "1#1884", segment.cross_process_id
             assert_equal "txn-name", segment.cross_process_transaction_name
             assert_equal "BEC1BC64675138B9", segment.transaction_guid
@@ -612,7 +612,7 @@ module NewRelic::Agent
 
             refute rmd.key?('NewRelicSynthetics')
 
-            assert txn.distributed_tracer.is_cross_app_caller?
+            assert_predicate txn.distributed_tracer, :is_cross_app_caller?
           end
         end
       end
@@ -937,7 +937,7 @@ module NewRelic::Agent
           'GET')
         segment.record_agent_attributes = true
 
-        assert segment.record_agent_attributes?
+        assert_predicate segment, :record_agent_attributes?
       end
 
       def cat_config

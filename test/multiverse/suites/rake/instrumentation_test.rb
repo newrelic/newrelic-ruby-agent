@@ -72,7 +72,7 @@ class RakeInstrumentationTest < Minitest::Test
     skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
 
     NewRelic::LanguageSupport.stub :bundled_gem?, false, 'newrelic-rake' do
-      assert NewRelic::Agent::Instrumentation::Rake.should_install?
+      assert_predicate NewRelic::Agent::Instrumentation::Rake, :should_install?
     end
   end
 

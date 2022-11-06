@@ -144,8 +144,8 @@ class PipeServiceTest < Minitest::Test
       data_from_forked_process do
         @service.shutdown
 
-        assert NewRelic::Agent::PipeChannelManager \
-          .channels[:pipe_service_test].closed?
+        assert_predicate NewRelic::Agent::PipeChannelManager \
+          .channels[:pipe_service_test], :closed?
       end
     end
   end

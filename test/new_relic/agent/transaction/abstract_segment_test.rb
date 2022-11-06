@@ -163,7 +163,7 @@ module NewRelic
 
           segment.params[:foo] = 'bar'
 
-          assert segment.params?
+          assert_predicate segment, :params?
           assert_equal({foo: 'bar'}, segment.params)
         end
 
@@ -209,7 +209,7 @@ module NewRelic
             segment_c.finish
             segment_a.finish
 
-            assert segment_a.concurrent_children?
+            assert_predicate segment_a, :concurrent_children?
             refute segment_b.concurrent_children?
             refute segment_c.concurrent_children?
           end
@@ -291,7 +291,7 @@ module NewRelic
           segment = basic_segment
           segment.instance_variable_set(:@children_timings, [[11.0, 38.0]])
 
-          assert segment.children_time_ranges?
+          assert_predicate segment, :children_time_ranges?
         end
 
         def test_during_recording_timings_become_ranges

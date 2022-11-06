@@ -123,8 +123,8 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
 
       assert memoized
       assert_equal(1, memoized.keys.size)
-      assert memoized.keys.first.frozen?
-      assert memoized.values.first.frozen?
+      assert_predicate memoized.keys.first, :frozen?
+      assert_predicate memoized.values.first, :frozen?
     end
   end
 end

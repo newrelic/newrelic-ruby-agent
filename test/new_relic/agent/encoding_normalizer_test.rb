@@ -69,7 +69,7 @@ class EncodingNormalizerTest < Minitest::Test
     string = String.new('Jyv+AOQ-skyl+AOQ-')
     input = string.dup.force_encoding('UTF-7')
 
-    assert input.valid_encoding?
+    assert_predicate input, :valid_encoding?
     result = EncodingNormalizer.normalize_string(input)
 
     refute_same(result, input)

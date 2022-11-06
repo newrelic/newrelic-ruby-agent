@@ -103,7 +103,7 @@ module NewRelic
             spans, segments, active_client = emulate_streaming_to_unimplemented(total_spans)
 
             assert_kind_of SuspendedStreamingBuffer, active_client.buffer
-            assert active_client.suspended?, "expected client to be suspended."
+            assert_predicate active_client, :suspended?, "expected client to be suspended."
 
             assert_equal total_spans, segments.size
             assert_equal 0, spans.size

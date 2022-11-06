@@ -34,7 +34,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   end
 
   def test_enabled_should_return_true_if_name_unknown
-    assert UnnamedSampler.enabled?
+    assert_predicate UnnamedSampler, :enabled?
   end
 
   def test_initialize_should_accept_id_argument
@@ -65,7 +65,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
 
   def test_enabled_should_return_true_if_enabled_via_config_setting
     with_config(:disable_dummy_sampler => false) do
-      assert DummySampler.enabled?
+      assert_predicate DummySampler, :enabled?
     end
   end
 end

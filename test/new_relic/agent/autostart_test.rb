@@ -7,7 +7,7 @@ require 'new_relic/agent/autostart'
 
 class AutostartTest < Minitest::Test
   def test_typically_the_agent_should_autostart
-    assert ::NewRelic::Agent::Autostart.agent_should_start?
+    assert_predicate ::NewRelic::Agent::Autostart, :agent_should_start?
   end
 
   if defined?(::Rails)
@@ -26,7 +26,7 @@ class AutostartTest < Minitest::Test
   def test_agent_will_autostart_if_global_CONSOLE_constant_is_defined
     Object.const_set(:Console, Class.new)
 
-    assert ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't find ::Console"
+    assert_predicate ::NewRelic::Agent::Autostart, :agent_should_start?, "Agent shouldn't find ::Console"
   ensure
     Object.send(:remove_const, :Console)
   end
