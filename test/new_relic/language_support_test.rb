@@ -62,6 +62,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
     def test_gc_profiler_enabled_when_config_is_disabled
       ::GC::Profiler.stubs(:enabled?).returns(true)
+
       with_config(:disable_gc_profiler => true) do
         refute NewRelic::LanguageSupport.gc_profiler_enabled?
       end

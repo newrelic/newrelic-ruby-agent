@@ -132,8 +132,8 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       'request.parameters.eat' => 'static',
       'http.statusCode' => 500
     }
-
     attributes = agent_attributes_for_single_error_posted
+
     expected_params.each do |key, value|
       assert_equal value, attributes[key]
     end

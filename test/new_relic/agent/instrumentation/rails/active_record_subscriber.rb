@@ -232,6 +232,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     handler = MiniTest::Mock.new
     handler.expect(:connections, [])
     4.times { handler.expect(:spec, spec) }
+
     ::ActiveRecord::Base.connection_handler.stub(:connection_pool_list, [handler]) do
       assert_equal config, @subscriber.active_record_config(payload)
     end

@@ -95,6 +95,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     app = :the_app
     def instance.middleware_instrumentation_enabled; true; end
+
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :wrap, true, [app, true] do
       assert instance.run_with_tracing(app) { app }
     end
@@ -117,6 +118,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     def instance.middleware_instrumentation_enabled?; true; end
     middleware = 'lucky tiger cup'
+
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :for_class, middleware, [middleware] do
       assert_equal middleware, instance.use_with_tracing(middleware) { middleware }
     end

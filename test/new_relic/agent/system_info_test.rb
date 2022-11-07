@@ -172,6 +172,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
+
       counts.each do |key, value|
         assert_equal value, info[mappings[key]]
       end
@@ -282,6 +283,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     cgroup_info = File.read(File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt'))
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/cgroup').returns(cgroup_info)
+
     in_transaction('txn') do
       assert_nil NewRelic::Agent::SystemInfo.docker_container_id
     end

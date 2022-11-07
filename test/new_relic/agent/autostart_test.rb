@@ -64,6 +64,7 @@ class AutostartTest < Minitest::Test
 
   def test_denylisted_executable_can_be_configured
     @orig_dollar_0, $0 = $0, '/foo/bar/baz'
+
     with_config('autostart.denylisted_executables' => 'boo,baz') do
       refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by denylisted executable"
     end

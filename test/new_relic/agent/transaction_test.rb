@@ -35,6 +35,7 @@ module NewRelic::Agent
     # ActionController::AbstractRequest)
     def test_request_with_path_with_query_string
       request = stub(:path => '/path?hello=bob#none')
+
       in_transaction(:request => request) do |txn|
         assert_equal "/path", txn.request_path
       end
@@ -42,6 +43,7 @@ module NewRelic::Agent
 
     def test_request_parsing_referer
       request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar', :path => "/")
+
       in_transaction(:request => request) do |txn|
         assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
       end
@@ -57,6 +59,7 @@ module NewRelic::Agent
 
     def test_transaction_referer_nil_if_request_referer_nil
       request = stub(:path => '/path?hello=bob#none', :referer => nil)
+
       in_transaction(:request => request) do |txn|
         assert_nil txn.referer
       end

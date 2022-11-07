@@ -296,8 +296,8 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
         "request.parameters.name" => "name",
         "request.parameters.raise" => "1"
       }
-
       attributes = agent_attributes_for_single_error_posted
+
       expected.each do |key, value|
         assert_equal value, attributes[key]
       end

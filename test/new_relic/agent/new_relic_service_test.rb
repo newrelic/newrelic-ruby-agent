@@ -210,6 +210,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_cert_file_path_uses_path_from_config
     fake_cert_path = '/certpath/cert.pem'
+
     with_config(:ca_bundle_path => fake_cert_path) do
       assert_equal @service.cert_file_path, fake_cert_path
     end
