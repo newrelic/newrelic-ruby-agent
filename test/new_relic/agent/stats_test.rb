@@ -19,6 +19,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
         b.send("#{attr}=", 3)
       end
     end
+
     attrs.each do |attr|
       assert_equal(5, merged.send(attr))
     end

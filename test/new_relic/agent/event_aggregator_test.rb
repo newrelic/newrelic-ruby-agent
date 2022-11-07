@@ -74,6 +74,7 @@ module NewRelic
 
       def test_enabled_uses_multiple_keys_by_default
         @aggregator = MultiKeyTestAggregator.new(@events)
+
         with_server_source(:enabled_key2 => true) do
           assert_predicate @aggregator, :enabled?
         end

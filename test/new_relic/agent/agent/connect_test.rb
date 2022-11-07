@@ -103,6 +103,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_configure_transaction_tracer_server_disabled
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false)
+
     with_config(config) do
       refute @transaction_sampler.enabled?
     end

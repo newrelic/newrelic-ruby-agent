@@ -159,6 +159,7 @@ class ResqueTest < Minitest::Test
     transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
     span_event_posts = $collector.calls_for('span_event_data')[0].events
     events = transaction_event_posts + span_event_posts
+
     events.each do |event|
       assert_includes event[2].keys, "job.resque.args.0"
     end

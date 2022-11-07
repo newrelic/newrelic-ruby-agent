@@ -169,6 +169,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
 
       # This is what changes in 3.0!
       version_specific_expected = RUBY_VERSION >= "3.0.0" ? {foo: {}} : expected
+
       silence_expected_warnings { assert_equal version_specific_expected, instance.args_and_kwargs(:foo, {bar: "foobar"}) }
     end
   end

@@ -324,6 +324,7 @@ module NewRelic::Agent
           :'error_collector.enabled' => false,
           :'error_collector.capture_events' => false
         }
+
         with_server_source(server_source) do
           assert @error_collector.skip_notice_error?(error)
         end
@@ -331,6 +332,7 @@ module NewRelic::Agent
 
       def test_skip_notice_error_is_true_if_the_error_is_nil
         error = nil
+
         with_config(:'error_collector.enabled' => true) do
           assert @error_collector.skip_notice_error?(error)
         end
@@ -359,6 +361,7 @@ module NewRelic::Agent
 
       def test_ignore_error
         error = AnError.new
+
         with_config(:'error_collector.ignore_errors' => 'AnError') do
           assert @error_collector.ignore?(error)
         end
@@ -379,6 +382,7 @@ module NewRelic::Agent
 
       def test_ignore_status_codes
         error = AnError.new
+
         with_config(:'error_collector.ignore_status_codes' => '400-408') do
           assert @error_collector.ignore?(error, 404)
         end
