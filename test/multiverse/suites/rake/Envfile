@@ -43,7 +43,7 @@ end
 create_gemfiles(RAKE_VERSIONS, gem_list)
 
 gemfile <<-RB
-  gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
+  gem 'rack'
   gem 'rake'
   #{ruby3_gem_webrick}
   gem 'rails'

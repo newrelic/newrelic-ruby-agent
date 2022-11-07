@@ -14,10 +14,9 @@ PUMA_VERSIONS = [
 ]
 
 def gem_list(puma_version = nil)
-  rack_version = RUBY_VERSION >= '2.3.0' ? '~> 2.2.3' : '~> 2.1.4'
   <<-RB
     gem 'puma'#{puma_version}
-    gem 'rack', '#{rack_version}'
+    gem 'rack'
     gem 'rack-test'
     #{ruby3_gem_webrick}
   RB
