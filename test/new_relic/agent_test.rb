@@ -108,7 +108,7 @@ module NewRelic
       with_config(:monitor_mode => true, :license_key => "a" * 40, :sync_startup => true) do
         NewRelic::Agent.manual_start
 
-        assert NewRelic::Agent.instance.started?
+        assert_predicate NewRelic::Agent.instance, :started?
 
         NewRelic::Control.instance.stubs(:init_config)
         DependencyDetection.expects(:detect!).once
@@ -142,13 +142,13 @@ module NewRelic
     def test_is_sql_recorded_true
       NewRelic::Agent::Tracer.state.record_sql = true
 
-      assert(NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is set')
+      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
       NewRelic::Agent::Tracer.state.record_sql = nil
 
-      assert(NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is not set')
+      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
@@ -160,19 +160,19 @@ module NewRelic
     def test_is_execution_traced_true
       NewRelic::Agent::Tracer.state.untraced = [true, true]
 
-      assert(NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is set')
+      assert_predicate(NewRelic::Agent, :tl_is_execution_traced?, 'should be true since the thread local is set')
     end
 
     def test_is_execution_traced_blank
       NewRelic::Agent::Tracer.state.untraced = nil
 
-      assert(NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is not set')
+      assert_predicate(NewRelic::Agent, :tl_is_execution_traced?, 'should be true since the thread local is not set')
     end
 
     def test_is_execution_traced_empty
       NewRelic::Agent::Tracer.state.untraced = []
 
-      assert(NewRelic::Agent.tl_is_execution_traced?,
+      assert_predicate(NewRelic::Agent, :tl_is_execution_traced?,
         'should be true since the thread local is an empty array')
     end
 
@@ -451,7 +451,7 @@ module NewRelic
       begin
         raise "WTF"
       rescue => e
-        assert_nil ::NewRelic::Agent.notice_error(e) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
+        assert_nil ::NewRelic::Agent.notice_error(e)
       end
     end
 
@@ -480,7 +480,7 @@ module NewRelic
       in_transaction do |txn|
         NewRelic::Agent.ignore_transaction
 
-        assert txn.ignore?
+        assert_predicate txn, :ignore?
       end
 
       assert_empty NewRelic::Agent.instance.transaction_sampler.harvest!
@@ -491,7 +491,7 @@ module NewRelic
       in_transaction do |txn|
         NewRelic::Agent.ignore_apdex
 
-        assert txn.ignore_apdex?
+        assert_predicate txn, :ignore_apdex?
       end
     end
 
@@ -500,7 +500,7 @@ module NewRelic
       in_transaction do |txn|
         NewRelic::Agent.ignore_enduser
 
-        assert txn.ignore_enduser?
+        assert_predicate txn, :ignore_enduser?
       end
     end
 

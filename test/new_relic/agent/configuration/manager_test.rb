@@ -246,7 +246,7 @@ module NewRelic::Agent::Configuration
 
       @manager.replace_or_add_config(ServerSource.new({}))
 
-      assert @manager.finished_configuring?
+      assert_predicate @manager, :finished_configuring?
     end
 
     def test_notifies_finished_configuring

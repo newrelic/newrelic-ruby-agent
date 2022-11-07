@@ -23,7 +23,7 @@ class SequelSafetyTest < Minitest::Test
       require 'newrelic_rpm'
 
       DB.transaction do
-        assert DB.in_transaction?
+        assert_predicate DB, :in_transaction?
       end
     end
   end

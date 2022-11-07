@@ -93,7 +93,7 @@ else
     end
 
     def test_is_supported
-      assert NewRelic::Agent::Threading::BacktraceService.is_supported?
+      assert_predicate NewRelic::Agent::Threading::BacktraceService, :is_supported?
     end
 
     def test_is_not_running
@@ -103,7 +103,7 @@ else
     def test_is_running
       @profiler.start(start_command)
 
-      assert @profiler.running?
+      assert_predicate @profiler, :running?
     end
 
     def test_is_not_ready_to_harvest_if_no_profile_started
@@ -118,13 +118,13 @@ else
 
       advance_process_time(0.026)
 
-      assert @profiler.ready_to_harvest?
+      assert_predicate @profiler, :ready_to_harvest?
     end
 
     def test_can_stop_a_running_profile
       @profiler.start(start_command)
 
-      assert @profiler.running?
+      assert_predicate @profiler, :running?
 
       @profiler.stop(true)
 
@@ -136,7 +136,7 @@ else
     def test_can_stop_a_running_profile_and_discard
       @profiler.start(start_command)
 
-      assert @profiler.running?
+      assert_predicate @profiler, :running?
 
       @profiler.stop(false)
 
@@ -152,7 +152,7 @@ else
     def test_handle_start_command_starts_running
       @profiler.handle_start_command(start_command)
 
-      assert @profiler.running?
+      assert_predicate @profiler, :running?
     end
 
     def test_config_can_disable_running
@@ -168,7 +168,7 @@ else
     def test_handle_stop_command
       @profiler.start(start_command)
 
-      assert @profiler.running?
+      assert_predicate @profiler, :running?
 
       @profiler.handle_stop_command(stop_command)
 
@@ -178,7 +178,7 @@ else
     def test_handle_stop_command_and_discard
       @profiler.start(start_command)
 
-      assert @profiler.running?
+      assert_predicate @profiler, :running?
 
       @profiler.handle_stop_command(stop_and_discard_command)
 
@@ -216,7 +216,7 @@ else
       advance_process_time(1.0)
       @profiler.stop(true)
 
-      assert @profiler.ready_to_harvest?
+      assert_predicate @profiler, :ready_to_harvest?
 
       @profiler.harvest
 

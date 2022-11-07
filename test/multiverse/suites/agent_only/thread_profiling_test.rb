@@ -80,7 +80,7 @@ class ThreadProfilingTest < Minitest::Test
     issue_command(STOP_COMMAND)
 
     # No wait needed, should be immediately ready to harvest
-    assert @thread_profiler_session.ready_to_harvest?
+    assert_predicate @thread_profiler_session, :ready_to_harvest?
     harvest
 
     profile_data = $collector.calls_for('profile_data')[0]

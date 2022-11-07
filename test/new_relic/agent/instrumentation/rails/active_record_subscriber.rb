@@ -217,7 +217,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
       simulate_query(1)
 
       assert_equal 2, txn.segments.size
-      assert txn.segments.last.finished?, "Segment '#{txn.segments.last.name}'' was never finished.  "
+      assert_predicate txn.segments.last, :finished?, "Segment '#{txn.segments.last.name}'' was never finished.  "
       assert_equal \
         'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
         txn.segments.last.name

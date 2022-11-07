@@ -41,7 +41,7 @@ class GemNotifierTests < Minitest::Test
     response.expect(:ouch?, true)
     HTTParty.stub(:get, response) do
       GemNotifier.stub(:abort, nil) do
-        assert GemNotifier.verify_gem("TrexRawr!").ouch?
+        assert_predicate GemNotifier.verify_gem("TrexRawr!"), :ouch?
       end
     end
   end

@@ -110,7 +110,7 @@ module NewRelic
         valid_payloads.each do |payload_str|
           payload = TraceContextPayload.from_s(payload_str)
 
-          assert payload.valid?, "Payload should be valid: '#{payload_str}'"
+          assert_predicate payload, :valid?, "Payload should be valid: '#{payload_str}'"
         end
 
         invalid_payloads = [

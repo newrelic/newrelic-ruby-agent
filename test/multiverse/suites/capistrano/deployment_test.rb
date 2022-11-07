@@ -48,6 +48,6 @@ class DeploymentTest < Minitest::Test
       `#{cmd}`
     end
 
-    assert $?.success?, "cap command '#{cmd}' failed with output: #{output}"
+    assert_predicate $?, :success?, "cap command '#{cmd}' failed with output: #{output}"
   end
 end

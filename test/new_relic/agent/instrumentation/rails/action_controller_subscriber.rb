@@ -199,7 +199,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     txn = NewRelic::Agent::Transaction.tl_current
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    assert txn.ignore_enduser?
+    assert_predicate txn, :ignore_enduser?
   end
 
   def test_record_busy_time

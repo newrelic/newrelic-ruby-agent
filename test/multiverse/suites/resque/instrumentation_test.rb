@@ -72,7 +72,7 @@ class ResqueTest < Minitest::Test
   def test_agent_still_running_after_inline_job
     run_jobs
 
-    assert NewRelic::Agent.instance.started?
+    assert_predicate NewRelic::Agent.instance, :started?
   end
 
   def test_doesnt_capture_args_by_default

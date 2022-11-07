@@ -646,7 +646,7 @@ module NewRelic::Agent
         txn.raw_synthetics_header = ""
         txn.synthetics_payload = [1, 2, 3, 4, 5]
 
-        assert txn.is_synthetics_request?
+        assert_predicate txn, :is_synthetics_request?
       end
     end
 
@@ -1049,7 +1049,7 @@ module NewRelic::Agent
       in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore!
 
-        assert txn.ignore?
+        assert_predicate txn, :ignore?
       end
     end
 
@@ -1057,7 +1057,7 @@ module NewRelic::Agent
       in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore_apdex!
 
-        assert txn.ignore_apdex?
+        assert_predicate txn, :ignore_apdex?
       end
     end
 
@@ -1071,7 +1071,7 @@ module NewRelic::Agent
       in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore_enduser!
 
-        assert txn.ignore_enduser?
+        assert_predicate txn, :ignore_enduser?
       end
     end
 
@@ -1174,7 +1174,7 @@ module NewRelic::Agent
         req.stubs(:path).returns('ignored/path')
 
         in_transaction(request: req) do |txn|
-          assert txn.ignore?
+          assert_predicate txn, :ignore?
         end
       end
     end
@@ -1197,7 +1197,7 @@ module NewRelic::Agent
         in_transaction do |txn|
           txn.stubs(:request_path).returns(rule + '/path')
 
-          assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
+          assert_predicate txn, :user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
         end
       end
     end

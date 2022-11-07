@@ -251,7 +251,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_system_info_darwin_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
 
-    assert NewRelic::Agent::SystemInfo.darwin?, "Expected OS to match darwin"
+    assert_predicate NewRelic::Agent::SystemInfo, :darwin?, "Expected OS to match darwin"
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
 
@@ -261,7 +261,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_system_info_linux_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
 
-    assert NewRelic::Agent::SystemInfo.linux?, "Expected OS to match linux"
+    assert_predicate NewRelic::Agent::SystemInfo, :linux?, "Expected OS to match linux"
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
 
@@ -271,7 +271,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_system_info_bsd_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("freebsd")
 
-    assert NewRelic::Agent::SystemInfo.bsd?, "Expected OS to match bsd"
+    assert_predicate NewRelic::Agent::SystemInfo, :bsd?, "Expected OS to match bsd"
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
 

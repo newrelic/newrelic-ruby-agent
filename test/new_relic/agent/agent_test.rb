@@ -71,7 +71,7 @@ module NewRelic
         @agent.stubs(:connected?).returns(false)
         @agent.after_fork(:report_to_channel => 123)
 
-        assert(@agent.disconnected?)
+        assert_predicate(@agent, :disconnected?)
       end
 
       def test_after_fork_should_replace_stats_engine
@@ -105,7 +105,7 @@ module NewRelic
           refute @agent.started?
           @agent.after_fork
 
-          assert @agent.started?
+          assert_predicate @agent, :started?
         end
       end
 
@@ -325,7 +325,7 @@ module NewRelic
         @agent.stubs(:connect_retry_period).returns(0)
         @agent.send(:connect)
 
-        assert(@agent.connected?)
+        assert_predicate(@agent, :connected?)
       end
 
       def test_connect_retries_on_server_connection_exception
@@ -334,7 +334,7 @@ module NewRelic
         @agent.stubs(:connect_retry_period).returns(0)
         @agent.send(:connect)
 
-        assert(@agent.connected?)
+        assert_predicate(@agent, :connected?)
       end
 
       def test_connect_does_not_retry_if_keep_retrying_false
@@ -346,7 +346,7 @@ module NewRelic
         @agent.service.expects(:connect).raises(NewRelic::Agent::LicenseException)
         @agent.send(:connect)
 
-        assert(@agent.disconnected?)
+        assert_predicate(@agent, :disconnected?)
       end
 
       def test_connect_does_not_reconnect_by_default
@@ -535,7 +535,7 @@ module NewRelic
           @agent.start
         end
 
-        assert @agent.started?
+        assert_predicate @agent, :started?
       end
 
       def test_doesnt_defer_start_for_resque_if_non_forking_platform
@@ -547,7 +547,7 @@ module NewRelic
           @agent.start
         end
 
-        assert @agent.started?
+        assert_predicate @agent, :started?
       end
 
       def test_defer_start_if_no_application_name_configured
