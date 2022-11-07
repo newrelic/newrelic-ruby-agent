@@ -1,5 +1,18 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.13.0
+
+  Version 8.13.0 of the agent delivers a small bugfix.
+
+  * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0.0**
+
+    Unicorn, Rainbows, or FastCGI web applications using Rack v3.0.0 may previously have had the "dispatcher" value incorrectly reported as "Webrick" instead of "Unicorn", "Rainbows", or "FastCGI". This issue has now been addressed. [PR#1585](https://github.com/newrelic/newrelic-ruby-agent/pull/1585)
+
+  * **Bugfix: Category is a required keyword arg for NewRelic::Agent::Tracer.in_transaction**
+
+    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you to @tatzsuzuki for bringing this to our attention. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
+
+
   ## v8.12.0
 
   Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increases the default number of recorded Custom Events, announces the deprecation of Ruby 2.3, and brings some valuable code cleanup.

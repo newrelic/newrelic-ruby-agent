@@ -162,7 +162,7 @@ if defined?(::Rack::Test)
 
       get('/')
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     def test_with_invalid_us_ascii_encoding
@@ -172,7 +172,7 @@ if defined?(::Rack::Test)
 
       get('/')
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     def test_should_not_close_if_not_responded_to
@@ -182,14 +182,14 @@ if defined?(::Rack::Test)
 
       get('/')
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     def test_should_not_throw_exception_on_empty_response
       TestApp.doc = ''
       get('/')
 
-      assert last_response.ok?
+      assert_predicate last_response, :ok?
     end
 
     def test_content_length_set_when_we_modify_source

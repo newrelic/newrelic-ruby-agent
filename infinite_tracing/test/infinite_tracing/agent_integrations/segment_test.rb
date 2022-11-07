@@ -50,7 +50,7 @@ module NewRelic
           assert_equal sampled, custom_span_event['intrinsics']['sampled'].bool_value
           assert_equal priority, custom_span_event['intrinsics']['priority'].double_value
           assert_equal timestamp, custom_span_event['intrinsics']['timestamp'].int_value
-          assert_equal 1.0, custom_span_event['intrinsics']['duration'].double_value
+          assert_in_delta(1.0, custom_span_event['intrinsics']['duration'].double_value)
           assert_equal 'Ummm', custom_span_event['intrinsics']['name'].string_value
           assert_equal 'generic', custom_span_event['intrinsics']['category'].string_value
         end

@@ -58,7 +58,7 @@ module NewRelic
           in_transaction do |txn|
             txn.sampled = true
 
-            assert Tracer.sampled?
+            assert_predicate Tracer, :sampled?
           end
           # with sampled explicity set false, assert that it's false
           in_transaction do |txn|
@@ -90,7 +90,7 @@ module NewRelic
           end
         end
 
-        assert Tracer.tracing_enabled?
+        assert_predicate Tracer, :tracing_enabled?
       end
 
       def test_in_transaction
@@ -99,6 +99,14 @@ module NewRelic
         end
 
         assert_metrics_recorded(['test'])
+      end
+
+      def test_in_transaction_missing_category
+        assert_raises ArgumentError do
+          NewRelic::Agent::Tracer.in_transaction(name: 'test') do
+            # No-op
+          end
+        end
       end
 
       def test_in_transaction_with_early_failure

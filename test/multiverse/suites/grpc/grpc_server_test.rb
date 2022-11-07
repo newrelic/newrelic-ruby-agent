@@ -282,6 +282,7 @@ class GrpcServerTest < Minitest::Test
     desc.instance_variable_set(host_var, host)
     mock = MiniTest::Mock.new
     mock.expect(:[], unwanted_host_patterns, [:'instrumentation.grpc.host_denylist'])
+
     NewRelic::Agent.stub(:config, mock) do
       refute desc.send(:trace_with_newrelic?)
     end
@@ -294,6 +295,7 @@ class GrpcServerTest < Minitest::Test
     desc.instance_variable_set(host_var, 'wanted.host.net')
     mock = MiniTest::Mock.new
     mock.expect(:[], unwanted_host_patterns, [:'instrumentation.grpc.host_denylist'])
+
     NewRelic::Agent.stub(:config, mock) do
       assert desc.send(:trace_with_newrelic?)
     end

@@ -14,15 +14,9 @@ Metrics/AbcSize:
     - test/**/*
     - infinite_tracing/test/**/*
 
-# Offense count: 145
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/AssertInDelta:
-  Enabled: false
-
-# Offense count: 145
-# This cop supports safe autocorrection (--autocorrect).
-Minitest/AssertPredicate:
-  Enabled: false
+  Enabled: true
 
 # Offense count: 7
 Minitest/AssertRaisesCompoundBody:
@@ -50,3 +44,16 @@ Minitest/RefutePredicate:
 # This cop supports safe autocorrection (--autocorrect).
 Minitest/TestMethodName:
   Enabled: false
+
+Minitest/RefuteRespondTo:
+  Exclude:
+    - 'test/new_relic/cli/commands/deployments_test.rb'
+
+Minitest/EmptyLineBeforeAssertionMethods:
+  Exclude:
+    - 'test/new_relic/agent_test.rb'
+    - 'test/new_relic/cli/commands/deployments_test.rb'
+
+Style/RedundantStringEscape:
+  Exclude:
+    - 'test/new_relic/agent/logging_test.rb'

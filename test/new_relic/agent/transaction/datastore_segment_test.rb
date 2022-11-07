@@ -280,7 +280,7 @@ module NewRelic
           assert_equal sampled, intrinsics.fetch('sampled')
           assert_equal priority, intrinsics.fetch('priority')
           assert_equal timestamp, intrinsics.fetch('timestamp')
-          assert_equal 1.0, intrinsics.fetch('duration')
+          assert_in_delta(1.0, intrinsics.fetch('duration'))
           assert_equal datastore, intrinsics.fetch('name')
           assert_equal 'datastore', intrinsics.fetch('category')
           assert_equal 'SQLite', intrinsics.fetch('component')
@@ -561,7 +561,7 @@ module NewRelic
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
-              assert_equal(2.0, duration)
+              assert_in_delta(2.0, duration)
             end
             segment.finish
 
@@ -654,7 +654,7 @@ module NewRelic
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
-              assert_equal(2.0, duration)
+              assert_in_delta(2.0, duration)
             end
             segment.finish
 

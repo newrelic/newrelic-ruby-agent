@@ -47,7 +47,7 @@ module NewRelic::Agent
           end
 
           assert inserted
-          assert txn.distributed_tracer.trace_context_inserted?
+          assert_predicate txn.distributed_tracer, :trace_context_inserted?
 
           expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
 

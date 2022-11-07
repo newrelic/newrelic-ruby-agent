@@ -94,7 +94,7 @@ class AgentLoggerTest < Minitest::Test
     with_config(:agent_enabled => false) do
       logger = NewRelic::Agent::AgentLogger.new
 
-      assert logger.is_startup_logger?
+      assert_predicate logger, :is_startup_logger?
     end
   end
 

@@ -73,7 +73,7 @@ class MongoServerTest < Test::Unit::TestCase
   def test_server_is_running_after_start
     @server.start
 
-    assert @server.running?
+    assert_predicate @server, :running?
   end
 
   def test_stop_kills_a_mongod_process
@@ -105,7 +105,7 @@ class MongoServerTest < Test::Unit::TestCase
     ok_status = {"ok" => 1.0}
     @server.stubs(:ping).returns(ok_status)
 
-    assert @server.pingable?
+    assert_predicate @server, :pingable?
   end
 
   def test_server_start_times_out_if_it_isnt_pingable

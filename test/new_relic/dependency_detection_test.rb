@@ -144,7 +144,7 @@ class DependencyDetectionTest < Minitest::Test
       executed = false
       DependencyDetection.detect!
 
-      assert dd.disabled_configured?
+      assert_predicate dd, :disabled_configured?
       refute dd.deprecated_disabled_configured?
       refute dd.allowed_by_config?
       refute executed
@@ -156,7 +156,7 @@ class DependencyDetectionTest < Minitest::Test
 
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
-      assert dd.allowed_by_config?
+      assert_predicate dd, :allowed_by_config?
       assert executed
     end
 
@@ -166,7 +166,7 @@ class DependencyDetectionTest < Minitest::Test
       DependencyDetection.detect!
 
       refute dd.disabled_configured?
-      assert dd.deprecated_disabled_configured?
+      assert_predicate dd, :deprecated_disabled_configured?
       refute dd.allowed_by_config?
       refute executed
     end
@@ -187,7 +187,7 @@ class DependencyDetectionTest < Minitest::Test
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       assert executed
-      assert dd.use_prepend?
+      assert_predicate dd, :use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "auto") do
@@ -195,7 +195,7 @@ class DependencyDetectionTest < Minitest::Test
 
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
-      assert dd.use_prepend?
+      assert_predicate dd, :use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "prepend") do
@@ -203,7 +203,7 @@ class DependencyDetectionTest < Minitest::Test
 
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
-      assert dd.use_prepend?
+      assert_predicate dd, :use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "chain") do
@@ -225,14 +225,14 @@ class DependencyDetectionTest < Minitest::Test
       DependencyDetection.detect!
 
       assert_equal :auto, dd.config_value
-      assert dd.use_prepend?
+      assert_predicate dd, :use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "prepend") do
       DependencyDetection.detect!
 
       assert_equal :prepend, dd.config_value
-      assert dd.use_prepend?
+      assert_predicate dd, :use_prepend?
     end
 
     with_config(:'instrumentation.testing' => "disabled") do
@@ -296,7 +296,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.detect!
 
     refute conflicted, "should be falsey!"
-    assert dd.use_prepend?, "should use prepend when no conflicts exist"
+    assert_predicate dd, :use_prepend?, "should use prepend when no conflicts exist"
   end
 
   def test_conflicts_defined_truthy

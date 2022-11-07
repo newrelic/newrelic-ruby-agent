@@ -31,7 +31,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
 
-        assert @service.running?
+        assert_predicate @service, :running?
       end
 
       def test_doesnt_start_on_resque
@@ -49,7 +49,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
 
-        assert @service.running?
+        assert_predicate @service, :running?
 
         @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
 
@@ -62,11 +62,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.subscribe('foo')
         @service.subscribe('bar')
 
-        assert @service.running?
+        assert_predicate @service, :running?
 
         @service.unsubscribe('bar')
 
-        assert @service.running?
+        assert_predicate @service, :running?
 
         @service.unsubscribe('foo')
 

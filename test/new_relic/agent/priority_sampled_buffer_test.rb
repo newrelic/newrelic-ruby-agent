@@ -101,7 +101,7 @@ module NewRelic::Agent
       4.times do |i|
         buffer.append(event: create_event(priority: i))
 
-        assert(buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
+        assert_predicate(buffer, :full?, "#PrioritySampledBuffer#append should return true once buffer is full")
       end
     end
 
@@ -190,11 +190,11 @@ module NewRelic::Agent
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      assert_equal(1.0, buffer.sample_rate)
+      assert_in_delta(1.0, buffer.sample_rate)
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      assert_equal(0.5, buffer.sample_rate)
+      assert_in_delta(0.5, buffer.sample_rate)
     end
 
     def test_metadata
@@ -236,12 +236,12 @@ module NewRelic::Agent
       10.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
 
-      assert_equal(1.0, buffer.sample_rate_lifetime)
+      assert_in_delta(1.0, buffer.sample_rate_lifetime)
 
       30.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
 
-      assert_equal(0.5, buffer.sample_rate_lifetime)
+      assert_in_delta(0.5, buffer.sample_rate_lifetime)
     end
 
     # Our event types all are arrays of three hashes. This method creates

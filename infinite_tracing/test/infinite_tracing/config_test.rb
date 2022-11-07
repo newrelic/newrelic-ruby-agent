@@ -70,6 +70,7 @@ module NewRelic
               :'infinite_tracing.trace_observer.host' => hostname,
               :'infinite_tracing.trace_observer.port' => 443
             }
+
             with_config(config) do
               assert_equal port, Config.trace_observer_port, "expected #{port} for port because host overrides: #{hostname}"
             end
@@ -89,6 +90,7 @@ module NewRelic
             config = {
               :'infinite_tracing.trace_observer.host' => hostname
             }
+
             with_config(config) do
               assert_equal host_and_port,
                 Config.trace_observer_host_and_port,

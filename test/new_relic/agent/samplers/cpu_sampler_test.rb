@@ -39,7 +39,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
   #
 
   def assert_supported_on_platform
-    assert NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, "should be supported on this platform"
+    assert_predicate NewRelic::Agent::Samplers::CpuSampler, :supported_on_this_platform?, "should be supported on this platform"
   end
 
   def refute_supported_on_platform

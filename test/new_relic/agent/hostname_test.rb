@@ -91,6 +91,7 @@ module NewRelic
       def test_local_predicate_true_when_host_local
         hosts = %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1
           0:0:0:0:0:0:0:0 ::1 ::]
+
         hosts.each do |host|
           assert NewRelic::Agent::Hostname.local?(host)
         end
@@ -98,6 +99,7 @@ module NewRelic
 
       def test_localhost_predicate_false_when_host_nonlocal
         hosts = %w[drscheffler jonan-show jonan.tm]
+
         hosts.each do |host|
           refute NewRelic::Agent::Hostname.local?(host)
         end

@@ -85,7 +85,7 @@ module NewRelic
         assert_equal "RuntimeError", intrinsics['error.class']
         assert_equal "Big Controller!", intrinsics['error.message']
         assert_equal "Controller/blogs/index", intrinsics['transactionName']
-        assert_equal 0.1, intrinsics['duration']
+        assert_in_delta(0.1, intrinsics['duration'])
         assert_equal 80, intrinsics['port']
       end
 

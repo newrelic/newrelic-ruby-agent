@@ -181,7 +181,7 @@ module NewRelic
             refute txn.sampled?
             txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
 
-            assert txn.sampled?
+            assert_predicate txn, :sampled?
           end
         end
 
@@ -191,7 +191,7 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           in_transaction("test_txn") do |txn|
-            assert txn.sampled?
+            assert_predicate txn, :sampled?
             txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
 
             refute txn.sampled?
@@ -389,7 +389,7 @@ module NewRelic
 
           intrinsics, _, _ = last_transaction_event
 
-          assert transaction.sampled?
+          assert_predicate transaction, :sampled?
           assert intrinsics["sampled"]
         end
 
@@ -403,7 +403,7 @@ module NewRelic
           txn_intrinsics, _, _ = last_transaction_event
           err_intrinsics, _, _ = last_error_event
 
-          assert transaction.sampled?
+          assert_predicate transaction, :sampled?
           assert txn_intrinsics["sampled"]
           assert err_intrinsics["sampled"]
         end
@@ -568,7 +568,7 @@ module NewRelic
           in_transaction('test_txn') do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload(payload.text)
 
-            assert txn.sampled?
+            assert_predicate txn, :sampled?
             assert_equal payload.priority, txn.priority
           end
         end
