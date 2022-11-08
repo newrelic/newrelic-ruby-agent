@@ -25,8 +25,7 @@ def gem_list(puma_version = nil)
   RB
 end
 
-# TODO: Puma not working on 3.2.0-preview2
-create_gemfiles(PUMA_VERSIONS, gem_list) if RUBY_VERSION < '3.2.0'
+create_gemfiles(PUMA_VERSIONS, gem_list)
 
 if RUBY_VERSION >= '2.3.0'
   gemfile <<-RB
