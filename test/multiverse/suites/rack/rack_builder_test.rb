@@ -112,6 +112,21 @@ class RackBuilderTest < Minitest::Test
     end
   end
 
+  # Rack::Builder#run supports blocks as of v3.0.0
+  def test_run_with_tracing_with_the_original_run_method_is_given_a_block
+    skip 'Requires Rack v3+' unless defined?(Rack::RELEASE) && Rack::RELEASE >= '3.0.0'
+
+    builder = Rack::Builder.new
+    payload = [200, {}, ['Hello, Mr. Toad!']]
+    ::NewRelic::Agent::Instrumentation::RackHelpers.stub :middleware_instrumentation_enabled?, true do
+      builder.run { |_env| payload }
+    end
+    run = builder.instance_variable_get(:@run)
+
+    assert_kind_of NewRelic::Agent::Instrumentation::MiddlewareProxy, run
+    assert_equal payload, run.call({})
+  end
+
   def test_use_with_tracing
     skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
 
