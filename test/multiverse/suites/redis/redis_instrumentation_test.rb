@@ -54,6 +54,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_connect_tt_node_within_call_that_triggered_it
+      skip ('Transaction node nesting changes in Redis 5') if ::NewRelic::Agent::Instrumentation::Redis::USE_MIDDLEWARE
+
       in_transaction do
         redis = Redis.new
         redis.get("foo")

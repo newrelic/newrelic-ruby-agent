@@ -10,6 +10,7 @@ module NewRelic::Agent::Instrumentation
     LOCALHOST = 'localhost'
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
+    USE_MIDDLEWARE = Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0') && defined?(::RedisClient)
 
     # Used for Redis 4.x and 3.x
     def connect_with_tracing
@@ -86,11 +87,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def _nr_redis_client
-      @_nr_redis_client ||= redis_5_or_above? ? client : self
-    end
-
-    def redis_5_or_above?
-      Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0')
+      @_nr_redis_client ||= USE_MIDDLEWARE ? client : self
     end
   end
 end
