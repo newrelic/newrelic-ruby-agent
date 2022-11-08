@@ -13,8 +13,6 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def after_setup
       super
       # Default timeout is 5 secs; a flushall takes longer on a busy box (i.e. CI)
-      # @redis ||= Redis.new(:host => redis_host, :timeout => 25)
-      # When running locally, not defining the host allows things to connect on v5
       @redis ||= Redis.new(timeout: 25)
 
       # Creating a new client doesn't actually establish a connection, so make
