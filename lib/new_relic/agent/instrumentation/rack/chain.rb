@@ -21,8 +21,16 @@ module NewRelic::Agent::Instrumentation
           if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
             ::NewRelic::Agent.logger.info("Installing #{builder_class} middleware instrumentation")
 
-            def run_with_newrelic(app, *args)
-              run_with_tracing(app) { |wrapped_app| run_without_newrelic(wrapped_app, *args) }
+            def run_with_newrelic(app = nil, *args, &block)
+              app_or_block = app || block
+              run_with_tracing(app_or_block) do |wrapped|
+                # Rack::Builder#run for Rack v3+ supports a block, and does not
+                # support args. Whether a block or an app is provided, that
+                # callable object will be wrapped into a MiddlewareProxy
+                # instance. That proxy instance must then be passed to
+                # run_without_newrelic as the app argument.
+                block ? run_without_newrelic(wrapped, &nil) : run_without_newrelic(wrapped, *args)
+              end
             end
 
             alias_method(:run_without_newrelic, :run)
