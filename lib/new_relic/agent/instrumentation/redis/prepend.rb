@@ -7,7 +7,6 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::Redis
 
-
       def call(*args, &block)
         call_with_tracing(args[0]) { super }
       end
