@@ -6,8 +6,8 @@ module NewRelic::Agent::Instrumentation
   module Redis
     PRODUCT_NAME = 'Redis'
     CONNECT = 'connect'
-    UNKNOWN = "unknown"
-    LOCALHOST = "localhost"
+    UNKNOWN = 'unknown'
+    LOCALHOST = 'localhost'
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
 
@@ -16,6 +16,7 @@ module NewRelic::Agent::Instrumentation
       with_tracing(CONNECT, database: db) { yield }
     end
 
+    # Used for Redis 4.x and 3.x
     def call_with_tracing(command, &block)
       operation = command[0]
       statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
@@ -23,6 +24,7 @@ module NewRelic::Agent::Instrumentation
       with_tracing(operation, statement: statement, database: db) { yield }
     end
 
+    # Used for Redis 4.x and 3.x
     def call_pipeline_with_tracing(pipeline)
       operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? MULTI_OPERATION : PIPELINE_OPERATION
       statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
@@ -38,11 +40,12 @@ module NewRelic::Agent::Instrumentation
       with_tracing(operation, statement: statement, database: database) { yield }
     end
 
-    def connect_middleware_with_tracing(config)
-      database = config.db
-      with_tracing(CONNECT, database: database) { yield }
+    # Used for Redis 5.x
+    def connect_middleware_with_tracing(_config)
+      with_tracing(CONNECT, database: client.db) { yield }
     end
 
+    # Used for Redis 5.x
     def call_middleware_with_tracing(command, &block)
       operation = command[0]
       statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
