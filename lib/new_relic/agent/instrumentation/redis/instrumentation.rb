@@ -72,25 +72,21 @@ module NewRelic::Agent::Instrumentation
     end
 
     def _nr_hostname
-      if redis_5_or_above?
-        client.path ? LOCALHOST : client.host
-      else
-        self.path ? LOCALHOST : self.host
-      end
+      _nr_redis_client.path ? LOCALHOST : _nr_redis_client.host
     rescue => e
       NewRelic::Agent.logger.debug("Failed to retrieve Redis host: #{e}")
       UNKNOWN
     end
 
     def _nr_port_path_or_id
-      if redis_5_or_above?
-        client.path || client.port
-      else
-        self.path || self.port
-      end
+      _nr_redis_client.path || _nr_redis_client.port
     rescue => e
       NewRelic::Agent.logger.debug("Failed to retrieve Redis port_path_or_id: #{e}")
       UNKNOWN
+    end
+
+    def _nr_redis_client
+      @_nr_redis_client ||= redis_5_or_above? ? client : self
     end
 
     def redis_5_or_above?
