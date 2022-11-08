@@ -62,24 +62,14 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       tt = last_transaction_trace
-      # TODO: Does this difference matter? Do we need to take action so that the nesting remains the same?
-      if Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0')
-        get_node = tt.root_node.children[0].children[1]
 
-        assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
+      get_node = tt.root_node.children[0].children[0]
 
-        connect_node = tt.root_node.children[0].children[0]
+      assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
 
-        assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
-      else
-        get_node = tt.root_node.children[0].children[0]
+      connect_node = get_node.children[0]
 
-        assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
-
-        connect_node = get_node.children[0]
-
-        assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
-      end
+      assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
     end
 
     def test_records_metrics_for_set
