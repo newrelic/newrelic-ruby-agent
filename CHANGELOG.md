@@ -2,7 +2,11 @@
 
   ## v8.13.0
 
-  Version 8.13.0 of the agent delivers a small bugfix.
+  Version 8.13.0 of the agent updates our Rack instrumentation and delivers some bugfixes.
+
+  * **Support for Rack v3+ Rack::Builder#new accepting a block**
+
+    Via [rack/rack#1942](https://github.com/rack/rack/pull/1942) (released with Rack version 3), `Rack::Builder#run` now optionally accepts a block instead of an app argument. The agent's instrumentation has been updated to support the use of a block with `Rack::Builder#run`. [PR#1600](https://github.com/newrelic/newrelic-ruby-agent/pull/1600)
 
   * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0.0**
 
