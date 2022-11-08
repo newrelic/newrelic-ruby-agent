@@ -8,6 +8,8 @@ module ::The
   class Example
     def self.class_method; end
     def instance_method; end
+    private # rubocop:disable Layout/EmptyLinesAroundAccessModifier
+    def private_method; end
   end
 end
 
@@ -78,6 +80,18 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       assert_equal({filepath: __FILE__,
         lineno: The::Example.instance_method(:instance_method).source_location.last,
         function: 'instance_method',
+        namespace: 'The::Example'},
+        info)
+    end
+  end
+
+  def test_provides_accurate_info_for_an_instance_method
+    with_config(:'code_level_metrics.enabled' => true) do
+      info = NewRelic::Agent::MethodTracerHelpers.code_information(::The::Example, :private_method)
+
+      assert_equal({filepath: __FILE__,
+        lineno: The::Example.instance_method(:private_method).source_location.last,
+        function: 'private_method',
         namespace: 'The::Example'},
         info)
     end

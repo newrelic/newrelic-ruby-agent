@@ -106,7 +106,7 @@ module NewRelic
         klass = object.singleton_class? ? klassify_singleton(object) : object
         name = klass.name || '(Anonymous)'
         is_class_method = false
-        method = if klass.instance_methods.include?(method_name)
+        method = if (klass.instance_methods + klass.private_instance_methods).include?(method_name)
           klass.instance_method(method_name)
         else
           is_class_method = true

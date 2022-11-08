@@ -23,8 +23,15 @@ module NewRelic::Agent::Instrumentation
         with_deferred_dependency_detection { super }
       end
 
-      def run(app, *args)
-        run_with_tracing(app) { |wrapped_app| super(wrapped_app, *args) }
+      def run(app = nil, *args, &block)
+        app_or_block = app || block
+        run_with_tracing(app_or_block) do |wrapped|
+          # Rack::Builder#run for Rack v3+ supports a block, and does not
+          # support args. Whether a block or an app is provided, that callable
+          # object will be wrapped into a MiddlewareProxy instance. That
+          # proxy instance must then be passed to super as the app argument.
+          block ? super(wrapped, &nil) : super(wrapped, *args)
+        end
       end
 
       def use(middleware_class, *args, &blk)
