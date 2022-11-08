@@ -14,7 +14,9 @@ PUMA_VERSIONS = [
 ]
 
 def gem_list(puma_version = nil)
-  rack_version = ' ~> 2.1.4' unless RUBY_VERSION >= '2.3.0'
+  # try to test with the latest Rack version by not specifying a version
+  # constraint at all, but provide one for older Rubies not supporting Rack v3+
+  rack_version = ", '~> 2.1.4'" if RUBY_VERSION < '2.3.0'
   <<-RB
     gem 'puma'#{puma_version}
     gem 'rack'#{rack_version}
