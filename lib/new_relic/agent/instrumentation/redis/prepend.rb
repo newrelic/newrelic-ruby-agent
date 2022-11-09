@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
 
       # Defined in version 5.x
       def call_v(*args, &block)
-        call_with_tracing(args[0]) { super }
+        call_v_with_tracing(args[0]) { super }
       end
 
       # Defined in version 4.x, 3.x
@@ -19,6 +19,11 @@ module NewRelic::Agent::Instrumentation
 
       def call_pipeline(*args, &block)
         call_pipeline_with_tracing(args[0]) { super }
+      end
+
+      # Defined in version 5.x
+      def call_pipelined(*args, &block)
+        call_pipelined_with_tracing(args[0]) { super }
       end
 
       def connect(*args, &block)
