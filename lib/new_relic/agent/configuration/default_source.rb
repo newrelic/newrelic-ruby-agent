@@ -964,7 +964,10 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => <<-DESCRIPTION
+          Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled].
+          When version 5.0+ of the Redis gem is installed in your application, auto, prepend and chain have the same behavior.
+          DESCRIPTION
         },
         :'instrumentation.rake' => {
           :default => instrumentation_value_of(:disable_rake),
