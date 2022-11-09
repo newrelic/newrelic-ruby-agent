@@ -394,6 +394,7 @@ common: &default_settings
 
   # Controls auto-instrumentation of Redis at start up.
   # May be one of [auto|prepend|chain|disabled].
+  # Prepend and chain behave the same way when Redis gem 5.x is installed
   # instrumentation.redis: auto
 
   # Controls auto-instrumentation of resque at start up.
