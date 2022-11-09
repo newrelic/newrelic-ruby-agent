@@ -3,20 +3,7 @@ on:
   pull_request:
 
 jobs:
-  run_rubocop:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.1'
-      - run: bundle
-      - run: rubocop
-
   unit_tests:
-    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       mysql:
@@ -92,7 +79,6 @@ jobs:
           path: lib/coverage_*/.resultset.json
 
   multiverse:
-    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:
