@@ -30,10 +30,13 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.info('Installing Redis Instrumentation')
-    if NewRelic::Agent::Instrumentation::Redis::USE_MIDDLEWARE
+    if NewRelic::Agent::Instrumentation::Redis::REDIS_5
       ::RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
-    elsif use_prepend?
-      prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
+    end
+
+    if use_prepend?
+      prepend_class = NewRelic::Agent::Instrumentation::Redis::REDIS_5 ? ::RedisClient : ::Redis::Client
+      prepend_instrument prepend_class, NewRelic::Agent::Instrumentation::Redis::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
     end

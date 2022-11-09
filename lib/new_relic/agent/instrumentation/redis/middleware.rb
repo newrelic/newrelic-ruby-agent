@@ -8,14 +8,6 @@ module NewRelic::Agent::Instrumentation
       # This module is used to instrument Redis 5.x+
       include NewRelic::Agent::Instrumentation::Redis
 
-      def connect(*args, &block)
-        connect_middleware_with_tracing(args[0]) { super }
-      end
-
-      def call(*args, &block)
-        call_middleware_with_tracing(args[0]) { super }
-      end
-
       def call_pipelined(*args, &block)
         call_pipelined_with_tracing(args[0]) { super }
       end
