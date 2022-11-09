@@ -25,7 +25,7 @@ module NewRelic::Agent::Instrumentation
         pipelined_with_tracing { super }
       end
 
-      def multi
+      def multi(*args, &block)
         multi_with_tracing { super }
       end
 
