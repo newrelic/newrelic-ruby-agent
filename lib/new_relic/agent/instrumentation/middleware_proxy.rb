@@ -28,13 +28,12 @@ module NewRelic
           end
 
           def new(*args, &blk)
-            if i = args.find_index { |a| a.is_a?(Hash) && a.key?(:tag) }
-              tag = args.delete_at(i)[:tag]
-              middleware_instance = @middleware_class.new(args, tag: tag, &blk)
-            else
-              middleware_instance = @middleware_class.new(*args, &blk)
+            # DEBUG
+            if @middleware_class.to_s =~ /Three/
+              puts "\n\n\n\n\n\n\n\n\n@middleware_class = >>#{@middleware_class}<<, args = >>#{args}<<\n\n\n\n\n\n\n\n\n\n"
             end
 
+            middleware_instance = @middleware_class.new(*args, &blk)
             MiddlewareProxy.wrap(middleware_instance)
           end
 

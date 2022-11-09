@@ -80,7 +80,8 @@ class MiddlewareTwo
 end
 
 class MiddlewareThree
-  def initialize(app, tag:)
+  def initialize(app, *args, tag: nil)
+    puts "\n\n\n\n\n\n\n\n\nGOT: app = >>#{app}<<, args = >>#{args}<<, tag = >>#{tag}<<\n\n\n\n\n\n\n\n\n"
     @app = app
     @tag = tag
   end
