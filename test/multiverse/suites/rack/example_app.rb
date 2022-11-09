@@ -82,7 +82,9 @@ end
 class MiddlewareThree
   def initialize(app, *args, tag: nil)
     # for Ruby 3.2+, the tag key/val pair might end up as a hash within args
-    tag ||= args[idx][:tag] if idx = (args || []).find_index { |a| a.is_a?(Hash) && a.key?(:tag) }
+    if idx = (args || []).find_index { |a| a.is_a?(Hash) && a.key?(:tag) }
+      tag ||= args[idx][:tag] 
+    end
     @app = app
     @tag = tag
   end
