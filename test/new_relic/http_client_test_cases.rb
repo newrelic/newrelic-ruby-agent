@@ -661,7 +661,7 @@ module HttpClientTestCases
 
   def make_app_data_payload(*args)
     obfuscator = NewRelic::Agent::Obfuscator.new('gringletoes')
-    return obfuscator.obfuscate(args.to_json) + "\n"
+    return obfuscator.obfuscate(args.to_json)
   end
 
   def decode_payload(payload)

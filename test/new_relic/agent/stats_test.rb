@@ -19,6 +19,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
         b.send("#{attr}=", 3)
       end
     end
+
     attrs.each do |attr|
       assert_equal(5, merged.send(attr))
     end
@@ -43,8 +44,8 @@ class NewRelic::Agent::StatsTest < Minitest::Test
       b.max_call_time = 4.0
     end
 
-    assert_equal(0.5, merged.min_call_time)
-    assert_equal(4.0, merged.max_call_time)
+    assert_in_delta(0.5, merged.min_call_time)
+    assert_in_delta(4.0, merged.max_call_time)
   end
 
   def test_simple
@@ -143,7 +144,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
       assert false
     rescue StandardError
-      assert s1.frozen?
+      assert_predicate s1, :frozen?
       validate(stats: s1, count: 1, total: 10, min: 10, max: 10)
     end
   end
@@ -168,7 +169,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s1.trace_call(3.to_r)
     s1.trace_call(7.to_r)
 
-    assert_equal 3.0, JSON.load(s1.to_json)['min_call_time']
+    assert_in_delta(3.0, JSON.load(s1.to_json)['min_call_time'])
   end
 
   private

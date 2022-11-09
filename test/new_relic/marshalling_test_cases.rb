@@ -73,7 +73,7 @@ module MarshallingTestCases
     assert_equal "Transaction", event[0]["type"]
     assert_equal t0, event[0]["timestamp"]
     assert_equal "TestTransaction/do_it", event[0]["name"]
-    assert_equal 0.0, event[0]["duration"]
+    assert_in_delta(0.0, event[0]["duration"])
     refute event[0]["error"]
     assert_equal "Unknown", event[0]["parent.transportType"]
     refute_nil event[0]['guid']
@@ -147,7 +147,7 @@ module MarshallingTestCases
     refute event[0]["error.expected"]
     assert_equal t0.to_f, event[0]["timestamp"]
     assert_equal "TestTransaction/break_it", event[0]["transactionName"]
-    assert_equal 0.0, event[0]["duration"]
+    assert_in_delta(0.0, event[0]["duration"])
     assert_equal "Unknown", event[0]["parent.transportType"]
     refute_nil event[0]["spanId"]
     refute_nil event[0]['guid']

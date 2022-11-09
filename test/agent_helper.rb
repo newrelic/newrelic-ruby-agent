@@ -141,6 +141,7 @@ def assert_audit_log_contains_object(audit_log_contents, o, format = :json)
       assert_audit_log_contains_object(audit_log_contents, k, format)
     end
   when Array
+
     o.each do |el|
       assert_audit_log_contains_object(audit_log_contents, el, format)
     end

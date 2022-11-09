@@ -91,7 +91,7 @@ module NewRelic
 
             assert_equal 2, txn.segments.size
             assert_equal 'Ruby/ActiveStorage/DiskService/exist', txn.segments.last.name
-            assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
+            assert_predicate txn.segments.last, :finished?, "Segment #{txn.segments.last.name} was never finished.  "
           end
         end
 

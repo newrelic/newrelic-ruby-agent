@@ -42,7 +42,7 @@ if defined?(ActionController::Live)
     end
 
     def test_excludes_rum_instrumentation_when_streaming_with_action_stream_true
-      get('/undead/brain_stream')
+      get('/undead/brain_stream', env: {'HTTP_VERSION' => 'HTTP/1.1'})
 
       assert_includes(response.body, UndeadController::RESPONSE_BODY)
       assert_not_includes(response.body, JS_LOADER)

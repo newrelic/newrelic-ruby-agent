@@ -110,6 +110,7 @@ module NewRelic::Agent
     def test_pcf_information_is_omitted_when_available_but_disabled_by_config
       with_config(:'utilization.detect_pcf' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
+
         with_pcf_env("CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
           "CF_INSTANCE_IP"   => "101.1.149.48",
           "MEMORY_LIMIT"     => "2048m") do

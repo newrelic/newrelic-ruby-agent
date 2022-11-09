@@ -31,6 +31,7 @@ class GemNotifierTests < Minitest::Test
 
   def test_valid_gem_name
     response = successful_http_response
+
     HTTParty.stub(:get, response) do
       assert GemNotifier.verify_gem("puma!")
     end
@@ -39,9 +40,10 @@ class GemNotifierTests < Minitest::Test
   def test_invalid_gem_name
     response = unsuccessful_http_response
     response.expect(:ouch?, true)
+
     HTTParty.stub(:get, response) do
       GemNotifier.stub(:abort, nil) do
-        assert GemNotifier.verify_gem("TrexRawr!").ouch?
+        assert_predicate GemNotifier.verify_gem("TrexRawr!"), :ouch?
       end
     end
   end

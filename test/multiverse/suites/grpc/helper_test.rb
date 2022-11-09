@@ -42,6 +42,7 @@ class GrpcHelperTest < Minitest::Test
   def test_confirms_that_host_is_not_on_the_config_defined_denylist
     mock = MiniTest::Mock.new
     mock.expect(:[], unwanted_host_patterns, [:'instrumentation.grpc.host_denylist'])
+
     NewRelic::Agent.stub(:config, mock) do
       refute helped_class.host_denylisted?('wanted_host')
     end
@@ -50,6 +51,7 @@ class GrpcHelperTest < Minitest::Test
   def test_confirms_that_host_is_denylisted_from_config
     mock = MiniTest::Mock.new
     mock.expect(:[], unwanted_host_patterns, [:'instrumentation.grpc.host_denylist'])
+
     NewRelic::Agent.stub(:config, mock) do
       assert helped_class.host_denylisted?('unwanted_host')
     end

@@ -40,7 +40,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   def test_should_connect_if_pending
     @connect_state = :pending
 
-    assert(should_connect?, "should attempt to connect if pending")
+    assert_predicate(self, :should_connect?, "should attempt to connect if pending")
   end
 
   def test_should_not_connect_if_disconnected
@@ -91,7 +91,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_configure_transaction_tracer_positive
     with_config(:'transaction_tracer.enabled' => true) do
-      assert @transaction_sampler.enabled?
+      assert_predicate @transaction_sampler, :enabled?
     end
   end
 
@@ -103,6 +103,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_configure_transaction_tracer_server_disabled
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false)
+
     with_config(config) do
       refute @transaction_sampler.enabled?
     end

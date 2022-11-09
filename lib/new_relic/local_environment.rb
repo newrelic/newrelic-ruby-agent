@@ -71,10 +71,10 @@ module NewRelic
         thin
         mongrel
         litespeed
+        unicorn
         webrick
         fastcgi
         rainbows
-        unicorn
       ]
       # TODO: MAJOR VERSION - remove rainbows
       while dispatchers.any? && @discovered_dispatcher.nil?

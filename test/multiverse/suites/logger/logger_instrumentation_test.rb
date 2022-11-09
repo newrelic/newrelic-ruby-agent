@@ -172,7 +172,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def test_enabled_returns_true_when_enabled
     with_config(:'instrumentation.logger' => 'auto') do
-      assert NewRelic::Agent::Instrumentation::Logger.enabled?
+      assert_predicate NewRelic::Agent::Instrumentation::Logger, :enabled?
     end
   end
 

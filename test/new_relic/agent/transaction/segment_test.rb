@@ -270,7 +270,7 @@ module NewRelic
           assert_equal sampled, custom_span_event.fetch('sampled')
           assert_equal priority, custom_span_event.fetch('priority')
           assert_equal timestamp, custom_span_event.fetch('timestamp')
-          assert_equal 1.0, custom_span_event.fetch('duration')
+          assert_in_delta(1.0, custom_span_event.fetch('duration'))
           assert_equal 'Ummm', custom_span_event.fetch('name')
           assert_equal 'generic', custom_span_event.fetch('category')
         end

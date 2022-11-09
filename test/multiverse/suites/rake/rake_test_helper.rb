@@ -23,7 +23,7 @@ module RakeTestHelper
     @output = `#{full_command}`
 
     if !allow_failure
-      assert $?.success?, "Failed during '#{full_command}'"
+      assert_predicate $?, :success?, "Failed during '#{full_command}'"
     end
   end
 

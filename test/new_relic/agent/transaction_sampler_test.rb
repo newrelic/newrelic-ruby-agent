@@ -79,7 +79,7 @@ module NewRelic::Agent
         advance_process_time(10.0)
       end
 
-      assert_equal(10.0, @sampler.last_sample.duration)
+      assert_in_delta(10.0, @sampler.last_sample.duration)
     end
 
     def test_on_finishing_transaction_passes_guid_along
@@ -314,7 +314,7 @@ module NewRelic::Agent
         end
       end
 
-      assert_equal 10.0, intrinsic_attributes_from_last_sample[:gc_time]
+      assert_in_delta(10.0, intrinsic_attributes_from_last_sample[:gc_time])
     end
 
     def test_custom_params_include_tripid

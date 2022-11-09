@@ -176,14 +176,14 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', fake_entry_timestamp)
     s.end_trace(fake_exit_timestamp)
 
-    assert_equal(0.5, s.duration)
+    assert_in_delta(0.5, s.duration)
   end
 
   def test_exclusive_duration_no_children
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
     s.expects(:duration).returns(0.5)
 
-    assert_equal(0.5, s.exclusive_duration)
+    assert_in_delta(0.5, s.exclusive_duration)
   end
 
   def test_exclusive_duration_with_children
@@ -196,7 +196,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
     s.children << fake_node
 
-    assert_equal(0.4, s.exclusive_duration)
+    assert_in_delta(0.4, s.exclusive_duration)
   end
 
   def test_count_nodes_default

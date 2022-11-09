@@ -1,5 +1,31 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.13.0
+
+  Version 8.13.0 of the agent updates our Rack instrumentation and delivers some bugfixes.
+
+  * **Support for Rack v3+ Rack::Builder#new accepting a block**
+
+    Via [rack/rack#1942](https://github.com/rack/rack/pull/1942) (released with Rack version 3), `Rack::Builder#run` now optionally accepts a block instead of an app argument. The agent's instrumentation has been updated to support the use of a block with `Rack::Builder#run`. [PR#1600](https://github.com/newrelic/newrelic-ruby-agent/pull/1600)
+
+  * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0.0**
+
+    Unicorn, Rainbows, or FastCGI web applications using Rack v3.0.0 may previously have had the "dispatcher" value incorrectly reported as "Webrick" instead of "Unicorn", "Rainbows", or "FastCGI". This issue has now been addressed. [PR#1585](https://github.com/newrelic/newrelic-ruby-agent/pull/1585)
+
+  * **Bugfix: add_method_tracer fails to record code level metric attributes on private methods**
+
+    When using add_method_tracer on a private method, the agent was unable to record code level metrics for the method. This resulted in the following being logged to the newrelic_agent.log file.
+    ```
+    WARN : Unable to determine source code info for 'Example', method 'private_method' - NameError: undefined method 'private_method' for class '#<Class:Example>'
+    ```
+    Thanks to @jdelStrother for bringing this issue to our attention and suggesting a fix! [PR#1593](https://github.com/newrelic/newrelic-ruby-agent/pull/1593)
+
+
+  * **Bugfix: Category is a required keyword arg for NewRelic::Agent::Tracer.in_transaction**
+
+    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you to @tatzsuzuki for bringing this to our attention. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
+
+
   ## v8.12.0
 
   Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increases the default number of recorded Custom Events, announces the deprecation of Ruby 2.3, and brings some valuable code cleanup.

@@ -58,7 +58,7 @@ module NewRelic
           assert_equal sampled, external_intrinsics['sampled'].bool_value
           assert_equal priority, external_intrinsics['priority'].double_value
           assert_equal timestamp, external_intrinsics['timestamp'].int_value
-          assert_equal 1.0, external_intrinsics['duration'].double_value
+          assert_in_delta(1.0, external_intrinsics['duration'].double_value)
           assert_equal expected_name, external_intrinsics['name'].string_value
           assert_equal segment.library, external_intrinsics['component'].string_value
           assert_equal segment.procedure, external_intrinsics['http.method'].string_value

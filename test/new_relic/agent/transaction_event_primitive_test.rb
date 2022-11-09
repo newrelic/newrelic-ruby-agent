@@ -21,7 +21,7 @@ module NewRelic
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "Controller/whatever", intrinsics['name']
         refute intrinsics['error']
-        assert_equal 0.1, intrinsics['duration']
+        assert_in_delta(0.1, intrinsics['duration'])
         assert intrinsics["priority"].is_a?(Numeric)
       end
 
@@ -124,7 +124,7 @@ module NewRelic
         event, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload('whatever', :metrics => metrics))
 
         assert_equal 'Transaction', event['type']
-        assert_equal 0.1, event['duration']
+        assert_in_delta(0.1, event['duration'])
 
         assert_equal 'giraffe', custom_attrs['type']
         assert_equal 'hippo', custom_attrs['duration']
