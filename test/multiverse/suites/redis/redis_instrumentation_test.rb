@@ -53,27 +53,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
     end
 
-    def test_records_connect_node_at_a_peer_level_with_call_that_triggered_it
-      skip ('Transaction node nesting does not have this behavior in Redis 4 and below') unless
-        ::NewRelic::Agent::Instrumentation::Redis::USE_MIDDLEWARE
-
-      in_transaction do
-        redis = Redis.new
-        redis.get("foo")
-      end
-
-      tt = last_transaction_trace
-
-      connect_node = tt.root_node.children[0].children[0]
-      get_node = tt.root_node.children[0].children[1]
-
-      assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
-      assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
-    end
-
     def test_records_connect_tt_node_within_call_that_triggered_it
-      skip ('Transaction node nesting changes in Redis 5') if ::NewRelic::Agent::Instrumentation::Redis::USE_MIDDLEWARE
-
       in_transaction do
         redis = Redis.new
         redis.get("foo")
