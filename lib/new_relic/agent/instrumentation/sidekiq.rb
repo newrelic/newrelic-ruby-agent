@@ -1,6 +1,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+require_relative 'sidekiq/client'
+require_relative 'sidekiq/server'
+require_relative 'sidekiq/extensions/delayed_class'
 
 DependencyDetection.defer do
   @name = :sidekiq
@@ -14,83 +17,18 @@ DependencyDetection.defer do
   end
 
   executes do
-    module NewRelic::SidekiqInstrumentation
-      class Server
-        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
-        # Client middleware has additional parameters, and our tests use the
-        # middleware client-side to work inline.
-        def call(worker, msg, queue, *_)
-          trace_args = if worker.respond_to?(:newrelic_trace_args)
-            worker.newrelic_trace_args(msg, queue)
-          else
-            self.class.default_trace_args(msg)
-          end
-          trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
-
-          perform_action_with_newrelic_trace(trace_args) do
-            NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.args',
-              NewRelic::Agent::AttributeFilter::DST_NONE)
-
-            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, "Other") if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
-            yield
-          end
-        end
-
-        def self.default_trace_args(msg)
-          {
-            :name => 'perform',
-            :class_name => msg['class'],
-            :category => 'OtherTransaction/SidekiqJob'
-          }
-        end
-      end
-
-      class Client
-        def call(_worker_class, job, *_)
-          job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
-          yield
-        end
-
-        def distributed_tracing_headers
-          headers = {}
-          ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(headers)
-          headers
-        end
-      end
-    end
-
-    class Sidekiq::Extensions::DelayedClass
-      def newrelic_trace_args(msg, queue)
-        (target, method_name, _args) = if YAML.respond_to?(:unsafe_load)
-          YAML.unsafe_load(msg['args'][0])
-        else
-          YAML.load(msg['args'][0])
-        end
-
-        {
-          :name => method_name,
-          :class_name => target.name,
-          :category => 'OtherTransaction/SidekiqJob'
-        }
-      rescue => e
-        NewRelic::Agent.logger.error("Failure during deserializing YAML for Sidekiq::Extensions::DelayedClass", e)
-        NewRelic::SidekiqInstrumentation::Server.default_trace_args(msg)
-      end
-    end
-
     Sidekiq.configure_client do |config|
       config.client_middleware do |chain|
-        chain.add(NewRelic::SidekiqInstrumentation::Client)
+        chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Client)
       end
     end
 
     Sidekiq.configure_server do |config|
       config.client_middleware do |chain|
-        chain.add(NewRelic::SidekiqInstrumentation::Client)
+        chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Client)
       end
       config.server_middleware do |chain|
-        chain.add(NewRelic::SidekiqInstrumentation::Server)
+        chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Server)
       end
 
       if config.respond_to?(:error_handlers)
