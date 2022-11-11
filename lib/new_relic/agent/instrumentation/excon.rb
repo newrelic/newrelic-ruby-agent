@@ -17,6 +17,7 @@ DependencyDetection.defer do
   # so we could safely subscribe and not be clobbered by future subscribers,
   # but alas, it does not yet.
 
+  # TODO: MAJOR VERSION - update min version to 0.56.0
   EXCON_MIN_VERSION = Gem::Version.new("0.19.0")
 
   depends_on do
