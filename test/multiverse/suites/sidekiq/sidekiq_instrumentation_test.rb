@@ -33,7 +33,15 @@ class SidekiqTest < Minitest::Test
 
     string_logger = ::Logger.new(@sidekiq_log)
     string_logger.formatter = Sidekiq.logger.formatter
-    Sidekiq.logger = string_logger
+    set_sidekiq_logger(string_logger)
+  end
+
+  def set_sidekiq_logger(logger)
+    if Sidekiq::VERSION >= '7.0.0'
+      Sidekiq.default_configuration.logger = logger
+    else
+      Sidekiq.logger = logger
+    end
   end
 
   def teardown

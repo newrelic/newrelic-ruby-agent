@@ -5,6 +5,7 @@
 module NewRelic::Agent::Instrumentation::Sidekiq
   class Server
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    include Sidekiq::ServerMiddleware if defined?(Sidekiq::ServerMiddleware)
 
     # Client middleware has additional parameters, and our tests use the
     # middleware client-side to work inline.
