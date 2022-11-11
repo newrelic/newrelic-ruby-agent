@@ -64,7 +64,7 @@ module HttpClientTestCases
   def jruby_excon_skip?
     defined?(JRUBY_VERSION) &&
       defined?(::Excon::VERSION) &&
-      Gem::Version.new(::Excon::VERSION) < Gem::Version.new('0.19.0')
+      Gem::Version.new(::Excon::VERSION) < Gem::Version.new('0.20.0')
   end
 
   # Tests
