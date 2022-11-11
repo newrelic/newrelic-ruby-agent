@@ -94,8 +94,6 @@ module NewRelic
         :deprecated_ruby_version,
         deprecation_msg
       )
-
-      ::NewRelic::Agent.record_metric("Supportability/Deprecated/RubyVersion", 1)
     end
 
     include Instrumentation
