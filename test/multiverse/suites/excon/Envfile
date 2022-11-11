@@ -5,10 +5,6 @@
 excon_versions = [
   nil,
   '0.56.0',
-  '0.64.0',
-  '0.70.0',
-  '0.78.1',
-  '0.85.0'
 ]
 
 def gem_list(excon_version = nil)
