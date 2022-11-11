@@ -2,7 +2,11 @@
 
   ## v8.13.0
 
-  Version 8.13.0 of the agent updates our Rack and Sidekiq instrumentation and delivers some bugfixes.
+  Version 8.13.0 of the agent updates our Rack, Redis, and Sidekiq instrumentation. It also delivers some bugfixes.
+
+  * **Support for Redis v5**
+
+  Redis v5.0 restructures where some of our instrumented methods are located and how they are named. It also introduces a new [instrumentation middleware API](https://github.com/redis-rb/redis-client#instrumentation-and-middlewares). We are using this API for pipelined and multi calls to maintain reporting parity with previous Redis versions. However, it is introduced later in the chain, so you may see errors that used to appear at the segment level on the transaction instead. The agent's beahvior when used with older supported Redis versions will remain unaffected. [PR#1611](https://github.com/newrelic/newrelic-ruby-agent/pull/1611)
 
   * **Support for Sidekiq v7**
 
