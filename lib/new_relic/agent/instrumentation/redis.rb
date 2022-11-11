@@ -35,8 +35,7 @@ DependencyDetection.defer do
     end
 
     if use_prepend?
-      prepend_class = NewRelic::Agent::Instrumentation::Redis::REDIS_5 ? ::RedisClient : ::Redis::Client
-      prepend_instrument prepend_class, NewRelic::Agent::Instrumentation::Redis::Prepend
+      prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
     end
