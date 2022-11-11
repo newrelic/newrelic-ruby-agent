@@ -396,6 +396,10 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
     end
 
+    def redis_host
+      docker? ? 'redis' : NewRelic::Agent::Hostname.get
+    end
+
     def either_hostname
       [NewRelic::Agent::Hostname.get, 'redis']
     end
