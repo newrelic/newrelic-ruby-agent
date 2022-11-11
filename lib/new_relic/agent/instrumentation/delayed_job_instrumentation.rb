@@ -106,8 +106,6 @@ DependencyDetection.defer do
       :deprecated_delayed_job_version,
       deprecation_msg
     )
-
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/DelayedJob", 1)
   end
 
   def delayed_job_version

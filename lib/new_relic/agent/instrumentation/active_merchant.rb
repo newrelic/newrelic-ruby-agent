@@ -47,7 +47,5 @@ DependencyDetection.defer do
       :deprecated_active_merchant_version,
       deprecation_msg
     )
-
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/ActiveMerchant", 1)
   end
 end

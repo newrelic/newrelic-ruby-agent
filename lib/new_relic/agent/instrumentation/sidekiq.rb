@@ -51,7 +51,5 @@ DependencyDetection.defer do
       :deprecated_sidekiq_version,
       deprecation_msg
     )
-
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Sidekiq", 1)
   end
 end

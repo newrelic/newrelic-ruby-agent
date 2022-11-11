@@ -54,7 +54,5 @@ DependencyDetection.defer do
       :deprecated_sinatra_version,
       deprecation_msg
     )
-
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Sinatra", 1)
   end
 end

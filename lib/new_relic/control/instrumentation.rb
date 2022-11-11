@@ -79,8 +79,6 @@ module NewRelic
         :deprecated_rails_version,
         deprecation_msg
       )
-
-      ::NewRelic::Agent.record_metric("Supportability/Deprecated/Rails32", 1)
     end
 
     def ruby_deprecation
