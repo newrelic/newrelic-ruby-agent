@@ -21,8 +21,6 @@ DependencyDetection.defer do
       :deprecated_authlogic,
       deprecation_msg
     )
-
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Authlogic", 1)
   end
 
   executes do

@@ -22,7 +22,6 @@ DependencyDetection.defer do
       :deprecated_rainbows_dispatcher,
       deprecation_msg
     )
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Rainbows", 1)
   end
 
   executes do
