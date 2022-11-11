@@ -31,7 +31,7 @@ module NewRelic::Agent::Instrumentation
       with_tracing(operation, statement: statement, database: db) { yield }
     end
 
-    # Used for Redis 5.x
+    # Used for Redis 5.x+
     def call_pipelined_with_tracing(pipeline)
       operation = pipeline.flatten.include?('MULTI') ? MULTI_OPERATION : PIPELINE_OPERATION
       statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)

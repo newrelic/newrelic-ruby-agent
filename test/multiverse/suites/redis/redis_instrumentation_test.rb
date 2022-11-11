@@ -237,7 +237,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       tt = last_transaction_trace
       pipeline_node = tt.root_node.children[0].children[0]
-      # Redis 5.x returns MULTI and EXEC as capitalized, unlike 4.x, 3.x
+      # Redis 5.x+ returns MULTI and EXEC as capitalized, unlike 4.x, 3.x
       assert_equal("multi\nset ?\nget ?\nexec", pipeline_node[:statement].downcase)
     end
 
@@ -253,7 +253,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       tt = last_transaction_trace
       pipeline_node = tt.root_node.children[0].children[0]
-      # Redis 5.x returns MULTI and EXEC as capitalized, unlike 4.x, 3.x
+      # Redis 5.x+ returns MULTI and EXEC as capitalized, unlike 4.x, 3.x
       assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement].downcase)
     end
 
