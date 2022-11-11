@@ -16,7 +16,6 @@ module NewRelic::Agent::Instrumentation
       with_tracing(CONNECT, database: db) { yield }
     end
 
-    # Used for Redis 4.x and 3.x
     def call_with_tracing(command, &block)
       operation = command[0]
       statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
@@ -40,13 +39,6 @@ module NewRelic::Agent::Instrumentation
       # call_pipelined isn't invoked on the client object, so use client.db to
       # access the client instance var on self
       with_tracing(operation, statement: statement, database: client.db) { yield }
-    end
-
-    # Used for Redis 5.x
-    def call_v_with_tracing(command, &block)
-      operation = command[0]
-      statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
-      with_tracing(operation, statement: statement, database: db) { yield }
     end
 
     private

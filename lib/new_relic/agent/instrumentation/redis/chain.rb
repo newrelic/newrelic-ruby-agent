@@ -13,7 +13,7 @@ module NewRelic::Agent::Instrumentation
             alias_method(:call_v_without_new_relic, :call_v)
 
             def call_v(*args, &block)
-              call_v_with_tracing(args[0]) { call_v_without_new_relic(*args, &block) }
+              call_with_tracing(args[0]) { call_v_without_new_relic(*args, &block) }
             end
           end
 

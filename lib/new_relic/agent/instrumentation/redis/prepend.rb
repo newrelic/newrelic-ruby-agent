@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
 
       # Defined in version 5.x
       def call_v(*args, &block)
-        call_v_with_tracing(args[0]) { super }
+        call_with_tracing(args[0]) { super }
       end
 
       # Defined in version 4.x, 3.x
