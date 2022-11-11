@@ -2,6 +2,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+# TODO: remove this class once Sidekiq v6 is no longer supported.
+#       Delayed extensions are disabled by default in Sidekiq 5 and 6 and
+#       were removed entirely in Sidekiq 7.
+#
+#       see https://github.com/mperham/sidekiq/issues/5076 for the discussion
+#       of the removal, which includes mentions of alternatives
 if Sidekiq::VERSION < '7.0.0'
   class Sidekiq::Extensions::DelayedClass
     def newrelic_trace_args(msg, queue)
