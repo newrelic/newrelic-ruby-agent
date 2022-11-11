@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
     LOCALHOST = 'localhost'
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
-    REDIS_5 = Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0') && !!defined?(::RedisClient)
+    HAS_REDIS_CLIENT = Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0') && !!defined?(::RedisClient)
 
     def connect_with_tracing
       with_tracing(CONNECT, database: db) { yield }

@@ -30,7 +30,7 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.info('Installing Redis Instrumentation')
-    if NewRelic::Agent::Instrumentation::Redis::REDIS_5
+    if NewRelic::Agent::Instrumentation::Redis::HAS_REDIS_CLIENT
       ::RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
     end
 
