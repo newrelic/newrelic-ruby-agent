@@ -7,8 +7,7 @@ suite_condition("Sidekiq does not run on JRuby") do
 end
 
 SIDEKIQ_VERSIONS = [
-  # TODO: Uncomment once we refactor tests to use Sidekiq 7's logger, issue #1567
-  # [nil, 2.5],
+  [nil, 2.7],
   ['6.4.0', 2.5],
   ['5.0.3', 2.3],
   ['4.2.0', 2.2]

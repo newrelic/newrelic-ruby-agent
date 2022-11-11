@@ -4,6 +4,8 @@
 
 module NewRelic::Agent::Instrumentation::Sidekiq
   class Client
+    include Sidekiq::ClientMiddleware if defined?(Sidekiq::ClientMiddleware)
+
     def call(_worker_class, job, *_)
       job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
       yield

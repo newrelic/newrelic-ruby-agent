@@ -2,7 +2,11 @@
 
   ## v8.13.0
 
-  Version 8.13.0 of the agent updates our Rack instrumentation and delivers some bugfixes.
+  Version 8.13.0 of the agent updates our Rack and Sidekiq instrumentation and delivers some bugfixes.
+
+  * **Support for Sidekiq v7**
+
+    Sidekiq v7.0 has removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615)
 
   * **Support for Rack v3+ Rack::Builder#new accepting a block**
 
