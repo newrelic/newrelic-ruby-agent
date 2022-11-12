@@ -12,7 +12,7 @@ require 'rubygems'
 require 'base64'
 require 'fileutils'
 require 'digest'
-require_relative 'bundler'
+require_relative 'bundler_patch'
 require_relative 'color'
 require_relative 'shell_utils'
 
