@@ -12,6 +12,11 @@ require 'rubygems'
 require 'base64'
 require 'fileutils'
 require 'digest'
+require_relative 'bundler_patch'
+require_relative 'color'
+require_relative 'envfile'
+require_relative 'output_collector'
+require_relative 'runner'
 require_relative 'shell_utils'
 
 module Multiverse
@@ -109,12 +114,12 @@ module Multiverse
 
     def with_potentially_mismatched_bundler
       yield
-    rescue Bundler::LockfileError => error
+    rescue ::Bundler::LockfileError => error
       raise if @retried
 
       if verbose?
         puts "Encountered Bundler error: #{error.message}"
-        puts "Currently Active Bundler Version: #{Bundler::VERSION}"
+        puts "Currently Active Bundler Version: #{::Bundler::VERSION}"
       end
       change_lock_version(`pwd`, ENV["BUNDLE_GEMFILE"])
       @retried = true
@@ -123,13 +128,13 @@ module Multiverse
 
     def bundling_lock_file
       with_potentially_mismatched_bundler do
-        File.join(Bundler.bundle_path, 'multiverse-bundler.lock')
+        File.join(::Bundler.bundle_path, 'multiverse-bundler.lock')
       end
     end
 
     def bundler_cache_dir
       with_potentially_mismatched_bundler do
-        File.join(Bundler.bundle_path, 'multiverse-cache')
+        File.join(::Bundler.bundle_path, 'multiverse-cache')
       end
     end
 
@@ -177,7 +182,7 @@ module Multiverse
       $?
     end
 
-    def change_lock_version(filepath, gemfile, new_version = Bundler::VERSION)
+    def change_lock_version(filepath, gemfile, new_version = ::Bundler::VERSION)
       begin
         lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/, '')
       rescue => e
@@ -223,7 +228,7 @@ module Multiverse
         ensure_bundle_uncached(env_index)
       end
       with_potentially_mismatched_bundler do
-        Bundler.require
+        ::Bundler.require
       end
     end
 
@@ -331,7 +336,7 @@ module Multiverse
     def print_environment
       puts yellow("Environment loaded with:") if verbose?
       gems = with_potentially_mismatched_bundler do
-        Bundler.definition.specs.inject([]) do |m, s|
+        ::Bundler.definition.specs.inject([]) do |m, s|
           next m if s.name == 'bundler'
 
           m.push("#{s.name} (#{s.version})")
@@ -489,11 +494,11 @@ module Multiverse
 
     def with_unbundled_env
       with_potentially_mismatched_bundler do
-        if defined?(Bundler)
+        if defined?(::Bundler)
           # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
           # in the context of another bundle.
 
-          Bundler.with_unbundled_env { yield }
+          ::Bundler.with_unbundled_env { yield }
         else
           yield
         end
