@@ -12,6 +12,7 @@ require 'rubygems'
 require 'base64'
 require 'fileutils'
 require 'digest'
+require_relative 'color'
 require_relative 'shell_utils'
 
 module Multiverse
