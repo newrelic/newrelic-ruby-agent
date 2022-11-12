@@ -60,7 +60,7 @@ module HttpClientTestCases
     res.body
   end
 
-  # TODO: MAJOR VERSION - update min version to 0.56.0
+  # TODO: remove method and its callers once Excon version is at or above 0.20.0
   def jruby_excon_skip?
     defined?(JRUBY_VERSION) &&
       defined?(::Excon::VERSION) &&
