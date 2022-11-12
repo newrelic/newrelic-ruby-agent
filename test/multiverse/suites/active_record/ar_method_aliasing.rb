@@ -5,7 +5,7 @@
 require 'rubygems'
 require 'active_record'
 require 'active_support/multibyte'
-require 'multiverse/color'
+require_relative '../../lib/multiverse/color'
 require_relative 'app/models/models'
 
 class InstrumentActiveRecordMethods < Minitest::Test
