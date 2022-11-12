@@ -14,6 +14,9 @@ require 'fileutils'
 require 'digest'
 require_relative 'bundler_patch'
 require_relative 'color'
+require_relative 'envfile'
+require_relative 'output_collector'
+require_relative 'runner'
 require_relative 'shell_utils'
 
 module Multiverse
