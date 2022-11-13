@@ -170,8 +170,9 @@ module NewRelic::Agent
       payload1 = DistributedTracePayload.for_transaction(transaction)
       payload2 = DistributedTracePayload.from_json(payload1.text)
 
-      payload1_ivars = payload1.instance_variables.map { |iv| payload1.instance_variable_get(iv) }
-      payload2_ivars = payload2.instance_variables.map { |iv| payload2.instance_variable_get(iv) }
+      ivar_names = payload1.instance_variables
+      payload1_ivars = ivar_names.map { |iv| payload1.instance_variable_get(iv) }
+      payload2_ivars = ivar_names.map { |iv| payload2.instance_variable_get(iv) }
 
       assert_equal payload1_ivars, payload2_ivars
     end
