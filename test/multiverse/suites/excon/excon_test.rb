@@ -47,11 +47,11 @@ class ExconTest < Minitest::Test
   end
 
   def post_response
-    Excon.post(default_url, :body => "")
+    Excon.post(default_url, body: String.new)
   end
 
   def put_response
-    Excon.put(default_url, :body => "")
+    Excon.put(default_url, body: String.new)
   end
 
   def delete_response
