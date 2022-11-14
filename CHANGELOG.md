@@ -6,7 +6,7 @@
 
   * **Support for Redis v5**
 
-  Redis v5.0 restructures where some of our instrumented methods are located and how they are named. It also introduces a new [instrumentation middleware API](https://github.com/redis-rb/redis-client#instrumentation-and-middlewares). We are using this API for pipelined and multi calls to maintain reporting parity with previous Redis versions. However, it is introduced later in the chain, so you may see errors that used to appear at the segment level on the transaction instead. The agent's behavior when used with older supported Redis versions will remain unaffected. [PR#1611](https://github.com/newrelic/newrelic-ruby-agent/pull/1611)
+    Redis v5.0 restructures where some of our instrumented methods are located and how they are named. It also introduces a new [instrumentation middleware API](https://github.com/redis-rb/redis-client#instrumentation-and-middlewares). We are using this API for pipelined and multi calls to maintain reporting parity with previous Redis versions. However, it is introduced later in the chain, so you may see errors that used to appear at the segment level on the transaction instead. The agent's behavior when used with older supported Redis versions will remain unaffected. [PR#1611](https://github.com/newrelic/newrelic-ruby-agent/pull/1611)
 
   * **Support for Sidekiq v7**
 
@@ -31,7 +31,7 @@
 
   * **Bugfix: Category is a required keyword arg for NewRelic::Agent::Tracer.in_transaction**
 
-    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you to @tatzsuzuki for bringing this to our attention. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
+    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you to @tatzsuzuki for bringing this to our attention. [PR#1587](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
 
 
   ## v8.12.0
