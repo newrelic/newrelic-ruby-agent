@@ -4,35 +4,34 @@
 
   Version 8.13.0 of the agent updates our Rack, Redis, and Sidekiq instrumentation. It also delivers some bugfixes.
 
-  * **Support for Redis v5**
+  * **Support for Redis v5.0**
 
     Redis v5.0 restructures where some of our instrumented methods are located and how they are named. It also introduces a new [instrumentation middleware API](https://github.com/redis-rb/redis-client#instrumentation-and-middlewares). We are using this API for pipelined and multi calls to maintain reporting parity with previous Redis versions. However, it is introduced later in the chain, so you may see errors that used to appear at the segment level on the transaction instead. The agent's behavior when used with older supported Redis versions will remain unaffected. [PR#1611](https://github.com/newrelic/newrelic-ruby-agent/pull/1611)
 
-  * **Support for Sidekiq v7**
+  * **Support for Sidekiq v7.0**
 
-    Sidekiq v7.0 has removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615)
+    Sidekiq v7.0 removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615)
 
-  * **Support for Rack v3+ Rack::Builder#new accepting a block**
+  * **Support for Rack v3.0: Rack::Builder#new accepting a block**
 
-    Via [rack/rack#1942](https://github.com/rack/rack/pull/1942) (released with Rack version 3), `Rack::Builder#run` now optionally accepts a block instead of an app argument. The agent's instrumentation has been updated to support the use of a block with `Rack::Builder#run`. [PR#1600](https://github.com/newrelic/newrelic-ruby-agent/pull/1600)
+    Via [rack/rack#1942](https://github.com/rack/rack/pull/1942) (released with Rack v3.0), `Rack::Builder#run` now optionally accepts a block instead of an app argument. The agent's instrumentation has been updated to support the use of a block with `Rack::Builder#run`. [PR#1600](https://github.com/newrelic/newrelic-ruby-agent/pull/1600)
 
-  * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0.0**
+  * **Bugfix: Correctly identify Unicorn, Rainbows and FastCGI with Rack v3.0**
 
-    Unicorn, Rainbows, or FastCGI web applications using Rack v3.0.0 may previously have had the "dispatcher" value incorrectly reported as "Webrick" instead of "Unicorn", "Rainbows", or "FastCGI". This issue has now been addressed. [PR#1585](https://github.com/newrelic/newrelic-ruby-agent/pull/1585)
+    Unicorn, Rainbows, or FastCGI web applications using Rack v3.0 may previously have had the "dispatcher" value incorrectly reported as "Webrick" instead of "Unicorn", "Rainbows", or "FastCGI". This issue has now been addressed. [PR#1585](https://github.com/newrelic/newrelic-ruby-agent/pull/1585)
 
   * **Bugfix: add_method_tracer fails to record code level metric attributes on private methods**
 
-    When using add_method_tracer on a private method, the agent was unable to record code level metrics for the method. This resulted in the following being logged to the newrelic_agent.log file.
+    When using `add_method_tracer` on a private method, the agent was unable to record code level metrics for the method. This resulted in the following being logged to the newrelic_agent.log file.
     ```
     WARN : Unable to determine source code info for 'Example', method 'private_method' - NameError: undefined method 'private_method' for class '#<Class:Example>'
     ```
-    Thanks to @jdelStrother for bringing this issue to our attention and suggesting a fix! [PR#1593](https://github.com/newrelic/newrelic-ruby-agent/pull/1593)
+    Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this issue to our attention and suggesting a fix! [PR#1593](https://github.com/newrelic/newrelic-ruby-agent/pull/1593)
 
 
   * **Bugfix: Category is a required keyword arg for NewRelic::Agent::Tracer.in_transaction**
 
-    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you to @tatzsuzuki for bringing this to our attention. [PR#1587](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
-
+    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you [@tatzsuzuki](https://github.com/tatzsuzuki) for bringing this to our attention. [PR#1587](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
 
   ## v8.12.0
 
