@@ -31,7 +31,7 @@
 
   * **Bugfix: Category is a required keyword arg for NewRelic::Agent::Tracer.in_transaction**
 
-    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify category as a required keyword argument. This is now resolved. Thank you [@tatzsuzuki](https://github.com/tatzsuzuki) for bringing this to our attention. [PR#1587](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
+    When support for Ruby 2.0 was dropped in version 8.0.0 of the agent, the agent API methods were updated to use the required keyword argument feature built into Ruby, rather than manually raising ArgumentErrors. The API method `NewRelic::Agent::Tracer.in_transaction` removed the ArgumentError raised by the agent, but did not update the method arguments to identify `:category` as a required keyword argument. This is now resolved. Thank you [@tatzsuzuki](https://github.com/tatzsuzuki) for bringing this to our attention. [PR#1587](https://github.com/newrelic/newrelic-ruby-agent/pull/1587)
 
   ## v8.12.0
 
