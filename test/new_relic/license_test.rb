@@ -26,6 +26,7 @@ class LicenseTest < Minitest::Test
           lines << line
         end
       end
+
       assert_match(LICENSE_HEADER_REGEX, lines.join, "#{file} does not contain the proper license header.")
     end
   end

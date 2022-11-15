@@ -19,17 +19,19 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     dummy_logger.expects(:error).with("Agent Started Already!")
     NewRelic::Agent.stubs(:logger).returns(dummy_logger)
     self.expects(:started?).returns(true)
-    assert already_started?, "should have already started"
+
+    assert_predicate self, :already_started?, "should have already started"
   end
 
   def test_already_started_negative
     self.expects(:started?).returns(false)
+
     refute already_started?
   end
 
   def test_disabled_positive
     with_config(:agent_enabled => false) do
-      assert disabled?
+      assert_predicate self, :disabled?
     end
   end
 
@@ -138,7 +140,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_monitoring_positive
     with_config(:monitor_mode => true) do
-      assert monitoring?
+      assert_predicate self, :monitoring?
     end
   end
 
@@ -150,7 +152,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_has_license_key_positive
     with_config(:license_key => 'a' * 40) do
-      assert has_license_key?
+      assert_predicate self, :has_license_key?
     end
   end
 
@@ -163,11 +165,13 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_has_correct_license_key_positive
     self.expects(:has_license_key?).returns(true)
     self.expects(:correct_license_length).returns(true)
-    assert has_correct_license_key?
+
+    assert_predicate self, :has_correct_license_key?
   end
 
   def test_has_correct_license_key_negative
     self.expects(:has_license_key?).returns(false)
+
     refute has_correct_license_key?
   end
 
@@ -185,7 +189,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_using_forking_dispatcher_positive
     with_config(:dispatcher => :passenger) do
-      assert using_forking_dispatcher?
+      assert_predicate self, :using_forking_dispatcher?
     end
   end
 

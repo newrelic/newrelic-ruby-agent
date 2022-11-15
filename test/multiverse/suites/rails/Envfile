@@ -44,7 +44,7 @@ def minitest_rails_version(rails_version = nil)
 end
 
 def pre2_rack_test
-  %Q(gem 'rack-test', '< 2')
+  %Q(gem 'rack-test')
 end
 
 def gem_list(rails_version = nil)

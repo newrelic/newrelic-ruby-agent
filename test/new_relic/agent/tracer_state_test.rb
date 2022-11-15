@@ -28,19 +28,21 @@ module NewRelic::Agent
 
     def test_in_request_transaction
       in_web_transaction do |txn|
-        assert txn.recording_web_transaction?
+        assert_predicate txn, :recording_web_transaction?
       end
     end
 
     def test_reset_doesnt_touch_record_sql
       state.record_sql = false
       state.reset
+
       refute state.record_sql
     end
 
     def test_reset_doesnt_touch_untraced_stack
       state.push_traced(true)
       state.reset
+
       assert_equal [true], state.untraced
     end
 
@@ -57,6 +59,7 @@ module NewRelic::Agent
       variables.each do |ivar|
         value = state.instance_variable_get(ivar)
         empties = [0, nil, false, []]
+
         assert_includes(empties, value, "Expected #{ivar} to reset, but was #{value}")
       end
     end

@@ -147,6 +147,7 @@ class AttributeProcessingTest < Minitest::Test
     NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params) { |k, v| yielded[k] = v }
 
     expected = {"foo.bar.0" => "qux", "foo.bar.1" => "quux"}
+
     assert_equal expected, yielded
   end
 
@@ -155,6 +156,7 @@ class AttributeProcessingTest < Minitest::Test
     expected = {}
 
     result = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
+
     assert_equal expected, result
   end
 end

@@ -48,6 +48,7 @@ end
 
 def assert_has_traced_error(error_class)
   errors = harvest_error_traces!
+
   refute_nil errors.find { |e| e.exception_class_name == error_class.name }, \
     "Didn't find error of class #{error_class}"
 end
@@ -83,6 +84,7 @@ end
 unless defined? assert_includes
   def assert_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
+
     assert_includes collection, member, msg
   end
 end
@@ -90,6 +92,7 @@ end
 unless defined? assert_not_includes
   def assert_not_includes(collection, member, msg = nil)
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
+
     refute_includes collection, member, msg
   end
 end
@@ -107,6 +110,7 @@ end
 
 def assert_log_contains(log, message)
   lines = log.array
+
   assert (lines.any? { |line| line.match(message) })
 end
 
@@ -117,6 +121,7 @@ def assert_audit_log_contains(audit_log_contents, needle)
   regex = /[:"]/
   needle = needle.gsub(regex, '')
   haystack = audit_log_contents.gsub(regex, '')
+
   assert_includes(haystack, needle, "Expected log to contain '#{needle}'")
 end
 
@@ -136,10 +141,12 @@ def assert_audit_log_contains_object(audit_log_contents, o, format = :json)
       assert_audit_log_contains_object(audit_log_contents, k, format)
     end
   when Array
+
     o.each do |el|
       assert_audit_log_contains_object(audit_log_contents, el, format)
     end
   when NilClass
+
     assert_audit_log_contains(audit_log_contents, format == :json ? "null" : "nil")
   else
     assert_audit_log_contains(audit_log_contents, o.inspect)
@@ -148,6 +155,7 @@ end
 
 def compare_metrics(expected, actual)
   actual.delete_if { |a| a.include?('GC/Transaction/') }
+
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
@@ -206,6 +214,7 @@ def assert_stats_has_values_with_call_count(expected_value, actual_value, msg)
   if expected_value.to_s =~ /([<>]=?)\s*(\d+)/
     operator = Regexp.last_match(1).to_sym
     count = Regexp.last_match(2).to_i
+
     assert_operator(actual_value, operator, count, msg)
   # == comparison
   else
@@ -229,6 +238,7 @@ def assert_metrics_recorded(expected)
 
       assert(actual_stats, msg) # rubocop:disable Minitest/AssertWithExpectedArgument
     end
+
     assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
   end
 end
@@ -246,6 +256,7 @@ end
 #
 def assert_metrics_recorded_exclusive(expected, options = {})
   expected = _normalize_metric_expectations(expected)
+
   assert_metrics_recorded(expected)
 
   recorded_metrics = NewRelic::Agent.instance.stats_engine.to_h.keys
@@ -300,6 +311,7 @@ def assert_metrics_not_recorded(not_expected)
       found_but_not_expected << spec
     end
   end
+
   assert_empty(found_but_not_expected, "Found unexpected metrics: #{format_metric_spec_list(found_but_not_expected)}")
 end
 
@@ -328,11 +340,13 @@ end
 
 def assert_truthy(expected, msg = nil)
   msg ||= "Expected #{expected.inspect} to be truthy"
+
   refute !expected, msg
 end
 
 def assert_falsy(expected, msg = nil)
   msg ||= "Expected #{expected.inspect} to be falsy"
+
   refute expected, msg
 end
 
@@ -888,6 +902,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
   event_attrs.each do |name, actual_value|
     msg << "  #{name}: #{actual_value.inspect}\n"
   end
+
   assert_empty(incorrect_attributes, msg)
 
   non_expected_attributes.each do |name|
@@ -950,6 +965,7 @@ end
 # the expectations against it.
 def assert_segment_noticed_error(txn, segment_name, error_classes, error_message)
   error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
+
   assert error_segment, "Expected at least one segment with a noticed_error"
 
   assert_match_or_equal segment_name, error_segment.name
@@ -967,6 +983,7 @@ end
 
 def refute_transaction_noticed_error(txn, error_class)
   error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
+
   assert error_segment, "Expected at least one segment with a noticed_error"
   assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
 end
@@ -984,6 +1001,7 @@ def refute_raises(*exp)
   rescue Exception => e
     puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"
     exp = exp.first if exp.size == 1
+
     flunk(msg || "unexpected exception raised: #{e}")
   end
 end

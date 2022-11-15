@@ -58,7 +58,7 @@ module NewRelic
 
         def test_compression_enabled_returns_true
           with_config(remote_config.merge('infinite_tracing.compression_level': :high)) do
-            assert Channel.new.compression_enabled?
+            assert_predicate Channel.new, :compression_enabled?
           end
         end
 
@@ -70,6 +70,7 @@ module NewRelic
 
         def test_invalid_compression_level
           channel = Channel.new
+
           refute channel.valid_compression_level?(:bogus)
         end
 
@@ -84,6 +85,7 @@ module NewRelic
           expected_result = {'grpc.default_compression_level' => 1,
                              'grpc.default_compression_algorithm' => 2,
                              'grpc.compression_enabled_algorithms_bitset' => 7}
+
           with_config(remote_config.merge('infinite_tracing.compression_level': level)) do
             assert_equal Channel.new.channel_args, expected_result
           end

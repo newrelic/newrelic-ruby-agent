@@ -343,6 +343,7 @@ module MongoOperationTests
     end
 
     metric = statement_metric(:insert)
+
     assert_metrics_recorded([[metric, "webby"]])
   end
 
@@ -352,6 +353,7 @@ module MongoOperationTests
     end
 
     metric = statement_metric(:insert)
+
     assert_metrics_recorded([[metric, "backed-up"]])
   end
 
@@ -371,6 +373,7 @@ module MongoOperationTests
     }
 
     result = node.params[:statement]
+
     assert_equal expected, result
   end
 
@@ -411,6 +414,7 @@ module MongoOperationTests
 
     node = find_last_transaction_node
     query = node.params[:statement]
+
     assert_equal :save, query[:operation]
   end
 
@@ -422,6 +426,7 @@ module MongoOperationTests
     end
 
     node = find_last_transaction_node
+
     assert_ensure_index_in_transaction_node(node)
   end
 
@@ -433,6 +438,7 @@ module MongoOperationTests
     end
 
     node = find_last_transaction_node
+
     assert_ensure_index_in_transaction_node(node)
   end
 
@@ -444,6 +450,7 @@ module MongoOperationTests
     end
 
     node = find_last_transaction_node
+
     assert_ensure_index_in_transaction_node(node)
   end
 

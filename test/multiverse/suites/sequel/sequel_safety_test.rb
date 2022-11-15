@@ -12,6 +12,7 @@ class SequelSafetyTest < Minitest::Test
     require 'newrelic_rpm'
 
     u = User.create(:login => 'jrandom', :firstname => 'J. Random', :lastname => 'Hacquer')
+
     assert u.is_a?(User), "#{u} isn't a User"
   end
 
@@ -22,7 +23,7 @@ class SequelSafetyTest < Minitest::Test
       require 'newrelic_rpm'
 
       DB.transaction do
-        assert DB.in_transaction?
+        assert_predicate DB, :in_transaction?
       end
     end
   end

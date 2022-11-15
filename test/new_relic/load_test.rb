@@ -4,7 +4,7 @@
 
 require_relative '../test_helper'
 require 'resolv'
-require 'mocha/setup'
+require 'mocha/minitest'
 
 class LoadTest < Minitest::Test
   def test_loading_agent_when_disabled_does_not_resolv_addresses

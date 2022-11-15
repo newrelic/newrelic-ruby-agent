@@ -31,16 +31,18 @@ if defined?(ActionController::Live)
 
     def test_rum_instrumentation_when_not_streaming
       get('/undead/brains')
+
       assert_includes(response.body, JS_LOADER)
     end
 
     def test_excludes_rum_instrumentation_when_streaming_with_action_controller_live
       get('/live/brains')
+
       assert_equal(LiveController::RESPONSE_BODY, response.body)
     end
 
     def test_excludes_rum_instrumentation_when_streaming_with_action_stream_true
-      get('/undead/brain_stream')
+      get('/undead/brain_stream', env: {'HTTP_VERSION' => 'HTTP/1.1'})
 
       assert_includes(response.body, UndeadController::RESPONSE_BODY)
       assert_not_includes(response.body, JS_LOADER)

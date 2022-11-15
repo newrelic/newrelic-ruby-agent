@@ -62,6 +62,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       end
 
       sample = post.events.first.first
+
       assert_equal 'Controller/request_stats/stats_action', sample['name']
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
@@ -86,6 +87,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       assert_kind_of Array, post.events.first
 
       sample = post.events.first.first
+
       assert_kind_of Hash, sample
 
       assert_kind_of String, sample['nr.guid']
@@ -135,6 +137,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       assert_kind_of Array, post.events.first
 
       sample = post.events.first[0]
+
       assert_kind_of Hash, sample
 
       assert_equal 'Controller/request_stats/stats_action_with_custom_params', sample['name']
@@ -168,10 +171,12 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       post = $collector.calls_for('analytic_event_data').last
 
       samples = post.events
+
       assert_equal(5, samples.size)
       samples.each do |sample|
         # undo the extra layer of wrapping that the collector wants
         sample = sample.first
+
         assert_kind_of Hash, sample
         assert_kind_of Float, sample['duration']
         assert_kind_of Float, sample['timestamp']
@@ -189,6 +194,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
     expected_encoding = Encoding.find(encname) or raise "no such encoding #{encname.dump}"
     msg = "Expected encoding of %p to be %p, but it was %p" %
       [string, expected_encoding, string.encoding]
+
     assert_equal(expected_encoding, string.encoding, msg)
   end
 end

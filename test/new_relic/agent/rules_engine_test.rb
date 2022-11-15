@@ -8,6 +8,7 @@ class RulesEngineTest < Minitest::Test
   def test_rule_defaults
     rule = create_rule('match_expression' => '.*',
       'replacement'      => '*')
+
     refute rule.terminate_chain
     refute rule.each_segment
     refute rule.ignore
@@ -131,6 +132,7 @@ class RulesEngineTest < Minitest::Test
   load_cross_agent_test('transaction_segment_terms').each do |testcase|
     define_method("test_app_segment_terms_#{testcase['testname']}") do
       engine = NewRelic::Agent::RulesEngine.create_transaction_rules(testcase)
+
       testcase['tests'].each do |test|
         assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
       end

@@ -35,8 +35,10 @@ module NewRelic
 
     def test_shutdown_removes_manual_startup_config
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40, :some_absurd_setting => true)
+
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
+
       refute NewRelic::Agent.config[:some_absurd_setting]
     end
 
@@ -48,8 +50,10 @@ module NewRelic
       response_handler.configure_agent(
         'agent_config' => {'data_report_period' => 10}
       )
+
       assert_equal 10, NewRelic::Agent.config[:data_report_period]
       NewRelic::Agent.shutdown
+
       assert_equal 60, NewRelic::Agent.config[:data_report_period]
     end
 
@@ -65,6 +69,7 @@ module NewRelic
           'agent_config' => {'transaction_tracer.enabled' => false},
           'collect_errors' => false
         )
+
         refute NewRelic::Agent.config[:'transaction_tracer.enabled']
         refute NewRelic::Agent.config[:'error_collector.enabled']
       end
@@ -102,7 +107,8 @@ module NewRelic
     def test_manual_start_kicks_dependency_check_again
       with_config(:monitor_mode => true, :license_key => "a" * 40, :sync_startup => true) do
         NewRelic::Agent.manual_start
-        assert NewRelic::Agent.instance.started?
+
+        assert_predicate NewRelic::Agent.instance, :started?
 
         NewRelic::Control.instance.stubs(:init_config)
         DependencyDetection.expects(:detect!).once
@@ -128,49 +134,58 @@ module NewRelic
     def test_agent_when_started
       old_agent = NewRelic::Agent.agent
       NewRelic::Agent.instance_eval { @agent = 'not nil' }
+
       assert_equal('not nil', NewRelic::Agent.agent, "should return the value from @agent")
       NewRelic::Agent.instance_eval { @agent = old_agent }
     end
 
     def test_is_sql_recorded_true
       NewRelic::Agent::Tracer.state.record_sql = true
-      assert(NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is set')
+
+      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
       NewRelic::Agent::Tracer.state.record_sql = nil
-      assert(NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is not set')
+
+      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
       NewRelic::Agent::Tracer.state.record_sql = false
+
       refute(NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
       NewRelic::Agent::Tracer.state.untraced = [true, true]
-      assert(NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is set')
+
+      assert_predicate(NewRelic::Agent, :tl_is_execution_traced?, 'should be true since the thread local is set')
     end
 
     def test_is_execution_traced_blank
       NewRelic::Agent::Tracer.state.untraced = nil
-      assert(NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is not set')
+
+      assert_predicate(NewRelic::Agent, :tl_is_execution_traced?, 'should be true since the thread local is not set')
     end
 
     def test_is_execution_traced_empty
       NewRelic::Agent::Tracer.state.untraced = []
-      assert(NewRelic::Agent.tl_is_execution_traced?,
+
+      assert_predicate(NewRelic::Agent, :tl_is_execution_traced?,
         'should be true since the thread local is an empty array')
     end
 
     def test_is_execution_traced_false
       NewRelic::Agent::Tracer.state.untraced = [true, false]
+
       refute(NewRelic::Agent.tl_is_execution_traced?,
         'should be false since the thread local stack has the last element false')
     end
 
     def test_instance
       NewRelic::Agent.manual_start
+
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance,
         "should return the same agent for both identical methods")
       NewRelic::Agent.shutdown
@@ -178,6 +193,7 @@ module NewRelic
 
     def test_register_report_channel
       NewRelic::Agent.register_report_channel(:channel_id)
+
       assert_kind_of(NewRelic::Agent::PipeChannelManager::Pipe,
         NewRelic::Agent::PipeChannelManager.channels[:channel_id])
       NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
@@ -261,6 +277,7 @@ module NewRelic
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
+
       assert_metrics_recorded(['Controller/new_name'])
     end
 
@@ -281,6 +298,7 @@ module NewRelic
       engine.reset!
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('a_new_name')
+
         assert_equal 'a_new_name', NewRelic::Agent.get_transaction_name
       end
     end
@@ -293,6 +311,7 @@ module NewRelic
         new_name = NewRelic::Agent.get_transaction_name + "2"
         NewRelic::Agent.set_transaction_name(new_name)
       end
+
       assert_metrics_recorded 'OtherTransaction/Background/a_new_name2'
     end
 
@@ -315,6 +334,7 @@ module NewRelic
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
+
       assert_equal 'Controller/new_name', sampler.last_sample.transaction_name
     end
 
@@ -326,6 +346,7 @@ module NewRelic
           NewRelic::Agent.set_transaction_name('new_name')
         end
       end
+
       refute_metrics_recorded('Controller/new_name')
     end
 
@@ -357,6 +378,7 @@ module NewRelic
       Transactor.new.task_txn do
         NewRelic::Agent.set_transaction_name('new_name')
       end
+
       assert_metrics_recorded 'OtherTransaction/Background/new_name'
     end
 
@@ -405,6 +427,7 @@ module NewRelic
         'trace.id' => trace_id,
         'span.id' => span_id
       }
+
       assert_equal expected, linking_metadata
     end
 
@@ -417,6 +440,7 @@ module NewRelic
         'entity.guid' => 'EntityGuid',
         'hostname' => 'HostName'
       }
+
       assert_equal expected, NewRelic::Agent.linking_metadata
     end
 
@@ -448,13 +472,15 @@ module NewRelic
       called = false
       NewRelic::Agent.subscribe(:boo) { called = true }
       NewRelic::Agent.notify(:boo)
+
       assert called
     end
 
     def test_ignore_transaction_works
       in_transaction do |txn|
         NewRelic::Agent.ignore_transaction
-        assert txn.ignore?
+
+        assert_predicate txn, :ignore?
       end
 
       assert_empty NewRelic::Agent.instance.transaction_sampler.harvest!
@@ -464,7 +490,8 @@ module NewRelic
     def test_ignore_apdex_works
       in_transaction do |txn|
         NewRelic::Agent.ignore_apdex
-        assert txn.ignore_apdex?
+
+        assert_predicate txn, :ignore_apdex?
       end
     end
 
@@ -472,7 +499,8 @@ module NewRelic
     def test_ignore_enduser_works
       in_transaction do |txn|
         NewRelic::Agent.ignore_enduser
-        assert txn.ignore_enduser?
+
+        assert_predicate txn, :ignore_enduser?
       end
     end
 

@@ -12,11 +12,13 @@ module NewRelic
       class JsonMarshallerTest < Minitest::Test
         def test_default_encoder_is_base64_compressed_json
           marshaller = JsonMarshaller.new
+
           assert_equal Encoders::Base64CompressedJSON, marshaller.default_encoder
         end
 
         def test_default_encoder_is_identity_with_simple_compression_enabled
           marshaller = JsonMarshaller.new
+
           with_config(:simple_compression => true) do
             assert_equal Encoders::Identity, marshaller.default_encoder
           end

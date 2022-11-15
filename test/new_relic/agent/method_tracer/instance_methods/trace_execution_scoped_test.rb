@@ -26,6 +26,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     expected_values = {:call_count => 1}
+
     assert_metrics_recorded_exclusive(
       %w[foo outer] => expected_values,
       'foo' => expected_values,
@@ -50,6 +51,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     expected_values = {:call_count => 1}
+
     assert_metrics_recorded_exclusive(
       'HttpDispatcher' => expected_values,
       'Controller/inner_txn' => expected_values,
@@ -96,6 +98,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     expected_values = {:call_count => 1}
+
     assert_metrics_recorded_exclusive(
       'outer' => expected_values,
       'foo' => expected_values,
@@ -120,6 +123,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     expected_values = {:call_count => 1}
+
     assert_metrics_recorded_exclusive(
       'outer' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
@@ -204,6 +208,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     value = trace_execution_scoped(%w[metric array], {}) do
       1172
     end
+
     assert_equal 1172, value, 'should return the contents of the block'
   end
 

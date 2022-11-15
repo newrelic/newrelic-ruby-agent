@@ -22,6 +22,7 @@ module NewRelic::Agent::Threading
       message = String.new("Thread profiles did not match.\n\n")
       message << "Expected tree:\n#{original_a.dump_string}\n\n"
       message << "Actual tree:\n#{original_b.dump_string}\n"
+
       assert_equal(a, b, message)
       assert_equal(a.children, b.children, message)
       a.children.zip(b.children) do |a_child, b_child|

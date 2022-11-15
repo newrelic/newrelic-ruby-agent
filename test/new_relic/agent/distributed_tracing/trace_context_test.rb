@@ -160,6 +160,7 @@ module NewRelic::Agent::DistributedTracing
       trace_context_header_data = TraceContext.parse(format: NewRelic::FORMAT_NON_RACK,
         carrier: carrier,
         trace_state_entry_key: "190@nr")
+
       assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
       assert_equal 'new=entry', trace_context_header_data.trace_state('new=entry')
     end
@@ -169,6 +170,7 @@ module NewRelic::Agent::DistributedTracing
       trace_context_header_data = TraceContext.parse(format: NewRelic::FORMAT_NON_RACK,
         carrier: carrier,
         trace_state_entry_key: "190@nr")
+
       assert_nil trace_context_header_data.trace_state_payload
       assert_equal 'new=entry,other=asdf', trace_context_header_data.trace_state('new=entry')
     end
@@ -190,6 +192,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACEPARENT_KEY => 'cc-12345678901234567890123456789012-1234567890123456-01'
       })
       trace_parent = TraceContext.send(:extract_traceparent, NewRelic::FORMAT_NON_RACK, carrier)
+
       assert TraceContext.send(:trace_parent_valid?, trace_parent)
       assert_equal 'cc', trace_parent['version']
       assert_equal '12345678901234567890123456789012', trace_parent['trace_id']
@@ -200,6 +203,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACEPARENT_KEY => 'cc-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like'
       })
       trace_parent = TraceContext.send(:extract_traceparent, NewRelic::FORMAT_NON_RACK, carrier)
+
       assert TraceContext.send(:trace_parent_valid?, trace_parent)
       assert_equal 'cc', trace_parent['version']
       assert_equal '12345678901234567890123456789012', trace_parent['trace_id']
@@ -210,6 +214,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACEPARENT_KEY => '00-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like'
       })
       trace_parent = TraceContext.send(:extract_traceparent, NewRelic::FORMAT_NON_RACK, carrier)
+
       refute TraceContext.send(:trace_parent_valid?, trace_parent)
     end
 

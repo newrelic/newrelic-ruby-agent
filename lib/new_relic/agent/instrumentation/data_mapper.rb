@@ -26,7 +26,6 @@ DependencyDetection.defer do
       :deprecated_datamapper,
       deprecation_msg
     )
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/DataMapper", 1)
   end
 
   executes do

@@ -38,6 +38,7 @@ module NewRelic
         def test_segment_notices_error
           with_segment do |segment|
             segment.notice_error(RuntimeError.new('notice me!'))
+
             assert segment.noticed_error, 'Expected an error to be noticed'
           end
         end
@@ -46,6 +47,7 @@ module NewRelic
           with_segment do |segment|
             segment.notice_error(RuntimeError.new('notice me!'))
             segment.notice_error(RuntimeError.new('no, notice me!'))
+
             assert segment.noticed_error, 'Expected an error to be noticed'
             assert_equal 'no, notice me!', segment.noticed_error.message
           end
@@ -62,6 +64,7 @@ module NewRelic
             segment = basic_segment
             txn.add_segment(segment)
             segment.start
+
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
 
             advance_process_time(1.0)
@@ -69,8 +72,8 @@ module NewRelic
           end
 
           assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
-          assert_equal 1.0, segment.duration
-          assert_equal 1.0, segment.exclusive_duration
+          assert_in_delta(1.0, segment.duration)
+          assert_in_delta(1.0, segment.exclusive_duration)
         end
 
         def test_segment_records_metrics
@@ -146,6 +149,7 @@ module NewRelic
             advance_process_time(1.0)
             segment.record_on_finish = true
             segment.finish
+
             assert_includes txn.metrics.instance_variable_get(:@scoped).keys, basic_segment_name
             assert_includes txn.metrics.instance_variable_get(:@unscoped).keys, BasicSegment::ALL_NAME
           end
@@ -153,17 +157,20 @@ module NewRelic
 
         def test_params_are_checkable_and_lazy_initializable
           segment = basic_segment
+
           refute segment.params?
           assert_nil segment.instance_variable_get(:@params)
 
           segment.params[:foo] = 'bar'
-          assert segment.params?
+
+          assert_predicate segment, :params?
           assert_equal({foo: 'bar'}, segment.params)
         end
 
         def test_sets_start_time_from_constructor
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = BasicSegment.new(nil, t)
+
           assert_equal t, segment.start_time
         end
 
@@ -171,15 +178,18 @@ module NewRelic
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = BasicSegment.new
           segment.start
+
           assert_equal t, segment.start_time
         end
 
         def test_does_not_override_construction_start_time_when_started
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = BasicSegment.new(nil, t)
+
           assert_equal t, segment.start_time
           advance_process_time(1)
           segment.start
+
           assert_equal t, segment.start_time
         end
 
@@ -199,7 +209,7 @@ module NewRelic
             segment_c.finish
             segment_a.finish
 
-            assert segment_a.concurrent_children?
+            assert_predicate segment_a, :concurrent_children?
             refute segment_b.concurrent_children?
             refute segment_c.concurrent_children?
           end
@@ -229,6 +239,7 @@ module NewRelic
         def test_code_level_metrics_can_be_set
           with_segment do |segment|
             segment.code_information = clm_info
+
             assert_equal segment.instance_variable_get(:@code_filepath), clm_info[:filepath]
             assert_equal segment.instance_variable_get(:@code_function), clm_info[:function]
             assert_equal segment.instance_variable_get(:@code_lineno), clm_info[:lineno]
@@ -240,6 +251,7 @@ module NewRelic
           with_segment do |segment|
             segment.code_information = clm_info.merge(filepath: nil)
             attributes = segment.code_attributes
+
             assert_equal NewRelic::EMPTY_HASH, attributes
           end
         end
@@ -248,6 +260,7 @@ module NewRelic
           with_segment do |segment|
             segment.code_information = clm_info
             attributes = segment.code_attributes
+
             assert_equal attributes['code.filepath'], clm_info[:filepath]
             assert_equal attributes['code.function'], clm_info[:function]
             assert_equal attributes['code.lineno'], clm_info[:lineno]
@@ -264,6 +277,7 @@ module NewRelic
         def test_code_level_metrics_are_all_or_nothing
           with_segment do |segment|
             segment.code_information = clm_info.reject { |key| key == :namespace }
+
             assert_empty(segment.code_attributes)
           end
         end
@@ -276,7 +290,8 @@ module NewRelic
         def test_children_time_ranges_do_exist
           segment = basic_segment
           segment.instance_variable_set(:@children_timings, [[11.0, 38.0]])
-          assert segment.children_time_ranges?
+
+          assert_predicate segment, :children_time_ranges?
         end
 
         def test_during_recording_timings_become_ranges
@@ -292,6 +307,7 @@ module NewRelic
           segment = basic_segment
           segment.instance_variable_set(:@children_timings, input)
           result = segment.send(:children_time_ranges)
+
           assert_equal expected, result
         end
 

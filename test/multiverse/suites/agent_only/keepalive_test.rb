@@ -19,6 +19,7 @@ class KeepaliveTest < Minitest::Test
     NewRelic::Agent.agent.send(:transmit_data)
 
     metric_data_calls = $collector.calls_for('metric_data')
+
     assert_equal(2, metric_data_calls.size)
   end
 end

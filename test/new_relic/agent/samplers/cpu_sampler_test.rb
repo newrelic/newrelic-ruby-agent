@@ -19,12 +19,15 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
   def test_correctly_detecting_jruby_support_for_correct_cpu_sampling
     if defined?(JRuby)
       set_jruby_version_constant('1.6.8')
+
       refute_supported_on_platform
 
       set_jruby_version_constant('1.7.0')
+
       assert_supported_on_platform
 
       set_jruby_version_constant('1.7.4')
+
       assert_supported_on_platform
     else
       assert_supported_on_platform
@@ -36,7 +39,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
   #
 
   def assert_supported_on_platform
-    assert NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, "should be supported on this platform"
+    assert_predicate NewRelic::Agent::Samplers::CpuSampler, :supported_on_this_platform?, "should be supported on this platform"
   end
 
   def refute_supported_on_platform

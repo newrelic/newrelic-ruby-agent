@@ -87,12 +87,14 @@ module NewRelic::Agent
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
       in_transaction("test_txn") do |txn|
         payload = DistributedTracePayload.for_transaction(txn)
+
         refute payload.sampled
       end
 
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
       in_transaction("test_txn2") do |txn|
         payload = DistributedTracePayload.for_transaction(txn)
+
         assert payload.sampled
       end
     end
@@ -118,7 +120,7 @@ module NewRelic::Agent
       assert_equal referring_transaction.initial_segment.guid, payload.id
       assert_equal referring_transaction.guid, payload.transaction_id
       assert_equal referring_transaction.trace_id, payload.trace_id
-      assert payload.sampled?
+      assert_predicate payload, :sampled?
       assert_equal referring_transaction.priority, payload.priority
       assert_equal created_at.round, payload.timestamp
     end
@@ -144,7 +146,7 @@ module NewRelic::Agent
       assert_equal referring_transaction.initial_segment.guid, payload.id
       assert_equal referring_transaction.guid, payload.transaction_id
       assert_equal referring_transaction.trace_id, payload.trace_id
-      assert payload.sampled?
+      assert_predicate payload, :sampled?
       assert_equal referring_transaction.priority, payload.priority
       assert_equal created_at.round, payload.timestamp
     end
@@ -168,8 +170,9 @@ module NewRelic::Agent
       payload1 = DistributedTracePayload.for_transaction(transaction)
       payload2 = DistributedTracePayload.from_json(payload1.text)
 
-      payload1_ivars = payload1.instance_variables.map { |iv| payload1.instance_variable_get(iv) }
-      payload2_ivars = payload2.instance_variables.map { |iv| payload2.instance_variable_get(iv) }
+      ivar_names = payload1.instance_variables
+      payload1_ivars = ivar_names.map { |iv| payload1.instance_variable_get(iv) }
+      payload2_ivars = ivar_names.map { |iv| payload2.instance_variable_get(iv) }
 
       assert_equal payload1_ivars, payload2_ivars
     end

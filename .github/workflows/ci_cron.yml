@@ -22,7 +22,6 @@ jobs:
       - run: rubocop
 
   unit_tests:
-    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       mysql:
@@ -35,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2, jruby-9.3.9.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview3, jruby-9.3.9.0]
 
     steps:
       - name: Configure git
@@ -83,7 +82,7 @@ jobs:
               "3.1.2": {
                 "rails": "norails,rails61,rails70,railsedge"
               },
-              "3.2.0-preview2": {
+              "3.2.0-preview3": {
                 "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.3.9.0": {
@@ -120,7 +119,6 @@ jobs:
           JRUBY_OPTS: --dev
 
   multiverse:
-    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:
@@ -200,7 +198,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview3]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -258,12 +256,11 @@ jobs:
         uses: ./.github/actions/annotate
 
   infinite_tracing:
-    needs: run_rubocop
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview2]
+        ruby-version: [2.5.9, 2.6.10, 2.7.6, 3.0.4, 3.1.2, 3.2.0-preview3]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -291,7 +288,6 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
-    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:

@@ -51,11 +51,13 @@ module NewRelic::Agent
 
       def test_generates_expected_name
         segment = ExternalRequestSegment.new("Typhoeus", "http://remotehost.com/blogs/index", "GET")
+
         assert_equal "External/remotehost.com/Typhoeus/GET", segment.name
       end
 
       def test_downcases_hostname
         segment = ExternalRequestSegment.new("Typhoeus", "http://ReMoTeHoSt.Com/blogs/index", "GET")
+
         assert_equal "External/remotehost.com/Typhoeus/GET", segment.name
       end
 
@@ -340,6 +342,7 @@ module NewRelic::Agent
             segment.finish
           end
         end
+
         assert request.headers.key?("X-NewRelic-ID"), "Expected to find X-NewRelic-ID header"
         assert request.headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
       end
@@ -357,6 +360,7 @@ module NewRelic::Agent
             segment.finish
           end
         end
+
         assert request.headers.key?("traceparent"), "Expected to find traceparent header"
         assert request.headers.key?("tracestate"), "Expected to find tracestate header"
       end
@@ -375,6 +379,7 @@ module NewRelic::Agent
             segment.finish
           end
         end
+
         assert request.headers.key?("X-NewRelic-Synthetics"), "Expected to find X-NewRelic-Synthetics header"
       end
 
@@ -387,8 +392,10 @@ module NewRelic::Agent
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET"
             )
+
             assert_equal "External/remotehost.com/Net::HTTP/GET", segment.name
             segment.add_request_headers(request)
+
             assert_equal "External/anotherhost.local/Net::HTTP/GET", segment.name
             segment.finish
           end
@@ -410,7 +417,7 @@ module NewRelic::Agent
             segment.process_response_headers(response)
             segment.finish
 
-            assert segment.cross_app_request?
+            assert_predicate segment, :cross_app_request?
             assert_equal "1#1884", segment.cross_process_id
             assert_equal "txn-name", segment.cross_process_transaction_name
             assert_equal "BEC1BC64675138B9", segment.transaction_guid
@@ -493,6 +500,7 @@ module NewRelic::Agent
           "External/remotehost.com/Net::HTTP/GET",
           "External/allWeb"
         ]
+
         assert_metrics_recorded expected_metrics
       end
 
@@ -508,6 +516,7 @@ module NewRelic::Agent
           procedure: "GET"
         }
         segment, _http_response = with_external_segment(headers, cat_config, segment_params)
+
         assert_equal 404, segment.http_status_code
         refute_metrics_recorded "External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode"
       end
@@ -585,9 +594,11 @@ module NewRelic::Agent
         with_config(cat_config.merge(:'cross_application_tracer.enabled' => true)) do
           in_transaction do |txn|
             rmd = external_request_segment { |s| s.get_request_metadata }
+
             assert_instance_of String, rmd
             rmd = @obfuscator.deobfuscate(rmd)
             rmd = JSON.parse(rmd)
+
             assert_instance_of Hash, rmd
 
             assert_equal '269975#22824', rmd['NewRelicID']
@@ -601,7 +612,7 @@ module NewRelic::Agent
 
             refute rmd.key?('NewRelicSynthetics')
 
-            assert txn.distributed_tracer.is_cross_app_caller?
+            assert_predicate txn.distributed_tracer, :is_cross_app_caller?
           end
         end
       end
@@ -610,6 +621,7 @@ module NewRelic::Agent
         with_config(cat_config.merge(:'cross_application_tracer.enabled' => false)) do
           in_transaction do |txn|
             rmd = external_request_segment { |s| s.get_request_metadata }
+
             refute rmd, "`get_request_metadata` should return nil with cross app tracing disabled"
           end
         end
@@ -653,6 +665,7 @@ module NewRelic::Agent
             }))
 
             segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
+
             assert_equal 'ExternalTransaction/example.com/269975#22824/Controller/root/index', segment.name
           end
         end
@@ -672,6 +685,7 @@ module NewRelic::Agent
           }))
 
           segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
+
           assert_equal 'External/example.com/foo/get', segment.name
         end
       end
@@ -694,6 +708,7 @@ module NewRelic::Agent
             l = with_array_logger do
               segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
             end
+
             refute_empty l.array, "process_response_metadata should log error on invalid ID"
             assert_includes l.array.first, 'invalid/non-trusted ID'
 
@@ -720,6 +735,7 @@ module NewRelic::Agent
             l = with_array_logger do
               segment = external_request_segment { |s| s.process_response_metadata(rmd); s }
             end
+
             refute_empty l.array, "process_response_metadata should log error on invalid ID"
             assert_includes l.array.first, 'invalid/non-trusted ID'
 
@@ -751,6 +767,7 @@ module NewRelic::Agent
               segment.finish
             end
           end
+
           assert request.headers.key?("newrelic"), "Expected to find newrelic header"
         end
       end
@@ -800,6 +817,7 @@ module NewRelic::Agent
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_equal 2, last_span_events.size
           external_intrinsics, _, external_agent_attributes = last_span_events[0]
           root_span_event = last_span_events[1][0]
@@ -815,7 +833,7 @@ module NewRelic::Agent
           assert_equal sampled, external_intrinsics.fetch('sampled')
           assert_equal priority, external_intrinsics.fetch('priority')
           assert_equal timestamp, external_intrinsics.fetch('timestamp')
-          assert_equal 1.0, external_intrinsics.fetch('duration')
+          assert_in_delta(1.0, external_intrinsics.fetch('duration'))
           assert_equal expected_name, external_intrinsics.fetch('name')
           assert_equal segment.library, external_intrinsics.fetch('component')
           assert_equal segment.procedure, external_intrinsics.fetch('http.method')
@@ -842,6 +860,7 @@ module NewRelic::Agent
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_equal 2, last_span_events.size
           _, _, external_agent_attributes = last_span_events[0]
 
@@ -864,6 +883,7 @@ module NewRelic::Agent
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
         assert_empty last_span_events
       end
 
@@ -881,6 +901,7 @@ module NewRelic::Agent
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
         assert_empty last_span_events
       end
 
@@ -906,6 +927,7 @@ module NewRelic::Agent
 
       def test_record_agent_attributes_defaults_to_false
         segment = NewRelic::Agent::Transaction::ExternalRequestSegment.new('Shoes', 'http://shoesrb.com/', 'GET')
+
         refute segment.record_agent_attributes?
       end
 
@@ -914,7 +936,8 @@ module NewRelic::Agent
           'https://rubygems.org/gems/hpricot/',
           'GET')
         segment.record_agent_attributes = true
-        assert segment.record_agent_attributes?
+
+        assert_predicate segment, :record_agent_attributes?
       end
 
       def cat_config

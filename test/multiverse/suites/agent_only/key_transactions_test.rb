@@ -62,8 +62,8 @@ class KeyTransactionsTest < Minitest::Test
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
-    assert_equal(1.0, stats[FAILING],
-      "Expected stats (#{stats}) to be apdex failing")
+
+    assert_in_delta(1.0, stats[FAILING], 0.001, "Expected stats (#{stats}) to be apdex failing")
   end
 
   def test_applied_correct_apdex_t_to_regular_txn
@@ -71,8 +71,8 @@ class KeyTransactionsTest < Minitest::Test
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
-    assert_equal(1.0, stats[SATISFYING],
-      "Expected stats (#{stats}) to be apdex satisfying")
+
+    assert_in_delta(1.0, stats[SATISFYING], 0.001, "Expected stats (#{stats}) to be apdex satisfying")
   end
 
   def test_applied_correct_tt_threshold
@@ -82,6 +82,7 @@ class KeyTransactionsTest < Minitest::Test
     NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
     traces = $collector.calls_for('transaction_sample_data')
+
     assert_equal 1, traces.size
     assert_equal(WEB_KEY_TXN, traces[0].metric_name)
   end
@@ -91,8 +92,8 @@ class KeyTransactionsTest < Minitest::Test
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
     stats = $collector.reported_stats_for_metric('ApdexOther')[0]
-    assert_equal(1.0, stats[FAILING],
-      "Expected stats (#{stats}) to be apdex failing")
+
+    assert_in_delta(1.0, stats[FAILING], 0.001, "Expected stats (#{stats}) to be apdex failing")
   end
 
   def test_no_apdex_for_regular_background_txn
@@ -109,6 +110,7 @@ class KeyTransactionsTest < Minitest::Test
     NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
     traces = $collector.calls_for('transaction_sample_data')
+
     assert_equal 1, traces.size
     assert_equal(OTHER_KEY_TXN, traces[0].metric_name)
   end

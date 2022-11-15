@@ -21,7 +21,7 @@ module NewRelic
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "Controller/whatever", intrinsics['name']
         refute intrinsics['error']
-        assert_equal 0.1, intrinsics['duration']
+        assert_in_delta(0.1, intrinsics['duration'])
         assert intrinsics["priority"].is_a?(Numeric)
       end
 
@@ -65,6 +65,7 @@ module NewRelic
       def test_includes_custom_attributes_in_event
         attributes.merge_custom_attributes('bing' => 2)
         _, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload)
+
         assert_equal 2, custom_attrs['bing']
       end
 
@@ -72,6 +73,7 @@ module NewRelic
         attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
 
         _, _, agent_attrs = TransactionEventPrimitive.create(generate_payload)
+
         assert_equal 2, agent_attrs['bing']
       end
 
@@ -79,6 +81,7 @@ module NewRelic
         with_config('transaction_events.attributes.enabled' => false) do
           attributes.merge_custom_attributes('bing' => 2)
           _, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload)
+
           assert_empty custom_attrs
         end
       end
@@ -88,6 +91,7 @@ module NewRelic
           attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
 
           _, _, agent_attrs = TransactionEventPrimitive.create(generate_payload)
+
           assert_empty agent_attrs
         end
       end
@@ -97,6 +101,7 @@ module NewRelic
           attributes.merge_custom_attributes('bing' => 2)
 
           _, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload)
+
           assert_empty custom_attrs
         end
       end
@@ -106,6 +111,7 @@ module NewRelic
           attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
 
           _, _, agent_attrs = TransactionEventPrimitive.create(generate_payload)
+
           assert_empty agent_attrs
         end
       end
@@ -118,7 +124,7 @@ module NewRelic
         event, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload('whatever', :metrics => metrics))
 
         assert_equal 'Transaction', event['type']
-        assert_equal 0.1, event['duration']
+        assert_in_delta(0.1, event['duration'])
 
         assert_equal 'giraffe', custom_attrs['type']
         assert_equal 'hippo', custom_attrs['duration']
@@ -132,6 +138,7 @@ module NewRelic
         txn_metrics.record_unscoped("GC/Transaction/all", 16)
 
         event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :metrics => txn_metrics))
+
         assert_equal 13, event_data["queueDuration"]
         assert_equal 14, event_data["externalDuration"]
         assert_equal 15, event_data["databaseDuration"]
@@ -165,11 +172,13 @@ module NewRelic
 
       def test_samples_on_transaction_finished_event_includes_guid
         event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :guid => "GUID"))
+
         assert_equal "GUID", event_data["nr.guid"]
       end
 
       def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
         event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :referring_transaction_guid => "REFER"))
+
         assert_equal "REFER", event_data["nr.referringTransactionGuid"]
       end
 

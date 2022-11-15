@@ -29,6 +29,7 @@ class SinatraAgentDisabledTestCase < Minitest::Test
 
   def test_shims_exist_when_agent_enabled_false
     NewRelic::Agent.manual_start(:agent_enabled => false)
+
     assert_shims_defined
   end
 end

@@ -74,6 +74,7 @@ module NewRelic
 
       def test_does_not_accept_trace_context_if_not_in_transaction
         _, carrier = build_parent_transaction_headers
+
         assert_nil @monitor.on_before_call(carrier)
       end
 
@@ -82,6 +83,7 @@ module NewRelic
         child_txn = in_transaction('child') do |txn|
           @events.notify(:before_call, carrier)
         end
+
         assert_nil child_txn.distributed_tracer.trace_context_header_data
       end
 

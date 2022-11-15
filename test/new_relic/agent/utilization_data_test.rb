@@ -38,6 +38,7 @@ module NewRelic::Agent
 
       with_config(:'utilization.detect_aws' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
+
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
     end
@@ -61,6 +62,7 @@ module NewRelic::Agent
 
       with_config(:'utilization.detect_azure' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
+
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
     end
@@ -84,6 +86,7 @@ module NewRelic::Agent
 
       with_config(:'utilization.detect_gcp' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
+
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
     end
@@ -107,6 +110,7 @@ module NewRelic::Agent
     def test_pcf_information_is_omitted_when_available_but_disabled_by_config
       with_config(:'utilization.detect_pcf' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
+
         with_pcf_env("CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
           "CF_INSTANCE_IP"   => "101.1.149.48",
           "MEMORY_LIMIT"     => "2048m") do
@@ -133,6 +137,7 @@ module NewRelic::Agent
       NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
       with_config(:'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
+
         assert_nil utilization_data.to_collector_hash[:vendors]
       end
     end
@@ -145,6 +150,7 @@ module NewRelic::Agent
 
       expects_logging(:debug, includes("YOLO"))
       utilization_data = UtilizationData.new
+
       assert_nil utilization_data.to_collector_hash[:vendors]
     end
 
@@ -244,6 +250,7 @@ module NewRelic::Agent
     def test_configured_hostname_added_to_config_hash
       with_config(:'utilization.billing_hostname' => 'BillNye') do
         utilization_data = UtilizationData.new
+
         assert_equal 'BillNye', utilization_data.to_collector_hash[:config][:hostname]
       end
     end
@@ -251,6 +258,7 @@ module NewRelic::Agent
     def test_configured_logical_processors_added_to_config_hash
       with_config(:'utilization.logical_processors' => 42) do
         utilization_data = UtilizationData.new
+
         assert_equal 42, utilization_data.to_collector_hash[:config][:logical_processors]
       end
     end
@@ -258,6 +266,7 @@ module NewRelic::Agent
     def test_configured_total_ram_mib_added_to_config_hash
       with_config(:'utilization.total_ram_mib' => 42) do
         utilization_data = UtilizationData.new
+
         assert_equal 42, utilization_data.to_collector_hash[:config][:total_ram_mib]
       end
     end
@@ -286,6 +295,7 @@ module NewRelic::Agent
           utilization_data = UtilizationData.new
 
           collector_hash = utilization_data.to_collector_hash
+
           assert_nil collector_hash[:vendors]
         end
       end

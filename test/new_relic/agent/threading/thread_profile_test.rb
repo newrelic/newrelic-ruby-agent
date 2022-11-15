@@ -196,17 +196,20 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         profile.increment_poll_count
 
         result = profile.to_collector_array(encoder)
+
         assert_equal 1, result[SAMPLE_COUNT_POSITION]
       end
 
       def test_empty
         profile = ThreadProfile.new
+
         assert_empty profile
       end
 
       def test_not_empty
         profile = ThreadProfile.new
         profile.aggregate([], :request, Thread.current)
+
         assert_false profile.empty?
       end
 

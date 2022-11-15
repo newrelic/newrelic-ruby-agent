@@ -25,7 +25,7 @@ module NewRelic
         assert_equal "Big Controller!", intrinsics['error.message']
         refute intrinsics['error.expected']
         assert_equal "Controller/blogs/index", intrinsics['transactionName']
-        assert_equal 0.1, intrinsics['duration']
+        assert_in_delta(0.1, intrinsics['duration'])
         assert_equal 80, intrinsics['port']
         assert_equal @span_id, intrinsics['spanId']
       end
@@ -59,11 +59,11 @@ module NewRelic
 
         intrinsics, *_ = create_event(:payload_options => {:metrics => metrics})
 
-        assert_equal 10.0, intrinsics["databaseDuration"]
+        assert_in_delta(10.0, intrinsics["databaseDuration"])
         assert_equal 1, intrinsics["databaseCallCount"]
-        assert_equal 11.0, intrinsics["gcCumulative"]
-        assert_equal 12.0, intrinsics["queueDuration"]
-        assert_equal 13.0, intrinsics["externalDuration"]
+        assert_in_delta(11.0, intrinsics["gcCumulative"])
+        assert_in_delta(12.0, intrinsics["queueDuration"])
+        assert_in_delta(13.0, intrinsics["externalDuration"])
         assert_equal 1, intrinsics["externalCallCount"]
       end
 
@@ -93,6 +93,7 @@ module NewRelic
         _, _, agent_attrs = create_event(:error_options => {:attributes => attributes})
 
         expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
+
         assert_equal expected, agent_attrs
       end
 

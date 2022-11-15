@@ -8,21 +8,25 @@ module NewRelic::Agent::Configuration
   class DottedHashTest < Minitest::Test
     def test_without_nesting
       hash = DottedHash.new({:turtle => 1})
+
       assert_equal({:turtle => 1}, hash)
     end
 
     def test_with_nesting
       hash = DottedHash.new({:turtle => {:turtle => 1}})
+
       assert_equal({:'turtle.turtle' => 1}, hash)
     end
 
     def test_with_multiple_layers_of_nesting
       hash = DottedHash.new({:turtle => {:turtle => {:turtle => 1}}})
+
       assert_equal({:'turtle.turtle.turtle' => 1}, hash)
     end
 
     def test_turns_keys_to_symbols
       hash = DottedHash.new({"turtle" => {"turtle" => {"turtle" => 1}}})
+
       assert_equal({:'turtle.turtle.turtle' => 1}, hash)
     end
 

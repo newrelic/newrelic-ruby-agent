@@ -13,6 +13,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     NewRelic::Agent::Instrumentation::RackBuilder.track_deferred_detection(instance.class)
     instance.deferred_dependency_check
+
     assert instance.class._nr_deferred_detection_ran
   ensure
     def TestBuilderClass
@@ -74,6 +75,7 @@ class RackBuilderTest < Minitest::Test
     instance.instance_variable_set(:@checked_for_late_instrumentation, true)
     # to ensure an early return, overwrite #middleware_instrumentation-enabled to explode
     def instance.middleware_instrumentation_enabled?; raise 'kaboom'; end
+
     assert_nil instance.check_for_late_instrumentation(nil)
   end
 
@@ -83,6 +85,7 @@ class RackBuilderTest < Minitest::Test
     def instance.check_for_late_instrumentation(obj); instance_variable_set(:@object_given, obj); end
     arg = :the_arg
     instance.with_deferred_dependency_detection { arg }
+
     assert_equal instance.instance_variable_get(:@object_given), arg
   end
 
@@ -92,6 +95,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     app = :the_app
     def instance.middleware_instrumentation_enabled; true; end
+
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :wrap, true, [app, true] do
       assert instance.run_with_tracing(app) { app }
     end
@@ -103,8 +107,24 @@ class RackBuilderTest < Minitest::Test
     # to ensure an early return, overwrite MiddlewareProxy.wrap to explode
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :wrap, -> { raise 'kaboom' } do
       app = :the_app
+
       assert_equal app, instance.run_with_tracing(app) { app }
     end
+  end
+
+  # Rack::Builder#run supports blocks as of v3.0.0
+  def test_run_with_tracing_with_the_original_run_method_is_given_a_block
+    skip 'Requires Rack v3+' unless defined?(Rack::RELEASE) && Rack::RELEASE >= '3.0.0'
+
+    builder = Rack::Builder.new
+    payload = [200, {}, ['Hello, Mr. Toad!']]
+    ::NewRelic::Agent::Instrumentation::RackHelpers.stub :middleware_instrumentation_enabled?, true do
+      builder.run { |_env| payload }
+    end
+    run = builder.instance_variable_get(:@run)
+
+    assert_kind_of NewRelic::Agent::Instrumentation::MiddlewareProxy, run
+    assert_equal payload, run.call({})
   end
 
   def test_use_with_tracing
@@ -113,6 +133,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     def instance.middleware_instrumentation_enabled?; true; end
     middleware = 'lucky tiger cup'
+
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :for_class, middleware, [middleware] do
       assert_equal middleware, instance.use_with_tracing(middleware) { middleware }
     end
@@ -122,6 +143,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     # ensure that middleware_instrumentation_enabled is not called
     def instance.middleware_instrumentation_enabled?; raise 'kaboom'; end
+
     assert_nil instance.use_with_tracing(nil) {}
   end
 
@@ -129,6 +151,7 @@ class RackBuilderTest < Minitest::Test
     instance = TestBuilderClass.new
     def instance.middleware_instrumentation_enabled?; false; end
     middleware = :a_bit_of_strawberry_stuck_on_the_far_end_of_the_straw
+
     assert_nil instance.use_with_tracing(middleware) {}
   end
 
@@ -140,6 +163,7 @@ class RackBuilderTest < Minitest::Test
     map = {url => handler}
     ::NewRelic::Agent::Instrumentation::MiddlewareProxy.stub :wrap, handler.reverse, [handler, true] do
       traced_map = ::NewRelic::Agent::Instrumentation::RackURLMap.generate_traced_map(map)
+
       assert_equal({url => handler.reverse}, traced_map)
     end
   end

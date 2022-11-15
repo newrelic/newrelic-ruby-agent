@@ -48,6 +48,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
     t1 = advance_process_time(2)
     get_path('/queue/queued', t0)
     queue_time = extract_queue_time_from_response
+
     assert_equal((t1 - t0) * 1000, queue_time)
   end
 
@@ -55,6 +56,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
     t0 = nr_freeze_process_time
     t1 = advance_process_time(2)
     get_path('/queue/nested', t0)
+
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
         :call_count => 1,
@@ -70,6 +72,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   def extract_queue_time_from_response
     @response.body =~ /\"queueTime\":(\d+.*)/
+
     refute_nil $1, "Should have found queue time in #{@response.body.inspect}"
     $1.to_i
   end

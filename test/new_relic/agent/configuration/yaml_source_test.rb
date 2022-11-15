@@ -17,6 +17,7 @@ module NewRelic::Agent::Configuration
     def test_should_load_hash_for_specified_configs
       ignore_messages = {"RuntimeError" => ["test error3"]}
       expected_messages = {"StandardError" => ["test error1", "test error2"]}
+
       assert_equal ignore_messages, @source[:'error_collector.ignore_messages']
       assert_equal expected_messages, @source[:'error_collector.expected_messages']
     end
@@ -60,7 +61,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_correctly_handle_floats
-      assert_equal 1.1, @source[:apdex_t]
+      assert_in_delta(1.1, @source[:apdex_t])
     end
 
     def test_should_not_log_error_by_default
@@ -101,29 +102,34 @@ module NewRelic::Agent::Configuration
       File.stubs(:read).raises(StandardError.new("boo"))
 
       source = YamlSource.new('fake.yml', 'test')
-      assert source.failed?
+
+      assert_predicate source, :failed?
     end
 
     def test_should_mark_erb_error_as_failure
       ERB.stubs(:new).raises(StandardError.new("boo"))
 
       source = YamlSource.new(@test_yml_path, 'test')
-      assert source.failed?
+
+      assert_predicate source, :failed?
     end
 
     def test_should_mark_missing_section_as_failure
       source = YamlSource.new(@test_yml_path, 'yolo')
-      assert source.failed?
+
+      assert_predicate source, :failed?
     end
 
     def test_failure_should_include_message
       source = YamlSource.new(@test_yml_path, 'yolo')
+
       assert_includes source.failures.flatten.join(' '), 'yolo'
     end
 
     def test_transaction_threshold_one_liner
       config = {'transaction_tracer.transaction_threshold' => 'apdex_f'}
       @source.send(:substitute_transaction_threshold, config)
+
       assert_empty config
     end
 
@@ -134,8 +140,9 @@ module NewRelic::Agent::Configuration
         source = YamlSource.new(@test_yml_path, 'test')
         source.send(:booleanify_values, config, 'key')
 
-        assert source.failed?
+        assert_predicate source, :failed?
         expected_message = "Unexpected value (#{value}) for 'key' in #{@test_yml_path}"
+
         assert_includes source.failures, expected_message
       end
     end
@@ -145,6 +152,7 @@ module NewRelic::Agent::Configuration
       define_method(method_name) do
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
+
         refute source.failed?
         source.send(:booleanify_values, config, 'key')
 

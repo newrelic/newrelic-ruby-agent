@@ -20,9 +20,11 @@ class MonotonicGCProfilerTest < Minitest::Test
 
     def test_total_time_reads_from_gc_profiler
       GC::Profiler.stubs(:total_time).returns(0)
+
       assert_equal 0, profiler.total_time_s
 
       GC::Profiler.stubs(:total_time).returns(100)
+
       assert_equal 100, profiler.total_time_s
     end
 

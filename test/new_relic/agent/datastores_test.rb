@@ -75,6 +75,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def test_method_retains_visibility
     private_methods = MyFirstDatabase.private_instance_methods.map(&:to_sym)
+
     assert_includes private_methods, :internal
   end
 
@@ -150,9 +151,11 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       )
       NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
       advance_process_time(elapsed)
+
       assert_equal segment, txn.current_segment
       segment.finish
       nr_unfreeze_process_time
+
       assert_equal query, segment.sql_statement.sql
       assert_equal elapsed, segment.duration
     end
@@ -171,9 +174,11 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       )
       NewRelic::Agent::Datastores.notice_statement(query, elapsed)
       advance_process_time(elapsed)
+
       assert_equal segment, txn.current_segment
       segment.finish
       nr_unfreeze_process_time
+
       assert_equal query, segment.nosql_statement
       assert_equal elapsed, segment.duration
     end
@@ -201,6 +206,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     end
   rescue
     sample = last_transaction_trace
+
     refute_nil find_node_with_name(sample, "Datastore/operation/MyFirstDatabase/boom")
   end
 

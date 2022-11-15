@@ -87,7 +87,7 @@ module NewRelic
         # @api public
         def in_transaction(name: nil,
           partial_name: nil,
-          category: nil,
+          category:,
           options: {})
 
           finishable = start_transaction_or_segment(

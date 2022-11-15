@@ -52,6 +52,7 @@ class MemoryLoggerTest < Minitest::Test
     real_logger.expects(:info).yields()
 
     @logger.dump(real_logger)
+
     assert called
   end
 
@@ -80,6 +81,7 @@ class MemoryLoggerTest < Minitest::Test
     memory_logger_methods = NewRelic::Agent::MemoryLogger.instance_methods(false)
 
     unimplemented = agent_logger_methods - memory_logger_methods
+
     assert_empty unimplemented
   end
 end

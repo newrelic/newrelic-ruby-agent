@@ -65,12 +65,14 @@ module NewRelic
 
           def test_doesnt_modify_incoming_statement
             formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
+
             refute_same FIND_COMMAND, formatted
           end
 
           def test_can_disable_statement_capturing_queries
             with_config(:'mongo.capture_queries' => false) do
               formatted = EventFormatter.format('find', DATABASE, FIND_COMMAND)
+
               assert_nil formatted
             end
           end
@@ -98,6 +100,7 @@ module NewRelic
             }
 
             formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
+
             assert_equal expected, formatted
           end
 
@@ -109,6 +112,7 @@ module NewRelic
                 :database => DATABASE,
                 :collection => 'tribbles'
               )
+
               assert_equal expected, formatted
             end
           end
@@ -123,6 +127,7 @@ module NewRelic
             }
 
             formatted = EventFormatter.format(:insert, DATABASE, INSERT_COMMAND)
+
             assert_equal expected, formatted
           end
 
@@ -136,6 +141,7 @@ module NewRelic
             }
 
             formatted = EventFormatter.format(:update, DATABASE, UPDATE_COMMAND)
+
             assert_equal expected, formatted
           end
 
@@ -152,6 +158,7 @@ module NewRelic
             }
 
             formatted = EventFormatter.format(:aggregate, DATABASE, AGGREGATE_COMMAND)
+
             assert_equal expected, formatted
           end
 
@@ -165,6 +172,7 @@ module NewRelic
             }
 
             formatted = EventFormatter.format(:delete, DATABASE, DELETE_COMMAND)
+
             assert_equal expected, formatted
           end
         end

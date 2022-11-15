@@ -54,6 +54,7 @@ class SinatraTestCase < Minitest::Test
 
   def get_and_assert_ok(path)
     get(path)
+
     assert_equal 200, last_response.status
     assert_match(/#{Regexp.escape(path)}/, last_response.body)
   end
@@ -83,6 +84,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_seen_route
     get_and_assert_ok('/record')
     segment = name_for_route('record')
+
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
@@ -92,6 +94,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignores_exact_match
     get_and_assert_ok('/ignore')
     segment = name_for_route('ignore')
+
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
@@ -101,6 +104,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignores_by_splats
     get_and_assert_ok('/splattered')
     segment = name_for_route('splattered')
+
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
@@ -132,6 +136,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_seen_with_regex
     get_and_assert_ok('/regex_seen')
     segment = name_for_route('regex_seen')
+
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
@@ -141,6 +146,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignores_by_regex
     get_and_assert_ok('/skip_regex')
     segment = name_for_route('skip_regex')
+
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
@@ -150,6 +156,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignore_apdex
     get_and_assert_ok('/no_apdex')
     segment = name_for_route('no_apdex')
+
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{segment}"])
     assert_metrics_not_recorded(["Apdex/Sinatra/#{app_name}/#{segment}"])
   end
@@ -157,6 +164,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignore_enduser_should_only_apply_to_specified_route
     get_and_assert_ok('/enduser')
     segment = name_for_route('enduser')
+
     refute_enduser_ignored(last_response)
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
@@ -167,6 +175,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignore_enduser
     get_and_assert_ok('/no_enduser')
     segment = name_for_route('no_enduser')
+
     assert_enduser_ignored(last_response)
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
@@ -176,6 +185,7 @@ class SinatraIgnoreTest < SinatraTestCase
 
   def test_ignore_errors_in_ignored_transactions
     get('/ignored_erroring')
+
     assert_metrics_not_recorded(["Errors/all"])
   end
 
@@ -204,6 +214,7 @@ class SinatraIgnoreItAllTest < SinatraTestCase
     # Ignores Supportability and Logging metrics, makes sure we don't see
     # transaction or other related metrics
     get_and_assert_ok('/')
+
     assert_metrics_recorded_exclusive(
       [],
       :ignore_filter => /^(Supportability|Logging)/
@@ -226,11 +237,13 @@ class SinatraIgnoreApdexAndEndUserTest < SinatraTestCase
 
   def test_ignores_apdex
     get_and_assert_ok('/')
+
     assert_metrics_not_recorded(["Apdex/Sinatra/#{app.to_s}/GET /"])
   end
 
   def test_ignores_enduser
     get_and_assert_ok('/')
+
     assert_enduser_ignored(last_response)
   end
 end

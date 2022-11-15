@@ -22,6 +22,7 @@ module NewRelic::Agent::Configuration
     def test_should_use_indifferent_access
       config = NewRelic::Agent::Configuration::DottedHash.new('string' => 'string', :symbol => 'symbol')
       @manager.add_config_for_testing(config)
+
       assert_equal 'string', @manager[:string]
       assert_equal 'symbol', @manager['symbol']
     end
@@ -117,6 +118,7 @@ module NewRelic::Agent::Configuration
 
     def test_config_values_should_be_memoized
       @manager.add_config_for_testing(:setting => 'correct value')
+
       assert_equal 'correct value', @manager[:setting]
 
       @manager.instance_variable_get(:@configs_for_testing)
@@ -127,6 +129,7 @@ module NewRelic::Agent::Configuration
 
     def test_dotted_hash_to_hash_is_plain_hash
       dotted = NewRelic::Agent::Configuration::DottedHash.new({})
+
       assert_equal(::Hash, dotted.to_hash.class)
     end
 
@@ -204,9 +207,11 @@ module NewRelic::Agent::Configuration
       @manager.register_callback(:test) do |value|
         observed_value = value
       end
+
       assert_equal 'original', observed_value
 
       @manager.add_config_for_testing(:test => 'new')
+
       assert_equal 'new', observed_value
     end
 
@@ -216,6 +221,7 @@ module NewRelic::Agent::Configuration
         actual = value
       end
       @manager.add_config_for_testing(:test => proc { "value" })
+
       refute_equal actual.class, Proc, 'Callback returned Proc'
     end
 
@@ -235,10 +241,12 @@ module NewRelic::Agent::Configuration
 
     def test_finished_configuring
       @manager.add_config_for_testing(:layer => "yo")
+
       refute @manager.finished_configuring?
 
       @manager.replace_or_add_config(ServerSource.new({}))
-      assert @manager.finished_configuring?
+
+      assert_predicate @manager, :finished_configuring?
     end
 
     def test_notifies_finished_configuring
@@ -268,6 +276,7 @@ module NewRelic::Agent::Configuration
 
     def test_stripped_exceptions_allowlist_contains_only_valid_exception_classes
       @manager.add_config_for_testing(:'strip_exception_messages.allowed_classes' => 'LocalJumpError, NonExistentException')
+
       assert_equal [LocalJumpError], @manager[:'strip_exception_messages.allowed_classes']
     end
 
@@ -277,6 +286,7 @@ module NewRelic::Agent::Configuration
       end
 
       log_lines = log.array
+
       assert_match(/DEBUG.*asdf/, log_lines[0])
     end
 
@@ -289,6 +299,7 @@ module NewRelic::Agent::Configuration
       end
 
       log_lines = log.array
+
       refute_match(/DEBUG.*asdf/, log_lines[0])
     end
 
@@ -306,6 +317,7 @@ module NewRelic::Agent::Configuration
       refute_includes @manager.config_classes_for_testing, SecurityPolicySource
       security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
       @manager.replace_or_add_config(security_policy_source)
+
       assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
@@ -314,6 +326,7 @@ module NewRelic::Agent::Configuration
         @manager.add_config_for_testing(:labels => testcase["labelString"])
 
         assert_warning if testcase["warning"]
+
         assert_equal(testcase["expected"].sort_by { |h| h["label_type"] },
           @manager.parse_labels_from_string.sort_by { |h| h["label_type"] },
           "failed on #{testcase["name"]}")
@@ -351,6 +364,7 @@ module NewRelic::Agent::Configuration
       expected = [{'label_type' => 'K' * 255, 'label_value' => 'V' * 255}]
 
       expects_logging(:warn, includes("truncated"))
+
       assert_parsed_labels(expected)
     end
 
@@ -369,6 +383,7 @@ module NewRelic::Agent::Configuration
       })
 
       expected = [{'label_type' => 'the answer', 'label_value' => '42'}]
+
       assert_parsed_labels(expected)
     end
 
@@ -382,6 +397,7 @@ module NewRelic::Agent::Configuration
         {'label_type' => 'truthy', 'label_value' => 'true'},
         {'label_type' => 'falsy', 'label_value' => 'false'}
       ]
+
       assert_parsed_labels(expected)
     end
 
@@ -416,6 +432,7 @@ module NewRelic::Agent::Configuration
     def test_prepend_key_absent_to_instrumentation_value_of
       with_config({}) do
         result = @manager.fetch(:'instrumentation.net_http')
+
         assert_equal "auto", result
       end
     end
@@ -423,6 +440,7 @@ module NewRelic::Agent::Configuration
     def test_prepend_key_false_to_instrumentation_value_of
       with_config({:prepend_net_instrumentation => false}) do
         result = @manager.fetch(:'instrumentation.net_http')
+
         assert_equal "chain", result
       end
     end
@@ -430,6 +448,7 @@ module NewRelic::Agent::Configuration
     def test_prepend_key_true_to_instrumentation_value_of
       with_config(:prepend_net_instrumentation => true) do
         result = @manager.fetch(:'instrumentation.net_http')
+
         assert_equal "auto", result
       end
     end
@@ -437,6 +456,7 @@ module NewRelic::Agent::Configuration
     def test_default_to_value_of
       with_config(:port => 8888) do
         result = @manager.fetch(:api_port)
+
         assert_equal 8888, result
       end
     end
@@ -444,12 +464,14 @@ module NewRelic::Agent::Configuration
     def test_default_to_value_of_only_happens_at_defaults
       with_config(:port => 8888, :api_port => 3000) do
         result = @manager.fetch(:api_port)
+
         assert_equal 3000, result
       end
     end
 
     def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
       callable = proc { 'test' }
+
       assert_equal 'test', @manager.evaluate_procs(callable)
     end
 
@@ -479,6 +501,7 @@ module NewRelic::Agent::Configuration
 
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
+
       assert_equal expected, result
     end
 

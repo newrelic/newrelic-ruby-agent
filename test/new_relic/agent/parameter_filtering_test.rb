@@ -13,6 +13,7 @@ module NewRelic
           undefine_constant(:"ActiveSupport::ParameterFilter") do
             params = {"password" => "mypass"}
             result = ParameterFiltering.apply_filters({}, params)
+
             assert_equal params, result
           end
         end
@@ -30,10 +31,19 @@ module NewRelic
 
         expected = {:name => "name", :file => "[FILE]"}
         result = ParameterFiltering.apply_filters(env, params)
+
         assert_equal expected, result
 
         # argument should not be mutated
         assert_equal({:filename => "data.jpg", :tempfile => "file_data"}, params[:file])
+      end
+
+      def test_app_works_constant_not_set
+        undefine_constant(:"NewRelic::Agent::ParameterFiltering::RAILS_FILTER_CLASS") do
+          params = {rubysec: :cat}
+
+          assert_equal params, ParameterFiltering.filter_using_rails(params, nil)
+        end
       end
     end
   end

@@ -21,6 +21,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
     expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i},
       {'foo' => 'bar', 'baz' => 'qux'}]
+
     assert_equal(expected_event, events.first)
   end
 
@@ -31,6 +32,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     end
 
     result = NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar)
+
     refute(result)
   end
 
@@ -61,6 +63,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.record_custom_event('whatever', :foo => :bar)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
     assert_equal(0, $collector.calls_for(:custom_event_data).size)
   end
 
@@ -77,6 +80,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
   def last_custom_event_post
     posts = $collector.calls_for('custom_event_data')
+
     assert_equal(1, posts.size)
     posts.first
   end

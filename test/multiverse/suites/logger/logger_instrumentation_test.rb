@@ -35,6 +35,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # logger#debug("message")
     define_method("test_records_#{name}") do
       @logger.send(name, "A message")
+
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
       assert_logging_instrumentation(name.upcase)
@@ -53,6 +54,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # logger#debug(Object.new)
     define_method("test_records_not_a_string_#{name}") do
       @logger.send(name, Object.new)
+
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*<Object.*>/, @written.string)
       assert_logging_instrumentation(name.upcase)
@@ -72,6 +74,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # logger#log(Logger::DEBUG, "message")
     define_method("test_records_by_log_method_#{name}") do
       @logger.log(level, "A message")
+
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
       assert_logging_instrumentation(name.upcase)
@@ -80,6 +83,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # logger#log(Logger::DEBUG} { "message" }
     define_method("test_records_by_log_method_with_block_#{name}") do
       @logger.log(level) { "A message" }
+
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*A message/, @written.string)
       assert_logging_instrumentation(name.upcase)
@@ -88,6 +92,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # logger#log(Logger::DEBUG, "message", "progname")
     define_method("test_records_by_log_method_plus_progname_#{name}") do
       @logger.log(level, "A message", "progname")
+
       assert_equal(1, @written.string.lines.count)
       assert_match(/#{name.upcase}.*progname.*A message/, @written.string)
       assert_logging_instrumentation(name.upcase)
@@ -96,6 +101,7 @@ class LoggerInstrumentationTest < Minitest::Test
     define_method("test_decorates_message_when_enabled_#{name}") do
       with_config(:'application_logging.local_decorating.enabled' => true) do
         @logger.log(level) { "A message" }
+
         assert_includes @written.string, 'NR-LINKING'
       end
     end
@@ -103,6 +109,7 @@ class LoggerInstrumentationTest < Minitest::Test
     define_method("test_does_not_decorate_message_when_disabled_#{name}") do
       with_config(:'application_logging.local_decorating.enabled' => false) do
         @logger.log(level) { "A message" }
+
         refute_includes @written.string, 'NR-LINKING'
       end
     end
@@ -111,12 +118,14 @@ class LoggerInstrumentationTest < Minitest::Test
   def test_still_skips_levels
     @logger.level = ::Logger::INFO
     @logger.debug("Won't see this")
+
     assert_equal(0, @written.string.lines.count)
     refute_any_logging_instrumentation()
   end
 
   def test_unknown
     @logger.unknown("A message")
+
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*A message/, @written.string)
     assert_logging_instrumentation("ANY")
@@ -124,6 +133,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def test_really_high_level
     @logger.log(1_000_000, "A message")
+
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*A message/, @written.string)
     assert_logging_instrumentation("ANY")
@@ -131,6 +141,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def test_really_high_level_with_progname
     @logger.log(1_000_000, "A message", "progname")
+
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*progname.*A message/, @written.string)
     assert_logging_instrumentation("ANY")
@@ -138,6 +149,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def test_nil_severity
     @logger.log(nil, "A message", "progname")
+
     assert_equal(1, @written.string.lines.count)
     assert_match(/ANY.*progname.*A message/, @written.string)
     assert_logging_instrumentation("ANY")
@@ -160,12 +172,13 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def test_enabled_returns_true_when_enabled
     with_config(:'instrumentation.logger' => 'auto') do
-      assert NewRelic::Agent::Instrumentation::Logger.enabled?
+      assert_predicate NewRelic::Agent::Instrumentation::Logger, :enabled?
     end
   end
 
   def refute_any_logging_instrumentation
     _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
+
     assert_empty logs
 
     assert_metrics_recorded_exclusive([])
@@ -177,6 +190,7 @@ class LoggerInstrumentationTest < Minitest::Test
     @logger.clear_skip_instrumenting
     NewRelic::Agent::Instrumentation::Logger.mark_skip_instrumenting(@logger)
     NewRelic::Agent::Instrumentation::Logger.clear_skip_instrumenting(@logger)
+
     refute @logger.instance_variable_defined?(:@skip_instrumenting), "instance variable should not be defined"
   end
 
@@ -185,6 +199,7 @@ class LoggerInstrumentationTest < Minitest::Test
     # minimize impact in the hot path
     _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
     logs_at_level = logs.select { |log| log.last["level"] == level }
+
     assert_equal count, logs_at_level.count
 
     assert_metrics_recorded_exclusive({

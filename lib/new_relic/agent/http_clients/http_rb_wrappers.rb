@@ -9,7 +9,7 @@ module NewRelic
     module HTTPClients
       class HTTPResponse < AbstractResponse
         def [](key)
-          _, value = @wrapped_response.headers.find { |k, _| key.casecmp(k).zero? }
+          _, value = @wrapped_response.headers.find { |k, _| key.casecmp(k) == 0 }
           value unless value.nil?
         end
 

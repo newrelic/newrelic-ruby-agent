@@ -20,6 +20,7 @@ module NewRelic
 
         def test_all_infinite_tracing_config_keys_are_used
           scan_and_remove_used_entries(@default_keys, non_test_files)
+
           assert_empty @default_keys
         end
 
@@ -69,6 +70,7 @@ module NewRelic
               :'infinite_tracing.trace_observer.host' => hostname,
               :'infinite_tracing.trace_observer.port' => 443
             }
+
             with_config(config) do
               assert_equal port, Config.trace_observer_port, "expected #{port} for port because host overrides: #{hostname}"
             end
@@ -88,6 +90,7 @@ module NewRelic
             config = {
               :'infinite_tracing.trace_observer.host' => hostname
             }
+
             with_config(config) do
               assert_equal host_and_port,
                 Config.trace_observer_host_and_port,
@@ -101,6 +104,7 @@ module NewRelic
           error = assert_raises RuntimeError do
             Config.trace_observer_uri
           end
+
           assert_match(/not configured/, error.message)
         end
 

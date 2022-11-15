@@ -45,7 +45,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_set_apdex_t
-      assert_equal 1.0, @source[:apdex_t]
+      assert_in_delta(1.0, @source[:apdex_t])
     end
 
     def test_should_set_agent_config_values
@@ -97,7 +97,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_not_dot_the_web_transactions_apdex_hash
-      assert_equal 1.5, @source[:web_transactions_apdex]['Controller/some/txn']
+      assert_in_delta(1.5, @source[:web_transactions_apdex]['Controller/some/txn'])
     end
 
     def test_should_set_analytics_events_max_samples
@@ -164,6 +164,7 @@ module NewRelic::Agent::Configuration
         :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
+
       refute @source[:'error_collector.enabled']
       refute @source[:'slow_sql.enabled']
       refute @source[:'transaction_tracer.enabled']
@@ -186,6 +187,7 @@ module NewRelic::Agent::Configuration
         :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
+
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
@@ -206,6 +208,7 @@ module NewRelic::Agent::Configuration
         :'transaction_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
+
       refute @source[:'error_collector.enabled']
       refute @source[:'slow_sql.enabled']
       refute @source[:'transaction_tracer.enabled']
@@ -234,6 +237,7 @@ module NewRelic::Agent::Configuration
         :'custom_insights_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
+
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
@@ -251,6 +255,7 @@ module NewRelic::Agent::Configuration
         }
       }
       @source = ServerSource.new(rsp, {})
+
       assert @source[:'error_collector.enabled']
       assert @source[:'slow_sql.enabled']
       assert @source[:'transaction_tracer.enabled']
@@ -267,6 +272,7 @@ module NewRelic::Agent::Configuration
       }
 
       source = ServerSource.new(rsp, {})
+
       refute_includes source.keys, :'attributes.include'
       assert_includes source.keys, :'slow_sql.explain_threshold'
     end
@@ -279,6 +285,7 @@ module NewRelic::Agent::Configuration
       }
 
       source = ServerSource.new(rsp, {})
+
       refute_includes source.keys, :platypus
     end
 
@@ -287,6 +294,7 @@ module NewRelic::Agent::Configuration
         'slow_sql.explain_threshold' => 42
       }
       source = ServerSource.new(rsp, {})
+
       refute_includes source.keys, :'slow_sql.explain_threshold'
     end
 

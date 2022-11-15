@@ -3,30 +3,15 @@
 # frozen_string_literal: true
 
 excon_versions = [
-  nil,
-  '0.56.0',
-  '0.64.0',
-  '0.70.0',
-  '0.78.1',
-  '0.85.0'
+  [nil],
+  ['0.56.0'],
+  ['0.19.0', 2.2, 2.6]
 ]
 
 def gem_list(excon_version = nil)
-  # TODO: CI - rack v3.0.0 causes 2 test failures
-  #
-  # HTTPClientTest#test_crossapp_metrics_allow_valid_utf8_characters
-  # [test/new_relic/http_client_test_cases.rb:381]:
-  # Expected [:uri] to include :transaction_guid.
-  #
-  # and
-  #
-  # HTTPClientTest#test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-  # [test/new_relic/http_client_test_cases.rb:357]
-  #
-  # Once the issue is resolved, rack should be unpinned below
   <<-RB
     gem 'excon'#{excon_version}
-    gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
+    gem 'rack'
     #{ruby3_gem_webrick}
   RB
 end

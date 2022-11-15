@@ -132,6 +132,7 @@ module NewRelic
             end
 
             intrinsics, _, _ = last_transaction_event
+
             assert_equal transaction.trace_id, intrinsics['traceId']
           end
         end
@@ -144,6 +145,7 @@ module NewRelic
             destination_type: :exchange,
             destination_name: "Default",
             start_time: t)
+
           assert_equal t, segment.start_time
 
           segment = NewRelic::Agent::Tracer.start_message_broker_segment(action: :produce,
@@ -151,6 +153,7 @@ module NewRelic
             destination_type: :exchange,
             destination_name: "Default",
             start_time: t)
+
           assert_equal t, segment.start_time
         end
       end

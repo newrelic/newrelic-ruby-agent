@@ -77,6 +77,7 @@ module NewRelic
                 detection = @vendor.detect
 
                 expected = test_case[:expected_vendors_hash].nil? ? {pcf: {}} : test_case[:expected_vendors_hash]
+
                 assert_equal expected, {pcf: @vendor.metadata}
 
                 if test_case[:expected_metrics]
@@ -87,6 +88,7 @@ module NewRelic
                       else
                         assert detection, '@vendor.detect should have returned truthy'
                       end
+
                       assert_metrics_not_recorded [metric.to_s]
                     else
                       refute detection, '@vendor.detect should have returned false'

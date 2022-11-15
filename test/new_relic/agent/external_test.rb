@@ -71,6 +71,7 @@ module NewRelic
           }))
 
           l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
+
           assert_empty l.array, "process_request_metadata should not log errors without a current transaction"
 
           refute Tracer.current_transaction
@@ -87,6 +88,7 @@ module NewRelic
 
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
+
             refute_empty l.array, "process_request_metadata should log error on invalid ID"
             assert_includes l.array.first, 'invalid/non-trusted ID'
 
@@ -105,6 +107,7 @@ module NewRelic
 
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
+
             refute_empty l.array, "process_request_metadata should log error on invalid ID"
             assert_includes l.array.first, 'invalid/non-trusted ID'
 
@@ -122,6 +125,7 @@ module NewRelic
 
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
+
             assert_empty l.array, "process_request_metadata should not log errors when cross app tracing is disabled"
 
             refute txn.distributed_tracer.cross_app_payload
@@ -143,9 +147,11 @@ module NewRelic
             NewRelic::Agent::External.process_request_metadata(inbound_rmd)
 
             rmd = NewRelic::Agent::External.get_response_metadata
+
             assert_instance_of String, rmd
             rmd = @obfuscator.deobfuscate(rmd)
             rmd = JSON.parse(rmd)
+
             assert_instance_of Hash, rmd
             assert_instance_of Array, rmd['NewRelicAppData']
 

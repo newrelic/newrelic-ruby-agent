@@ -22,12 +22,12 @@
 
 # - [ ] Append a new method to instrument to an existing instrumentation class (with tests?)
 
-# - [ ] Documentation: examples of what to add in each gap
-
-# - [ ] Good examples of tests, instrumentation, etc. as comments
+# - [ ] Documentation: examples of what to add in each gap (Good examples of tests, instrumentation, etc. as comments to guide users)
 
 # - [ ] Handle multi-word gem names (camel case for classes, handle hyphens, concurrent-ruby as example)
 
-# - [ ] Make sure multiple arguments can be passed to the command line
+# - [ ] Allow multiple method arguments to be passed to the command line
 
-# - [ ] Add tests
+# - [ ] Add tests for the instrumentation_generator code
+
+# - [ ] See if instrumentation PRs can get automatically generated when an already instrumented library adds methods to its codebase

@@ -62,7 +62,7 @@ module NewRelic
         assert_equal "f85f42fd82a4cf1d", payload.id
         assert_equal "164d3b4b0d09cb05", payload.transaction_id
         assert payload.sampled
-        assert_equal 0.123, payload.priority
+        assert_in_delta(0.123, payload.priority)
       end
 
       def test_from_s_browser_payload_no_sampled_priority_or_transaction_id
@@ -95,7 +95,7 @@ module NewRelic
         assert_equal "f85f42fd82a4cf1d", payload.id
         assert_equal "164d3b4b0d09cb05", payload.transaction_id
         assert payload.sampled
-        assert_equal 0.123, payload.priority
+        assert_in_delta(0.123, payload.priority)
       end
 
       def test_valid
@@ -109,7 +109,8 @@ module NewRelic
 
         valid_payloads.each do |payload_str|
           payload = TraceContextPayload.from_s(payload_str)
-          assert payload.valid?, "Payload should be valid: '#{payload_str}'"
+
+          assert_predicate payload, :valid?, "Payload should be valid: '#{payload_str}'"
         end
 
         invalid_payloads = [
@@ -122,6 +123,7 @@ module NewRelic
 
         invalid_payloads.each do |payload_str|
           payload = TraceContextPayload.from_s(payload_str)
+
           refute payload.valid?, "Payload should be invalid: '#{payload_str}'"
         end
       end

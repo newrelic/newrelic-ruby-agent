@@ -17,6 +17,7 @@ DependencyDetection.defer do
   # so we could safely subscribe and not be clobbered by future subscribers,
   # but alas, it does not yet.
 
+  # TODO: MAJOR VERSION - update min version to 0.56.0
   EXCON_MIN_VERSION = Gem::Version.new("0.19.0")
 
   depends_on do
@@ -30,6 +31,22 @@ DependencyDetection.defer do
     else
       ::NewRelic::Agent.logger.warn("Excon instrumentation requires at least version #{EXCON_MIN_VERSION}")
     end
+  end
+
+  executes do
+    next unless Gem::Version.new(::Excon::VERSION) < Gem::Version.new('0.56.0')
+
+    deprecation_msg = 'Instrumentation for Excon versions below 0.56.0 is deprecated.' \
+      'They will stop being monitored in version 9.0.0. ' \
+      'Please upgrade your Excon version to continue receiving full support. '
+
+    ::NewRelic::Agent.logger.log_once(
+      :warn,
+      :deprecated_excon_version,
+      deprecation_msg
+    )
+
+    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Excon", 1)
   end
 
   def install_excon_instrumentation(excon_version)

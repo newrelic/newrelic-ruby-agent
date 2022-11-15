@@ -34,30 +34,35 @@ module NewRelic
           trace = TraceBuilder.build_trace(txn)
 
           root = trace.root_node
+
           assert_equal "ROOT", root.metric_name
-          assert_equal 0.0, root.entry_timestamp
-          assert_equal 7.0, root.exit_timestamp
+          assert_in_delta(0.0, root.entry_timestamp)
+          assert_in_delta(7.0, root.exit_timestamp)
 
           txn_segment = root.children[0]
+
           assert_equal "test_txn", txn_segment.metric_name
-          assert_equal 0.0, txn_segment.entry_timestamp
-          assert_equal 7.0, txn_segment.exit_timestamp
+          assert_in_delta(0.0, txn_segment.entry_timestamp)
+          assert_in_delta(7.0, txn_segment.exit_timestamp)
 
           segment_a = txn_segment.children[0]
+
           assert_equal "segment_a", segment_a.metric_name
-          assert_equal 1.0, segment_a.entry_timestamp
-          assert_equal 7.0, segment_a.exit_timestamp
+          assert_in_delta(1.0, segment_a.entry_timestamp)
+          assert_in_delta(7.0, segment_a.exit_timestamp)
           assert_equal "bar", segment_a.params[:foo]
 
           segment_b = segment_a.children[0]
+
           assert_equal "segment_b", segment_b.metric_name
-          assert_equal 2.0, segment_b.entry_timestamp
-          assert_equal 4.0, segment_b.exit_timestamp
+          assert_in_delta(2.0, segment_b.entry_timestamp)
+          assert_in_delta(4.0, segment_b.exit_timestamp)
 
           segment_c = segment_a.children[1]
+
           assert_equal "segment_c", segment_c.metric_name
-          assert_equal 4.0, segment_c.entry_timestamp
-          assert_equal 7.0, segment_c.exit_timestamp
+          assert_in_delta(4.0, segment_c.entry_timestamp)
+          assert_in_delta(7.0, segment_c.exit_timestamp)
         end
 
         def test_trace_built_if_segment_left_unfinished
@@ -73,19 +78,22 @@ module NewRelic
           trace = TraceBuilder.build_trace(txn)
 
           root = trace.root_node
+
           assert_equal "ROOT", root.metric_name
-          assert_equal 0.0, root.entry_timestamp
-          assert_equal 2.0, root.exit_timestamp
+          assert_in_delta(0.0, root.entry_timestamp)
+          assert_in_delta(2.0, root.exit_timestamp)
 
           txn_segment = root.children[0]
+
           assert_equal "test_txn", txn_segment.metric_name
-          assert_equal 0.0, txn_segment.entry_timestamp
-          assert_equal 2.0, txn_segment.exit_timestamp
+          assert_in_delta(0.0, txn_segment.entry_timestamp)
+          assert_in_delta(2.0, txn_segment.exit_timestamp)
 
           segment_a = txn_segment.children[0]
+
           assert_equal "segment_a", segment_a.metric_name
-          assert_equal 1.0, segment_a.entry_timestamp
-          assert_equal 2.0, segment_a.exit_timestamp
+          assert_in_delta(1.0, segment_a.entry_timestamp)
+          assert_in_delta(2.0, segment_a.exit_timestamp)
         end
       end
     end

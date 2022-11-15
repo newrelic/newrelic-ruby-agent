@@ -13,11 +13,13 @@ module NewRelic
         sampler = AdaptiveSampler.new
         10000.times { sampler.sampled? }
         stats = sampler.stats
+
         assert_equal 10, stats[:sampled_count]
         assert_equal 10000, stats[:seen]
         advance_process_time(60)
         10001.times { sampler.sampled? }
         stats = sampler.stats
+
         assert_equal 10000, stats[:seen_last]
         assert_equal 10001, stats[:seen]
       end
@@ -26,11 +28,13 @@ module NewRelic
         sampler = AdaptiveSampler.new
         10000.times { sampler.sampled? }
         stats = sampler.stats
+
         assert_equal 10, stats[:sampled_count]
         assert_equal 10000, stats[:seen]
         advance_process_time(120)
         10001.times { sampler.sampled? }
         stats = sampler.stats
+
         assert_equal 0, stats[:seen_last]
         assert_equal 10001, stats[:seen]
       end
@@ -58,6 +62,7 @@ module NewRelic
         # 19 is the mathematical maximum for a nonzero value for the default @target = 10
         sampler.instance_variable_set(:@sampled_count, 19)
         result = sampler.exponential_backoff
+
         assert result > 0, 'Exponential backoff value was not greater than zero'
       end
     end

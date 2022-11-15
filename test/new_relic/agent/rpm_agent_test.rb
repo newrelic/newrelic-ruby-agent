@@ -37,8 +37,10 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     with_config(:agent_enabled => true, :monitor_mode => true) do
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => ('x' * 40))
       agent = NewRelic::Agent.instance
-      assert agent.started?
+
+      assert_predicate agent, :started?
       agent.shutdown
+
       refute agent.started?
     end
   end
@@ -60,6 +62,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
 
   def test_manual_overrides
     NewRelic::Agent.manual_start(:app_name => "testjobs")
+
     assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
@@ -67,20 +70,24 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_agent_restart
     NewRelic::Agent.manual_start(:app_name => "noapp")
     NewRelic::Agent.manual_start(:app_name => "testjobs")
+
     assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 
   def test_set_record_sql
     @agent.set_record_sql(false)
+
     refute NewRelic::Agent.tl_is_sql_recorded?
     NewRelic::Agent.disable_sql_recording do
       refute NewRelic::Agent.tl_is_sql_recorded?
       NewRelic::Agent.disable_sql_recording do
         refute NewRelic::Agent.tl_is_sql_recorded?
       end
+
       refute NewRelic::Agent.tl_is_sql_recorded?
     end
+
     refute NewRelic::Agent.tl_is_sql_recorded?
     @agent.set_record_sql(nil)
   end

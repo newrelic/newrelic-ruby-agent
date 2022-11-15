@@ -19,18 +19,21 @@ module NewRelic::Agent::Commands
     def test_destructures_name_from_collector_command
       command = AgentCommand.new(NUKE_IT_FROM_ORBIT)
       expected = NAME
+
       assert_equal expected, command.name
     end
 
     def test_destructures_id_from_collector_command
       command = AgentCommand.new(NUKE_IT_FROM_ORBIT)
       expected = ID
+
       assert_equal expected, command.id
     end
 
     def test_destructures_arguments_from_collector_command
       command = AgentCommand.new(NUKE_IT_FROM_ORBIT)
       expected = ARGUMENTS
+
       assert_equal expected, command.arguments
     end
   end

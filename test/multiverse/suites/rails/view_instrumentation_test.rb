@@ -101,11 +101,13 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
   (ViewsController.action_methods - %w[raise_render collection_render haml_render]).each do |method|
     define_method("test_sanity_#{method}") do
       get "/views/#{method}"
+
       assert_equal 200, status
     end
 
     def test_should_allow_uncaught_exception_to_propagate
       get("/views/raise_render")
+
       assert_equal 500, status
     end
 
@@ -114,6 +116,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       nodes = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
       nodes_list = "Found these nodes:\n  #{nodes.map(&:metric_name).join("\n  ")}"
+
       assert_equal 5, nodes.length, "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
     end
 
@@ -142,6 +145,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       def test_should_not_instrument_rendering_of_text
         get('/views/text_render')
         sample = last_transaction_trace
+
         refute find_node_with_name(sample, 'View/text template/Rendering')
       end
     else
@@ -184,6 +188,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_create_a_proper_metric_when_we_render_a_collection
       get('/views/collection_render')
       sample = last_transaction_trace
+
       assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
 
@@ -192,6 +197,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
         get "/views/#{action}"
         sample = last_transaction_trace
         view_node = find_node_with_name_matching(sample, /^View\//)
+
         refute view_node, "Should not instrument rendering of #{action}, found #{view_node}."
       end
     end
@@ -199,6 +205,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_create_a_metric_for_rendered_file_that_does_not_include_the_filename_so_it_doesnt_metric_explode
       get('/views/file_render')
       sample = last_transaction_trace
+
       assert find_node_with_name(sample, 'Nested/Controller/views/file_render')
       refute find_node_with_name_matching(sample, 'dummy')
     end

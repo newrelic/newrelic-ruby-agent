@@ -13,6 +13,7 @@ module MarshallingTestCases
     transmit_data
 
     result = $collector.calls_for('metric_data')
+
     assert_equal 1, result.length
     assert_includes result.first.metric_names, 'Boo'
   end
@@ -25,6 +26,7 @@ module MarshallingTestCases
     transmit_data
 
     result = $collector.calls_for('error_data')
+
     assert_equal 1, result.length
     assert_equal 1, result.first.errors.length
     assert_equal "StandardError", result.first.errors.first.exception_class_name
@@ -40,6 +42,7 @@ module MarshallingTestCases
     transmit_data
 
     result = $collector.calls_for('transaction_sample_data')
+
     assert_equal 1, result.length
     assert_equal "TestTransaction/do_it", result.first.metric_name
   end
@@ -54,8 +57,10 @@ module MarshallingTestCases
     transmit_event_data
 
     result = $collector.calls_for('analytic_event_data')
+
     assert_equal 1, result.length
     events = result.first.events
+
     assert_equal 1, events.length
 
     event = events.first
@@ -68,7 +73,7 @@ module MarshallingTestCases
     assert_equal "Transaction", event[0]["type"]
     assert_equal t0, event[0]["timestamp"]
     assert_equal "TestTransaction/do_it", event[0]["name"]
-    assert_equal 0.0, event[0]["duration"]
+    assert_in_delta(0.0, event[0]["duration"])
     refute event[0]["error"]
     assert_equal "Unknown", event[0]["parent.transportType"]
     refute_nil event[0]['guid']
@@ -87,8 +92,10 @@ module MarshallingTestCases
     transmit_event_data
 
     result = $collector.calls_for('custom_event_data')
+
     assert_equal 1, result.length
     events = result.first.events
+
     assert_equal 1, events.length
 
     expected_event = [
@@ -122,6 +129,7 @@ module MarshallingTestCases
 
     assert_equal 1, result.length
     events = result.first.events
+
     assert_equal 1, events.length
 
     event = events.first
@@ -139,7 +147,7 @@ module MarshallingTestCases
     refute event[0]["error.expected"]
     assert_equal t0.to_f, event[0]["timestamp"]
     assert_equal "TestTransaction/break_it", event[0]["transactionName"]
-    assert_equal 0.0, event[0]["duration"]
+    assert_in_delta(0.0, event[0]["duration"])
     assert_equal "Unknown", event[0]["parent.transportType"]
     refute_nil event[0]["spanId"]
     refute_nil event[0]['guid']
@@ -168,15 +176,18 @@ module MarshallingTestCases
     transmit_data
 
     result = $collector.calls_for('log_event_data')
+
     assert_equal 1, result.length
 
     common = result.first.common["attributes"]
+
     refute_nil common["hostname"]
 
     # Excluding this explicitly vs classic logs-in-context to save space
     assert_nil common["entity.type"]
 
     logs = result.first.logs
+
     refute_empty logs
 
     log = logs.find { |l| l["message"] == message && l["level"] == severity }

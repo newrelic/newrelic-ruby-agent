@@ -43,16 +43,19 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   def test_decoding_blank
     obfuscator = NewRelic::Agent::Obfuscator.new('query')
+
     assert_equal "", obfuscator.deobfuscate("")
   end
 
   def test_decoding_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new("")
+
     assert_equal "query", obfuscator.encode('query')
   end
 
   def test_encode_with_nil_uses_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new(nil)
+
     assert_equal "query", obfuscator.encode('query')
   end
 
@@ -62,14 +65,17 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
     encoded = obfuscator.obfuscate(str)
     decoded = obfuscator.deobfuscate(encoded)
     decoded.force_encoding('utf-8') if decoded.respond_to?(:force_encoding)
+
     assert_equal str, decoded
   end
 
   def assert_encoded(key_length, text, expected)
     output = obfuscator(key_length).obfuscate(text)
+
     assert_equal(expected, output)
 
     unoutput = obfuscator.obfuscate(Base64.decode64(output))
+
     assert_equal Base64.encode64(text).delete("\n"), unoutput
   end
 end

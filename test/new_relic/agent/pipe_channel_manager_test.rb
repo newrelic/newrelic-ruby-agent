@@ -62,6 +62,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_transaction_traces
       sampler = NewRelic::Agent.agent.transaction_sampler
+
       assert_equal(0, sampler.count)
 
       start_listener_with_pipe(667)
@@ -85,6 +86,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.error_trace_aggregator.harvest!)
 
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
+
       assert_equal(1, errors.size)
 
       start_listener_with_pipe(668)
@@ -99,6 +101,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service.error_data(new_sampler.error_trace_aggregator.harvest!)
       end
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
+
       assert_equal(2, errors.size)
     end
 
@@ -147,6 +150,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service.error_event_data(new_sampler.error_event_aggregator.harvest!)
       end
       _, errors = error_event_aggregator.harvest!
+
       assert_equal(2, errors.size)
       assert_lifetime_counts(error_event_aggregator, 2)
     end
@@ -173,6 +177,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       Process.wait(pid)
       listener.stop_listener_thread
+
       assert_pipe_finished(669)
     end
 
@@ -184,6 +189,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       Process.wait(pid)
       listener.stop_listener_thread
+
       assert_pipe_finished(669)
     end
 
@@ -244,6 +250,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     expects_logging(:error, includes("[6a 72 63]"))
 
     pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
+
     assert_nil pipe.read
   end
 
@@ -255,6 +262,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     IO.stubs(:pipe).returns([read_pipe, write_pipe])
 
     pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
+
     assert_nil pipe.read
   end
 
@@ -342,6 +350,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
   def assert_lifetime_counts(container, value)
     buffer = container.instance_variable_get(:@buffer)
+
     assert_equal value, buffer.captured_lifetime
     assert_equal value, buffer.seen_lifetime
   end

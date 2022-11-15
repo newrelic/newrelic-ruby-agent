@@ -75,6 +75,7 @@ class UtilizationDataCollectionTest < Minitest::Test
       'utilization.detect_azure' => false,
       'utilization.detect_pcf' => false
     })
+
     assert_equal expected, single_connect_posted.utilization
   end
 

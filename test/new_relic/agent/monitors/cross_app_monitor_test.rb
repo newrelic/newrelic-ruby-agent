@@ -67,32 +67,38 @@ module NewRelic::Agent
 
     def test_encodes_transaction_name
       when_request_runs(for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME)
+
       assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
     def test_doesnt_write_response_header_if_id_blank
       when_request_runs(for_id(''))
+
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_untrusted_id
       when_request_runs(for_id("4#1234"))
+
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_improperly_formatted_id
       when_request_runs(for_id("42"))
+
       assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_no_id_in_request
       when_request_runs({})
+
       assert_nil response_app_data
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
       with_config(:cross_process_id => '') do
         when_request_runs
+
         assert_nil response_app_data
       end
     end
@@ -100,13 +106,14 @@ module NewRelic::Agent
     def test_doesnt_add_header_if_config_disabled
       with_config(:"cross_application_tracer.enabled" => false, :cross_application_tracing => false) do
         when_request_runs
+
         assert_nil response_app_data
       end
     end
 
     def test_old_cat_enabled
       with_config(:"cross_application_tracer.enabled" => true) do
-        assert CrossAppTracing.cross_application_tracer_enabled?
+        assert_predicate CrossAppTracing, :cross_application_tracer_enabled?
       end
     end
 
@@ -126,17 +133,20 @@ module NewRelic::Agent
     def test_doesnt_add_header_if_missing_encoding_key
       with_config(:encoding_key => '') do
         when_request_runs
+
         assert_nil response_app_data
       end
     end
 
     def test_includes_content_length
       when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge(CONTENT_LENGTH_KEY => 3000))
+
       assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
 
     def test_finds_content_length_from_headers
       request = {'HTTP_CONTENT_LENGTH' => 42}
+
       assert_equal(42, @monitor.send(:content_length_from_request, request))
     end
 
@@ -173,7 +183,8 @@ module NewRelic::Agent
 
         refute Transaction.tl_current.name_frozen?
         @events.notify(:after_call, request, [200, @response, ''])
-        assert Transaction.tl_current.name_frozen?
+
+        assert_predicate Transaction.tl_current, :name_frozen?
       end
     end
 

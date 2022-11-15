@@ -104,6 +104,7 @@ module NewRelic
       end
 
       def streaming?(env, headers)
+        # Chunked transfer encoding is a streaming data transfer mechanism available only in HTTP/1.1
         return true if headers && headers['Transfer-Encoding'] == 'chunked'
 
         defined?(ActionController::Live) &&

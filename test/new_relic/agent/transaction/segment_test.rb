@@ -32,6 +32,7 @@ module NewRelic
           with_config(:high_security => true) do
             with_segment do |segment|
               NewRelic::Agent.add_custom_span_attributes(:failure => "is an option")
+
               assert_empty attributes_for(segment, :custom)
             end
           end
@@ -45,6 +46,7 @@ module NewRelic
 
           test_segment.noticed_error.build_error_attributes
           attributes = test_segment.noticed_error_attributes
+
           assert attributes, "expected noticed_error_attributes to not be nil"
 
           refute_empty attributes
@@ -56,16 +58,19 @@ module NewRelic
           segment, _ = with_segment do
             # A perfectly fine walk through segmentland
           end
+
           refute segment.noticed_error_attributes
         end
 
         def test_segment_has_error_attributes_after_error
           segment, _error = capture_segment_with_error
+
           refute_empty segment.noticed_error_attributes
         end
 
         def test_nested_segment_has_error_attributes_after_error
           nested_segment, parent_segment, _error = capture_nested_segment_with_error
+
           refute parent_segment.noticed_error_attributes
           refute_empty nested_segment.noticed_error_attributes
         end
@@ -85,6 +90,7 @@ module NewRelic
             with_segment do |segment|
               NewRelic::Agent.add_custom_span_attributes(:foo => "bar")
               actual = segment.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+
               assert_equal({"foo" => "bar"}, actual)
             end
           end
@@ -92,12 +98,14 @@ module NewRelic
 
         def test_assigns_unscoped_metrics
           segment = Segment.new("Custom/simple/segment", "Segment/all")
+
           assert_equal "Custom/simple/segment", segment.name
           assert_equal "Segment/all", segment.unscoped_metrics
         end
 
         def test_assigns_unscoped_metrics_as_array
           segment = Segment.new("Custom/simple/segment", ["Segment/all", "Other/all"])
+
           assert_equal "Custom/simple/segment", segment.name
           assert_equal ["Segment/all", "Other/all"], segment.unscoped_metrics
         end
@@ -203,6 +211,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_empty last_span_events
         end
 
@@ -218,6 +227,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_empty last_span_events
         end
 
@@ -246,6 +256,7 @@ module NewRelic
           end
 
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
           assert_equal 2, last_span_events.size
           custom_span_event = last_span_events[0][0]
           root_span_event = last_span_events[1][0]
@@ -259,7 +270,7 @@ module NewRelic
           assert_equal sampled, custom_span_event.fetch('sampled')
           assert_equal priority, custom_span_event.fetch('priority')
           assert_equal timestamp, custom_span_event.fetch('timestamp')
-          assert_equal 1.0, custom_span_event.fetch('duration')
+          assert_in_delta(1.0, custom_span_event.fetch('duration'))
           assert_equal 'Ummm', custom_span_event.fetch('name')
           assert_equal 'generic', custom_span_event.fetch('category')
         end
@@ -267,6 +278,7 @@ module NewRelic
         def test_sets_start_time_from_constructor
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = Segment.new(nil, nil, t)
+
           assert_equal t, segment.start_time
         end
 
@@ -275,6 +287,7 @@ module NewRelic
             txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
             segment = NewRelic::Agent::Tracer.current_segment
             actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+
             assert_equal({:foo => "bar"}, actual)
           end
         end
@@ -314,6 +327,7 @@ module NewRelic
 
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+
           assert_equal 418, actual[:"http.statusCode"]
           assert_equal 100, actual[:"response.headers.contentLength"]
           assert_equal "application/json", actual[:"response.headers.contentType"]
@@ -327,6 +341,7 @@ module NewRelic
 
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+
           assert_equal "/referred", actual[:'request.headers.referer']
         end
 
@@ -345,8 +360,10 @@ module NewRelic
             end
           rescue Exception => exception
             segment_with_error.finish
+
             assert segment_with_error, "expected to have a segment_with_error"
             build_deferred_error_attributes(segment_with_error)
+
             refute_equal parent_segment, segment_with_error
             return segment_with_error, parent_segment, exception
           end

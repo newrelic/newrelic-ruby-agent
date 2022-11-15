@@ -50,6 +50,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       define_method("test_#{File.basename(file)}") do
         cpuinfo = File.read(file)
         info = @sysinfo.parse_cpuinfo(cpuinfo)
+
         assert_nil(info[:num_physical_package])
         assert_nil(info[:num_physical_cores])
         assert_nil(info[:num_logical_processors])
@@ -111,12 +112,14 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_ram_in_mb_nil_when_proc_meminfo_unreadable
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/meminfo').returns(nil)
+
     assert_nil NewRelic::Agent::SystemInfo.ram_in_mib, "Expected ram_in_mib to be nil"
   end
 
   def test_processor_info_returns_if_set
     info = 'Jurassic Park'
     NewRelic::Agent::SystemInfo.instance_variable_set(:@processor_info, info)
+
     assert_equal info, NewRelic::Agent::SystemInfo.processor_info
   end
 
@@ -169,6 +172,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
+
       counts.each do |key, value|
         assert_equal value, info[mappings[key]]
       end
@@ -187,6 +191,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
       NewRelic::Agent::SystemInfo.processor_info_darwin
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
+
       assert_equal 2, info[:num_physical_packages]
       assert_equal 1, info[:num_physical_cores]
       assert_equal 3, info[:num_logical_processors]
@@ -197,6 +202,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:proc_try_read, "T. Rex") do
       NewRelic::Agent::SystemInfo.stub(:parse_cpuinfo, "Rawr") do
         NewRelic::Agent::SystemInfo.processor_info_linux
+
         assert_equal "Rawr", NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       end
     end
@@ -206,6 +212,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:proc_try_read, nil) do
       NewRelic::Agent::SystemInfo.stub(:parse_cpuinfo, "Rawr") do
         NewRelic::Agent::SystemInfo.processor_info_linux
+
         assert_equal NewRelic::EMPTY_HASH, NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
       end
     end
@@ -215,6 +222,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stub(:sysctl_value, 1) do
       NewRelic::Agent::SystemInfo.processor_info_bsd
       info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
+
       assert_nil info[:num_physical_packages]
       assert_nil info[:num_physical_cores]
       assert_equal 1, info[:num_logical_processors]
@@ -224,6 +232,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_sysctl_value
     NewRelic::Agent::SystemInfo.expects(:`).with(regexp_matches(/fox/)).once.returns('3')
     value = NewRelic::Agent::SystemInfo.sysctl_value('fox')
+
     assert_equal 3, value
     mocha_teardown
   end
@@ -233,6 +242,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       NewRelic::Agent::SystemInfo.stub(:linux?, false) do
         NewRelic::Agent::SystemInfo.stub(:bsd?, false) do
           NewRelic::Agent::SystemInfo.processor_info
+
           assert_equal NewRelic::EMPTY_HASH, NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
         end
       end
@@ -241,25 +251,31 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_system_info_darwin_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
-    assert NewRelic::Agent::SystemInfo.darwin?, "Expected OS to match darwin"
+
+    assert_predicate NewRelic::Agent::SystemInfo, :darwin?, "Expected OS to match darwin"
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+
     refute NewRelic::Agent::SystemInfo.darwin?, "Did not expect OS to match darwin"
   end
 
   def test_system_info_linux_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    assert NewRelic::Agent::SystemInfo.linux?, "Expected OS to match linux"
+
+    assert_predicate NewRelic::Agent::SystemInfo, :linux?, "Expected OS to match linux"
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+
     refute NewRelic::Agent::SystemInfo.linux?, "Did not expect OS to match linux"
   end
 
   def test_system_info_bsd_predicate
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("freebsd")
-    assert NewRelic::Agent::SystemInfo.bsd?, "Expected OS to match bsd"
+
+    assert_predicate NewRelic::Agent::SystemInfo, :bsd?, "Expected OS to match bsd"
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+
     refute NewRelic::Agent::SystemInfo.bsd?, "Did not expect OS to match bsd"
   end
 
@@ -267,9 +283,11 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     cgroup_info = File.read(File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt'))
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/cgroup').returns(cgroup_info)
+
     in_transaction('txn') do
       assert_nil NewRelic::Agent::SystemInfo.docker_container_id
     end
+
     assert_metrics_recorded "Supportability/utilization/docker/error"
   end
 
@@ -278,6 +296,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_valid_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(VALID_UUID)
+
     assert_equal VALID_UUID, NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_not_recorded "Supportability/utilization/boot_id/error"
   end
@@ -286,6 +305,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     test_boot_id = VALID_UUID * 2
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
+
     assert_equal test_boot_id, NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
@@ -294,6 +314,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     test_boot_id = VALID_UUID * 8
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
+
     assert_equal test_boot_id[0, 128], NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
@@ -302,6 +323,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     panda = String.new('🐼')
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(panda)
+
     assert_nil NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
@@ -310,18 +332,22 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     empty = String.new('')
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(empty)
+
     assert_nil NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
 
   def test_nil_boot_id_on_not_linux
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+
     assert_nil NewRelic::Agent::SystemInfo.boot_id
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("freebsd")
+
     assert_nil NewRelic::Agent::SystemInfo.boot_id
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("solaris")
+
     assert_nil NewRelic::Agent::SystemInfo.boot_id
 
     assert_metrics_not_recorded "Supportability/utilization/boot_id/error"

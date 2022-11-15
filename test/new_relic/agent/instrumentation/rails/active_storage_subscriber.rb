@@ -84,12 +84,14 @@ module NewRelic
         def test_segment_created
           in_transaction('test') do
             txn = NewRelic::Agent::Tracer.current_transaction
+
             assert_equal 1, txn.segments.size
 
             generate_event('service_exist.active_storage', exist: false)
+
             assert_equal 2, txn.segments.size
             assert_equal 'Ruby/ActiveStorage/DiskService/exist', txn.segments.last.name
-            assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
+            assert_predicate txn.segments.last, :finished?, "Segment #{txn.segments.last.name} was never finished.  "
           end
         end
 

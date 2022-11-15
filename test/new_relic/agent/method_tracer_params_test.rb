@@ -102,6 +102,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   def refute_deprecation_warning
     in_transaction do
       _out, err = capture_io { yield }
+
       refute_match KEYWORD_DEPRECATED_WARNING, err
       return err
     end
@@ -110,6 +111,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   def assert_deprecation_warning
     in_transaction do
       _out, err = capture_io { yield }
+
       assert_match KEYWORD_DEPRECATED_WARNING, err
       return err
     end
@@ -167,6 +169,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
 
       # This is what changes in 3.0!
       version_specific_expected = RUBY_VERSION >= "3.0.0" ? {foo: {}} : expected
+
       silence_expected_warnings { assert_equal version_specific_expected, instance.args_and_kwargs(:foo, {bar: "foobar"}) }
     end
   end

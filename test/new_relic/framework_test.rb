@@ -49,6 +49,7 @@ class FrameworkTest < Minitest::Test
   def test_detects_framework_via_ENV_NEW_RELIC_FRAMEWORK
     ENV['NEW_RELIC_FRAMEWORK'] = "foobared"
     NewRelic::Agent.reset_config
+
     assert_equal :foobared, NewRelic::Agent.config[:framework]
   ensure
     ENV['NEW_RELIC_FRAMEWORK'] = nil
@@ -57,6 +58,7 @@ class FrameworkTest < Minitest::Test
   def test_detects_framework_via_ENV_NEWRELIC_FRAMEWORK
     ENV['NEWRELIC_FRAMEWORK'] = "bazbang"
     NewRelic::Agent.reset_config
+
     assert_equal :bazbang, NewRelic::Agent.config[:framework]
   ensure
     ENV['NEWRELIC_FRAMEWORK'] = nil

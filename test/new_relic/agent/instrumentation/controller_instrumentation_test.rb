@@ -65,12 +65,14 @@ module NewRelic::Agent::Instrumentation
 
     def test_apdex_recorded
       @object.public_transaction
+
       assert_metrics_recorded("Apdex")
     end
 
     def test_apdex_ignored
       @object.stubs(:ignore_apdex?).returns(true)
       @object.public_transaction
+
       assert_metrics_not_recorded("Apdex")
     end
 
@@ -144,6 +146,7 @@ module NewRelic::Agent::Instrumentation
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
+
       assert IgnoreActions.is_filtered?(key, controller, :foo)
     end
 
@@ -155,12 +158,14 @@ module NewRelic::Agent::Instrumentation
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
+
       assert IgnoreActions.is_filtered?(key, controller, :foo)
       assert IgnoreActions.is_filtered?(key, controller, :bar)
     end
 
     def test_transaction_name_calls_newrelic_metric_path
       @object.stubs(:newrelic_metric_path).returns('some/wacky/path')
+
       assert_equal('Controller/some/wacky/path', @txn_namer.name_for(nil, @object, :controller))
     end
 
@@ -222,6 +227,7 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_name_always_comes_from_the_options_hash_when_present
       expected = 'lighthouse'
+
       assert_equal expected, @txn_namer.name_for(nil, nil, nil, transaction_name: expected)
     end
 
@@ -245,16 +251,19 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_path_name
       result = @txn_namer.path_name(@object)
+
       assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject", result)
     end
 
     def test_transaction_path_name_with_name
       result = @txn_namer.path_name(@object, :name => "test")
+
       assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test", result)
     end
 
     def test_transaction_path_name_with_overridden_class_name
       result = @txn_namer.path_name(@object, :name => "perform", :class_name => 'Resque')
+
       assert_equal("Resque/perform", result)
     end
 
@@ -279,6 +288,7 @@ module NewRelic::Agent::Instrumentation
     def test_parse_punctuation
       ['?', '!', '='].each do |punctuation_mark|
         result = TestObject.parse_punctuation("foo#{punctuation_mark}")
+
         assert_equal ['foo', punctuation_mark], result
       end
     end
@@ -287,17 +297,20 @@ module NewRelic::Agent::Instrumentation
       options = {:foo => :bar, :params => '{ :account_name => args[0].name }', :far => 7}
       result = TestObject.generate_argument_list(options)
       expected = [":far => \"7\"", ":foo => :bar", ":params => { :account_name => args[0].name }"]
+
       assert_equal expected.sort, result.sort
     end
 
     def test_build_method_names
       result = TestObject.build_method_names('foo', '?')
       expected = ["foo_with_newrelic_transaction_trace?", "foo_without_newrelic_transaction_trace?"]
+
       assert_equal expected, result
     end
 
     def test_already_added_transaction_tracer_returns_true_if_with_method_defined
       with_method_name = 'public_transaction_with_newrelic_transaction_trace'
+
       assert TestObject.already_added_transaction_tracer?(TestObject, with_method_name)
     end
 
@@ -356,6 +369,7 @@ module NewRelic::Agent::Instrumentation
       end
 
       request_path = clazz.new.doit
+
       assert_nil request_path
     end
   end

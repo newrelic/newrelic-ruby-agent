@@ -41,6 +41,7 @@ class AgentLoggerTest < Minitest::Test
   def test_initializes_from_override
     override_logger = Logger.new('/dev/null')
     logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+
     assert_equal override_logger, logger.instance_variable_get(:@log)
   end
 
@@ -92,12 +93,14 @@ class AgentLoggerTest < Minitest::Test
   def test_consider_null_logger_a_startup_logger
     with_config(:agent_enabled => false) do
       logger = NewRelic::Agent::AgentLogger.new
-      assert logger.is_startup_logger?
+
+      assert_predicate logger, :is_startup_logger?
     end
   end
 
   def test_consider_any_other_logger_not_a_startup_logger
     logger = NewRelic::Agent::AgentLogger.new
+
     refute logger.is_startup_logger?
   end
 
@@ -200,6 +203,7 @@ class AgentLoggerTest < Minitest::Test
       logger = create_basic_logger
 
       logger.info("The nice thing about standards is that you have so many to choose from. -- ast")
+
       assert_logged(/#{Date.today.strftime("%Y-%m-%d")}/)
     end
   end
@@ -209,6 +213,7 @@ class AgentLoggerTest < Minitest::Test
       logger = create_basic_logger
 
       e = Exception.new("Look Ma, no backtrace!")
+
       assert_nil(e.backtrace)
       logger.error(e)
 
@@ -299,6 +304,7 @@ class AgentLoggerTest < Minitest::Test
     logger.warn('two')
     logger.warn('three')
     host_regex = /#{hostname}/
+
     assert_logged(host_regex, host_regex, host_regex)
   end
 
@@ -367,6 +373,7 @@ class AgentLoggerTest < Minitest::Test
       logger.fatal(message)
 
       _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
+
       assert_empty logs.select { |log| log.last["message"].include?(message) }
     end
   end
@@ -380,6 +387,7 @@ class AgentLoggerTest < Minitest::Test
       logger.fatal(message)
 
       _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
+
       assert_empty logs.select { |log| log.last["message"].include?(message) }
     end
   end

@@ -62,7 +62,7 @@ module NewRelic
           assert_equal sampled, intrinsics['sampled'].bool_value
           assert_equal priority, intrinsics['priority'].double_value
           assert_equal timestamp, intrinsics['timestamp'].int_value
-          assert_equal 1.0, intrinsics['duration'].double_value
+          assert_in_delta(1.0, intrinsics['duration'].double_value)
           assert_equal datastore, intrinsics['name'].string_value
           assert_equal 'datastore', intrinsics['category'].string_value
           assert_equal 'SQLite', intrinsics['component'].string_value
