@@ -1,12 +1,13 @@
 name: Scheduled Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
-      - dev
-  schedule:
-    - cron:  '0 9 * * *'
+  pull_request:
+  # push:
+  #   branches:
+  #     - main
+  #     - dev
+  # schedule:
+  #   - cron:  '0 9 * * *'
 
 jobs:
   run_rubocop:
@@ -358,7 +359,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse: [database]
     steps:
       - name: Set the default Java version
         run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
