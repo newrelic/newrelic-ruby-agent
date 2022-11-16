@@ -6,7 +6,8 @@ on:
       - main
       - dev
   schedule:
-    - cron:  '0 9 * * *'
+    - cron: '0 9 * * *'
+  workflow_dispatch:
 
 jobs:
   run_rubocop:
