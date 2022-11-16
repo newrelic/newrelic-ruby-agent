@@ -30,9 +30,7 @@ module NewRelic::Agent::Instrumentation
       operation = pipeline.flatten.include?('MULTI') ? Constants::MULTI_OPERATION : Constants::PIPELINE_OPERATION
       statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
 
-      # call_pipelined isn't invoked on the client object, so use client.db to
-      # access the client instance var on self
-      with_tracing(operation, statement: statement, database: client.db) { yield }
+      with_tracing(operation, statement: statement, database: client.config.db) { yield }
     end
 
     private
@@ -68,7 +66,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def _nr_client
-      @nr_client ||= self.is_a?(::Redis::Client) ? self : client
+      @nr_client ||= self.is_a?(::Redis::Client) ? self : client.config
     end
   end
 end
