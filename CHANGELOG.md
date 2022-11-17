@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.13.1
+
+  Version 8.13.1 of the agent provides a bugfix for Redis v5.0 instrumentation.
+
+  * **Fix NoMethodError when using Sidekiq v7.0 with Redis Client v0.11**
+
+    In some cases, the `RedisClient` object cannot directly access methods like db, port, or path. These methods are always available on the `client.config` object. This raised a `NoMethodError` in environments that used Sidekiq v7.0 and [Redis Client](https://rubygems.org/gems/redis-client) v0.11. Thank you to [fcheung](https://github.com/fcheung) and [@stevenou](https://github.com/stevenou) for bringing this to our attention! [Issue#1639](https://github.com/newrelic/newrelic-ruby-agent/issues/1639)
+
+
   ## v8.13.0
 
   Version 8.13.0 of the agent updates our Rack, Redis, and Sidekiq instrumentation. It also delivers some bugfixes.
@@ -10,7 +19,7 @@
 
   * **Support for Sidekiq v7.0**
 
-    Sidekiq v7.0 removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615)
+    Sidekiq v7.0 removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615) **NOTE:** an issue was discovered with Sidekiq v7.0+ and addressed by Ruby agent v8.13.1. If you are using Sidekiq, please skip Ruby agent v8.13.0 and use v8.13.1 or above.
 
   * **Support for Rack v3.0: Rack::Builder#new accepting a block**
 
