@@ -19,7 +19,7 @@
 
   * **Support for Sidekiq v7.0**
 
-    Sidekiq v7.0 removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615)
+    Sidekiq v7.0 removed Delayed Extensions and began offering client and server [middleware](https://github.com/mperham/sidekiq/blob/main/docs/middleware.md) classes to inherit from. The agent's Sidekiq instrumentation has been updated accordingly. The agent's behavior when used with older Sidekiq versions will remain unaffected. [PR#1615](https://github.com/newrelic/newrelic-ruby-agent/pull/1615) **NOTE:** an issue was discovered with Sidekiq v7.0+ and addressed by Ruby agent v8.13.1. If you are using Sidekiq, please skip Ruby agent v8.13.0 and use v8.13.1 or above.
 
   * **Support for Rack v3.0: Rack::Builder#new accepting a block**
 
