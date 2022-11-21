@@ -1331,6 +1331,7 @@ Style/MethodCallWithArgsParentheses:
     - add_development_dependency
     - expect
     - fail
+    - gem
     - include
     - print
     - puts
@@ -1338,6 +1339,7 @@ Style/MethodCallWithArgsParentheses:
     - raise
     - require
     - skip
+    - source
     - stub
   AllowedPatterns: [^assert, ^refute]
 
