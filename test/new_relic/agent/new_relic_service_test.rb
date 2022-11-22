@@ -2,7 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'cgi'
 require_relative '../../test_helper'
 require 'new_relic/agent/commands/thread_profiler_session'
 
@@ -1234,12 +1233,19 @@ class NewRelicServiceTest < Minitest::Test
       end
 
       uri = URI.parse(@last_request.path)
-      params = CGI.parse(uri.query)
+      params = params_from_query(uri.query)
       format = params['marshal_format'].first
       if format == 'json'
         JSON.load(body)
       else
         Marshal.load(body)
+      end
+    end
+
+    def params_from_query(query)
+      query.split('&').each_with_object({}) do |pair, hash|
+        key, val = pair.split('=')
+        hash[key] = Array(val)
       end
     end
   end
