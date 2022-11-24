@@ -209,7 +209,7 @@ jobs:
         run: sudo ./test/script/install_mysql55
 
       - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler_multiverse
+        run: ./.github/workflows/scripts/setup_bundler
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
