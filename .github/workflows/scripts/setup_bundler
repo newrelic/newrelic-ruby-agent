@@ -95,13 +95,8 @@ function set_up_bundler {
     return
   fi
 
-  if ! using_old_rails; then
-    echo "DEBUG: Skipping Bundler setup, as an old Rails version is not in use"
-    return
-  fi
-
-  if ! using_old_ruby; then
-    echo "DEBUG: Skipping Bundler setup, as an old Ruby is not in use"
+  if ! using_old_rails && ! using_old_ruby; then
+    echo "DEBUG: Skipping Bundler setup, as neither an old Rails or Ruby version is in use"
     return
   fi
 
