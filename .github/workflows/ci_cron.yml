@@ -87,7 +87,7 @@ jobs:
                 "rails": "norails,rails61,rails70,railsedge"
               },
               "jruby-9.4.0.0": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60"
               }
             }
 
