@@ -55,12 +55,12 @@ module NewRelic
         ::NewRelic::Agent.config
       end
 
-      include NewRelic::Agent::Agent::Connect
-      include NewRelic::Agent::Agent::Harvest
-      include NewRelic::Agent::StartWorkerThread
-      include NewRelic::Agent::SpecialStartup
-      include NewRelic::Agent::Startup
-      include NewRelic::Agent::Shutdown
+      # include Connect
+      # include Harvest
+      # include StartWorkerThread
+      # include SpecialStartup
+      # include Startup
+      # include Shutdown
 
       def initialize
         init_basics

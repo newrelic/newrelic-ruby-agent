@@ -4,32 +4,36 @@
 
 module NewRelic
   module Agent
-    module Shutdown
-      # Attempt a graceful shutdown of the agent, flushing any remaining
-      # data.
-      def shutdown
-        return unless started?
+    class Agent
+      module Shutdown
+        # Attempt a graceful shutdown of the agent, flushing any remaining
+        # data.
+        def shutdown
+          return unless started?
 
-        ::NewRelic::Agent.logger.info("Starting Agent shutdown")
+          ::NewRelic::Agent.logger.info("Starting Agent shutdown")
 
-        stop_event_loop
-        trap_signals_for_litespeed
-        untraced_graceful_disconnect
-        revert_to_default_configuration
+          stop_event_loop
+          trap_signals_for_litespeed
+          untraced_graceful_disconnect
+          revert_to_default_configuration
 
-        @started = nil
-        Control.reset
-      end
+          @started = nil
+          Control.reset
+        end
 
-      def untraced_graceful_disconnect
-        begin
-          NewRelic::Agent.disable_all_tracing do
-            graceful_disconnect
+        def untraced_graceful_disconnect
+          begin
+            NewRelic::Agent.disable_all_tracing do
+              graceful_disconnect
+            end
+          rescue => e
+            ::NewRelic::Agent.logger.error(e)
           end
-        rescue => e
-          ::NewRelic::Agent.logger.error(e)
         end
       end
+
+      include Shutdown
     end
   end
 end

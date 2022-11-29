@@ -109,6 +109,8 @@ module NewRelic
           harvest_and_send_log_event_data
         end
       end
+
+      include Harvest
     end
   end
 end

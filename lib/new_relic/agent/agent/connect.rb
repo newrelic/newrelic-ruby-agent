@@ -159,6 +159,8 @@ module NewRelic
           end
         end
       end
+
+      include Connect
     end
   end
 end
