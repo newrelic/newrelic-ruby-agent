@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.14.0
+
+  Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed.
+
+  * **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
+
+    The New Relic Ruby agent offers [a Capistrano recipe for recording app deployments](https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/record-deployments-ruby-agent/#capistrano3). The recipe code was significantly cleaned up with [PR#1498](https://github.com/newrelic/newrelic-ruby-agent/pull/1498) which inadvertently changed the way the recipe handles the changelog for a deployment. Community member [@arthurwozniak](https://github.com/arthurwozniak) spotted and corrected this change in order to restore the desired changelog lookup functionality while retaining all of the previous cleanup. Thank you very much for your contribution, [@arthurwozniak](https://github.com/arthurwozniak)! [PR#1653](https://github.com/newrelic/newrelic-ruby-agent/pull/1653)
+
+
   ## v8.13.1
 
   Version 8.13.1 of the agent provides a bugfix for Redis v5.0 instrumentation.
