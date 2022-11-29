@@ -160,8 +160,6 @@ module NewRelic
           end
         end
       end
-
-      include StartWorkerThread
     end
   end
 end

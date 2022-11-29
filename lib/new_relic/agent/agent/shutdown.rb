@@ -32,8 +32,6 @@ module NewRelic
           end
         end
       end
-
-      include Shutdown
     end
   end
 end

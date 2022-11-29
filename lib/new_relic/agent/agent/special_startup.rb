@@ -69,8 +69,6 @@ module NewRelic
           at_exit { shutdown }
         end
       end
-
-      include SpecialStartup
     end
   end
 end

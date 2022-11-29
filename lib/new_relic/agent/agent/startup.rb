@@ -194,8 +194,6 @@ module NewRelic
           !Agent.config[:agent_enabled]
         end
       end
-
-      include Startup
     end
   end
 end
