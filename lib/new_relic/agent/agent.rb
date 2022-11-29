@@ -356,54 +356,6 @@ module NewRelic
 
         public :merge_data_for_endpoint
 
-        # Establish a connection to New Relic servers.
-        #
-        # By default, if a connection has already been established, this method
-        # will be a no-op.
-        #
-        # @param [Hash] options
-        # @option options [Boolean] :keep_retrying (true)
-        #   If true, this method will block until a connection is successfully
-        #   established, continuing to retry upon failure. If false, this method
-        #   will return after either successfully connecting, or after failing
-        #   once.
-        #
-        # @option options [Boolean] :force_reconnect (false)
-        #   If true, this method will force establishment of a new connection
-        #   with New Relic, even if there is already an existing connection.
-        #   This is useful primarily when re-establishing a new connection after
-        #   forking off from a parent process.
-        #
-        def connect(options = {})
-          opts = connect_options(options)
-          return unless should_connect?(opts[:force_reconnect])
-
-          ::NewRelic::Agent.logger.debug("Connecting Process to New Relic: #$0")
-          connect_to_server
-          @connected_pid = $$
-          @connect_state = :connected
-          signal_connected
-        rescue NewRelic::Agent::ForceDisconnectException => e
-          handle_force_disconnect(e)
-        rescue NewRelic::Agent::LicenseException => e
-          handle_license_error(e)
-        rescue NewRelic::Agent::UnrecoverableAgentException => e
-          handle_unrecoverable_agent_error(e)
-        rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
-          retry if retry_from_error?(e, opts)
-        rescue Exception => e
-          ::NewRelic::Agent.logger.error("Exception of unexpected type during Agent#connect():", e)
-
-          raise
-        end
-
-        def connect_options(options)
-          {
-            keep_retrying: Agent.config[:keep_retrying],
-            force_reconnect: Agent.config[:force_reconnect]
-          }.merge(options)
-        end
-
         def retry_from_error?(e, opts)
           # Allow a killed (aborting) thread to continue exiting during shutdown.
           # See: https://github.com/newrelic/newrelic-ruby-agent/issues/340
