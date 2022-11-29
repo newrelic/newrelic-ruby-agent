@@ -461,40 +461,6 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
           NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
-
-        # This method contacts the server to send remaining data and
-        # let the server know that the agent is shutting down - this
-        # allows us to do things like accurately set the end of the
-        # lifetime of the process
-        #
-        # If this process comes from a parent process, it will not
-        # disconnect, so that the parent process can continue to send data
-        def graceful_disconnect
-          if connected?
-            begin
-              @service.request_timeout = 10
-
-              @events.notify(:before_shutdown)
-              transmit_data_types
-              shutdown_service
-
-              ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
-            rescue Timeout::Error, StandardError => e
-              ::NewRelic::Agent.logger.debug("Error when disconnecting #{e.class.name}: #{e.message}")
-            end
-          else
-            ::NewRelic::Agent.logger.debug("Bypassing graceful disconnect - agent not connected")
-          end
-        end
-      end
-
-      def shutdown_service
-        if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-          ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
-          @service.shutdown
-        else
-          ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
-        end
       end
 
       extend ClassMethods
