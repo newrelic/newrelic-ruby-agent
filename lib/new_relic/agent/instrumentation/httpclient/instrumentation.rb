@@ -15,6 +15,10 @@ module NewRelic::Agent::Instrumentation
 
         begin
           response = nil
+          # We can duplicate the error when running rake "test:multiverse[httpclients,debug,method=prepend,env=0]"
+          # need to stop at distributed tracer log_request_headers too
+          # would be nice to write a test for all the HTTP clients, in HTTP Client test cases that make sure we're
+          # getting the headers logged and not the object
           segment.add_request_headers(wrapped_request)
 
           NewRelic::Agent::Tracer.capture_segment_error(segment) do

@@ -69,6 +69,9 @@ module NewRelic
         end
 
         def log_request_headers(headers, direction = "OUTGOING")
+          # want some kind of test to make sure we're not seeing the headers objectid and getting the hash instead
+          # this is hard coded only for httpclient, but there may be issues with other clients too
+          headers = headers.request.headers if headers.class(NewRelic::Agent::HTTPClients::HTTPClientRequest)
           NewRelic::Agent.logger.debug("#{direction} REQUEST HEADERS: #{headers}")
         end
 
