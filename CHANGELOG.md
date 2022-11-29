@@ -2,7 +2,7 @@
 
   ## v8.14.0
 
-  Version 8.14.0 of the agent restores desired Capistrano based changelog lookup functionalty when a deployment is performed.
+  Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed.
 
   * **Deployment recipe: restore desired Capistrano based changelog lookup behavior**
 
