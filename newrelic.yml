@@ -130,6 +130,10 @@ common: &default_settings
   # and $HOME/newrelic.yml.
   # config_path: newrelic.yml
 
+  # A comma separated list of ActiveSupport custom event topics to subscribe to and
+  # provide instrumentation for. Ex: "my.custom.event,another.event,a.third.event"
+  # custom_events_instrumentation_topics: ""
+
   # If true, enables cross application tracing. Cross application tracing is now
   # deprecated, and disabled by default. Distributed tracing is replacing cross
   # application tracing as the default means of tracing between services.
@@ -172,6 +176,9 @@ common: &default_settings
 
   # If true, the agent won't sample the CPU usage of the host process.
   # disable_cpu_sampler: false
+
+  # If true, disables ActiveSupport custom events instrumentation.
+  # disable_custom_events_instrumentation: false
 
   # If true, disables DataMapper instrumentation.
   # disable_data_mapper: false

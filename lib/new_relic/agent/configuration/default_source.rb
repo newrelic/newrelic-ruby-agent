@@ -422,6 +422,17 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :allowed_from_server => false,
           :description => 'Path to <b>newrelic.yml</b>. If undefined, the agent checks the following directories (in order): <b>config/newrelic.yml</b>, <b>newrelic.yml</b>, <b>$HOME/.newrelic/newrelic.yml</b> and <b>$HOME/newrelic.yml</b>.'
         },
+        :'custom_events_instrumentation_topics' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => true,
+          :dynamic_name => true,
+          :description => <<-DESCRIPTION
+A comma separated list of ActiveSupport custom event topics to subscribe to and
+provide instrumentation for. Ex: "my.custom.event,another.event,a.third.event"
+          DESCRIPTION
+        },
         :'exclude_newrelic_header' => {
           :default => false,
           :public => true,
@@ -1186,6 +1197,14 @@ A map of error classes to a list of messages. When an error of one of the classe
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.')
+        },
+        :disable_custom_events_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables ActiveSupport custom events instrumentation.'
         },
         :disable_database_instrumentation => {
           :default => false,
