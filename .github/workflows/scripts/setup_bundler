@@ -72,7 +72,10 @@ function configure_bundler {
 }
 
 function install_ruby_version_specific_gems {
-  echo "DEBUG: installing Ruby version specific gems"
+  if using_jruby; then
+    echo "DEBUG: Skipping specific gem installation, as JRuby is in use"
+    return
+  fi
 
   # for some reason, ruby 3.0 fails unless 3.1.0 is installed before it bundles for rails_prepend suite/rails 7
   if [[ $RUBY_VERSION =~ 3.0 ]]; then 
@@ -107,7 +110,6 @@ function set_up_bundler {
   update_to_desired_rubygems_version
   install_desired_bundler_version
   configure_bundler
-  install_ruby_version_specific_gems
 }
 
 echo "DEBUG: setting up Bundler"
@@ -115,3 +117,6 @@ set_up_bundler
 
 echo "DEBUG: running 'bundle install'"
 bundle install
+
+echo "DEBUG: installing Ruby version specific gems"
+install_ruby_version_specific_gems
