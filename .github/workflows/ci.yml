@@ -1,17 +1,18 @@
 name: PR Continuous Integration
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   run_rubocop:
     runs-on: ubuntu-22.04
     steps:
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
       - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: "3.1"
       - run: bundle
       - run: rubocop
 
@@ -32,7 +33,7 @@ jobs:
         ruby-version: [2.2.10, 3.1.3, jruby-9.4.0.0]
     steps:
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
       - uses: actions/checkout@v3
 
         # - curl is needed for Curb
@@ -177,12 +178,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse:
+          [
+            agent,
+            background,
+            background_2,
+            database,
+            frameworks,
+            httpclients,
+            httpclients_2,
+            rails,
+            rest,
+          ]
         ruby-version: [2.2.10, 3.1.3]
 
     steps:
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
       - uses: actions/checkout@v3
 
         # - curl is needed for Curb
@@ -253,7 +265,7 @@ jobs:
         ruby-version: [2.5.9, 3.1.3]
     steps:
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
       - uses: actions/checkout@v3
 
       - name: Install Ruby ${{ matrix.ruby-version }}
@@ -291,7 +303,7 @@ jobs:
       run_job: ${{ steps.filter.outputs.run_job }}
     steps:
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
       - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
@@ -373,16 +385,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse:
+          [
+            agent,
+            background,
+            background_2,
+            database,
+            frameworks,
+            httpclients,
+            httpclients_2,
+            rails,
+            rest,
+          ]
     steps:
       - name: Set the default Java version
         run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
-             sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
-             java -version &&
-             javac -version
+          sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
+          java -version &&
+          javac -version
 
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
 
       - name: Check out the source code
         uses: actions/checkout@v3
@@ -422,11 +445,11 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Configure git
-        run: 'git config --global init.defaultBranch main'
+        run: "git config --global init.defaultBranch main"
       - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: "3.1"
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v3
