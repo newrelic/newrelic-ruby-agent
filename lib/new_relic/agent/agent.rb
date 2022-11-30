@@ -37,13 +37,13 @@ require 'new_relic/agent/adaptive_sampler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
 
-require 'new_relic/agent/agent/connect'
-require 'new_relic/agent/agent/harvest'
-require 'new_relic/agent/agent/start_worker_thread'
-require 'new_relic/agent/agent/startup'
-require 'new_relic/agent/agent/special_startup'
-require 'new_relic/agent/agent/shutdown'
-require 'new_relic/agent/agent/transmit'
+require 'new_relic/agent/agent_helpers/connect'
+require 'new_relic/agent/agent_helpers/harvest'
+require 'new_relic/agent/agent_helpers/start_worker_thread'
+require 'new_relic/agent/agent_helpers/startup'
+require 'new_relic/agent/agent_helpers/special_startup'
+require 'new_relic/agent/agent_helpers/shutdown'
+require 'new_relic/agent/agent_helpers/transmit'
 
 module NewRelic
   module Agent
