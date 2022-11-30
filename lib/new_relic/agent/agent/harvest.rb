@@ -108,6 +108,44 @@ module NewRelic
           harvest_and_send_span_event_data
           harvest_and_send_log_event_data
         end
+
+        def send_data_to_endpoint(endpoint, payload, container)
+          begin
+            @service.send(endpoint, payload)
+          rescue ForceRestartException, ForceDisconnectException
+            raise
+          rescue SerializationError => e
+            NewRelic::Agent.logger.warn("Failed to serialize data for #{endpoint}, discarding. Error: ", e)
+          rescue UnrecoverableServerException => e
+            NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
+          rescue ServerConnectionException => e
+            log_remote_unavailable(endpoint, e)
+            container.merge!(payload)
+          rescue => e
+            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
+            container.merge!(payload)
+          end
+        end
+
+        def check_for_and_handle_agent_commands
+          begin
+            @agent_command_router.check_for_and_handle_agent_commands
+          rescue ForceRestartException, ForceDisconnectException
+            raise
+          rescue UnrecoverableServerException => e
+            NewRelic::Agent.logger.warn("get_agent_commands message was rejected by remote service, discarding. Error: ", e)
+          rescue ServerConnectionException => e
+            log_remote_unavailable(:get_agent_commands, e)
+          rescue => e
+            NewRelic::Agent.logger.info("Error during check_for_and_handle_agent_commands, will retry later: ", e)
+          end
+        end
+
+        def log_remote_unavailable(endpoint, e)
+          NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
+          NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
+          NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
+        end
       end
     end
   end

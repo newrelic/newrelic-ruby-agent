@@ -356,62 +356,10 @@ module NewRelic
 
         public :merge_data_for_endpoint
 
-        def retry_from_error?(e, opts)
-          # Allow a killed (aborting) thread to continue exiting during shutdown.
-          # See: https://github.com/newrelic/newrelic-ruby-agent/issues/340
-          raise if Thread.current.status == 'aborting'
-
-          log_error(e)
-          return false unless opts[:keep_retrying]
-
-          note_connect_failure
-          ::NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
-          sleep(connect_retry_period)
-          true
-        end
-
         # Delegates to the control class to determine the root
         # directory of this project
         def determine_home_directory
           control.root
-        end
-
-        def send_data_to_endpoint(endpoint, payload, container)
-          begin
-            @service.send(endpoint, payload)
-          rescue ForceRestartException, ForceDisconnectException
-            raise
-          rescue SerializationError => e
-            NewRelic::Agent.logger.warn("Failed to serialize data for #{endpoint}, discarding. Error: ", e)
-          rescue UnrecoverableServerException => e
-            NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
-          rescue ServerConnectionException => e
-            log_remote_unavailable(endpoint, e)
-            container.merge!(payload)
-          rescue => e
-            NewRelic::Agent.logger.info("Unable to send #{endpoint} data, will try again later. Error: ", e)
-            container.merge!(payload)
-          end
-        end
-
-        def check_for_and_handle_agent_commands
-          begin
-            @agent_command_router.check_for_and_handle_agent_commands
-          rescue ForceRestartException, ForceDisconnectException
-            raise
-          rescue UnrecoverableServerException => e
-            NewRelic::Agent.logger.warn("get_agent_commands message was rejected by remote service, discarding. Error: ", e)
-          rescue ServerConnectionException => e
-            log_remote_unavailable(:get_agent_commands, e)
-          rescue => e
-            NewRelic::Agent.logger.info("Error during check_for_and_handle_agent_commands, will retry later: ", e)
-          end
-        end
-
-        def log_remote_unavailable(endpoint, e)
-          NewRelic::Agent.logger.debug("Unable to send #{endpoint} data, will try again later. Error: ", e)
-          NewRelic::Agent.record_metric("Supportability/remote_unavailable", 0.0)
-          NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
       end
 

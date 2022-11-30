@@ -206,6 +206,20 @@ module NewRelic
 
           raise
         end
+
+        def retry_from_error?(e, opts)
+          # Allow a killed (aborting) thread to continue exiting during shutdown.
+          # See: https://github.com/newrelic/newrelic-ruby-agent/issues/340
+          raise if Thread.current.status == 'aborting'
+
+          log_error(e)
+          return false unless opts[:keep_retrying]
+
+          note_connect_failure
+          ::NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
+          sleep(connect_retry_period)
+          true
+        end
       end
     end
   end
