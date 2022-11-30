@@ -65,6 +65,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_finish_with_exception_payload
+      skip_unless_minitest5_or_above
+
       noticed = false
       exception_object = StandardError.new
       NewRelic::Agent.stub :notice_error, ->(_) { noticed = true }, [exception_object] do

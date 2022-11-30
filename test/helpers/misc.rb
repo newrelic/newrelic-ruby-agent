@@ -118,3 +118,9 @@ def wait_until_not_nil(give_up_after = 3, &block)
     current_tries += 1
   end
 end
+
+def skip_unless_minitest5_or_above
+  return if defined?(MiniTest::VERSION) && MiniTest::VERSION > '5'
+
+  skip 'This test requires MiniTest v5+'
+end
