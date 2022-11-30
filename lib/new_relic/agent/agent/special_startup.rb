@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       module SpecialStartup
         # If we're using a dispatcher that forks before serving
         # requests, we need to wait until the children are forked

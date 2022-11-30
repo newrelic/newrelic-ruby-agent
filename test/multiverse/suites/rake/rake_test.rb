@@ -44,7 +44,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         end
 
         refute_any_rake_metrics
-        assert_includes @output, "ERROR : NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout: Agent was unable to connect"
+        assert_includes @output, "ERROR : NewRelic::Agent::AgentHelpers::Connect::WaitOnConnectTimeout: Agent was unable to connect"
       end
 
       def test_records_transaction_metrics

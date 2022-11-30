@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       module Startup
         # True if we have initialized and completed 'start'
         def started?

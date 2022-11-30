@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       # This module is an artifact of a refactoring of the connect
       # method - all of its methods are used in that context, so it
       # can be refactored at will. It should be fully tested

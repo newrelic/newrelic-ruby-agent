@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       module Transmit
         TRANSACTION_EVENT = "TransactionEvent".freeze
         def transmit_analytic_event_data

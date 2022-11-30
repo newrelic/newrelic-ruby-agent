@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       module Shutdown
         # Attempt a graceful shutdown of the agent, flushing any remaining
         # data.

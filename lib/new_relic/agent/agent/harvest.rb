@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       module Harvest
         # Harvests data from the given container, sends it to the named endpoint
         # on the service, and automatically merges back in upon a recoverable

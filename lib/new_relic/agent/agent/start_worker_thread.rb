@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class Agent
+    module AgentHelpers
       module StartWorkerThread
         LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
