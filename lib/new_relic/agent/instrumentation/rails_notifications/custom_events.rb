@@ -9,7 +9,6 @@ DependencyDetection.defer do
   @name = :custom_event_notifications
 
   depends_on do
-    binding.irb
     defined?(::Rails::VERSION::MAJOR) &&
       ::Rails::VERSION::MAJOR.to_i >= 5 &&
       defined?(::ActiveSupport::Notifications) &&
@@ -17,19 +16,16 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    binding.irb
     !::NewRelic::Agent.config[:disable_custom_events_instrumentation] &&
       !::NewRelic::Agent.config[:custom_events_instrumentation_topics].empty? &&
       !::NewRelic::Agent::Instrumentation::CustomEventsSubscriber.subscribed?
   end
 
   executes do
-    binding.irb
     ::NewRelic::Agent.logger.info('Installing notifications based ActiveSupport custom events instrumentation')
   end
 
   executes do
-    binding.irb
     ::NewRelic::Agent.config[:custom_events_instrumentation_topics].each do |topic|
       ::ActiveSupport::Notifications.subscribe(topic, NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new)
     end
