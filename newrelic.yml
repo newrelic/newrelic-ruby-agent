@@ -26,6 +26,13 @@ common: &default_settings
   # All of the following configuration options are optional. Review them, and
   # uncomment or edit them if they appear relevant to your application needs.
 
+  # An array of ActiveSupport custom event topics to subscribe to and provide
+  # instrumentation for. For example,
+  #   - my.custom.event
+  #   - another.event
+  #   - a.third.event
+  # active_support_custom_events_topics: ""
+
   # If `true`, all logging-related features for the agent can be enabled or disabled
   # independently. If `false`, all logging-related features are disabled.
   # application_logging.enabled: true
@@ -129,10 +136,6 @@ common: &default_settings
   # (in order): config/newrelic.yml, newrelic.yml, $HOME/.newrelic/newrelic.yml
   # and $HOME/newrelic.yml.
   # config_path: newrelic.yml
-
-  # A comma separated list of ActiveSupport custom event topics to subscribe to and
-  # provide instrumentation for. Ex: "my.custom.event,another.event,a.third.event"
-  # custom_events_instrumentation_topics: ""
 
   # If true, enables cross application tracing. Cross application tracing is now
   # deprecated, and disabled by default. Distributed tracing is replacing cross
