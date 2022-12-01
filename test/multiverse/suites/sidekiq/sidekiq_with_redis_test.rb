@@ -50,10 +50,11 @@ class SidekiqWithRedisTest < MiniTest::Test
     result = nil
 
     conn.with do |c|
-      c._client.pipelined do |p|
+      client = c.instance_variable_get(:@client)
+      client.pipelined do |p|
         p.call_v([:set, key, value])
       end
-      result = c._client.call(:get, key)
+      result = client.call(:get, key)
     end
 
     assert_equal value, result
