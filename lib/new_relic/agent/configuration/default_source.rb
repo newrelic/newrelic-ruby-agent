@@ -358,13 +358,13 @@ module NewRelic
           :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `error`, `warn`, `info` or `debug`.'
         },
         # General
-        :active_support_custom_events_topics => {
+        :active_support_custom_events_names => {
           :default => [],
           :public => true,
           :type => Array,
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
-An array of ActiveSupport custom event topics to subscribe to and provide
+An array of ActiveSupport custom events names to subscribe to and provide
 instrumentation for. For example,
   - my.custom.event
   - another.event

@@ -10,7 +10,7 @@
 
   * **Support for Rails ActiveSupport::Notifications for custom events**
 
-    When the new `active_support_custom_events_topics` configuration parameter is set equal to an array of custom event topics to subscribe to, the agent will now subscribe to each of the topics specified and report instrumentation for the events when they take place. [Creating custom events](https://guides.rubyonrails.org/active_support_instrumentation.html#creating-custom-events) is simple and now reporting instrumentation for them to New Relic is simple as well. [PR#1659](https://github.com/newrelic/newrelic-ruby-agent/pull/1659)
+    When the new `active_support_custom_events_names` configuration parameter is set equal to an array of custom event names to subscribe to, the agent will now subscribe to each of the names specified and report instrumentation for the events when they take place. [Creating custom events](https://guides.rubyonrails.org/active_support_instrumentation.html#creating-custom-events) is simple and now reporting instrumentation for them to New Relic is simple as well. [PR#1659](https://github.com/newrelic/newrelic-ruby-agent/pull/1659)
 
 
   ## v8.13.1

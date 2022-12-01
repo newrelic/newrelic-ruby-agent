@@ -7,7 +7,7 @@ require 'new_relic/agent/instrumentation/custom_events_subscriber'
 
 module NewRelic::Agent::Instrumentation
   class CustomEventsSubscriberTest < Minitest::Test
-    TOPIC = 'abre los ojos'
+    NAME = 'abre los ojos'
     ID = 1138
     SUBSCRIBER = NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new
 
@@ -17,18 +17,18 @@ module NewRelic::Agent::Instrumentation
     def test_start
       in_transaction do |txn|
         time = Time.now.to_f
-        SUBSCRIBER.start(TOPIC, ID, {})
+        SUBSCRIBER.start(NAME, ID, {})
         segment = txn.segments.last
 
         assert_in_delta time, segment.start_time
-        assert_equal "ActiveSupport/CustomEvents/#{TOPIC}", segment.name
+        assert_equal "ActiveSupport/CustomEvents/#{NAME}", segment.name
       end
     end
 
     def test_start_when_not_traced
       SUBSCRIBER.state.stub :is_execution_traced?, false do
         in_transaction do |txn|
-          SUBSCRIBER.start(TOPIC, ID, {})
+          SUBSCRIBER.start(NAME, ID, {})
 
           assert_empty txn.segments
         end
@@ -44,7 +44,7 @@ module NewRelic::Agent::Instrumentation
 
         in_transaction do |txn|
           NewRelic::Agent::Tracer.stub :start_transaction_or_segment, -> { raise 'kaboom' } do
-            SUBSCRIBER.start(TOPIC, ID, {})
+            SUBSCRIBER.start(NAME, ID, {})
           end
 
           assert_equal 1, txn.segments.size
@@ -55,11 +55,11 @@ module NewRelic::Agent::Instrumentation
 
     def test_finish
       in_transaction do |txn|
-        started_segment = NewRelic::Agent::Tracer.start_transaction_or_segment(name: TOPIC, category: :testing)
+        started_segment = NewRelic::Agent::Tracer.start_transaction_or_segment(name: NAME, category: :testing)
         SUBSCRIBER.push_segment(ID, started_segment)
 
         time = Time.now.to_f
-        SUBSCRIBER.finish(TOPIC, ID, {})
+        SUBSCRIBER.finish(NAME, ID, {})
         segment = txn.segments.last
 
         assert_in_delta time, segment.end_time
@@ -73,7 +73,7 @@ module NewRelic::Agent::Instrumentation
       noticed = false
       exception_object = StandardError.new
       NewRelic::Agent.stub :notice_error, ->(_) { noticed = true }, [exception_object] do
-        SUBSCRIBER.finish(TOPIC, ID, {exception_object: exception_object})
+        SUBSCRIBER.finish(NAME, ID, {exception_object: exception_object})
       end
 
       assert noticed
@@ -88,7 +88,7 @@ module NewRelic::Agent::Instrumentation
 
         in_transaction do |txn|
           SUBSCRIBER.state.stub :is_execution_traced?, -> { raise 'kaboom' } do
-            SUBSCRIBER.finish(TOPIC, ID, {})
+            SUBSCRIBER.finish(NAME, ID, {})
           end
 
           assert_equal 1, txn.segments.size
@@ -105,20 +105,20 @@ module NewRelic::Agent::Instrumentation
         skip 'Skipping test as ActiveSupport is not present'
       end
 
-      with_config(active_support_custom_events_topics: [TOPIC]) do
+      with_config(active_support_custom_events_names: [NAME]) do
         require 'new_relic/agent/instrumentation/rails_notifications/custom_events'
         DependencyDetection.detect!
 
         in_transaction do |txn|
-          ActiveSupport::Notifications.subscribe(TOPIC) { |_name, _started, _finished, _unique_id, _data| }
-          ActiveSupport::Notifications.instrument(TOPIC, key: :value) do
+          ActiveSupport::Notifications.subscribe(NAME) { |_name, _started, _finished, _unique_id, _data| }
+          ActiveSupport::Notifications.instrument(NAME, key: :value) do
             rand(1148)
           end
 
           assert_equal 2, txn.segments.size
           segment = txn.segments.last
 
-          assert_equal "ActiveSupport/CustomEvents/#{TOPIC}", segment.name
+          assert_equal "ActiveSupport/CustomEvents/#{NAME}", segment.name
         end
       end
     end

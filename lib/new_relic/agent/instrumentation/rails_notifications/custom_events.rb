@@ -14,7 +14,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    !::NewRelic::Agent.config[:active_support_custom_events_topics].empty? &&
+    !::NewRelic::Agent.config[:active_support_custom_events_names].empty? &&
       !::NewRelic::Agent::Instrumentation::CustomEventsSubscriber.subscribed?
   end
 
@@ -23,8 +23,8 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.config[:active_support_custom_events_topics].each do |topic|
-      ::ActiveSupport::Notifications.subscribe(topic, NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new)
+    ::NewRelic::Agent.config[:active_support_custom_events_names].each do |name|
+      ::ActiveSupport::Notifications.subscribe(name, NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new)
     end
   end
 end
