@@ -12,7 +12,8 @@ module NewRelic
         def using_forking_dispatcher?
           # TODO: MAJOR VERSION - remove :rainbows
           if [:puma, :passenger, :rainbows, :unicorn].include?(Agent.config[:dispatcher])
-            ::NewRelic::Agent.logger.info("Deferring startup of agent reporting thread because #{Agent.config[:dispatcher]} may fork.")
+            ::NewRelic::Agent.logger.info("Deferring startup of agent reporting thread because " \
+              "#{Agent.config[:dispatcher]} may fork.")
             true
           else
             false

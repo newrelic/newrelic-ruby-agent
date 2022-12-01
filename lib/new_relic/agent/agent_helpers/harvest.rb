@@ -133,7 +133,8 @@ module NewRelic
           rescue ForceRestartException, ForceDisconnectException
             raise
           rescue UnrecoverableServerException => e
-            NewRelic::Agent.logger.warn("get_agent_commands message was rejected by remote service, discarding. Error: ", e)
+            NewRelic::Agent.logger.warn("get_agent_commands message was rejected by remote service, discarding. " \
+              "Error: ", e)
           rescue ServerConnectionException => e
             log_remote_unavailable(:get_agent_commands, e)
           rescue => e

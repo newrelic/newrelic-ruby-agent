@@ -94,7 +94,8 @@ module NewRelic
           regexes = NewRelic::Agent.config[:'rules.ignore_url_regexes']
 
           unless regexes.empty?
-            ::NewRelic::Agent.logger.info("Ignoring URLs that match the following regexes: #{regexes.map(&:inspect).join(", ")}.")
+            ::NewRelic::Agent.logger.info("Ignoring URLs that match the following regexes: " \
+              "#{regexes.map(&:inspect).join(", ")}.")
           end
         end
 
@@ -138,7 +139,9 @@ module NewRelic
             true
           else
             ::NewRelic::Agent.logger.warn("No license key found. " +
-              "This often means your newrelic.yml file was not found, or it lacks a section for the running environment, '#{NewRelic::Control.instance.env}'. You may also want to try linting your newrelic.yml to ensure it is valid YML.")
+              "This often means your newrelic.yml file was not found, or it lacks a section for the running " \
+              "environment, '#{NewRelic::Control.instance.env}'. You may also want to try linting your newrelic.yml " \
+              "to ensure it is valid YML.")
             false
           end
         end

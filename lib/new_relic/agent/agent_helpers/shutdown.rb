@@ -62,7 +62,8 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
             @service.shutdown
           else
-            ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending shutdown")
+            ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending " \
+              "shutdown")
           end
         end
       end

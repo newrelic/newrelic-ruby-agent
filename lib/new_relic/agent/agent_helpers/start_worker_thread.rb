@@ -19,7 +19,8 @@ module NewRelic
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
           if disable = NewRelic::Agent.config[:disable_harvest_thread]
-            NewRelic::Agent.logger.info("Not starting Ruby Agent worker thread because :disable_harvest_thread is #{disable}")
+            NewRelic::Agent.logger.info("Not starting Ruby Agent worker thread because :disable_harvest_thread is " \
+              "#{disable}")
             return
           end
 
@@ -108,7 +109,8 @@ module NewRelic
         # is the worker thread that gathers data and talks to the
         # server.
         def handle_force_disconnect(error)
-          ::NewRelic::Agent.logger.warn("Agent received a ForceDisconnectException from the server, disconnecting. (#{error.message})")
+          ::NewRelic::Agent.logger.warn("Agent received a ForceDisconnectException from the server, disconnecting. " \
+            "(#{error.message})")
           disconnect
         end
 
