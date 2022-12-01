@@ -102,7 +102,7 @@ module NewRelic::Agent::Instrumentation
     #
     def test_an_actual_custom_event_taking_place
       unless defined?(::ActiveSupport::Notifications) && defined?(::ActiveSupport::IsolatedExecutionState)
-        skip 'Skipping test as ActiveSupport is not present' 
+        skip 'Skipping test as ActiveSupport is not present'
       end
 
       with_config(active_support_custom_events_topics: [TOPIC]) do
