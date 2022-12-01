@@ -11,6 +11,9 @@ module NewRelic::Agent::Instrumentation
     ID = 1138
     SUBSCRIBER = NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new
 
+    #
+    # tests with stubbing
+    #
     def test_start
       in_transaction do |txn|
         time = Time.now.to_f
@@ -18,7 +21,7 @@ module NewRelic::Agent::Instrumentation
         segment = txn.segments.last
 
         assert_in_delta time, segment.start_time
-        assert_equal "Nested/Controller/ActiveSupport/CustomEvents/#{TOPIC}", segment.name
+        assert_equal "ActiveSupport/CustomEvents/#{TOPIC}", segment.name
       end
     end
 
@@ -92,6 +95,30 @@ module NewRelic::Agent::Instrumentation
         end
       end
       logger.verify
+    end
+
+    #
+    # tests with ActiveSupport enabled
+    #
+    def test_an_actual_custom_event_taking_place
+      skip 'Skipping test as ActiveSupport is not present' unless defined?(::ActiveSupport)
+
+      with_config(active_support_custom_events_topics: [TOPIC]) do
+        require 'new_relic/agent/instrumentation/rails_notifications/custom_events'
+        DependencyDetection.detect!
+
+        in_transaction do |txn|
+          ActiveSupport::Notifications.subscribe(TOPIC) { |_name, _started, _finished, _unique_id, _data| }
+          ActiveSupport::Notifications.instrument(TOPIC, key: :value) do
+            rand(1148)
+          end
+
+          assert_equal 2, txn.segments.size
+          segment = txn.segments.last
+
+          assert_equal "ActiveSupport/CustomEvents/#{TOPIC}", segment.name
+        end
+      end
     end
   end
 end

@@ -31,7 +31,7 @@ module NewRelic::Agent::Instrumentation
     private
 
     def transaction_name(name)
-      "Controller/ActiveSupport/CustomEvents/#{name}"
+      "ActiveSupport/CustomEvents/#{name}"
     end
   end
 end
