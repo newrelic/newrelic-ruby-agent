@@ -9,6 +9,11 @@ require 'active_record/base'
 
 Bundler.require(:default, Rails.env) if defined?(Bundler)
 
+# TODO: this fixes an issue with Rails 6.0 that is not present with the latest
+#       release of 6.1. remove this fix either once we stop testing Rails 6.0
+#       with JRuby or once the 6.1 fix is backported to 6.0
+require_relative 'psych4_monkeypatch' if defined?(JRuby)
+
 module RpmTestApp
   class Application < Rails::Application
     config.encoding = "utf-8"
