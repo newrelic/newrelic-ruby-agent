@@ -101,7 +101,9 @@ module NewRelic::Agent::Instrumentation
     # tests with ActiveSupport enabled
     #
     def test_an_actual_custom_event_taking_place
-      skip 'Skipping test as ActiveSupport is not present' unless defined?(::ActiveSupport)
+      unless defined?(::ActiveSupport::Notifications) && defined?(::ActiveSupport::IsolatedExecutionState)
+        skip 'Skipping test as ActiveSupport is not present' 
+      end
 
       with_config(active_support_custom_events_topics: [TOPIC]) do
         require 'new_relic/agent/instrumentation/rails_notifications/custom_events'
