@@ -375,6 +375,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+    steps:
 
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
