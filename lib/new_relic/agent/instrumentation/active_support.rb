@@ -6,7 +6,7 @@
 # to still leverage all ActiveSupport based instrumentation functionality
 # offered by the agent that would otherwise be gated by the detection of Rails.
 
-# ActiveSupport custom events notifications
+# ActiveSupport notifications custom events
 if !defined?(::Rails) && defined?(::ActiveSupport::Notifications) && defined?(::ActiveSupport::IsolatedExecutionState)
   require_relative 'rails_notifications/custom_events'
 end
