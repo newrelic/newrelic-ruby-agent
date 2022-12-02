@@ -1341,6 +1341,7 @@ Style/MethodCallWithArgsParentheses:
     - skip
     - source
     - stub
+    - stub_const
   AllowedPatterns: [^assert, ^refute]
 
 Style/MethodCallWithoutArgsParentheses:
