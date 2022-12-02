@@ -2,11 +2,15 @@
 
   ## v8.14.0
 
-  Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed.
+  Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed and delivers support for instrumenting Rails custom event notifications.
 
   * **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
 
     The New Relic Ruby agent offers [a Capistrano recipe for recording app deployments](https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/record-deployments-ruby-agent/#capistrano3). The recipe code was significantly cleaned up with [PR#1498](https://github.com/newrelic/newrelic-ruby-agent/pull/1498) which inadvertently changed the way the recipe handles the changelog for a deployment. Community member [@arthurwozniak](https://github.com/arthurwozniak) spotted and corrected this change in order to restore the desired changelog lookup functionality while retaining all of the previous cleanup. Thank you very much for your contribution, [@arthurwozniak](https://github.com/arthurwozniak)! [PR#1653](https://github.com/newrelic/newrelic-ruby-agent/pull/1653)
+
+  * **Support for Rails ActiveSupport::Notifications for custom events**
+
+    When the new `active_support_custom_events_names` configuration parameter is set equal to an array of custom event names to subscribe to, the agent will now subscribe to each of the names specified and report instrumentation for the events when they take place. [Creating custom events](https://guides.rubyonrails.org/active_support_instrumentation.html#creating-custom-events) is simple and now reporting instrumentation for them to New Relic is simple as well. [PR#1659](https://github.com/newrelic/newrelic-ruby-agent/pull/1659)
 
 
   ## v8.13.1
