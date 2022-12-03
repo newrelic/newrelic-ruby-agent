@@ -17,8 +17,7 @@ module NewRelic
       extend self
 
       def trace_execution_scoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::Tracer.state
-        return yield unless state.is_execution_traced?
+        return yield unless NewRelic::Agent::Tracer.state.is_execution_traced?
 
         metric_names = Array(metric_names)
         first_name = metric_names.shift
@@ -77,7 +76,7 @@ module NewRelic
         name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
         return name if name
 
-        raise "Unable to glean a class name from string '#{object}'" unless name
+        raise "Unable to glean a class name from string '#{object}'"
       end
 
       # get at the underlying class from the singleton class
