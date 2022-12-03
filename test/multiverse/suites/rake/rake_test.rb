@@ -79,7 +79,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
 
       def test_records_transaction_events
         # TODO: stop the flapping/flaking
-        skip 'Flaps too often with JRuby' if defined?(Jruby)
+        skip 'Flaps too often with JRuby' if defined?(JRuby)
 
         run_rake
 

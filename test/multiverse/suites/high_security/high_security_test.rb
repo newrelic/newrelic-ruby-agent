@@ -55,7 +55,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_sends_high_security_flag_in_connect
     # TODO: stop the flapping/flaking
-    skip 'Flaps too often with JRuby' if defined?(Jruby)
+    skip 'Flaps too often with JRuby' if defined?(JRuby)
 
     data = $collector.calls_for('connect')
 
