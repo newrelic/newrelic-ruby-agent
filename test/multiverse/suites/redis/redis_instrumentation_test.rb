@@ -431,6 +431,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test__nr_redis_client_config_with_some_unknown_context
+      skip_unless_minitest5_or_above
+
       client = FakeClient.new
 
       Object.stub_const :RedisClient, nil do
