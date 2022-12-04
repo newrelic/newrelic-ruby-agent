@@ -290,6 +290,9 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   def test_captured_errors_should_not_include_custom_params_if_config_says_no
+    # TODO: stop the flapping/flaking
+    skip 'Flaps too often with JRuby' if defined?(JRuby)
+
     with_config(:'error_collector.attributes.enabled' => false) do
       get('/error/error_with_custom_params')
 
