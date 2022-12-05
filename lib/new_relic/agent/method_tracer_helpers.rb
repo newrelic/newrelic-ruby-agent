@@ -28,19 +28,15 @@ module NewRelic
           unscoped_metrics: metric_names
         )
 
-        if options[:metric] == false
-          segment.record_metrics = false
-        end
+        segment.record_metrics = false if options[:metric] == false
 
         unless !options.key?(:code_information) || options[:code_information].nil? || options[:code_information].empty?
           segment.code_information = options[:code_information]
         end
 
-        begin
-          Tracer.capture_segment_error(segment) { yield }
-        ensure
-          segment.finish if segment
-        end
+        Tracer.capture_segment_error(segment) { yield }
+      ensure
+        ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end
 
       def code_information(object, method_name)

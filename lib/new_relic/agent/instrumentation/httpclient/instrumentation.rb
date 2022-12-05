@@ -29,7 +29,7 @@ module NewRelic::Agent::Instrumentation
 
           response
         ensure
-          segment.finish if segment
+          ::NewRelic::Agent::Transaction::Segment.finish(segment)
         end
       end
     end

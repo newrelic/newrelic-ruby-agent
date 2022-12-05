@@ -181,7 +181,7 @@ module NewRelic
 
               raise
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         end

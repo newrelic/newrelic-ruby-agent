@@ -34,7 +34,7 @@ module NewRelic
             end
           ensure
             add_attributes(segment, grpc_message: grpc_message, grpc_status: grpc_status, grpc_type: grpc_type)
-            segment.finish if segment
+            ::NewRelic::Agent::Transaction::Segment.finish(segment)
           end
 
           private

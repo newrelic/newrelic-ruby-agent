@@ -14,21 +14,11 @@ module ::The
 end
 
 class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
-  # No assert here. This test helps increase branch coverage.
+  # No assert. This test helps increase branch coverage.
   def test_trace_execution_scoped_not_traced
     in_transaction do
-      self.class.trace_execution_scoped('chocolate latte') do
-        NewRelic::Agent::Tracer.state.untraced << false
-      end
-    end
-  end
-
-  # No assert here. This test helps increase branch coverage.
-  def test_trace_execution_scoped_no_segment
-    in_transaction do
-      NewRelic::Agent::Tracer.stub(:start_segment, nil) do
-        NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped('meowmix') { 'yummy' }
-      end
+      NewRelic::Agent::Tracer.state.untraced << false
+      NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped('cats') { 'a block' }
     end
   end
 

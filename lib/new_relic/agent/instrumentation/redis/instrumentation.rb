@@ -47,7 +47,7 @@ module NewRelic::Agent::Instrumentation
         segment.notice_nosql_statement(statement) if statement
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
-        segment.finish if segment
+        ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end
     end
 
