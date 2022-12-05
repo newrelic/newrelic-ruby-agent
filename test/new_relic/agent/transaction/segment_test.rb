@@ -353,14 +353,17 @@ module NewRelic
           doll = 'trollz'
           segment = MiniTest::Mock.new
           segment.expect(:finish, doll)
+
           assert_equal doll, NewRelic::Agent::Transaction::Segment.finish(segment)
           segment.verify
         end
 
         def test_self_finishes_a_real_segment
           segment = Segment.new('snake plant')
+
           refute segment.finished?
           NewRelic::Agent::Transaction::Segment.finish(segment)
+
           assert segment.finished?
         end
 
