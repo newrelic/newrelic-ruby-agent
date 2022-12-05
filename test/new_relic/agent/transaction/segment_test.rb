@@ -364,7 +364,7 @@ module NewRelic
           refute segment.finished?
           NewRelic::Agent::Transaction::Segment.finish(segment)
 
-          assert segment.finished?
+          assert_predicate segment, :finished?
         end
 
         private
