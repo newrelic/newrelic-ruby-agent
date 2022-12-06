@@ -485,7 +485,7 @@ module NewRelic
         thread.join
 
         assert_equal error, error
-        assert_kind_of NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout, error
+        assert_kind_of NewRelic::Agent::AgentHelpers::Connect::WaitOnConnectTimeout, error
       end
 
       def test_wait_raises_if_not_signaled
@@ -506,7 +506,7 @@ module NewRelic
         thread.join
 
         assert_equal error, error
-        assert_kind_of NewRelic::Agent::Agent::Connect::WaitOnConnectTimeout, error
+        assert_kind_of NewRelic::Agent::AgentHelpers::Connect::WaitOnConnectTimeout, error
       end
 
       def test_wait_when_already_connected

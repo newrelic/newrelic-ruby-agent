@@ -6,8 +6,8 @@ require_relative '../../../test_helper'
 
 class NewRelic::Agent::Agent::StartTest < Minitest::Test
   require 'new_relic/agent/agent'
-  include NewRelic::Agent::Startup
-  include NewRelic::Agent::SpecialStartup
+  include NewRelic::Agent::AgentHelpers::Startup
+  include NewRelic::Agent::AgentHelpers::SpecialStartup
 
   def setup
     @harvester = stub("dummy harvester")

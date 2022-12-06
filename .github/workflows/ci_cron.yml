@@ -117,7 +117,7 @@ jobs:
           command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev
+          JRUBY_OPTS: --dev --debug
 
   multiverse:
     runs-on: ubuntu-22.04
@@ -361,12 +361,6 @@ jobs:
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
-      - name: Set the default Java version
-        run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
-             sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
-             java -version &&
-             javac -version
-
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
 
@@ -377,13 +371,9 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: jruby-9.4.0.0
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Bundle
         run: bundle install
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -394,8 +384,7 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
-          JRUBY_OPTS: --dev
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
+          JRUBY_OPTS: --dev --debug
 
       - name: Annotate errors
         if: ${{ failure() }}
