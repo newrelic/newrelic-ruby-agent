@@ -54,7 +54,7 @@ module Sequel
         super(*args, &blk)
       ensure
         notice_sql(sql)
-        segment.finish if segment
+        ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end
     end
 

@@ -84,7 +84,7 @@ module NewRelic
                 log_without_newrelic_instrumentation(*args, &block)
               end
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         else
@@ -128,7 +128,7 @@ module NewRelic
                 log_without_newrelic_instrumentation(*args, **kwargs, &block)
               end
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         end

@@ -53,7 +53,7 @@ module NewRelic
                 yield
               end
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         end
@@ -97,7 +97,7 @@ module NewRelic
                 raise bunny_error
               end
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
 
             msg
@@ -120,7 +120,7 @@ module NewRelic
                 yield
               end
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         end

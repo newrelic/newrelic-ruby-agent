@@ -53,7 +53,7 @@ module NewRelic
               begin
                 send(method_name_without_newrelic, *args, &blk)
               ensure
-                segment.finish if segment
+                ::NewRelic::Agent::Transaction::Segment.finish(segment)
               end
             end
 
@@ -126,7 +126,7 @@ module NewRelic
               callback.call(result, segment.name, elapsed_time)
             end
           ensure
-            segment.finish if segment
+            ::NewRelic::Agent::Transaction::Segment.finish(segment)
           end
         end
       end

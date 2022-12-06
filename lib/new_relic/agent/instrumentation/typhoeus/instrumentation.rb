@@ -36,7 +36,7 @@ module NewRelic
           begin
             yield
           ensure
-            segment.finish if segment
+            ::NewRelic::Agent::Transaction::Segment.finish(segment)
           end
         end
 
@@ -68,7 +68,7 @@ module NewRelic
               segment.notice_error(NoticeableError.new(NOTICEABLE_ERROR_CLASS, response_message(request.response)))
             end
 
-            segment.finish if segment
+            ::NewRelic::Agent::Transaction::Segment.finish(segment)
           end
           request.on_complete.unshift(callback)
         rescue => e

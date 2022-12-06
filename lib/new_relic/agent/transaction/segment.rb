@@ -46,6 +46,12 @@ module NewRelic
           attributes.merge_custom_attributes(p)
         end
 
+        def self.finish(segment)
+          return unless segment
+
+          segment.finish
+        end
+
         private
 
         def record_metrics
