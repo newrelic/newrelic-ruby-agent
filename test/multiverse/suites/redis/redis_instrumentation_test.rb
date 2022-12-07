@@ -4,11 +4,16 @@
 
 require 'redis'
 require_relative '../../../helpers/docker'
+require_relative '../../../helpers/misc'
 
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
   class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test
     include MultiverseHelpers
     setup_and_teardown_agent
+
+    class FakeClient
+      include ::NewRelic::Agent::Instrumentation::Redis
+    end
 
     def after_setup
       super
@@ -386,6 +391,70 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       assert_equal %w[OK OK], @redis.pipelined { |pipeline| pipeline.set('foo', 'bar'); pipeline.set('baz', 'bat') }
       assert_equal %w[bar bat], @redis.pipelined { |pipeline| pipeline.get('foo'); pipeline.get('baz') }
       assert_equal 2, @redis.del('foo', 'baz')
+    end
+
+    def test__nr_redis_client_config_with_redis
+      skip_unless_minitest5_or_above
+
+      client = FakeClient.new
+
+      client.stub :is_a?, true, [::Redis::Client] do
+        assert_equal client, client.send(:_nr_redis_client_config)
+      end
+    end
+
+    def test__nr_redis_client_config_with_redis_client_v0_11
+      skip_unless_minitest5_or_above
+
+      client = FakeClient.new
+      config = 'the config'
+      mock_client = MiniTest::Mock.new
+      mock_client.expect :config, config
+      client.stub :respond_to?, true, [:client] do
+        client.stub :client, mock_client do
+          assert_equal config, client.send(:_nr_redis_client_config)
+        end
+      end
+    end
+
+    def test__nr_redis_client_config_with_redis_client_below_v0_11
+      skip_unless_minitest5_or_above
+
+      client = FakeClient.new
+      config = 'the config'
+      mock_client = MiniTest::Mock.new
+      mock_client.expect :config, config
+
+      Object.stub_const :RedisClient, mock_client do
+        assert_equal config, client.send(:_nr_redis_client_config)
+      end
+    end
+
+    def test__nr_redis_client_config_with_some_unknown_context
+      skip_unless_minitest5_or_above
+
+      client = FakeClient.new
+
+      Object.stub_const :RedisClient, nil do
+        assert_raises StandardError do
+          client.send(:_nr_redis_client_config)
+        end
+      end
+    end
+
+    def test_call_pipelined_with_tracing_uses_a_nil_db_value_if_it_must
+      client = FakeClient.new
+      with_tracing_validator = proc do |*args|
+        assert_equal 2, args.size
+        assert args.last.key?(:database)
+        refute args.last[:database]
+      end
+
+      Object.stub_const :RedisClient, nil do
+        client.stub :with_tracing, with_tracing_validator do
+          client.call_pipelined_with_tracing([]) { yield_value }
+        end
+      end
     end
 
     def client
