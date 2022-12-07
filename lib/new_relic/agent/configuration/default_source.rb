@@ -1850,6 +1850,15 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
+        # Rails
+        :'defer_rails_initialization' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, when the agent is in an application using Ruby on Rails, it will start after ' \
+            'config/initializers are run.'
+        },
         # Rake
         :'rake.tasks' => {
           :default => [],
