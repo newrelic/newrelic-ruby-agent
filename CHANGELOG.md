@@ -12,18 +12,18 @@
 
     When the new `active_support_custom_events_names` configuration parameter is set equal to an array of custom event names to subscribe to, the agent will now subscribe to each of the names specified and report instrumentation for the events when they take place. [Creating custom events](https://guides.rubyonrails.org/active_support_instrumentation.html#creating-custom-events) is simple and now reporting instrumentation for them to New Relic is simple as well. [PR#1659](https://github.com/newrelic/newrelic-ruby-agent/pull/1659)
 
-  * **Bugfix: Support older versions of the redis-client gem, handle unknown Redis database index
+  * **Bugfix: Support older versions of the RedisClient gem, handle unknown Redis database index
 
-    With version 8.13.0 of the agent, support was added for `redis` gem v5+ and the new `redis-client` gem. With versions of `redis-client` older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for `redis-client` versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
+    With version 8.13.0 of the agent, support was added for the [redis-rb](https://github.com/redis/redis-rb) gem v5+ and the new [RedisClient](https://rubygems.org/gems/redis-client) gem. With versions of RedisClient older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for RedisClient versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. Thank you very much to our community members [@mbsmartee](https://github.com/mbsmartee) and [@patatepartie](https://github.com/patatepartie) for bringing this issue to our attention, for helping us determine how to best reproduce it, and for testing out the update. We appreciate your help! [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
 
 
   ## v8.13.1
 
   Version 8.13.1 of the agent provides a bugfix for Redis v5.0 instrumentation.
 
-  * **Fix NoMethodError when using Sidekiq v7.0 with Redis Client v0.11**
+  * **Fix NoMethodError when using Sidekiq v7.0 with RedisClient v0.11**
 
-    In some cases, the `RedisClient` object cannot directly access methods like db, port, or path. These methods are always available on the `client.config` object. This raised a `NoMethodError` in environments that used Sidekiq v7.0 and [Redis Client](https://rubygems.org/gems/redis-client) v0.11. Thank you to [fcheung](https://github.com/fcheung) and [@stevenou](https://github.com/stevenou) for bringing this to our attention! [Issue#1639](https://github.com/newrelic/newrelic-ruby-agent/issues/1639)
+    In some cases, the `RedisClient` object cannot directly access methods like db, port, or path. These methods are always available on the `client.config` object. This raised a `NoMethodError` in environments that used Sidekiq v7.0 and [RedisClient](https://rubygems.org/gems/redis-client) v0.11. Thank you to [fcheung](https://github.com/fcheung) and [@stevenou](https://github.com/stevenou) for bringing this to our attention! [Issue#1639](https://github.com/newrelic/newrelic-ruby-agent/issues/1639)
 
 
   ## v8.13.0
