@@ -26,7 +26,7 @@ Version 8.13.1 of the agent provides a bugfix for Redis v5.0 instrumentation.
 
 - **Fix NoMethodError when using Sidekiq v7.0 with RedisClient v0.11**
 
-  In some cases, the `RedisClient` object cannot directly access methods like db, port, or path. These methods are always available on the `client.config` object. This raised a `NoMethodError` in environments that used Sidekiq v7.0 and [RedisClient](https://rubygems.org/gems/redis-client) v0.11. Thank you to [fcheung](https://github.com/fcheung) and [@stevenou](https://github.com/stevenou) for bringing this to our attention! [Issue#1639](https://github.com/newrelic/newrelic-ruby-agent/issues/1639)
+  In some cases, the `RedisClient` object cannot directly access methods like db, port, or path. These methods are always available on the `client.config` object. This raised a `NoMethodError` in environments that used Sidekiq v7.0 and [RedisClient](https://rubygems.org/gems/redis-client) v0.11. Thank you to [@fcheung](https://github.com/fcheung) and [@stevenou](https://github.com/stevenou) for bringing this to our attention! [Issue#1639](https://github.com/newrelic/newrelic-ruby-agent/issues/1639)
 
 ## v8.13.0
 
