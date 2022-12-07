@@ -2,7 +2,7 @@
 
   ## v8.14.0
 
-  Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed and delivers support for instrumenting Rails custom event notifications.
+  Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, delivers support for instrumenting Rails custom event notifications, and fixes potential compatibility issues with Redis gems.
 
   * **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
 
@@ -11,6 +11,10 @@
   * **Support for Rails ActiveSupport::Notifications for custom events**
 
     When the new `active_support_custom_events_names` configuration parameter is set equal to an array of custom event names to subscribe to, the agent will now subscribe to each of the names specified and report instrumentation for the events when they take place. [Creating custom events](https://guides.rubyonrails.org/active_support_instrumentation.html#creating-custom-events) is simple and now reporting instrumentation for them to New Relic is simple as well. [PR#1659](https://github.com/newrelic/newrelic-ruby-agent/pull/1659)
+
+  * **Bugfix: Support older versions of the redis-client gem, handle unknown Redis database index
+
+    With version 8.13.0 of the agent, support was added for `redis` gem v5+ and the new `redis-client` gem. With versions of `redis-client` older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for `redis-client` versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
 
 
   ## v8.13.1
