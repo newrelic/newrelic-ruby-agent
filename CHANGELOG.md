@@ -2,7 +2,7 @@
 
 ## v8.14.0
 
-Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, delivers support for instrumenting Rails custom event notifications, and fixes potential compatibility issues with Redis gems, and reformats the Changelog to match Kayla's ghost linter.
+Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, delivers support for instrumenting Rails custom event notifications, and fixes potential compatibility issues with Redis gems, and fixes bugs related to initialization in Rails.
 
 - **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
 
@@ -16,9 +16,9 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
   With version 8.13.0 of the agent, support was added for the [redis-rb](https://github.com/redis/redis-rb) gem v5+ and the new [RedisClient](https://rubygems.org/gems/redis-client) gem. With versions of RedisClient older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for RedisClient versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. Thank you very much to our community members [@mbsmartee](https://github.com/mbsmartee) and [@patatepartie](https://github.com/patatepartie) for bringing this issue to our attention, for helping us determine how to best reproduce it, and for testing out the update. We appreciate your help! [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
 
-- **Test**
+- **Bugfix: Defer agent startup in Rails until after config/initializers are run**
 
-  This is a test entry to force the ghost linter to run. Remove this before release.
+  In Rails, the agent previously loaded before any files in the `config/initializers` directory. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before `config/initializers`, preventing any configuration values related to these libraries from being applied. This fix splits initialization into two parts: load `add_method_tracer` before `config/initializers` and start the agent after `config/initializers`. Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation. Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)
 
 ## v8.13.1
 
