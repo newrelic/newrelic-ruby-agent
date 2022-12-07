@@ -31,7 +31,7 @@ module NewRelic::Agent::Instrumentation
         _nr_redis_client_config.db
       rescue StandardError => e
         NewRelic::Agent.logger.error("Failed to determine configured Redis db value: #{e.class} - #{e.message}")
-        return yield
+        nil
       end
 
       operation = pipeline.flatten.include?('MULTI') ? Constants::MULTI_OPERATION : Constants::PIPELINE_OPERATION

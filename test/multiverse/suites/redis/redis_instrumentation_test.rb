@@ -442,14 +442,17 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
     end
 
-    def test_call_pipelined_with_tracing_yields_early_if_a_db_value_cannot_be_obtained
+    def test_call_pipelined_with_tracing_uses_a_nil_db_value_if_it_must
       client = FakeClient.new
-      yield_value = 'Vegemite'
+      with_tracing_validator = proc do |*args|
+        assert_equal 2, args.size
+        assert args.last.key?(:database)
+        refute args.last[:database]
+      end
 
       Object.stub_const :RedisClient, nil do
-        # if with_tracing were to be reached, an exception will raise
-        client.stub :with_tracing, -> { raise 'kaboom' } do
-          assert_equal yield_value, client.call_pipelined_with_tracing(nil) { yield_value }
+        client.stub :with_tracing, with_tracing_validator do
+          client.call_pipelined_with_tracing([]) { yield_value }
         end
       end
     end
