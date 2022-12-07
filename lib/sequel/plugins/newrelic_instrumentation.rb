@@ -30,7 +30,7 @@ module Sequel
             begin
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         end

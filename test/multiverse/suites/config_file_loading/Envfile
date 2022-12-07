@@ -5,10 +5,15 @@
 omit_collector!
 
 PSYCH_VERSIONS = [
-  [nil],
+  # TODO: re-enable 'nil' once Psych v5 testing (released 2022-12-05) is complete
+  # [nil],
   ['4.0.0', 2.4],
   ['3.3.0', 2.4]
 ]
+
+# TODO: stop testing this older Psych version after support for Ruby 2.3 has
+#       been dropped
+PSYCH_VERSIONS.push(%w[3.0.3]) if RUBY_VERSION < '2.4'
 
 def gem_list(psych_version = nil)
   <<-RB

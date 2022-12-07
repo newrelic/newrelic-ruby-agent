@@ -143,7 +143,7 @@ module NewRelic
               begin
                 segment.process_response_headers(wrapped_response) if segment
               ensure
-                segment.finish if segment
+                ::NewRelic::Agent::Transaction::Segment.finish(segment)
                 # Make sure the existing completion callback is run, and restore the
                 # on_complete callback to how it was before.
                 original_callback.call(finished_request) if original_callback

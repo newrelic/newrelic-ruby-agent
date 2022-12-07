@@ -345,6 +345,28 @@ module NewRelic
           assert_equal "/referred", actual[:'request.headers.referer']
         end
 
+        def test_self_finish_returns_early
+          assert_nil NewRelic::Agent::Transaction::Segment.finish(nil)
+        end
+
+        def test_self_finish_finishes_a_segment
+          doll = 'trollz'
+          segment = MiniTest::Mock.new
+          segment.expect(:finish, doll)
+
+          assert_equal doll, NewRelic::Agent::Transaction::Segment.finish(segment)
+          segment.verify
+        end
+
+        def test_self_finishes_a_real_segment
+          segment = Segment.new('snake plant')
+
+          refute segment.finished?
+          NewRelic::Agent::Transaction::Segment.finish(segment)
+
+          assert_predicate segment, :finished?
+        end
+
         private
 
         # Similar to capture_segment_with_error, but we're capturing

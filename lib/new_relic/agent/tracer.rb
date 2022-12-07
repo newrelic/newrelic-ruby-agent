@@ -419,7 +419,7 @@ module NewRelic
               end
               yield(*args) if block.respond_to?(:call)
             ensure
-              segment.finish if segment
+              ::NewRelic::Agent::Transaction::Segment.finish(segment)
             end
           end
         end

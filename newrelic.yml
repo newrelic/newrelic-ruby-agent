@@ -26,6 +26,13 @@ common: &default_settings
   # All of the following configuration options are optional. Review them, and
   # uncomment or edit them if they appear relevant to your application needs.
 
+  # An array of ActiveSupport custom events names to subscribe to and provide
+  # instrumentation for. For example,
+  #   - my.custom.event
+  #   - another.event
+  #   - a.third.event
+  # active_support_custom_events_names: ""
+
   # If `true`, all logging-related features for the agent can be enabled or disabled
   # independently. If `false`, all logging-related features are disabled.
   # application_logging.enabled: true
@@ -172,6 +179,9 @@ common: &default_settings
 
   # If true, the agent won't sample the CPU usage of the host process.
   # disable_cpu_sampler: false
+
+  # If true, disables ActiveSupport custom events instrumentation.
+  # disable_custom_events_instrumentation: false
 
   # If true, disables DataMapper instrumentation.
   # disable_data_mapper: false

@@ -7,7 +7,7 @@ require 'new_relic/agent/agent'
 require 'ostruct'
 
 class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
-  include NewRelic::Agent::Agent::Connect
+  include NewRelic::Agent::AgentHelpers::Connect
   include TransactionSampleTestHelper
 
   def setup
