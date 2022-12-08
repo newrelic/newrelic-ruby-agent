@@ -10,18 +10,14 @@ DependencyDetection.defer do
   named :'concurrent_ruby'
 
   depends_on do
-    # The class that needs to be defined to prepend/chain onto. This can be used
-    # to determine whether the library is installed.
     defined?(::Concurrent)
-    # Add any additional requirements to verify whether this instrumentation
-    # should be installed
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing concurrent_ruby instrumentation')
+    ::NewRelic::Agent.logger.info('Installing concurrent-ruby instrumentation')
 
     if use_prepend?
-      prepend_instrument ::Concurrent, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend
+      prepend_instrument ::Concurrent::Promises::FactoryMethods, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::ConcurrentRuby
     end

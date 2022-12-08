@@ -4,10 +4,22 @@
 
 module NewRelic::Agent::Instrumentation
   module ConcurrentRuby
+    PROMISES_FUTURE_NAME = 'Concurrent::Promises#future'
 
-    def method_to_instrument_with_new_relic(*args)
-      # add instrumentation content here
-      yield
+    def future_with_new_relic(*args)
+      segment = NewRelic::Agent::Tracer.start_segment(name: segment_name(*args))
+      begin
+        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+      ensure
+        ::NewRelic::Agent::Transaction::Segment.finish(segment)
+      end
+    end
+
+    private
+
+    def segment_name(*args)
+      keyword_args = args[0]
+      keyword_args && keyword_args.key?(:nr_name) ? keyword_args[:nr_name] : PROMISES_FUTURE_NAME
     end
   end
 end
