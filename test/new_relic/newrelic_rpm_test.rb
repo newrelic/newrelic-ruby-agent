@@ -77,7 +77,7 @@ class NewRelicRpmTest < Minitest::Test
       if Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('7.1')
         assert ActiveRecord.timestamped_migrations, "ActiveRecord.timestamped_migrations equals false, expected true"
       else
-        refute ActiveRecord::Base.timestamped_migrations,
+        assert ActiveRecord::Base.timestamped_migrations,
           "ActiveRecord::Base.timestamped_migrations equals false, expected true"
       end
     end
