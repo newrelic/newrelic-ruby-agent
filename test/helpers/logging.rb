@@ -18,20 +18,20 @@ end
 # Need to be a bit sloppy when testing against the logging--let everything
 # through, but check we (at least) get our particular message we care about
 def expects_logging(level, *with_params)
-  ::NewRelic::Agent.logger.stubs(level)
-  ::NewRelic::Agent.logger.expects(level).with(*with_params).once
+  NewRelic::Agent.logger.stubs(level)
+  NewRelic::Agent.logger.expects(level).with(*with_params).once
 end
 
 def expects_no_logging(level)
-  ::NewRelic::Agent.logger.expects(level).never
+  NewRelic::Agent.logger.expects(level).never
 end
 
 # Sometimes need to test cases where we muddle with the global logger
 # If so, use this method to ensure it gets restored after we're done
 def without_logger
-  logger = ::NewRelic::Agent.logger
-  ::NewRelic::Agent.logger = nil
+  logger = NewRelic::Agent.logger
+  NewRelic::Agent.logger = nil
   yield
 ensure
-  ::NewRelic::Agent.logger = logger
+  NewRelic::Agent.logger = logger
 end

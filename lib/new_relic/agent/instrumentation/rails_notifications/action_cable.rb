@@ -9,9 +9,9 @@ DependencyDetection.defer do
   @name = :action_cable_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) &&
-      ::Rails::VERSION::MAJOR.to_i >= 5 &&
-      defined?(::ActionCable)
+    defined?(Rails::VERSION::MAJOR) &&
+      Rails::VERSION::MAJOR.to_i >= 5 &&
+      defined?(ActionCable)
   end
 
   depends_on do
@@ -20,7 +20,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing notifications based Action Cable instrumentation')
+    NewRelic::Agent.logger.info('Installing notifications based Action Cable instrumentation')
   end
 
   executes do
@@ -29,8 +29,8 @@ DependencyDetection.defer do
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
 
     ActiveSupport.on_load(:action_cable) do
-      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionCable::Engine) if defined?(::ActionCable::Engine)
-      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionCable::RemoteConnections) if defined?(::ActionCable::RemoteConnections)
+      NewRelic::Agent::PrependSupportability.record_metrics_for(ActionCable::Engine) if defined?(ActionCable::Engine)
+      NewRelic::Agent::PrependSupportability.record_metrics_for(ActionCable::RemoteConnections) if defined?(ActionCable::RemoteConnections)
     end
   end
 end

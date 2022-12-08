@@ -9,15 +9,15 @@ require_relative 'tilt/prepend'
 DependencyDetection.defer do
   named :tilt
 
-  depends_on { defined?(::Tilt) }
+  depends_on { defined?(Tilt) }
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Tilt instrumentation')
+    NewRelic::Agent.logger.info('Installing Tilt instrumentation')
   end
 
   executes do
     if use_prepend?
-      prepend_instrument ::Tilt::Template, NewRelic::Agent::Instrumentation::Tilt::Prepend
+      prepend_instrument Tilt::Template, NewRelic::Agent::Instrumentation::Tilt::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Tilt::Chain
     end

@@ -4,7 +4,7 @@
 
 require_relative 'rake_test_helper'
 
-if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
+if NewRelic::Agent::Instrumentation::Rake.should_install? &&
     class RakeTest < Minitest::Test
       include MultiverseHelpers
       include RakeTestHelper

@@ -64,8 +64,8 @@ class GrapeTestApi < Grape::API
   end
 end
 
-if ::Grape::VERSION >= '1.2.0' && ::Grape::VERSION <= '1.2.4'
-  class GrapeApiInstanceTestApi < ::Grape::API::Instance
+if Grape::VERSION >= '1.2.0' && Grape::VERSION <= '1.2.4'
+  class GrapeApiInstanceTestApi < Grape::API::Instance
     namespace :banjaxing do
       get do
         'List of Banjaxing'
@@ -74,8 +74,8 @@ if ::Grape::VERSION >= '1.2.0' && ::Grape::VERSION <= '1.2.4'
   end
 end
 
-if ::Grape::VERSION >= '1.2.5'
-  class GrapeApiInstanceTestApi < ::Grape::API
+if Grape::VERSION >= '1.2.5'
+  class GrapeApiInstanceTestApi < Grape::API
     namespace :banjaxing do
       get do
         'List of Banjaxing'

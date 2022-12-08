@@ -12,11 +12,11 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Authlogic instrumentation')
+    NewRelic::Agent.logger.info('Installing Authlogic instrumentation')
     deprecation_msg = 'The instrumentation for Authlogic is deprecated. ' \
       'It will be removed in version 9.0.0.' \
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_authlogic,
       deprecation_msg

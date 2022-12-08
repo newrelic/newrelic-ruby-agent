@@ -6,18 +6,18 @@ DependencyDetection.defer do
   @name = :rainbows
 
   depends_on do
-    defined?(::Rainbows) && defined?(::Rainbows::HttpServer)
+    defined?(Rainbows) && defined?(Rainbows::HttpServer)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Rainbows instrumentation')
-    ::NewRelic::Agent.logger.info('Detected Rainbows, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data')
+    NewRelic::Agent.logger.info('Installing Rainbows instrumentation')
+    NewRelic::Agent.logger.info('Detected Rainbows, please see additional documentation: https://newrelic.com/docs/troubleshooting/im-using-unicorn-and-i-dont-see-any-data')
 
     deprecation_msg = 'The dispatcher rainbows is deprecated. It will be removed ' \
      'in version 9.0.0. Please use a supported dispatcher instead. ' \
      'Visit https://docs.newrelic.com/docs/apm/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks for options.'
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_rainbows_dispatcher,
       deprecation_msg
