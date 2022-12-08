@@ -38,4 +38,17 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     assert_segment_noticed_error txn, /concurrent$/, StandardError, /boom/i
     assert_transaction_noticed_error txn, StandardError
   end
+
+  # Concurrent::ExecutorService#post
+
+  def test_post_creates_a_segment
+    skip
+
+    txn = in_transaction do
+      Concurrent::SimpleExecutorService.new.post('Significant wallaby') {}
+    end
+
+    assert_equal 2, txn.segments.size
+    segment = txn.segments[1]
+  end
 end

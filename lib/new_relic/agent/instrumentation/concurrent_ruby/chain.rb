@@ -18,6 +18,21 @@ module NewRelic::Agent::Instrumentation
           end
         end
       end
+
+      # TODO: the base #post method simply raises NotImplementedError
+      #       `chain` might not work here
+      ::Concurrent::ExecutorService.class_eval do
+        include NewRelic::Agent::Instrumentation::ConcurrentRuby
+
+        alias_method(:post_without_new_relic, :post)
+        alias_method(:post, :post_with_new_relic)
+
+        def post(*args, &task)
+          post_with_new_relic(*args) do
+            post_without_new_relic(*args, &task)
+          end
+        end
+      end
     end
   end
 end

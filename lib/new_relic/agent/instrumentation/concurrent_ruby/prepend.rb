@@ -9,5 +9,9 @@ module NewRelic::Agent::Instrumentation
     def future(*args, &task)
       future_with_new_relic(*args) { super }
     end
+
+    def post(*args, &task)
+      post_with_new_relic(*args) { super }
+    end
   end
 end

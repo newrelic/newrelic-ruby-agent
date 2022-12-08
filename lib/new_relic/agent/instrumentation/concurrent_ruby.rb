@@ -18,6 +18,8 @@ DependencyDetection.defer do
 
     if use_prepend?
       prepend_instrument ::Concurrent::Promises::FactoryMethods, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend
+      # TODO: let's use separate classes
+      prepend_instrument ::Concurrent::ExecutorService, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::ConcurrentRuby
     end
