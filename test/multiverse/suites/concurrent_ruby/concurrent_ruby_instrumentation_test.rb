@@ -23,7 +23,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   # hmm -- i think I'm not understanding how errors work in this context
-  # https://github.com/ruby-concurrency/concurrent-ruby/blob/master/docs-source/promises.in.md?plain=1#L81 
+  # https://github.com/ruby-concurrency/concurrent-ruby/blob/master/docs-source/promises.in.md?plain=1#L81
   def test_promises_future_captures_segment_error
     skip
     txn = nil
