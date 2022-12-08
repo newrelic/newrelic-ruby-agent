@@ -10,16 +10,16 @@ DependencyDetection.defer do
   named :elasticsearch
 
   depends_on do
-    defined?(::Elasticsearch)
+    defined?(Elasticsearch)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Elasticsearch instrumentation')
+    NewRelic::Agent.logger.info('Installing Elasticsearch instrumentation')
 
-    to_instrument = if ::Gem::Version.create(::Elasticsearch::VERSION) < ::Gem::Version.create("8.0.0")
-      ::Elasticsearch::Transport::Client
+    to_instrument = if Gem::Version.create(Elasticsearch::VERSION) < Gem::Version.create("8.0.0")
+      Elasticsearch::Transport::Client
     else
-      ::Elastic::Transport::Client
+      Elastic::Transport::Client
     end
 
     if use_prepend?

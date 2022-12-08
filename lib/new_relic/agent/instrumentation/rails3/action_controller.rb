@@ -66,7 +66,7 @@ DependencyDetection.defer do
   @name = :rails3_controller
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 3
+    defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR.to_i == 3
   end
 
   depends_on do
@@ -74,7 +74,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Rails 3 Controller instrumentation')
+    NewRelic::Agent.logger.info('Installing Rails 3 Controller instrumentation')
   end
 
   executes do
@@ -92,8 +92,8 @@ DependencyDetection.defer do
 
   # Enabled for Rails 3.2
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && defined?(::Rails::VERSION::MINOR) &&
-      ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 2
+    defined?(Rails::VERSION::MAJOR) && defined?(Rails::VERSION::MINOR) &&
+      Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 2
   end
 
   depends_on do
@@ -101,7 +101,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Rails 3.2 view instrumentation')
+    NewRelic::Agent.logger.info('Installing Rails 3.2 view instrumentation')
   end
 
   executes do

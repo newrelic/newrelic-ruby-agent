@@ -8,12 +8,12 @@ DependencyDetection.defer do
   named :active_storage
 
   depends_on do
-    defined?(::ActiveStorage) &&
+    defined?(ActiveStorage) &&
       !NewRelic::Agent::Instrumentation::ActiveStorageSubscriber.subscribed?
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing ActiveStorage instrumentation')
+    NewRelic::Agent.logger.info('Installing ActiveStorage instrumentation')
   end
 
   executes do

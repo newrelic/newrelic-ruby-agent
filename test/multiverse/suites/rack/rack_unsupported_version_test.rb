@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && defined? ::Rack
+if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && defined? Rack
 
   class RackUnsupportedVersionTest < Minitest::Test
     include MultiverseHelpers

@@ -9,14 +9,14 @@ require_relative 'active_support_logger/prepend'
 DependencyDetection.defer do
   named :active_support_logger
 
-  depends_on { defined?(::ActiveSupport::Logger) }
+  depends_on { defined?(ActiveSupport::Logger) }
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing ActiveSupport::Logger instrumentation')
+    NewRelic::Agent.logger.info('Installing ActiveSupport::Logger instrumentation')
 
     if use_prepend?
       # the only method currently instrumented is a class method
-      prepend_instrument ::ActiveSupport::Logger.singleton_class, NewRelic::Agent::Instrumentation::ActiveSupportLogger::Prepend
+      prepend_instrument ActiveSupport::Logger.singleton_class, NewRelic::Agent::Instrumentation::ActiveSupportLogger::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::ActiveSupportLogger::Chain
     end

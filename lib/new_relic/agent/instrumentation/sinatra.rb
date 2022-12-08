@@ -11,24 +11,24 @@ require_relative 'sinatra/prepend'
 DependencyDetection.defer do
   named :sinatra
 
-  depends_on { defined?(::Sinatra) && defined?(::Sinatra::Base) }
+  depends_on { defined?(Sinatra) && defined?(Sinatra::Base) }
   depends_on { Sinatra::Base.private_method_defined?(:dispatch!) }
   depends_on { Sinatra::Base.private_method_defined?(:process_route) }
   depends_on { Sinatra::Base.private_method_defined?(:route_eval) }
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Sinatra instrumentation')
+    NewRelic::Agent.logger.info('Installing Sinatra instrumentation')
   end
 
   executes do
     if use_prepend?
-      prepend_instrument ::Sinatra::Base, NewRelic::Agent::Instrumentation::Sinatra::Prepend
+      prepend_instrument Sinatra::Base, NewRelic::Agent::Instrumentation::Sinatra::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Chain
     end
 
-    ::Sinatra::Base.class_eval { register ::NewRelic::Agent::Instrumentation::Sinatra::Ignorer }
-    ::Sinatra.module_eval { register NewRelic::Agent::Instrumentation::Sinatra::Ignorer }
+    Sinatra::Base.class_eval { register NewRelic::Agent::Instrumentation::Sinatra::Ignorer }
+    Sinatra.module_eval { register NewRelic::Agent::Instrumentation::Sinatra::Ignorer }
   end
 
   executes do
@@ -37,7 +37,7 @@ DependencyDetection.defer do
     require 'new_relic/rack/agent_hooks'
     require 'new_relic/rack/browser_monitoring'
     if use_prepend?
-      prepend_instrument ::Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::Build::Prepend
+      prepend_instrument Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::Build::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Build::Chain
     end
@@ -49,7 +49,7 @@ DependencyDetection.defer do
     deprecation_msg = 'The Ruby Agent is dropping support for Sinatra versions below 2.0.0 ' \
       'in version 9.0.0. Please upgrade your Sinatra version to continue receiving full compatibility. ' \
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_sinatra_version,
       deprecation_msg

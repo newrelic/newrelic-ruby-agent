@@ -84,9 +84,9 @@ DependencyDetection.defer do
   named :active_record_notifications
 
   depends_on do
-    defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
-      defined?(::ActiveRecord::VERSION) &&
-      ::ActiveRecord::VERSION::MAJOR.to_i >= 4
+    defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
+      defined?(ActiveRecord::VERSION) &&
+      ActiveRecord::VERSION::MAJOR.to_i >= 4
   end
 
   depends_on do
@@ -95,7 +95,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing notifications based Active Record instrumentation')
+    NewRelic::Agent.logger.info('Installing notifications based Active Record instrumentation')
   end
 
   executes do
@@ -105,51 +105,51 @@ DependencyDetection.defer do
 
   executes do
     ActiveSupport.on_load(:active_record) do
-      ::NewRelic::Agent::PrependSupportability.record_metrics_for(
-        ::ActiveRecord::Base,
-        ::ActiveRecord::Relation
+      NewRelic::Agent::PrependSupportability.record_metrics_for(
+        ActiveRecord::Base,
+        ActiveRecord::Relation
       )
 
       # Default to .prepending, unless the ActiveRecord version is <=4
       # **AND** the :prepend_active_record_instrumentation config is false
-      if ::ActiveRecord::VERSION::MAJOR > 4 \
-          || ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
+      if ActiveRecord::VERSION::MAJOR > 4 \
+          || NewRelic::Agent.config[:prepend_active_record_instrumentation]
 
-        ::ActiveRecord::Base.send(:prepend,
-          ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
-        ::ActiveRecord::Relation.send(:prepend,
-          ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
+        ActiveRecord::Base.send(:prepend,
+          NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
+        ActiveRecord::Relation.send(:prepend,
+          NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
       else
-        ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+        NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
       end
     end
   end
 
   executes do
     if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
-      major_version = ::ActiveRecord::VERSION::MAJOR.to_i
-      minor_version = ::ActiveRecord::VERSION::MINOR.to_i
+      major_version = ActiveRecord::VERSION::MAJOR.to_i
+      minor_version = ActiveRecord::VERSION::MINOR.to_i
 
       activerecord_extension = if major_version == 4
-        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions4x
+        NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions4x
       elsif major_version == 5 && minor_version == 0
-        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
+        NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
       elsif major_version == 5 && minor_version == 1
-        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
+        NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
       end
 
       unless activerecord_extension.nil?
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, activerecord_extension)
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, activerecord_extension)
       end
     end
   end
 
   executes do
-    if ::ActiveRecord::VERSION::MAJOR == 5 \
-        && ::ActiveRecord::VERSION::MINOR.to_i == 1 \
-        && ::ActiveRecord::VERSION::TINY.to_i >= 6
+    if ActiveRecord::VERSION::MAJOR == 5 \
+        && ActiveRecord::VERSION::MINOR.to_i == 1 \
+        && ActiveRecord::VERSION::TINY.to_i >= 6
 
-      ::ActiveRecord::Base.prepend(::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516)
+      ActiveRecord::Base.prepend(NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516)
     end
   end
 end

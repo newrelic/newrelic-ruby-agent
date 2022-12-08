@@ -21,32 +21,32 @@ DependencyDetection.defer do
   EXCON_MIN_VERSION = Gem::Version.new("0.19.0")
 
   depends_on do
-    defined?(::Excon) && defined?(::Excon::VERSION)
+    defined?(Excon) && defined?(Excon::VERSION)
   end
 
   executes do
-    excon_version = Gem::Version.new(::Excon::VERSION)
+    excon_version = Gem::Version.new(Excon::VERSION)
     if excon_version >= EXCON_MIN_VERSION
       install_excon_instrumentation(excon_version)
     else
-      ::NewRelic::Agent.logger.warn("Excon instrumentation requires at least version #{EXCON_MIN_VERSION}")
+      NewRelic::Agent.logger.warn("Excon instrumentation requires at least version #{EXCON_MIN_VERSION}")
     end
   end
 
   executes do
-    next unless Gem::Version.new(::Excon::VERSION) < Gem::Version.new('0.56.0')
+    next unless Gem::Version.new(Excon::VERSION) < Gem::Version.new('0.56.0')
 
     deprecation_msg = 'Instrumentation for Excon versions below 0.56.0 is deprecated.' \
       'They will stop being monitored in version 9.0.0. ' \
       'Please upgrade your Excon version to continue receiving full support. '
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_excon_version,
       deprecation_msg
     )
 
-    ::NewRelic::Agent.record_metric("Supportability/Deprecated/Excon", 1)
+    NewRelic::Agent.record_metric("Supportability/Deprecated/Excon", 1)
   end
 
   def install_excon_instrumentation(excon_version)
@@ -57,14 +57,14 @@ DependencyDetection.defer do
   end
 
   def install_middleware_excon_instrumentation
-    ::NewRelic::Agent.logger.info('Installing middleware-based Excon instrumentation')
+    NewRelic::Agent.logger.info('Installing middleware-based Excon instrumentation')
     require 'new_relic/agent/instrumentation/excon/middleware'
     defaults = Excon.defaults
 
     if defaults[:middlewares]
-      defaults[:middlewares] << ::Excon::Middleware::NewRelicCrossAppTracing
+      defaults[:middlewares] << Excon::Middleware::NewRelicCrossAppTracing
     else
-      ::NewRelic::Agent.logger.warn("Did not find :middlewares key in Excon.defaults, skipping Excon instrumentation")
+      NewRelic::Agent.logger.warn("Did not find :middlewares key in Excon.defaults, skipping Excon instrumentation")
     end
   end
 end

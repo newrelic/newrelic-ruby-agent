@@ -14,16 +14,16 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info("Installing http.rb Wrappers")
+    NewRelic::Agent.logger.info("Installing http.rb Wrappers")
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/http_rb_wrappers'
   end
 
   executes do
     if use_prepend?
-      prepend_instrument HTTP::Client, ::NewRelic::Agent::Instrumentation::HTTPrb::Prepend
+      prepend_instrument HTTP::Client, NewRelic::Agent::Instrumentation::HTTPrb::Prepend
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::HTTPrb::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::HTTPrb::Chain
     end
   end
 end

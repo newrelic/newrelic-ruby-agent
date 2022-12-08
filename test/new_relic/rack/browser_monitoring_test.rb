@@ -8,7 +8,7 @@ rescue LoadError
   nil
 end
 
-if defined?(::Rack::Test)
+if defined?(Rack::Test)
   require_relative '../../test_helper'
   require 'new_relic/rack/browser_monitoring'
 
