@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-unless ::Grape::VERSION == '0.1.5'
+unless Grape::VERSION == '0.1.5'
   module GrapeVersioning
     class ApiV1 < Grape::API
       version 'v1'

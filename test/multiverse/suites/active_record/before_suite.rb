@@ -10,7 +10,7 @@ end
 # MySql 5.7 and later no longer support NULL in primary keys
 # This overrides the default definition mysql2 adapter emits
 # to remove the NULL keyword from the PK declaration.
-if defined? ::Mysql2
+if defined? Mysql2
   require 'active_record'
   require 'active_record/connection_adapters/mysql2_adapter'
 

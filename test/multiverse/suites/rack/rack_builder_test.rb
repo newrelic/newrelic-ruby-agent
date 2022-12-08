@@ -4,7 +4,7 @@
 
 require 'minitest/autorun'
 
-class TestBuilderClass < ::Rack::Builder
+class TestBuilderClass < Rack::Builder
   include NewRelic::Agent::Instrumentation::RackBuilder
 end
 

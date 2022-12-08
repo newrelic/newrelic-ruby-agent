@@ -141,9 +141,9 @@ DependencyDetection.defer do
   @name = :active_record
 
   depends_on do
-    defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
-      (!defined?(::ActiveRecord::VERSION) ||
-        ::ActiveRecord::VERSION::MAJOR.to_i <= 3)
+    defined?(ActiveRecord) && defined?(ActiveRecord::Base) &&
+      (!defined?(ActiveRecord::VERSION) ||
+        ActiveRecord::VERSION::MAJOR.to_i <= 3)
   end
 
   depends_on do
@@ -151,18 +151,18 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing ActiveRecord instrumentation')
+    NewRelic::Agent.logger.info('Installing ActiveRecord instrumentation')
   end
 
   executes do
     require 'new_relic/agent/instrumentation/active_record_helper'
 
-    if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 3
+    if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR.to_i == 3
       ActiveSupport.on_load(:active_record) do
-        ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
+        NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end
     else
-      ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
+      NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
     end
   end
 end

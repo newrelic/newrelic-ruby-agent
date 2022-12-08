@@ -9,7 +9,7 @@ DependencyDetection.defer do
   @name = :action_controller_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 4
+    defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR.to_i >= 4
   end
 
   depends_on do
@@ -17,7 +17,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing notifications based Action Controller instrumentation')
+    NewRelic::Agent.logger.info('Installing notifications based Action Controller instrumentation')
   end
 
   executes do

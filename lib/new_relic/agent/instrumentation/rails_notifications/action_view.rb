@@ -9,7 +9,7 @@ DependencyDetection.defer do
   @name = :action_view_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 4
+    defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR.to_i >= 4
   end
 
   depends_on do
@@ -23,6 +23,6 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
-    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer)
+    NewRelic::Agent::PrependSupportability.record_metrics_for(ActionView::Base, ActionView::Template, ActionView::Renderer)
   end
 end

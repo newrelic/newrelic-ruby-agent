@@ -6,7 +6,7 @@ DependencyDetection.defer do
   named :mongo
 
   depends_on do
-    defined?(::Mongo)
+    defined?(Mongo)
   end
 
   depends_on do

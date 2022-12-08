@@ -6,8 +6,8 @@ require 'new_relic/control/frameworks/rails'
 require 'new_relic/control/frameworks/rails3'
 require 'new_relic/control/frameworks/rails4'
 
-if defined?(::Rails)
-  parent_class = case ::Rails::VERSION::MAJOR.to_i
+if defined?(Rails)
+  parent_class = case Rails::VERSION::MAJOR.to_i
   when 4
     NewRelic::Control::Frameworks::Rails4
   when 3
