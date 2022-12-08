@@ -10,15 +10,15 @@ DependencyDetection.defer do
   named :logger
 
   depends_on do
-    defined?(::Logger) &&
+    defined?(Logger) &&
       NewRelic::Agent.config[:'application_logging.enabled']
   end
 
   executes do
-    ::NewRelic::Agent.logger.info("Installing Logger instrumentation")
+    NewRelic::Agent.logger.info("Installing Logger instrumentation")
 
     if use_prepend?
-      prepend_instrument ::Logger, NewRelic::Agent::Instrumentation::Logger::Prepend
+      prepend_instrument Logger, NewRelic::Agent::Instrumentation::Logger::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Logger
     end

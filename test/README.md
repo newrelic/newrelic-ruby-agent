@@ -28,9 +28,9 @@ In CI, these unit tests are run against all supported major.minor versions of Ra
 
 ### Running Specific Tests
 
-The file parameter can be added to the test:env invocation to run a specific unit file.  It can be exact file name, or a wildcard pattern.  Multiple file patterns can be specified by separating with a comma with no spaces surrounding:
+The file environment variable can be added to the test:env invocation to run a specific unit file.  It can be exact file name, or a wildcard pattern.  Multiple file patterns can be specified by separating with a comma with no spaces surrounding:
 
-    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/distributed_tracing/*  # everything in this folder
-    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/tracer_state_test.rb   # single file
-    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/*_test.rb              # all *_test.rb files in this folder
-    bundle exec rake 'test:env[rails60]' file=test/new_relic/agent/distributed_tracing/*,test/new_relic/agent/datastores/*  # all files in two folders
+    file=test/new_relic/agent/distributed_tracing/* bundle exec rake 'test:env[rails60]'  # everything in this folder
+    file=test/new_relic/agent/tracer_state_test.rb bundle exec rake 'test:env[rails60]'   # single file
+    file=test/new_relic/agent/*_test.rb  bundle exec rake 'test:env[rails60]'             # all *_test.rb files in this folder
+    file=test/new_relic/agent/distributed_tracing/*,test/new_relic/agent/datastores/* bundle exec rake 'test:env[rails60]' # all files in two folders

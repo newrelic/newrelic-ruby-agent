@@ -6,7 +6,7 @@ require_relative '../../../test_helper'
 require 'new_relic/agent/instrumentation/active_storage_subscriber'
 
 def supported_active_storage_available?
-  defined?(::ActiveStorage)
+  defined?(ActiveStorage)
 end
 
 if supported_active_storage_available?

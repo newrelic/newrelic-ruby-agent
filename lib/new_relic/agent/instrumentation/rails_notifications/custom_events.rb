@@ -9,22 +9,22 @@ DependencyDetection.defer do
   @name = :custom_event_notifications
 
   depends_on do
-    defined?(::ActiveSupport::Notifications) &&
-      defined?(::ActiveSupport::IsolatedExecutionState)
+    defined?(ActiveSupport::Notifications) &&
+      defined?(ActiveSupport::IsolatedExecutionState)
   end
 
   depends_on do
-    !::NewRelic::Agent.config[:active_support_custom_events_names].empty? &&
-      !::NewRelic::Agent::Instrumentation::CustomEventsSubscriber.subscribed?
+    !NewRelic::Agent.config[:active_support_custom_events_names].empty? &&
+      !NewRelic::Agent::Instrumentation::CustomEventsSubscriber.subscribed?
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing notifications based ActiveSupport custom events instrumentation')
+    NewRelic::Agent.logger.info('Installing notifications based ActiveSupport custom events instrumentation')
   end
 
   executes do
-    ::NewRelic::Agent.config[:active_support_custom_events_names].each do |name|
-      ::ActiveSupport::Notifications.subscribe(name, NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new)
+    NewRelic::Agent.config[:active_support_custom_events_names].each do |name|
+      ActiveSupport::Notifications.subscribe(name, NewRelic::Agent::Instrumentation::CustomEventsSubscriber.new)
     end
   end
 end

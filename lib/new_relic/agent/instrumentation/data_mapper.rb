@@ -6,14 +6,14 @@ DependencyDetection.defer do
   named :data_mapper
 
   depends_on do
-    defined?(::DataMapper) &&
-      defined?(::DataMapper::Model) &&
-      defined?(::DataMapper::Resource) &&
-      defined?(::DataMapper::Collection)
+    defined?(DataMapper) &&
+      defined?(DataMapper::Model) &&
+      defined?(DataMapper::Resource) &&
+      defined?(DataMapper::Collection)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing DataMapper instrumentation')
+    NewRelic::Agent.logger.info('Installing DataMapper instrumentation')
     require 'new_relic/agent/datastores/metric_helper'
 
     deprecation_msg = 'The instrumentation for DataMapper is deprecated. ' \
@@ -21,7 +21,7 @@ DependencyDetection.defer do
      'Visit https://docs.newrelic.com/docs/apm/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks ' \
      'to learn about supported gems.'
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_datamapper,
       deprecation_msg
@@ -29,76 +29,76 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :get)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :first)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :last)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :all)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :get)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :first)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :last)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :all)
 
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :create)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :create!)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :update)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :update!)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :destroy)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :destroy!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :create)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :create!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :update)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :update!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :destroy)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :destroy!)
 
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :aggregate)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :find)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Model, :find_by_sql)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :aggregate)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :find)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Model, :find_by_sql)
   end
 
   executes do
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Resource, :update)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Resource, :update!)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Resource, :save)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Resource, :save!)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Resource, :destroy)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Resource, :destroy!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Resource, :update)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Resource, :update!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Resource, :save)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Resource, :save!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Resource, :destroy)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Resource, :destroy!)
   end
 
   executes do
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :get)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :first)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :last)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :all)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :get)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :first)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :last)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :all)
 
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :lazy_load)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :lazy_load)
 
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :create)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :create!)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :update)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :update!)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :destroy)
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :destroy!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :create)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :create!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :update)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :update!)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :destroy)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :destroy!)
 
-    NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Collection, :aggregate)
+    NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Collection, :aggregate)
   end
 
   executes do
     # Catch direct SQL calls that bypass CRUD
-    if defined?(::DataMapper::Adapters::DataObjectsAdapter)
-      NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Adapters::DataObjectsAdapter, :select, true)
-      NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Adapters::DataObjectsAdapter, :execute, true)
+    if defined?(DataMapper::Adapters::DataObjectsAdapter)
+      NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Adapters::DataObjectsAdapter, :select, true)
+      NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Adapters::DataObjectsAdapter, :execute, true)
     end
   end
 
   executes do
     # DM::Validations overrides Model#create, so we patch it here as well
-    if defined?(::DataMapper::Validations::ClassMethods)
-      NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Validations::ClassMethods, :create)
+    if defined?(DataMapper::Validations::ClassMethods)
+      NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Validations::ClassMethods, :create)
     end
   end
 
   executes do
     # DM::Transaction calls commit() twice, so potentially shows up twice.
-    if defined?(::DataMapper::Transaction)
-      NewRelic::Agent::DataMapperTracing.add_tracer(::DataMapper::Transaction, :commit, true)
+    if defined?(DataMapper::Transaction)
+      NewRelic::Agent::DataMapperTracing.add_tracer(DataMapper::Transaction, :commit, true)
     end
   end
 
   executes do
-    if defined?(::DataObjects::Connection)
-      ::DataObjects::Connection.class_eval do
-        include ::NewRelic::Agent::Instrumentation::DataMapperInstrumentation
+    if defined?(DataObjects::Connection)
+      DataObjects::Connection.class_eval do
+        include NewRelic::Agent::Instrumentation::DataMapperInstrumentation
       end
     end
   end

@@ -13,21 +13,21 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Net:HTTP Wrappers')
+    NewRelic::Agent.logger.info('Installing Net:HTTP Wrappers')
     require 'new_relic/agent/http_clients/net_http_wrappers'
   end
 
   # Airbrake uses method chaining on Net::HTTP in versions < 10.0.2 (10.0.2 updated to prepend for Net:HTTP)
   conflicts_with_prepend do
-    defined?(::Airbrake) && defined?(::Airbrake::AIRBRAKE_VERSION) && ::Gem::Version.create(::Airbrake::AIRBRAKE_VERSION) < ::Gem::Version.create('10.0.2')
+    defined?(Airbrake) && defined?(Airbrake::AIRBRAKE_VERSION) && Gem::Version.create(Airbrake::AIRBRAKE_VERSION) < Gem::Version.create('10.0.2')
   end
 
   conflicts_with_prepend do
-    defined?(::ScoutApm)
+    defined?(ScoutApm)
   end
 
   conflicts_with_prepend do
-    defined?(::Rack::MiniProfiler)
+    defined?(Rack::MiniProfiler)
   end
 
   conflicts_with_prepend do
@@ -36,9 +36,9 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument ::Net::HTTP, ::NewRelic::Agent::Instrumentation::NetHTTP::Prepend
+      prepend_instrument Net::HTTP, NewRelic::Agent::Instrumentation::NetHTTP::Prepend
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::NetHTTP::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::NetHTTP::Chain
     end
   end
 end

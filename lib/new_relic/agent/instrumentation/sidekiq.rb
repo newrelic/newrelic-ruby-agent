@@ -9,11 +9,11 @@ DependencyDetection.defer do
   @name = :sidekiq
 
   depends_on do
-    defined?(::Sidekiq) && !NewRelic::Agent.config[:disable_sidekiq]
+    defined?(Sidekiq) && !NewRelic::Agent.config[:disable_sidekiq]
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Sidekiq instrumentation')
+    NewRelic::Agent.logger.info('Installing Sidekiq instrumentation')
   end
 
   executes do
@@ -46,7 +46,7 @@ DependencyDetection.defer do
       'They will stop being monitored in version 9.0.0. ' \
       'Please upgrade your Sidekiq version to continue receiving full support. '
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_sidekiq_version,
       deprecation_msg

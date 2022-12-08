@@ -17,11 +17,11 @@ DependencyDetection.defer do
   configure_with :redis
 
   depends_on do
-    defined?(::Redis) && defined?(::Redis::VERSION)
+    defined?(Redis) && defined?(Redis::VERSION)
   end
 
   conflicts_with_prepend do
-    defined?(::PrometheusExporter)
+    defined?(PrometheusExporter)
   end
 
   depends_on do
@@ -32,11 +32,11 @@ DependencyDetection.defer do
   executes do
     NewRelic::Agent.logger.info('Installing Redis Instrumentation')
     if NewRelic::Agent::Instrumentation::Redis::Constants::HAS_REDIS_CLIENT
-      ::RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
+      RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
     end
 
     if use_prepend?
-      prepend_instrument ::Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
+      prepend_instrument Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
     end

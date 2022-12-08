@@ -49,7 +49,7 @@ def deferred_span(segment)
 end
 
 def reset_infinite_tracer
-  ::NewRelic::Agent.instance.instance_variable_set(:@infinite_tracer, nil)
+  NewRelic::Agent.instance.instance_variable_set(:@infinite_tracer, nil)
 end
 
 CLIENT_MUTEX = Mutex.new

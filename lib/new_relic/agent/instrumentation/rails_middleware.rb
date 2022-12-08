@@ -8,15 +8,15 @@ DependencyDetection.defer do
   named :rails_middleware
 
   depends_on do
-    !::NewRelic::Agent.config[:disable_middleware_instrumentation]
+    !NewRelic::Agent.config[:disable_middleware_instrumentation]
   end
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 3
+    defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR.to_i >= 3
   end
 
   executes do
-    ::NewRelic::Agent.logger.info("Installing Rails 3+ middleware instrumentation")
+    NewRelic::Agent.logger.info("Installing Rails 3+ middleware instrumentation")
     module ActionDispatch
       class MiddlewareStack
         class Middleware

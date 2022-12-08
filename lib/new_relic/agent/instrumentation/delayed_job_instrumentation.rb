@@ -79,18 +79,18 @@ DependencyDetection.defer do
   @name = :delayed_job
 
   depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Worker)
+    defined?(Delayed) && defined?(Delayed::Worker)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing DelayedJob instrumentation [part 1/2]')
+    NewRelic::Agent.logger.info('Installing DelayedJob instrumentation [part 1/2]')
   end
 
   executes do
     if use_prepend?
-      prepend_instrument ::Delayed::Worker, ::NewRelic::Agent::Instrumentation::DelayedJob::Prepend
+      prepend_instrument Delayed::Worker, NewRelic::Agent::Instrumentation::DelayedJob::Prepend
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::DelayedJob::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::DelayedJob::Chain
     end
   end
 
@@ -101,7 +101,7 @@ DependencyDetection.defer do
       'It will stop being monitored in version 9.0.0. ' \
       'Please upgrade your DelayedJob version to continue receiving full support. ' \
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_delayed_job_version,
       deprecation_msg
