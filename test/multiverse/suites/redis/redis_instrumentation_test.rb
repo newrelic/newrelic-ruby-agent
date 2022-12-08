@@ -452,7 +452,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       Object.stub_const :RedisClient, nil do
         client.stub :with_tracing, with_tracing_validator do
-          client.call_pipelined_with_tracing([]) { yield_value }
+          client.call_pipelined_with_tracing([]) { 'His key to the locks on the chains he saw everywhere' }
         end
       end
     end
