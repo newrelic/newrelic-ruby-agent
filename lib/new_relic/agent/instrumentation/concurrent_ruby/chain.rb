@@ -5,15 +5,16 @@
 module NewRelic::Agent::Instrumentation
   module ConcurrentRuby
     def self.instrument!
-      ::Concurrent.class_eval do
+      # this is a module, can I still use class_eval?
+      ::Concurrent::Promises::FactoryMethods.class_eval do
         include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
-        alias_method(:method_to_instrument_without_new_relic, :method_to_instrument)
-        alias_method(:method_to_instrument, :method_to_instrument_with_new_relic)
+        alias_method(:future_without_new_relic, :future)
+        alias_method(:future, :future_with_new_relic)
 
-        def method_to_instrument(*args)
-          method_to_instrument_with_new_relic(*args) do
-            method_to_instrument_without_new_relic(*args)
+        def future(*args, &task)
+          future_with_new_relic(*args) do
+            future_without_new_relic(*args, &task)
           end
         end
       end
