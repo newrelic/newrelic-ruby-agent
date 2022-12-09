@@ -253,7 +253,11 @@ module NewRelic
               %Q(Unexpected #{event_type} attribute "#{key}")
           end
 
-          # TODO: check vendors in test_case_attributes
+          (test_case_attributes['vendors'] || []).each do |k, v|
+            assert_equal v,
+              actual_attributes[k.to_s],
+              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect})
+          end
         end
 
         def verify_transaction_intrinsics(test_case)
