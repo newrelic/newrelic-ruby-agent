@@ -258,6 +258,7 @@ module NewRelic
 
           if test_case_attributes.key?(test_key)
             vendors = Array(test_case_attributes[test_key]).join(',')
+
             assert_equal vendors, actual_attributes[actual_key],
               %Q(Wrong "#{test_key}" #{event_type} attribute; expected #{vendors}, was #{actual_attributes[actual_key]})
           end
