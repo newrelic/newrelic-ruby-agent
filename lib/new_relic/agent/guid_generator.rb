@@ -22,7 +22,7 @@ module NewRelic
                  rand(MAX_RAND_32)
                else
                  rand(16**length)
-               end.to_s(16)
+        end.to_s(16)
         guid.length < length ? guid.rjust(length, '0') : guid
       end
     end
