@@ -2,11 +2,15 @@
 
 ## v8.14.0
 
-Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, delivers support for instrumenting Rails custom event notifications, and fixes potential compatibility issues with Redis gems, and fixes bugs related to initialization in Rails.
+Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
 
 - **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
 
   The New Relic Ruby agent offers [a Capistrano recipe for recording app deployments](https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/record-deployments-ruby-agent/#capistrano3). The recipe code was significantly cleaned up with [PR#1498](https://github.com/newrelic/newrelic-ruby-agent/pull/1498) which inadvertently changed the way the recipe handles the changelog for a deployment. Community member [@arthurwozniak](https://github.com/arthurwozniak) spotted and corrected this change in order to restore the desired changelog lookup functionality while retaining all of the previous cleanup. Thank you very much for your contribution, [@arthurwozniak](https://github.com/arthurwozniak)! [PR#1653](https://github.com/newrelic/newrelic-ruby-agent/pull/1653)
+
+- **Speed up GUID generation**
+
+  The agent leverages random numbers in its GUID (globally unique identifier) generation and would previously always freshly calculate the result of 16^16 or 32^32 before generating a random number. Given that those 16^16 and 32^32 operations are expected, it makes sense to calculate their results up front and store them in constants to be referred to later. Doing so has resulted in a performance gain for the generation of GUIDs. Many thanks to [@tungmq](https://github.com/tungmq) for contributing this optimisation and the benchmarks to support it! [PR#1693[(https://github.com/newrelic/newrelic-ruby-agent/pull/1693)
 
 - **Support for Rails ActiveSupport::Notifications for custom events**
 
