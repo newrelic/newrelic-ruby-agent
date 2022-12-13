@@ -2,7 +2,7 @@
 
 ## v8.14.0
 
-Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
+Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionality when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
 
 - **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
 
