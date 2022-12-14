@@ -4,22 +4,21 @@
 
 module NewRelic::Agent::Instrumentation
   module ConcurrentRuby
-    PROMISES_FUTURE_NAME = 'Concurrent::Promises#future'
+    DEFAULT_NAME = 'Concurrent::ThreadPoolExecutor#post'
 
-    def future_with_new_relic(*args)
-      segment = NewRelic::Agent::Tracer.start_segment(name: segment_name(*args))
+    def post_with_new_relic(*args)
+      return yield unless NewRelic::Agent::Tracer.tracing_enabled?
+
+      current = Thread.current[:newrelic_tracer_state]
+      segment = NewRelic::Agent::Tracer.start_segment(name: DEFAULT_NAME)
       begin
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        NewRelic::Agent::Tracer.capture_segment_error(segment) do
+          Thread.current[:newrelic_tracer_state] = current
+          yield
+        end
       ensure
         ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end
-    end
-
-    private
-
-    def segment_name(*args)
-      keyword_args = args[0]
-      keyword_args && keyword_args.key?(:nr_name) ? keyword_args[:nr_name] : PROMISES_FUTURE_NAME
     end
   end
 end

@@ -10,16 +10,16 @@ DependencyDetection.defer do
   named :'concurrent_ruby'
 
   depends_on do
-    defined?(::Concurrent)
+    defined?(Concurrent)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing concurrent-ruby instrumentation')
+    NewRelic::Agent.logger.info('Installing concurrent-ruby instrumentation')
 
     if use_prepend?
-      prepend_instrument ::Concurrent::Promises::FactoryMethods, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend
+      prepend_instrument(Concurrent::ThreadPoolExecutor, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend)
     else
-      chain_instrument NewRelic::Agent::Instrumentation::ConcurrentRuby
+      chain_instrument NewRelic::Agent::Instrumentation::ConcurrentRuby::Chain
     end
   end
 end

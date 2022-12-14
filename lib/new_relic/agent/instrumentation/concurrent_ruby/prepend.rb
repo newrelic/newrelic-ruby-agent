@@ -6,8 +6,8 @@ module NewRelic::Agent::Instrumentation
   module ConcurrentRuby::Prepend
     include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
-    def future(*args, &task)
-      future_with_new_relic(*args) { super }
+    def post(*args, &task)
+      post_with_new_relic(*args) { super }
     end
   end
 end
