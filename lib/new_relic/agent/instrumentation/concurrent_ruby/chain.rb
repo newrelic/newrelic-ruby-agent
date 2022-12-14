@@ -3,18 +3,17 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module ConcurrentRuby
+  module ConcurrentRuby::Chain
     def self.instrument!
-      # this is a module, can I still use class_eval?
-      ::Concurrent::Promises::FactoryMethods.class_eval do
+      ::Concurrent::ThreadPoolExecutor.class_eval do
         include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
-        alias_method(:future_without_new_relic, :future)
-        alias_method(:future, :future_with_new_relic)
+        alias_method(:post_without_new_relic, :post)
+        alias_method(:post, :post_with_new_relic)
 
-        def future(*args, &task)
-          future_with_new_relic(*args) do
-            future_without_new_relic(*args, &task)
+        def post(*args, &task)
+          post_with_new_relic(*args) do
+            post_without_new_relic(*args, &task)
           end
         end
       end
