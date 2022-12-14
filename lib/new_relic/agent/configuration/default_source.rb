@@ -358,6 +358,19 @@ module NewRelic
           :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `error`, `warn`, `info` or `debug`.'
         },
         # General
+        :active_support_custom_events_names => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :description => <<-DESCRIPTION
+An array of ActiveSupport custom events names to subscribe to and provide
+instrumentation for. For example,
+  - my.custom.event
+  - another.event
+  - a.third.event
+          DESCRIPTION
+        },
         :apdex_t => {
           :default => 0.5,
           :public => true,
@@ -1836,6 +1849,15 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :allowed_from_server => false,
           :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
+        },
+        # Rails
+        :'defer_rails_initialization' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, when the agent is in an application using Ruby on Rails, it will start after ' \
+            'config/initializers are run.'
         },
         # Rake
         :'rake.tasks' => {

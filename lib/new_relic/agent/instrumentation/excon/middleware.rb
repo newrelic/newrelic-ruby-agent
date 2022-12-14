@@ -57,7 +57,7 @@ module ::Excon
               segment.process_response_headers(wrapped_response)
             end
           ensure
-            segment.finish if segment
+            ::NewRelic::Agent::Transaction::Segment.finish(segment)
           end
         end
       end

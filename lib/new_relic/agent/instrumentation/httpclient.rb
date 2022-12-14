@@ -23,14 +23,14 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing HTTPClient instrumentation')
+    NewRelic::Agent.logger.info('Installing HTTPClient instrumentation')
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/httpclient_wrappers'
   end
 
   executes do
     if use_prepend?
-      prepend_instrument ::HTTPClient, NewRelic::Agent::Instrumentation::HTTPClient::Prepend
+      prepend_instrument HTTPClient, NewRelic::Agent::Instrumentation::HTTPClient::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::HTTPClient::Chain
     end

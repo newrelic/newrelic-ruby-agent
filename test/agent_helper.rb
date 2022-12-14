@@ -844,7 +844,7 @@ ensure
 end
 
 def json_dump_and_encode(object)
-  Base64.encode64(::JSON.dump(object))
+  Base64.encode64(JSON.dump(object))
 end
 
 def get_last_analytics_event
@@ -870,7 +870,7 @@ def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
-  data = ::JSON.load(data)
+  data = JSON.load(data)
   data.each { |testcase| testcase['testname'].tr!(' ', '_') if String === testcase['testname'] }
   data
 end
@@ -1014,9 +1014,9 @@ def assert_implements(instance, method, *args)
 end
 
 def defer_testing_to_min_supported_rails(test_file, min_rails_version, supports_jruby = true)
-  if defined?(::Rails) &&
-      defined?(::Rails::VERSION::STRING) &&
-      (::Rails::VERSION::STRING.to_f >= min_rails_version) &&
+  if defined?(Rails) &&
+      defined?(Rails::VERSION::STRING) &&
+      (Rails::VERSION::STRING.to_f >= min_rails_version) &&
       (supports_jruby || !NewRelic::LanguageSupport.jruby?)
 
     yield

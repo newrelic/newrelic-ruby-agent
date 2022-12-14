@@ -19,12 +19,12 @@ DependencyDetection.defer do
   @name = :padrino
   configure_with :sinatra
 
-  depends_on { defined?(::Padrino) && defined?(::Padrino::Routing::InstanceMethods) }
+  depends_on { defined?(Padrino) && defined?(Padrino::Routing::InstanceMethods) }
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Padrino instrumentation')
+    NewRelic::Agent.logger.info('Installing Padrino instrumentation')
     if use_prepend?
-      prepend_instrument ::Padrino::Application, NewRelic::Agent::Instrumentation::PadrinoTracer::Prepend
+      prepend_instrument Padrino::Application, NewRelic::Agent::Instrumentation::PadrinoTracer::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::PadrinoTracer::Chain
     end

@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require_relative '../../test_helper'
 
 module ::The
   class Example
@@ -14,7 +14,13 @@ module ::The
 end
 
 class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
-  # TODO: trace_execution_scoped should have test coverage
+  # No assert. This test helps increase branch coverage.
+  def test_trace_execution_scoped_not_traced
+    in_transaction do
+      NewRelic::Agent::Tracer.state.untraced << false
+      NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped('cats') { 'a block' }
+    end
+  end
 
   def test_obtains_a_class_name_from_a_singleton_class_string
     with_config(:'code_level_metrics.enabled' => true) do

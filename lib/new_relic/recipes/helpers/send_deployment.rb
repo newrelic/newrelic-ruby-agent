@@ -29,7 +29,8 @@ module SendDeployment
   end
 
   def fetch_changelog
-    has_scm? ? fetch(:newrelic_changelog) : lookup_changelog
+    newrelic_changelog = fetch(:newrelic_changelog)
+    has_scm? && !newrelic_changelog ? lookup_changelog : newrelic_changelog
   end
 
   def fetch_environment

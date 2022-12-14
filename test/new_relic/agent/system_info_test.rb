@@ -179,7 +179,6 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
-  # TODO: in processor_info_darwin, sysctl_value('hw.logicalcpu') > 0 is untested
   def test_processor_info_darwin_fallback
     counts = {'hw.packages' => 2,
               'hw.physicalcpu_max' => 0,
@@ -195,6 +194,22 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       assert_equal 2, info[:num_physical_packages]
       assert_equal 1, info[:num_physical_cores]
       assert_equal 3, info[:num_logical_processors]
+    end
+  end
+
+  def test_processor_info_darwin_fallback_logicalcpu
+    counts = {'hw.packages' => 2,
+              'hw.physicalcpu_max' => 0,
+              'hw.logicalcpu_max' => 0,
+              'hw.physicalcpu' => 1,
+              'hw.logicalcpu' => 4,
+              'hw.ncpu' => 3}
+    sysctl_stub = proc { |param| counts[param] }
+    NewRelic::Agent::SystemInfo.stub(:sysctl_value, sysctl_stub) do
+      NewRelic::Agent::SystemInfo.processor_info_darwin
+      info = NewRelic::Agent::SystemInfo.instance_variable_get(:@processor_info)
+
+      assert_equal 4, info[:num_logical_processors]
     end
   end
 

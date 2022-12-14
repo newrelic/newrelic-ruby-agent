@@ -401,17 +401,16 @@ module NewRelic::Agent
       end
     end
 
-    # TODO: this test seems to be destabilizing CI in a way that I don't grok.
-    # def sadly_do_not_test_harvest_during_transaction_safety
-    #  n = 3000
-    #  harvester = Thread.new do
-    #    n.times { @sampler.harvest! }
-    #  end
+    def test_harvest_during_transaction_safety
+      n = 3000
+      harvester = Thread.new do
+        n.times { @sampler.harvest! }
+      end
 
-    #  Dummy.new.run(n)
+      Dummy.new.run(n)
 
-    #  harvester.join
-    # end
+      harvester.join
+    end
 
     private
 

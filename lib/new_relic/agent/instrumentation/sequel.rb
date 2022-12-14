@@ -7,7 +7,7 @@ DependencyDetection.defer do
   @name = :sequel
 
   depends_on do
-    defined?(::Sequel)
+    defined?(Sequel)
   end
 
   depends_on do
@@ -24,7 +24,7 @@ DependencyDetection.defer do
   executes do
     if supported_sequel_version?
 
-      ::NewRelic::Agent.logger.info('Installing Sequel instrumentation')
+      NewRelic::Agent.logger.info('Installing Sequel instrumentation')
 
       if Sequel::Database.respond_to?(:extension)
         Sequel::Database.extension(:newrelic_instrumentation)

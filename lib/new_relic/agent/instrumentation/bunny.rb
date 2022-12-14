@@ -14,7 +14,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Bunny instrumentation')
+    NewRelic::Agent.logger.info('Installing Bunny instrumentation')
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/messaging'
     require 'new_relic/agent/transaction/message_broker_segment'
@@ -22,9 +22,9 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument ::Bunny::Exchange, ::NewRelic::Agent::Instrumentation::Bunny::Prepend::Exchange
-      prepend_instrument ::Bunny::Queue, ::NewRelic::Agent::Instrumentation::Bunny::Prepend::Queue
-      prepend_instrument ::Bunny::Consumer, ::NewRelic::Agent::Instrumentation::Bunny::Prepend::Consumer
+      prepend_instrument Bunny::Exchange, NewRelic::Agent::Instrumentation::Bunny::Prepend::Exchange
+      prepend_instrument Bunny::Queue, NewRelic::Agent::Instrumentation::Bunny::Prepend::Queue
+      prepend_instrument Bunny::Consumer, NewRelic::Agent::Instrumentation::Bunny::Prepend::Consumer
     else
       chain_instrument NewRelic::Agent::Instrumentation::Bunny
     end

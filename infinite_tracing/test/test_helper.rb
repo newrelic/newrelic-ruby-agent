@@ -10,7 +10,7 @@ ENV['RAILS_ENV'] = 'test'
 agent_test_path = File.expand_path('../../../test', __FILE__)
 $LOAD_PATH << agent_test_path
 
-require 'infinite_tracing'
+require 'newrelic/infinite_tracing'
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
@@ -49,7 +49,7 @@ def deferred_span(segment)
 end
 
 def reset_infinite_tracer
-  ::NewRelic::Agent.instance.instance_variable_set(:@infinite_tracer, nil)
+  NewRelic::Agent.instance.instance_variable_set(:@infinite_tracer, nil)
 end
 
 CLIENT_MUTEX = Mutex.new

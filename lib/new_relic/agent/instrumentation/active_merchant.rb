@@ -12,7 +12,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing ActiveMerchant instrumentation')
+    NewRelic::Agent.logger.info('Installing ActiveMerchant instrumentation')
   end
 
   executes do
@@ -42,7 +42,7 @@ DependencyDetection.defer do
     deprecation_msg = 'The Ruby Agent is dropping support for ActiveMerchant versions below 1.65.0 ' \
       'in version 9.0.0. Please upgrade your ActiveMerchant version to continue receiving full support. ' \
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_active_merchant_version,
       deprecation_msg

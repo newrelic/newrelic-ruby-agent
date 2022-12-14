@@ -23,7 +23,7 @@ module NewRelic::Agent::Instrumentation
           if NewRelic::Agent.config[:capture_memcache_keys]
             segment.notice_nosql_statement("#{operation} #{args.first.inspect}")
           end
-          segment.finish if segment
+          ::NewRelic::Agent::Transaction::Segment.finish(segment)
         end
       end
 
@@ -50,7 +50,7 @@ module NewRelic::Agent::Instrumentation
         begin
           NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         ensure
-          segment.finish if segment
+          ::NewRelic::Agent::Transaction::Segment.finish(segment)
         end
       end
 
@@ -67,7 +67,7 @@ module NewRelic::Agent::Instrumentation
           if ::NewRelic::Agent.config[:capture_memcache_keys]
             segment.notice_nosql_statement("#{MULTIGET_METRIC_NAME} #{keys.inspect}")
           end
-          segment.finish if segment
+          ::NewRelic::Agent::Transaction::Segment.finish(segment)
         end
       end
 

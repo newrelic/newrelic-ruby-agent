@@ -6,15 +6,15 @@ DependencyDetection.defer do
   @name = :sunspot
 
   depends_on do
-    defined?(::Sunspot)
+    defined?(Sunspot)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Rails Sunspot instrumentation')
+    NewRelic::Agent.logger.info('Installing Rails Sunspot instrumentation')
     deprecation_msg = 'The instrumentation for Sunspot is deprecated. ' \
       'It will be removed in version 9.0.0.'
 
-    ::NewRelic::Agent.logger.log_once(
+    NewRelic::Agent.logger.log_once(
       :warn,
       :deprecated_sunspot,
       deprecation_msg
@@ -22,7 +22,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::Sunspot.module_eval do
+    Sunspot.module_eval do
       class << self
         %w[index index!].each do |method|
           add_method_tracer method, 'SolrClient/Sunspot/index'

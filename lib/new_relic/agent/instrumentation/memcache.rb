@@ -18,14 +18,14 @@ require_relative 'memcache/prepend'
 DependencyDetection.defer do
   named :memcache_client
 
-  depends_on { defined? ::MemCache }
+  depends_on { defined? MemCache }
 
   executes do
     if use_prepend?
-      prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(::MemCache)
-      prepend_instrument ::MemCache, prepend_module, "MemcacheClient"
+      prepend_module = NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(MemCache)
+      prepend_instrument MemCache, prepend_module, "MemcacheClient"
     else
-      chain_instrument_target ::MemCache, ::NewRelic::Agent::Instrumentation::Memcache::Chain, "MemcacheClient"
+      chain_instrument_target MemCache, NewRelic::Agent::Instrumentation::Memcache::Chain, "MemcacheClient"
     end
   end
 end
@@ -33,14 +33,14 @@ end
 DependencyDetection.defer do
   named :memcached
 
-  depends_on { defined? ::Memcached }
+  depends_on { defined? Memcached }
 
   executes do
     if use_prepend?
-      prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(::Memcached)
-      prepend_instrument ::Memcached, prepend_module, "Memcached"
+      prepend_module = NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(Memcached)
+      prepend_instrument Memcached, prepend_module, "Memcached"
     else
-      chain_instrument_target ::Memcached, ::NewRelic::Agent::Instrumentation::Memcache::Chain, "Memcached"
+      chain_instrument_target Memcached, NewRelic::Agent::Instrumentation::Memcache::Chain, "Memcached"
     end
   end
 end
@@ -49,16 +49,16 @@ DependencyDetection.defer do
   named :dalli
   configure_with :memcache
 
-  depends_on { defined? ::Dalli::Client }
+  depends_on { defined? Dalli::Client }
 
   executes do
     if use_prepend?
-      prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
+      prepend_module = NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_prependers do |client_class, instrumenting_module|
         prepend_instrument client_class, instrumenting_module, "MemcachedDalli"
       end
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::Dalli
+      chain_instrument NewRelic::Agent::Instrumentation::Memcache::Dalli
     end
   end
 end
@@ -70,18 +70,18 @@ DependencyDetection.defer do
   named :dalli_cas_client
   configure_with :memcache
 
-  depends_on { defined? ::Dalli::Client }
-  depends_on { ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS.should_instrument? }
+  depends_on { defined? Dalli::Client }
+  depends_on { NewRelic::Agent::Instrumentation::Memcache::DalliCAS.should_instrument? }
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing Dalli CAS Client Memcache instrumentation')
+    NewRelic::Agent.logger.info('Installing Dalli CAS Client Memcache instrumentation')
     if use_prepend?
-      prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
+      prepend_module = NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_cas_prependers do |client_class, instrumenting_module|
         prepend_instrument client_class, instrumenting_module, "MemcachedDalliCAS"
       end
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS
+      chain_instrument NewRelic::Agent::Instrumentation::Memcache::DalliCAS
     end
   end
 end
