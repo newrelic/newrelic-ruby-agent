@@ -109,6 +109,7 @@ module NewRelic
     @logger = nil
     @tracer_lock = Mutex.new
     @tracer_queue = []
+    @metrics_already_recorded = []
 
     # The singleton Agent instance.  Used internally.
     def agent # :nodoc:
@@ -201,6 +202,13 @@ module NewRelic
       end
 
       agent.stats_engine.tl_record_unscoped_metrics(metric_name, value)
+    end
+
+    def record_metric_once(metric_name, value = 0.0)
+      return if @metrics_already_recorded.include?(metric_name)
+
+      record_metric(metric_name, value)
+      @metrics_already_recorded << metric_name
     end
 
     # Increment a simple counter metric.

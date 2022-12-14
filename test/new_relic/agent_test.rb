@@ -206,6 +206,14 @@ module NewRelic
       NewRelic::Agent.record_metric('foo', 12)
     end
 
+    def test_record_metric_once
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/record_metric')
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('test/metric', 0.0).once
+      NewRelic::Agent.record_metric_once('test/metric')
+      NewRelic::Agent.record_metric_once('test/metric')
+    end
+
     def test_record_metric_accepts_hash
       dummy_engine = NewRelic::Agent.agent.stats_engine
       stats_hash = {
