@@ -10,7 +10,7 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
 - **Speed up GUID generation**
 
-  The agent leverages random numbers in its GUID (globally unique identifier) generation and would previously always freshly calculate the result of 16^16 or 32^32 before generating a random number. Given that those 16^16 and 32^32 operations are expected, it makes sense to calculate their results up front and store them in constants to be referred to later. Doing so has resulted in a performance gain for the generation of GUIDs. Many thanks to [@tungmq](https://github.com/tungmq) for contributing this optimisation and the benchmarks to support it! [PR#1693[(https://github.com/newrelic/newrelic-ruby-agent/pull/1693)
+  The agent leverages random numbers in its GUID (globally unique identifier) generation and would previously always freshly calculate the result of 16^16 or 32^32 before generating a random number. Given that those 16^16 and 32^32 operations are expected, it makes sense to calculate their results up front and store them in constants to be referred to later. Doing so has resulted in a performance gain for the generation of GUIDs. Many thanks to [@tungmq](https://github.com/tungmq) for contributing this optimisation and the benchmarks to support it! [PR#1693](https://github.com/newrelic/newrelic-ruby-agent/pull/1693)
 
 - **Support for Rails ActiveSupport::Notifications for custom events**
 
