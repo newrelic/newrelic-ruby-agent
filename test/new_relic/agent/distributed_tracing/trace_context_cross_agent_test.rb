@@ -231,15 +231,15 @@ module NewRelic
 
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
-              actual_attributes[k.to_s],
-              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect})
+              actual_attributes[k],
+              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v}, was #{actual_attributes[k]})
           end
 
           (test_case_attributes['notequal'] || []).each do |k, v|
             refute_equal(
               v,
-              actual_attributes[k.to_s],
-              "#{event_type} #{k.to_s.inspect} attribute should not equal #{v.inspect}"
+              actual_attributes[k],
+              "#{event_type} #{k} attribute should not equal #{v}"
             )
           end
 
@@ -253,7 +253,15 @@ module NewRelic
               %Q(Unexpected #{event_type} attribute "#{key}")
           end
 
-          # TODO: check vendors in test_case_attributes
+          test_key = 'tracingVendors'
+          actual_key = "tracestate.#{test_key}"
+
+          if test_case_attributes.key?(test_key)
+            vendors = Array(test_case_attributes[test_key]).join(',')
+
+            assert_equal vendors, actual_attributes[actual_key],
+              %Q(Wrong "#{test_key}" #{event_type} attribute; expected #{vendors}, was #{actual_attributes[actual_key]})
+          end
         end
 
         def verify_transaction_intrinsics(test_case)
@@ -346,6 +354,7 @@ module NewRelic
             tracestate['sampled'] = tracestate_values[6]
             tracestate['priority'] = tracestate_values[7].chomp("0")
             tracestate['timestamp'] = tracestate_values[8]
+            tracestate['tracingVendors'] = header_data.trace_state_vendors
           else
             tracestate = nil
           end
