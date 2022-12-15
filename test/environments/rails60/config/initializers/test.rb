@@ -16,5 +16,6 @@ class Bloodhound < ActiveRecord::Base
 
   add_method_tracer :sniff
 end
-
+puts Rails.application.config.active_record.timestamped_migrations
 Rails.application.config.active_record.timestamped_migrations = false
+puts Rails.application.config.active_record.timestamped_migrations

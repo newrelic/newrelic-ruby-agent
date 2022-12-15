@@ -20,7 +20,7 @@ require 'new_relic/control'
 if defined?(Rails::VERSION)
   module NewRelic
     class Railtie < Rails::Railtie
-      if NewRelic::Agent.config[:defer_rails_initialization]
+      if ENV['NEW_RELIC_DEFER_RAILS_INITIALIZATION']
         initializer "newrelic_rpm.include_method_tracers", before: :load_config_initializers do |app|
           Module.send(:include, NewRelic::Agent::MethodTracer::ClassMethods)
           Module.send(:include, NewRelic::Agent::MethodTracer)

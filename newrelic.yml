@@ -163,7 +163,7 @@ common: &default_settings
   # datastore_tracer.instance_reporting.enabled: true
 
   # If true, when the agent is in an application using Ruby on Rails, it will start after
-  # config/initializers have run.
+  # config/initializers have run. This option may only be set by environment variable.
   # defer_rails_initialization: false
 
   # If true, disables Action Cable instrumentation.
