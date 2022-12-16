@@ -2,8 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# instrumentation_methods :chain, :prepend
-instrumentation_methods  :prepend # just for debugging
+instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
   gem 'concurrent-ruby'
