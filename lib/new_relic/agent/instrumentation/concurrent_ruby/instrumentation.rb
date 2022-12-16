@@ -9,11 +9,9 @@ module NewRelic::Agent::Instrumentation
     def post_with_new_relic(*args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
-      current = Thread.current[:newrelic_tracer_state]
       segment = NewRelic::Agent::Tracer.start_segment(name: DEFAULT_NAME)
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) do
-          Thread.current[:newrelic_tracer_state] = current
           yield
         end
       ensure
