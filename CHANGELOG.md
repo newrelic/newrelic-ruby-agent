@@ -30,7 +30,7 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
   ~~Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)~~
 
-  Unfortunately, this bugfix is unreachable as written because the configuration value used to access the bugfix won't be applied until after initialization. Updates for this issue can be found at [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662).
+  Unfortunately, this bugfix is unreachable as written because the configuration value used to access the bugfix won't be applied until after initialization. Follow along for updates at [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662).
 
 ## v8.13.1
 
