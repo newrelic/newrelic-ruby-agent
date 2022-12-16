@@ -35,17 +35,20 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
         future.wait!
       end
 
-      # intermittent failure with thread segment missing?  idk why yet
+      # intermittent failure with thread segment missing?  i think it might be fixed now tho
       #   dummy
       #   Concurrent::ThreadPoolExecutor#post
       #   Ruby/Thread/2640
-      #   Ruby/Inner_concurrent_ruby/2640
+      #   Ruby/Inner_concurrent_ruby
       #   External/www.example.com/Net::HTTP/GET
-      txn.segments.each do |s|
-        puts s.name
-      end
+      # txn.segments.each do |s|
+      #   puts s.name
+      # end
 
-      assert_equal(5, txn.segments.length)
+      # concurrent ruby doesn't use ruby threads when running on java, so that segment will not be present
+      expected_segments = RUBY_PLATFORM == 'java' ? 4 : 5
+
+      assert_equal(expected_segments, txn.segments.length)
     end
   end
 

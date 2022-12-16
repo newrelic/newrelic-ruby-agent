@@ -11,12 +11,14 @@ module NewRelic::Agent::Instrumentation
 
       segment = NewRelic::Agent::Tracer.start_segment(name: DEFAULT_NAME)
       begin
-        NewRelic::Agent::Tracer.capture_segment_error(segment) do
-          yield
-        end
+        yield
       ensure
         ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end
+    end
+
+    def add_task_tracing(*args, &task)
+      NewRelic::Agent::Tracer.thread_block_with_current_transaction(*args, segment_name: 'Concurrent/task', &task)
     end
   end
 end

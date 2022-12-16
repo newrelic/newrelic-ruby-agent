@@ -16,7 +16,7 @@ module NewRelic
         def add_thread_tracing(*args, &block)
           return block if skip_tracing?
 
-          NewRelic::Agent::Tracer.thread_block_with_current_transaction(*args, &block)
+          NewRelic::Agent::Tracer.thread_block_with_current_transaction(*args, segment_name: 'Ruby/Thread', &block)
         end
 
         def skip_tracing?

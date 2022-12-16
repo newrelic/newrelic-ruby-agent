@@ -12,9 +12,8 @@ module NewRelic::Agent::Instrumentation
         alias_method(:post, :post_with_new_relic)
 
         def post(*args, &task)
-          post_with_new_relic(*args) do
-            post_without_new_relic(*args, &task)
-          end
+          traced_task = add_task_tracing(*args, &task)
+          post_with_new_relic(*args) { post_without_new_relic(*args, &traced_task) }
         end
       end
     end

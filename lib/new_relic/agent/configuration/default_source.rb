@@ -1810,6 +1810,13 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application."
         },
+        :'thread_ids_enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "If enabled, will append the current thread and fiber object ids onto the segment names of segments created in threads and concurrent ruby"
+        },
         :'instrumentation.tilt' => {
           :default => "auto",
           :public => true,
