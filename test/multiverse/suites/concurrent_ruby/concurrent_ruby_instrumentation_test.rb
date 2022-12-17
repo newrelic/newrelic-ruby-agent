@@ -4,6 +4,7 @@
 
 class ConcurrentRubyInstrumentationTest < Minitest::Test
   def test_promises_future_creates_segment_with_default_name
+    skip
     txn = in_transaction do
       future = Concurrent::Promises.future { 'hi' }
       future.wait!
@@ -16,6 +17,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   def test_promises_future_creates_segments_for_nested_instrumented_calls
+    skip
     with_config(:'instrumentation.thread.tracing' => false) do
       future = nil
       txn = in_transaction do
@@ -31,6 +33,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   def test_promises_future_creates_segments_for_nested_instrumented_calls_with_thread_tracing_enabled
+    skip
     with_config(:'instrumentation.thread.tracing' => true) do
       future = nil
       txn = in_transaction do
@@ -59,17 +62,18 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   # raise future rescue $! => rescues the error, returns inspected version
 
   def test_promises_future_captures_segment_error
-    skip "future doesn't raise errors, so they can't be captured"
+    # skip "future doesn't raise errors, so they can't be captured"
     txn = nil
     txn = in_transaction('concurrent') do
-      Concurrent::Promises.stub(:future, raise('boom!')) do
-        future = Concurrent::Promises.future { 'hi' }
-      end
+      future = Concurrent::Promises.future { raise 'hi' }
+      # future.reason
+      future.wait!
     rescue StandardError => e
       # NOOP -- allowing span and transaction to notice error
     end
 
-    assert_segment_noticed_error txn, /concurrent$/, StandardError, /boom/i
-    assert_transaction_noticed_error txn, StandardError
+    # binding.irb
+
+    assert_segment_noticed_error txn, /Concurrent\/task/, /RuntimeError/, /hi/i
   end
 end

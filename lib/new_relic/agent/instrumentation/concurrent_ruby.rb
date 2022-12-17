@@ -18,8 +18,23 @@ DependencyDetection.defer do
 
     if use_prepend?
       prepend_instrument(Concurrent::ThreadPoolExecutor, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend)
+      # prepend_instrument()
+      # prepend_instrument()
+      extra_prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::ConcurrentRuby::Chain
     end
+  end
+end
+
+def extra_prepend
+  # Concurrent::Promises::InternalStates::Rejected
+  Concurrent::Promises.const_get(:'InternalStates')::Rejected.prepend(TestingStuff)
+end
+
+module TestingStuff
+  def initialize(*args)
+    NewRelic::Agent.notice_error(args.last)
+    super
   end
 end
