@@ -49,6 +49,8 @@ module NewRelic
           add_key_value(message, ENTITY_TYPE_KEY, ENTITY_TYPE)
           message << COMMA
           add_key_value(message, HOSTNAME_KEY, Hostname.get)
+          message << COMMA
+          add_key_value(message, DISPLAY_HOSTNAME_KEY, Agent.config[:'process_host.display_name'])
 
           if entity_guid = Agent.config[:entity_guid]
             message << COMMA

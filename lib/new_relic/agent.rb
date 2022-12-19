@@ -708,6 +708,7 @@ module NewRelic
     ENTITY_TYPE_KEY = 'entity.type'.freeze
     ENTITY_GUID_KEY = 'entity.guid'.freeze
     HOSTNAME_KEY = 'hostname'.freeze
+    DISPLAY_HOSTNAME_KEY = 'host.displayName'.freeze
 
     ENTITY_TYPE = 'SERVICE'.freeze
 

@@ -18,6 +18,7 @@ module NewRelic
         metadata[ENTITY_NAME_KEY] = config[:app_name][0]
         metadata[ENTITY_TYPE_KEY] = ENTITY_TYPE
         metadata[HOSTNAME_KEY] = Hostname.get
+        metadata[HOST_DISPLAY_KEY] = Agent.config[:'process_host.display_name']
 
         if entity_guid = config[:entity_guid]
           metadata[ENTITY_GUID_KEY] = entity_guid
