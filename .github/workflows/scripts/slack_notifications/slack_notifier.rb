@@ -14,6 +14,7 @@ class SlackNotifier
                body: {text: message}.to_json}
     begin
       HTTParty.post(path, options)
+      puts path, options
       sleep(1) # Pause to avoid Slack throttling
     rescue StandardError => e
       @@errors << e
