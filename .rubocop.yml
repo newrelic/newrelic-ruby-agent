@@ -1100,7 +1100,7 @@ Style/CommandLiteral:
 
 Style/CommentedKeyword:
   Enabled: false
-  
+
 # Disabling for now
 Style/ConditionalAssignment:
   Enabled: false
