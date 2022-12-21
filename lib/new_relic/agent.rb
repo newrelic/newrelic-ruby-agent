@@ -205,7 +205,7 @@ module NewRelic
     end
 
     def record_metric_once(metric_name, value = 0.0)
-      return if @metrics_already_recorded.add?(metric_name)
+      return unless @metrics_already_recorded.add?(metric_name)
 
       record_metric(metric_name, value)
     end
