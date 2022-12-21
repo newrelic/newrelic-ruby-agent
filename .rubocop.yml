@@ -1103,7 +1103,7 @@ Style/CommentedKeyword:
 
 Style/ConcatArrayLiterals:
   Enabled: false
-  
+
 # Disabling for now
 Style/ConditionalAssignment:
   Enabled: false
