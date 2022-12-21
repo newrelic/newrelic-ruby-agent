@@ -261,7 +261,7 @@ module NewRelic
 
         truncate_frames = trace.length - keep_frames
 
-        truncated_trace = trace[0...keep_top].concat(["<truncated #{truncate_frames.to_s} additional frames>"]).concat(trace[-keep_bottom..-1])
+        truncated_trace = trace[0...keep_top].push(["<truncated #{truncate_frames.to_s} additional frames>"]).concat(trace[-keep_bottom..-1])
         truncated_trace
       end
 

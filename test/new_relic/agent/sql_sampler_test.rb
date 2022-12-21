@@ -94,7 +94,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
-    data.sql_data.concat([
+    data.sql_data.push([
       NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.5),
       NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.2),
       NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test2"), "Database/test2/select", 1.1)
@@ -259,7 +259,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data = NewRelic::Agent::TransactionSqlData.new
       data.set_transaction_info("/c/a", 'guid')
       data.set_transaction_name("WebTransaction/Controller/c/a")
-      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo = 'bar'"),
+      data.sql_data.push([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo = 'bar'"),
         "Database/test/select", 1.5),
         NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo in (1,2,3,4,5)"),
           "Database/test/select", 1.2)])
@@ -280,7 +280,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data = NewRelic::Agent::TransactionSqlData.new
       data.set_transaction_info("/c/a", 'guid')
       data.set_transaction_name("WebTransaction/Controller/c/a")
-      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo = 'bar'"),
+      data.sql_data.push([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo = 'bar'"),
         "Database/test/select", 1.5),
         NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo in (1,2,3,4,5)"),
           "Database/test/select", 1.2)])
@@ -330,7 +330,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
       explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
-      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test", {}, explainer),
+      data.sql_data.push([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test", {}, explainer),
         "Database/test/select", 1.5)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
@@ -344,7 +344,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data = NewRelic::Agent::TransactionSqlData.new
       data.set_transaction_info("/c/a", 'guid')
       data.set_transaction_name("WebTransaction/Controller/c/a")
-      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"),
+      data.sql_data.push([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"),
         "Database/test/select", 1.5)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
