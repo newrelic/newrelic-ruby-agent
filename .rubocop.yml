@@ -1101,6 +1101,9 @@ Style/CommandLiteral:
 Style/CommentedKeyword:
   Enabled: false
 
+Style/ConcatArrayLiterals:
+  Enabled: false
+  
 # Disabling for now
 Style/ConditionalAssignment:
   Enabled: false
