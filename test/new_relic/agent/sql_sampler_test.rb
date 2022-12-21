@@ -123,7 +123,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
-    data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.5),
+    data.sql_data.push([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.5),
       NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.2),
       NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test2"), "Database/test2/select", 1.1)])
     @sampler.save_slow_sql(data)
