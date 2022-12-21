@@ -2,11 +2,15 @@
 
 ## v8.14.0
 
-Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionalty when a deployment is performed, delivers support for instrumenting Rails custom event notifications, and fixes potential compatibility issues with Redis gems, and fixes bugs related to initialization in Rails.
+Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionality when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
 
 - **Deployment Recipe: Restore desired Capistrano-based changelog lookup behavior**
 
   The New Relic Ruby agent offers [a Capistrano recipe for recording app deployments](https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/record-deployments-ruby-agent/#capistrano3). The recipe code was significantly cleaned up with [PR#1498](https://github.com/newrelic/newrelic-ruby-agent/pull/1498) which inadvertently changed the way the recipe handles the changelog for a deployment. Community member [@arthurwozniak](https://github.com/arthurwozniak) spotted and corrected this change in order to restore the desired changelog lookup functionality while retaining all of the previous cleanup. Thank you very much for your contribution, [@arthurwozniak](https://github.com/arthurwozniak)! [PR#1653](https://github.com/newrelic/newrelic-ruby-agent/pull/1653)
+
+- **Speed up GUID generation**
+
+  The agent leverages random numbers in its GUID (globally unique identifier) generation and would previously always freshly calculate the result of 16^16 or 32^32 before generating a random number. Given that those 16^16 and 32^32 operations are expected, it makes sense to calculate their results up front and store them in constants to be referred to later. Doing so has resulted in a performance gain for the generation of GUIDs. Many thanks to [@tungmq](https://github.com/tungmq) for contributing this optimisation and the benchmarks to support it! [PR#1693](https://github.com/newrelic/newrelic-ruby-agent/pull/1693)
 
 - **Support for Rails ActiveSupport::Notifications for custom events**
 
@@ -16,15 +20,17 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
   With version 8.13.0 of the agent, support was added for the [redis-rb](https://github.com/redis/redis-rb) gem v5+ and the new [RedisClient](https://rubygems.org/gems/redis-client) gem. With versions of RedisClient older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for RedisClient versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. Thank you very much to our community members [@mbsmartee](https://github.com/mbsmartee) and [@patatepartie](https://github.com/patatepartie) for bringing this issue to our attention, for helping us determine how to best reproduce it, and for testing out the update. We appreciate your help! [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
 
-- **Bugfix: Defer agent startup in Rails until after application-defined initializers have run**
+- ~~**Bugfix: Defer agent startup in Rails until after application-defined initializers have run**~~
 
-  In Rails, the agent previously loaded before any application-defined initializers. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before initializers ran, preventing any configuration values related to these libraries from being applied. This fix provides an option to split initialization into two parts: load `add_method_tracer` before application-defined initializers and start the agent after application-defined initializers. This may cause other initializers to behave differently.
+  ~~In Rails, the agent previously loaded before any application-defined initializers. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before initializers ran, preventing any configuration values related to these libraries from being applied. This fix provides an option to split initialization into two parts: load `add_method_tracer` before application-defined initializers and start the agent after application-defined initializers. This may cause other initializers to behave differently.~~
 
-  If you'd like to use this feature, set `defer_rails_initialization` to `true`. It is `false` by default, but may become `true` by default in a future release.
+  ~~If you'd like to use this feature, set `defer_rails_initialization` to `true`. It is `false` by default, but may become `true` by default in a future release.~~
 
-  Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation.
+  ~~Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation.~~
 
-  Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)
+  ~~Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)~~
+
+  Unfortunately, this bugfix is unreachable as written because the configuration value used to access the bugfix won't be applied until after initialization. Follow along for updates at [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662).
 
 ## v8.13.1
 
