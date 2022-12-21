@@ -1,7 +1,8 @@
 name: Slack Notifications
 
 on:
-  pull_request:
+  schedule:
+  - cron: '0 9 * * *'
 
 jobs:
   gem_notifications:
