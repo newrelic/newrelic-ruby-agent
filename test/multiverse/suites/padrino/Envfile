@@ -11,7 +11,6 @@ gemfile <<-RB
   gem 'rack-test'
   gem 'sinatra'
   gem 'webrick' if RUBY_VERSION >= '2.7.0'
-  gem 'date', '>= 3.3.3' # for padrino-mailer's mail dependency
 RB
 
 # Sinatra <3
