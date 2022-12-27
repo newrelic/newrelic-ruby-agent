@@ -33,10 +33,15 @@ function update_to_desired_rubygems_version {
     gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
-  # elif [[ $RUBY_VERSION =~ 2.[345] ]]; then
+  elif [[ $RUBY_VERSION =~ 2.[345] ]]; then
+    gem update --system 3.0.6 --force
+  elif [[$RUBY_VERSION =~ 2.[6]]]; then
+    gem update --system 3.1.6 --force
   else
     echo "DEBUG: running 'gem update --system --force'"
-    gem update --system 3.0.6 --force
+    gem update --system 3.4.1 --force
+    # gem update --system 3.1.6 --force
+    # 3.4.1
   # else
     # gem update --system --force
   fi
