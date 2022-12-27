@@ -35,7 +35,8 @@ function update_to_desired_rubygems_version {
     update_rubygems
   else
     echo "DEBUG: running 'gem update --system --force'"
-    gem update --system 3.0.6 --force
+    # gem update --system 3.0.6 --force
+    gem update --system --force
   fi
 }
 
