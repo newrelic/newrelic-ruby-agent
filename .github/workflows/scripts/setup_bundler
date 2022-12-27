@@ -34,17 +34,18 @@ function update_to_desired_rubygems_version {
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
   elif [[ $RUBY_VERSION =~ 2.[345] ]]; then
+    echo "DEBUG: running 'gem update --system 3.0.6 --force'"
     gem update --system 3.0.6 --force
   elif [[$RUBY_VERSION =~ 2.[6]]]; then
+    echo "DEBUG: running 'gem update --system 3.1.6 --force'"
     gem update --system 3.1.6 --force
   else
-    echo "DEBUG: running 'gem update --system --force'"
+    echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force
-    # gem update --system 3.1.6 --force
-    # 3.4.1
-  # else
-    # gem update --system --force
   fi
+  echo "Rubygems version installed: "
+  gem --version
+  echo "---------------------------"
 }
 
 function install_desired_bundler_version {
