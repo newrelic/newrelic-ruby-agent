@@ -45,9 +45,7 @@ function update_to_desired_rubygems_version {
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force --silent
   fi
-  echo "Rubygems version installed: "
-  gem --version
-  echo "---------------------------"
+  echo "DEBUG: Rubygems version installed: $(gem --version)"
 }
 
 function install_desired_bundler_version {
