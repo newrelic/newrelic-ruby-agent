@@ -31,7 +31,7 @@ def fake_guid(length = 16)
 end
 
 def assert_between(floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}")
-  assert((floor <= value && value <= ceiling), message) # rubocop:disable Minitest/AssertWithExpectedArgument
+  assert((floor <= value && value <= ceiling), message)
 end
 
 def assert_in_delta(expected, actual, delta)
@@ -236,7 +236,7 @@ def assert_metrics_recorded(expected)
       msg += "\nDid find specs: [\n#{matches.join(",\n")}\n]" unless matches.empty?
       msg += "\nAll specs in there were: #{format_metric_spec_list(all_specs)}"
 
-      assert(actual_stats, msg) # rubocop:disable Minitest/AssertWithExpectedArgument
+      assert(actual_stats, msg)
     end
 
     assert_stats_has_values(actual_stats, expected_spec, expected_attrs)
