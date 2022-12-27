@@ -9,11 +9,24 @@ module NewRelic::Agent::Instrumentation
         include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
         alias_method(:post_without_new_relic, :post)
-        alias_method(:post, :post_with_new_relic)
 
         def post(*args, &task)
           traced_task = add_task_tracing(*args, &task)
           post_with_new_relic(*args) { post_without_new_relic(*args, &traced_task) }
+        end
+      end
+
+      [::Concurrent::Promises.const_get(:'InternalStates')::Rejected,
+        ::Concurrent::Promises.const_get(:'InternalStates')::PartiallyRejected].each do |klass|
+        klass.class_eval do
+          alias_method(:initialize_without_new_relic, :initialize)
+
+          # Uses args.last to record the error becuase the methods that this will monkey patch
+          # look like: initialize(reason) & initialize(value, reason)
+          def initialize(*args)
+            NewRelic::Agent.notice_error(args.last)
+            initialize_without_new_relic(*args)
+          end
         end
       end
     end

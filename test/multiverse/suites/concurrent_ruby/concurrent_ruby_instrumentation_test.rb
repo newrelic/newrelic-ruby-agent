@@ -4,7 +4,6 @@
 
 class ConcurrentRubyInstrumentationTest < Minitest::Test
   def test_promises_future_creates_segment_with_default_name
-    skip
     txn = in_transaction do
       future = Concurrent::Promises.future { 'hi' }
       future.wait!
@@ -17,7 +16,6 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   def test_promises_future_creates_segments_for_nested_instrumented_calls
-    skip
     with_config(:'instrumentation.thread.tracing' => false) do
       future = nil
       txn = in_transaction do
@@ -33,7 +31,6 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   def test_promises_future_creates_segments_for_nested_instrumented_calls_with_thread_tracing_enabled
-    skip
     with_config(:'instrumentation.thread.tracing' => true) do
       future = nil
       txn = in_transaction do
