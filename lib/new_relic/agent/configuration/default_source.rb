@@ -1871,8 +1871,9 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, when the agent is in an application using Ruby on Rails, it will start after ' \
-            'config/initializers are run.'
+          :description => 'This configuration option is currently unreachable. Please do not use. ' \
+            'If `true`, when the agent is in an application using Ruby on Rails, it will start after ' \
+            'config/initializers have run.'
         },
         # Rake
         :'rake.tasks' => {
