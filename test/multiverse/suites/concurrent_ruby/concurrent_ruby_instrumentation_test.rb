@@ -9,19 +9,21 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     'External/www.example.com/Net::HTTP/GET'
   ]
 
-  def concurrent_promises_calls_net_http_in_block
+  # Helper methods
+  def future_in_transaction(&block)
     in_transaction do
-      future = Concurrent::Promises.future { Net::HTTP.get(URI('http://www.example.com')); }
+      future = Concurrent::Promises.future { yield }
       future.wait!
     end
   end
 
-  def test_promises_future_creates_segment_with_default_name
-    txn = in_transaction do
-      future = Concurrent::Promises.future { 'hi' }
-      future.wait!
-    end
+  # Tests
+  def concurrent_promises_calls_net_http_in_block
+    future_in_transaction { Net::HTTP.get(URI('http://www.example.com')) }
+  end
 
+  def test_promises_future_creates_segment_with_default_name
+    txn = future_in_transaction { 'hi' }
     expected_segments = ['Concurrent::ThreadPoolExecutor#post', 'Concurrent/task']
 
     assert_equal(3, txn.segments.length)
@@ -49,7 +51,6 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   def test_promises_future_captures_segment_error
-    txn = nil
     txn = in_transaction do
       # TODO: OLD RUBIES - RUBY_VERSION 2.2
       # specific "begin" in block can be removed once we drop support for 2.2
