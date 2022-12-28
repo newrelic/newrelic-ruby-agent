@@ -8,6 +8,8 @@ module NewRelic::Agent::Instrumentation
       include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
       def post(*args, &task)
+        return super(*args, &task) unless NewRelic::Agent::Tracer.tracing_enabled?
+
         traced_task = add_task_tracing(*args, &task)
         post_with_new_relic(*args) { super(*args, &traced_task) }
       end

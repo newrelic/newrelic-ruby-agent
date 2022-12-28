@@ -8,8 +8,6 @@ module NewRelic::Agent::Instrumentation
     TASK_NAME = 'Concurrent/Task'
 
     def post_with_new_relic(*args)
-      return yield unless NewRelic::Agent::Tracer.tracing_enabled?
-
       segment = NewRelic::Agent::Tracer.start_segment(name: DEFAULT_NAME)
       begin
         yield

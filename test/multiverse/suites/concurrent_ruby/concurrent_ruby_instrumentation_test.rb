@@ -70,4 +70,12 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     task_segment = txn.segments.find{|n| n.name == 'Concurrent/Task'}
     assert_equal task_segment.parent.name, txn.best_name
   end
+
+  def test_segment_not_created_if_tracing_disabled
+    NewRelic::Agent::Tracer.stub :tracing_enabled?, false do
+      txn = future_in_transaction { 'the revolution will not be televised' }
+      assert_predicate txn.segments, :one?
+      assert_equal txn.segments.first.name, txn.best_name
+    end
+  end
 end
