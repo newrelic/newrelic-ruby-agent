@@ -33,17 +33,17 @@ function update_to_desired_rubygems_version {
     gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
-  elif [[ $RUBY_VERSION =~ 2.[345] ]]; then
+  elif [[ $RUBY_VERSION =~ 2.[3456] ]]; then
     echo "DEBUG: running 'gem update --system 3.0.6 --force'"
-    gem update --system 3.0.6 --force
-  elif [[ $RUBY_VERSION = "2.6.10" ]]; then
+    gem update --system 3.0.6 --force >/dev/null
+  # elif [[ $RUBY_VERSION = "2.6.10" ]]; then
     # Rails 4 still runs on 2.6 which requires bundler 1.17 
     # rubygems > 3.1.6 forces bundler 2 to be default which breaks rails 4
-    echo "DEBUG: running 'gem update --system 3.1.6 --force'"
-    gem update --system 3.1.6 --force --silent
+    # echo "DEBUG: running 'gem update --system 3.1.6 --force'"
+    # gem update --system 3.1.6 --force >/dev/null
   else
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
-    gem update --system 3.4.1 --force --silent
+    gem update --system 3.4.1 --force >/dev/null
   fi
   echo "DEBUG: Rubygems version installed: $(gem --version)"
 }
