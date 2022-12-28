@@ -20,15 +20,17 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
   With version 8.13.0 of the agent, support was added for the [redis-rb](https://github.com/redis/redis-rb) gem v5+ and the new [RedisClient](https://rubygems.org/gems/redis-client) gem. With versions of RedisClient older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for RedisClient versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. Thank you very much to our community members [@mbsmartee](https://github.com/mbsmartee) and [@patatepartie](https://github.com/patatepartie) for bringing this issue to our attention, for helping us determine how to best reproduce it, and for testing out the update. We appreciate your help! [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
 
-- **Bugfix: Defer agent startup in Rails until after application-defined initializers have run**
+- ~~**Bugfix: Defer agent startup in Rails until after application-defined initializers have run**~~
 
-  In Rails, the agent previously loaded before any application-defined initializers. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before initializers ran, preventing any configuration values related to these libraries from being applied. This fix provides an option to split initialization into two parts: load `add_method_tracer` before application-defined initializers and start the agent after application-defined initializers. This may cause other initializers to behave differently.
+  ~~In Rails, the agent previously loaded before any application-defined initializers. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before initializers ran, preventing any configuration values related to these libraries from being applied. This fix provides an option to split initialization into two parts: load `add_method_tracer` before application-defined initializers and start the agent after application-defined initializers. This may cause other initializers to behave differently.~~
 
-  If you'd like to use this feature, set `defer_rails_initialization` to `true`. It is `false` by default, but may become `true` by default in a future release.
+  ~~If you'd like to use this feature, set `defer_rails_initialization` to `true`. It is `false` by default, but may become `true` by default in a future release.~~
 
-  Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation.
+  ~~Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation.~~
 
-  Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)
+  ~~Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)~~
+
+  Unfortunately, this bugfix is unreachable as written because the configuration value used to access the bugfix won't be applied until after initialization. Follow along for updates at [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662).
 
 ## v8.13.1
 
