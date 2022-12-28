@@ -389,7 +389,7 @@ jobs:
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 60
-          max_attempts: 1
+          max_attempts: 2
           command:  jruby -v; bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
