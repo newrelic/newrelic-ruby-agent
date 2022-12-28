@@ -201,7 +201,7 @@ class SidekiqTest < Minitest::Test
     metric = metrics.find { |m| m[0]['name'] == name }
     message = "Could not find metric named #{name}. Did have metrics:\n" + metrics.map { |m| m[0]['name'] }.join("\t\n")
 
-    assert(metric, message) # rubocop:disable Minitest/AssertWithExpectedArgument
+    assert(metric, message)
 
     call_count = metric[1][0]
 
