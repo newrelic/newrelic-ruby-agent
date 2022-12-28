@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     module ErrorPrepend
-      # Uses args.last to record the error becuase the methods that this will be prepepnded to
+      # Uses args.last to record the error because the methods that this will be prepended to
       # look like: initialize(reason) & initialize(value, reason)
       def initialize(*args)
         NewRelic::Agent.notice_error(args.last)
