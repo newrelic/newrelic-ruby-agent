@@ -5,7 +5,7 @@
 class ConcurrentRubyInstrumentationTest < Minitest::Test
   EXPECTED_SEGMENTS_FOR_NESTED_CALLS = [
     'Concurrent::ThreadPoolExecutor#post',
-    'Concurrent/task',
+    'Concurrent/Task',
     'External/www.example.com/Net::HTTP/GET'
   ]
 
@@ -24,7 +24,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
 
   def test_promises_future_creates_segment_with_default_name
     txn = future_in_transaction { 'hi' }
-    expected_segments = ['Concurrent::ThreadPoolExecutor#post', 'Concurrent/task']
+    expected_segments = ['Concurrent::ThreadPoolExecutor#post', 'Concurrent/Task']
 
     assert_equal(3, txn.segments.length)
     assert expected_segments.to_set.subset?(txn.segments.map { |s| s.name }.to_set)
@@ -62,6 +62,12 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_segment_noticed_error txn, /Concurrent\/task/, /RuntimeError/, /hi/i
+    assert_segment_noticed_error txn, /Concurrent\/Task/, /RuntimeError/, /hi/i
+  end
+
+  def test_task_segment_has_correct_parent
+    txn = future_in_transaction { 'hi' }
+    task_segment = txn.segments.find{|n| n.name == 'Concurrent/Task'}
+    assert_equal task_segment.parent.name, txn.best_name
   end
 end

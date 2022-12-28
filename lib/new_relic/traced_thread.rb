@@ -29,7 +29,12 @@ module NewRelic
     def create_traced_block(*args, &block)
       return block if NewRelic::Agent.config[:'instrumentation.thread.tracing'] # if this is on, don't double trace
 
-      NewRelic::Agent::Tracer.thread_block_with_current_transaction(*args, segment_name: "Ruby/TracedThread", &block)
+      NewRelic::Agent::Tracer.thread_block_with_current_transaction(
+        *args,
+        segment_name: 'Ruby/TracedThread',
+        parent: NewRelic::Agent::Tracer.current_segment,
+        &block
+      )
     end
   end
 end

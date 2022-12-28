@@ -5,6 +5,7 @@
 module NewRelic::Agent::Instrumentation
   module ConcurrentRuby
     DEFAULT_NAME = 'Concurrent::ThreadPoolExecutor#post'
+    TASK_NAME = 'Concurrent/Task'
 
     def post_with_new_relic(*args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
@@ -18,7 +19,12 @@ module NewRelic::Agent::Instrumentation
     end
 
     def add_task_tracing(*args, &task)
-      NewRelic::Agent::Tracer.thread_block_with_current_transaction(*args, segment_name: 'Concurrent/task', &task)
+      NewRelic::Agent::Tracer.thread_block_with_current_transaction(
+        *args,
+        segment_name: TASK_NAME,
+        parent: NewRelic::Agent::Tracer.current_segment,
+        &task
+      )
     end
   end
 end
