@@ -3,11 +3,23 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module ConcurrentRuby::Prepend
-    include NewRelic::Agent::Instrumentation::ConcurrentRuby
+  module ConcurrentRuby
+    module Prepend
+      include NewRelic::Agent::Instrumentation::ConcurrentRuby
 
-    def post(*args, &task)
-      post_with_new_relic(*args) { super }
+      def post(*args, &task)
+        traced_task = add_task_tracing(*args, &task)
+        post_with_new_relic(*args) { super(*args, &traced_task) }
+      end
+    end
+
+    module ErrorPrepend
+      # Uses args.last to record the error because the methods that this will be prepended to
+      # look like: initialize(reason) & initialize(value, reason)
+      def initialize(*args)
+        NewRelic::Agent.notice_error(args.last)
+        super
+      end
     end
   end
 end
