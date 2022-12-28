@@ -19,8 +19,8 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_instrument(Concurrent::ThreadPoolExecutor, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend)
 
-      [::Concurrent::Promises.const_get(:'InternalStates')::Rejected,
-        ::Concurrent::Promises.const_get(:'InternalStates')::PartiallyRejected].each do |klass|
+      [Concurrent::Promises.const_get(:'InternalStates')::Rejected,
+        Concurrent::Promises.const_get(:'InternalStates')::PartiallyRejected].each do |klass|
           klass.prepend(NewRelic::Agent::Instrumentation::ConcurrentRuby::ErrorPrepend)
         end
     else
