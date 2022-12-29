@@ -4,7 +4,6 @@
 
 class ConcurrentRubyInstrumentationTest < Minitest::Test
   EXPECTED_SEGMENTS_FOR_NESTED_CALLS = [
-    'Concurrent::ThreadPoolExecutor#post',
     'Concurrent/Task',
     'External/www.example.com/Net::HTTP/GET'
   ]
@@ -33,17 +32,17 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   # Tests
   def test_promises_future_creates_segment_with_default_name
     txn = future_in_transaction { 'time keeps on slipping' }
-    expected_segments = ['Concurrent::ThreadPoolExecutor#post', 'Concurrent/Task']
+    expected_segment = 'Concurrent/Task'
 
-    assert_equal(3, txn.segments.length)
-    assert expected_segments.to_set.subset?(txn.segments.map { |s| s.name }.to_set)
+    assert_equal(2, txn.segments.length)
+    assert txn.segments.map(&:name).include?(expected_segment)
   end
 
   def test_promises_future_creates_segments_for_nested_instrumented_calls
     with_config(:'instrumentation.thread.tracing' => false) do
       txn = concurrent_promises_calls_net_http_in_block
 
-      assert_equal(4, txn.segments.length)
+      assert_equal(3, txn.segments.length)
       assert EXPECTED_SEGMENTS_FOR_NESTED_CALLS.to_set.subset?(txn.segments.map { |s| s.name }.to_set)
     end
   end
@@ -66,7 +65,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       begin
         simulate_error
       rescue StandardError => e
-        # NOOP -- allowing span and transaction to notice error
+        # NOOP -- allowing span to notice error
       end
     end
 

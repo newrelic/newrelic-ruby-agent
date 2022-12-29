@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
           return post_without_new_relic(*args, &task) unless NewRelic::Agent::Tracer.tracing_enabled?
 
           traced_task = add_task_tracing(*args, &task)
-          post_with_new_relic(*args) { post_without_new_relic(*args, &traced_task) }
+          post_without_new_relic(*args, &traced_task)
         end
       end
 
