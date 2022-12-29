@@ -35,7 +35,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     expected_segment = 'Concurrent/Task'
 
     assert_equal(2, txn.segments.length)
-    assert txn.segments.map(&:name).include?(expected_segment)
+    assert_includes txn.segments.map(&:name), expected_segment
   end
 
   def test_promises_future_creates_segments_for_nested_instrumented_calls
