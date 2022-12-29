@@ -26,7 +26,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     future.wait!
   end
 
-  def assert_segment_noticed_simulated_error
+  def assert_segment_noticed_simulated_error(txn)
     assert_segment_noticed_error txn, /Concurrent\/Task$/, /RuntimeError/, /hi/i
   end
 
@@ -70,7 +70,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_segment_noticed_simulated_error
+    assert_segment_noticed_simulated_error(txn)
   end
 
   def test_noticed_error_at_segment_and_txn_on_error
@@ -84,7 +84,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       # NOOP -- allowing span and transaction to notice error
     end
 
-    assert_segment_noticed_simulated_error
+    assert_segment_noticed_simulated_error(txn)
     assert_transaction_noticed_error txn, /RuntimeError/
   end
 
