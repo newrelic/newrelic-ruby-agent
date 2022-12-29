@@ -6,6 +6,13 @@
 
   Following the 3.2.0 release of Ruby, the New Relic Ruby Agent has confirmed compatibility with and now supports the official release of Ruby 3.2.0. [PR#1715](https://github.com/newrelic/newrelic-ruby-agent/pull/1715)
 
+- **Add instrumentation for concurrent-ruby**
+
+  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682]
+
+  | Configuration name                | Default | Behavior                                                                                                                      |
+  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
 
 ## v8.14.0
 
