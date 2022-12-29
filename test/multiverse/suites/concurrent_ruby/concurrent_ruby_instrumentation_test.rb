@@ -17,13 +17,22 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     end
   end
 
-  # Tests
   def concurrent_promises_calls_net_http_in_block
     future_in_transaction { Net::HTTP.get(URI('http://www.example.com')) }
   end
 
+  def simulate_error
+    future = Concurrent::Promises.future { raise 'hi' }
+    future.wait!
+  end
+
+  def assert_segment_noticed_simulated_error
+    assert_segment_noticed_error txn, /Concurrent\/Task$/, /RuntimeError/, /hi/i
+  end
+
+  # Tests
   def test_promises_future_creates_segment_with_default_name
-    txn = future_in_transaction { 'hi' }
+    txn = future_in_transaction { 'time keeps on slipping' }
     expected_segments = ['Concurrent::ThreadPoolExecutor#post', 'Concurrent/Task']
 
     assert_equal(3, txn.segments.length)
@@ -55,18 +64,32 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       # TODO: OLD RUBIES - RUBY_VERSION 2.2
       # specific "begin" in block can be removed once we drop support for 2.2
       begin
-        future = Concurrent::Promises.future { raise 'hi' }
-        future.wait!
+        simulate_error
       rescue StandardError => e
         # NOOP -- allowing span and transaction to notice error
       end
     end
 
-    assert_segment_noticed_error txn, /Concurrent\/Task/, /RuntimeError/, /hi/i
+    assert_segment_noticed_simulated_error
+  end
+
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    begin
+      in_transaction do |test_txn|
+        txn = test_txn
+        simulate_error
+      end
+    rescue StandardError => e
+      # NOOP -- allowing span and transaction to notice error
+    end
+
+    assert_segment_noticed_simulated_error
+    assert_transaction_noticed_error txn, /RuntimeError/
   end
 
   def test_task_segment_has_correct_parent
-    txn = future_in_transaction { 'hi' }
+    txn = future_in_transaction { 'are you my mother?' }
     task_segment = txn.segments.find { |n| n.name == 'Concurrent/Task' }
 
     assert_equal task_segment.parent.name, txn.best_name
