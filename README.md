@@ -1,4 +1,4 @@
-[![Community Project header](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Plus.png)](https://github.com/newrelic/open-source-office/blob/master/examples/categories/index.md#category-community-project)
+[![Community Project header](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
 
 
 # New Relic Ruby Agent
