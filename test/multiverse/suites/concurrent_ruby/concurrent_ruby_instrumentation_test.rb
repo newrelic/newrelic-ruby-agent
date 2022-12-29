@@ -102,4 +102,16 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       assert_equal txn.segments.first.name, txn.best_name
     end
   end
+
+  def test_supportability_metric_recorded_once
+    in_transaction do
+      Concurrent::Promises.future { 'one-banana' }
+    end
+
+    in_transaction do
+      Concurrent::Promises.future { 'two-banana' }
+    end
+
+    assert_metrics_recorded(NewRelic::Agent::Instrumentation::ConcurrentRuby::SUPPORTABILITY_METRIC)
+  end
 end
