@@ -367,6 +367,32 @@ module NewRelic
         end
       end
 
+      def test_thread_ids_included_when_enabled
+        with_config(
+          :'instrumentation.thread.tracing' => true,
+          :'thread_ids_enabled' => true
+        ) do
+          txn = in_transaction do
+            Thread.new { 'woof' }.join
+          end
+
+          assert_match /Ruby\/Thread\/Thread\d{4}\/Fiber\d{4}/, txn.segments.last.name
+        end
+      end
+
+      def test_thread_ids_absent_when_disabled
+        with_config(
+          :'instrumentation.thread.tracing' => true,
+          :'thread_ids_enabled' => false
+        ) do
+          txn = in_transaction do
+            Thread.new { 'woof' }.join
+          end
+
+          assert_match /Ruby\/Thread$/, txn.segments.last.name
+        end
+      end
+
       def test_start_segment
         name = "Custom/MyClass/myoperation"
         unscoped_metrics = [
