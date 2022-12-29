@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes
 
+## Upcoming Release
+
+- **Add Support for Ruby 3.2.0**
+
+  Following the 3.2.0 release of Ruby, the New Relic Ruby Agent has confirmed compatibility with and now supports the official release of Ruby 3.2.0. [PR#1715](https://github.com/newrelic/newrelic-ruby-agent/pull/1715)
+
+
 ## v8.14.0
 
 Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionality when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
