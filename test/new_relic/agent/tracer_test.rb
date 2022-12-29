@@ -376,7 +376,7 @@ module NewRelic
             Thread.new { 'woof' }.join
           end
 
-          assert_match /Ruby\/Thread\/Thread\d{4}\/Fiber\d{4}/, txn.segments.last.name
+          assert_match /Ruby\/Thread\/Thread\d+\/Fiber\d+/, txn.segments.last.name
         end
       end
 
