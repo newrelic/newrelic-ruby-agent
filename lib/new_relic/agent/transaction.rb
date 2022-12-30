@@ -123,6 +123,15 @@ module NewRelic
         state.reset(txn)
         txn.state = state
         txn.start(options)
+
+        begin
+          NewRelic::Agent.logger.debug(
+            "#{Thread.current.object_id} WALUIGI Transaction.start_new_transaction    guid: #{txn.guid}    name: #{txn.best_name}    tracing_enabled?: #{state.is_execution_traced?}  segments.count: #{txn.segments.count}"
+          )
+        rescue => e
+          NewRelic::Agent.logger.warn(" #{Thread.current.object_id} WALUIGI: Transaction.start_new_transaction error ", e)
+        end
+
         txn
       end
 
@@ -513,6 +522,16 @@ module NewRelic
       end
 
       def finish
+        begin
+          NewRelic::Agent.logger.debug(
+            "#{Thread.current.object_id} WALUIGI Transaction#finish guid: #{guid}  name: #{best_name}  tracing_enabled?: #{state.is_execution_traced?}\n    " \
+            "\tsegments.count: #{segments.count}  names: \n    \t\t#{segments.map { |s| "#{s.name} (#{s.guid})" }.join("\n    \t\t")} \n    " \
+            "\t------END SEGMENT NAMES------\n"
+          )
+        rescue => e
+          NewRelic::Agent.logger.warn(" #{Thread.current.object_id}- WALUIGI: Transaction#finish error ", e)
+        end
+
         return unless state.is_execution_traced?
 
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)

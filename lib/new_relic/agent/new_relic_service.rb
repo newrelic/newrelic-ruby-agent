@@ -176,6 +176,17 @@ module NewRelic
       end
 
       def analytic_event_data(data)
+        begin
+          NewRelic::Agent.logger.debug(
+            "#{Thread.current.object_id} WALUIGI NewRelicService#analytic_event_data \n" \
+            "***********************************************************************\n    " \
+            "\t#{data[1].map { |d| [d[0]["name"], d[0]["guid"]].join("   ") }.join("\n    \t")}\n" \
+            "***********************************************************************\n"
+          )
+        rescue => e
+          NewRelic::Agent.logger.warn("#{Thread.current.object_id} WALUIGI NewRelicService#analytic_event_data error", e)
+        end
+
         _, items = data
         invoke_remote(:analytic_event_data, [@agent_id, *data],
           :item_count => items.size)

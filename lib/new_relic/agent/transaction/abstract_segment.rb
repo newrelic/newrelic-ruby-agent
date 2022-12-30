@@ -63,6 +63,16 @@ module NewRelic
           @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = end_time - start_time
 
+          # begin
+          #   NewRelic::Agent.logger.debug(
+          #     "#{Thread.current.object_id} WALUIGI AbstractSegment#finish    \n    " \
+          #     "\t name: #{name}    guid: #{guid}    tracing_enabled?: #{NewRelic::Agent::Tracer.tracing_enabled?} \n    " \
+          #     "\t txn name: #{transaction&.best_name}   txn guid: #{transaction&.guid}  \n"
+          #   )
+          # rescue => e
+          #   NewRelic::Agent.logger.warn(" #{Thread.current.object_id} WALUIGI: AbstractSegment#finish", e)
+          # end
+
           return unless transaction
 
           run_complete_callbacks

@@ -134,6 +134,8 @@ module NewRelic
           category:,
           options: {})
 
+          NewRelic::Agent.logger.debug("#{Thread.current.object_id} WALUIGI Tracer#start_transaction_or_segment name: #{name || partial_name}    tracing_enabled?: #{tracing_enabled?}")
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           if name
@@ -146,8 +148,18 @@ module NewRelic
           end
 
           if (txn = current_transaction)
+            begin
+              NewRelic::Agent.logger.debug(
+                "#{Thread.current.object_id} WALUIGI: Tracer#start_transaction_or_segment in current_txn (#{name}) \n    " \
+                "\tcurrent_transaction    name: #{txn.best_name}    guid: #{txn.guid}    segments.count: #{txn.segments.count} \n "
+              )
+            rescue => e
+              NewRelic::Agent.logger.warn(" #{Thread.current.object_id} WALUIGI: Tracer#start_transaction_or_segment current txn error ", e)
+            end
+
             txn.create_nested_segment(category, options)
           else
+            NewRelic::Agent.logger.debug("#{Thread.current.object_id} WALUIGI: Tracer#start_transaction_or_segment- NO txn (#{name}) ")
             Transaction.start_new_transaction(state, category, options)
           end
         rescue ArgumentError
@@ -239,6 +251,17 @@ module NewRelic
 
           segment = Transaction::Segment.new(name, unscoped_metrics, start_time)
           start_and_add_segment(segment, parent)
+          begin
+            NewRelic::Agent.logger.debug(
+              "#{Thread.current.object_id} WALUIGI Tracer#start_segment    (#{name}) \n    " \
+              "\tsegment      name: #{segment.name}    guid: #{segment.guid}    tracing_enabled?: #{tracing_enabled?}  \n    " \
+              "\tsegment.txn  name: #{segment.transaction&.best_name}    txn.guid: #{segment.transaction&.guid}    txn.segments.count: #{segment.transaction&.segments&.count} \n    " \
+              "\tparent       name: #{segment.parent&.name}    guid: #{segment.parent&.guid} \n"
+            )
+          rescue => e
+            NewRelic::Agent.logger.warn(" #{Thread.current.object_id}- WALUIGI: Tracer#start_segment error ", e)
+          end
+          segment
         rescue ArgumentError
           raise
         rescue => exception
@@ -413,9 +436,10 @@ module NewRelic
           current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].is_execution_traced?
           proc do
             begin
+              NewRelic::Agent.logger.debug("WALUIGI new thread #{Thread.current.object_id}")
               if current_txn
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
-                segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread/#{::Thread.current.object_id}")
+                segment = NewRelic::Agent::Tracer.start_segment(name: "Ruby/Thread")
               end
               yield(*args) if block.respond_to?(:call)
             ensure
