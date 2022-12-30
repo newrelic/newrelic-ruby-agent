@@ -61,12 +61,14 @@ module NewRelic
         RENDER_TEMPLATE_EVENT_NAME = 'render_template.action_view'.freeze
         RENDER_PARTIAL_EVENT_NAME = 'render_partial.action_view'.freeze
         RENDER_COLLECTION_EVENT_NAME = 'render_collection.action_view'.freeze
+        RENDER_LAYOUT_EVENT_NAME = 'render_layout.action_view'.freeze
 
         def metric_action(name)
           case name
           when /#{RENDER_TEMPLATE_EVENT_NAME}$/o then 'Rendering'
           when RENDER_PARTIAL_EVENT_NAME then 'Partial'
           when RENDER_COLLECTION_EVENT_NAME then 'Partial'
+          when RENDER_LAYOUT_EVENT_NAME then 'Layout'
           end
         end
 
