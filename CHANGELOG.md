@@ -12,7 +12,7 @@
 
   | Configuration name                | Default | Behavior                                                                                                                      |
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
 
 ## v8.14.0
 
