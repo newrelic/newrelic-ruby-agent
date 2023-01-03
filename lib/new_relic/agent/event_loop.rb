@@ -83,7 +83,7 @@ module NewRelic
         return nil if @timers.empty?
 
         timeout = @timers.values.map(&:next_fire_time).min - Process.clock_gettime(Process::CLOCK_REALTIME)
-        timeout < 0 ? 0 : timeout
+        [timeout, 0].max
       end
 
       def stopped?

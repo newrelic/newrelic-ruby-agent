@@ -1,4 +1,5 @@
-[![Blue banner - Community Plus: This code is currently maintained by New Relic engineering teams and delivered here in GitHub. See the README for troubleshooting and defect reporting instructions.](https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
+[![Open Source, New Relic Community Plus: This code is currently maintained by New Relic engineering teams and delivered here in GitHub. See the README for troubleshooting and defect reporting instructions.](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
+
 
 # New Relic Ruby Agent
 

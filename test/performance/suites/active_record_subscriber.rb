@@ -39,7 +39,7 @@ unless defined?(ActiveSupport::Notifications::Event)
         #
         #   @event.duration # => 1000.138
         def duration
-          @duration ||= 1000.0 * (self.end - time)
+          @duration ||= (self.end - time) * 1000.0
         end
 
         def <<(event)
