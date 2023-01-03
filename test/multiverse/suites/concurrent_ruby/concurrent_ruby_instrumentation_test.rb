@@ -29,6 +29,10 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     assert_segment_noticed_error txn, /Concurrent\/Task$/, /RuntimeError/, /hi/i
   end
 
+  def assert_expected_segments_in_transaction(txn)
+    assert_predicate (txn.segments.map(&:name) & EXPECTED_SEGMENTS_FOR_NESTED_CALLS), :any?
+  end
+
   # Tests
   def test_promises_future_creates_segment_with_default_name
     txn = future_in_transaction { 'time keeps on slipping' }
@@ -43,7 +47,7 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       txn = concurrent_promises_calls_net_http_in_block
 
       assert_equal(3, txn.segments.length)
-      assert EXPECTED_SEGMENTS_FOR_NESTED_CALLS.to_set.subset?(txn.segments.map { |s| s.name }.to_set)
+      assert_expected_segments_in_transaction(txn)
     end
   end
 
@@ -51,10 +55,10 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     with_config(:'instrumentation.thread.tracing' => true) do
       txn = concurrent_promises_calls_net_http_in_block
 
-      # We can't check the number of segments when thread tracing is enabled because we can not rely on concurrent
-      # ruby creating threads during this transaction, as it can reuse threads that were created previously.
+      # We can't check the number of segments when thread tracing is enabled because we cannot rely on concurrent-ruby
+      # creating threads during this transaction, as it can reuse threads that were created previously.
       # Instead, we check to make sure the segments that should be present are.
-      assert EXPECTED_SEGMENTS_FOR_NESTED_CALLS.to_set.subset?(txn.segments.map { |s| s.name }.to_set)
+      assert_expected_segments_in_transaction(txn)
     end
   end
 
