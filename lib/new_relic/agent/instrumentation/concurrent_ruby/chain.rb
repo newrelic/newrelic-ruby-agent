@@ -26,7 +26,7 @@ module NewRelic::Agent::Instrumentation
           # Uses args.last to record the error becuase the methods that this will monkey patch
           # look like: initialize(reason) & initialize(value, reason)
           def initialize(*args)
-            NewRelic::Agent.notice_error(args.last)
+            NewRelic::Agent.notice_error(args.last) if args.last.is_a?(Exception)
             initialize_without_new_relic(*args)
           end
         end

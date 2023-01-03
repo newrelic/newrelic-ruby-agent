@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
       # Uses args.last to record the error because the methods that this will be prepended to
       # look like: initialize(reason) & initialize(value, reason)
       def initialize(*args)
-        NewRelic::Agent.notice_error(args.last)
+        NewRelic::Agent.notice_error(args.last) if args.last.is_a?(Exception)
         super
       end
     end
