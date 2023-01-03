@@ -18,8 +18,8 @@ module NewRelic
         ranges.inject(0) do |memo, other|
           next memo unless intersects?(range, other)
 
-          memo += (range.end < other.end ? range.end : other.end) -
-            (range.begin > other.begin ? range.begin : other.begin)
+          memo += ([range.end, other.end].min) -
+            ([range.begin, other.begin].max)
         end
       end
     end

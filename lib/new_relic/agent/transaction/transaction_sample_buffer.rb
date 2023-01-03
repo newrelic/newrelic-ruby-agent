@@ -72,7 +72,7 @@ module NewRelic
         # A typical buffer should NOT override this method (although we do for
         # odd things like dev-mode)
         def max_capacity
-          capacity > SINGLE_BUFFER_MAX ? SINGLE_BUFFER_MAX : capacity
+          [capacity, SINGLE_BUFFER_MAX].min
         end
 
         # Our default truncation strategy is to keep max_capacity
