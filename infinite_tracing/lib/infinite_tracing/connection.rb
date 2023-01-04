@@ -57,7 +57,6 @@ module NewRelic::Agent
         # so we're able to signal the client to restart when connectivity to the
         # server is disrupted.
         def record_span_batches(client, enumerator, exponential_backoff)
-          puts "\n\n\n\n\n\n\n\n\n\n\nRECORDED A SPAN BATCH!!!!!!\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
           instance.record_span_batches(client, enumerator, exponential_backoff)
         end
 
