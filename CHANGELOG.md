@@ -8,7 +8,7 @@
 
 - **Add instrumentation for concurrent-ruby**
 
-  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682]
+  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent. for versions 1.1.5 and above. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682]
 
   | Configuration name                | Default | Behavior                                                                                                                      |
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
