@@ -93,3 +93,9 @@ def with_detailed_trace
     yield
   end
 end
+
+def reset_compression_level
+  return unless NewRelic::Agent::InfiniteTracing::Config.instance_variables.include?(:@compression_level)
+
+  NewRelic::Agent::InfiniteTracing::Config.remove_instance_variable(:@compression_level)
+end
