@@ -17,6 +17,12 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Connection
+      GZIP_METADATA = {'grpc-internal-encoding-request' => 'gzip',
+                       'grpc-encoding' => 'gzip',
+                       'grpc-accept-encoding' => ['gzip'],
+                       'content-coding' => 'gzip',
+                       'content-encoding' => 'gzip'}.freeze
+
       # listens for server side configurations added to the agent.  When a new config is
       # added, we have a new agent run token and need to restart the client's RPC stream
       # with the new metadata information.
@@ -51,6 +57,7 @@ module NewRelic::Agent
         # so we're able to signal the client to restart when connectivity to the
         # server is disrupted.
         def record_span_batches(client, enumerator, exponential_backoff)
+          puts "\n\n\n\n\n\n\n\n\n\n\nRECORDED A SPAN BATCH!!!!!!\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
           instance.record_span_batches(client, enumerator, exponential_backoff)
         end
 
@@ -100,7 +107,16 @@ module NewRelic::Agent
             "agent_run_token" => agent_id
           }
           @metadata.merge!(request_headers_map)
+          merge_gzip_metadata
         end
+      end
+
+      # If (gzip based) compression is enabled, explicitly provide all
+      # relevant metadata
+      def merge_gzip_metadata
+        return @metadata unless Config.compression_enabled?
+
+        @metadata.merge!(GZIP_METADATA)
       end
 
       # Initializes rpc so we can get a Channel and Stub (connect to gRPC server)
