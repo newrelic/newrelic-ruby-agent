@@ -2332,21 +2332,21 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         },
         :'infinite_tracing.batching' => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "If true, data sent to the Trace Observer will be batched instead of the default of each " \
+          :description => "If true (the default), data sent to the Trace Observer will be batched\ninstead of each " \
                           "span being sent individually"
         },
         :'infinite_tracing.compression_level' => {
-          :default => :none,
-          :public => false,
+          :default => :high,
+          :public => true,
           :type => Symbol,
           :allowed_from_server => false,
           :external => :infinite_tracing,
           :description => "Configure the compression level for data sent to the Trace Observer\nMay be one of " \
-                          "[none|low|medium|high]\nBy default, compression is not used (level = none)"
+          "[none|low|medium|high]\n'high' is the default. Set the level to 'none' to disable compression"
         },
         :js_agent_file => {
           :default => '',

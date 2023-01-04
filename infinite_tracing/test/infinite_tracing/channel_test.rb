@@ -56,39 +56,42 @@ module NewRelic
           Config.unstub(:test_framework?)
         end
 
-        def test_compression_enabled_returns_true
-          with_config(remote_config.merge('infinite_tracing.compression_level': :high)) do
-            assert_predicate Channel.new, :compression_enabled?
-          end
-        end
-
-        def test_compression_enabled_returns_false
-          with_config(remote_config.merge('infinite_tracing.compression_level': :none)) do
-            refute Channel.new.compression_enabled?
-          end
-        end
-
-        def test_invalid_compression_level
-          channel = Channel.new
-
-          refute channel.valid_compression_level?(:bogus)
-        end
-
         def test_channel_args_are_empty_if_compression_is_disabled
+          reset_compression_level
+
           with_config(remote_config.merge('infinite_tracing.compression_level': :none)) do
-            assert_equal Channel.new.channel_args, NewRelic::EMPTY_HASH
+            assert_equal NewRelic::EMPTY_HASH, Channel.new.channel_args
           end
         end
 
         def test_channel_args_includes_compression_settings_if_compression_is_enabled
+          reset_compression_level
+
           level = :low
           expected_result = {'grpc.default_compression_level' => 1,
                              'grpc.default_compression_algorithm' => 2,
                              'grpc.compression_enabled_algorithms_bitset' => 7}
 
           with_config(remote_config.merge('infinite_tracing.compression_level': level)) do
-            assert_equal Channel.new.channel_args, expected_result
+            assert_equal expected_result, Channel.new.channel_args
           end
+        end
+
+        def test_settings_apply_minimal_stack_when_compression_is_disabled
+          reset_compression_level
+
+          with_config(remote_config.merge('infinite_tracing.compression_level': :none)) do
+            assert_equal Channel::SETTINGS_COMPRESSION_DISABLED, Channel.new.settings
+          end
+        end
+
+        def test_settings_do_not_apply_minimal_stack_when_compression_is_enabled
+          reset_compression_level
+          expected = Channel::SETTINGS_BASE.merge({'grpc.default_compression_level' => 3,
+                                                   'grpc.default_compression_algorithm' => 2,
+                                                   'grpc.compression_enabled_algorithms_bitset' => 7})
+
+          assert_equal expected, Channel.new.settings
         end
       end
     end

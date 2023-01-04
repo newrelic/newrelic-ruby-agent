@@ -67,6 +67,10 @@ module Multiverse
       opts.fetch(:file, nil)
     end
 
+    def infinite_tracing_suite?
+      suite == 'infinite_tracing'
+    end
+
     def clean_gemfiles(env_index)
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
       gemfiles.each do |f|
@@ -657,6 +661,7 @@ module Multiverse
         puts yellow("Executing #{file.inspect}") if verbose?
         next if exclude?(file)
 
+        ENV['FILTER_FILE'] = filter_file if filter_file && infinite_tracing_suite?
         require "./" + File.basename(file, ".rb")
       end
     end
@@ -672,7 +677,7 @@ module Multiverse
 
       # Important that we filter after removing before/after so they don't get
       # tromped for not matching our pattern!
-      files.select! { |file| file.include?(filter_file) } if filter_file
+      files.select! { |file| file.include?(filter_file) } if filter_file && !infinite_tracing_suite?
 
       # Just put before_suite.rb at the head of the list.
       # Will explicitly load after_suite.rb after the test run

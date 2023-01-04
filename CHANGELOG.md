@@ -14,6 +14,15 @@
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
   | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
 
+- **Infinite Tracing: Use batching and compression**
+
+  For [Infinite Tracing](https://docs.newrelic.com/docs/distributed-tracing/infinite-tracing/introduction-infinite-tracing/) which Ruby applications can leverage with the `newrelic-infinite_tracing` gem, payloads will now be batched and compressed to signficantly decrease the amount of outbound network traffic. [PR#1723](https://github.com/newrelic/newrelic-ruby-agent/pull/1723)
+
+  | Configuration name                | Default | Behavior                                                                                                                      |
+  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | `infinite_tracing.batching` | true    | If true (the default), data sent to the Trace Observer will be batched instead of each span being sent individually |
+  | `infinite_tracing.compression_level` | high    | Configure the compression level for data sent to the Trace Observer. May be one of [none|low|medium|high]. 'high' is the default. Set the level to 'none' to disable compression. |
+
 ## v8.14.0
 
 Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionality when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.

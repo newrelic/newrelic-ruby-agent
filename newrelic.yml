@@ -317,12 +317,12 @@ common: &default_settings
 
   # Configure the compression level for data sent to the Trace Observer
   # May be one of [none|low|medium|high]
-  # By default, compression is not used (level = none)
-  # infinite_tracing.compression_level: none
+  # 'high' is the default. Set the level to 'none' to disable compression
+  # infinite_tracing.compression_level: high
 
-  # If true, data sent to the Trace Observer will be batched instead of
-  # the default of each span being sent individually
-  # infinite_tracing.batching: false
+  # If true (the default), data sent to the Trace Observer will be batched
+  # instead of each span being sent individually
+  # infinite_tracing.batching: true
 
   # Controls auto-instrumentation of bunny at start up.
   # May be one of [auto|prepend|chain|disabled].
