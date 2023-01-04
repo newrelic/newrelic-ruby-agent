@@ -199,7 +199,8 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@v2.8.2
+        uses: nick-invision/retry@v1.0.0
+        # uses: nick-fields/retry@v2.8.2
         with:
           timeout_minutes: 60
           max_attempts: 1
