@@ -418,9 +418,9 @@ module NewRelic
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
                 segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
                 segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent)
-                NewRelic::Agent::Tracer.capture_segment_error(segment) do
-                  yield(*args)
-                end
+              end
+              NewRelic::Agent::Tracer.capture_segment_error(segment) do
+                yield(*args)
               end
             ensure
               ::NewRelic::Agent::Transaction::Segment.finish(segment)
