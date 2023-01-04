@@ -32,7 +32,6 @@ module NewRelic
       NewRelic::Agent::Tracer.thread_block_with_current_transaction(
         *args,
         segment_name: 'Ruby/TracedThread',
-        parent: NewRelic::Agent::Tracer.current_segment,
         &block
       )
     end
