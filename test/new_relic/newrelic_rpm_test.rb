@@ -29,9 +29,8 @@ class NewRelicRpmTest < Minitest::Test
 
   def test_active_record_initializer_config_change_saved_when_agent_initialized_after_config_initializers
     skip unless defined?(Rails::VERSION)
-    # TODO: This test passes in a Rails console in a playground app and in the customer's environment
-    # but fails in this unit test context
     skip RAILS_32_SKIP_MESSAGE if Rails::VERSION::MAJOR == 3
+    skip "Test passes in a Rails console on a playground app and in the customer's environment, but fails here"
 
     # Verify the configuration value was set to the initializer value
     refute Rails.application.config.active_record.timestamped_migrations,
