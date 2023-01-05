@@ -12,6 +12,10 @@ CONCURRENT_RUBY_VERSIONS = [
   ['1.1.5', 2.2]
 ]
 
-gemfile <<-RB
-  gem 'concurrent-ruby', '1.1.5'
-RB
+def gem_list(concurrent_version = nil)
+  <<-RB
+    gem 'concurrent-ruby'#{concurrent_ruby}
+  RB
+end
+
+create_gemfiles(CONCURRENT_RUBY_VERSIONS, gem_list)
