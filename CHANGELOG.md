@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## Upcoming Release
+## 8.15.0
 
 - **Add Support for Ruby 3.2.0**
 
@@ -8,7 +8,7 @@
 
 - **Add instrumentation for concurrent-ruby**
 
-  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent. for versions 1.1.5 and above. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682](https://github.com/newrelic/newrelic-ruby-agent/pull/1682)
+  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent for versions 1.1.5 and above. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682](https://github.com/newrelic/newrelic-ruby-agent/pull/1682)
 
   | Configuration name                | Default | Behavior                                                                                                                      |
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -16,7 +16,7 @@
 
 - **Infinite Tracing: Use batching and compression**
 
-  For [Infinite Tracing](https://docs.newrelic.com/docs/distributed-tracing/infinite-tracing/introduction-infinite-tracing/) which Ruby applications can leverage with the `newrelic-infinite_tracing` gem, payloads will now be batched and compressed to signficantly decrease the amount of outbound network traffic. [PR#1723](https://github.com/newrelic/newrelic-ruby-agent/pull/1723)
+  For [Infinite Tracing](https://docs.newrelic.com/docs/distributed-tracing/infinite-tracing/introduction-infinite-tracing/), which Ruby applications can leverage with the `newrelic-infinite_tracing` gem, payloads will now be batched and compressed to signficantly decrease the amount of outbound network traffic. [PR#1723](https://github.com/newrelic/newrelic-ruby-agent/pull/1723)
 
   | Configuration name                | Default | Behavior                                                                                                                      |
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
