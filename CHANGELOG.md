@@ -23,6 +23,10 @@
   | `infinite_tracing.batching` | true    | If true (the default), data sent to the Trace Observer will be batched instead of each span being sent individually |
   | `infinite_tracing.compression_level` | high    | Configure the compression level for data sent to the Trace Observer. May be one of [none|low|medium|high]. 'high' is the default. Set the level to 'none' to disable compression. |
 
+- **Add Support for Padrino 0.15.2 and Sinatra 3**
+
+  We've added testing to confirm Padrino 0.15.2 and Sinatra 3 are compatible with the Ruby agent. Thank you [@nesquena](https://github.com/nesquena) for letting us know 0.15.2 was ready! [PR#1712](https://github.com/newrelic/newrelic-ruby-agent/pull/1712)
+
 ## v8.14.0
 
 Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionality when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
