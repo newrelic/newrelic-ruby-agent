@@ -128,7 +128,7 @@ jobs:
         uses: ./.github/actions/annotate
 
 
-  jruby28:
+  jruby28NOENV:
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:
