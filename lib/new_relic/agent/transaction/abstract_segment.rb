@@ -111,8 +111,8 @@ module NewRelic
         end
 
         def merge_timings(timing1, timing2)
-          [(timing1.first < timing2.first ? timing1.first : timing2.first),
-            (timing1.last > timing2.last ? timing1.last : timing2.last)]
+          [([timing1.first, timing2.first].min),
+            ([timing1.last, timing2.last].max)]
         end
 
         # @children_timings is an array of array, with each inner array

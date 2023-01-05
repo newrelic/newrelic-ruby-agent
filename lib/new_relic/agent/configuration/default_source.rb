@@ -1569,6 +1569,14 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.concurrent_ruby' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.curb' => {
           :default => instrumentation_value_of(:disable_curb),
           :documentation_default => 'auto',
@@ -1801,6 +1809,13 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application."
+        },
+        :'thread_ids_enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "If enabled, will append the current Thread and Fiber object ids onto the segment names of segments created in Threads and concurrent-ruby"
         },
         :'instrumentation.tilt' => {
           :default => "auto",
@@ -2307,21 +2322,21 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         },
         :'infinite_tracing.batching' => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "If true, data sent to the Trace Observer will be batched instead of the default of each " \
+          :description => "If true (the default), data sent to the Trace Observer will be batched\ninstead of each " \
                           "span being sent individually"
         },
         :'infinite_tracing.compression_level' => {
-          :default => :none,
-          :public => false,
+          :default => :high,
+          :public => true,
           :type => Symbol,
           :allowed_from_server => false,
           :external => :infinite_tracing,
           :description => "Configure the compression level for data sent to the Trace Observer\nMay be one of " \
-                          "[none|low|medium|high]\nBy default, compression is not used (level = none)"
+          "[none|low|medium|high]\n'high' is the default. Set the level to 'none' to disable compression"
         },
         :js_agent_file => {
           :default => '',

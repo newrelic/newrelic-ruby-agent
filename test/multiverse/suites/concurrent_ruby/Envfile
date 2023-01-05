@@ -1,0 +1,21 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+# The 1.1.x series of Concurrent Ruby starts to use the error classes
+# we reference in our logic to notice errors after 1.1.5
+# 1.1.4 and below do not use these classes.
+CONCURRENT_RUBY_VERSIONS = [
+  [nil, 2.2],
+  ['1.1.5', 2.2]
+]
+
+def gem_list(concurrent_version = nil)
+  <<-RB
+    gem 'concurrent-ruby'#{concurrent_version}
+  RB
+end
+
+create_gemfiles(CONCURRENT_RUBY_VERSIONS, gem_list)

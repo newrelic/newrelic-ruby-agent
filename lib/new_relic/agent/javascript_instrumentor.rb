@@ -141,8 +141,8 @@ module NewRelic
         start_time_in_seconds = [transaction.start_time, 0.0].max
         app_time_in_seconds = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
 
-        queue_time_in_millis = (1000.0 * queue_time_in_seconds).round
-        app_time_in_millis = (1000.0 * app_time_in_seconds).round
+        queue_time_in_millis = (queue_time_in_seconds * 1000.0).round
+        app_time_in_millis = (app_time_in_seconds * 1000.0).round
 
         transaction_name = transaction.best_name || ::NewRelic::Agent::UNKNOWN_METRIC
 
