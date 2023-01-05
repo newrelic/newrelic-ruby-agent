@@ -341,7 +341,7 @@ jobs:
       - name: Run Multiverse Tests
         run: ./.github/workflows/scripts/retry_command
         env:
-          TEST_CMD: "jruby -v; bundle exec rake test:multiverse[net_http,verbose]"
+          TEST_CMD: "bundle exec rake test:multiverse[net_http,verbose]"
           RETRY_ATTEMPS: 2
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           SERIALIZE: 1
