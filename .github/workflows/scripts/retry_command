@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# RETRY_ATTEMPTS
+# TEST_CMD
+
+count=0
+return_val=1
+
+while [[ $return_val != 0  && $count -le $RETRY_ATTEMPTS ]]; do
+  $TEST_CMD
+  return_val=$?
+  count+=1
+done
+
+exit $return_val
