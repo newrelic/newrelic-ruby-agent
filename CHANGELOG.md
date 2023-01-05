@@ -6,6 +6,14 @@
 
   Following the 3.2.0 release of Ruby, the New Relic Ruby Agent has confirmed compatibility with and now supports the official release of Ruby 3.2.0. [PR#1715](https://github.com/newrelic/newrelic-ruby-agent/pull/1715)
 
+- **Add instrumentation for concurrent-ruby**
+
+  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent. for versions 1.1.5 and above. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682](https://github.com/newrelic/newrelic-ruby-agent/pull/1682)
+
+  | Configuration name                | Default | Behavior                                                                                                                      |
+  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+
 - **Infinite Tracing: Use batching and compression**
 
   For [Infinite Tracing](https://docs.newrelic.com/docs/distributed-tracing/infinite-tracing/introduction-infinite-tracing/) which Ruby applications can leverage with the `newrelic-infinite_tracing` gem, payloads will now be batched and compressed to signficantly decrease the amount of outbound network traffic. [PR#1723](https://github.com/newrelic/newrelic-ruby-agent/pull/1723)
