@@ -14,7 +14,7 @@ CONCURRENT_RUBY_VERSIONS = [
 
 def gem_list(concurrent_version = nil)
   <<-RB
-    gem 'concurrent-ruby'#{concurrent_ruby}
+    gem 'concurrent-ruby'#{concurrent_version}
   RB
 end
 
