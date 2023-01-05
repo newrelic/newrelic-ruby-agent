@@ -7,6 +7,9 @@ module NewRelic::Agent
     module Config
       extend self
 
+      COMPRESSION_LEVEL_DISABLED = :none
+      COMPRESSION_LEVEL_DEFAULT = :high
+      COMPRESSION_LEVEL_LIST = %i[none low medium high].freeze
       TRACE_OBSERVER_NOT_CONFIGURED_ERROR = "Trace Observer host not configured!"
 
       # We only want to load the infinite tracing gem's files when
@@ -108,6 +111,29 @@ module NewRelic::Agent
       # Infinite Tracing is configured when a non empty string is set as the host
       def trace_observer_configured?
         trace_observer_host != NewRelic::EMPTY_STR
+      end
+
+      def compression_enabled?
+        compression_level != COMPRESSION_LEVEL_DISABLED
+      end
+
+      def compression_level
+        @compression_level ||= begin
+          level = if COMPRESSION_LEVEL_LIST.include?(configured_compression_level)
+            configured_compression_level
+          else
+            NewRelic::Agent.logger.error("Invalid compression level '#{configured_compression_level}' specified! " \
+                                         "Must be one of #{COMPRESSION_LEVEL_LIST.join('|')}. Using default level " \
+                                         "of '#{COMPRESSION_LEVEL_DEFAULT}'")
+            COMPRESSION_LEVEL_DEFAULT
+          end
+          NewRelic::Agent.logger.debug("Infinite Tracer compression level set to #{level}")
+          level
+        end
+      end
+
+      def configured_compression_level
+        NewRelic::Agent.config[:'infinite_tracing.compression_level']
       end
     end
   end

@@ -11,7 +11,10 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   class InfiniteTracingTest < Minitest::Test
     def self.load_test_files(pattern)
-      Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each { |fn| require fn }
+      Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each do |fn|
+        # see multiverse/suite.rb for the setting of FILTER_FILE
+        require fn if fn.match?(ENV.fetch('FILTER_FILE', '.'))
+      end
     end
 
     load_test_files '*_test.rb'

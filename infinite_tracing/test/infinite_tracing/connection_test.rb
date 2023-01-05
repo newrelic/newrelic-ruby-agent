@@ -207,6 +207,42 @@ module NewRelic
           assert_equal 300, next_retry_period
         end
 
+        def test_gzip_related_parameters_exist_in_metadata_when_compression_is_enabled
+          reset_compression_level
+
+          with_serial_lock do
+            with_config(localhost_config) do
+              connection = Connection.instance # instantiate before simulation
+              simulate_connect_to_collector(fiddlesticks_config, 0.01) do |simulator|
+                simulator.join # ensure our simulation happens!
+                metadata = connection.send(:metadata)
+
+                NewRelic::Agent::InfiniteTracing::Connection::GZIP_METADATA.each do |key, value|
+                  assert_equal value, metadata[key]
+                end
+              end
+            end
+          end
+        end
+
+        def test_gzip_related_parameters_are_absent_when_compression_is_disabled
+          reset_compression_level
+
+          with_serial_lock do
+            with_config(localhost_config.merge({'infinite_tracing.compression_level': :none})) do
+              connection = Connection.instance # instantiate before simulation
+              simulate_connect_to_collector(fiddlesticks_config, 0.01) do |simulator|
+                simulator.join # ensure our simulation happens!
+                metadata = connection.send(:metadata)
+
+                NewRelic::Agent::InfiniteTracing::Connection::GZIP_METADATA.each do |key, _value|
+                  refute metadata.key?(key)
+                end
+              end
+            end
+          end
+        end
+
         private
 
         def next_retry_period

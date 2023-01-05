@@ -33,10 +33,14 @@ function update_to_desired_rubygems_version {
     gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
+  elif [[ $RUBY_VERSION =~ 2.[^7] ]]; then
+    echo "DEBUG: running 'gem update --system 3.0.6 --force'"
+    gem update --system 3.0.6 --force >/dev/null
   else
-    echo "DEBUG: running 'gem update --system --force'"
-    gem update --system 3.0.6 --force
+    echo "DEBUG: running 'gem update --system 3.4.1 --force'"
+    gem update --system 3.4.1 --force >/dev/null
   fi
+  echo "DEBUG: Rubygems version installed: $(gem --version)"
 }
 
 function install_desired_bundler_version {
@@ -99,11 +103,6 @@ function install_ruby_version_specific_gems {
 function set_up_bundler {
   if using_jruby; then
     echo "DEBUG: Skipping Bundler setup, as JRuby is in use"
-    return
-  fi
-
-  if ! using_old_rails && ! using_old_ruby; then
-    echo "DEBUG: Skipping Bundler setup, as neither an old Rails or Ruby version is in use"
     return
   fi
 

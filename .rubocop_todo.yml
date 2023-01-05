@@ -45,6 +45,9 @@ Minitest/RefutePredicate:
 Minitest/TestMethodName:
   Enabled: false
 
+Style/ConcatArrayLiterals:
+  Enabled: false
+
 Minitest/RefuteRespondTo:
   Exclude:
     - 'test/new_relic/cli/commands/deployments_test.rb'
