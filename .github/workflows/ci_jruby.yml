@@ -147,7 +147,7 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Run Multiverse Tests
-        run: sudo ./.github/workflows/scripts/retry_command 
+        run: ./.github/workflows/scripts/retry_command 
         env: 
           TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]"
           RETRY_ATTEMPS: 2
