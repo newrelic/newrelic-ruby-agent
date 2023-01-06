@@ -86,74 +86,82 @@ module NewRelic
         end
 
         def test_sending_spans_to_server
-          with_serial_lock do
-            total_spans = 5
-            spans, segments = emulate_streaming_segments(total_spans)
+          with_config('infinite_tracing.batching': false) do
+            with_serial_lock do
+              total_spans = 5
+              spans, segments = emulate_streaming_segments(total_spans)
 
-            assert_equal total_spans, segments.size
-            assert_equal total_spans, spans.size
+              assert_equal total_spans, segments.size
+              assert_equal total_spans, spans.size
+            end
           end
         end
 
         def test_handling_unimplemented_server_response
-          with_serial_lock do
-            total_spans = 5
-            active_client = nil
+          with_config('infinite_tracing.batching': false) do
+            with_serial_lock do
+              total_spans = 5
+              active_client = nil
 
-            spans, segments, active_client = emulate_streaming_to_unimplemented(total_spans)
+              spans, segments, active_client = emulate_streaming_to_unimplemented(total_spans)
 
-            assert_kind_of SuspendedStreamingBuffer, active_client.buffer
-            assert_predicate active_client, :suspended?, "expected client to be suspended."
+              assert_kind_of SuspendedStreamingBuffer, active_client.buffer
+              assert_predicate active_client, :suspended?, "expected client to be suspended."
 
-            assert_equal total_spans, segments.size
-            assert_equal 0, spans.size
+              assert_equal total_spans, segments.size
+              assert_equal 0, spans.size
 
-            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
 
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
-            })
+              assert_metrics_recorded({
+                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+                "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+              })
+            end
           end
         end
 
         def test_handling_failed_precondition_server_response
-          with_serial_lock do
-            total_spans = 5
-            active_client = nil
+          with_config('infinite_tracing.batching': false) do
+            with_serial_lock do
+              total_spans = 5
+              active_client = nil
 
-            spans, segments, active_client = emulate_streaming_to_failed_precondition(total_spans)
+              spans, segments, active_client = emulate_streaming_to_failed_precondition(total_spans)
 
-            refute_kind_of SuspendedStreamingBuffer, active_client.buffer
-            refute active_client.suspended?, "expected client to not be suspended."
+              refute_kind_of SuspendedStreamingBuffer, active_client.buffer
+              refute active_client.suspended?, "expected client to not be suspended."
 
-            assert_equal total_spans, segments.size
-            assert_equal 0, spans.size
+              assert_equal total_spans, segments.size
+              assert_equal 0, spans.size
 
-            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
 
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
-            })
+              assert_metrics_recorded({
+                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+                "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
+              })
+            end
           end
         end
 
         def test_handling_ok_and_close_server_response
-          with_detailed_trace do
-            total_spans = 5
-            expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
+          with_config('infinite_tracing.batching': false) do
+            with_detailed_trace do
+              total_spans = 5
+              expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
 
-            spans, segments = emulate_streaming_with_ok_close_response(total_spans)
+              spans, segments = emulate_streaming_with_ok_close_response(total_spans)
 
-            assert_equal total_spans, segments.size
-            assert_equal total_spans, spans.size, "spans got dropped/discarded?"
+              assert_equal total_spans, segments.size
+              assert_equal total_spans, spans.size, "spans got dropped/discarded?"
 
-            refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
 
-            assert_metrics_recorded("Supportability/InfiniteTracing/Span/Sent")
+              assert_metrics_recorded("Supportability/InfiniteTracing/Span/Sent")
+            end
           end
         end
 
