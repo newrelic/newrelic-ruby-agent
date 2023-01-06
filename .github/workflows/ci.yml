@@ -18,6 +18,7 @@ jobs:
 
 
   unit_tests:
+    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       mysql:
@@ -102,6 +103,7 @@ jobs:
 
 
   multiverse:
+    needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:
@@ -254,6 +256,7 @@ jobs:
 
 
   infinite_tracing:
+    needs: run_rubocop
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
