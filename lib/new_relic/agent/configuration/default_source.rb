@@ -384,7 +384,7 @@ instrumentation for. For example,
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Your New Relic API key. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
+          :description => 'Your New Relic [user key](/docs/apis/intro-apis/new-relic-api-keys/#overview-keys). Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
@@ -1452,7 +1452,7 @@ A map of error classes to a list of messages. When an error of one of the classe
 If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
     <Callout variant="important">
-      Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+      Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
       To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
@@ -1868,7 +1868,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         # Rails
         :'defer_rails_initialization' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'This configuration option is currently unreachable. Please do not use. ' \
@@ -1912,7 +1912,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Array,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. See documentation on (ignoring specific transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] for more details.'
+          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
         },
         # Sidekiq
         :'sidekiq.capture_params' => {
