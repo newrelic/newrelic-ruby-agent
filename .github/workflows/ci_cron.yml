@@ -299,7 +299,7 @@ jobs:
 
   notify_slack_fail:
     name: Notify slack fail
-    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+    needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
     if: always()
     steps:
@@ -316,7 +316,7 @@ jobs:
 
   notify_slack_success:
     name: Notify slack success
-    needs: [unit_tests, multiverse, infinite_tracing, jruby_multiverse]
+    needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
     if: always()
     steps:
