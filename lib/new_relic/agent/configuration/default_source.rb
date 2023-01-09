@@ -364,8 +364,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
-An array of ActiveSupport custom events names to subscribe to and provide
-instrumentation for. For example,
+An array of ActiveSupport custom event names to subscribe to instrument. For example,
   - my.custom.event
   - another.event
   - a.third.event
@@ -1537,9 +1536,9 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the hostname for the Trace Observer Host. " \
+          :description => "Configures the hostname for the trace observer Host. " \
             "When configured, enables tail-based sampling by sending all recorded spans " \
-            "to a Trace Observer for further sampling decisions, irrespective of any usual " \
+            "to a trace observer for further sampling decisions, irrespective of any usual " \
             "agent sampling decision."
         },
         :'infinite_tracing.trace_observer.port' => {
@@ -1548,7 +1547,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the TCP/IP port for the Trace Observer Host"
+          :description => "Configures the TCP/IP port for the trace observer Host"
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
@@ -2336,7 +2335,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "If true (the default), data sent to the Trace Observer will be batched\ninstead of each " \
+          :description => "If true (the default), data sent to the trace observer will be batched\ninstead of each " \
                           "span being sent individually"
         },
         :'infinite_tracing.compression_level' => {
@@ -2345,7 +2344,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Symbol,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configure the compression level for data sent to the Trace Observer\nMay be one of " \
+          :description => "Configure the compression level for data sent to the trace observer\nMay be one of " \
           "[none|low|medium|high]\n'high' is the default. Set the level to 'none' to disable compression"
         },
         :js_agent_file => {
