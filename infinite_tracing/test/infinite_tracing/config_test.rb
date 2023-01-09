@@ -108,6 +108,36 @@ module NewRelic
           assert_match(/not configured/, error.message)
         end
 
+        def test_compression_enabled_returns_true
+          reset_compression_level
+
+          with_config({'infinite_tracing.compression_level': :high}) do
+            assert_predicate Config, :compression_enabled?
+          end
+        end
+
+        def test_compression_enabled_returns_false
+          reset_compression_level
+
+          with_config({'infinite_tracing.compression_level': :none}) do
+            refute Config.compression_enabled?
+          end
+        end
+
+        def test_invalid_compression_level
+          reset_compression_level
+          logger = MiniTest::Mock.new
+          logger.expect :error, nil, [/Invalid compression level/]
+          logger.expect :debug, nil, [/compression level set to/]
+
+          with_config({'infinite_tracing.compression_level': :bogus}) do
+            NewRelic::Agent.stub :logger, logger do
+              assert_equal Config::COMPRESSION_LEVEL_DEFAULT, Config.compression_level
+              logger.verify
+            end
+          end
+        end
+
         private
 
         def non_test_files

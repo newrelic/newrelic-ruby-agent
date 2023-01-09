@@ -13,6 +13,13 @@ class AgentModuleTest < Performance::TestCase
     end
   end
 
+  def test_increment_metric
+    measure do
+      NewRelic::Agent.record_metric_once(METRIC)
+      NewRelic::Agent.record_metric_once(METRIC)
+    end
+  end
+
   def test_increment_metric_by_more_than_1
     measure do
       NewRelic::Agent.increment_metric(METRIC, 2)

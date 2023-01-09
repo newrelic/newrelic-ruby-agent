@@ -1,5 +1,34 @@
 # New Relic Ruby Agent Release Notes
 
+## 8.15.0
+
+Version 8.15.0 of the agent confirms compatibility with Ruby 3.2.0, adds instrumentation for concurrent-ruby, and confirms Sinatra 3 compatibility with Padrino 0.15.2. It also enables batching and compression for Infinite Tracing.
+
+- **Add Support for Ruby 3.2.0**
+
+  Following the 3.2.0 release of Ruby, the New Relic Ruby Agent has confirmed compatibility with and now supports the official release of Ruby 3.2.0. [PR#1715](https://github.com/newrelic/newrelic-ruby-agent/pull/1715)
+
+- **Add instrumentation for concurrent-ruby**
+
+  Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent for versions 1.1.5 and above. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682](https://github.com/newrelic/newrelic-ruby-agent/pull/1682)
+
+  | Configuration name                | Default | Behavior                                                                                                                      |
+  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+
+- **Infinite Tracing: Use batching and compression**
+
+  For [Infinite Tracing](https://docs.newrelic.com/docs/distributed-tracing/infinite-tracing/introduction-infinite-tracing/), which Ruby applications can leverage with the `newrelic-infinite_tracing` gem, payloads will now be batched and compressed to signficantly decrease the amount of outbound network traffic. [PR#1723](https://github.com/newrelic/newrelic-ruby-agent/pull/1723)
+
+  | Configuration name                | Default | Behavior                                                                                                                      |
+  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | `infinite_tracing.batching` | true    | If true (the default), data sent to the Trace Observer will be batched instead of each span being sent individually |
+  | `infinite_tracing.compression_level` | high    | Configure the compression level for data sent to the Trace Observer. May be one of [none|low|medium|high]. 'high' is the default. Set the level to 'none' to disable compression. |
+
+- **Add Support for Padrino 0.15.2 and Sinatra 3**
+
+  We've added testing to confirm Padrino 0.15.2 and Sinatra 3 are compatible with the Ruby agent. Thank you [@nesquena](https://github.com/nesquena) for letting us know 0.15.2 was ready! [PR#1712](https://github.com/newrelic/newrelic-ruby-agent/pull/1712)
+
 ## v8.14.0
 
 Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup functionality when a deployment is performed, speeds up GUID generation, delivers support for instrumenting Rails custom event notifications, fixes potential compatibility issues with the RedisClient gem, and fixes bugs related to initialization in Rails.
@@ -10,7 +39,7 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
 - **Speed up GUID generation**
 
-  The agent leverages random numbers in its GUID (globally unique identifier) generation and would previously always freshly calculate the result of 16^16 or 32^32 before generating a random number. Given that those 16^16 and 32^32 operations are expected, it makes sense to calculate their results up front and store them in constants to be referred to later. Doing so has resulted in a performance gain for the generation of GUIDs. Many thanks to [@tungmq](https://github.com/tungmq) for contributing this optimisation and the benchmarks to support it! [PR#1693[(https://github.com/newrelic/newrelic-ruby-agent/pull/1693)
+  The agent leverages random numbers in its GUID (globally unique identifier) generation and would previously always freshly calculate the result of 16^16 or 32^32 before generating a random number. Given that those 16^16 and 32^32 operations are expected, it makes sense to calculate their results up front and store them in constants to be referred to later. Doing so has resulted in a performance gain for the generation of GUIDs. Many thanks to [@tungmq](https://github.com/tungmq) for contributing this optimisation and the benchmarks to support it! [PR#1693](https://github.com/newrelic/newrelic-ruby-agent/pull/1693)
 
 - **Support for Rails ActiveSupport::Notifications for custom events**
 
@@ -20,15 +49,17 @@ Version 8.14.0 of the agent restores desired Capistrano-based changelog lookup f
 
   With version 8.13.0 of the agent, support was added for the [redis-rb](https://github.com/redis/redis-rb) gem v5+ and the new [RedisClient](https://rubygems.org/gems/redis-client) gem. With versions of RedisClient older than v0.11, the agent could cause the monitored application to crash when attempting to determine the Redis database index. Version 8.14.0 adds two related improvements. Firstly, support for RedisClient versions older than v0.11 has been added to get at the database index value. Secondly, the agent will no longer crash or impact the monitored application in the event that the database index cannot be obtained. Thank you very much to our community members [@mbsmartee](https://github.com/mbsmartee) and [@patatepartie](https://github.com/patatepartie) for bringing this issue to our attention, for helping us determine how to best reproduce it, and for testing out the update. We appreciate your help! [Issue#1650](https://github.com/newrelic/newrelic-ruby-agent/issues/1650) [PR#1673](https://github.com/newrelic/newrelic-ruby-agent/pull/1673)
 
-- **Bugfix: Defer agent startup in Rails until after application-defined initializers have run**
+- ~~**Bugfix: Defer agent startup in Rails until after application-defined initializers have run**~~
 
-  In Rails, the agent previously loaded before any application-defined initializers. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before initializers ran, preventing any configuration values related to these libraries from being applied. This fix provides an option to split initialization into two parts: load `add_method_tracer` before application-defined initializers and start the agent after application-defined initializers. This may cause other initializers to behave differently.
+  ~~In Rails, the agent previously loaded before any application-defined initializers. This allowed initializers to reference the `add_method_tracer` API. However, this had the side-effect of forcing some framework libraries to load before initializers ran, preventing any configuration values related to these libraries from being applied. This fix provides an option to split initialization into two parts: load `add_method_tracer` before application-defined initializers and start the agent after application-defined initializers. This may cause other initializers to behave differently.~~
 
-  If you'd like to use this feature, set `defer_rails_initialization` to `true`. It is `false` by default, but may become `true` by default in a future release.
+  ~~If you'd like to use this feature, set `defer_rails_initialization` to `true`. It is `false` by default, but may become `true` by default in a future release.~~
 
-  Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation.
+  ~~Furthermore, our Action View instrumentation was missing an `ActiveSupport.on_load` block around the code that loads our instrumentation.~~
 
-  Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)
+  ~~Thank you [@jdelStrother](https://github.com/jdelStrother) for bringing this to our attention and collaborating with us on a fix. [PR#1658](https://github.com/newrelic/newrelic-ruby-agent/pull/1658)~~
+
+  Unfortunately, this bugfix is unreachable as written because the configuration value used to access the bugfix won't be applied until after initialization. Follow along for updates at [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662).
 
 ## v8.13.1
 
