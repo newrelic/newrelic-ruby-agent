@@ -364,7 +364,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
-An array of ActiveSupport custom event names to subscribe and instrument. For example,
+An array of ActiveSupport custom event names to subscribe to and instrument. For example,
   - my.custom.event
   - another.event
   - a.third.event
