@@ -364,7 +364,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
-An array of ActiveSupport custom event names to subscribe to instrument. For example,
+An array of ActiveSupport custom event names to subscribe and instrument. For example,
   - my.custom.event
   - another.event
   - a.third.event
@@ -1536,7 +1536,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the hostname for the trace observer Host. " \
+          :description => "Configures the hostname for the trace observer host. " \
             "When configured, enables tail-based sampling by sending all recorded spans " \
             "to a trace observer for further sampling decisions, irrespective of any usual " \
             "agent sampling decision."
@@ -1547,7 +1547,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the TCP/IP port for the trace observer Host"
+          :description => "Configures the TCP/IP port for the trace observer host"
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
