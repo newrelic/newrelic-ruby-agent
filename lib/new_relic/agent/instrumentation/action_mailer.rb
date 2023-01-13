@@ -1,0 +1,24 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+require 'new_relic/agent/instrumentation/action_mailer_subscriber'
+
+DependencyDetection.defer do
+  named :action_mailer
+
+  depends_on do
+    defined?(ActiveSupport) &&
+      defined?(ActionMailer) &&
+      !NewRelic::Agent::Instrumentation::ActionMailerSubscriber.subscribed?
+  end
+
+  executes do
+    NewRelic::Agent.logger.info('Installing ActionMailer instrumentation')
+  end
+
+  executes do
+    ActiveSupport::Notifications.subscribe(/^(?:deliver|process)\.action_mailer$/,
+      NewRelic::Agent::Instrumentation::ActionMailerSubscriber.new)
+  end
+end
