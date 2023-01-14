@@ -5,7 +5,8 @@
 require_relative '../../../test_helper'
 require 'new_relic/agent/instrumentation/action_mailer_subscriber'
 
-if defined?(ActionMailer)
+# tests perform ActionMailer::Base.new without arguments, supported with Rails v5+
+if defined?(ActionMailer) && ActionMailer.gem_version >= Gem::Version.new('5.0')
   require_relative 'rails/action_mailer_subscriber'
 else
   puts "Skipping tests in #{__FILE__} because ActionMailer is unavailable"
