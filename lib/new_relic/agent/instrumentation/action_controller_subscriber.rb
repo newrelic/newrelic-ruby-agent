@@ -9,6 +9,20 @@ require 'new_relic/agent/parameter_filtering'
 module NewRelic
   module Agent
     module Instrumentation
+      class ActionControllerSubscriberNested < NotificationsSubscriber
+        def start(name, id, payload)
+          if state.is_execution_traced? # && todo ignore stuff like other one or like, check if already ignored actually prbly dont need to do anything bc push trace flag false
+            finishable = NewRelic::Agent::Tracer.start_segment(name: "#{NewRelic::Agent::Tracer.current_segment.name}/#{name.gsub(/\.action_controller/, '')}")
+            push_segment(id, finishable)
+          end
+        end
+
+        def finish(name, id, payload)
+          finishable = pop_segment(id)
+          finishable.finish
+        end
+      end
+
       class ActionControllerSubscriber < NotificationsSubscriber
         def start(name, id, payload) # THREAD_LOCAL_ACCESS
           controller_class = controller_class(payload)

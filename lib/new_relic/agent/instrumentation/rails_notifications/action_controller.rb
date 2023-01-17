@@ -29,5 +29,14 @@ DependencyDetection.defer do
 
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
+
+    subs = %w[send_file
+      send_data
+      redirect_to
+      halted_callback
+      unpermitted_parameters]
+
+    NewRelic::Agent::Instrumentation::ActionControllerSubscriberNested \
+      .subscribe(Regexp.new("^(#{subs.join('|')}).action_controller$"))
   end
 end
