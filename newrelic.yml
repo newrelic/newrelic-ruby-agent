@@ -169,6 +169,9 @@ common: &default_settings
   # If true, disables Action Cable instrumentation.
   # disable_action_cable_instrumentation: false
 
+  # If true, disables ActionDispatch instrumentation
+  # disable_action_dispatch: false
+
   # If true, disables instrumentation for Active Record 4, 5, and 6.
   # disable_active_record_notifications: false
 

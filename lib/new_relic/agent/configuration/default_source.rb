@@ -1141,6 +1141,14 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
         },
+        :disable_action_dispatch => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables ActionDispatch instrumentation.'
+        },
         :disable_activejob => {
           :default => false,
           :public => true,
