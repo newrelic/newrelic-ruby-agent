@@ -16,6 +16,14 @@ jobs:
       - run: bundle
       - run: rubocop
 
+  vale:
+    name: vale linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: errata-ai/vale-action@reviewdog
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
   unit_tests:
     needs: run_rubocop
@@ -206,7 +214,7 @@ jobs:
         name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
-      - if: matrix.ruby-version == '2.2.10' 
+      - if: matrix.ruby-version == '2.2.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
