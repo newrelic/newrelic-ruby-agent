@@ -10,7 +10,7 @@ This upcoming release of the agent adds instrumentation for Active Support cachi
 
   | Configuration name | Default | Behavior |
   | ----- | ----- | ----- |
-  | `disable_active_support` | `false` | If `true`, disables ActiveSupport instrumentation. |
+  | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
 
 ## 8.15.0
 
