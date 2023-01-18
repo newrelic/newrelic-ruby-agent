@@ -1,5 +1,17 @@
 # New Relic Ruby Agent Release Notes
 
+## Upcoming Release
+
+This upcoming release of the agent adds instrumentation for Active Support caching operations.
+
+- **Add Active Support Instrumentation**
+
+  Active Support instruments caching-related operations. This change includes the instrumentation in the agent. A new segment is created when one of the operations is called. The key, store, and other attributes will be included on the segment as params. [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
+
+  | Configuration name | Default | Behavior |
+  | ----- | ----- | ----- |
+  | `disable_active_support` | `false` | If `true`, disables ActiveSupport instrumentation. |
+
 ## 8.15.0
 
 Version 8.15.0 of the agent confirms compatibility with Ruby 3.2.0, adds instrumentation for concurrent-ruby, and confirms Sinatra 3 compatibility with Padrino 0.15.2. It also enables batching and compression for Infinite Tracing.

@@ -175,6 +175,9 @@ common: &default_settings
   # If true, disables Active Storage instrumentation.
   # disable_active_storage: false
 
+  # If true, disables Active Support instrumentation.
+  # disable_active_support: false
+
   # If true, disables Active Job instrumentation.
   # disable_activejob: false
 

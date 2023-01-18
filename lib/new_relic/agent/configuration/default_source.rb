@@ -1157,6 +1157,14 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :description => 'If `true`, disables ActiveStorage instrumentation.'
         },
+        :disable_active_support => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables ActiveSupport instrumentation.'
+        },
         :disable_activerecord_instrumentation => {
           :default => value_of(:skip_ar_instrumentation),
           :documentation_default => false,
