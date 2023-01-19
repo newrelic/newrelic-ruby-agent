@@ -200,6 +200,10 @@ module NewRelic
         end
 
         def test_an_actual_active_storage_cache_write
+          unless defined?(ActiveSupport::VERSION::MAJOR) && ActiveSupport::VERSION::MAJOR >= 5
+            skip 'Test restricted to Active Support v5+'
+          end
+
           in_transaction do |txn|
             store = ActiveSupport::Cache::MemoryStore
             key = 'city'
