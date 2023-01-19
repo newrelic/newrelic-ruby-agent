@@ -199,6 +199,20 @@ module NewRelic
           logger.verify
         end
 
+        def test_an_actual_active_storage_cache_write
+          in_transaction do |txn|
+            store = ActiveSupport::Cache::MemoryStore
+            key = 'city'
+            store.new.write(key, 'Walla Walla')
+            segment = txn.segments.last
+
+            assert_equal 2, txn.segments.size
+            assert_equal segment.name, "Ruby/ActiveSupport/#{store}/write"
+            assert_equal key, segment.params[:key]
+            assert_equal store.to_s, segment.params[:store]
+          end
+        end
+
         private
 
         def generate_event(event_name, attributes = {})
