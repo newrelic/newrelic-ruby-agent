@@ -20,7 +20,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    ActiveSupport::Notifications.subscribe(/^(?:deliver|process)\.action_mailer$/,
+    ActiveSupport::Notifications.subscribe(/\A(?:[^\.]+)\.action_mailer\z/,
       NewRelic::Agent::Instrumentation::ActionMailerSubscriber.new)
+
+    # ActiveSupport::Notifications.subscribe(/\A(?:[^\.]+)\.action_mailer\z/) do |name, start, finish, id, payload|
+    # end
   end
 end

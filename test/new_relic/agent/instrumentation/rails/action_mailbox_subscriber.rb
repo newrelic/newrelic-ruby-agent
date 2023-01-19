@@ -7,7 +7,7 @@ require 'new_relic/agent/instrumentation/action_mailer_subscriber'
 
 module NewRelic::Agent::Instrumentation
   class TestMailbox < ActionMailbox::Base
-    def proccess; end
+    def process; end
   end
 
   class InboundEmail
@@ -19,8 +19,8 @@ module NewRelic::Agent::Instrumentation
   end
 
   class ActionMailboxSubscriberTest < Minitest::Test
-    SERVICE = 'The Big Sleep'
-    NAME = "service_#{SERVICE}.action_mailbox"
+    ACTION = 'process'
+    NAME = "#{ACTION}.action_mailbox"
     ID = 1946
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActionMailboxSubscriber.new
     MAILBOX = TestMailbox.new(InboundEmail.new)
@@ -28,11 +28,11 @@ module NewRelic::Agent::Instrumentation
     def test_start
       in_transaction do |txn|
         time = Time.now.to_f
-        SUBSCRIBER.start(NAME, ID, {service: SERVICE})
+        SUBSCRIBER.start(NAME, ID, {mailbox: MAILBOX})
         segment = txn.segments.last
 
         assert_in_delta time, segment.start_time
-        assert_equal "Ruby/ActionMailbox/#{SERVICE}Service/#{SERVICE}", segment.name
+        assert_equal "Ruby/ActionMailbox/#{MAILBOX.class.name}/#{ACTION}", segment.name
       end
     end
 

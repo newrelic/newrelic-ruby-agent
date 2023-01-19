@@ -6,22 +6,44 @@ require_relative '../../../../test_helper'
 require 'new_relic/agent/instrumentation/action_mailer_subscriber'
 
 module NewRelic::Agent::Instrumentation
-  class TestMailer < ActionMailer::Base; end
+  class TestMailer < ActionMailer::Base
+    default to: 'karras@mechanists.com',
+      from: 'garret@thecity.org',
+      reply_to: 'viktoria@constantine.net'
+
+    def test_action; end
+
+    def welcome
+      headers['X-SPAM'] = 'Not SPAM'
+      mail({subject: "Findings from Truart's estate",
+            body: '<html><body>Regarding the mechanical servants...</body></html>'})
+    end
+  end
+
   class ActionMailerSubscriberTest < Minitest::Test
-    SERVICE = 'Dark Passage'
-    NAME = "service_#{SERVICE}.action_mailer"
+    ACTION = 'deliver'
+    NAME = "#{ACTION}.action_mailer"
     ID = 1947
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActionMailerSubscriber.new
     MAILER = TestMailer.new
 
+    def setup
+      @delivery_method = ActionMailer::Base.delivery_method
+      ActionMailer::Base.delivery_method = :test
+    end
+
+    def teardown
+      ActionMailer::Base.delivery_method = @delivery_method
+    end
+
     def test_start
       in_transaction do |txn|
         time = Time.now.to_f
-        SUBSCRIBER.start(NAME, ID, {service: SERVICE})
+        SUBSCRIBER.start(NAME, ID, {mailer: MAILER.class.name})
         segment = txn.segments.last
 
         assert_in_delta time, segment.start_time
-        assert_equal "Ruby/ActionMailer/#{SERVICE}Service/#{SERVICE}", segment.name
+        assert_equal "Ruby/ActionMailer/#{MAILER.class.name}/#{ACTION}", segment.name
       end
     end
 
@@ -99,15 +121,25 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
-    def test_an_actual_mail_delivery
+    def test_an_actual_mailer_process_call
       in_transaction do |txn|
-        message = MAILER.mail(to: 'nowhere', subject: 'nothin') { |m| m.text { 'test' } }
-        message.perform_deliveries = false
-        message.deliver
+        MAILER.process(:test_action)
 
         assert_equal 2, txn.segments.size
-        assert_match %r{^Ruby/ActionMailer}, txn.segments.last.name
+        assert_equal "Ruby/ActionMailer/#{TestMailer.name}/process", txn.segments.last.name
+        assert_equal :test_action, txn.segments.last.params[:action]
       end
     end
+
+    # TODO: test flakes on mail() processing attachments when there aren't any
+    # def test_an_actual_mail_delivery
+    #   in_transaction do |txn|
+    #     MAILER.welcome.deliver
+
+    #     assert_equal 2, txn.segments.size
+    #     assert_match %r{^Ruby/ActionMailer/.*/deliver$}, txn.segments.last.name
+    #     # assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", txn.segments.last.name
+    #   end
+    # end
   end
 end

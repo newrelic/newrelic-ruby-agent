@@ -41,12 +41,12 @@ module NewRelic
         end
 
         def metric_name(name, payload)
-          service = payload[:service]
+          mailbox = payload[:mailbox].class.name
           method = method_from_name(name)
-          "Ruby/ActionMailbox/#{service}Service/#{method}"
+          "Ruby/ActionMailbox/#{mailbox}/#{method}"
         end
 
-        PATTERN = /\Aservice_([^\.]*)\.action_mailbox\z/
+        PATTERN = /\A([^\.]*)\.action_mailbox\z/
         UNKNOWN = "unknown".freeze
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|

@@ -1145,7 +1145,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If `true`, disables ActionMailbox instrumentation.'
         },
@@ -1153,7 +1152,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If `true`, disables ActionMailer instrumentation.'
         },

@@ -8,6 +8,8 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionMailerSubscriber < NotificationsSubscriber
+        PAYLOAD_KEYS = %i[action data key mailer message_id perform_deliveries subject]
+
         def start(name, id, payload)
           return unless state.is_execution_traced?
 
@@ -26,8 +28,9 @@ module NewRelic
 
         def start_segment(name, id, payload)
           segment = Tracer.start_segment(name: metric_name(name, payload))
-          segment.params[:key] = payload[:key]
-          segment.params[:exist] = payload[:exist] if payload.key?(:exist)
+          PAYLOAD_KEYS.each do |key|
+            segment.params[key] = payload[key] if payload.key?(key)
+          end
           push_segment(id, segment)
         end
 
@@ -41,13 +44,13 @@ module NewRelic
         end
 
         def metric_name(name, payload)
-          service = payload[:service]
+          mailer = payload[:mailer]
           method = method_from_name(name)
-          "Ruby/ActionMailer/#{service}Service/#{method}"
+          "Ruby/ActionMailer/#{mailer}/#{method}"
         end
 
-        PATTERN = /\Aservice_([^\.]*)\.action_mailer\z/
-        UNKNOWN = "unknown".freeze
+        PATTERN = /\A([^\.]+)\.action_mailer\z/
+        UNKNOWN = 'unknown'.freeze
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|
           if PATTERN =~ k

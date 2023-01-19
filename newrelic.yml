@@ -169,10 +169,10 @@ common: &default_settings
   # If true, disables Action Cable instrumentation.
   # disable_action_cable_instrumentation: false
 
-  # If true, disables ActionMailbox instrumentation
+  # If true, disables ActionMailbox instrumentation.
   # disable_action_mailbox: false
 
-  # If true, disables ActionMailer instrumentation
+  # If true, disables ActionMailer instrumentation.
   # disable_action_mailer: false
 
   # If true, disables instrumentation for Active Record 4+
