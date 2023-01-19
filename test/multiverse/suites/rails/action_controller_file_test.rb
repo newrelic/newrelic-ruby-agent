@@ -18,13 +18,17 @@ if defined?(ActionController::Live)
     end
 
     # halted_callback
-    before_action :halter, only: :halt_my_callback
+    before_action :do_a_redirect, only: :halt_my_callback
+    def halt_my_callback; end
 
-    def halt_my_callback
+    # redirect_to
+    def do_a_redirect
+      redirect_to("http://foo.bar/")
     end
 
-    def halter
-      redirect_to("http://foo.bar/")
+    # unpermitted_parameters
+    def not_allowed
+      params.permit(:only_this)
     end
   end
 
@@ -38,27 +42,31 @@ if defined?(ActionController::Live)
     def test_send_file
       get('/data/send_test_file')
 
-      assert_metrics_recorded(['Controller/data/send_test_file', 'Controller/send_file'])
+      assert_metrics_recorded(['Controller/data/send_test_file', 'Ruby/ActionController/send_file'])
     end
 
     def test_send_data
       get('/data/send_test_data')
 
-      assert_metrics_recorded(['Controller/data/send_test_data', 'Controller/send_data'])
+      assert_metrics_recorded(['Controller/data/send_test_data', 'Ruby/ActionController/send_data'])
     end
 
     def test_halted_callback
       get('/data/halt_my_callback')
 
-      assert_metrics_recorded(['Controller/data/halt_my_callback', 'Controller/halted_callback'])
+      assert_metrics_recorded(['Controller/data/halt_my_callback', 'Ruby/ActionController/halted_callback'])
     end
 
-    # TODO: add ignore tests
-    # def test_redirect_to
-    #   get('/data/do_a_redirect')
-    #   assert_metrics_recorded(['Controller/data/do_a_redirect', 'Nested/Controller/data/do_a_redirect/redirect_to', "wow_here"])
-    # end
+    def test_redirect_to
+      get('/data/do_a_redirect')
 
-    # unpermitted_parameters
+      assert_metrics_recorded(['Controller/data/do_a_redirect', 'Ruby/ActionController/data/redirect_to'])
+    end
+
+    def test_unpermitted_parameters
+      get('/data/not_allowed', params: {this_is_a_param: 1})
+
+      assert_metrics_recorded(['Controller/data/not_allowed', 'Ruby/ActionController/data/unpermitted_parameters'])
+    end
   end
 end
