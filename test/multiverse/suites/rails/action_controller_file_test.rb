@@ -9,7 +9,7 @@ if defined?(ActionController::Live)
   class DataController < ApplicationController
     # send_file
     def send_test_file
-      send_file('/Users/tmcclure/projects/ruby-agent/THIRD_PARTY_NOTICES.md')
+      send_file(Rails.root + "../../../../README.md")
     end
 
     # send_data
@@ -38,19 +38,19 @@ if defined?(ActionController::Live)
     def test_send_file
       get('/data/send_test_file')
 
-      assert_metrics_recorded(['Controller/data/send_test_file', 'Nested/Controller/data/send_test_file/send_file'])
+      assert_metrics_recorded(['Controller/data/send_test_file', 'Controller/send_file'])
     end
 
     def test_send_data
       get('/data/send_test_data')
 
-      assert_metrics_recorded(['Controller/data/send_test_data', 'Nested/Controller/data/send_test_data/send_data'])
+      assert_metrics_recorded(['Controller/data/send_test_data', 'Controller/send_data'])
     end
 
     def test_halted_callback
       get('/data/halt_my_callback')
 
-      assert_metrics_recorded(['Controller/data/halt_my_callback', 'Nested/Controller/data/halt_my_callback/halted_callback'])
+      assert_metrics_recorded(['Controller/data/halt_my_callback', 'Controller/halted_callback'])
     end
 
     # TODO: add ignore tests
