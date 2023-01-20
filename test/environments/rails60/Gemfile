@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 
 gem 'rake', '~> 12.3.3'
 
-gem 'rails', '~> 6.0.0'
+gem 'rails', '~> 6.0.6'
 
 gem 'minitest', '5.2.3'
 gem 'minitest-stub-const', '~> 0.6'
@@ -19,7 +19,13 @@ end
 
 platforms :ruby, :rbx do
   gem "mysql2", '>= 0.5.4'
-  gem 'sqlite3', '~> 1.4'
+  if RUBY_VERSION < '2.6'
+    gem 'sqlite3', '~> 1.4.0'
+  elsif RUBY_VERSION < '2.7'
+    gem 'sqlite3', '~> 1.5.4'
+  else
+    gem 'sqlite3'
+  end
 end
 
 gem "newrelic_rpm", :path => "../../.."

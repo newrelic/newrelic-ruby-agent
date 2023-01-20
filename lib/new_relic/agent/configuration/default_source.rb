@@ -1137,7 +1137,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
         },
@@ -1153,17 +1152,22 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActiveJob instrumentation.'
+          :description => 'If `true`, disables Active Job instrumentation.'
         },
         :disable_active_storage => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActiveStorage instrumentation.'
+          :description => 'If `true`, disables Active Storage instrumentation.'
+        },
+        :disable_active_support => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Active Support instrumentation.'
         },
         :disable_activerecord_instrumentation => {
           :default => value_of(:skip_ar_instrumentation),
@@ -1171,7 +1175,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables active record instrumentation.'
+          :description => 'If `true`, disables Active Record instrumentation.'
         },
         :disable_active_record_notifications => {
           :default => false,
