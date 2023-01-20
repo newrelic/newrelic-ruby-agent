@@ -26,11 +26,6 @@ module NewRelic
 
         def start_segment(name, id, payload)
           segment = Tracer.start_segment(name: metric_name(name, payload))
-
-          # what's in payload?
-          binding.irb
-
-          segment.params[:middleware] = payload[:middleware]
           push_segment(id, segment)
         end
 
