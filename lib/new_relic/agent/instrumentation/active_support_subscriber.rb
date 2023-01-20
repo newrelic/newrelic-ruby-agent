@@ -51,7 +51,7 @@ module NewRelic
         def metric_name(name, payload)
           store = payload[:store]
           method = method_from_name(name)
-          "Ruby/ActiveSupport/#{store}/#{method}"
+          "Ruby/ActiveSupport#{"/#{store}" if store}/#{method}"
         end
 
         PATTERN = /\Acache_([^\.]*)\.active_support\z/
