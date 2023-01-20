@@ -77,24 +77,6 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
-    # def test_finish_with_exception_raised
-    #   logger = MiniTest::Mock.new
-
-    #   NewRelic::Agent.stub :logger, logger do
-    #     logger.expect :error, nil, [/Error during .* callback/]
-    #     logger.expect :log_exception, nil, [:error, ArgumentError]
-
-    #     in_transaction do |txn|
-    #       SUBSCRIBER.stub :pop_segment, -> { raise 'kaboom' } do
-    #         SUBSCRIBER.finish(NAME, ID, {})
-    #       end
-
-    #       assert_equal 1, txn.segments.size
-    #     end
-    #   end
-    #   logger.verify
-    # end
-
     def test_segment_naming_with_unknown_method
       assert_equal 'Ruby/ActionMailer/mailer/unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {mailer: 'mailer'})

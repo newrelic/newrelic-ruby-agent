@@ -26,8 +26,6 @@ module NewRelic
 
         def start_segment(name, id, payload)
           segment = Tracer.start_segment(name: metric_name(name, payload))
-          segment.params[:key] = payload[:key]
-          segment.params[:exist] = payload[:exist] if payload.key?(:exist)
           push_segment(id, segment)
         end
 

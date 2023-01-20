@@ -1189,7 +1189,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables instrumentation for ActiveRecord 4, 5, and 6.'
+          :description => 'If `true`, disables instrumentation for Active Record 4+'
         },
         :disable_bunny => {
           :default => false,

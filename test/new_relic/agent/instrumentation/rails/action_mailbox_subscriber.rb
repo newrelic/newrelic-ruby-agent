@@ -64,14 +64,6 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
-    def test_start_segment_without_a_payload_key_named_exist
-      in_transaction do |txn|
-        SUBSCRIBER.send(:start_segment, NAME, ID, {mailbox: MAILBOX})
-
-        assert_equal 2, txn.segments.size
-      end
-    end
-
     def test_segment_naming_with_unknown_method
       assert_equal "Ruby/ActionMailbox/#{MAILBOX.class.name}/unknown",
         SUBSCRIBER.send(:metric_name, 'indecipherable', {mailbox: MAILBOX})
