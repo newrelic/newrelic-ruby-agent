@@ -280,4 +280,10 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   def test_metric_path_index_html_erb
     assert_equal('model/index.html.erb', @subscriber.metric_path('render_template.action_view', 'model/index.html.erb'))
   end
+
+  def test_finish_segment_when_no_segment
+    @subscriber.stub :pop_segment, nil do
+      assert_nil @subscriber.send(:finish_segment, :id, {})
+    end
+  end
 end
