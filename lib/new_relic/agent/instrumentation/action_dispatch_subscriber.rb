@@ -26,8 +26,11 @@ module NewRelic
 
         def start_segment(name, id, payload)
           segment = Tracer.start_segment(name: metric_name(name, payload))
-          segment.params[:key] = payload[:key]
-          segment.params[:exist] = payload[:exist] if payload.key?(:exist)
+
+          # what's in payload?
+          binding.irb
+
+          segment.params[:middleware] = payload[:middleware]
           push_segment(id, segment)
         end
 
@@ -43,10 +46,10 @@ module NewRelic
         def metric_name(name, payload)
           middleware = payload[:middleware]
           method = method_from_name(name)
-          "Ruby/ActionDispatch/#{middleware}Middleware/#{method}"
+          "Ruby/ActionDispatch/#{middleware}/#{method}"
         end
 
-        PATTERN = /\Aprocess_middleware\.action_dispatch\z/
+        PATTERN = /\A([^\.]+)\.action_dispatch\z/
         UNKNOWN = 'unknown'.freeze
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|

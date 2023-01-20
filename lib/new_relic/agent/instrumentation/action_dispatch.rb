@@ -21,7 +21,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ActiveSupport::Notifications.subscribe(/^process_middleware\.action_dispatch$/,
+    ActiveSupport::Notifications.subscribe(/\A[^\.]+\.action_dispatch\z/,
       NewRelic::Agent::Instrumentation::ActionDispatchSubscriber.new)
   end
 end

@@ -6,16 +6,19 @@ require_relative '../../../../test_helper'
 require 'new_relic/agent/instrumentation/action_dispatch_subscriber'
 
 module NewRelic::Agent::Instrumentation
+  class TestMiddleware < ActionDispatch::MiddlewareStack::Middleware
+  end
+
   class ActionDispatchSubscriberTest < Minitest::Test
-    SERVICE = 'Emperor of the Night'
-    NAME = "service_#{SERVICE}.action_dispatch"
-    ID = 1987
+    NAME = 'process_middleware.action_dispatch'
+    ID = 1987 # 'Emperor of the Night'
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActionDispatchSubscriber.new
+    MIDDLEWARE = TestMiddleware.new
 
     def test_start
       in_transaction do |txn|
         time = Time.now.to_f
-        SUBSCRIBER.start(NAME, ID, {service: SERVICE})
+        SUBSCRIBER.start(NAME, ID, {middleware: MIDDLEWARE.class.name})
         segment = txn.segments.last
 
         assert_in_delta time, segment.start_time
