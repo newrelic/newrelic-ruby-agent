@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class NotificationsSubscriber
-        def initialize(*args)
+        def initialize
           @queue_key = ['NewRelic', self.class.name, object_id].join('-')
           define_exception_method
         end
