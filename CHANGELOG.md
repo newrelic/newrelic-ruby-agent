@@ -2,7 +2,7 @@
 
 ## Upcoming Release
 
-This upcoming release of the agent adds instrumentation for Active Support caching operations.
+This upcoming release of the agent adds instrumentation for Active Support caching operations and Action Dispatch middleware event notifications.
 
 - **Add Active Support Instrumentation**
 
@@ -11,6 +11,14 @@ This upcoming release of the agent adds instrumentation for Active Support cachi
   | Configuration name | Default | Behavior |
   | ----- | ----- | ----- |
   | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
+
+- **Add Action Dispatch Instrumentation**
+
+  Instrumentation is now automatically provided for all Action Dispatch middleware events that generate Active Support notifications. Whenever a middleware operation is performed a New Relic segment is created that contains timing information. [PR#1745](https://github.com/newrelic/newrelic-ruby-agent/pull/1745)
+
+  | Configuration name | Default | Behavior |
+  | ----- | ----- | ----- |
+  | `disable_action_dispatch` | `false` | If `true`, disables Action Dispatch instrumentation. |
 
 ## 8.15.0
 
