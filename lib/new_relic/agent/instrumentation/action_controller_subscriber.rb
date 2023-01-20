@@ -9,39 +9,6 @@ require 'new_relic/agent/parameter_filtering'
 module NewRelic
   module Agent
     module Instrumentation
-      class ActionControllerSubscriberNested < NotificationsSubscriber
-        def start_segment(name, id, payload)
-          segment = Tracer.start_segment(name: metric_name(name, payload))
-
-          add_segment_params(segment, payload, name)
-          push_segment(id, segment)
-        end
-
-        def add_segment_params(segment, payload, name)
-          segment.params[:filter] = payload[:filter] if payload[:filter]
-          segment.params[:keys] = payload[:keys] if payload[:keys]
-          segment.params[:original_path] = payload[:request].original_fullpath if payload[:request]
-
-          if payload[:context]
-            segment.params[:action] = payload[:context][:action]
-            segment.params[:controller] = payload[:context][:controller].to_s
-          end
-        end
-
-        def metric_name(name, payload)
-          controller_path = controller_name_for_metric(payload)
-          "Ruby/ActionController#{"/#{controller_path}" if controller_path}/#{name.gsub(/\.action_controller/, '')}"
-        end
-
-        def controller_name_for_metric(payload)
-          # redirect_to
-          return payload[:request].controller_class.controller_path if payload[:request] && payload[:request].controller_class
-
-          # unpermitted_parameters
-          ::NewRelic::LanguageSupport.constantize(payload[:context][:controller]).controller_path if payload[:context] && payload[:context][:controller]
-        end
-      end
-
       class ActionControllerSubscriber < NotificationsSubscriber
         def start(name, id, payload) # THREAD_LOCAL_ACCESS
           controller_class = controller_class(payload)

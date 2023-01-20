@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/action_controller_subscriber'
+require 'new_relic/agent/instrumentation/action_controller_other_subscriber'
 require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
@@ -36,7 +37,7 @@ DependencyDetection.defer do
       halted_callback
       unpermitted_parameters]
 
-    NewRelic::Agent::Instrumentation::ActionControllerSubscriberNested \
+    NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber \
       .subscribe(Regexp.new("^(#{subs.join('|')}).action_controller$"))
   end
 end
