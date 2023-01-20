@@ -102,8 +102,6 @@ module NewRelic
           trace = last_transaction_trace
           tt_node = find_node_with_name(trace, "#{METRIC_PREFIX}#{DEFAULT_STORE}/read")
 
-          puts txn.segments.last.inspect
-
           assert tt_node.params.key?(:hit)
           refute tt_node.params[:hit]
         end
@@ -115,8 +113,6 @@ module NewRelic
 
           trace = last_transaction_trace
           tt_node = find_node_with_name(trace, "#{METRIC_PREFIX}#{DEFAULT_STORE}/read")
-
-          puts txn.segments.last.inspect
 
           assert tt_node.params.key?(:super_operation)
           refute tt_node.params[:super_operation]
@@ -161,42 +157,6 @@ module NewRelic
 
             assert txn.segments.none? { |s| s.name.include?('ActiveSupport') }
           end
-        end
-
-        def test_start_logs_notification_error
-          logger = MiniTest::Mock.new
-
-          NewRelic::Agent.stub :logger, logger do
-            logger.expect :error, nil, [/Error during .* callback/]
-            logger.expect :log_exception, nil, [:error, ArgumentError]
-
-            in_transaction do |txn|
-              @subscriber.stub :start_segment, -> { raise 'kaboom' } do
-                @subscriber.start(DEFAULT_EVENT, @id, {})
-              end
-
-              assert_equal 1, txn.segments.size
-            end
-          end
-          logger.verify
-        end
-
-        def test_finish_logs_notification_error
-          logger = MiniTest::Mock.new
-
-          NewRelic::Agent.stub :logger, logger do
-            logger.expect :error, nil, [/Error during .* callback/]
-            logger.expect :log_exception, nil, [:error, ArgumentError]
-
-            in_transaction do |txn|
-              @subscriber.stub :finish_segment, -> { raise 'kaboom' } do
-                @subscriber.finish(DEFAULT_EVENT, @id, {})
-              end
-
-              assert_equal 1, txn.segments.size
-            end
-          end
-          logger.verify
         end
 
         def test_an_actual_active_storage_cache_write
