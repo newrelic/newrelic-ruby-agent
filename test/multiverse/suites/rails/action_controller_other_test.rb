@@ -57,27 +57,39 @@ if defined?(ActionController::Live)
       trace = last_transaction_trace
       tt_node = find_node_with_name(trace, 'Ruby/ActionController/halted_callback')
 
-      assert_equal(:do_a_redirect, tt_node.params[:filter])
+      assert_equal(:do_a_redirect.to_s, tt_node.params[:filter].to_s)
       assert_metrics_recorded(['Controller/data/halt_my_callback', 'Ruby/ActionController/halted_callback'])
     end
 
     def test_redirect_to
       get('/data/do_a_redirect')
 
-      trace = last_transaction_trace
-      tt_node = find_node_with_name(trace, 'Ruby/ActionController/data/redirect_to')
+      # payload does not include the request in rails < 6.1
+      rails61 = Rails.gem_version >= Gem::Version.new('6.1.0')
 
-      assert_equal('/data/do_a_redirect', tt_node.params[:original_path])
-      assert_metrics_recorded(['Controller/data/do_a_redirect', 'Ruby/ActionController/data/redirect_to'])
+      segment_name = if rails61
+        'Ruby/ActionController/data/redirect_to'
+      else
+        'Ruby/ActionController/redirect_to'
+      end
+
+      trace = last_transaction_trace
+      tt_node = find_node_with_name(trace, segment_name)
+
+      assert_equal('/data/do_a_redirect', tt_node.params[:original_path]) if rails61
+
+      assert_metrics_recorded(['Controller/data/do_a_redirect', segment_name])
     end
 
     def test_unpermitted_parameters
+      skip if Rails.gem_version < Gem::Version('6.0.0') # unpermitted parameters is only available in rails 6.0+
+
       get('/data/not_allowed', params: {this_is_a_param: 1})
 
       # in Rails < 7 the context key is not present in this payload, so it changes the params and name
       # because we're using context info to create the name
       rails7 = Rails.gem_version >= Gem::Version.new('7.0.0')
-      # binding.irb
+
       segment_name = if rails7
         'Ruby/ActionController/data/unpermitted_parameters'
       else
