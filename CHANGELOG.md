@@ -6,7 +6,7 @@ This upcoming release of the agent adds instrumentation for Active Support cachi
 
 - **Add Active Support Instrumentation**
 
-  Active Support instruments caching-related operations. This change includes the instrumentation in the agent. A new segment is created when one of the operations is called. The key, store, and other attributes will be included on the segment as params. [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
+  Instrumentation is now automatically provided for all [Active Support caching](https://guides.rubyonrails.org/caching_with_rails.html) operations. Whenever a caching operation is performed, a New Relic segment is created that contains timing information as well as parameters for the cache key, store, and other relevant data. [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
 
   | Configuration name | Default | Behavior |
   | ----- | ----- | ----- |
