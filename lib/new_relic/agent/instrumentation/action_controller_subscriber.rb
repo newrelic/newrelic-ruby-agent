@@ -37,7 +37,7 @@ module NewRelic
           # redirect_to
           return payload[:request].controller_class.controller_path if payload[:request] && payload[:request].controller_class
 
-          # unpermitted params
+          # unpermitted_parameters
           ::NewRelic::LanguageSupport.constantize(payload[:context][:controller]).controller_path if payload[:context] && payload[:context][:controller]
         end
       end

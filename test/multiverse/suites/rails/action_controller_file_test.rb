@@ -54,18 +54,32 @@ if defined?(ActionController::Live)
     def test_halted_callback
       get('/data/halt_my_callback')
 
+      trace = last_transaction_trace
+      tt_node = find_node_with_name(trace, 'Ruby/ActionController/halted_callback')
+
+      assert_equal(:do_a_redirect, tt_node.params[:filter])
       assert_metrics_recorded(['Controller/data/halt_my_callback', 'Ruby/ActionController/halted_callback'])
     end
 
     def test_redirect_to
       get('/data/do_a_redirect')
 
+      trace = last_transaction_trace
+      tt_node = find_node_with_name(trace, 'Ruby/ActionController/data/redirect_to')
+
+      assert_equal('/data/do_a_redirect', tt_node.params[:original_path])
       assert_metrics_recorded(['Controller/data/do_a_redirect', 'Ruby/ActionController/data/redirect_to'])
     end
 
     def test_unpermitted_parameters
       get('/data/not_allowed', params: {this_is_a_param: 1})
 
+      trace = last_transaction_trace
+      tt_node = find_node_with_name(trace, 'Ruby/ActionController/data/unpermitted_parameters')
+
+      assert_equal(['this_is_a_param'], tt_node.params[:keys])
+      assert_equal('not_allowed', tt_node.params[:action])
+      assert_equal('DataController', tt_node.params[:controller])
       assert_metrics_recorded(['Controller/data/not_allowed', 'Ruby/ActionController/data/unpermitted_parameters'])
     end
   end
