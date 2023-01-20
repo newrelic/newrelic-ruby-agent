@@ -286,4 +286,12 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       assert_nil @subscriber.send(:finish_segment, :id, {})
     end
   end
+
+  def test_metric_action_nil_name
+    assert_equal 'Unknown', @subscriber.metric_action(nil)
+  end
+
+  def test_metric_action_unknown_name
+    assert_equal 'Unknown', @subscriber.metric_action('cheez-it')
+  end
 end

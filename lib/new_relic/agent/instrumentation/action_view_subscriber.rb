@@ -66,6 +66,7 @@ module NewRelic
           when RENDER_PARTIAL_EVENT_NAME then 'Partial'
           when RENDER_COLLECTION_EVENT_NAME then 'Partial'
           when RENDER_LAYOUT_EVENT_NAME then 'Layout'
+          else 'Unknown'
           end
         end
 
