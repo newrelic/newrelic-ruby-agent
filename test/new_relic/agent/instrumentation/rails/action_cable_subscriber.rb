@@ -110,12 +110,37 @@ module NewRelic
           refute_metrics_recorded ['Ruby/ActionCable/TestChannel/transmit']
         end
 
+        def test_does_not_record_unscoped_metrics_nor_create_trace_for_broadcast_outside_of_active_txn
+          @subscriber.start('broadcast.action_cable', :id, payload_for_broadcast)
+          advance_process_time(1.0)
+          @subscriber.finish('broadcast.action_cable', :id, payload_for_broadcast)
+
+          sample = last_transaction_trace
+
+          assert_nil sample, "Did not expect a transaction to be created for broadcast"
+          refute_metrics_recorded ['Ruby/ActionCable/TestBroadcasting/broadcast']
+        end
+
+        def test_actual_call_to_broadcast_method_records_segment_in_txn
+          # write me!
+        end
+
+        private
+
         def payload_for_perform_action(action = 'test_action')
           {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action" => "#{action}"}}
         end
 
         def payload_for_transmit(data = {}, via = nil)
           {:channel_class => "TestChannel", :data => data, :via => via}
+        end
+
+        def payload_for_broadcast
+          {
+            broadcasting: 'TestBroadcasting',
+            message: {message: 'test_message'},
+            coder: 'idk-we-dont-save-this'
+          }
         end
       end
     end
