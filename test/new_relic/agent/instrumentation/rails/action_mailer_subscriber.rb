@@ -7,6 +7,8 @@ require 'new_relic/agent/instrumentation/action_mailer_subscriber'
 
 module NewRelic::Agent::Instrumentation
   class TestMailer < ActionMailer::Base
+    SUBJECT = "Findings from Truart's estate"
+
     default to: 'karras@mechanists.com',
       from: 'garret@thecity.org',
       reply_to: 'viktoria@constantine.net'
@@ -14,8 +16,8 @@ module NewRelic::Agent::Instrumentation
     def test_action; end
 
     def welcome
-      headers['X-SPAM'] = 'Not SPAM'
-      mail({subject: "Findings from Truart's estate",
+      sleep until @_message.attachments
+      mail({subject: SUBJECT,
             body: '<html><body>Regarding the mechanical servants...</body></html>'})
     end
   end
@@ -75,6 +77,29 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
+    # def test_finish_with_exception_raised
+    #   logger = MiniTest::Mock.new
+
+    #   NewRelic::Agent.stub :logger, logger do
+    #     logger.expect :error, nil, [/Error during .* callback/]
+    #     logger.expect :log_exception, nil, [:error, ArgumentError]
+
+    #     in_transaction do |txn|
+    #       SUBSCRIBER.stub :pop_segment, -> { raise 'kaboom' } do
+    #         SUBSCRIBER.finish(NAME, ID, {})
+    #       end
+
+    #       assert_equal 1, txn.segments.size
+    #     end
+    #   end
+    #   logger.verify
+    # end
+
+    def test_segment_naming_with_unknown_method
+      assert_equal 'Ruby/ActionMailer/mailer/unknown',
+        SUBSCRIBER.send(:metric_name, 'indecipherable', {mailer: 'mailer'})
+    end
+
     def test_finish
       in_transaction do |txn|
         started_segment = NewRelic::Agent::Tracer.start_transaction_or_segment(name: NAME, category: :testing)
@@ -93,9 +118,9 @@ module NewRelic::Agent::Instrumentation
       skip_unless_minitest5_or_above
 
       exception_object = StandardError.new
-      noticed = false
       segment = MiniTest::Mock.new
       segment.expect :notice_error, nil, [exception_object]
+      segment.expect :name, ''
       SUBSCRIBER.stub(:pop_segment, segment, [ID]) do
         SUBSCRIBER.finish(NAME, ID, {exception_object: exception_object})
       end
@@ -121,6 +146,21 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
+    def test_finish_when_not_tracing
+      state = MiniTest::Mock.new
+      state.expect :is_execution_traced?, false
+
+      SUBSCRIBER.stub :state, state do
+        assert_nil SUBSCRIBER.finish(NAME, ID, {})
+      end
+    end
+
+    def test_finish_segment_when_a_segment_does_not_exist
+      SUBSCRIBER.stub :pop_segment, nil, [ID] do
+        assert_nil SUBSCRIBER.send(:finish_segment, ID, {})
+      end
+    end
+
     def test_an_actual_mailer_process_call
       in_transaction do |txn|
         MAILER.process(:test_action)
@@ -131,15 +171,19 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    # TODO: test flakes on mail() processing attachments when there aren't any
-    # def test_an_actual_mail_delivery
-    #   in_transaction do |txn|
-    #     MAILER.welcome.deliver
+    def test_an_actual_mail_delivery
+      in_transaction do |txn|
+        MAILER.welcome.deliver
 
-    #     assert_equal 2, txn.segments.size
-    #     assert_match %r{^Ruby/ActionMailer/.*/deliver$}, txn.segments.last.name
-    #     # assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", txn.segments.last.name
-    #   end
-    # end
+        assert_equal 2, txn.segments.size
+        segment = txn.segments.last
+        params = segment.params
+
+        assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", segment.name
+        assert_equal MAILER.class.name, params[:mailer]
+        assert_equal MAILER.class::SUBJECT, params[:subject]
+        assert params[:perform_deliveries]
+      end
+    end
   end
 end

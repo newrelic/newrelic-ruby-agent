@@ -64,6 +64,19 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
+    def test_start_segment_without_a_payload_key_named_exist
+      in_transaction do |txn|
+        SUBSCRIBER.send(:start_segment, NAME, ID, {mailbox: MAILBOX})
+
+        assert_equal 2, txn.segments.size
+      end
+    end
+
+    def test_segment_naming_with_unknown_method
+      assert_equal "Ruby/ActionMailbox/#{MAILBOX.class.name}/unknown",
+        SUBSCRIBER.send(:metric_name, 'indecipherable', {mailbox: MAILBOX})
+    end
+
     def test_finish
       in_transaction do |txn|
         started_segment = NewRelic::Agent::Tracer.start_transaction_or_segment(name: NAME, category: :testing)
@@ -110,13 +123,28 @@ module NewRelic::Agent::Instrumentation
       logger.verify
     end
 
+    def test_finish_segment_when_a_segment_does_not_exist
+      SUBSCRIBER.stub :pop_segment, nil, [ID] do
+        assert_nil SUBSCRIBER.send(:finish_segment, ID, {})
+      end
+    end
+
+    def test_finish_when_not_tracing
+      state = MiniTest::Mock.new
+      state.expect :is_execution_traced?, false
+
+      SUBSCRIBER.stub :state, state do
+        assert_nil SUBSCRIBER.finish(NAME, ID, {})
+      end
+    end
+
     def test_an_actual_mailbox_processing
       in_transaction do |txn|
         mailbox = MAILBOX
         mailbox.perform_processing
 
         assert_equal 2, txn.segments.size
-        assert_match %r{^Ruby/ActionMailbox}, txn.segments.last.name
+        assert_equal "Ruby/ActionMailbox/#{MAILBOX.class.name}/process", txn.segments.last.name
       end
     end
   end
