@@ -1,5 +1,25 @@
 # New Relic Ruby Agent Release Notes
 
+## Upcoming Release
+
+This upcoming release of the agent adds instrumentation for Active Mailer and Action Mailbox.
+
+- **Add Action Mailer Support Instrumentation**
+
+  Instrumentation is now automatically provided for all Action Mailer events that generate Active Support notifications. When such an event takes place, a New Relic segment is created that contains timing information as well as any non personally identifying mail related parameters. [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
+
+  | Configuration name | Default | Behavior |
+  | ----- | ----- | ----- |
+  | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
+
+- **Add Action Mailbox Support Instrumentation**
+
+  Instrumentation is now automatically provided for all Action Mailbox events that generate Active Support notifications. When such an event takes place, a New Relic segment is created that contains timing information as well as any mailbox related parameters. NOTE: support for notification events requires Action Mailbox v7.1+. [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
+
+  | Configuration name | Default | Behavior |
+  | ----- | ----- | ----- |
+  | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
+
 ## 8.15.0
 
 Version 8.15.0 of the agent confirms compatibility with Ruby 3.2.0, adds instrumentation for concurrent-ruby, and confirms Sinatra 3 compatibility with Padrino 0.15.2. It also enables batching and compression for Infinite Tracing.

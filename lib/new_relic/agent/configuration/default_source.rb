@@ -1146,14 +1146,14 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActionMailbox instrumentation.'
+          :description => 'If `true`, disables Action Mailbox instrumentation.'
         },
         :disable_action_mailer => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActionMailer instrumentation.'
+          :description => 'If `true`, disables Action Mailer instrumentation.'
         },
         :disable_activejob => {
           :default => false,
