@@ -74,13 +74,25 @@ if defined?(ActionController::Live)
     def test_unpermitted_parameters
       get('/data/not_allowed', params: {this_is_a_param: 1})
 
+      # in Rails < 7 the context key is not present in this payload, so it changes the params and name
+      # because we're using context info to create the name
+      rails7 = Rails.gem_version >= Gem::Version.new('7.0.0')
+      # binding.irb
+      segment_name = if rails7
+        'Ruby/ActionController/data/unpermitted_parameters'
+      else
+        'Ruby/ActionController/unpermitted_parameters'
+      end
+
       trace = last_transaction_trace
-      tt_node = find_node_with_name(trace, 'Ruby/ActionController/data/unpermitted_parameters')
+      tt_node = find_node_with_name(trace, segment_name)
+      # binding.irb
 
       assert_equal(['this_is_a_param'], tt_node.params[:keys])
-      assert_equal('not_allowed', tt_node.params[:action])
-      assert_equal('DataController', tt_node.params[:controller])
-      assert_metrics_recorded(['Controller/data/not_allowed', 'Ruby/ActionController/data/unpermitted_parameters'])
+      assert_equal('not_allowed', tt_node.params[:action]) if rails7
+      assert_equal('DataController', tt_node.params[:controller]) if rails7
+
+      assert_metrics_recorded(['Controller/data/not_allowed', segment_name])
     end
   end
 end
