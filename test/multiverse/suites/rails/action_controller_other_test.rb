@@ -82,7 +82,7 @@ if defined?(ActionController::Live)
     end
 
     def test_unpermitted_parameters
-      skip if Rails.gem_version < Gem::Version('6.0.0') # unpermitted parameters is only available in rails 6.0+
+      skip if Rails.gem_version < Gem::Version.new('6.0.0') # unpermitted parameters is only available in rails 6.0+
 
       get('/data/not_allowed', params: {this_is_a_param: 1})
 
