@@ -110,6 +110,23 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     assert_metrics_recorded('View/model/_user.html.erb/Partial' => expected)
   end
 
+  def test_records_metrics_for_simple_layout
+    params = {:identifier => '/root/app/views/model/_layout.html.erb'}
+    nr_freeze_process_time
+    in_transaction do
+      @subscriber.start('render_layout.action_view', :id, params)
+      @subscriber.start('!render_layout.action_view', :id,
+        :virtual_path => 'model/_layout')
+      advance_process_time(2.0)
+      @subscriber.finish('!render_layout.action_view', :id,
+        :virtual_path => 'model/_layout')
+      @subscriber.finish('render_layout.action_view', :id, params)
+    end
+    expected = {:call_count => 1, :total_call_time => 2.0}
+
+    assert_metrics_recorded('View/model/_layout.html.erb/Layout' => expected)
+  end
+
   def test_records_metrics_for_layout
     nr_freeze_process_time
     in_transaction do
