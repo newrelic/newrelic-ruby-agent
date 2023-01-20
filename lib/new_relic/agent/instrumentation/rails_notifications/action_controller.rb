@@ -37,7 +37,8 @@ DependencyDetection.defer do
       halted_callback
       unpermitted_parameters]
 
+    # have to double excape period because its going from string -> regex
     NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber \
-      .subscribe(Regexp.new("^(#{subs.join('|')}).action_controller$"))
+      .subscribe(Regexp.new("^(#{subs.join('|')})\\.action_controller$"))
   end
 end

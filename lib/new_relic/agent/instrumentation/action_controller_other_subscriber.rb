@@ -24,13 +24,13 @@ module NewRelic
 
           if payload[:context]
             segment.params[:action] = payload[:context][:action]
-            segment.params[:controller] = payload[:context][:controller].to_s
+            segment.params[:controller] = payload[:context][:controller].name
           end
         end
 
         def metric_name(name, payload)
-          controller_path = controller_name_for_metric(payload)
-          "Ruby/ActionController#{"/#{controller_path}" if controller_path}/#{name.gsub(/\.action_controller/, '')}"
+          controller_name = controller_name_for_metric(payload)
+          "Ruby/ActionController#{"/#{controller_name}" if controller_name}/#{name.gsub(/\.action_controller/, '')}"
         end
 
         def controller_name_for_metric(payload)
