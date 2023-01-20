@@ -98,7 +98,6 @@ if defined?(ActionController::Live)
 
       trace = last_transaction_trace
       tt_node = find_node_with_name(trace, segment_name)
-      # binding.irb
 
       assert_equal(['this_is_a_param'], tt_node.params[:keys])
       assert_equal('not_allowed', tt_node.params[:action]) if rails7
