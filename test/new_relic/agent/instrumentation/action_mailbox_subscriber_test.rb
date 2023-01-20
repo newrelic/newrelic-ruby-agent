@@ -6,7 +6,7 @@ require_relative '../../../test_helper'
 require 'new_relic/agent/instrumentation/action_mailbox_subscriber'
 
 if defined?(ActionMailbox) &&
-    ActionMailbox.respond_to?(:gem_version) && # 'require "actionmalbox"' doesn't require version...
+    ActionMailbox.respond_to?(:gem_version) && # 'require "actionmailbox"' doesn't require version...
     ActionMailbox.gem_version >= Gem::Version.new('7.1.0.alpha') # notifications added in Rails 7.1
   require_relative 'rails/action_mailbox_subscriber'
 else
