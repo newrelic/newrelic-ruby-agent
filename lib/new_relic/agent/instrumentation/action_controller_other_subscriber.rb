@@ -24,7 +24,7 @@ module NewRelic
 
           if payload[:context]
             segment.params[:action] = payload[:context][:action]
-            segment.params[:controller] = payload[:context][:controller].name
+            segment.params[:controller] = payload[:context][:controller]
           end
         end
 
