@@ -16,33 +16,35 @@ module NewRelic
         end
 
         def test_streams_multiple_segments
-          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-          total_spans = 5
+          with_config('infinite_tracing.batching': false) do
+            NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+            total_spans = 5
 
-          spans = create_grpc_mock
-          with_config(fake_server_config) do
-            simulate_connect_to_collector(fake_server_config) do |simulator|
-              simulator.join
+            spans = create_grpc_mock
+            with_config(fake_server_config) do
+              simulate_connect_to_collector(fake_server_config) do |simulator|
+                simulator.join
 
-              # starts client and streams count segments
-              segments = []
-              total_spans.times do |index|
-                with_segment do |segment|
-                  segments << segment
-                  NewRelic::Agent.agent.infinite_tracer << deferred_span(segment)
+                # starts client and streams count segments
+                segments = []
+                total_spans.times do |index|
+                  with_segment do |segment|
+                    segments << segment
+                    NewRelic::Agent.agent.infinite_tracer << deferred_span(segment)
+                  end
                 end
+
+                # This ensures that the mock server thread is able to complete processing before asserting starts
+                simulate_server_response
+                wait_for_mock_server_process
+
+                # ensures all segments consumed
+                NewRelic::Agent.agent.infinite_tracer.flush
+                join_grpc_mock
+
+                assert_equal total_spans, spans.size
+                assert_equal total_spans, segments.size
               end
-
-              # This ensures that the mock server thread is able to complete processing before asserting starts
-              simulate_server_response
-              wait_for_mock_server_process
-
-              # ensures all segments consumed
-              NewRelic::Agent.agent.infinite_tracer.flush
-              join_grpc_mock
-
-              assert_equal total_spans, spans.size
-              assert_equal total_spans, segments.size
             end
           end
         ensure

@@ -175,6 +175,9 @@ common: &default_settings
   # If true, disables Active Storage instrumentation.
   # disable_active_storage: false
 
+  # If true, disables Active Support instrumentation.
+  # disable_active_support: false
+
   # If true, disables Active Job instrumentation.
   # disable_activejob: false
 
@@ -317,16 +320,20 @@ common: &default_settings
 
   # Configure the compression level for data sent to the Trace Observer
   # May be one of [none|low|medium|high]
-  # By default, compression is not used (level = none)
-  # infinite_tracing.compression_level: none
+  # 'high' is the default. Set the level to 'none' to disable compression
+  # infinite_tracing.compression_level: high
 
-  # If true, data sent to the Trace Observer will be batched instead of
-  # the default of each span being sent individually
-  # infinite_tracing.batching: false
+  # If true (the default), data sent to the Trace Observer will be batched
+  # instead of each span being sent individually
+  # infinite_tracing.batching: true
 
   # Controls auto-instrumentation of bunny at start up.
   # May be one of [auto|prepend|chain|disabled].
   # instrumentation.bunny: auto
+
+  # Controls auto-instrumentation of concurrent_ruby at start up.
+  # May be one of [auto|prepend|chain|disabled]
+  # instrumentation.concurrent_ruby: auto
 
   # Controls auto-instrumentation of Curb at start up.
   # May be one of [auto|prepend|chain|disabled].

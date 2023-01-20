@@ -340,7 +340,7 @@ module NewRelic
         #
         # Seldomly used options:
         #
-        # * <tt>:class_name => aClass.name</tt> is used to override the name
+        # * <tt>:class_name => Class.name</tt> is used to override the name
         #   of the class when used inside the metric name.  Default is the
         #   current class.
         # * <tt>:path => metric_path</tt> is *deprecated* in the public API.  It

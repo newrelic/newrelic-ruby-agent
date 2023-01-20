@@ -364,8 +364,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
-An array of ActiveSupport custom events names to subscribe to and provide
-instrumentation for. For example,
+An array of ActiveSupport custom event names to subscribe to and instrument. For example,
   - my.custom.event
   - another.event
   - a.third.event
@@ -384,7 +383,7 @@ instrumentation for. For example,
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Your New Relic API key. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
+          :description => 'Your New Relic [user key](/docs/apis/intro-apis/new-relic-api-keys/#overview-keys). Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
@@ -1138,7 +1137,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
         },
@@ -1146,17 +1144,22 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActiveJob instrumentation.'
+          :description => 'If `true`, disables Active Job instrumentation.'
         },
         :disable_active_storage => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActiveStorage instrumentation.'
+          :description => 'If `true`, disables Active Storage instrumentation.'
+        },
+        :disable_active_support => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Active Support instrumentation.'
         },
         :disable_activerecord_instrumentation => {
           :default => value_of(:skip_ar_instrumentation),
@@ -1164,7 +1167,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables active record instrumentation.'
+          :description => 'If `true`, disables Active Record instrumentation.'
         },
         :disable_active_record_notifications => {
           :default => false,
@@ -1452,7 +1455,7 @@ A map of error classes to a list of messages. When an error of one of the classe
 If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
     <Callout variant="important">
-      Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+      Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
       To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
@@ -1537,9 +1540,9 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the hostname for the Trace Observer Host. " \
+          :description => "Configures the hostname for the trace observer host. " \
             "When configured, enables tail-based sampling by sending all recorded spans " \
-            "to a Trace Observer for further sampling decisions, irrespective of any usual " \
+            "to a trace observer for further sampling decisions, irrespective of any usual " \
             "agent sampling decision."
         },
         :'infinite_tracing.trace_observer.port' => {
@@ -1548,7 +1551,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the TCP/IP port for the Trace Observer Host"
+          :description => "Configures the TCP/IP port for the trace observer host"
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
@@ -1568,6 +1571,14 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.concurrent_ruby' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.curb' => {
           :default => instrumentation_value_of(:disable_curb),
@@ -1802,6 +1813,13 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application."
         },
+        :'thread_ids_enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "If enabled, will append the current Thread and Fiber object ids onto the segment names of segments created in Threads and concurrent-ruby"
+        },
         :'instrumentation.tilt' => {
           :default => "auto",
           :public => true,
@@ -1853,7 +1871,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         # Rails
         :'defer_rails_initialization' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'This configuration option is currently unreachable. Please do not use. ' \
@@ -1897,7 +1915,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Array,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. See documentation on (ignoring specific transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] for more details.'
+          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
         },
         # Sidekiq
         :'sidekiq.capture_params' => {
@@ -2316,22 +2334,22 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "URI for the New Relic data collection service."
         },
         :'infinite_tracing.batching' => {
-          :default => false,
-          :public => false,
+          :default => true,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "If true, data sent to the Trace Observer will be batched instead of the default of each " \
+          :description => "If true (the default), data sent to the trace observer will be batched\ninstead of each " \
                           "span being sent individually"
         },
         :'infinite_tracing.compression_level' => {
-          :default => :none,
-          :public => false,
+          :default => :high,
+          :public => true,
           :type => Symbol,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configure the compression level for data sent to the Trace Observer\nMay be one of " \
-                          "[none|low|medium|high]\nBy default, compression is not used (level = none)"
+          :description => "Configure the compression level for data sent to the trace observer\nMay be one of " \
+          "[none|low|medium|high]\n'high' is the default. Set the level to 'none' to disable compression"
         },
         :js_agent_file => {
           :default => '',

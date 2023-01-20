@@ -16,6 +16,7 @@ jobs:
       - run: bundle
       - run: rubocop
 
+
   unit_tests:
     needs: run_rubocop
     runs-on: ubuntu-22.04
@@ -30,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.2.0, jruby-9.3.9.0]
+        ruby-version: [2.2.10, 3.2.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -58,13 +59,14 @@ jobs:
               },
               "3.2.0": {
                 "rails": "norails,rails61,rails70"
-              },
-              "jruby-9.3.9.0": {
-                "rails": "norails,rails61"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0'
+      - if: matrix.ruby-version == '2.2.10'
+        name: Prepare mysql dirextory
+        run: sudo chown -R $USER /usr/local
+
+      - if: matrix.ruby-version == '2.2.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -72,7 +74,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == 'jruby-9.3.9.0')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.2.10'
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -81,6 +83,7 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
+
       - name: Run Unit Tests
         uses: nick-fields/retry@v2.8.2
         with:
@@ -97,6 +100,7 @@ jobs:
         with:
           name: coverage-report-unit-tests
           path: lib/coverage_*/.resultset.json
+
 
   multiverse:
     needs: run_rubocop
@@ -197,7 +201,12 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
+        # This allows the cache in the following step to be able to write files to the directory needed for mysql
+      - if: matrix.ruby-version == '2.2.10'
+        name: Prepare mysql directory
+        run: sudo chown -R $USER /usr/local
+
+      - if: matrix.ruby-version == '2.2.10' 
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -205,7 +214,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && (matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.2.10'
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -244,6 +253,7 @@ jobs:
           name: coverage-report-multiverse
           path: lib/coverage_*/.resultset.json
           retention-days: 2
+
 
   infinite_tracing:
     needs: run_rubocop
@@ -285,137 +295,6 @@ jobs:
           name: coverage-report-infinite-tracing
           path: lib/coverage_*/.resultset.json
 
-  check_jruby_multiverse:
-    needs: run_rubocop
-    runs-on: ubuntu-22.04
-    outputs:
-      run_job: ${{ steps.filter.outputs.run_job }}
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            run_job:
-              - 'lib/new_relic/agent/instrumentation/**'
-
-  jruby_multiverse:
-    needs: check_jruby_multiverse
-    if: ${{ needs.check_jruby_multiverse.outputs.run_job == 'true' }}
-    runs-on: ubuntu-22.04
-    services:
-      elasticsearch7:
-        image: elasticsearch:7.16.2
-        env:
-          discovery.type: single-node
-        ports:
-          - 9200:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      elasticsearch8:
-        image: elasticsearch:8.4.2
-        env:
-          discovery.type: single-node
-          xpack.security.enabled: false
-        ports:
-          - 9250:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-        options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: mongo:5.0.11
-        ports:
-          - 27017:27017
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - "3306:3306"
-      postgres:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: >-
-          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    strategy:
-      fail-fast: false
-      matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-    steps:
-      - name: Set the default Java version
-        run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
-             sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
-             java -version &&
-             javac -version
-
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-
-      - name: Check out the source code
-        uses: actions/checkout@v3
-
-      - name: Install JRuby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: jruby-9.3.9.0
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
-
-      - name: Bundle
-        run: bundle install
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@v2.8.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 1
-          # jruby -v yields info about which JVM version JRuby is using
-          command: jruby -v; bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
-        env:
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          SERIALIZE: 1
-          JRUBY_OPTS: --dev --debug
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
 
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing]

@@ -168,7 +168,7 @@ module NewRelic
           :apdex_f
         when duration <= apdex_t
           :apdex_s
-        when duration <= 4 * apdex_t
+        when duration <= apdex_t * 4
           :apdex_t
         else
           :apdex_f
@@ -302,7 +302,7 @@ module NewRelic
       end
 
       def priority
-        @priority ||= (sampled? ? 1.0 + rand : rand).round(NewRelic::PRIORITY_PRECISION)
+        @priority ||= (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
       end
 
       def referer
@@ -635,7 +635,7 @@ module NewRelic
         return unless distributed_trace_payload
 
         duration = start_time - (distributed_trace_payload.timestamp / 1000.0)
-        duration < 0 ? 0 : duration
+        [duration, 0].max
       end
 
       # The summary metrics recorded by this method all end up with a duration

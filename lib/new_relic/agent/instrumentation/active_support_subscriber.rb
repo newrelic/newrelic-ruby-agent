@@ -7,12 +7,20 @@ require 'new_relic/agent/instrumentation/notifications_subscriber'
 module NewRelic
   module Agent
     module Instrumentation
-      class ActiveStorageSubscriber < NotificationsSubscriber
+      class ActiveSupportSubscriber < NotificationsSubscriber
         def start_segment(name, id, payload)
           segment = Tracer.start_segment(name: metric_name(name, payload))
-          segment.params[:key] = payload[:key]
-          segment.params[:exist] = payload[:exist] if payload.key?(:exist)
+
+          add_segment_params(segment, payload)
           push_segment(id, segment)
+        end
+
+        def add_segment_params(segment, payload)
+          segment.params[:key] = payload[:key]
+          segment.params[:store] = payload[:store]
+          segment.params[:hit] = payload[:hit] if payload.key?(:hit)
+          segment.params[:super_operation] = payload[:super_operation] if payload.key?(:super_operation)
+          segment
         end
 
         def finish_segment(id, payload)
@@ -25,12 +33,12 @@ module NewRelic
         end
 
         def metric_name(name, payload)
-          service = payload[:service]
+          store = payload[:store]
           method = method_from_name(name)
-          "Ruby/ActiveStorage/#{service}Service/#{method}"
+          "Ruby/ActiveSupport/#{store}/#{method}"
         end
 
-        PATTERN = /\Aservice_([^\.]*)\.active_storage\z/
+        PATTERN = /\Acache_([^\.]*)\.active_support\z/
         UNKNOWN = "unknown".freeze
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|

@@ -759,7 +759,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_compress_request_if_needed_compresses_large_payloads_gzip
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
-    zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
+    zstream = Zlib::Inflate.new(Zlib::MAX_WBITS + 16)
 
     assert_equal(large_payload, zstream.inflate(body))
     assert_equal('gzip', encoding)
@@ -1226,7 +1226,7 @@ class NewRelicServiceTest < Minitest::Test
       body = if content_encoding == 'deflate'
         Zlib::Inflate.inflate(@last_request.body)
       elsif content_encoding == 'gzip'
-        zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
+        zstream = Zlib::Inflate.new(Zlib::MAX_WBITS + 16)
         zstream.inflate(@last_request.body)
       else
         @last_request.body

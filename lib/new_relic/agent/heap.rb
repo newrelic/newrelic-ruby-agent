@@ -94,7 +94,7 @@ module NewRelic
       end
 
       def left_child_index_for(parent_index)
-        2 * parent_index + 1
+        parent_index * 2 + 1
       end
 
       def right_sibling_smaller?(lchild_index)

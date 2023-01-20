@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/action_controller_subscriber'
+require 'new_relic/agent/instrumentation/action_controller_other_subscriber'
 require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
@@ -29,5 +30,15 @@ DependencyDetection.defer do
 
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
+
+    subs = %w[send_file
+      send_data
+      redirect_to
+      halted_callback
+      unpermitted_parameters]
+
+    # have to double escape period because its going from string -> regex
+    NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber \
+      .subscribe(Regexp.new("^(#{subs.join('|')})\\.action_controller$"))
   end
 end

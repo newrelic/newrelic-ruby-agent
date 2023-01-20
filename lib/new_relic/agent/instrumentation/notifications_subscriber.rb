@@ -47,6 +47,30 @@ module NewRelic
           end
         end
 
+        def start(name, id, payload)
+          return unless state.is_execution_traced?
+
+          start_segment(name, id, payload)
+        rescue => e
+          log_notification_error(e, name, 'start')
+        end
+
+        def finish(name, id, payload)
+          return unless state.is_execution_traced?
+
+          finish_segment(id, payload)
+        rescue => e
+          log_notification_error(e, name, 'finish')
+        end
+
+        def start_segment(name, id, payload)
+          raise NotImplementedError
+        end
+
+        def finish_segment(name, id, payload)
+          raise NotImplementedError
+        end
+
         def log_notification_error(error, name, event_type)
           # These are important enough failures that we want the backtraces
           # logged at error level, hence the explicit log_exception call.
