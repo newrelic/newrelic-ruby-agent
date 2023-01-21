@@ -57,14 +57,17 @@ module NewRelic
           logger.verify
         end
 
-        def test_not_implemented_methods
-          assert_raises NotImplementedError do
-            @subscriber.start_segment(nil, nil, nil)
-          end
+        # def test_not_implemented_methods
+        #   assert_raises NotImplementedError do
+        #     @subscriber.start_segment(nil, nil, nil)
+        #   end
 
-          assert_raises NotImplementedError do
-            @subscriber.finish_segment(nil, nil, nil)
-          end
+        #   assert_raises NotImplementedError do
+        #     @subscriber.finish_segment(nil, nil, nil)
+        #   end
+        # end
+
+        def test_segment_created
         end
       end
     end

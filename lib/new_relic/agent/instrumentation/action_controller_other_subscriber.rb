@@ -10,14 +10,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerOtherSubscriber < NotificationsSubscriber
-        def start_segment(name, id, payload)
-          segment = Tracer.start_segment(name: metric_name(name, payload))
-
-          add_segment_params(segment, payload, name)
-          push_segment(id, segment)
-        end
-
-        def add_segment_params(segment, payload, name)
+        def add_segment_params(segment, payload)
           segment.params[:filter] = payload[:filter] if payload[:filter]
           segment.params[:keys] = payload[:keys] if payload[:keys]
           segment.params[:original_path] = payload[:request].original_fullpath if payload[:request]

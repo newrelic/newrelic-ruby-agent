@@ -64,11 +64,28 @@ module NewRelic
         end
 
         def start_segment(name, id, payload)
-          raise NotImplementedError
+          segment = Tracer.start_segment(name: metric_name(name, payload))
+          add_segment_params(segment, payload)
+          push_segment(id, segment)
         end
 
-        def finish_segment(name, id, payload)
-          raise NotImplementedError
+        def finish_segment(id, payload)
+          if segment = pop_segment(id)
+            if exception = exception_object(payload)
+              segment.notice_error(exception)
+            end
+            segment.finish
+          end
+        end
+
+        # for subclasses
+        def add_segment_params(segment, payload)
+          # no op
+        end
+
+        # for subclasses
+        def metric_name(name, payload)
+          "Ruby/#{name}"
         end
 
         def log_notification_error(error, name, event_type)
