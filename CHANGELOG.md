@@ -2,15 +2,15 @@
 
 ## Upcoming Release
 
-The upcoming release of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action*/Active* libraries whose actions produce Active Support notifications events.
+The upcoming release of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce Active Support notifications events.
 
 - **Add Various Additional Ruby on Rails Library Instrumentations**
 
-  New instrumentation is now automatically provided by several Action*/Active* libaries that generate Active Support notifications. With each new Ruby on Rails release, new events are added to the Rails libraries and sometimes existing events have their payload parameters updated as well. The New Relic Ruby agent will now automatically process more of these events and parameters with New Relic segments that are created for each event. At a minimum, each segment will provide timing information for the event. In several cases, all non-sensitive event payload parameters are also passed along in the segment.
+  New instrumentation is now automatically provided by several Action\*/Active\* libaries that generate Active Support notifications. With each new Ruby on Rails release, new events are added to the Rails libraries and sometimes existing events have their payload parameters updated as well. The New Relic Ruby agent will now automatically process more of these events and parameters with New Relic segments that are created for each event. At a minimum, each segment will provide timing information for the event. In several cases, all non-sensitive event payload parameters are also passed along in the segment.
 
   The agent now newly supports or has updated support for the following libraries:
 
-  - Action Dispatch (for middleware)[PR#1745] (https://github.com/newrelic/newrelic-ruby-agent/pull/1745)
+  - Action Dispatch (for middleware) [PR#1745] (https://github.com/newrelic/newrelic-ruby-agent/pull/1745)
   - Action Mailbox (for sending mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
   - Action Mailer (for routing mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
   - Active Support (for caching operations) [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
