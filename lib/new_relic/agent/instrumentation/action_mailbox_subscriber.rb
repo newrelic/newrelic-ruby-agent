@@ -7,7 +7,7 @@ require 'new_relic/agent/instrumentation/notifications_subscriber'
 module NewRelic
   module Agent
     module Instrumentation
-      class ActiveSupportSubscriber < NotificationsSubscriber
+      class ActionMailboxSubscriber < NotificationsSubscriber
         def start(name, id, payload)
           return unless state.is_execution_traced?
 
@@ -26,17 +26,7 @@ module NewRelic
 
         def start_segment(name, id, payload)
           segment = Tracer.start_segment(name: metric_name(name, payload))
-
-          add_segment_params(segment, payload)
           push_segment(id, segment)
-        end
-
-        def add_segment_params(segment, payload)
-          segment.params[:key] = payload[:key]
-          segment.params[:store] = payload[:store]
-          segment.params[:hit] = payload[:hit] if payload.key?(:hit)
-          segment.params[:super_operation] = payload[:super_operation] if payload.key?(:super_operation)
-          segment
         end
 
         def finish_segment(id, payload)
@@ -49,12 +39,12 @@ module NewRelic
         end
 
         def metric_name(name, payload)
-          store = payload[:store]
+          mailbox = payload[:mailbox].class.name
           method = method_from_name(name)
-          "Ruby/ActiveSupport#{"/#{store}" if store}/#{method}"
+          "Ruby/ActionMailbox/#{mailbox}/#{method}"
         end
 
-        PATTERN = /\Acache_([^\.]*)\.active_support\z/
+        PATTERN = /\A([^\.]*)\.action_mailbox\z/
         UNKNOWN = "unknown".freeze
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|
