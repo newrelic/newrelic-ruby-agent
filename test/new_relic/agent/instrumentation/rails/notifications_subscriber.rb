@@ -68,6 +68,7 @@ module NewRelic
         # end
 
         def test_segment_created
+          # TODO: more test
         end
       end
     end
