@@ -126,7 +126,7 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def test_an_actual_mailbox_processing
+    def test_an_actual_middleware_call_based_event_processing
       stack = ActionDispatch::MiddlewareStack.new
       stack.use TestMiddleware
       web_app = stack.build(proc { |env| [200, {}, []] })
