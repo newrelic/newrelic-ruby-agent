@@ -29,10 +29,10 @@ module Performance
 
       rows = measurements.map do |key, value|
         if key == :iterations
-          "  %#{key_width}s: %#{value_width}g" % [key, value]
+          "  %#{key_width}s: %#{value_width}g" % [key, value] # rubocop:disable Lint/FormatParameterMismatch
         else
           per_iteration = value / result.iterations.to_f
-          "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration]
+          "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration] # rubocop:disable Lint/FormatParameterMismatch
         end
       end
 
