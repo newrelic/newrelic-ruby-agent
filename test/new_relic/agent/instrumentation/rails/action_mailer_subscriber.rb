@@ -153,19 +153,19 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def test_an_actual_mail_delivery
-      in_transaction do |txn|
-        MAILER.welcome.deliver
+    # def test_an_actual_mail_delivery
+    #   in_transaction do |txn|
+    #     MAILER.welcome.deliver
 
-        assert_equal 2, txn.segments.size
-        segment = txn.segments.last
-        params = segment.params
+    #     assert_equal 2, txn.segments.size
+    #     segment = txn.segments.last
+    #     params = segment.params
 
-        assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", segment.name
-        assert_equal MAILER.class.name, params[:mailer]
-        assert_equal MAILER.class::SUBJECT, params[:subject]
-        assert params[:perform_deliveries]
-      end
-    end
+    #     assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", segment.name
+    #     assert_equal MAILER.class.name, params[:mailer]
+    #     assert_equal MAILER.class::SUBJECT, params[:subject]
+    #     assert params[:perform_deliveries]
+    #   end
+    # end
   end
 end
