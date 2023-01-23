@@ -14,7 +14,8 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    defined?(ActionController) && (defined?(ActionController::Base) || defined?(ActionController::API))
+    !NewRelic::Agent.config[:disable_action_controller] &&
+      defined?(ActionController) && (defined?(ActionController::Base) || defined?(ActionController::API))
   end
 
   executes do
