@@ -79,7 +79,7 @@ module NewRelic
             generate_event('charcuterie_build_a_board_workshop')
           end
 
-          assert_metrics_recorded "#{METRIC_PREFIX}#{DEFAULT_STORE}/unknown"
+          assert_metrics_recorded "#{METRIC_PREFIX}#{DEFAULT_STORE}/Unknown"
         end
 
         def test_key_recorded_as_attribute_on_traces

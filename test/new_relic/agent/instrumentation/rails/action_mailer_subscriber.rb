@@ -78,7 +78,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_segment_naming_with_unknown_method
-      assert_equal 'Ruby/ActionMailer/mailer/unknown',
+      assert_equal 'Ruby/ActionMailer/mailer/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {mailer: 'mailer'})
     end
 

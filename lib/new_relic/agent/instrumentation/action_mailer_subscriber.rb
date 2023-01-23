@@ -15,14 +15,13 @@ module NewRelic
         BASE_NAME = 'Ruby/ActionMailer'
         PAYLOAD_KEYS = %i[action data key mailer message_id perform_deliveries subject]
         PATTERN = /\A([^\.]+)\.action_mailer\z/
-        UNKNOWN = 'unknown'
         UNKNOWN_MAILER = %r{^#{BASE_NAME}/#{UNKNOWN}/}
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|
           if PATTERN =~ k
             h[k] = $1
           else
-            h[k] = UNKNOWN
+            h[k] = NewRelic::UNKNOWN
           end
         end
 
