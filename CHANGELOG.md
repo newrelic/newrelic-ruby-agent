@@ -2,31 +2,27 @@
 
 ## Upcoming Release
 
-This upcoming release of the agent adds instrumentation for Active Support caching operations, Action Mailer operations, and Action Mailbox operations.
+The upcoming release of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce Active Support notifications events.
 
-- **Add Active Support Instrumentation**
+- **Add Various Additional Ruby on Rails Library Instrumentations**
 
-  Instrumentation is now automatically provided for all [Active Support caching](https://guides.rubyonrails.org/caching_with_rails.html) operations. Whenever a caching operation is performed, a New Relic segment is created that contains timing information as well as parameters for the cache key, store, and other relevant data. [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
+  New instrumentation is now automatically provided by several Action\*/Active\* libaries that generate Active Support notifications. With each new Ruby on Rails release, new events are added to the Rails libraries and sometimes existing events have their payload parameters updated as well. The New Relic Ruby agent will now automatically process more of these events and parameters with New Relic segments that are created for each event. At a minimum, each segment will provide timing information for the event. In several cases, all non-sensitive event payload parameters are also passed along in the segment.
 
-  | Configuration name | Default | Behavior |
-  | ----- | ----- | ----- |
-  | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
+  The agent now newly supports or has updated support for the following libraries:
 
-- **Add Action Mailer Instrumentation**
+  - Action Dispatch (for middleware) [PR#1745](https://github.com/newrelic/newrelic-ruby-agent/pull/1745)
+  - Action Mailbox (for sending mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
+  - Action Mailer (for routing mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
+  - Active Support (for caching operations) [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
 
-  Instrumentation is now automatically provided for all Action Mailer events that generate Active Support notifications. When such an event takes place, a New Relic segment is created that contains timing information as well as any non personally identifying mail related parameters. [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
-
-  | Configuration name | Default | Behavior |
-  | ----- | ----- | ----- |
-  | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
-
-- **Add Action Mailbox Instrumentation**
-
-  Instrumentation is now automatically provided for all Action Mailbox events that generate Active Support notifications. When such an event takes place, a New Relic segment is created that contains timing information as well as any mailbox related parameters. NOTE: support for notification events requires Action Mailbox v7.1+. [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
+  The instrumentations for each of these libaries are all enabled by default, but can be independently disabled via configuration by using the following parameters:
 
   | Configuration name | Default | Behavior |
   | ----- | ----- | ----- |
+  | `disable_action_dispatch` | `false` | If `true`, disables Action Dispatch instrumentation. |
   | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
+  | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
+  | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
 
 ## 8.15.0
 

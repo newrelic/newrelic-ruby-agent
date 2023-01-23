@@ -3,49 +3,32 @@
 # frozen_string_literal: true
 
 require_relative '../../../../test_helper'
-require 'new_relic/agent/instrumentation/action_mailer_subscriber'
+require 'new_relic/agent/instrumentation/action_dispatch_subscriber'
 
 module NewRelic::Agent::Instrumentation
-  class TestMailer < ActionMailer::Base
-    SUBJECT = "Findings from Truart's estate"
+  class TestMiddleware < ActionDispatch::MiddlewareStack::Middleware
+    def initialize(app)
+      @app = app
+    end
 
-    default to: 'karras@mechanists.com',
-      from: 'garret@thecity.org',
-      reply_to: 'viktoria@constantine.net'
-
-    def test_action; end
-
-    def welcome
-      return unless attachments
-
-      mail({subject: SUBJECT,
-            body: '<html><body>Regarding the mechanical servants...</body></html>'})
+    def call(env)
+      @app.call(env)
     end
   end
 
-  class ActionMailerSubscriberTest < Minitest::Test
-    ACTION = 'deliver'
-    NAME = "#{ACTION}.action_mailer"
-    ID = 1947
-    SUBSCRIBER = NewRelic::Agent::Instrumentation::ActionMailerSubscriber.new
-
-    def setup
-      @delivery_method = ActionMailer::Base.delivery_method
-      ActionMailer::Base.delivery_method = :test
-    end
-
-    def teardown
-      ActionMailer::Base.delivery_method = @delivery_method
-    end
+  class ActionDispatchSubscriberTest < Minitest::Test
+    NAME = 'process_middleware.action_dispatch'
+    ID = 1987 # 'Emperor of the Night'
+    SUBSCRIBER = NewRelic::Agent::Instrumentation::ActionDispatchSubscriber.new
 
     def test_start
       in_transaction do |txn|
         time = Time.now.to_f
-        SUBSCRIBER.start(NAME, ID, {mailer: TestMailer.name})
+        SUBSCRIBER.start(NAME, ID, {middleware: TestMiddleware.name})
         segment = txn.segments.last
 
         assert_in_delta time, segment.start_time
-        assert_equal "Ruby/ActionMailer/#{TestMailer.name}/#{ACTION}", segment.name
+        assert_equal "Ruby/ActionDispatch/#{TestMiddleware.name}/process_middleware", segment.name
       end
     end
 
@@ -78,8 +61,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_segment_naming_with_unknown_method
-      assert_equal 'Ruby/ActionMailer/mailer/unknown',
-        SUBSCRIBER.send(:metric_name, 'indecipherable', {mailer: 'mailer'})
+      assert_equal "Ruby/ActionDispatch/#{TestMiddleware.name}/unknown",
+        SUBSCRIBER.send(:metric_name, 'indecipherable', {middleware: TestMiddleware.name})
     end
 
     def test_finish
@@ -100,9 +83,9 @@ module NewRelic::Agent::Instrumentation
       skip_unless_minitest5_or_above
 
       exception_object = StandardError.new
+      noticed = false
       segment = MiniTest::Mock.new
       segment.expect :notice_error, nil, [exception_object]
-      segment.expect :name, ''
       SUBSCRIBER.stub(:pop_segment, segment, [ID]) do
         SUBSCRIBER.finish(NAME, ID, {exception_object: exception_object})
       end
@@ -143,31 +126,17 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def test_an_actual_mailer_process_call
-      in_transaction do |txn|
-        TestMailer.new.process(:test_action)
-
-        assert_equal 2, txn.segments.size
-        assert_equal "Ruby/ActionMailer/#{TestMailer.name}/process", txn.segments.last.name
-        assert_equal :test_action, txn.segments.last.params[:action]
-      end
-    end
-
-    def test_an_actual_mail_delivery
-      message = TestMailer.new.welcome
-      skip "Encountered odd ActionMailer issue with nil 'attachments' object!" unless message
+    def test_an_actual_middleware_call_based_event_processing
+      stack = ActionDispatch::MiddlewareStack.new
+      stack.use TestMiddleware
+      web_app = stack.build(proc { |env| [200, {}, []] })
 
       in_transaction do |txn|
-        message.deliver
+        web_app.call({})
+        segment = txn.segments.detect { |s| s.name.start_with?('Ruby/ActionDispatch') }
 
-        assert_equal 2, txn.segments.size
-        segment = txn.segments.last
-        params = segment.params
-
-        assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", segment.name
-        assert_equal TestMailer.name, params[:mailer]
-        assert_equal TestMailer::SUBJECT, params[:subject]
-        assert params[:perform_deliveries]
+        assert segment
+        assert_equal segment.name, "Ruby/ActionDispatch/#{TestMiddleware.name}/process_middleware"
       end
     end
   end
