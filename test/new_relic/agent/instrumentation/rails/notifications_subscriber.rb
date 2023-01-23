@@ -57,18 +57,19 @@ module NewRelic
           logger.verify
         end
 
-        # def test_not_implemented_methods
-        #   assert_raises NotImplementedError do
-        #     @subscriber.start_segment(nil, nil, nil)
-        #   end
+        def test_segment_created_notsub
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        #   assert_raises NotImplementedError do
-        #     @subscriber.finish_segment(nil, nil, nil)
-        #   end
-        # end
+          in_transaction do |txn|
+            @subscriber.start(DEFAULT_EVENT, @id, {})
 
-        def test_segment_created
-          # TODO: more test
+            @subscriber.finish(DEFAULT_EVENT, @id, {})
+          end
+
+          name = "Ruby/#{DEFAULT_EVENT}"
+          spans = harvest_span_events!
+
+          refute_empty(spans[1].select { |s| s[0]["name"] == name })
         end
       end
     end
