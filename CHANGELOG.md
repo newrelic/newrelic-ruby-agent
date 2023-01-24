@@ -10,6 +10,7 @@ The upcoming release of the agent introduces additional Ruby on Rails instrument
 
   The agent now newly supports or has updated support for the following libraries:
 
+  - Action Cable (for WebSockets) [PR#1749](https://github.com/newrelic/newrelic-ruby-agent/pull/1749)
   - Action Dispatch (for middleware) [PR#1745](https://github.com/newrelic/newrelic-ruby-agent/pull/1745)
   - Action Mailbox (for sending mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
   - Action Mailer (for routing mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
@@ -19,6 +20,7 @@ The upcoming release of the agent introduces additional Ruby on Rails instrument
 
   | Configuration name | Default | Behavior |
   | ----- | ----- | ----- |
+  | `disable_action_cable` | `false` | If `true`, disables Action Cable instrumentation. |
   | `disable_action_dispatch` | `false` | If `true`, disables Action Dispatch instrumentation. |
   | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
   | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
