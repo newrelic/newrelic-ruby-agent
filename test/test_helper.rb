@@ -2,6 +2,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'warning'
+Gem.path.each do |path|
+  Warning.ignore(//, path)
+end
+
 require_relative 'simplecov_test_helper'
 
 # define special constant so DefaultSource.framework can return :test

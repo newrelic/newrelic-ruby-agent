@@ -280,6 +280,8 @@ module Multiverse
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
+        f.puts "gem 'warning'"
+
         if debug
           f.puts "gem 'pry', '~> 0.14'"
           f.puts "gem 'pry-nav'"
@@ -386,6 +388,11 @@ module Multiverse
         ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = instrumentation_method
         log_test_running_process
         configure_before_bundling
+
+        require 'warning'
+        Gem.path.each do |path|
+          Warning.ignore(//, path)
+        end
 
         gemfile_text = environments[env_index]
         return if gemfile_text.empty?
