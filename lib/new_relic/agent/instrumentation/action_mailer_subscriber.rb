@@ -53,7 +53,7 @@ module NewRelic
           return unless segment
 
           if segment.name.match?(UNKNOWN_MAILER) && payload.key?(:mailer)
-            segment.name.sub!(UNKNOWN_MAILER, "#{BASE_NAME}/#{payload[:mailer]}/")
+            segment.name = segment.name.sub(UNKNOWN_MAILER, "#{BASE_NAME}/#{payload[:mailer]}/")
           end
 
           PAYLOAD_KEYS.each do |key|
@@ -72,6 +72,7 @@ module NewRelic
 
         def metric_name(name, payload)
           mailer = payload[:mailer] || UNKNOWN
+          # binding.irb if mailer == 'Unknown'
           method = method_from_name(name)
           "#{BASE_NAME}/#{mailer}/#{method}"
         end
