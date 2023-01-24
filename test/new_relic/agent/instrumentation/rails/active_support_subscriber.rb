@@ -102,8 +102,6 @@ module NewRelic
           trace = last_transaction_trace
           tt_node = find_node_with_name(trace, "#{METRIC_PREFIX}#{DEFAULT_STORE}/read")
 
-          puts txn.segments.last.inspect
-
           assert tt_node.params.key?(:hit)
           refute tt_node.params[:hit]
         end
@@ -115,8 +113,6 @@ module NewRelic
 
           trace = last_transaction_trace
           tt_node = find_node_with_name(trace, "#{METRIC_PREFIX}#{DEFAULT_STORE}/read")
-
-          puts txn.segments.last.inspect
 
           assert tt_node.params.key?(:super_operation)
           refute tt_node.params[:super_operation]
