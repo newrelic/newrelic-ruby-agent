@@ -199,6 +199,33 @@ module NewRelic
           logger.verify
         end
 
+        def test_an_actual_active_storage_cache_write
+          unless defined?(ActiveSupport::VERSION::MAJOR) && ActiveSupport::VERSION::MAJOR >= 5
+            skip 'Test restricted to Active Support v5+'
+          end
+
+          in_transaction do |txn|
+            store = ActiveSupport::Cache::MemoryStore
+            key = 'city'
+            store.new.write(key, 'Walla Walla')
+            segment = txn.segments.last
+
+            assert_equal 2, txn.segments.size
+
+            # the :store key is only in the payload for Rails 6.1+
+            rails61 = Gem::Version.new(ActiveSupport::VERSION::STRING) >= Gem::Version.new("6.1.0")
+            segment_name = if rails61
+              "Ruby/ActiveSupport/#{store}/write"
+            else
+              "Ruby/ActiveSupport/write"
+            end
+
+            assert_equal segment_name, segment.name
+            assert_equal key, segment.params[:key]
+            assert_equal store.to_s, segment.params[:store] if rails61
+          end
+        end
+
         private
 
         def generate_event(event_name, attributes = {})
