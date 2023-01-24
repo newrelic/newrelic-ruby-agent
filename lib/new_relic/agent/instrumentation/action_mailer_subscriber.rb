@@ -15,14 +15,13 @@ module NewRelic
         BASE_NAME = 'Ruby/ActionMailer'
         PAYLOAD_KEYS = %i[action data key mailer message_id perform_deliveries subject]
         PATTERN = /\A([^\.]+)\.action_mailer\z/
-        UNKNOWN = 'unknown'
         UNKNOWN_MAILER = %r{^#{BASE_NAME}/#{UNKNOWN}/}
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|
           if PATTERN =~ k
             h[k] = $1
           else
-            h[k] = UNKNOWN
+            h[k] = NewRelic::UNKNOWN
           end
         end
 
@@ -54,7 +53,7 @@ module NewRelic
           return unless segment
 
           if segment.name.match?(UNKNOWN_MAILER) && payload.key?(:mailer)
-            segment.name.sub!(UNKNOWN_MAILER, "#{BASE_NAME}/#{payload[:mailer]}/")
+            segment.name = segment.name.sub(UNKNOWN_MAILER, "#{BASE_NAME}/#{payload[:mailer]}/")
           end
 
           PAYLOAD_KEYS.each do |key|

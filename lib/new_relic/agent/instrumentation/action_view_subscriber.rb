@@ -10,28 +10,25 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionViewSubscriber < NotificationsSubscriber
-        def start(name, id, payload) # THREAD_LOCAL_ACCESS
+        def start_segment(name, id, payload)
           parent = segment_stack[id].last
           metric_name = format_metric_name(name, payload, parent)
 
           event = ActionViewEvent.new(metric_name, payload[:identifier])
-          if state.is_execution_traced? && recordable?(name, metric_name)
+
+          if recordable?(name, metric_name)
             event.finishable = Tracer.start_segment(name: metric_name)
           end
           push_segment(id, event)
-        rescue => e
-          log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload)
+        def finish_segment(id, payload)
           if segment = pop_segment(id)
             if exception = exception_object(payload)
               segment.notice_error(exception)
             end
             segment.finish
           end
-        rescue => e
-          log_notification_error(e, name, 'finish')
         end
 
         def format_metric_name(event_name, payload, parent)
@@ -61,12 +58,15 @@ module NewRelic
         RENDER_TEMPLATE_EVENT_NAME = 'render_template.action_view'.freeze
         RENDER_PARTIAL_EVENT_NAME = 'render_partial.action_view'.freeze
         RENDER_COLLECTION_EVENT_NAME = 'render_collection.action_view'.freeze
+        RENDER_LAYOUT_EVENT_NAME = 'render_layout.action_view'.freeze
 
         def metric_action(name)
           case name
           when /#{RENDER_TEMPLATE_EVENT_NAME}$/o then 'Rendering'
           when RENDER_PARTIAL_EVENT_NAME then 'Partial'
           when RENDER_COLLECTION_EVENT_NAME then 'Partial'
+          when RENDER_LAYOUT_EVENT_NAME then 'Layout'
+          else NewRelic::UNKNOWN
           end
         end
 

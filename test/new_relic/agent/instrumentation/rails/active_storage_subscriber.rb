@@ -55,7 +55,7 @@ module NewRelic
             generate_event('wat?')
           end
 
-          assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/unknown'
+          assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/Unknown'
         end
 
         def test_key_recorded_as_attribute_on_traces

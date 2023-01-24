@@ -78,7 +78,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_segment_naming_with_unknown_method
-      assert_equal 'Ruby/ActionMailer/mailer/unknown',
+      assert_equal 'Ruby/ActionMailer/mailer/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {mailer: 'mailer'})
     end
 
@@ -167,7 +167,7 @@ module NewRelic::Agent::Instrumentation
         assert_equal "Ruby/ActionMailer/#{TestMailer.name}/deliver", segment.name
         assert_equal TestMailer.name, params[:mailer]
         assert_equal TestMailer::SUBJECT, params[:subject]
-        assert params[:perform_deliveries]
+        assert params[:perform_deliveries] if Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('6.0.0') # only exists in rails 6+
       end
     end
   end
