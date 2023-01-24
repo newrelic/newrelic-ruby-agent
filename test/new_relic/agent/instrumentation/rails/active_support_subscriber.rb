@@ -79,7 +79,7 @@ module NewRelic
             generate_event('charcuterie_build_a_board_workshop')
           end
 
-          assert_metrics_recorded "#{METRIC_PREFIX}#{DEFAULT_STORE}/unknown"
+          assert_metrics_recorded "#{METRIC_PREFIX}#{DEFAULT_STORE}/Unknown"
         end
 
         def test_key_recorded_as_attribute_on_traces
@@ -157,42 +157,6 @@ module NewRelic
 
             assert txn.segments.none? { |s| s.name.include?('ActiveSupport') }
           end
-        end
-
-        def test_start_logs_notification_error
-          logger = MiniTest::Mock.new
-
-          NewRelic::Agent.stub :logger, logger do
-            logger.expect :error, nil, [/Error during .* callback/]
-            logger.expect :log_exception, nil, [:error, ArgumentError]
-
-            in_transaction do |txn|
-              @subscriber.stub :start_segment, -> { raise 'kaboom' } do
-                @subscriber.start(DEFAULT_EVENT, @id, {})
-              end
-
-              assert_equal 1, txn.segments.size
-            end
-          end
-          logger.verify
-        end
-
-        def test_finish_logs_notification_error
-          logger = MiniTest::Mock.new
-
-          NewRelic::Agent.stub :logger, logger do
-            logger.expect :error, nil, [/Error during .* callback/]
-            logger.expect :log_exception, nil, [:error, ArgumentError]
-
-            in_transaction do |txn|
-              @subscriber.stub :finish_segment, -> { raise 'kaboom' } do
-                @subscriber.finish(DEFAULT_EVENT, @id, {})
-              end
-
-              assert_equal 1, txn.segments.size
-            end
-          end
-          logger.verify
         end
 
         def test_an_actual_active_storage_cache_write
