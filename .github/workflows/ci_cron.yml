@@ -301,7 +301,7 @@ jobs:
     name: Notify slack fail
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
-    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
+    if: always()
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
       - uses: voxmedia/github-action-slack-notify-build@v1
@@ -318,7 +318,7 @@ jobs:
     name: Notify slack success
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
-    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
+    if: always()
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
       - uses: Mercymeilya/last-workflow-status@v0.3.2
