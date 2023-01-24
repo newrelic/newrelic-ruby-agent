@@ -321,6 +321,7 @@ jobs:
     if: always()
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
+      - run: echo ${{ github.event_name }}
       - uses: Mercymeilya/last-workflow-status@v0.3.2
         id: last_status
         with:
