@@ -72,7 +72,6 @@ module NewRelic
 
         def metric_name(name, payload)
           mailer = payload[:mailer] || UNKNOWN
-          # binding.irb if mailer == 'Unknown'
           method = method_from_name(name)
           "#{BASE_NAME}/#{mailer}/#{method}"
         end
