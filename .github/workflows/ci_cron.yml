@@ -301,11 +301,11 @@ jobs:
     name: Notify slack fail
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
-    if: always() && ${{ github.event_name != 'workflow_dispatch' }}
+    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
       - uses: voxmedia/github-action-slack-notify-build@v1
-        if: env.WORKFLOW_CONCLUSION == 'failure'
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         with:
@@ -318,7 +318,7 @@ jobs:
     name: Notify slack success
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
-    if: always() && ${{ github.event_name != 'workflow_dispatch' }}
+    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
       - uses: Mercymeilya/last-workflow-status@v0.3.2
@@ -326,7 +326,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: voxmedia/github-action-slack-notify-build@v1
-        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' }}
+        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         with:
