@@ -99,7 +99,7 @@ module Environments
 
     def run(dir)
       puts "Starting tests for dir '#{dir}'..."
-      cmd = String.new "cd #{dir} && bundle exec rake"
+      cmd = String.new("cd #{dir} && bundle exec rake")
       cmd << " file=#{ENV['file']}" if ENV["file"]
 
       IO.popen(cmd) do |io|
