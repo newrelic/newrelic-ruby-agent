@@ -10,22 +10,9 @@ module NewRelic
       class ActiveJobSubscriber < NotificationsSubscriber
         PAYLOAD_KEYS = %i[adapter db_runtime error job wait]
 
-        def start_segment(name, id, payload)
-          segment = Tracer.start_segment(name: metric_name(name, payload))
-
+        def add_segment_params(segment, payload)
           PAYLOAD_KEYS.each do |key|
             segment.params[key] = payload[key] if payload.key?(key)
-          end
-
-          push_segment(id, segment)
-        end
-
-        def finish_segment(id, payload)
-          if segment = pop_segment(id)
-            if exception = exception_object(payload)
-              segment.notice_error(exception)
-            end
-            segment.finish
           end
         end
 
@@ -36,13 +23,12 @@ module NewRelic
         end
 
         PATTERN = /\A([^\.]+)\.active_job\z/
-        UNKNOWN = 'unknown'.freeze
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|
           if PATTERN =~ k
             h[k] = $1
           else
-            h[k] = UNKNOWN
+            h[k] = NewRelic::UNKNOWN
           end
         end
 
