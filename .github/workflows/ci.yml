@@ -167,7 +167,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2..10, 3.2.0]
+        ruby-version: [2.4.10, 3.2.0]
 
     steps:
       - name: Configure git
