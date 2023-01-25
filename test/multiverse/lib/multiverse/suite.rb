@@ -391,8 +391,6 @@ module Multiverse
         log_test_running_process
         configure_before_bundling
 
-        # require_relative('../../../warning_test_helper')
-
         gemfile_text = environments[env_index]
         return if gemfile_text.empty?
 
