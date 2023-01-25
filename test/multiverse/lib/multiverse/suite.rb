@@ -280,7 +280,7 @@ module Multiverse
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
-        f.puts "gem 'warning'"
+        f.puts "gem 'warning'" if RUBY_VERSION >= '2.4.0'
 
         if debug
           f.puts "gem 'pry', '~> 0.14'"
@@ -389,9 +389,11 @@ module Multiverse
         log_test_running_process
         configure_before_bundling
 
-        require 'warning'
-        Gem.path.each do |path|
-          Warning.ignore(//, path)
+        if RUBY_VERSION >= '2.4.0'
+          require 'warning'
+          Gem.path.each do |path|
+            Warning.ignore(//, path)
+          end
         end
 
         gemfile_text = environments[env_index]

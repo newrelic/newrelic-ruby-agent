@@ -15,4 +15,4 @@ gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
 gem 'simplecov'
 
-gem 'warning'
+gem 'warning' if RUBY_VERSION >= '2.4.0'

@@ -2,9 +2,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'warning'
-Gem.path.each do |path|
-  Warning.ignore(//, path)
+if RUBY_VERSION >= '2.4.0'
+  require 'warning'
+  Gem.path.each do |path|
+    Warning.ignore(//, path)
+  end
 end
 
 require_relative 'simplecov_test_helper'
