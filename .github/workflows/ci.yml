@@ -55,7 +55,7 @@ jobs:
           map: |
             {
               "2.4.10": {
-                "rails": "norails,rails41,rails32"
+                "rails": "norails,rails52,rails42"
               },
               "3.2.0": {
                 "rails": "norails,rails61,rails70"
@@ -194,29 +194,12 @@ jobs:
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
         # - sasl is needed for memcached
       - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y build-essential --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-        # This allows the cache in the following step to be able to write files to the directory needed for mysql
-      - if: matrix.ruby-version == '2.4.10'
-        name: Prepare mysql directory
-        run: sudo chown -R $USER /usr/local
-
-      - if: matrix.ruby-version == '2.4.10' 
-        name: Cache mysql55
-        id: mysql55-cache
-        uses: actions/cache@v3.2.2
-        with:
-          path: /usr/local/mysql55
-          key: mysql55-install
-
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
-        name: Install mysql55
-        run: sudo ./test/script/install_mysql55
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
