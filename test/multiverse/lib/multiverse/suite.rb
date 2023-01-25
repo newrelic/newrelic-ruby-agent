@@ -7,7 +7,9 @@
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
 
+require_relative '../../../warning_test_helper'
 require_relative '../../../simplecov_test_helper'
+
 require 'rubygems'
 require 'base64'
 require 'fileutils'
@@ -389,16 +391,7 @@ module Multiverse
         log_test_running_process
         configure_before_bundling
 
-        if RUBY_VERSION >= '2.4.0'
-          require 'warning'
-          Gem.path.each do |path|
-            Warning.ignore(//, path)
-          end
-
-          # this is to ignore warnings that happen on the CI only
-          # the site_ruby part of the path needs to be removed if it exists otherwise the CI keeps doing the warnings
-          Warning.ignore(//, Gem::RUBYGEMS_DIR.gsub(/site_ruby\//, ''))
-        end
+        # require_relative('../../../warning_test_helper')
 
         gemfile_text = environments[env_index]
         return if gemfile_text.empty?
