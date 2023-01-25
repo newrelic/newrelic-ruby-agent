@@ -10,7 +10,7 @@ if RUBY_VERSION >= '2.4.0'
   puts "*" * 100
   puts Gem::RUBYGEMS_DIR
   puts "*" * 100
-  Warning.ignore(//, Gem::RUBYGEMS_DIR)
+  # Warning.ignore(//, Gem::RUBYGEMS_DIR)
 end
 
 require_relative 'simplecov_test_helper'
