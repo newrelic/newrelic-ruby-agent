@@ -9,9 +9,9 @@ DependencyDetection.defer do
   @name = :action_cable_notifications
 
   depends_on do
-    defined?(Rails::VERSION::MAJOR) &&
-      Rails::VERSION::MAJOR.to_i >= 5 &&
-      defined?(ActionCable)
+    defined?(ActionCable::VERSION::MAJOR) &&
+      ActionCable::VERSION::MAJOR.to_i >= 5 &&
+      defined?(ActiveSupport)
   end
 
   depends_on do
@@ -25,7 +25,7 @@ DependencyDetection.defer do
 
   executes do
     # enumerate the specific events we want so that we do not get unexpected additions in the future
-    ActiveSupport::Notifications.subscribe(/(perform_action|transmit)\.action_cable/,
+    ActiveSupport::Notifications.subscribe(/\A(?:perform_action|transmit|broadcast)\.action_cable\z/,
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
 
     ActiveSupport.on_load(:action_cable) do
