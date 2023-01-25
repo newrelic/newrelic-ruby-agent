@@ -394,10 +394,10 @@ module Multiverse
           Gem.path.each do |path|
             Warning.ignore(//, path)
           end
-          puts "*" * 100
-          puts Gem::RUBYGEMS_DIR
-          puts "*" * 100
-          Warning.ignore(//, Gem::RUBYGEMS_DIR)
+
+          # this is to ignore warnings that happen on the CI only
+          # the site_ruby part of the path needs to be removed if it exists otherwise the CI keeps doing the warnings
+          Warning.ignore(//, Gem::RUBYGEMS_DIR.gsub(/site_ruby\//, ''))
         end
 
         gemfile_text = environments[env_index]
