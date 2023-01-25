@@ -394,6 +394,9 @@ module Multiverse
           Gem.path.each do |path|
             Warning.ignore(//, path)
           end
+          puts "*" *100
+          puts Gem::RUBYGEMS_DIR
+          puts "*" *100
           Warning.ignore(//, Gem::RUBYGEMS_DIR)
         end
 
