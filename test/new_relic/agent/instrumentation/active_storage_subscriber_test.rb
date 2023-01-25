@@ -13,5 +13,5 @@ if supported_active_storage_available?
   require_relative 'rails/active_storage_subscriber'
 
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because ActiveStorage is unavailable"
+  puts "Skipping tests in #{File.basename(__FILE__)} because ActiveStorage is unavailable" unless ENV["MIN_TEST_OUTPUT"]
 end

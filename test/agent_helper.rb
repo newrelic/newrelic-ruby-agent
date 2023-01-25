@@ -1021,6 +1021,6 @@ def defer_testing_to_min_supported_rails(test_file, min_rails_version, supports_
 
     yield
   else
-    puts "Skipping tests in #{File.basename(test_file)} because Rails >= #{min_rails_version} is unavailable"
+    puts "Skipping tests in #{File.basename(test_file)} because Rails >= #{min_rails_version} is unavailable" unless ENV["MIN_TEST_OUTPUT"]
   end
 end

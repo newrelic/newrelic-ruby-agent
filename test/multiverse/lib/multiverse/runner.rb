@@ -59,7 +59,7 @@ module Multiverse
         puts yellow(suite.execution_message)
         suite.each_instrumentation_method do |method|
           if opts.key?(:method) && method != opts[:method]
-            puts "Skipping method '#{method}' while focusing only on '#{opts[:method]}'"
+            puts "Skipping method '#{method}' while focusing only on '#{opts[:method]}'" unless ENV["MIN_TEST_OUTPUT"]
             next
           end
           suite.execute(method)

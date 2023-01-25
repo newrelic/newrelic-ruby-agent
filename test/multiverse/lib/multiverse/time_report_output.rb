@@ -27,6 +27,8 @@ module TimeReportOutput
   end
 
   def print_top_ten(top_ten)
+    return if ENV["MIN_TEST_OUTPUT"]
+
     puts "\n====== Ten slowest tests ======\n"
     top_ten.each_with_index do |element, index|
       puts "#{index + 1}. #{element.join(': ')}"

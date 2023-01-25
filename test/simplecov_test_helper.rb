@@ -7,4 +7,4 @@
 # required Ruby >= 2.5.0 and Ruby 2.6.0 was marked for EOL
 SIMPLECOV_MIN_RUBY_VERSION = '2.7.0'
 
-require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION
+require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION && !ENV["MIN_TEST_OUTPUT"]

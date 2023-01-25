@@ -12,5 +12,5 @@ if defined?(ActiveSupport) &&
     ActionPack.gem_version >= Gem::Version.new('6.0.0') # notifications for dispatch added in Rails 6
   require_relative 'rails/action_dispatch_subscriber'
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because ActionDispatch is unavailable or < 6.0"
+  puts "Skipping tests in #{File.basename(__FILE__)} because ActionDispatch is unavailable or < 6.0" unless ENV["MIN_TEST_OUTPUT"]
 end
