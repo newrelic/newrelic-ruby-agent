@@ -22,7 +22,10 @@ The upcoming release of the agent introduces additional Ruby on Rails instrument
   | Configuration name | Default | Behavior |
   | ----- | ----- | ----- |
   | `disable_action_cable` | `false` | If `true`, disables Action Cable instrumentation. |
+  | `disable_action_controller` | `false` | If `true`, disables Action Controller instrumentation. |
+  | `disable_action_dispatch` | `false` | If `true`, disables Action Dispatch instrumentation. |
   | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
+  | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
   | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
 
 ## 8.15.0
