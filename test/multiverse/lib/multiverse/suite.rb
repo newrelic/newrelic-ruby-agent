@@ -394,6 +394,7 @@ module Multiverse
           Gem.path.each do |path|
             Warning.ignore(//, path)
           end
+          Warning.ignore(//, Gem::RUBYGEMS_DIR)
         end
 
         gemfile_text = environments[env_index]

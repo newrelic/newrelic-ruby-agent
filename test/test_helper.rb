@@ -7,6 +7,7 @@ if RUBY_VERSION >= '2.4.0'
   Gem.path.each do |path|
     Warning.ignore(//, path)
   end
+  Warning.ignore(//, Gem::RUBYGEMS_DIR)
 end
 
 require_relative 'simplecov_test_helper'
