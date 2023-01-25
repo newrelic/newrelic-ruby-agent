@@ -93,7 +93,7 @@ module Environments
       result = Multiverse::ShellUtils.try_command_n_times(command, 3)
 
       result = red(result) unless $?.success?
-      puts result
+      puts result unless ENV['MIN_TEST_OUTPUT']
       $?
     end
 

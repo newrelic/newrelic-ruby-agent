@@ -182,7 +182,7 @@ module Multiverse
       end
 
       result = red(result) unless $?.success?
-      puts result
+      puts result unless ENV['MIN_TEST_OUTPUT']
       $?
     end
 
@@ -404,6 +404,7 @@ module Multiverse
         return if gemfile_text.empty?
 
         load_dependencies(gemfile_text, env_index)
+        require 'minitest/pride' unless ENV['CI']
 
         configure_child_environment
         execute_ruby_files

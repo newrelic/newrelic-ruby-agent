@@ -32,5 +32,5 @@ gem "newrelic_rpm", :path => "../../.."
 
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
-gem 'simplecov'
+gem 'simplecov' unless ENV['MIN_TEST_OUTPUT']
 gem 'warning' if RUBY_VERSION >= '2.4.0'
