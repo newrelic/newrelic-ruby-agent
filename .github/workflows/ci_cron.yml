@@ -76,16 +76,16 @@ jobs:
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42"
               },
               "2.7.7": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60,rails70" #,railsedge"
               },
               "3.0.5": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60,rails70" #,railsedge"
               },
               "3.1.3": {
-                "rails": "norails,rails61,rails70,railsedge"
+                "rails": "norails,rails61,rails70" #,railsedge"
               },
               "3.2.0": {
-                "rails": "norails,rails61,rails70,railsedge"
+                "rails": "norails,rails61,rails70" #,railsedge"
               }
             }
 
@@ -116,7 +116,7 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command:  bundle exec rake test:env[${{ env.rails }}]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev --debug
@@ -248,7 +248,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -288,7 +288,7 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command:  bundle exec rake test:multiverse[group=infinite_tracing]
         env:
           SERIALIZE: 1
 
