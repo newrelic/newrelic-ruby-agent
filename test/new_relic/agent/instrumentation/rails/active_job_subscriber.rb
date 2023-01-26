@@ -15,6 +15,8 @@ module NewRelic::Agent::Instrumentation
     discard_on DiscardMe
 
     def perform(error = nil)
+      # rails 6.0 job serialization breaks if you try to retry a job with a class as a param
+      raise RetryMe if error == 'RetryMe'
       raise error if error
 
       rand(1138)
@@ -60,7 +62,14 @@ module NewRelic::Agent::Instrumentation
     # enqueue_retry.active_job
     def test_perform_start_active_job_and_enqueue_retry_active_job
       in_transaction do |txn|
-        TestJob.perform_now(RetryMe)
+        # rails 6.0 job serialization breaks if you try to retry a job with a class as a param
+        # this works fine if you aren't attempting to retry or you're using a later rails version
+        job_arg = if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.1.0')
+          'RetryMe'
+        else
+          RetryMe
+        end
+        TestJob.perform_now(job_arg)
         validate_transaction(txn, %w[enqueue_retry perform_start])
       end
     end
