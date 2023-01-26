@@ -11,5 +11,5 @@ if defined?(ActiveSupport) &&
     ActionMailer.gem_version >= Gem::Version.new('5.0') && RUBY_VERSION > '2.4.0'
   require_relative 'rails/action_mailer_subscriber'
 else
-  puts "Skipping tests in #{__FILE__} because ActionMailer is unavailable"
+  puts "Skipping tests in #{File.basename(__FILE__)} because ActionMailer is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
 end

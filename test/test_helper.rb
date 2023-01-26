@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'warning_test_helper'
+
 require_relative 'simplecov_test_helper'
 
 # define special constant so DefaultSource.framework can return :test
@@ -37,11 +39,11 @@ else
     # try loading rails via attempted loading of config/environment.rb
     require './config/environment'
     require 'newrelic_rpm'
-    puts "Running in standalone mode with Rails"
+    puts "Running in standalone mode with Rails" if ENV['VERBOSE_TEST_OUTPUT']
   rescue LoadError
     # if there was not a file at config/environment.rb fall back to running without it
     require 'newrelic_rpm'
-    puts "Running in standalone mode without Rails"
+    puts "Running in standalone mode without Rails" if ENV['VERBOSE_TEST_OUTPUT']
   end
 end
 

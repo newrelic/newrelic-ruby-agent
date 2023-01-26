@@ -39,7 +39,7 @@ if RUBY_VERSION >= '2.7.0'
 
       refute(defined?(::Multiverse::ROOT), 'Multiverse::ROOT is defined.')
       @reporter.instance_variable_set(:@test_times, [PARSED_RESULT])
-      assert_output(/Ten slowest tests/) { @reporter.report }
+      assert_output(/Ten slowest tests/) { @reporter.report } if ENV["VERBOSE_TEST_OUTPUT"]
     end
 
     def test_report_does_not_print_inside_multiverse
