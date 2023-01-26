@@ -2,9 +2,11 @@
 
 ## v9.0.0
 
-- **Enabled Thread Instrumentation by default**
+  Version 9.0.0 of the agent enables thread tracing.
 
-  The configuration option `instrumentation.thread.tracing` is now enabled by default. Allowing the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
+- **Enable Thread Instrumentation by default**
+
+  The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
 
 
 
