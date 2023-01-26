@@ -38,7 +38,11 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
     txn = future_in_transaction { 'time keeps on slipping' }
     expected_segment = 'Concurrent/Task'
 
-    assert_equal(2, txn.segments.length)
+    # concurrent ruby sometimes reuses threads, so in that case there would be no segment for the thread being created.
+    # this removes any thread segment since it may or may not exist, depending on what concurrent ruby decided to do
+    non_thread_segments = txn.segments.select { |seg| seg.name != 'Ruby/Thread' }
+
+    assert_equal(2, non_thread_segments.length)
     assert_includes txn.segments.map(&:name), expected_segment
   end
 
