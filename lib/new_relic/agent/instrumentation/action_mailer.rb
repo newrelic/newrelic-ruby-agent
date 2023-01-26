@@ -8,6 +8,10 @@ DependencyDetection.defer do
   named :action_mailer
 
   depends_on do
+    !NewRelic::Agent.config[:disable_action_mailer]
+  end
+
+  depends_on do
     defined?(ActiveSupport) &&
       defined?(ActionMailer) &&
       ActionMailer.respond_to?(:gem_version) &&
