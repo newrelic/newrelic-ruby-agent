@@ -230,5 +230,5 @@ if Sequel.const_defined?(:MAJOR) &&
   end
 
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because unsupported Sequel version" unless ENV["MIN_TEST_OUTPUT"]
+  puts "Skipping tests in #{File.basename(__FILE__)} because unsupported Sequel version" if ENV["VERBOSE_TEST_OUPUT"]
 end

@@ -20,7 +20,7 @@ class AutostartTest < Minitest::Test
       Rails.send(:remove_const, :Console)
     end
   else
-    puts "Skipping `test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined` in #{File.basename(__FILE__)} because Rails is unavailable" unless ENV["MIN_TEST_OUTPUT"]
+    puts "Skipping `test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined` in #{File.basename(__FILE__)} because Rails is unavailable" if ENV["VERBOSE_TEST_OUPUT"]
   end
 
   def test_agent_will_autostart_if_global_CONSOLE_constant_is_defined
