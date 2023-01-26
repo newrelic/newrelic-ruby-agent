@@ -39,11 +39,11 @@ else
     # try loading rails via attempted loading of config/environment.rb
     require './config/environment'
     require 'newrelic_rpm'
-    puts "Running in standalone mode with Rails"
+    puts "Running in standalone mode with Rails" if ENV['VERBOSE_TEST_OUTPUT']
   rescue LoadError
     # if there was not a file at config/environment.rb fall back to running without it
     require 'newrelic_rpm'
-    puts "Running in standalone mode without Rails"
+    puts "Running in standalone mode without Rails" if ENV['VERBOSE_TEST_OUTPUT']
   end
 end
 
