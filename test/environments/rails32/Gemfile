@@ -23,3 +23,4 @@ platforms :ruby, :rbx do
 end
 
 gem 'pry', '~> 0.9.12'
+gem 'warning' if RUBY_VERSION >= '2.4.0'

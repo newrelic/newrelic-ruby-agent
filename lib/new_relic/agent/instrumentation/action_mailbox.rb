@@ -8,6 +8,10 @@ DependencyDetection.defer do
   named :action_mailbox
 
   depends_on do
+    !NewRelic::Agent.config[:disable_action_mailbox]
+  end
+
+  depends_on do
     defined?(ActiveSupport) &&
       defined?(ActionMailbox) &&
       ActionMailbox.respond_to?(:gem_version) && # 'require "action_mailbox"' doesn't require version...

@@ -54,6 +54,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
+        # ,railsedge goes in 2.7+
       - name: Set up mini-envs for ruby version
         uses: kanga333/variable-mapper@master
         with:
@@ -76,16 +77,16 @@ jobs:
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42"
               },
               "2.7.7": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60,rails70"
               },
               "3.0.5": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60,rails70"
               },
               "3.1.3": {
-                "rails": "norails,rails61,rails70,railsedge"
+                "rails": "norails,rails61,rails70"
               },
               "3.2.0": {
-                "rails": "norails,rails61,rails70,railsedge"
+                "rails": "norails,rails61,rails70"
               }
             }
 
@@ -116,10 +117,10 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command:  bundle exec rake test:env[${{ env.rails }}]
         env:
+          VERBOSE_TEST_OUTPUT: true
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev --debug
 
 
   multiverse:
@@ -248,8 +249,9 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
+          VERBOSE_TEST_OUTPUT: true
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
@@ -288,8 +290,9 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command:  bundle exec rake test:multiverse[group=infinite_tracing]
         env:
+          VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
 
       - name: Annotate errors

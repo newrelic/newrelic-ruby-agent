@@ -232,5 +232,5 @@ if defined?(Rack::Test)
     end
   end
 else
-  puts "Skipping tests in #{__FILE__} because Rack::Test is unavailable"
+  puts "Skipping tests in #{File.basename(__FILE__)} because Rack::Test is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
 end
