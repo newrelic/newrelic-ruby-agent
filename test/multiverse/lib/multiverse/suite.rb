@@ -436,6 +436,10 @@ module Multiverse
       end
     end
 
+    def instrumentation_permutations
+      environments.instrumentation_permutations
+    end
+
     # Load the test suite's environment and execute it.
     #
     # Normally we fork to do this, and wait for the child to exit, to avoid
@@ -724,8 +728,9 @@ module Multiverse
       return environments.instrumentation_permutations unless opts.key?(:method)
 
       unless environments.instrumentation_permutations.include?(opts[:method])
-        raise "The :method filter specified a value of #{opts[:method]}, but the only possible methods are " \
-          "#{environments.instrumentation_permutations.join('|')}"
+        puts "Warning: The :method filter specified a value of #{opts[:method]}, but the only possible methods are " \
+        "#{environments.instrumentation_permutations.join('|')}. Ignoring :method filter."
+        return environments.instrumentation_permutations
       end
 
       [opts[:method]]
