@@ -92,7 +92,7 @@ jobs:
           command: bundle exec rake test:env[${{ env.rails }}]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev --debug
+          VERBOSE_TEST_OUPUT: true
           COVERAGE: true
 
       - name: Save coverage results
@@ -233,8 +233,9 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
-          DB_PASSWORD: root
+          VERBOSE_TEST_OUPUT: true
           MYSQL_PASSWORD: root
+          DB_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
           MYSQL_HOST: 127.0.0.1
@@ -282,6 +283,7 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:multiverse[group=infinite_tracing]
         env:
+          VERBOSE_TEST_OUPUT: true
           SERIALIZE: 1
           COVERAGE: true
 
