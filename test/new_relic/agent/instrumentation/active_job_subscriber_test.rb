@@ -10,5 +10,5 @@ if defined?(ActiveJob) &&
     ActiveJob.gem_version >= Gem::Version.new('6.0.0')
   require_relative 'rails/active_job_subscriber'
 else
-  puts "Skipping tests in #{__FILE__} because ActiveJob is unavailable or < 6.0"
+  puts "Skipping tests in #{File.basename(__FILE__)} because ActiveJob is unavailable or < 6.0" if ENV['VERBOSE_TEST_OUPUT']
 end
