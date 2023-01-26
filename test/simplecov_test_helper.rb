@@ -8,7 +8,7 @@
 SIMPLECOV_MIN_RUBY_VERSION = '2.7.0'
 
 begin
-  require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION && !ENV["MIN_TEST_OUTPUT"]
+  require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION && ENV["VERBOSE_TEST_OUTPUT"]
 rescue LoadError => e
   puts
   puts "SimpleCov requested by Ruby #{RUBY_VERSION} which is >=#{SIMPLECOV_MIN_RUBY_VERSION} "

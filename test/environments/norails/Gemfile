@@ -13,6 +13,6 @@ gem 'newrelic_rpm', :path => '../../..'
 
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
-gem 'simplecov' unless ENV['MIN_TEST_OUTPUT']
+gem 'simplecov' if ENV["VERBOSE_TEST_OUPUT"]
 
 gem 'warning' if RUBY_VERSION >= '2.4.0'
