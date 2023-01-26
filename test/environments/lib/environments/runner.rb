@@ -100,7 +100,12 @@ module Environments
     def run(dir)
       puts "Starting tests for dir '#{dir}'..."
       cmd = String.new("cd #{dir} && bundle exec rake")
+      # if the shell running the original test:env rake task has a "file" env
+      # var, replicate it here in the subshell
       cmd << " file=#{ENV['file']}" if ENV["file"]
+      # if the shell running the original test:env rake task has CLI args (not
+      # Rake task args) such as '--trace', replicate them here in the subshell
+      cmd << " #{ARGV[1..-1].join(' ')}" if ARGV.size > 1
 
       IO.popen(cmd) do |io|
         until io.eof
