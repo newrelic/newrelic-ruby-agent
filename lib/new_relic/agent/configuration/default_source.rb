@@ -1835,7 +1835,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.thread.tracing' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
