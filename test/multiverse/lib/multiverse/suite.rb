@@ -184,7 +184,7 @@ module Multiverse
       end
 
       result = red(result) unless $?.success?
-      puts result if ENV["VERBOSE_TEST_OUPUT"]
+      puts result if ENV["VERBOSE_TEST_OUTPUT"]
       $?
     end
 

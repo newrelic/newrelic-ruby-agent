@@ -57,7 +57,7 @@ class TestTimeReporter < MINITEST_CLASS_NAME
   end
 
   def output_report
-    return unless ENV["VERBOSE_TEST_OUPUT"]
+    return unless ENV["VERBOSE_TEST_OUTPUT"]
 
     puts "\n====== Ten slowest tests ======\n"
     ten_slowest_tests.each_with_index do |element, index|

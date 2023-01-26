@@ -92,7 +92,7 @@ jobs:
           command: bundle exec rake test:env[${{ env.rails }}]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          VERBOSE_TEST_OUPUT: true
+          VERBOSE_TEST_OUTPUT: true
           COVERAGE: true
 
       - name: Save coverage results
@@ -233,7 +233,7 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
-          VERBOSE_TEST_OUPUT: true
+          VERBOSE_TEST_OUTPUT: true
           MYSQL_PASSWORD: root
           DB_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
@@ -283,7 +283,7 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:multiverse[group=infinite_tracing]
         env:
-          VERBOSE_TEST_OUPUT: true
+          VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
           COVERAGE: true
 

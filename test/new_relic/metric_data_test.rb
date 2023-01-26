@@ -108,7 +108,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     end
 
   else
-    puts "Skipping tests in #{File.basename(__FILE__)} because Hash#to_json not available" if ENV["VERBOSE_TEST_OUPUT"]
+    puts "Skipping tests in #{File.basename(__FILE__)} because Hash#to_json not available" if ENV["VERBOSE_TEST_OUTPUT"]
   end
 
   def test_to_s_with_metric_spec
