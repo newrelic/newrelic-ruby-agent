@@ -23,7 +23,7 @@ def gem_list(typhoeus_version = nil)
     gem 'typhoeus'#{typhoeus_version}
     gem 'ethon' if RUBY_PLATFORM == 'java'
     gem 'rack'
-    #{ruby3_gem_webrick}
+    
   RB
 end
 

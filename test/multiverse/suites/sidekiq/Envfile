@@ -22,7 +22,7 @@ def gem_list(sidekiq_version = nil)
     gem 'json'
     #{gem_connection_pool}
     #{gem_redis}
-    #{ruby3_gem_webrick}
+    
     #{ruby3_gem_sorted_set}
     gem 'sidekiq'#{sidekiq_version}
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

@@ -20,7 +20,7 @@ def gem_list(activerecord_version = nil)
   <<-RB
     gem 'activerecord'#{activerecord_version}
     gem 'pg'
-    #{ruby3_gem_webrick}
+    
     gem 'rack'
     gem 'minitest', '~> 5.2.3'
   RB

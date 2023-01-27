@@ -11,7 +11,7 @@ RESQUE_VERSIONS = [
 def gem_list(resque_version = nil)
   <<-RB
   gem 'resque'#{resque_version}
-  #{ruby3_gem_webrick}
+  
   RB
 end
 
