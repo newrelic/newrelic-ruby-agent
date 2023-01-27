@@ -2340,7 +2340,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
                           "span being sent individually"
         },
         :'infinite_tracing.compression_level' => {
-          :default => :high,
+          :default => :medium,
           :public => true,
           :type => Symbol,
           :allowed_from_server => false,
