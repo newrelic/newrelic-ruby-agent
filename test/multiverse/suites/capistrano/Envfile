@@ -15,7 +15,7 @@ def gem_list(capistrano_version = nil)
   <<-RB
     gem 'sshkit', '1.16.0'
     gem 'rack'
-    #{ruby3_gem_webrick}
+    
     gem 'capistrano'#{capistrano_version}
   RB
 end

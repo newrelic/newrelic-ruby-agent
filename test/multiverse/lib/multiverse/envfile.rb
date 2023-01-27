@@ -62,10 +62,6 @@ module Multiverse
       @gemfiles.push(content) unless content.nil? || content.empty?
     end
 
-    def ruby3_gem_webrick
-      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
-    end
-
     def ruby3_gem_sorted_set
       RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
     end

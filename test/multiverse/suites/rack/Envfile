@@ -21,7 +21,7 @@ def gem_list(puma_version = nil)
     gem 'puma'#{puma_version}
     gem 'rack'#{rack_version}
     gem 'rack-test'
-    #{ruby3_gem_webrick}
+    
   RB
 end
 
@@ -31,13 +31,13 @@ if RUBY_VERSION >= '2.3.0'
   gemfile <<-RB
     gem 'rack'
     gem 'rack-test'
-    #{ruby3_gem_webrick}
+    
   RB
 
   gemfile <<-RB
     gem 'rack', '2.2.4'
     gem 'rack-test'
-    #{ruby3_gem_webrick}
+    
   RB
 end
 
@@ -45,6 +45,6 @@ if RUBY_VERSION < '3.2.0'
   gemfile <<-RB
     gem 'rack', '1.6.13'
     gem 'rack-test'
-    #{ruby3_gem_webrick}
+    
   RB
 end
