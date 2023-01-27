@@ -10,9 +10,9 @@
 
 
 
-## Upcoming Release
+## 8.16.0
 
-The upcoming release of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce Active Support notifications events.
+Version 8.16.0 of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).
 
 - **Add Various Additional Ruby on Rails Library Instrumentations**
 

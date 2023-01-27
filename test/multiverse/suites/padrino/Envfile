@@ -10,7 +10,6 @@ gemfile <<-RB
   gem 'padrino'
   gem 'rack-test'
   gem 'sinatra'
-  gem 'webrick' if RUBY_VERSION >= '2.7.0'
 RB
 
 # Sinatra <3
@@ -19,5 +18,4 @@ gemfile <<-RB
   gem 'padrino', '0.15.1'
   gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
   gem 'sinatra', '< 3'
-  gem 'webrick' if RUBY_VERSION >= '2.7.0'
 RB

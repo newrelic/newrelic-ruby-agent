@@ -36,7 +36,7 @@ def gem_list(rake_version = nil)
   <<-RB
     gem 'rack'
     gem 'rake'#{rake_version}
-    #{ruby3_gem_webrick}
+    
   RB
 end
 
@@ -51,7 +51,7 @@ end
 gemfile <<-RB
   gem 'rack', "~> #{rack_version}"
   gem 'rake'
-  #{ruby3_gem_webrick}
+  
   gem 'rails'
   gem 'minitest', '5.2.3'
 RB
