@@ -1330,10 +1330,8 @@ Style/ExplicitBlockArgument:
 Style/ExponentialNotation:
   Enabled: false
 
-# TODO: MAJOR VERSION - Re-enable FetchEnvVar after dropping support for Ruby 2.2
-#                       Ruby 2.3+ allows for ENV.fetch('KEY') { default }
 Style/FetchEnvVar:
-  Enabled: false
+  Enabled: true
 
 Style/FloatDivision:
   Enabled: false
@@ -1740,9 +1738,8 @@ Style/RescueStandardError:
 Style/ReturnNil:
   Enabled: false
 
-# Can't use, not available in Ruby 2.2
 Style/SafeNavigation:
-  Enabled: false
+  Enabled: true
   # ConvertCodeThatCanStartToReturnNil: false
   # AllowedMethods:
   #   - present?
