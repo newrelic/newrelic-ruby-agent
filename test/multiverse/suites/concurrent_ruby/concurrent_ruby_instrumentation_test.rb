@@ -103,12 +103,15 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
   end
 
   def test_segment_not_created_if_tracing_disabled
-    NewRelic::Agent::Tracer.stub :tracing_enabled?, false do
-      txn = future_in_transaction { 'the revolution will not be televised' }
-
-      assert_predicate txn.segments, :one?
-      assert_equal txn.segments.first.name, txn.best_name
+    txn = in_transaction do
+      NewRelic::Agent.disable_all_tracing do
+        future = Concurrent::Promises.future { 'the revolution will not be televised' }
+        future.wait!
+      end
     end
+
+    assert_predicate txn.segments, :one?
+    assert_equal txn.segments.first.name, txn.best_name
   end
 
   def test_supportability_metric_recorded_once
