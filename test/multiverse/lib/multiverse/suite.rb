@@ -268,6 +268,10 @@ module Multiverse
       raise "bundle command failed with (#{$?})" unless $? == 0
     end
 
+    def ruby3_gem_webrick
+      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
+    end
+
     def generate_gemfile(gemfile_text, env_index, local = true)
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile, 'w') do |f|
@@ -281,6 +285,10 @@ module Multiverse
 
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
+
+        # pin webrick until we investigate why 1.8.1 breaks things
+        f.puts "gem 'webrick', '< 1.8.0'"
+        # f.puts ruby3_gem_webrick
 
         f.puts "gem 'warning'" if RUBY_VERSION >= '2.4.0'
 
