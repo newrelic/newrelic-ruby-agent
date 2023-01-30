@@ -33,6 +33,9 @@ function update_to_desired_rubygems_version {
     echo "DEBUG: running 'rubygems-update'"
     update_rubygems
   elif [[ $RUBY_VERSION =~ 2.[^7] ]]; then
+    echo "DEBUG: running 'gem update --system 3.0.6 --force'"
+    gem update --system 3.0.6 --force >/dev/null
+  else
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force >/dev/null
   fi
