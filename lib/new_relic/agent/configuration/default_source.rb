@@ -2331,7 +2331,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "URI for the New Relic data collection service."
         },
         :'infinite_tracing.batching' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -2340,7 +2340,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
                           "span being sent individually"
         },
         :'infinite_tracing.compression_level' => {
-          :default => :none,
+          :default => :low,
           :public => true,
           :type => Symbol,
           :allowed_from_server => false,
