@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## Upcoming Release
+## 8.16.0
 
-The upcoming release of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce Active Support notifications events.
+Version 8.16.0 of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).
 
 - **Add Various Additional Ruby on Rails Library Instrumentations**
 
@@ -15,6 +15,7 @@ The upcoming release of the agent introduces additional Ruby on Rails instrument
   - Action Dispatch (for middleware) [PR#1745](https://github.com/newrelic/newrelic-ruby-agent/pull/1745)
   - Action Mailbox (for sending mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
   - Action Mailer (for routing mail) [PR#1740](https://github.com/newrelic/newrelic-ruby-agent/pull/1740)
+  - Active Job (for background jobs) [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1761)
   - Active Support (for caching operations) [PR#1742](https://github.com/newrelic/newrelic-ruby-agent/pull/1742)
 
   The instrumentations for each of these libaries are all enabled by default, but can be independently disabled via configuration by using the following parameters:
@@ -26,6 +27,7 @@ The upcoming release of the agent introduces additional Ruby on Rails instrument
   | `disable_action_dispatch` | `false` | If `true`, disables Action Dispatch instrumentation. |
   | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
   | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
+  | `disable_activejob` | `false` | If `true`, disables Active Job instrumentation. |
   | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
 
 ## 8.15.0

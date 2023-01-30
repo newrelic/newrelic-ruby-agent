@@ -27,7 +27,7 @@ def gem_list(httprb_version = nil)
   <<-RB
     gem 'http'#{httprb_version}
     gem 'rack'
-    #{ruby3_gem_webrick}
+    
   RB
 end
 

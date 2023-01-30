@@ -15,7 +15,7 @@ def gem_list(grape_version = nil)
     gem 'rack'
     gem 'rack-test', '>= 0.8.0'
     gem 'grape'#{grape_version}
-    #{ruby3_gem_webrick}
+    
     gem 'activesupport'
   RB
 end

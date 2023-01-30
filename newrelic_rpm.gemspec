@@ -60,5 +60,6 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'rubocop-rake' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'thor' unless ENV['CI']
+  s.add_development_dependency 'warning' if RUBY_VERSION >= '2.4.0'
   s.add_development_dependency 'yard', "#{RUBY_VERSION < '2.3.0' ? '0.9.26' : '> 0.9.26'}"
 end

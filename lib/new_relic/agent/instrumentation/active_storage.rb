@@ -8,6 +8,10 @@ DependencyDetection.defer do
   named :active_storage
 
   depends_on do
+    !NewRelic::Agent.config[:disable_active_storage]
+  end
+
+  depends_on do
     defined?(ActiveStorage) &&
       !NewRelic::Agent::Instrumentation::ActiveStorageSubscriber.subscribed?
   end

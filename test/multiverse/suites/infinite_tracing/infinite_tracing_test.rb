@@ -22,5 +22,5 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
   end
 
 else
-  puts "Skipping tests in #{__FILE__} because Infinite Tracing is not configured to load"
+  puts "Skipping tests in #{File.basename(__FILE__)} because Infinite Tracing is not configured to load" if ENV["VERBOSE_TEST_OUTPUT"]
 end

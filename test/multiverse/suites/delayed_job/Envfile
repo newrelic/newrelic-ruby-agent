@@ -28,7 +28,7 @@ boilerplate_gems = <<-SQLITE
   gem 'rack'
   #{sqlite}
   #{bigdecimal}
-  #{ruby3_gem_webrick}
+  
 SQLITE
 
 if RUBY_VERSION >= '2.6.0'
