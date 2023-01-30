@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      - de      - major-release-9v
+      - dev
+      - major-release-9
 
   schedule:
     - cron: '0 9 * * *'
