@@ -55,7 +55,7 @@ function install_desired_bundler_version {
 }
 
 function configure_bundler {
-  if ! [[ $RUBY_VERSION =~ 2.[45] ]]; then
+  if ! [[ $RUBY_VERSION =~ 2.[23] ]]; then
     echo "DEBUG: Ruby is not at version 2.4-2.5, skipping 'bundler config'"
     return
   fi
