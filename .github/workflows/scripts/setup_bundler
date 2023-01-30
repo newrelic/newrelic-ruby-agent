@@ -26,7 +26,8 @@ function using_old_ruby {
 function update_to_desired_rubygems_version {
   # Older rubies come with older Rubygems and we need 3.0.6 to
   # correctly install Bundler 1.17 for the multiverse test suite
-  # Newer Rubies can use 'gem update --system'
+  # Rubies < 2.3 need to use update_rubygems,
+  # newer Rubies can use 'gem update --system'
   if [[ $RUBY_VERSION = "2.4.10" ]]; then
     echo "DEBUG: installing rubygems-update version 2.7.11"
     gem install rubygems-update:2.7.11
@@ -55,11 +56,17 @@ function install_desired_bundler_version {
   echo "DEBUG: running 'gem list bundler'"
   gem list bundler
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
+  if [[ $RUBY_VERSION != "2.4.10" ]]; then 
+    echo "DEBUG: running 'gem uninstall bundler'"
+    gem uninstall bundler
+    echo "DEBUG: running 'gem list bundler' again"
+    gem list bundler
+  fi
 }
 
 function configure_bundler {
-  if ! [[ $RUBY_VERSION =~ 2.[23] ]]; then
-    echo "DEBUG: Ruby is not at version 2.4-2.5, skipping 'bundler config'"
+  if ! [[ $RUBY_VERSION =~ 2.[45] ]]; then
+    echo "DEBUG: Ruby is not at version 2.2-2.5, skipping 'bundler config'"
     return
   fi
 
