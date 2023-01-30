@@ -82,11 +82,9 @@ module NewRelic
         def before_invoke_transaction(task)
           ensure_at_exit
 
+          instrument_execute_on_prereqs(task)
           if task.application.options.always_multitask
-            instrument_execute_on_prereqs(task)
             instrument_invoke_prerequisites_concurrently(task)
-          else
-            instrument_execute_on_prereqs(task)
           end
         rescue => e
           NewRelic::Agent.logger.error("Error during Rake task invoke", e)
