@@ -131,30 +131,17 @@ class RakeInstrumentationTest < Minitest::Test
     assert task.instance_variable_get(:@__newrelic_instrumented_execute)
   end
 
-  def test_before_invoke_transaction_with_concurrent_invocation_and_current_transaction
+  def test_before_invoke_transaction_with_concurrent_invocation
+    prereq = MiniTest::Mock.new
+    prereq.expect :instance_variable_get, nil, [:@__newrelic_instrumented_execute]
+    prereq.expect :instance_variable_set, nil, [:@__newrelic_instrumented_execute, true]
+    prereq.expect :instance_eval, nil, []
+    prereq.expect :prerequisite_tasks, [], []
     task = OpenStruct.new(application: OpenStruct.new(options: OpenStruct.new(always_multitask: true)),
-      prerequisite_tasks: [OpenStruct.new(name: 'prereq')])
+      prerequisite_tasks: [prereq])
     NewRelic::Agent::Instrumentation::Rake.class_eval do
       def ensure_at_exit; end
     end
-    NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(task)
-    txn = MiniTest::Mock.new
-    segment = MiniTest::Mock.new
-    txn.expect :current_segment, segment
-    segment.expect :params, {}
-    NewRelic::Agent::Tracer.stub :current_transaction, txn do
-      task.execute
-      task.invoke_prerequisites_concurrently
-      txn.verify
-      segment.verify
-    end
-  end
-
-  def test_before_invoke_transaction_with_concurrent_invocation_without_transaction
-    prereq = MiniTest::Mock.new
-    prereq.expect :name, 'name'
-    task = OpenStruct.new(application: OpenStruct.new(options: OpenStruct.new(always_multitask: true)),
-      prerequisite_tasks: [prereq])
     NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(task)
     NewRelic::Agent::Tracer.stub :current_transaction, nil do
       task.execute
