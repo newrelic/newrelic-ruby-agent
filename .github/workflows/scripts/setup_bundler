@@ -16,7 +16,7 @@ function using_old_rails {
 
 function using_old_ruby {
   # example RUBY_VERSION strings:
-  #   '2.4.10' => true, starts with "2", next digit is not a "6" or "7"
+  #   '2.2.10' => true, starts with "2", next digit is not a "6" or "7"
   #   '2.7.7'  => false, starts with "2", next digit is "7"
   #   '3.1.3'  => false, does not start with "2"
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
@@ -28,7 +28,7 @@ function update_to_desired_rubygems_version {
   # correctly install Bundler 1.17 for the multiverse test suite
   # Rubies < 2.3 need to use update_rubygems,
   # newer Rubies can use 'gem update --system'
-  if [[ $RUBY_VERSION = "2.4.10" ]]; then
+  if [[ $RUBY_VERSION = "2.2.10" ]]; then
     echo "DEBUG: installing rubygems-update version 2.7.11"
     gem install rubygems-update:2.7.11
     echo "DEBUG: running 'rubygems-update'"
@@ -56,7 +56,7 @@ function install_desired_bundler_version {
   echo "DEBUG: running 'gem list bundler'"
   gem list bundler
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-  if [[ $RUBY_VERSION != "2.4.10" ]]; then 
+  if [[ $RUBY_VERSION != "2.2.10" ]]; then 
     echo "DEBUG: running 'gem uninstall bundler'"
     gem uninstall bundler
     echo "DEBUG: running 'gem list bundler' again"
@@ -65,7 +65,7 @@ function install_desired_bundler_version {
 }
 
 function configure_bundler {
-  if ! [[ $RUBY_VERSION =~ 2.[45] ]]; then
+  if ! [[ $RUBY_VERSION =~ 2.[23] ]]; then
     echo "DEBUG: Ruby is not at version 2.2-2.5, skipping 'bundler config'"
     return
   fi
