@@ -51,16 +51,10 @@ function install_desired_bundler_version {
   echo "DEBUG: running 'gem list bundler'"
   gem list bundler
   echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-  if [[ $RUBY_VERSION != "2.2.10" ]]; then 
-    echo "DEBUG: running 'gem uninstall bundler'"
-    gem uninstall bundler
-    echo "DEBUG: running 'gem list bundler' again"
-    gem list bundler
-  fi
 }
 
 function configure_bundler {
-  if ! [[ $RUBY_VERSION =~ 2.[23] ]]; then
+  if ! [[ $RUBY_VERSION =~ 2.[45] ]]; then
     echo "DEBUG: Ruby is not at version 2.2-2.5, skipping 'bundler config'"
     return
   fi
