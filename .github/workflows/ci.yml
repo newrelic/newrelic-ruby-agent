@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.2.0]
+        ruby-version: [2.4.10, 3.2.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -54,19 +54,19 @@ jobs:
           key: ${{ matrix.ruby-version }}
           map: |
             {
-              "2.2.10": {
-                "rails": "norails,rails41,rails32"
+              "2.4.10": {
+                "rails": "norails,rails42,rails52"
               },
               "3.2.0": {
                 "rails": "norails,rails61,rails70"
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10'
+      - if: matrix.ruby-version == '2.4.10'
         name: Prepare mysql dirextory
         run: sudo chown -R $USER /usr/local
 
-      - if: matrix.ruby-version == '2.2.10'
+      - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -74,7 +74,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.2.10'
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -139,7 +139,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
           - 27017:27017
       mysql:
@@ -183,7 +183,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 3.2.0]
+        ruby-version: [2.4.10, 3.2.0]
 
     steps:
       - name: Configure git
@@ -202,11 +202,11 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
 
         # This allows the cache in the following step to be able to write files to the directory needed for mysql
-      - if: matrix.ruby-version == '2.2.10'
+      - if: matrix.ruby-version == '2.4.10'
         name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
-      - if: matrix.ruby-version == '2.2.10' 
+      - if: matrix.ruby-version == '2.4.10' 
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -214,7 +214,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.2.10'
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 

@@ -2,9 +2,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-suite_condition("only test on 2.3") { RUBY_VERSION == '2.3.0' }
+# Datamapper support was depcreated in Ruby agent 8.7.0
+# We no longer test it, but keep the instrumentation around
+suite_condition("Skipping tests. Datamapper support was deprecated in Ruby agent 8.7.0") { false }
 
-adapter_gems = <<-RB
+adapter_gems = <<~RB
   gem 'dm-sqlite-adapter'
 
   # Pin this version as the adapter breaks with later ones
@@ -14,7 +16,7 @@ adapter_gems = <<-RB
   gem 'rack'
 RB
 
-gemfile <<-RB
+gemfile <<~RB
   gem 'datamapper', '~> 1.2.0', :require => 'data_mapper'
   gem 'dm-ar-finders', '~> 1.2.0'
   gem 'addressable', :require => 'addressable/uri'

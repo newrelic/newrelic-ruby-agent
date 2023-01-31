@@ -14,7 +14,7 @@ GRPC_VERSIONS = [
 ]
 
 def gem_list(grpc_version = nil)
-  <<-RB
+  <<~RB
     gem 'grpc'#{grpc_version}
   RB
 end

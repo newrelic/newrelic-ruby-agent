@@ -133,11 +133,11 @@ contain at least two files.
 The Envfile is a meta gem file.  It allows you to specify one or more gemset
 that the tests in this directory should be run against.  For example:
 
-    gemfile <<-GEMFILE
+    gemfile <<~GEMFILE
       gem "rails", "~>6.1.0"
     GEMFILE
 
-    gemfile <<-GEMFILE
+    gemfile <<~GEMFILE
       gem "rails", "~>6.0.0"
     GEMFILE
 
