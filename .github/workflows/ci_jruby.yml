@@ -151,7 +151,7 @@ jobs:
         env: 
           TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }}]"
           VERBOSE_TEST_OUTPUT: true
-          RETRY_ATTEMPS: 2
+          RETRY_ATTEMPS: 5
           SERIALIZE: 1
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev --debug
