@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.0.0
+
+  Version 9.0.0 of the agent enables thread tracing.
+
+- **Enable Thread Instrumentation by default**
+
+  The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
+
+
+
 ## 8.16.0
 
 Version 8.16.0 of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).

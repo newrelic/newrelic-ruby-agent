@@ -133,9 +133,11 @@ module NewRelic::Agent
       end
 
       def restart
-        reset_connection
-        transfer_buffer
-        start_streaming
+        NewRelic::Agent.disable_all_tracing do
+          reset_connection
+          transfer_buffer
+          start_streaming
+        end
       end
 
       def stop
@@ -150,8 +152,10 @@ module NewRelic::Agent
       def start_streaming(exponential_backoff = true)
         return if suspended?
 
-        Connection.instance.wait_for_agent_connect
-        @lock.synchronize { response_handler(exponential_backoff) }
+        NewRelic::Agent.disable_all_tracing do
+          Connection.instance.wait_for_agent_connect
+          @lock.synchronize { response_handler(exponential_backoff) }
+        end
       end
 
       def record_spans(exponential_backoff)
