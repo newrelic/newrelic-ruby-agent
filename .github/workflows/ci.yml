@@ -201,6 +201,23 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
+        # This allows the cache in the following step to be able to write files to the directory needed for mysql
+      - if: matrix.ruby-version == '2.4.10'
+        name: Prepare mysql directory
+        run: sudo chown -R $USER /usr/local
+
+      - if: matrix.ruby-version == '2.4.10' 
+        name: Cache mysql55
+        id: mysql55-cache
+        uses: actions/cache@v3.2.2
+        with:
+          path: /usr/local/mysql55
+          key: mysql55-install
+
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
+        name: Install mysql55
+        run: sudo ./test/script/install_mysql55
+
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
         env:
