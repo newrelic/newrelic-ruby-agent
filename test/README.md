@@ -28,6 +28,8 @@ add these aliases in ~/.bash_profile (or ~/.zshenv, depending on what shell you 
     alias bermq="./test/script/run_tests -q"
     alias ber="./test/script/run_tests"
 
+Also, if you set it to the full path instead of relative, then you can run it from anywhere and it will work in wherever you are (for example, if you've `cd`-ed into infinite_tracing and run `bert` it will run the infinite tracing tests if you're using the full path, but error if its relative)
+
 Then you'll be able to run the tests super easy like
 
     bert # run all unit tests
