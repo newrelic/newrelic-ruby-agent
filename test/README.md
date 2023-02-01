@@ -20,7 +20,7 @@ Examples
 
 If you set up shell alias for these, it will make it super convenient to run
 
-add these aliases in ~/.bash_profile (or ~/.zsh_profile, whatever you use)
+add these aliases in ~/.bash_profile (or ~/.zshenv, depending on what shell you use)
 
     alias bert="./test/script/run_tests -u"
     alias bere="./test/script/run_tests -e"
