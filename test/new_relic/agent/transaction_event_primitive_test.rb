@@ -96,26 +96,6 @@ module NewRelic
         end
       end
 
-      def test_doesnt_include_custom_attributes_in_event_when_configured_not_to_with_legacy_setting
-        with_config('analytics_events.capture_attributes' => false) do
-          attributes.merge_custom_attributes('bing' => 2)
-
-          _, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload)
-
-          assert_empty custom_attrs
-        end
-      end
-
-      def test_doesnt_include_agent_attributes_in_event_when_configured_not_to_with_legacy_setting
-        with_config('analytics_events.capture_attributes' => false) do
-          attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
-
-          _, _, agent_attrs = TransactionEventPrimitive.create(generate_payload)
-
-          assert_empty agent_attrs
-        end
-      end
-
       def test_custom_attributes_in_event_cant_override_reserved_attributes
         metrics = NewRelic::Agent::TransactionMetrics.new()
         metrics.record_unscoped('HttpDispatcher', 0.01)

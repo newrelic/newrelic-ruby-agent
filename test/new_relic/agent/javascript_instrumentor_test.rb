@@ -158,7 +158,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
 
   def test_config_data_for_js_agent
     nr_freeze_process_time
-    with_config(CAPTURE_ATTRIBUTES => true) do
+    with_config(ATTRIBUTES_ENABLED => true) do
       in_transaction('most recent transaction') do
         txn = NewRelic::Agent::Transaction.tl_current
         txn.stubs(:queue_time).returns(0)
@@ -190,7 +190,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
 
   def test_config_data_for_js_agent_attributes
     nr_freeze_process_time
-    with_config(CAPTURE_ATTRIBUTES => true) do
+    with_config(ATTRIBUTES_ENABLED => true) do
       in_transaction('most recent transaction') do |txn|
         NewRelic::Agent.add_custom_attributes(:user => "user")
         NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
@@ -238,7 +238,6 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   end
 
   ATTRIBUTES_ENABLED = :'browser_monitoring.attributes.enabled'
-  CAPTURE_ATTRIBUTES = :'browser_monitoring.capture_attributes'
 
   def test_data_for_js_agent_doesnt_get_custom_attributes_by_default
     with_config({}) do
@@ -251,7 +250,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   end
 
   def test_data_for_js_agent_doesnt_get_custom_attributes_outside_transaction
-    with_config(CAPTURE_ATTRIBUTES => true) do
+    with_config(ATTRIBUTES_ENABLED => true) do
       NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
 
       assert_attributes_missing
@@ -259,7 +258,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   end
 
   def test_data_for_js_agent_gets_custom_attributes_with_old_config
-    with_config(CAPTURE_ATTRIBUTES => true) do
+    with_config(ATTRIBUTES_ENABLED => true) do
       in_transaction do
         NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
 
@@ -279,7 +278,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   end
 
   def test_data_for_js_agent_ignores_custom_attributes_by_config
-    with_config(CAPTURE_ATTRIBUTES => false) do
+    with_config(ATTRIBUTES_ENABLED => false) do
       in_transaction do
         NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
 

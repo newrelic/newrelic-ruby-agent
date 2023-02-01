@@ -566,14 +566,6 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :description => 'Defines the maximum number of seconds the agent should spend attempting to connect to the collector.'
         },
         # Transaction tracer
-        :'transaction_tracer.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`transaction_tracer.attributes.enabled`](#transaction_tracer-attributes-enabled) instead.'
-        },
         :'transaction_tracer.enabled' => {
           :default => true,
           :public => true,
@@ -639,14 +631,6 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string `apdex_f`.'
         },
         # Error collector
-        :'error_collector.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`error_collector.attributes.enabled`](#error_collector-attributes-enabled) instead.'
-        },
         :'error_collector.ignore_classes' => {
           :default => [],
           :public => true,
@@ -773,23 +757,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => true,
           :description => 'If `true`, enables [auto-injection](/docs/browser/new-relic-browser/installation-configuration/adding-apps-new-relic-browser#select-apm-app) of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
-        :'browser_monitoring.capture_attributes' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`browser_monitoring.attributes.enabled`](#browser_monitoring-attributes-enabled) instead.'
-        },
-        # Analytics events
-        :'analytics_events.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`transaction_events.attributes.enabled`](#transaction_events-attributes-enabled) instead.'
-        },
         :'analytics_events.enabled' => {
           :default => true,
           :public => true,
@@ -885,8 +852,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'Prefix of attributes to include in all destinations. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.enabled' => {
-          :default => value_of(:'browser_monitoring.capture_attributes'),
-          :documentation_default => false,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -909,8 +875,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'Prefix of attributes to include in browser monitoring. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.enabled' => {
-          :default => value_of(:'error_collector.capture_attributes'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -956,8 +921,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'Prefix of attributes to include on span events. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.enabled' => {
-          :default => value_of(:'analytics_events.capture_attributes'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -1003,8 +967,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :description => 'Prefix of attributes to include on transaction segments. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.enabled' => {
-          :default => value_of(:'transaction_tracer.capture_attributes'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
