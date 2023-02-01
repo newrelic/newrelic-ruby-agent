@@ -132,7 +132,7 @@ run_unit_tests() {
     TEST="$1" TESTOPTS="$test_opts_result" unit_command;
   elif [[ -n "$1"  && "$1" =~ ^test_ ]]; then
     # echo "running name"
-    set_test_opts $2
+    set_test_opts $1
     TESTOPTS="$test_opts_result" unit_command;
   elif [[ -n "$1" ]]; then
     # echo "running file"
