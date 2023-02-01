@@ -70,7 +70,7 @@ module NewRelic::Agent
           @error_collector.notice_error(IOError.new("message"))
         end
 
-        NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_errors' => "IOError")
+        NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_classes' => ["IOError"])
 
         in_transaction do
           @error_collector.notice_error(IOError.new("message"))
@@ -359,16 +359,6 @@ module NewRelic::Agent
       class ::AnError
       end
 
-      def test_ignore_error
-        error = AnError.new
-
-        with_config(:'error_collector.ignore_errors' => 'AnError') do
-          assert @error_collector.ignore?(error)
-        end
-
-        refute @error_collector.ignore?(error)
-      end
-
       def test_ignored_and_expected_error_is_ignored
         with_config(:'error_collector.ignore_classes' => ['AnError'],
           :'error_collector.expected_classes' => ['AnError']) do
@@ -587,7 +577,7 @@ module NewRelic::Agent
       end
 
       def test_segment_error_filtered
-        with_config(:'error_collector.ignore_errors' => 'StandardError') do
+        with_config(:'error_collector.ignore_classes' => ['StandardError']) do
           with_segment do |segment|
             @error_collector.notice_segment_error(segment, StandardError.new("Oops!"))
 

@@ -341,7 +341,7 @@ module NewRelic::Agent
 
     def test_apdex_success_with_config_ignored_error
       txn_name = 'Controller/whatever'
-      with_config(:'error_collector.ignore_errors' => SillyError.name) do
+      with_config(:'error_collector.ignore_classes' => [SillyError.name]) do
         in_web_transaction(txn_name) do
           Transaction.notice_error(SillyError.new)
         end

@@ -697,21 +697,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :dynamic_name => true,
           :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be treated as expected.'
         },
-        :'error_collector.ignore_errors' => {
-          :default => 'ActionController::RoutingError,Sinatra::NotFound',
-          :public => true,
-          :type => String,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :dynamic_name => true,
-          :description => <<-DESCRIPTION
-Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.
 
-    <Callout variant="caution">
-      Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.
-    </Callout>
-          DESCRIPTION
-        },
         :'error_collector.ignore_messages' => {
           :default => {},
           :public => true,
