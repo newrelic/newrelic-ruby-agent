@@ -370,12 +370,12 @@ An array of ActiveSupport custom event names to subscribe to and instrument. For
   - a.third.event
           DESCRIPTION
         },
+        # this is only set via server side config
         :apdex_t => {
           :default => 0.5,
-          :public => true,
+          :public => false,
           :type => Float,
           :allowed_from_server => true,
-          :deprecated => true,
           :description => 'For agent versions 3.5.0 or higher, [set your Apdex T via the New Relic UI](/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings).'
         },
         :api_key => {
