@@ -139,7 +139,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-
     def test_application_logging_enabled_default
       with_config(:'application_logging.enabled' => :foo) do
         assert_equal :foo, NewRelic::Agent.config['application_logging.enabled']
