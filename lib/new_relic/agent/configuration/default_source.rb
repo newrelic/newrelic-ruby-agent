@@ -365,7 +365,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
 An array of ActiveSupport custom event names to subscribe to and instrument. For example,
-  - my.custom.event
+  - one.custom.event
   - another.event
   - a.third.event
           DESCRIPTION
@@ -465,7 +465,7 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
+          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `Server:One;Data Center:Primary`.'
         },
         :log_file_name => {
           :default => 'newrelic_agent.log',
@@ -1568,7 +1568,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the hostname for the trace observer host. " \
+          :description => "Configures the hostname for the trace observer Host. " \
             "When configured, enables tail-based sampling by sending all recorded spans " \
             "to a trace observer for further sampling decisions, irrespective of any usual " \
             "agent sampling decision."
@@ -1579,7 +1579,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the TCP/IP port for the trace observer host"
+          :description => "Configures the TCP/IP port for the trace observer Host"
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
@@ -2367,8 +2367,8 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "If true (the default), data sent to the trace observer will be batched\ninstead of each " \
-                          "span being sent individually"
+          :description => "If `true` (the default), data sent to the trace observer is batched\ninstead of sending " \
+                          "each span individually."
         },
         :'infinite_tracing.compression_level' => {
           :default => :high,

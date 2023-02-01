@@ -2,11 +2,11 @@
 
 ## 8.16.0
 
-Version 8.16.0 of the agent introduces additional Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).
+Version 8.16.0 introduces more Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).
 
-- **Add Various Additional Ruby on Rails Library Instrumentations**
+- **Add Various Ruby on Rails Library Instrumentations**
 
-  New instrumentation is now automatically provided by several Action\*/Active\* libaries that generate Active Support notifications. With each new Ruby on Rails release, new events are added to the Rails libraries and sometimes existing events have their payload parameters updated as well. The New Relic Ruby agent will now automatically process more of these events and parameters with New Relic segments that are created for each event. At a minimum, each segment will provide timing information for the event. In several cases, all non-sensitive event payload parameters are also passed along in the segment.
+  New instrumentation is now automatically provided by several Action\*/Active\* libaries that generate Active Support notifications. With each Ruby on Rails release, new the Rails libraries add new events and sometimes existing events have their payload parameters updated as well. The New Relic Ruby agent will now automatically process more of these events and parameters with New Relic segments created for each event. At a minimum, each segment gives timing information for the event. In several cases, all non-sensitive event payload parameters are also passed along in the segment.
 
   The agent now newly supports or has updated support for the following libraries:
 
@@ -20,15 +20,15 @@ Version 8.16.0 of the agent introduces additional Ruby on Rails instrumentation 
 
   The instrumentations for each of these libaries are all enabled by default, but can be independently disabled via configuration by using the following parameters:
 
-  | Configuration name | Default | Behavior |
-  | ----- | ----- | ----- |
-  | `disable_action_cable` | `false` | If `true`, disables Action Cable instrumentation. |
+  | Configuration name          | Default | Behavior                                               |
+  | --------------------------- | ------- | ------------------------------------------------------ |
+  | `disable_action_cable`      | `false` | If `true`, disables Action Cable instrumentation.      |
   | `disable_action_controller` | `false` | If `true`, disables Action Controller instrumentation. |
-  | `disable_action_dispatch` | `false` | If `true`, disables Action Dispatch instrumentation. |
-  | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
-  | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
-  | `disable_activejob` | `false` | If `true`, disables Active Job instrumentation. |
-  | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
+  | `disable_action_dispatch`   | `false` | If `true`, disables Action Dispatch instrumentation.   |
+  | `disable_action_mailbox`    | `false` | If `true`, disables Action Mailbox instrumentation.    |
+  | `disable_action_mailer`     | `false` | If `true`, disables Action Mailer instrumentation.     |
+  | `disable_activejob`         | `false` | If `true`, disables Active Job instrumentation.        |
+  | `disable_active_support`    | `false` | If `true`, disables Active Support instrumentation.    |
 
 ## 8.15.0
 
@@ -42,18 +42,18 @@ Version 8.15.0 of the agent confirms compatibility with Ruby 3.2.0, adds instrum
 
   Instrumentation for the [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem has been added to the agent for versions 1.1.5 and above. When a transaction is already in progress and a call to a `Concurrent::` method that routes through `Concurrent::ThreadPoolExecutor#post` is made, a segment will be added to the transaction. Any content within the block passed to the `Concurrent::` method that is instrumented by the agent, such as a call to `Net::HTTP.get`, will have a nested segment created. [PR#1682](https://github.com/newrelic/newrelic-ruby-agent/pull/1682)
 
-  | Configuration name                | Default | Behavior                                                                                                                      |
-  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+  | Configuration name                | Default | Behavior                                                                                                                        |
+  | --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
   | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
 
 - **Infinite Tracing: Use batching and compression**
 
   For [Infinite Tracing](https://docs.newrelic.com/docs/distributed-tracing/infinite-tracing/introduction-infinite-tracing/), which Ruby applications can leverage with the `newrelic-infinite_tracing` gem, payloads will now be batched and compressed to signficantly decrease the amount of outbound network traffic. [PR#1723](https://github.com/newrelic/newrelic-ruby-agent/pull/1723)
 
-  | Configuration name                | Default | Behavior                                                                                                                      |
-  | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-  | `infinite_tracing.batching` | true    | If true (the default), data sent to the Trace Observer will be batched instead of each span being sent individually |
-  | `infinite_tracing.compression_level` | high    | Configure the compression level for data sent to the Trace Observer. May be one of [none|low|medium|high]. 'high' is the default. Set the level to 'none' to disable compression. |
+  | Configuration name                   | Default | Behavior                                                                                                            |
+  | ------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------- | --- | ------ | ----------------------------------------------------------------------------- |
+  | `infinite_tracing.batching`          | true    | If true (the default), data sent to the Trace Observer will be batched instead of each span being sent individually |
+  | `infinite_tracing.compression_level` | high    | Configure the compression level for data sent to the Trace Observer. May be one of [none                            | low | medium | high]. 'high' is the default. Set the level to 'none' to disable compression. |
 
 - **Add Support for Padrino 0.15.2 and Sinatra 3**
 
@@ -324,36 +324,35 @@ Version 8.11.0 of the agent updates the `newrelic deployments` command to work w
 
 - **Deprecate instrumentation versions with low adoption and/or versions over five years old**
 
+  This release deprecates the following instrumentation:
+  | Deprecated | Replacement |
+  | ----------- | ----------- |
+  | ActiveMerchant < 1.65.0 | ActiveMerchant >= 1.65.0 |
+  | Acts As Solr (all versions) | none |
+  | Authlogic (all versions) | none |
+  | Bunny < 2.7.0 | bunny >= 2.7.0 |
+  | Dalli < 3.2.1 | Dalli >= 3.2.1 |
+  | DataMapper (all versions) | none |
+  | Delayed Job < 4.1.0 | Delayed Job >= 4.1.0 |
+  | Excon < 0.56.0 | Excon >= 0.56.0 |
+  | Grape < 0.19.2 | Grape >= 0.19.2 |
+  | HTTPClient < 2.8.3 | HTTPClient 2.8.3 |
+  | HTTP.rb < 2.2.2 | HTTP.rb >= 2.2.2 |
+  | Mongo < 2.4.1 | Mongo >= 2.4.1 |
+  | Padrino < 0.15.0 | Padrino >= 0.15.0 |
+  | Passenger < 5.1.3 | Passenger >= 5.1.3 |
+  | Puma < 3.9.0 | Puma >= 3.9.0 |
+  | Rack < 1.6.8 | Rack >= 1.6.8 |
+  | Rails 3.2.x | Rails >= 4.x |
+  | Rainbows (all versions) | none |
+  | Sequel < 4.45.0 | Sequel >= 4.45.0 |
+  | Sidekiq < 5.0.0 | Sidekiq >= 5.0.0 |
+  | Sinatra < 2.0.0 | Sinatra >= 2.0.0 |
+  | Sunspot (all versions) | none |
+  | Typhoeus < 1.3.0 | Typhoeus >= 1.3.0 |
+  | Unicorn < 5.3.0 | Unicorn >= 5.3.0 |
 
-    This release deprecates the following instrumentation:
-    | Deprecated | Replacement |
-    | ----------- | ----------- |
-    | ActiveMerchant < 1.65.0 | ActiveMerchant >= 1.65.0 |
-    | Acts As Solr (all versions) | none |
-    | Authlogic (all versions) | none |
-    | Bunny < 2.7.0 | bunny >= 2.7.0 |
-    | Dalli < 3.2.1 | Dalli >= 3.2.1 |
-    | DataMapper (all versions) | none |
-    | Delayed Job < 4.1.0 | Delayed Job >= 4.1.0 |
-    | Excon < 0.56.0 | Excon >= 0.56.0 |
-    | Grape < 0.19.2 | Grape >= 0.19.2 |
-    | HTTPClient < 2.8.3 | HTTPClient 2.8.3 |
-    | HTTP.rb < 2.2.2 | HTTP.rb >= 2.2.2 |
-    | Mongo < 2.4.1 | Mongo >= 2.4.1 |
-    | Padrino < 0.15.0 | Padrino >= 0.15.0 |
-    | Passenger < 5.1.3 | Passenger >= 5.1.3 |
-    | Puma < 3.9.0 | Puma >= 3.9.0 |
-    | Rack < 1.6.8 | Rack >= 1.6.8 |
-    | Rails 3.2.x | Rails >= 4.x |
-    | Rainbows (all versions) | none |
-    | Sequel < 4.45.0 | Sequel >= 4.45.0 |
-    | Sidekiq < 5.0.0 | Sidekiq >= 5.0.0 |
-    | Sinatra < 2.0.0 | Sinatra >= 2.0.0 |
-    | Sunspot (all versions) | none |
-    | Typhoeus < 1.3.0 | Typhoeus >= 1.3.0 |
-    | Unicorn < 5.3.0 | Unicorn >= 5.3.0 |
-
-    For the gems with deprecated versions, we will no longer test those versions in our multiverse suite. They may, however, still be compatible with the agent. We will no longer fix bug reports for issues related to these gem versions.
+  For the gems with deprecated versions, we will no longer test those versions in our multiverse suite. They may, however, still be compatible with the agent. We will no longer fix bug reports for issues related to these gem versions.
 
 - **Clarify documentation for `rake.tasks` configuration**
 
@@ -3187,7 +3186,7 @@ reported to New Relic. The second ignores only the Apdex metric for a single
 transaction. The third disables javascript injection for browser monitoring
 for the current transaction.
 
-These methods differ from the existing newrelic*ignore** method in that they
+These methods differ from the existing newrelic*ignore\*\* method in that they
 may be called *during\* a transaction based on some dynamic runtime criteria,
 as opposed to at the class level on startup.
 
@@ -3284,7 +3283,7 @@ traces from in the Transaction Trace drill-down.
 - High security mode V2
 
 The Ruby agent now supports V2 of New Relic's high security mode. To enable
-it, you must add 'high_security: true' to your newrelic.yml file, _and_ enable
+it, you must add 'high*security: true' to your newrelic.yml file, \_and* enable
 high security mode through the New Relic web interface. The local agent
 setting must be in agreement with the server-side setting, or the agent will
 shut down and no data will be collected.
