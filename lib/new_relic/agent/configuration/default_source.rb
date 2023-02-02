@@ -1355,7 +1355,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         :'instrumentation.excon' => {
           :default => 'enabled',
           :documentation_default => 'enabled',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1363,7 +1363,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         },
         :'instrumentation.grape' => {
           :default => 'auto',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1451,7 +1451,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         :'instrumentation.mongo' => {
           :default => 'enabled',
           :documentation_default => 'enabled',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1508,8 +1508,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         },
         :'instrumentation.rake' => {
           :default => 'auto',
-          :documentation_default => 'auto',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1517,7 +1516,6 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         },
         :'instrumentation.redis' => {
           :default => 'auto',
-          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1535,8 +1533,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',
-          :documentation_default => 'auto',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1915,15 +1912,6 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic data collection service.'
         },
-        :disable_grape_instrumentation => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.')
-        },
         :dispatcher => {
           :default => DefaultSource.dispatcher,
           :public => false,
@@ -1944,22 +1932,6 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Internal name for controlling Rails 3+ middleware instrumentation'
-        },
-        :disable_rake_instrumentation => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rake', 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`')
-        },
-        :disable_redis_instrumentation => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
         },
         :cross_application_tracing => {
           :default => nil,
@@ -2007,17 +1979,8 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic event collection services.'
         },
-        :'event_report_period.analytic_event_data' => {
-          :default => 60,
-          :public => false,
-          :type => Integer,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :description => deprecated_description(:'event_report_period.transaction_event_data', 'Number of seconds betwixt connections to the New Relic transaction event collection services.')
-        },
         :'event_report_period.transaction_event_data' => {
-          :default => value_of(:'event_report_period.analytic_event_data'),
+          :default => 60,
           :public => false,
           :type => Integer,
           :dynamic_name => true,
