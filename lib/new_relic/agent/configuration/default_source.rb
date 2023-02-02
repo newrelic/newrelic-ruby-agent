@@ -632,7 +632,7 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
         },
         # Error collector
         :'error_collector.ignore_classes' => {
-          :default => [], # ['ActionController::RoutingError', 'Sinatra::NotFound'],
+          :default => ['ActionController::RoutingError', 'Sinatra::NotFound'],
           :public => true,
           :type => Array,
           :allowed_from_server => true,
