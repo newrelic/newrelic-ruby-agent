@@ -743,34 +743,16 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => true,
           :description => 'If `true`, enables [auto-injection](/docs/browser/new-relic-browser/installation-configuration/adding-apps-new-relic-browser#select-apm-app) of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
-        :'analytics_events.enabled' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :description => deprecated_description(:'transaction_events.enabled', 'If `true`, enables analytics event sampling.')
-        },
-        :'analytics_events.max_samples_stored' => {
-          :default => 1200,
-          :public => true,
-          :type => Integer,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :description => deprecated_description(:'transaction_events.max_samples_stored', 'Defines the maximum number of request events reported from a single harvest.')
-        },
         # Transaction events
         :'transaction_events.enabled' => {
-          :default => value_of(:'analytics_events.enabled'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If `true`, enables transaction event sampling.'
         },
         :'transaction_events.max_samples_stored' => {
-          :default => value_of(:'analytics_events.max_samples_stored'),
-          :documentation_default => 1200,
+          :default => 1200,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
@@ -1154,15 +1136,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :description => 'If `true`, disables instrumentation for Active Record 4+'
         },
-        :disable_bunny => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.bunny', 'If `true`, disables instrumentation for the bunny gem.')
-        },
         :disable_cpu_sampler => {
           :default => false,
           :public => true,
@@ -1541,8 +1514,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of ActiveSupport::Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.bunny' => {
-          :default => instrumentation_value_of(:disable_bunny),
-          :documentation_default => 'auto',
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
