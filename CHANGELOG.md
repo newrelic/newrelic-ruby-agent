@@ -3281,7 +3281,7 @@ traces from in the Transaction Trace drill-down.
 - High security mode V2
 
 The Ruby agent now supports V2 of New Relic's high security mode. To enable
-it, you must add 'high*security: true' to your newrelic.yml file, \_and* enable
+it, you must add 'high\_security: true' to your newrelic.yml file, _and_ enable
 high security mode through the New Relic web interface. The local agent
 setting must be in agreement with the server-side setting, or the agent will
 shut down and no data will be collected.
