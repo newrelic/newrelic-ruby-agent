@@ -1144,47 +1144,12 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :description => 'If `true`, the agent won\'t sample the CPU usage of the host process.'
         },
-        :disable_curb => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.')
-        },
-        :disable_database_instrumentation => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => 'Use [`disable_sequel_instrumentation`](#disable_sequel_instrumentation) instead.'
-        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables DataMapper instrumentation.'
-        },
-        :disable_dalli => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', 'If `true`, disables instrumentation for the dalli gem.')
-        },
-        :disable_dalli_cas_client => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem's additional CAS client support.")
         },
         :disable_delayed_job_sampler => {
           :default => false,
@@ -1194,91 +1159,12 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :description => 'If `true`, the agent won\'t measure the depth of Delayed Job queues.'
         },
-        :disable_dj => {
-          :default => false,
-          :public => true,
-          :deprecated => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables [Delayed::Job instrumentation](/docs/agents/ruby-agent/background-jobs/delayedjob).')
-        },
-        :disable_excon => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
-        },
-        :disable_memcached => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcached', 'If `true`, disables instrumentation for the memcached gem.')
-        },
-        :disable_memcache_client => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache-client', 'If `true`, disables instrumentation for the memcache-client gem.')
-        },
-        :disable_memcache_instrumentation => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', 'If `true`, disables memcache instrumentation.')
-        },
         :disable_gc_profiler => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables the use of GC::Profiler to measure time spent in garbage collection'
-        },
-        :disable_grape => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.')
-        },
-        :disable_httpclient => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.httpclient', 'If `true`, disables instrumentation for the httpclient gem.')
-        },
-        :disable_httprb => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.')
-        },
-        :disable_mongo => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :dynamic_name => true,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install [instrumentation for the Mongo gem](/docs/agents/ruby-agent/frameworks/mongo-instrumentation).')
         },
         :disable_memory_sampler => {
           :default => false,
@@ -1294,78 +1180,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
-        },
-        :disable_net_http => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, disables instrumentation for Net::HTTP.')
-        },
-        :disable_puma_rack => {
-          :default => value_of(:disable_rack),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.puma_rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Puma::Rack::Builder to find gems to instrument during application startup.')
-        },
-        :disable_puma_rack_urlmap => {
-          :default => value_of(:disable_rack_urlmap),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If `true`, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
-        },
-        :disable_rack => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
-        },
-        :disable_rack_urlmap => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rack_urlmap', 'If `true`, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
-        },
-        :disable_rake => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rake', 'If `true`, disables Rake instrumentation.')
-        },
-        :disable_redis => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install [instrumentation for Redis](/docs/agents/ruby-agent/frameworks/redis-instrumentation).')
-        },
-        :disable_resque => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.resque', 'If `true`, disables [Resque instrumentation](/docs/agents/ruby-agent/background-jobs/resque-instrumentation).')
         },
         :disable_samplers => {
           :default => false,
@@ -1387,14 +1201,6 @@ A map of error classes to a list of messages. When an error of one of the classe
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
-        },
-        :disable_sinatra => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).')
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
@@ -1419,15 +1225,6 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
       ```
     </Callout>
           DESCRIPTION
-        },
-        :disable_typhoeus => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.')
         },
         :disable_view_instrumentation => {
           :default => false,
@@ -1530,7 +1327,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.curb' => {
-          :default => instrumentation_value_of(:disable_curb),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1539,7 +1336,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of Curb at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.delayed_job' => {
-          :default => instrumentation_value_of(:disable_dj),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1556,7 +1353,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of the elasticsearch library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.excon' => {
-          :default => instrumentation_value_of(:disable_excon),
+          :default => 'enabled',
           :documentation_default => 'enabled',
           :public => :true,
           :type => String,
@@ -1565,8 +1362,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :'instrumentation.grape' => {
-          :default => instrumentation_value_of(:disable_grape_instrumentation),
-          :documentation_default => 'auto',
+          :default => 'auto',
           :public => :true,
           :type => String,
           :dynamic_name => true,
@@ -1600,7 +1396,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of gRPC servers at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.httpclient' => {
-          :default => instrumentation_value_of(:disable_httpclient),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1609,7 +1405,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.httprb' => {
-          :default => instrumentation_value_of(:disable_httprb),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1627,8 +1423,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache' => {
-          :default => instrumentation_value_of(:disable_dalli),
-          :documentation_default => 'auto',
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1636,7 +1431,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcached' => {
-          :default => instrumentation_value_of(:disable_memcached),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1654,7 +1449,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.mongo' => {
-          :default => instrumentation_value_of(:disable_mongo),
+          :default => 'enabled',
           :documentation_default => 'enabled',
           :public => :true,
           :type => String,
@@ -1663,7 +1458,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
         },
         :'instrumentation.net_http' => {
-          :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1672,7 +1467,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack' => {
-          :default => instrumentation_value_of(:disable_puma_rack), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :default => value_of(:'instrumentation.rack'),
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1683,7 +1478,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
-          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :default => value_of(:'instrumentation.rack_urlmap'),
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1692,7 +1487,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.rack' => {
-          :default => instrumentation_value_of(:disable_rack),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1703,7 +1498,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.rack_urlmap' => {
-          :default => instrumentation_value_of(:disable_rack_urlmap),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1712,7 +1507,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.rake' => {
-          :default => instrumentation_value_of(:disable_rake),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => :true,
           :type => String,
@@ -1721,7 +1516,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of rake at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.redis' => {
-          :default => instrumentation_value_of(:disable_redis),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1730,7 +1525,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.resque' => {
-          :default => instrumentation_value_of(:disable_resque),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1739,7 +1534,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.sinatra' => {
-          :default => instrumentation_value_of(:disable_sinatra),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => :true,
           :type => String,
@@ -1778,7 +1573,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.typhoeus' => {
-          :default => instrumentation_value_of(:disable_typhoeus),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
