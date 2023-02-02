@@ -632,7 +632,7 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
         },
         # Error collector
         :'error_collector.ignore_classes' => {
-          :default => ['ActionController::RoutingError', 'Sinatra::NotFound'],
+          :default => [],#['ActionController::RoutingError', 'Sinatra::NotFound'],
           :public => true,
           :type => Array,
           :allowed_from_server => true,
@@ -761,7 +761,7 @@ A map of error classes to a list of messages. When an error of one of the classe
         },
         # Transaction events
         :'transaction_events.enabled' => {
-          :default => instrumentation_value_of(:'analytics_events.enabled'),
+          :default => value_of(:'analytics_events.enabled'),
           :documentation_default => true,
           :public => true,
           :type => Boolean,
