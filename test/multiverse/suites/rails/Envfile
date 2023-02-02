@@ -53,7 +53,7 @@ def gem_list(rails_version = nil)
     #{haml_rails(rails_version)}
     gem 'minitest', '#{minitest_rails_version(rails_version)}'
     gem 'erubis' if RUBY_PLATFORM.eql?('java')
-    #{ruby3_gem_webrick}
+    
   RB
 end
 

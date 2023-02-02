@@ -1140,9 +1140,17 @@ A map of error classes to a list of messages. When an error of one of the classe
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
         },
+        # TODO: by subscribing to process_middleware.action_dispatch events,
+        #       we duplicate the efforts already performed by non-notifications
+        #       based instrumentation. In future, we ought to determine the
+        #       extent of the overlap and duplication and end up with only this
+        #       notifications based approach existing and the monkey patching
+        #       approach removed entirely. NOTE that we will likely not want to
+        #       do so until we are okay with dropping support for Rails < v6,
+        #       given that these events are available only for v6+.
         :disable_action_dispatch => {
-          :default => false,
-          :public => true,
+          :default => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Dispatch instrumentation.'

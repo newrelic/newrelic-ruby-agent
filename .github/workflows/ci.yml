@@ -223,8 +223,18 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
-      - name: Test MySQL
-        run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
+
+      - name: Wait for/Check Mysql
+        uses: nick-fields/retry@v2.8.2
+        with:
+          timeout_minutes: 1
+          max_attempts: 20
+          command: |
+            mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'";
+            if [[ $? != 0 ]]; then
+              sleep 1;
+            fi
+
 
       - name: Run Multiverse Tests
         uses: nick-fields/retry@v2.8.2
