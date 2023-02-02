@@ -2116,15 +2116,6 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => false,
           :description => 'Port for the New Relic data collection service.'
         },
-        :prepend_net_instrumentation => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.')
-        },
         :primary_application_id => {
           :default => nil,
           :allow_nil => true,
