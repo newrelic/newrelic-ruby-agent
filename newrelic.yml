@@ -169,9 +169,6 @@ common: &default_settings
   # If true, disables Action Cable instrumentation.
   # disable_action_cable_instrumentation: false
 
-  # If true, disables Action Dispatch instrumentation.
-  # disable_action_dispatch: false
-
   # If true, disables Action Mailbox instrumentation.
   # disable_action_mailbox: false
 
