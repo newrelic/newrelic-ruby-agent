@@ -18,7 +18,6 @@ module NewRelic
       end
 
       def log_configuration
-        
         NewRelic::Agent.logger.debug("JS agent loader requested: #{NewRelic::Agent.config[:'browser_monitoring.loader']}",
           "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
           "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
