@@ -354,7 +354,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
     $collector.stub('connect', {
       "agent_run_id" => 1,
       "agent_config" => {
-        "error_collector.ignore_classes" => ['NewRelic::TestHelpers::Exceptions::IgnoredError', 'NewRelic::TestHelpers::Exceptions::ServerIgnoredError'], # 'ActionController::RoutingError', 'Sinatra::NotFound'],
+        "error_collector.ignore_classes" => ['NewRelic::TestHelpers::Exceptions::IgnoredError', 'NewRelic::TestHelpers::Exceptions::ServerIgnoredError'],
         "error_collector.enabled" => true
       },
       "collect_errors" => true
