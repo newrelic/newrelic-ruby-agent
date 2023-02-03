@@ -2,7 +2,54 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent enables thread tracing and removes support for Ruby versions 2.2 and 2.3.
+  Version 9.0.0 of the agent enables thread tracing, removes several deprecated configuration options, and removes support for Ruby versions 2.2 and 2.3.
+
+
+- **Remove Deprecated Configuration Options**
+
+
+  |  Removed                                  | Replacement                               | `newrelic.yml` example       |
+  | ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------ |
+  | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false` |
+  | `error_collector.capture_attributes`      | `error_collector.attributes.enabled`      | ``
+  | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | ``
+  | `browser_monitoring.capture_attributes`   | `browser_monitoring.attributes.enabled`   | `` |
+  | `analytics_events.capture_attributes`     | `transaction_events.attributes.enabled`   | `` |
+  | `analytics_events.enabled                 | `transaction_events.enabled`              | `` |
+  | `analytics_events.max_samples_stored      | `transaction_events.max_samples_stored`   | `` |
+  | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `` |
+  | `resque.capture_params`                   | `attributes.include`                      | `` |
+  | `sidekiq.capture_params`                  | `attributes.include`                      | `` |
+  | `disable_bunny`                           | `instrumentation.bunny`                   | `` |
+  | `disable_curb`                            | `instrumentation.curb`                    | `` |
+  | `disable_dj`                              | `instrumentation.delayed_job`             | `` |
+  | `disable_excon`                           | `instrumentation.excon`                   | `` |
+  | `disable_grape`                           | `instrumentation.grape`                   | `` |
+  | `disable_grape_instrumentation`           | `instrumentation.grape`                   | `` |
+  | `disable_httpclient`                      | `instrumentation.httpclient`              | `` |
+  | `disable_httprb`                          | `instrumentation.httprb`                  | `` |
+  | `disable_dalli`                           | `instrumentation.memcache`                | `` |
+  | `disable_dalli_cas_client`                | `instrumentation.memcache`                | `` |
+  | `disable_memcache_instrumentation`        | `instrumentation.memcache`                | `` |
+  | `disable_memcached`                       | `instrumentation.memcached`               | `` |
+  | `disable_memcache_client`                 | `instrumentation.memcache-client`         | `` |
+  | `disable_mongo`                           | `instrumentation.mongo`                   | `` |
+  | `disable_net_http`                        | `instrumentation.net_http`                | `` |
+  | `prepend_net_instrumentation`             | `instrumentation.net_http`                | `` |
+  | `disable_puma_rack`                       | `instrumentation.puma_rack`               | `` |
+  | `disable_puma_rack_urlmap`                | `instrumentation.puma_rack_urlmap`        | `` |
+  | `disable_rack`                            | `instrumentation.rack`                    | `` |
+  | `disable_rack_urlmap`                     | `instrumentation.rack_urlmap`             | `` |
+  | `disable_rake`                            | `instrumentation.rake`                    | `` |
+  | `disable_redis`                           | `instrumentation.redis`                   | `` |
+  | `disable_redis_instrumentation`           | `instrumentation.redis`                   | `` |
+  | `disable_resque`                          | `instrumentation.resque`                  | `` |
+  | `disable_sinatra`                         | `instrumentation.sinatra`                 | `` |
+  | `disable_rake_instrumentation`            | `instrumentation.rake`                    | `` |
+  | `disable_typhoeus`                        | `instrumentation.typhoeus`                | `` |
+
+
+
 
 - **Enable Thread Instrumentation by default**
 
