@@ -1639,16 +1639,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Timeout for waiting on connect to complete before a rake task'
         },
-        # Resque
-        :'resque.capture_params' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :dynamic_name => true,
-          :deprecated => true,
-          :description => 'If `true`, enables the capture of job arguments for transaction traces and traced errors in Resque.'
-        },
         # Rules
         :'rules.ignore_url_regexes' => {
           :default => [],
@@ -1657,16 +1647,6 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
-        },
-        # Sidekiq
-        :'sidekiq.capture_params' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :dynamic_name => true,
-          :deprecated => true,
-          :description => 'If `true`, enables the capture of job arguments for transaction traces and traced errors in Sidekiq.'
         },
         # Slow SQL
         :'slow_sql.enabled' => {

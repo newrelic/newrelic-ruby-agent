@@ -98,7 +98,7 @@ class ResqueTest < Minitest::Test
   def test_agent_posts_captured_args_to_job
     stub_for_span_collection
 
-    with_config(:'resque.capture_params' => true) do
+    with_config(:'attributes.include' => ['job.resque.args.*']) do
       run_jobs
     end
 
