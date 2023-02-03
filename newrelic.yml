@@ -196,9 +196,6 @@ common: &default_settings
   # If true, disables ActiveSupport custom events instrumentation.
   # disable_custom_events_instrumentation: false
 
-  # If true, disables DataMapper instrumentation.
-  # disable_data_mapper: false
-
   # If true, the agent won't measure the depth of Delayed Job queues.
   # disable_delayed_job_sampler: false
 

@@ -371,7 +371,7 @@ module NewRelic
     # jobs or other work.  If you are doing this with a web dispatcher
     # that forks worker processes then you will need to force the
     # agent to reconnect, which it won't do by default.  Passenger and
-    # Rainbows and Unicorn are already handled, nothing special needed for them.
+    # Unicorn are already handled, nothing special needed for them.
     #
     # Options:
     # * <tt>:force_reconnect => true</tt> to force the spawned process to

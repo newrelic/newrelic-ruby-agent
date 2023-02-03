@@ -13,6 +13,14 @@
   Support for Ruby 2.2 and 2.3 dropped with this release. They are no longer included in our test matrices and are not supported
   for 9.0.0 and onward.
 
+- **Instrumentation dropped for select gems**
+
+  Support for the following gems had been dropped:
+    - Acts As Solr
+    - Authlogic
+    - DataMapper
+    - Rainbows
+    - Sunspot
 
 ## 8.16.0
 

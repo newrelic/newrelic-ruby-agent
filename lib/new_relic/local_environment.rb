@@ -74,9 +74,7 @@ module NewRelic
         unicorn
         webrick
         fastcgi
-        rainbows
       ]
-      # TODO: MAJOR VERSION - remove rainbows
       while dispatchers.any? && @discovered_dispatcher.nil?
         send('check_for_' + (dispatchers.shift))
       end
@@ -131,14 +129,6 @@ module NewRelic
       if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
         v = find_class_in_object_space(::Unicorn::HttpServer)
         @discovered_dispatcher = :unicorn if v
-      end
-    end
-
-    # TODO: MAJOR VERSION - remove this method
-    def check_for_rainbows
-      if (defined?(::Rainbows) && defined?(::Rainbows::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
-        v = find_class_in_object_space(::Rainbows::HttpServer)
-        @discovered_dispatcher = :rainbows if v
       end
     end
 
