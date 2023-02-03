@@ -6,13 +6,13 @@
 count=0
 return_val=1
 
-while [[ $return_val != 0  && $count -le $RETRY_ATTEMPTS ]]; do
+while [[ $return_val != 0  && $count -lt $RETRY_ATTEMPTS ]]; do
   $TEST_CMD
   return_val=$?
-  count+=1
+  count=$((count + 1))
   if [[ $return_val != 0 ]]; then
     echo $'\n*************************************************************************************************************\n'
-    echo "FAILURE ON ATTEMPT $((count+1)) of $((RETRY_ATTEMPTS+1))"
+    echo "FAILURE ON ATTEMPT $((count)) of $((RETRY_ATTEMPTS))"
     echo $'\n*************************************************************************************************************\n'
   fi
 done
