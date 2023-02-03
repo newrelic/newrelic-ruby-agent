@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - major-release-9
   schedule:
     - cron: '0 9 * * *'
   workflow_dispatch:
@@ -36,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.7, 3.0.5, 3.1.3, 3.2.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.7, 3.0.5, 3.1.3, 3.2.0]
 
     steps:
       - name: Configure git
@@ -61,12 +62,6 @@ jobs:
           key: ${{ matrix.ruby-version }}
           map: |
             {
-              "2.2.10": {
-                "rails": "norails,rails41,rails40,rails32"
-              },
-              "2.3.8": {
-                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
-              },
               "2.4.10": {
                 "rails": "norails,rails52,rails51,rails42"
               },
@@ -90,11 +85,11 @@ jobs:
               }
             }
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
+      - if: matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
         name: Prepare mysql dirextory
         run: sudo chown -R $USER /usr/local
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
+      - if: matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -102,7 +97,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8' || matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -159,7 +154,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       mongodb:
-        image: ${{ contains(fromJson('["2.2.10", "2.3.8", "2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
           - 27017:27017
       mysql:
@@ -203,7 +198,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.10, 2.7.7, 3.0.5, 3.1.3, 3.2.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.7, 3.0.5, 3.1.3, 3.2.0]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -220,11 +215,11 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
+      - if: matrix.ruby-version == '2.4.10'
         name: Prepare mysql dirextory
         run: sudo chown -R $USER /usr/local
 
-      - if: matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8'
+      - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -232,7 +227,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.2.10' || matrix.ruby-version == '2.3.8')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.4.10')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -310,40 +305,40 @@ jobs:
         uses: ./.github/actions/annotate
 
 
-  notify_slack_fail:
-    name: Notify slack fail
-    needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-22.04
-    if: always()
-    steps:
-      - uses: technote-space/workflow-conclusion-action@v3
-      - uses: voxmedia/github-action-slack-notify-build@v1
-        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        with:
-          channel: ruby-agent-notifications
-          status: FAILED
-          color: danger
+  # notify_slack_fail:
+  #   name: Notify slack fail
+  #   needs: [unit_tests, multiverse, infinite_tracing]
+  #   runs-on: ubuntu-22.04
+  #   if: always()
+  #   steps:
+  #     - uses: technote-space/workflow-conclusion-action@v3
+  #     - uses: voxmedia/github-action-slack-notify-build@v1
+  #       if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
+  #       env:
+  #         SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+  #       with:
+  #         channel: ruby-agent-notifications
+  #         status: FAILED
+  #         color: danger
 
 
-  notify_slack_success:
-    name: Notify slack success
-    needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-22.04
-    if: always()
-    steps:
-      - uses: technote-space/workflow-conclusion-action@v3
-      - run: echo ${{ github.event_name }}
-      - uses: Mercymeilya/last-workflow-status@v0.3.2
-        id: last_status
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: voxmedia/github-action-slack-notify-build@v1
-        if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' && github.event_name != 'workflow_dispatch' }}
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
-        with:
-          channel: ruby-agent-notifications
-          status: SUCCESS
-          color: good
+  # notify_slack_success:
+  #   name: Notify slack success
+  #   needs: [unit_tests, multiverse, infinite_tracing]
+  #   runs-on: ubuntu-22.04
+  #   if: always()
+  #   steps:
+  #     - uses: technote-space/workflow-conclusion-action@v3
+  #     - run: echo ${{ github.event_name }}
+  #     - uses: Mercymeilya/last-workflow-status@v0.3.2
+  #       id: last_status
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #     - uses: voxmedia/github-action-slack-notify-build@v1
+  #       if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' && github.event_name != 'workflow_dispatch' }}
+  #       env:
+  #         SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
+  #       with:
+  #         channel: ruby-agent-notifications
+  #         status: SUCCESS
+  #         color: good

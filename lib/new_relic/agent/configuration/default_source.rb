@@ -363,11 +363,11 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :description => <<-DESCRIPTION
-An array of ActiveSupport custom event names to subscribe to and instrument. For example,
-  - my.custom.event
-  - another.event
-  - a.third.event
+          :description => <<~DESCRIPTION
+            An array of ActiveSupport custom event names to subscribe to and instrument. For example,
+              - my.custom.event
+              - another.event
+              - a.third.event
           DESCRIPTION
         },
         # this is only set via server side config
@@ -412,12 +412,12 @@ An array of ActiveSupport custom event names to subscribe to and instrument. For
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => <<-DESCRIPTION
-When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
+          :description => <<~DESCRIPTION
+            When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
-    <Callout variant="caution">
-      When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. <b>Recommendation:</b> To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
-    </Callout>
+                <Callout variant="caution">
+                  When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. <b>Recommendation:</b> To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+                </Callout>
           DESCRIPTION
         },
         :'clear_transaction_state_after_fork' => {
@@ -637,12 +637,12 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<-DESCRIPTION
-A list of error classes that the agent should ignore.
+          :description => <<~DESCRIPTION
+            A list of error classes that the agent should ignore.
 
-  <Callout variant="caution">
-    This option can't be set via environment variable.
-  </Callout>
+              <Callout variant="caution">
+                This option can't be set via environment variable.
+              </Callout>
           DESCRIPTION
         },
         :'error_collector.capture_events' => {
@@ -667,12 +667,12 @@ A list of error classes that the agent should ignore.
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<-DESCRIPTION
-A list of error classes that the agent should treat as expected.
+          :description => <<~DESCRIPTION
+            A list of error classes that the agent should treat as expected.
 
-  <Callout variant="caution">
-    This option can't be set via environment variable.
-  </Callout>
+              <Callout variant="caution">
+                This option can't be set via environment variable.
+              </Callout>
           DESCRIPTION
         },
         :'error_collector.expected_messages' => {
@@ -681,12 +681,12 @@ A list of error classes that the agent should treat as expected.
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<-DESCRIPTION
-A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
+          :description => <<~DESCRIPTION
+            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
 
-  <Callout variant="caution">
-    This option can't be set via environment variable.
-  </Callout>
+              <Callout variant="caution">
+                This option can't be set via environment variable.
+              </Callout>
           DESCRIPTION
         },
         :'error_collector.expected_status_codes' => {
@@ -704,12 +704,12 @@ A map of error classes to a list of messages. When an error of one of the classe
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => <<-DESCRIPTION
-A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
+          :description => <<~DESCRIPTION
+            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
 
-  <Callout variant="caution">
-    This option can't be set via environment variable.
-  </Callout>
+              <Callout variant="caution">
+                This option can't be set via environment variable.
+              </Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_status_codes' => {
@@ -1207,23 +1207,23 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => <<-DESCRIPTION
-If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
+          :description => <<~DESCRIPTION
+            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
-    <Callout variant="important">
-      Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+                <Callout variant="important">
+                  Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
-      To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+                  To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
-      ```
-      # newrelic.yml
+                  ```
+                  # newrelic.yml
 
-        cross_application_tracer:
-          enabled: true
-        distributed_tracing:
-          enabled: false
-      ```
-    </Callout>
+                    cross_application_tracer:
+                      enabled: true
+                    distributed_tracing:
+                      enabled: false
+                  ```
+                </Callout>
           DESCRIPTION
         },
         :disable_view_instrumentation => {
@@ -1548,7 +1548,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.thread.tracing' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,

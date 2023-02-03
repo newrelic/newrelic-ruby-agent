@@ -89,9 +89,9 @@ module NewRelic
         end
 
         def raise_unsupported_error
-          msg = <<-EOF
-Thread profiling is not supported for Resque processes. If you did not intend to
-profile a Resque process, profiling again might select an appropriate agent.
+          msg = <<~EOF
+            Thread profiling is not supported for Resque processes. If you did not intend to
+            profile a Resque process, profiling again might select an appropriate agent.
           EOF
           raise_command_error(msg)
         end

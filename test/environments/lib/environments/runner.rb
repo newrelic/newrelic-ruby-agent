@@ -72,7 +72,7 @@ module Environments
     end
 
     def explicit_bundler_version(dir)
-      return if RUBY_VERSION.to_f <= 2.3 || RUBY_PLATFORM == 'java'
+      return if RUBY_PLATFORM == 'java'
 
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil

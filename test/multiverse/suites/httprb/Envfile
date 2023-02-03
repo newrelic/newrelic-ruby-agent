@@ -14,20 +14,20 @@ HTTPRB_VERSIONS = [
   [nil, 2.6],
   ['5.1.0', 2.6], # !jruby as of 2022/07
   ['5.0.1', 2.5], # !jruby as of 2022/07
-  ['4.4.0', 2.3, 2.6],
-  ['4.3.0', 2.3, 2.6],
-  ['4.2.0', 2.3, 2.6],
-  ['3.0.0', 2.3, 2.6],
-  ['2.2.2', 2.3, 2.6]
+  ['4.4.0', 2.4, 2.6],
+  ['4.3.0', 2.4, 2.6],
+  ['4.2.0', 2.4, 2.6],
+  ['3.0.0', 2.4, 2.6],
+  ['2.2.2', 2.4, 2.6]
 ]
 
 def gem_list(httprb_version = nil)
   return if (httprb_version && httprb_version.include?('5') && RUBY_PLATFORM.eql?('java')) ||
     (RUBY_PLATFORM.eql?('java') && httprb_version.nil?)
-  <<-RB
+  <<~RB
     gem 'http'#{httprb_version}
     gem 'rack'
-    
+
   RB
 end
 

@@ -360,9 +360,33 @@ module NewRelic
           end
 
           assert_equal txn.initial_segment, Tracer.current_segment
+
           threads.each(&:join)
           txn.finish
 
+          assert_equal 2, txn.segments.count { |s| s.name == "Ruby/Thread" }
+          assert_nil Tracer.current_segment
+        end
+      end
+
+      def test_current_segment_in_nested_threads_disabled
+        with_config(:'instrumentation.thread.tracing' => false) do
+          assert_nil Tracer.current_segment
+
+          txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+
+          assert_equal txn.initial_segment, Tracer.current_segment
+          threads = []
+
+          threads << ::Thread.new do
+            # nothong
+          end
+
+          assert_equal txn.initial_segment, Tracer.current_segment
+          threads.each(&:join)
+          txn.finish
+
+          assert_equal 0, txn.segments.count { |s| s.name == "Ruby/Thread" }
           assert_nil Tracer.current_segment
         end
       end
