@@ -2087,14 +2087,6 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :allowed_from_server => true,
           :description => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
         },
-        :keep_retrying => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Enable or disable retrying failed connections to the New Relic data collection service.'
-        },
         :max_payload_size_in_bytes => {
           :default => 1000000,
           :public => false,
