@@ -49,7 +49,7 @@ module NewRelic
                 :'distributed_tracing.enabled' => true,
                 :account_id => test_case['account_id'],
                 :primary_application_id => "2827902",
-                :'analytics_events.enabled' => test_case.fetch('transaction_events_enabled', true),
+                :'transaction_events.enabled' => test_case.fetch('transaction_events_enabled', true),
                 :trusted_account_key => test_case['trusted_account_key'],
                 :'span_events.enabled' => test_case.fetch('span_events_enabled', true)
               }

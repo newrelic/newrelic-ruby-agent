@@ -124,8 +124,6 @@ module NewRelic
 
       def prep_capture_params_rules(config)
         build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
-        build_rule(['job.resque.args.*'], include_destinations_for_capture_params(config[:'resque.capture_params']), true)
-        build_rule(['job.sidekiq.args.*'], include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
       end
 
       def prep_datastore_rules(config)

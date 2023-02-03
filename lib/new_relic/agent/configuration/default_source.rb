@@ -176,13 +176,6 @@ module NewRelic
           proc { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
 
-        # This check supports the js_errors_beta key we've asked clients to
-        # set. Once JS errors are GA, browser_monitoring.loader can stop
-        # being dynamic.
-        def self.browser_monitoring_loader
-          proc { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum" }
-        end
-
         def self.transaction_tracer_transaction_threshold
           proc { NewRelic::Agent.config[:apdex_t] * 4 }
         end
@@ -370,12 +363,12 @@ module NewRelic
               - a.third.event
           DESCRIPTION
         },
+        # this is only set via server side config
         :apdex_t => {
           :default => 0.5,
-          :public => true,
+          :public => false,
           :type => Float,
           :allowed_from_server => true,
-          :deprecated => true,
           :description => 'For agent versions 3.5.0 or higher, [set your Apdex T via the New Relic UI](/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings).'
         },
         :api_key => {
@@ -566,14 +559,6 @@ module NewRelic
           :description => 'Defines the maximum number of seconds the agent should spend attempting to connect to the collector.'
         },
         # Transaction tracer
-        :'transaction_tracer.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`transaction_tracer.attributes.enabled`](#transaction_tracer-attributes-enabled) instead.'
-        },
         :'transaction_tracer.enabled' => {
           :default => true,
           :public => true,
@@ -639,16 +624,8 @@ module NewRelic
           :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string `apdex_f`.'
         },
         # Error collector
-        :'error_collector.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`error_collector.attributes.enabled`](#error_collector-attributes-enabled) instead.'
-        },
         :'error_collector.ignore_classes' => {
-          :default => [],
+          :default => ['ActionController::RoutingError', 'Sinatra::NotFound'],
           :public => true,
           :type => Array,
           :allowed_from_server => true,
@@ -713,21 +690,7 @@ module NewRelic
           :dynamic_name => true,
           :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be treated as expected.'
         },
-        :'error_collector.ignore_errors' => {
-          :default => 'ActionController::RoutingError,Sinatra::NotFound',
-          :public => true,
-          :type => String,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :dynamic_name => true,
-          :description => <<~DESCRIPTION
-            Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.
 
-                <Callout variant="caution">
-                  Server side configuration takes precedence for this setting over all environment configurations. This differs from all other configuration settings where environment variable take precedence over server side configuration.
-                </Callout>
-          DESCRIPTION
-        },
         :'error_collector.ignore_messages' => {
           :default => {},
           :public => true,
@@ -773,51 +736,16 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If `true`, enables [auto-injection](/docs/browser/new-relic-browser/installation-configuration/adding-apps-new-relic-browser#select-apm-app) of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
-        :'browser_monitoring.capture_attributes' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`browser_monitoring.attributes.enabled`](#browser_monitoring-attributes-enabled) instead.'
-        },
-        # Analytics events
-        :'analytics_events.capture_attributes' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Use [`transaction_events.attributes.enabled`](#transaction_events-attributes-enabled) instead.'
-        },
-        :'analytics_events.enabled' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :description => deprecated_description(:'transaction_events.enabled', 'If `true`, enables analytics event sampling.')
-        },
-        :'analytics_events.max_samples_stored' => {
-          :default => 1200,
-          :public => true,
-          :type => Integer,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :description => deprecated_description(:'transaction_events.max_samples_stored', 'Defines the maximum number of request events reported from a single harvest.')
-        },
         # Transaction events
         :'transaction_events.enabled' => {
-          :default => value_of(:'analytics_events.enabled'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If `true`, enables transaction event sampling.'
         },
         :'transaction_events.max_samples_stored' => {
-          :default => value_of(:'analytics_events.max_samples_stored'),
-          :documentation_default => 1200,
+          :default => 1200,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
@@ -885,8 +813,7 @@ module NewRelic
           :description => 'Prefix of attributes to include in all destinations. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.enabled' => {
-          :default => value_of(:'browser_monitoring.capture_attributes'),
-          :documentation_default => false,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -909,8 +836,7 @@ module NewRelic
           :description => 'Prefix of attributes to include in browser monitoring. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.enabled' => {
-          :default => value_of(:'error_collector.capture_attributes'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -956,8 +882,7 @@ module NewRelic
           :description => 'Prefix of attributes to include on span events. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.enabled' => {
-          :default => value_of(:'analytics_events.capture_attributes'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -1003,8 +928,7 @@ module NewRelic
           :description => 'Prefix of attributes to include on transaction segments. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.enabled' => {
-          :default => value_of(:'transaction_tracer.capture_attributes'),
-          :documentation_default => true,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -1213,15 +1137,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables instrumentation for Active Record 4+'
         },
-        :disable_bunny => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.bunny', 'If `true`, disables instrumentation for the bunny gem.')
-        },
         :disable_cpu_sampler => {
           :default => false,
           :public => true,
@@ -1229,41 +1144,6 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If `true`, the agent won\'t sample the CPU usage of the host process.'
-        },
-        :disable_curb => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.')
-        },
-        :disable_database_instrumentation => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => 'Use [`disable_sequel_instrumentation`](#disable_sequel_instrumentation) instead.'
-        },
-        :disable_dalli => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', 'If `true`, disables instrumentation for the dalli gem.')
-        },
-        :disable_dalli_cas_client => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem's additional CAS client support.")
         },
         :disable_delayed_job_sampler => {
           :default => false,
@@ -1273,91 +1153,12 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, the agent won\'t measure the depth of Delayed Job queues.'
         },
-        :disable_dj => {
-          :default => false,
-          :public => true,
-          :deprecated => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables [Delayed::Job instrumentation](/docs/agents/ruby-agent/background-jobs/delayedjob).')
-        },
-        :disable_excon => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
-        },
-        :disable_memcached => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcached', 'If `true`, disables instrumentation for the memcached gem.')
-        },
-        :disable_memcache_client => {
-          :default => value_of(:disable_memcache_instrumentation),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache-client', 'If `true`, disables instrumentation for the memcache-client gem.')
-        },
-        :disable_memcache_instrumentation => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', 'If `true`, disables memcache instrumentation.')
-        },
         :disable_gc_profiler => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables the use of GC::Profiler to measure time spent in garbage collection'
-        },
-        :disable_grape => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.')
-        },
-        :disable_httpclient => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.httpclient', 'If `true`, disables instrumentation for the httpclient gem.')
-        },
-        :disable_httprb => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.')
-        },
-        :disable_mongo => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :dynamic_name => true,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install [instrumentation for the Mongo gem](/docs/agents/ruby-agent/frameworks/mongo-instrumentation).')
         },
         :disable_memory_sampler => {
           :default => false,
@@ -1373,78 +1174,6 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
-        },
-        :disable_net_http => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, disables instrumentation for Net::HTTP.')
-        },
-        :disable_puma_rack => {
-          :default => value_of(:disable_rack),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.puma_rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Puma::Rack::Builder to find gems to instrument during application startup.')
-        },
-        :disable_puma_rack_urlmap => {
-          :default => value_of(:disable_rack_urlmap),
-          :documentation_default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If `true`, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
-        },
-        :disable_rack => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
-        },
-        :disable_rack_urlmap => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rack_urlmap', 'If `true`, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
-        },
-        :disable_rake => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rake', 'If `true`, disables Rake instrumentation.')
-        },
-        :disable_redis => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install [instrumentation for Redis](/docs/agents/ruby-agent/frameworks/redis-instrumentation).')
-        },
-        :disable_resque => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.resque', 'If `true`, disables [Resque instrumentation](/docs/agents/ruby-agent/background-jobs/resque-instrumentation).')
         },
         :disable_samplers => {
           :default => false,
@@ -1466,14 +1195,6 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
-        },
-        :disable_sinatra => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).')
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
@@ -1498,15 +1219,6 @@ module NewRelic
                   ```
                 </Callout>
           DESCRIPTION
-        },
-        :disable_typhoeus => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.')
         },
         :disable_view_instrumentation => {
           :default => false,
@@ -1593,8 +1305,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of ActiveSupport::Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.bunny' => {
-          :default => instrumentation_value_of(:disable_bunny),
-          :documentation_default => 'auto',
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1610,7 +1321,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.curb' => {
-          :default => instrumentation_value_of(:disable_curb),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1619,7 +1330,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of Curb at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.delayed_job' => {
-          :default => instrumentation_value_of(:disable_dj),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1636,18 +1347,17 @@ module NewRelic
           :description => 'Controls auto-instrumentation of the elasticsearch library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.excon' => {
-          :default => instrumentation_value_of(:disable_excon),
+          :default => 'enabled',
           :documentation_default => 'enabled',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :'instrumentation.grape' => {
-          :default => instrumentation_value_of(:disable_grape_instrumentation),
-          :documentation_default => 'auto',
-          :public => :true,
+          :default => 'auto',
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1680,7 +1390,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of gRPC servers at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.httpclient' => {
-          :default => instrumentation_value_of(:disable_httpclient),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1689,7 +1399,7 @@ module NewRelic
           :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.httprb' => {
-          :default => instrumentation_value_of(:disable_httprb),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1707,8 +1417,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache' => {
-          :default => instrumentation_value_of(:disable_dalli),
-          :documentation_default => 'auto',
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1716,7 +1425,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcached' => {
-          :default => instrumentation_value_of(:disable_memcached),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1734,16 +1443,16 @@ module NewRelic
           :description => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.mongo' => {
-          :default => instrumentation_value_of(:disable_mongo),
+          :default => 'enabled',
           :documentation_default => 'enabled',
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
         },
         :'instrumentation.net_http' => {
-          :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1752,7 +1461,7 @@ module NewRelic
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack' => {
-          :default => instrumentation_value_of(:disable_puma_rack), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :default => value_of(:'instrumentation.rack'),
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1763,7 +1472,7 @@ module NewRelic
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
-          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: MAJOR VERSION - change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :default => value_of(:'instrumentation.rack_urlmap'),
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1772,7 +1481,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.rack' => {
-          :default => instrumentation_value_of(:disable_rack),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1783,7 +1492,7 @@ module NewRelic
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.rack_urlmap' => {
-          :default => instrumentation_value_of(:disable_rack_urlmap),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1792,17 +1501,15 @@ module NewRelic
           :description => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.rake' => {
-          :default => instrumentation_value_of(:disable_rake),
-          :documentation_default => 'auto',
-          :public => :true,
+          :default => 'auto',
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of rake at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.redis' => {
-          :default => instrumentation_value_of(:disable_redis),
-          :documentation_default => 'auto',
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1810,7 +1517,7 @@ module NewRelic
           :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.resque' => {
-          :default => instrumentation_value_of(:disable_resque),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1819,9 +1526,8 @@ module NewRelic
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.sinatra' => {
-          :default => instrumentation_value_of(:disable_sinatra),
-          :documentation_default => 'auto',
-          :public => :true,
+          :default => 'auto',
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1858,7 +1564,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.typhoeus' => {
-          :default => instrumentation_value_of(:disable_typhoeus),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1927,16 +1633,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Timeout for waiting on connect to complete before a rake task'
         },
-        # Resque
-        :'resque.capture_params' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :dynamic_name => true,
-          :deprecated => true,
-          :description => 'If `true`, enables the capture of job arguments for transaction traces and traced errors in Resque.'
-        },
         # Rules
         :'rules.ignore_url_regexes' => {
           :default => [],
@@ -1945,16 +1641,6 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
-        },
-        # Sidekiq
-        :'sidekiq.capture_params' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :dynamic_name => true,
-          :deprecated => true,
-          :description => 'If `true`, enables the capture of job arguments for transaction traces and traced errors in Sidekiq.'
         },
         # Slow SQL
         :'slow_sql.enabled' => {
@@ -2144,7 +1830,7 @@ module NewRelic
           :description => 'Real user monitoring license key for the browser timing header.'
         },
         :'browser_monitoring.loader' => {
-          :default => DefaultSource.browser_monitoring_loader,
+          :default => 'rum',
           :public => false,
           :type => String,
           :allowed_from_server => true,
@@ -2200,15 +1886,6 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic data collection service.'
         },
-        :disable_grape_instrumentation => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.')
-        },
         :dispatcher => {
           :default => DefaultSource.dispatcher,
           :public => false,
@@ -2229,31 +1906,6 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Internal name for controlling Rails 3+ middleware instrumentation'
-        },
-        :disable_rake_instrumentation => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rake', 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`')
-        },
-        :disable_redis_instrumentation => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
-        },
-        :cross_application_tracing => {
-          :default => nil,
-          :allow_nil => true,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => 'Deprecated in favor of distributed_tracing.enabled'
         },
         :enabled => {
           :default => true,
@@ -2292,17 +1944,8 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic event collection services.'
         },
-        :'event_report_period.analytic_event_data' => {
-          :default => 60,
-          :public => false,
-          :type => Integer,
-          :dynamic_name => true,
-          :deprecated => true,
-          :allowed_from_server => true,
-          :description => deprecated_description(:'event_report_period.transaction_event_data', 'Number of seconds betwixt connections to the New Relic transaction event collection services.')
-        },
         :'event_report_period.transaction_event_data' => {
-          :default => value_of(:'event_report_period.analytic_event_data'),
+          :default => 60,
           :public => false,
           :type => Integer,
           :dynamic_name => true,
@@ -2394,28 +2037,12 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'JavaScript agent loader content.'
         },
-        :js_errors_beta => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => 'Enable or disable beta JavaScript error reporting.'
-        },
         :keep_alive_timeout => {
           :default => 60,
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
-        },
-        :keep_retrying => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :description => 'Enable or disable retrying failed connections to the New Relic data collection service.'
         },
         :max_payload_size_in_bytes => {
           :default => 1000000,
@@ -2437,15 +2064,6 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :description => 'Port for the New Relic data collection service.'
-        },
-        :prepend_net_instrumentation => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.')
         },
         :primary_application_id => {
           :default => nil,

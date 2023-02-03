@@ -85,7 +85,7 @@ module NewRelic::Agent
     end
 
     def test_resque_capture_params_false_adds_exclude_rule_for_request_parameters
-      with_config(:'resque.capture_params' => false) do
+      with_config(:'attributes.include' => []) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('job.resque.args.*', AttributeFilter::DST_NONE)
 
@@ -94,16 +94,24 @@ module NewRelic::Agent
     end
 
     def test_resque_capture_params_true_allows_request_params_for_traces_and_errors
-      with_config(:'resque.capture_params' => true) do
+      with_config(:'attributes.include' => ['job.resque.args.*']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('job.resque.args.*', AttributeFilter::DST_NONE)
 
-        assert_destinations %w[transaction_tracer error_collector], result
+        expected_destinations = %w[
+          transaction_events
+          transaction_tracer
+          error_collector
+          span_events
+          transaction_segments
+        ]
+
+        assert_destinations expected_destinations, result
       end
     end
 
     def test_sidekiq_capture_params_false_adds_exclude_rule_for_request_parameters
-      with_config(:'sidekiq.capture_params' => false) do
+      with_config(:'attributes.include' => []) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('job.sidekiq.args.*', AttributeFilter::DST_NONE)
 
@@ -112,11 +120,19 @@ module NewRelic::Agent
     end
 
     def test_sidekiq_capture_params_true_allows_request_params_for_traces_errors
-      with_config(:'sidekiq.capture_params' => true) do
+      with_config(:'attributes.include' => 'job.sidekiq.args.*') do
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply('job.sidekiq.args.*', AttributeFilter::DST_NONE)
 
-        assert_destinations %w[transaction_tracer error_collector], result
+        expected_destinations = %w[
+          transaction_events
+          transaction_tracer
+          error_collector
+          span_events
+          transaction_segments
+        ]
+
+        assert_destinations expected_destinations, result
       end
     end
 
