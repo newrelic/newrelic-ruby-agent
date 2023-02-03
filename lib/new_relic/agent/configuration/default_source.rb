@@ -1906,15 +1906,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Internal name for controlling Rails 3+ middleware instrumentation'
         },
-        :cross_application_tracing => {
-          :default => nil,
-          :allow_nil => true,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => 'Deprecated in favor of distributed_tracing.enabled'
-        },
         :enabled => {
           :default => true,
           :public => false,
