@@ -16,6 +16,7 @@ jobs:
       - run: bundle
       - run: rubocop
 
+
   unit_tests:
     needs: run_rubocop
     runs-on: ubuntu-22.04
