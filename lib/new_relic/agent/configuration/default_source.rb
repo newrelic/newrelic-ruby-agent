@@ -176,13 +176,6 @@ module NewRelic
           proc { NewRelic::Agent::Threading::BacktraceService.is_supported? }
         end
 
-        # This check supports the js_errors_beta key we've asked clients to
-        # set. Once JS errors are GA, browser_monitoring.loader can stop
-        # being dynamic.
-        def self.browser_monitoring_loader
-          proc { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum" }
-        end
-
         def self.transaction_tracer_transaction_threshold
           proc { NewRelic::Agent.config[:apdex_t] * 4 }
         end
@@ -1836,7 +1829,7 @@ module NewRelic
           :description => 'Real user monitoring license key for the browser timing header.'
         },
         :'browser_monitoring.loader' => {
-          :default => DefaultSource.browser_monitoring_loader,
+          :default => 'rum',
           :public => false,
           :type => String,
           :allowed_from_server => true,
@@ -2051,14 +2044,6 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :description => 'JavaScript agent loader content.'
-        },
-        :js_errors_beta => {
-          :default => false,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :deprecated => true,
-          :description => 'Enable or disable beta JavaScript error reporting.'
         },
         :keep_alive_timeout => {
           :default => 60,

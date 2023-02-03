@@ -34,20 +34,8 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     NewRelic::Agent.config.reset_to_defaults
   end
 
-  def test_js_errors_beta_default_gets_default_loader
+  def test_default_loader
     assert_equal "rum", NewRelic::Agent.config[:'browser_monitoring.loader']
-  end
-
-  def test_js_errors_beta_gets_full_loader
-    with_config(:js_errors_beta => true) do
-      assert_equal "full", NewRelic::Agent.config[:'browser_monitoring.loader']
-    end
-  end
-
-  def test_js_errors_beta_off_gets_default_loader
-    with_config(:js_errors_beta => false) do
-      assert_equal "rum", NewRelic::Agent.config[:'browser_monitoring.loader']
-    end
   end
 
   def test_auto_instrumentation_config_defaults_to_enabled
