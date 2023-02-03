@@ -101,7 +101,7 @@ module Multiverse
       "agent" => %w[agent_only bare config_file_loading deferred_instrumentation high_security no_json json marshalling yajl],
       "background" => %w[delayed_job sidekiq resque],
       "background_2" => ["rake"],
-      "database" => %w[datamapper elasticsearch mongo redis sequel],
+      "database" => %w[elasticsearch mongo redis sequel],
       "rails" => %w[active_record active_record_pg rails rails_prepend activemerchant],
       "frameworks" => %w[sinatra padrino grape],
       "httpclients" => %w[curb excon httpclient],

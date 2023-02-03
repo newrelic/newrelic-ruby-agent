@@ -1239,13 +1239,6 @@ module NewRelic
           :deprecated => true,
           :description => 'Use [`disable_sequel_instrumentation`](#disable_sequel_instrumentation) instead.'
         },
-        :disable_data_mapper => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, disables DataMapper instrumentation.'
-        },
         :disable_dalli => {
           :default => value_of(:disable_memcache_instrumentation),
           :documentation_default => false,
