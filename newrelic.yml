@@ -169,9 +169,6 @@ common: &default_settings
   # If true, disables Action Cable instrumentation.
   # disable_action_cable_instrumentation: false
 
-  # If true, disables Action Dispatch instrumentation.
-  # disable_action_dispatch: false
-
   # If true, disables Action Mailbox instrumentation.
   # disable_action_mailbox: false
 
@@ -198,9 +195,6 @@ common: &default_settings
 
   # If true, disables ActiveSupport custom events instrumentation.
   # disable_custom_events_instrumentation: false
-
-  # If true, disables DataMapper instrumentation.
-  # disable_data_mapper: false
 
   # If true, the agent won't measure the depth of Delayed Job queues.
   # disable_delayed_job_sampler: false
