@@ -97,11 +97,11 @@ class ResqueTest < Minitest::Test
 
   def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
     stub_for_span_collection
-    
+
     with_config(:'attributes.include' => 'job.resque.args.*') do
       run_jobs
     end
-    
+
     assert_attributes_on_transaction_traces
     assert_attributes_on_events
   end
