@@ -8,17 +8,17 @@ require 'new_relic/latest_changes'
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
   s.version = NewRelic::VERSION::STRING
-  s.required_ruby_version = '>= 2.2.0'
+  s.required_ruby_version = '>= 2.4.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to?(:required_rubygems_version=)
   s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch", "Hannah Ramadan"]
   s.licenses = ['Apache-2.0']
-  s.description = <<-EOS
-New Relic is a performance management system, developed by New Relic,
-Inc (http://www.newrelic.com).  New Relic provides you with deep
-information about the performance of your web application as it runs
-in production. The New Relic Ruby agent is dual-purposed as a either a
-Gem or plugin, hosted on
-https://github.com/newrelic/newrelic-ruby-agent/
+  s.description = <<~EOS
+    New Relic is a performance management system, developed by New Relic,
+    Inc (http://www.newrelic.com).  New Relic provides you with deep
+    information about the performance of your web application as it runs
+    in production. The New Relic Ruby agent is dual-purposed as a either a
+    Gem or plugin, hosted on
+    https://github.com/newrelic/newrelic-ruby-agent/
   EOS
   s.email = "support@newrelic.com"
   s.executables = %w[newrelic_cmd newrelic nrdebug]
@@ -61,5 +61,5 @@ https://github.com/newrelic/newrelic-ruby-agent/
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'thor' unless ENV['CI']
   s.add_development_dependency 'warning' if RUBY_VERSION >= '2.4.0'
-  s.add_development_dependency 'yard', "#{RUBY_VERSION < '2.3.0' ? '0.9.26' : '> 0.9.26'}"
+  s.add_development_dependency 'yard'
 end

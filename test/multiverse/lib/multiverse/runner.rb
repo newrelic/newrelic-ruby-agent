@@ -111,11 +111,6 @@ module Multiverse
       "rest" => [] # Specially handled below
     }
 
-    # Would like to reinstate but requires investigation, see RUBY-1749
-    if RUBY_VERSION < '2.3'
-      GROUPS['background_2'].delete('rake')
-    end
-
     if RUBY_PLATFORM == "java"
       GROUPS['agent'].delete('agent_only')
     end
@@ -127,7 +122,6 @@ module Multiverse
     end
 
     def excluded?(suite)
-      return true if suite == 'rake' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
     end

@@ -7,19 +7,17 @@ RAILS_VERSIONS = [
   ['7.0.0', 2.7],
   ['6.1.0', 2.5],
   ['6.0.0', 2.5, 2.7],
-  ['5.2.0', 2.2, 2.6],
-  ['5.1.0', 2.2, 2.5],
-  ['5.0.0', 2.2, 2.4],
-  ['4.2.0', 2.2, 2.3],
-  ['4.1.0', 2.2, 2.3],
-  ['4.0.0', 2.2, 2.3]
+  ['5.2.0', 2.4, 2.6],
+  ['5.1.0', 2.4, 2.5],
+  ['5.0.0', 2.4, 2.4],
+  ['4.2.0', 2.4, 2.4]
 ]
 
 def gem_list(rails_version = nil)
   # earlier thor errors, uncertain if they persist
   thor = "gem 'thor', '< 0.20.1'" if RUBY_PLATFORM == 'java' && rails_version && rails_version.include?('4')
   minitest_version = rails_version && rails_version.include?('4.0') ? '4.2.0' : '5.2.3'
-  <<-RB
+  <<~RB
     gem 'rails'#{rails_version}
     gem 'haml'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)

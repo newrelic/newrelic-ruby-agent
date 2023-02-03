@@ -34,19 +34,19 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to?(:required_rubygems_version=)
   s.authors = ["Tanna McClure", "Kayla Reopelle", "James Bunch", "Hannah Ramadan"]
   s.licenses = ['Apache-2.0']
-  s.description = <<-EOS
-The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed
-tracing that uses head-based sampling (standard distributed tracing).
+  s.description = <<~EOS
+    The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed
+    tracing that uses head-based sampling (standard distributed tracing).
 
-If you want distributed tracing to use tail-based sampling (Infinite Tracing),
-you need to add both newrelic_rpm and newrelic-infinite_tracing to your application's
-Gemfile.  For more information, see: https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing
+    If you want distributed tracing to use tail-based sampling (Infinite Tracing),
+    you need to add both newrelic_rpm and newrelic-infinite_tracing to your application's
+    Gemfile.  For more information, see: https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing
 
-New Relic is a performance management system, developed by New Relic,
-Inc (http://www.newrelic.com).  New Relic provides you with deep
-information about the performance of your web application as it runs
-in production. The New Relic Ruby Agent is dual-purposed as a either a
-Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
+    New Relic is a performance management system, developed by New Relic,
+    Inc (http://www.newrelic.com).  New Relic provides you with deep
+    information about the performance of your web application as it runs
+    in production. The New Relic Ruby Agent is dual-purposed as a either a
+    Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
   EOS
 
   s.email = "support@newrelic.com"
@@ -75,8 +75,8 @@ Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
   s.add_dependency 'grpc', '~> 1.34'
 
   s.add_development_dependency 'rake', '12.3.3'
-  s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
-  s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3
+  s.add_development_dependency 'rb-inotify'
+  s.add_development_dependency 'listen'
   s.add_development_dependency 'minitest', '~> 5.15'
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.9.0'

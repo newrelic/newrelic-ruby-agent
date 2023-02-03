@@ -4,6 +4,6 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
+gemfile <<~RB
   # nothin'
 RB

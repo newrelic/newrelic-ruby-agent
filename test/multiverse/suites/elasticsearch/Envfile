@@ -10,9 +10,9 @@ ELASTICSEARCH_VERSIONS = [
 ]
 
 def gem_list(elasticsearch_version = nil)
-  <<-RB
+  <<~RB
     gem 'elasticsearch'#{elasticsearch_version}
-    
+
   RB
 end
 

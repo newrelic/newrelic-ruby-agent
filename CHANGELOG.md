@@ -2,12 +2,16 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent enables thread tracing.
+  Version 9.0.0 of the agent enables thread tracing and removes support for Ruby versions 2.2 and 2.3.
 
 - **Enable Thread Instrumentation by default**
 
   The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
 
+- **Ruby 2.2 and 2.3 Dropped**
+
+  Support for Ruby 2.2 and 2.3 dropped with this release. They are no longer included in our test matrices and are not supported
+  for 9.0.0 and onward.
 
 
 ## 8.16.0
