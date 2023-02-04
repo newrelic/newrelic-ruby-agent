@@ -24,7 +24,7 @@
 
 - **Dropped method: `NewRelic::Agent.disable_transaction_tracing`**
 
-  Support for `NewRelic::Agent.disable_transaction_tracing` has been dropped. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
+  The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
 
 ## 8.16.0
 
