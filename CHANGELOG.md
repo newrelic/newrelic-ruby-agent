@@ -22,6 +22,10 @@
     - Rainbows
     - Sunspot
 
+- **Dropped method: `NewRelic::Agent.disable_transaction_tracing`**
+
+  The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
+
 ## 8.16.0
 
 Version 8.16.0 introduces more Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).

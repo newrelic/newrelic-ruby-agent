@@ -511,18 +511,6 @@ module NewRelic
       end
     end
 
-    # This method disables the recording of transaction traces in the given
-    # block.  See also #disable_all_tracing
-    #
-    # @api public
-    #
-    def disable_transaction_tracing
-      Deprecator.deprecate(:disable_transaction_tracing,
-        'disable_all_tracing or ignore_transaction')
-      record_api_supportability_metric(:disable_transaction_tracing)
-      yield
-    end
-
     # This method sets the state of sql recording in the transaction
     # sampler feature. Within the given block, no sql will be recorded
     #
