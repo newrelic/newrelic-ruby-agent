@@ -23,7 +23,7 @@ def gem_list(sinatra_version = nil)
     gem 'sinatra'#{sinatra_version}
     gem 'rack', '#{rack_version(sinatra_version)}'
     gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
-    #{ruby3_gem_webrick}
+    
   RB
 end
 

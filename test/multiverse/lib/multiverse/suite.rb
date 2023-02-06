@@ -7,7 +7,9 @@
 # version of Minitest, which we use throughout, not the one in stdlib on
 # Rubies starting with 1.9.x
 
+require_relative '../../../warning_test_helper'
 require_relative '../../../simplecov_test_helper'
+
 require 'rubygems'
 require 'base64'
 require 'fileutils'
@@ -182,7 +184,7 @@ module Multiverse
       end
 
       result = red(result) unless $?.success?
-      puts result
+      puts result if ENV["VERBOSE_TEST_OUTPUT"]
       $?
     end
 
@@ -266,6 +268,10 @@ module Multiverse
       raise "bundle command failed with (#{$?})" unless $? == 0
     end
 
+    def ruby3_gem_webrick
+      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
+    end
+
     def generate_gemfile(gemfile_text, env_index, local = true)
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile, 'w') do |f|
@@ -279,6 +285,12 @@ module Multiverse
 
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
+
+        # pin webrick until we investigate why 1.8.1 breaks things
+        f.puts "gem 'webrick', '< 1.8.0'" if RUBY_VERSION > '2.3.0'
+        # f.puts ruby3_gem_webrick
+
+        f.puts "gem 'warning'" if RUBY_VERSION >= '2.4.0'
 
         if debug
           f.puts "gem 'pry', '~> 0.14'"
@@ -391,6 +403,7 @@ module Multiverse
         return if gemfile_text.empty?
 
         load_dependencies(gemfile_text, env_index)
+        require 'minitest/pride' unless ENV['CI']
 
         configure_child_environment
         execute_ruby_files
@@ -434,6 +447,10 @@ module Multiverse
       environments.instrumentation_permutations.each do |instrumentation_method|
         yield(instrumentation_method)
       end
+    end
+
+    def instrumentation_permutations
+      environments.instrumentation_permutations
     end
 
     # Load the test suite's environment and execute it.
@@ -724,8 +741,9 @@ module Multiverse
       return environments.instrumentation_permutations unless opts.key?(:method)
 
       unless environments.instrumentation_permutations.include?(opts[:method])
-        raise "The :method filter specified a value of #{opts[:method]}, but the only possible methods are " \
-          "#{environments.instrumentation_permutations.join('|')}"
+        puts "Warning: The :method filter specified a value of #{opts[:method]}, but the only possible methods are " \
+        "#{environments.instrumentation_permutations.join('|')}. Ignoring :method filter."
+        return environments.instrumentation_permutations
       end
 
       [opts[:method]]

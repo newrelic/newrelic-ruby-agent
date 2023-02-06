@@ -89,10 +89,10 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command: bundle exec rake test:env[${{ env.rails }}]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev --debug
+          VERBOSE_TEST_OUTPUT: true
           COVERAGE: true
 
       - name: Save coverage results
@@ -223,18 +223,29 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
-      - name: Test MySQL
-        run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
+
+      - name: Wait for/Check Mysql
+        uses: nick-fields/retry@v2.8.2
+        with:
+          timeout_minutes: 1
+          max_attempts: 20
+          command: |
+            mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'";
+            if [[ $? != 0 ]]; then
+              sleep 1;
+            fi
+
 
       - name: Run Multiverse Tests
         uses: nick-fields/retry@v2.8.2
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
-          DB_PASSWORD: root
+          VERBOSE_TEST_OUTPUT: true
           MYSQL_PASSWORD: root
+          DB_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
           MYSQL_HOST: 127.0.0.1
@@ -280,8 +291,9 @@ jobs:
         with:
           timeout_minutes: 15
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: bundle exec rake test:multiverse[group=infinite_tracing]
         env:
+          VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
           COVERAGE: true
 

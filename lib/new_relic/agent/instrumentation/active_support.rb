@@ -2,11 +2,26 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This is a helper file that will allow apps using ActiveSupport without Rails
-# to still leverage all ActiveSupport based instrumentation functionality
-# offered by the agent that would otherwise be gated by the detection of Rails.
+require 'new_relic/agent/instrumentation/active_support_subscriber'
 
-# ActiveSupport notifications custom events
-if !defined?(Rails) && defined?(ActiveSupport::Notifications) && defined?(ActiveSupport::IsolatedExecutionState)
-  require_relative 'rails_notifications/custom_events'
+DependencyDetection.defer do
+  named :active_support
+
+  depends_on do
+    !NewRelic::Agent.config[:disable_active_support]
+  end
+
+  depends_on do
+    defined?(ActiveSupport) &&
+      !NewRelic::Agent::Instrumentation::ActiveSupportSubscriber.subscribed?
+  end
+
+  executes do
+    NewRelic::Agent.logger.info('Installing ActiveSupport instrumentation')
+  end
+
+  executes do
+    ActiveSupport::Notifications.subscribe(/\.active_support$/,
+      NewRelic::Agent::Instrumentation::ActiveSupportSubscriber.new)
+  end
 end

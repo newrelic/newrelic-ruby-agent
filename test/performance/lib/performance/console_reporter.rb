@@ -28,12 +28,17 @@ module Performance
       value_width = formatted_values.map(&:size).max
 
       rows = measurements.map do |key, value|
+        # TODO: RuboCop v1.4.4 seems to have a bug (another one) in
+        # FormatParameterMatch following PR 11464. Discussion continues in that
+        # PR. Re-enable the cop here after RuboCop has been updated with a fix.
+        # rubocop:disable Lint/FormatParameterMismatch
         if key == :iterations
           "  %#{key_width}s: %#{value_width}g" % [key, value]
         else
-          per_iteration = value / result.iterations.to_f
-          "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration]
+          per_iteration = (value / result.iterations.to_f).round(2)
+          "  %#{key_width}s: %#{value_width}g (#{per_iteration} / iter)" % [key, value]
         end
+        # rubocop:enable Lint/FormatParameterMismatch
       end
 
       rows.join("\n") + "\n"

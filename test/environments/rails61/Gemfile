@@ -2,7 +2,7 @@
 source 'https://rubygems.org'
 
 gem 'rake', '~> 12.3.3'
-gem 'rails', '~> 6.1.0'
+gem 'rails', '~> 6.1.7'
 
 gem 'minitest', '5.2.3'
 gem 'minitest-stub-const', '~> 0.6'
@@ -18,11 +18,18 @@ end
 
 platforms :ruby, :rbx do
   gem 'mysql2'
-  gem 'sqlite3', '~> 1.4'
+  if RUBY_VERSION < '2.6'
+    gem 'sqlite3', '~> 1.4.0'
+  elsif RUBY_VERSION < '2.7'
+    gem 'sqlite3', '< 1.6'
+  else
+    gem 'sqlite3'
+  end
 end
 
 gem 'newrelic_rpm', path: '../../..'
 
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
-gem 'simplecov'
+gem 'simplecov' if ENV["VERBOSE_TEST_OUTPUT"]
+gem 'warning' if RUBY_VERSION >= '2.4.0'

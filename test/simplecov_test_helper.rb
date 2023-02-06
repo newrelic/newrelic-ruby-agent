@@ -7,4 +7,11 @@
 # required Ruby >= 2.5.0 and Ruby 2.6.0 was marked for EOL
 SIMPLECOV_MIN_RUBY_VERSION = '2.7.0'
 
-require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION
+begin
+  require 'simplecov' if RUBY_VERSION >= SIMPLECOV_MIN_RUBY_VERSION && ENV["VERBOSE_TEST_OUTPUT"]
+rescue LoadError => e
+  puts
+  puts "SimpleCov requested by Ruby #{RUBY_VERSION} which is >=#{SIMPLECOV_MIN_RUBY_VERSION} "
+  puts "but the gem is not available. #{e.class}: #{e.message}"
+  puts
+end

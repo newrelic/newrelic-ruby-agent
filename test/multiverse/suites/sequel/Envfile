@@ -8,11 +8,19 @@ SEQUEL_VERSIONS = [
   ['5.17.0', 2.2, 2.7]
 ]
 
+def sqlite3_version
+  if RUBY_VERSION < '2.6'
+    "'< 1.5.0', "
+  elsif RUBY_VERSION < '2.7'
+    "'< 1.6.0', "
+  end
+end
+
 def gem_list(sequel_version = nil)
   <<-RB
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
     gem 'jdbc-sqlite3', '3.7.2', :platform => :jruby
-    gem 'sqlite3',#{" '< 1.5.0'," if RUBY_VERSION < '2.6'} :platform => :ruby
+    gem 'sqlite3',#{sqlite3_version} :platform => :ruby
     gem 'sequel'#{sequel_version}
   RB
 end

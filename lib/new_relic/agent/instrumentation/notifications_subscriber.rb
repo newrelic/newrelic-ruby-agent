@@ -47,6 +47,47 @@ module NewRelic
           end
         end
 
+        def start(name, id, payload)
+          return unless state.is_execution_traced?
+
+          start_segment(name, id, payload)
+        rescue => e
+          log_notification_error(e, name, 'start')
+        end
+
+        def finish(name, id, payload)
+          return unless state.is_execution_traced?
+
+          finish_segment(id, payload)
+        rescue => e
+          log_notification_error(e, name, 'finish')
+        end
+
+        def start_segment(name, id, payload)
+          segment = Tracer.start_segment(name: metric_name(name, payload))
+          add_segment_params(segment, payload)
+          push_segment(id, segment)
+        end
+
+        def finish_segment(id, payload)
+          if segment = pop_segment(id)
+            if exception = exception_object(payload)
+              segment.notice_error(exception)
+            end
+            segment.finish
+          end
+        end
+
+        # for subclasses
+        def add_segment_params(segment, payload)
+          # no op
+        end
+
+        # for subclasses
+        def metric_name(name, payload)
+          "Ruby/#{name}"
+        end
+
         def log_notification_error(error, name, event_type)
           # These are important enough failures that we want the backtraces
           # logged at error level, hence the explicit log_exception call.

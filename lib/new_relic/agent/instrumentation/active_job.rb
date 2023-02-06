@@ -12,7 +12,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing ActiveJob instrumentation')
+    NewRelic::Agent.logger.info('Installing base ActiveJob instrumentation')
 
     ActiveSupport.on_load(:active_job) do
       ActiveJob::Base.around_enqueue do |job, block|
@@ -24,6 +24,19 @@ DependencyDetection.defer do
       end
 
       NewRelic::Agent::PrependSupportability.record_metrics_for(ActiveJob::Base)
+    end
+  end
+
+  executes do
+    if defined?(ActiveSupport) &&
+        ActiveJob.respond_to?(:gem_version) &&
+        ActiveJob.gem_version >= Gem::Version.new('6.0.0') &&
+        !NewRelic::Agent.config[:disable_activejob] &&
+        !NewRelic::Agent::Instrumentation::ActiveJobSubscriber.subscribed?
+      NewRelic::Agent.logger.info('Installing notifications based ActiveJob instrumentation')
+
+      ActiveSupport::Notifications.subscribe(/\A[^\.]+\.active_job\z/,
+        NewRelic::Agent::Instrumentation::ActiveJobSubscriber.new)
     end
   end
 end

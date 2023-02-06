@@ -12,7 +12,7 @@ ELASTICSEARCH_VERSIONS = [
 def gem_list(elasticsearch_version = nil)
   <<-RB
     gem 'elasticsearch'#{elasticsearch_version}
-    #{ruby3_gem_webrick}
+    
   RB
 end
 

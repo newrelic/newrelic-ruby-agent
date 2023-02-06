@@ -364,9 +364,8 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
-An array of ActiveSupport custom events names to subscribe to and provide
-instrumentation for. For example,
-  - my.custom.event
+An array of ActiveSupport custom event names to subscribe to and instrument. For example,
+  - one.custom.event
   - another.event
   - a.third.event
           DESCRIPTION
@@ -466,7 +465,7 @@ When `true`, the agent captures HTTP request parameters and attaches them to tra
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
+          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `Server:One;Data Center:Primary`.'
         },
         :log_file_name => {
           :default => 'newrelic_agent.log',
@@ -1138,25 +1137,65 @@ A map of error classes to a list of messages. When an error of one of the classe
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'If `true`, disables Action Cable instrumentation.'
+        },
+        # TODO: by subscribing to process_middleware.action_dispatch events,
+        #       we duplicate the efforts already performed by non-notifications
+        #       based instrumentation. In future, we ought to determine the
+        #       extent of the overlap and duplication and end up with only this
+        #       notifications based approach existing and the monkey patching
+        #       approach removed entirely. NOTE that we will likely not want to
+        #       do so until we are okay with dropping support for Rails < v6,
+        #       given that these events are available only for v6+.
+        :disable_action_dispatch => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Action Dispatch instrumentation.'
+        },
+        :disable_action_controller => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Action Controller instrumentation.'
+        },
+        :disable_action_mailbox => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Action Mailbox instrumentation.'
+        },
+        :disable_action_mailer => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Action Mailer instrumentation.'
         },
         :disable_activejob => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActiveJob instrumentation.'
+          :description => 'If `true`, disables Active Job instrumentation.'
         },
         :disable_active_storage => {
           :default => false,
           :public => true,
           :type => Boolean,
-          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables ActiveStorage instrumentation.'
+          :description => 'If `true`, disables Active Storage instrumentation.'
+        },
+        :disable_active_support => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Active Support instrumentation.'
         },
         :disable_activerecord_instrumentation => {
           :default => value_of(:skip_ar_instrumentation),
@@ -1164,7 +1203,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables active record instrumentation.'
+          :description => 'If `true`, disables Active Record instrumentation.'
         },
         :disable_active_record_notifications => {
           :default => false,
@@ -1172,7 +1211,7 @@ A map of error classes to a list of messages. When an error of one of the classe
           :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If `true`, disables instrumentation for ActiveRecord 4, 5, and 6.'
+          :description => 'If `true`, disables instrumentation for Active Record 4+'
         },
         :disable_bunny => {
           :default => false,
@@ -1537,9 +1576,9 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the hostname for the Trace Observer Host. " \
+          :description => "Configures the hostname for the trace observer Host. " \
             "When configured, enables tail-based sampling by sending all recorded spans " \
-            "to a Trace Observer for further sampling decisions, irrespective of any usual " \
+            "to a trace observer for further sampling decisions, irrespective of any usual " \
             "agent sampling decision."
         },
         :'infinite_tracing.trace_observer.port' => {
@@ -1548,7 +1587,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the TCP/IP port for the Trace Observer Host"
+          :description => "Configures the TCP/IP port for the trace observer Host"
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
@@ -2336,8 +2375,8 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "If true (the default), data sent to the Trace Observer will be batched\ninstead of each " \
-                          "span being sent individually"
+          :description => "If `true` (the default), data sent to the trace observer is batched\ninstead of sending " \
+                          "each span individually."
         },
         :'infinite_tracing.compression_level' => {
           :default => :high,
@@ -2345,7 +2384,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :type => Symbol,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configure the compression level for data sent to the Trace Observer\nMay be one of " \
+          :description => "Configure the compression level for data sent to the trace observer\nMay be one of " \
           "[none|low|medium|high]\n'high' is the default. Set the level to 'none' to disable compression"
         },
         :js_agent_file => {

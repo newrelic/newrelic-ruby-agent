@@ -24,14 +24,14 @@ module Environments
       overall_status = 0
       failures = []
 
-      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + "/", "") }.join("\n\t")}")
+      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + "/", "") }.join("\n\t")}") if ENV['VERBOSE_TEST_OUTPUT']
       env_file = ENV["file"]
 
       tests_to_run.each do |dir|
         Bundler.with_unbundled_env do
           ENV["file"] = env_file if env_file
           dir = File.expand_path(dir)
-          puts "", yellow("Running tests for #{dir}")
+          puts "", yellow("Running tests for #{dir}") if ENV['VERBOSE_TEST_OUTPUT']
           status = bundle(dir)
           status = run(dir) if status.success?
 
@@ -84,7 +84,7 @@ module Environments
     end
 
     def bundle(dir)
-      puts "Bundling in #{dir}..."
+      puts "Bundling in #{dir}..." if ENV['VERBOSE_TEST_OUTPUT']
       bundler_version = explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config(dir, bundle_cmd)
@@ -93,14 +93,19 @@ module Environments
       result = Multiverse::ShellUtils.try_command_n_times(command, 3)
 
       result = red(result) unless $?.success?
-      puts result
+      puts result if ENV["VERBOSE_TEST_OUTPUT"]
       $?
     end
 
     def run(dir)
-      puts "Starting tests for dir '#{dir}'..."
-      cmd = "cd #{dir} && bundle exec rake"
+      puts "Starting tests for dir '#{dir}'..." if ENV['VERBOSE_TEST_OUTPUT']
+      cmd = String.new("cd #{dir} && bundle exec rake")
+      # if the shell running the original test:env rake task has a "file" env
+      # var, replicate it here in the subshell
       cmd << " file=#{ENV['file']}" if ENV["file"]
+      # if the shell running the original test:env rake task has CLI args (not
+      # Rake task args) such as '--trace', replicate them here in the subshell
+      cmd << " #{ARGV[1..-1].join(' ')}" if ARGV.size > 1
 
       IO.popen(cmd) do |io|
         until io.eof

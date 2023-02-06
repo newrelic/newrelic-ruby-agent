@@ -42,8 +42,9 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command:  bundle exec rake test:env[norails,rails61,rails60] TESTOPTS="--verbose"
+          command:  bundle exec rake test:env[norails,rails61,rails60]
         env:
+          VERBOSE_TEST_OUTPUT: true
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev --debug
 
@@ -148,8 +149,9 @@ jobs:
       - name: Run Multiverse Tests
         run: ./.github/workflows/scripts/retry_command 
         env: 
-          TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]"
-          RETRY_ATTEMPS: 2
+          TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }}]"
+          VERBOSE_TEST_OUTPUT: true
+          RETRY_ATTEMPS: 5
           SERIALIZE: 1
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev --debug

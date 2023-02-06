@@ -19,7 +19,7 @@ def gem_list(tilt_version = nil)
   <<-RB
     gem 'tilt'#{tilt_version}
     gem 'haml'#{haml_version(tilt_version)}
-    #{ruby3_gem_webrick}
+    
   RB
 end
 

@@ -4,5 +4,5 @@
 
 gemfile <<-RB
   gem 'rack'
-  #{ruby3_gem_webrick}
+  
 RB

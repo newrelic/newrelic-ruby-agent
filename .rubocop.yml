@@ -1470,6 +1470,7 @@ Style/MethodCallWithArgsParentheses:
     - source
     - stub
     - stub_const
+    - use
   AllowedPatterns: [^assert, ^refute]
 
 Style/MethodCallWithoutArgsParentheses:
