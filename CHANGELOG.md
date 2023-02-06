@@ -18,8 +18,8 @@
   | `sidekiq.capture_params`                  | `attributes.include`                      | `attributes.include: ['job.sidekiq.args.*']`                                        |
   | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false`                                      |
   | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | `error_collector.ignore_classes: ['ActionController::RoutingError', 'CustomError']` |
-  | `analytics_events.enabled`                 | `transaction_events.enabled`              | `transaction_events.enabled: false`                                                 |
-  | `analytics_events.max_samples_stored`      | `transaction_events.max_samples_stored`   | `transaction_events.max_samples_stored: 1200`                                       |
+  | `analytics_events.enabled`                | `transaction_events.enabled`              | `transaction_events.enabled: false`                                                 |
+  | `analytics_events.max_samples_stored`     | `transaction_events.max_samples_stored`   | `transaction_events.max_samples_stored: 1200`                                       |
   | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `disable_sequel_instrumentation: true`                                              |
   | `disable_bunny`                           | `instrumentation.bunny`                   | `instrumentation.bunny: disabled`                                                   |
   | `disable_curb`                            | `instrumentation.curb`                    | `instrumentation.curb: disabled`                                                    |
