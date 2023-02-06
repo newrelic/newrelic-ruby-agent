@@ -7,46 +7,47 @@
 
 - **Remove Deprecated Configuration Options**
 
+  The following configuration options have been removed in this version and will no longer work. Please replace them with the appropriate configurations.
 
-  |  Removed                                  | Replacement                               | `newrelic.yml` example       |
-  | ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------ |
-  | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false` |
-  | `error_collector.capture_attributes`      | `error_collector.attributes.enabled`      | ``
-  | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | ``
-  | `browser_monitoring.capture_attributes`   | `browser_monitoring.attributes.enabled`   | `` |
-  | `analytics_events.capture_attributes`     | `transaction_events.attributes.enabled`   | `` |
-  | `analytics_events.enabled                 | `transaction_events.enabled`              | `` |
-  | `analytics_events.max_samples_stored      | `transaction_events.max_samples_stored`   | `` |
-  | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `` |
-  | `resque.capture_params`                   | `attributes.include`                      | `` |
-  | `sidekiq.capture_params`                  | `attributes.include`                      | `` |
-  | `disable_bunny`                           | `instrumentation.bunny`                   | `` |
-  | `disable_curb`                            | `instrumentation.curb`                    | `` |
-  | `disable_dj`                              | `instrumentation.delayed_job`             | `` |
-  | `disable_excon`                           | `instrumentation.excon`                   | `` |
-  | `disable_grape`                           | `instrumentation.grape`                   | `` |
-  | `disable_grape_instrumentation`           | `instrumentation.grape`                   | `` |
-  | `disable_httpclient`                      | `instrumentation.httpclient`              | `` |
-  | `disable_httprb`                          | `instrumentation.httprb`                  | `` |
-  | `disable_dalli`                           | `instrumentation.memcache`                | `` |
-  | `disable_dalli_cas_client`                | `instrumentation.memcache`                | `` |
-  | `disable_memcache_instrumentation`        | `instrumentation.memcache`                | `` |
-  | `disable_memcached`                       | `instrumentation.memcached`               | `` |
-  | `disable_memcache_client`                 | `instrumentation.memcache-client`         | `` |
-  | `disable_mongo`                           | `instrumentation.mongo`                   | `` |
-  | `disable_net_http`                        | `instrumentation.net_http`                | `` |
-  | `prepend_net_instrumentation`             | `instrumentation.net_http`                | `` |
-  | `disable_puma_rack`                       | `instrumentation.puma_rack`               | `` |
-  | `disable_puma_rack_urlmap`                | `instrumentation.puma_rack_urlmap`        | `` |
-  | `disable_rack`                            | `instrumentation.rack`                    | `` |
-  | `disable_rack_urlmap`                     | `instrumentation.rack_urlmap`             | `` |
-  | `disable_rake`                            | `instrumentation.rake`                    | `` |
-  | `disable_redis`                           | `instrumentation.redis`                   | `` |
-  | `disable_redis_instrumentation`           | `instrumentation.redis`                   | `` |
-  | `disable_resque`                          | `instrumentation.resque`                  | `` |
-  | `disable_sinatra`                         | `instrumentation.sinatra`                 | `` |
-  | `disable_rake_instrumentation`            | `instrumentation.rake`                    | `` |
-  | `disable_typhoeus`                        | `instrumentation.typhoeus`                | `` |
+  |  Removed                                  | Replacement                               | `newrelic.yml` example                                                              |
+  | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+  | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false`                                      |
+  | `error_collector.capture_attributes`      | `error_collector.attributes.enabled`      | `error_collector.attributes.enabled: false`                                         |
+  | `browser_monitoring.capture_attributes`   | `browser_monitoring.attributes.enabled`   | `browser_monitoring.attributes.enabled: false`                                      |
+  | `analytics_events.capture_attributes`     | `transaction_events.attributes.enabled`   | `transaction_events.attributes.enabled: false`                                      |
+  | `resque.capture_params`                   | `attributes.include`                      | `attributes.include: ['job.resque.args.*']`                                         |
+  | `sidekiq.capture_params`                  | `attributes.include`                      | `attributes.include: ['job.sidekiq.args.*']`                                        |
+  | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | `error_collector.ignore_classes: ['ActionController::RoutingError', 'CustomError']` |
+  | `analytics_events.enabled                 | `transaction_events.enabled`              | `transaction_events.enabled: false`                                                 |
+  | `analytics_events.max_samples_stored      | `transaction_events.max_samples_stored`   | `transaction_events.max_samples_stored: 1200`                                       |
+  | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `disable_sequel_instrumentation: true`                                              |
+  | `disable_bunny`                           | `instrumentation.bunny`                   | `instrumentation.bunny: disabled`                                                   |
+  | `disable_curb`                            | `instrumentation.curb`                    | `instrumentation.curb: disabled`                                                    |
+  | `disable_dj`                              | `instrumentation.delayed_job`             | `instrumentation.delayed_job: disabled`                                             |
+  | `disable_excon`                           | `instrumentation.excon`                   | `instrumentation.excon: disabled`                                                   |
+  | `disable_grape`                           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
+  | `disable_grape_instrumentation`           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
+  | `disable_httpclient`                      | `instrumentation.httpclient`              | `instrumentation.httpcient: disabled`                                               |
+  | `disable_httprb`                          | `instrumentation.httprb`                  | `instrumentation.httprb: disabled`                                                  |
+  | `disable_dalli`                           | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_dalli_cas_client`                | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcache_instrumentation`        | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcached`                       | `instrumentation.memcached`               | `instrumentation.memcached: disabled`                                               |
+  | `disable_memcache_client`                 | `instrumentation.memcache-client`         | `instrumentation.memcache-client: disabled`                                         |
+  | `disable_mongo`                           | `instrumentation.mongo`                   | `instrumentation.mongo: disabled`                                                   |
+  | `disable_net_http`                        | `instrumentation.net_http`                | `instrumentation.net_http: disabled`                                                |
+  | `prepend_net_instrumentation`             | `instrumentation.net_http`                | `instrumentation.net_http: prepend`                                                 |
+  | `disable_puma_rack`                       | `instrumentation.puma_rack`               | `instrumentation.puma_rack: disabled`                                               |
+  | `disable_puma_rack_urlmap`                | `instrumentation.puma_rack_urlmap`        | `instrumentation.puma_rack_urlmap: disabled`                                        |
+  | `disable_rack`                            | `instrumentation.rack`                    | `instrumentation.rack: disabled`                                                    |
+  | `disable_rack_urlmap`                     | `instrumentation.rack_urlmap`             | `instrumentation.rack_urlmap: disabled`                                             |
+  | `disable_rake`                            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
+  | `disable_redis`                           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
+  | `disable_redis_instrumentation`           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
+  | `disable_resque`                          | `instrumentation.resque`                  | `instrumentation.resque: disabled`                                                  |
+  | `disable_sinatra`                         | `instrumentation.sinatra`                 | `instrumentation.sinatra: disabled`                                                 |
+  | `disable_rake_instrumentation`            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
+  | `disable_typhoeus`                        | `instrumentation.typhoeus`                | `instrumentation.typhoeus: disabled`                                                |
 
 
 
