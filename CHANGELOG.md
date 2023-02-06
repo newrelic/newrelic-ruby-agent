@@ -2,7 +2,7 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent enables thread tracing, removes several deprecated configuration options, and removes support for Ruby versions 2.2 and 2.3.
+  Version 9.0.0 of the agent enables thread tracing, removes several deprecated configuration options, removes support for Ruby versions 2.2 and 2.3, and changes how the API method `set_transaction_name` works..
 
 
 - **Remove Deprecated Configuration Options**
@@ -69,6 +69,12 @@
     - DataMapper
     - Rainbows
     - Sunspot
+
+
+- **Changes how the API method `set_transaction_name` works**
+
+  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed in to the method. This is a change from how it functioned in previous agent versions. Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category that was already assigned to a transaction, neither the new name nor category would be saved to the transaction. 
+
 
 - **Dropped method: `NewRelic::Agent.disable_transaction_tracing`**
 

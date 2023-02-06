@@ -359,10 +359,8 @@ module NewRelic
       def set_overriding_transaction_name(name, category)
         return log_frozen_name(name) if name_frozen?
 
-        if influences_transaction_name?(category)
-          self.overridden_name = name
-          @category = category if category
-        end
+        self.overridden_name = name
+        @category = category if category
       end
 
       def log_frozen_name(name)
