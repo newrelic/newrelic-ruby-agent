@@ -80,6 +80,12 @@
 
   The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
 
+- **Code cleanup**
+
+  Thank you to community member [@esquith](https://github.com/esquith) for contributing some cleanup of orphaned constants in our code base. [PR#1793](https://github.com/newrelic/newrelic-ruby-agent/pull/1793) [PR#1794](https://github.com/newrelic/newrelic-ruby-agent/pull/1794)
+
+
+
 ## 8.16.0
 
 Version 8.16.0 introduces more Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).
