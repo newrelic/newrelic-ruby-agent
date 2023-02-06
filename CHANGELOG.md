@@ -2,7 +2,55 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent enables thread tracing and removes support for Ruby versions 2.2 and 2.3.
+  Version 9.0.0 of the agent enables thread tracing, removes several deprecated configuration options, and removes support for Ruby versions 2.2 and 2.3.
+
+
+- **Remove Deprecated Configuration Options**
+
+  The following configuration options have been removed in this version and will no longer work. Please replace them with the appropriate configurations.
+
+  |  Removed                                  | Replacement                               | `newrelic.yml` example                                                              |
+  | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+  | `analytics_events.capture_attributes`     | `transaction_events.attributes.enabled`   | `transaction_events.attributes.enabled: false`                                      |
+  | `browser_monitoring.capture_attributes`   | `browser_monitoring.attributes.enabled`   | `browser_monitoring.attributes.enabled: false`                                      |
+  | `error_collector.capture_attributes`      | `error_collector.attributes.enabled`      | `error_collector.attributes.enabled: false`                                         |
+  | `resque.capture_params`                   | `attributes.include`                      | `attributes.include: ['job.resque.args.*']`                                         |
+  | `sidekiq.capture_params`                  | `attributes.include`                      | `attributes.include: ['job.sidekiq.args.*']`                                        |
+  | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false`                                      |
+  | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | `error_collector.ignore_classes: ['ActionController::RoutingError', 'CustomError']` |
+  | `analytics_events.enabled`                | `transaction_events.enabled`              | `transaction_events.enabled: false`                                                 |
+  | `analytics_events.max_samples_stored`     | `transaction_events.max_samples_stored`   | `transaction_events.max_samples_stored: 1200`                                       |
+  | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `disable_sequel_instrumentation: true`                                              |
+  | `disable_bunny`                           | `instrumentation.bunny`                   | `instrumentation.bunny: disabled`                                                   |
+  | `disable_curb`                            | `instrumentation.curb`                    | `instrumentation.curb: disabled`                                                    |
+  | `disable_dj`                              | `instrumentation.delayed_job`             | `instrumentation.delayed_job: disabled`                                             |
+  | `disable_excon`                           | `instrumentation.excon`                   | `instrumentation.excon: disabled`                                                   |
+  | `disable_grape`                           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
+  | `disable_grape_instrumentation`           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
+  | `disable_httpclient`                      | `instrumentation.httpclient`              | `instrumentation.httpcient: disabled`                                               |
+  | `disable_httprb`                          | `instrumentation.httprb`                  | `instrumentation.httprb: disabled`                                                  |
+  | `disable_dalli`                           | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_dalli_cas_client`                | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcache_client`                 | `instrumentation.memcache-client`         | `instrumentation.memcache-client: disabled`                                         |
+  | `disable_memcache_instrumentation`        | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcached`                       | `instrumentation.memcached`               | `instrumentation.memcached: disabled`                                               |
+  | `disable_mongo`                           | `instrumentation.mongo`                   | `instrumentation.mongo: disabled`                                                   |
+  | `disable_net_http`                        | `instrumentation.net_http`                | `instrumentation.net_http: disabled`                                                |
+  | `prepend_net_instrumentation`             | `instrumentation.net_http`                | `instrumentation.net_http: prepend`                                                 |
+  | `disable_puma_rack`                       | `instrumentation.puma_rack`               | `instrumentation.puma_rack: disabled`                                               |
+  | `disable_puma_rack_urlmap`                | `instrumentation.puma_rack_urlmap`        | `instrumentation.puma_rack_urlmap: disabled`                                        |
+  | `disable_rack`                            | `instrumentation.rack`                    | `instrumentation.rack: disabled`                                                    |
+  | `disable_rack_urlmap`                     | `instrumentation.rack_urlmap`             | `instrumentation.rack_urlmap: disabled`                                             |
+  | `disable_redis`                           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
+  | `disable_redis_instrumentation`           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
+  | `disable_resque`                          | `instrumentation.resque`                  | `instrumentation.resque: disabled`                                                  |
+  | `disable_sinatra`                         | `instrumentation.sinatra`                 | `instrumentation.sinatra: disabled`                                                 |
+  | `disable_rake`                            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
+  | `disable_rake_instrumentation`            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
+  | `disable_typhoeus`                        | `instrumentation.typhoeus`                | `instrumentation.typhoeus: disabled`                                                |
+
+
+
 
 - **Enable Thread Instrumentation by default**
 
