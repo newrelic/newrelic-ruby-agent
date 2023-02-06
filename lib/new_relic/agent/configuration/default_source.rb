@@ -341,7 +341,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Your New Relic [license key](/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key).'
+          :description => 'Your New Relic <LicenseKey />.'
         },
         :log_level => {
           :default => 'info',
