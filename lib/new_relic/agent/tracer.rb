@@ -420,7 +420,7 @@ module NewRelic
 
         def thread_block_with_current_transaction(*args, segment_name:, parent: nil, &block)
           parent ||= current_segment
-          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].is_execution_traced?
+          current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
           proc do
             begin
               if current_txn
