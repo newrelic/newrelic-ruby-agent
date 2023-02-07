@@ -7,20 +7,6 @@ require 'new_relic/agent/database/explain_plan_helpers'
 require 'new_relic/agent/database/obfuscator'
 
 module NewRelic
-  # columns for a mysql explain plan
-  MYSQL_EXPLAIN_COLUMNS = [
-    "Id",
-    "Select Type",
-    "Table",
-    "Type",
-    "Possible Keys",
-    "Key",
-    "Key Length",
-    "Ref",
-    "Rows",
-    "Extra"
-  ].freeze
-
   module Agent
     module Database
       MAX_QUERY_LENGTH = 16384
