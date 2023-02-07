@@ -248,6 +248,7 @@ module NewRelic
         @priority = nil
 
         @starting_thread_id = Thread.current.object_id
+        @starting_segment_key = current_segment_key
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
@@ -260,20 +261,27 @@ module NewRelic
         end
       end
 
-      def parent_thread_id
-        ::Thread.current.nr_parent_thread_id if ::Thread.current.respond_to?(:nr_parent_thread_id)
+      # def state
+      #   NewRelic::Agent::Tracer.state
+      # end
+
+      def current_segment_key
+        Tracer.current_segment_key
+      end
+
+      def parent_segment_key
+        (::Fiber.current.nr_parent_key if ::Fiber.current.respond_to?(:nr_parent_key)) || (::Thread.current.nr_parent_key if ::Thread.current.respond_to?(:nr_parent_key))
       end
 
       def current_segment
-        current_thread_id = ::Thread.current.object_id
-        return current_segment_by_thread[current_thread_id] if current_segment_by_thread[current_thread_id]
-        return current_segment_by_thread[parent_thread_id] if current_segment_by_thread[parent_thread_id]
+        return current_segment_by_thread[current_segment_key] if current_segment_by_thread[current_segment_key]
+        return current_segment_by_thread[parent_segment_key] if current_segment_by_thread[parent_segment_key]
 
-        current_segment_by_thread[@starting_thread_id]
+        current_segment_by_thread[@starting_segment_key]
       end
 
       def set_current_segment(new_segment)
-        @current_segment_lock.synchronize { current_segment_by_thread[::Thread.current.object_id] = new_segment }
+        @current_segment_lock.synchronize { current_segment_by_thread[current_segment_key] = new_segment }
       end
 
       def remove_current_segment_by_thread_id(id)
