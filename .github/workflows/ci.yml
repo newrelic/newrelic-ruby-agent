@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 3.2.0]
+        ruby-version: [2.2.10, 3.2.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -57,7 +57,7 @@ jobs:
               "2.2.10": {
                 "rails": "norails,rails41,rails32"
               },
-              "3.2.0": {
+              "3.2.1": {
                 "rails": "norails,rails61,rails70"
               }
             }
@@ -183,7 +183,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.2.10, 3.2.0]
+        ruby-version: [2.2.10, 3.2.1]
 
     steps:
       - name: Configure git
@@ -272,7 +272,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 3.2.0]
+        ruby-version: [2.5.9, 3.2.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
