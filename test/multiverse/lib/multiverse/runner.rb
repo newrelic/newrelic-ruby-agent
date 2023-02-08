@@ -98,7 +98,7 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent" => %w[agent_only bare config_file_loading deferred_instrumentation high_security no_json json marshalling yajl],
+      "agent" => %w[agent_only bare config_file_loading deferred_instrumentation high_security no_json json marshalling thread yajl],
       "background" => %w[delayed_job sidekiq resque],
       "background_2" => ["rake"],
       "database" => %w[elasticsearch mongo redis sequel],

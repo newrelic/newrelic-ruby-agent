@@ -1312,6 +1312,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.fiber' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the Fiber class at start up. May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.concurrent_ruby' => {
           :default => 'auto',
           :public => true,
