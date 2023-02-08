@@ -20,14 +20,14 @@ module NewRelic
         # after its parent. We will use the optimized exclusive duration
         # calculation in all other cases.
         #
-        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_thread_id
+        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_segment_key
         attr_accessor :name, :parent, :children_time, :transaction, :transaction_name
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
         def initialize(name = nil, start_time = nil)
           @name = name
-          @starting_thread_id = ::Thread.current.object_id
+          @starting_segment_key = NewRelic::Agent::Tracer.current_segment_key
           @transaction_name = nil
           @transaction = nil
           @guid = NewRelic::Agent::GuidGenerator.generate_guid
