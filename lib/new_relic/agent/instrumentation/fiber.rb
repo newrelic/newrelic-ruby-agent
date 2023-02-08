@@ -14,7 +14,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing fiber instrumentation')
+    NewRelic::Agent.logger.info('Installing Fiber instrumentation')
 
     if use_prepend?
       prepend_instrument Fiber, NewRelic::Agent::Instrumentation::MonitoredFiber::Prepend
