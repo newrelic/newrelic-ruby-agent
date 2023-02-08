@@ -56,6 +56,11 @@
 
   The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
 
+- **Add Fiber Instrumentation**
+
+  Fibers are now automatically instrumented similarly to threads. This can be configured using `instrumentation.fiber`.
+
+
 - **Ruby 2.2 and 2.3 Dropped**
 
   Support for Ruby 2.2 and 2.3 dropped with this release. They are no longer included in our test matrices and are not supported
