@@ -2,8 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'async'
-
 class ThreadFiberInstrumentationTest < Minitest::Test
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
@@ -12,13 +10,6 @@ class ThreadFiberInstrumentationTest < Minitest::Test
   def teardown
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
-
-  # Add tests here
-
-  # Fiber > fiber
-  # Fiber > thread
-  # Thread > fiber
-  # Thread > Thread
 
   def do_segment(name: 'anything', &block)
     segment = NewRelic::Agent::Tracer.start_segment(name: name)
@@ -30,19 +21,27 @@ class ThreadFiberInstrumentationTest < Minitest::Test
     assert_equal parent.guid, child.parent.guid
   end
 
-  def test_parents_fibers_nested_in_fibers
-    tasks = []
+  def run_or_wait(async)
+    if async.class == Thread
+      async.join
+    elsif async.class == Fiber
+      async.resume
+    end
+  end
+
+  def run_nested_parent_test(async_class1, async_class2 = nil)
+    async_class2 ||= async_class1
 
     in_transaction do |txn|
       do_segment(name: 'Outer') do |outer_segment|
-        fiber1 = Fiber.new do
+        async1 = async_class1.new do
           fiber_segment = NewRelic::Agent::Tracer.current_segment
 
           assert_parent outer_segment, fiber_segment
-          fiber2 = nil
+          async2 = nil
           do_segment(name: 'Inner') do |inner_segment|
             assert_parent fiber_segment, inner_segment
-            fiber2 = Fiber.new do
+            async2 = async_class2.new do
               assert_parent inner_segment, NewRelic::Agent::Tracer.current_segment
             end
           end
@@ -50,12 +49,28 @@ class ThreadFiberInstrumentationTest < Minitest::Test
           do_segment(name: 'Inner2') do |inner_2_segment|
             assert_parent fiber_segment, inner_2_segment
           end
-          fiber2.resume
+          run_or_wait(async2)
         end
-        fiber1.resume
+        run_or_wait(async1)
       end
     end
 
     assert_equal 6, harvest_span_events![0][:events_seen]
+  end
+
+  def test_parents_thread_thread
+    run_nested_parent_test(Thread)
+  end
+
+  def test_parents_fiber_fiber
+    run_nested_parent_test(Fiber)
+  end
+
+  def test_parents_thread_fiber
+    run_nested_parent_test(Thread, Fiber)
+  end
+
+  def test_parents_fiber_thread
+    run_nested_parent_test(Fiber, Thread)
   end
 end
