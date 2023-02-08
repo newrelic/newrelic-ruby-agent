@@ -54,7 +54,7 @@ module NewRelic
       JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
 
       # reference to the transaction state managing this transaction
-      attr_accessor :state
+      # attr_accessor :state
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -121,7 +121,7 @@ module NewRelic
       def self.start_new_transaction(state, category, options)
         txn = Transaction.new(category, options)
         state.reset(txn)
-        txn.state = state
+        # txn.state = state
         txn.start(options)
         txn
       end
@@ -261,9 +261,9 @@ module NewRelic
         end
       end
 
-      # def state
-      #   NewRelic::Agent::Tracer.state
-      # end
+      def state
+        NewRelic::Agent::Tracer.state
+      end
 
       def current_segment_key
         Tracer.current_segment_key
