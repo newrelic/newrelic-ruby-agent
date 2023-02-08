@@ -7,6 +7,7 @@ development:
   license_key: bootstrap_newrelic_admin_license_key_000
   instrumentation:
     fiber: <%= $instrumentation_method %>
+    thread: <%= $instrumentation_method %>
   app_name: test
   log_level: debug
   host: 127.0.0.1

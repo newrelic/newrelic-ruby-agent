@@ -4,7 +4,7 @@
 
 require 'async'
 
-class FiberInstrumentationTest < Minitest::Test
+class ThreadFiberInstrumentationTest < Minitest::Test
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
@@ -30,27 +30,32 @@ class FiberInstrumentationTest < Minitest::Test
     assert_equal parent.guid, child.parent.guid
   end
 
-  def test_parents_nested_in_fibers
+  def test_parents_fibers_nested_in_fibers
     tasks = []
 
     in_transaction do |txn|
       do_segment(name: 'Outer') do |outer_segment|
-        tasks << Async do |task|
+        fiber1 = Fiber.new do
           fiber_segment = NewRelic::Agent::Tracer.current_segment
 
           assert_parent outer_segment, fiber_segment
+          fiber2 = nil
           do_segment(name: 'Inner') do |inner_segment|
             assert_parent fiber_segment, inner_segment
-            task.async do
+            fiber2 = Fiber.new do
               assert_parent inner_segment, NewRelic::Agent::Tracer.current_segment
             end
           end
-        end
-      end
 
-      tasks.each(&:wait)
+          do_segment(name: 'Inner2') do |inner_2_segment|
+            assert_parent fiber_segment, inner_2_segment
+          end
+          fiber2.resume
+        end
+        fiber1.resume
+      end
     end
 
-    assert_equal 5, harvest_span_events![0][:events_seen]
+    assert_equal 6, harvest_span_events![0][:events_seen]
   end
 end

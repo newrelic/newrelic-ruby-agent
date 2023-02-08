@@ -5,5 +5,4 @@
 instrumentation_methods :chain, :prepend
 
 gemfile <<~RB
-  gem 'async'
 RB
