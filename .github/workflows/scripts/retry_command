@@ -8,19 +8,24 @@ count=0
 return_val=1
 
 echo "---2"
+echo "count: $count   return_val: $return_val   retry_attempts: $RETRY_ATTEMPTS   cmd: $TEST_CMD"
 
 while [[ $return_val != 0  && $count -lt $RETRY_ATTEMPTS ]]; do
+  echo "count: $count   return_val: $return_val   retry_attempts: $RETRY_ATTEMPTS   cmd: $TEST_CMD"
   echo "---3"
+  echo 
   $TEST_CMD
   return_val=$?
   count=$((count + 1))
+  echo 
+
   echo "---4"
   if [[ $return_val != 0 ]]; then
     echo $'\n*************************************************************************************************************\n'
-    echo "FAILURE ON ATTEMPT $((count)) of $((RETRY_ATTEMPTS))"
+    echo "FAILURE ON ATTEMPT $count of $RETRY_ATTEMPTS"
     echo $'\n*************************************************************************************************************\n'
   else
-    echo $'\n**************************Success on attempt $((count)) of $((RETRY_ATTEMPTS))*******************************\n'
+    echo "************************** Success on attempt $count of $RETRY_ATTEMPTS *******************************"
   fi
 done
 
