@@ -542,12 +542,6 @@ module NewRelic
       NewRelic::Agent::Tracer.state.is_execution_traced?
     end
 
-    # helper method to check the thread local to determine whether sql
-    # is being recorded or not
-    def tl_is_sql_recorded?
-      NewRelic::Agent::Tracer.state.is_sql_recorded?
-    end
-
     # @!group Adding custom attributes to traces
 
     # Add attributes to the transaction trace, Insights Transaction event, and
