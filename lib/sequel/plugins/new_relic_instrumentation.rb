@@ -11,7 +11,7 @@ require 'new_relic/agent/datastores/metric_helper'
 module Sequel
   module Plugins
     # Sequel::Model instrumentation for the New Relic agent.
-    module NewrelicInstrumentation
+    module NewRelicInstrumentation
       # Meta-programming for creating method tracers for the Sequel::Model plugin.
       module MethodWrapping
         # Install a method named +method_name+ that will trace execution
@@ -38,7 +38,7 @@ module Sequel
 
       # Methods to be added to Sequel::Model instances.
       module InstanceMethods
-        extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping
+        extend Sequel::Plugins::NewRelicInstrumentation::MethodWrapping
 
         wrap_sequel_method :delete
         wrap_sequel_method :destroy
@@ -52,7 +52,7 @@ module Sequel
 
       # Methods to be added to Sequel::Model classes.
       module ClassMethods
-        extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping
+        extend Sequel::Plugins::NewRelicInstrumentation::MethodWrapping
 
         wrap_sequel_method :[], "get"
         wrap_sequel_method :all
