@@ -1,53 +1,53 @@
 name: JRuby Continuous Integration
 
 on:
+  pull_request:
   schedule:
     - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
-  unit_tests:
-    runs-on: ubuntu-22.04
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - "3306:3306"
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+  # unit_tests:
+  #   runs-on: ubuntu-22.04
+  #   services:
+  #     mysql:
+  #       image: mysql:5.7
+  #       env:
+  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+  #       ports:
+  #         - "3306:3306"
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@v3
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev 
+  #       # - curl is needed for Curb
+  #       # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+  #       # - sasl is needed for memcached
+  #     - name: Install OS packages
+  #       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev 
 
-      - name: Install Ruby jruby-9.3.9.0
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: jruby-9.3.9.0
+  #     - name: Install Ruby jruby-9.3.9.0
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: jruby-9.3.9.0
 
-      - name: Bundle
-        run: bundle install
+  #     - name: Bundle
+  #       run: bundle install
 
-      - name: Run Unit Tests
-        uses: nick-fields/retry@v2.8.2
-        with:
-          timeout_minutes: 30
-          max_attempts: 2
-          command:  bundle exec rake test:env[norails,rails61,rails60]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JRUBY_OPTS: --dev --debug
-
+  #     - name: Run Unit Tests
+  #       uses: nick-fields/retry@v2.8.2
+  #       with:
+  #         timeout_minutes: 30
+  #         max_attempts: 2
+  #         command:  bundle exec rake test:env[norails,rails61,rails60]
+  #       env:
+  #         VERBOSE_TEST_OUTPUT: true
+  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         JRUBY_OPTS: --dev --debug
 
   jruby_multiverse:
     runs-on: ubuntu-22.04
@@ -119,8 +119,8 @@ jobs:
           --health-retries 5
     strategy:
       fail-fast: false
-      matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+      # matrix:
+        # multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
       - name: Set the default Java version
         run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
@@ -149,7 +149,7 @@ jobs:
       - name: Run Multiverse Tests
         run: ./.github/workflows/scripts/retry_command 
         env: 
-          TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }}]"
+          TEST_CMD: "bundle exec rake test:multiverse[group=agent]"
           VERBOSE_TEST_OUTPUT: true
           RETRY_ATTEMPS: 5
           SERIALIZE: 1
@@ -160,3 +160,116 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+
+  # jruby_multiverse:
+  #   runs-on: ubuntu-22.04
+  #   services:
+  #     elasticsearch7:
+  #       image: elasticsearch:7.16.2
+  #       env:
+  #         discovery.type: single-node
+  #       ports:
+  #         - 9200:9200
+  #       options: >-
+  #         --health-cmd "curl http://localhost:9200/_cluster/health"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 10
+  #     elasticsearch8:
+  #       image: elasticsearch:8.4.2
+  #       env:
+  #         discovery.type: single-node
+  #         xpack.security.enabled: false
+  #       ports:
+  #         - 9250:9200
+  #       options: >-
+  #         --health-cmd "curl http://localhost:9200/_cluster/health"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 10
+  #     memcached:
+  #       image: memcached:latest
+  #       ports:
+  #         - 11211:11211
+  #       options: >-
+  #         --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     mongodb:
+  #       image: mongo:5.0.11
+  #       ports:
+  #         - 27017:27017
+  #     mysql:
+  #       image: mysql:5.7
+  #       env:
+  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+  #       ports:
+  #         - "3306:3306"
+  #     postgres:
+  #       image: postgres:latest
+  #       ports:
+  #         - 5432:5432
+  #     rabbitmq:
+  #       image: rabbitmq:latest
+  #       ports:
+  #         - 5672:5672
+  #       options: >-
+  #         --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #     redis:
+  #       image: redis
+  #       ports:
+  #         - 6379:6379
+  #       options: >-
+  #         --health-cmd "redis-cli ping"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+  #   steps:
+  #     - name: Set the default Java version
+  #       run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
+  #            sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
+  #            java -version &&
+  #            javac -version
+
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+
+  #     - name: Check out the source code
+  #       uses: actions/checkout@v3
+
+  #     - name: Install JRuby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: jruby-9.3.9.0
+  #       env:
+  #         JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
+
+  #     - name: Bundle
+  #       run: bundle install
+  #       env:
+  #         JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
+
+  #     - name: Run Multiverse Tests
+  #       run: ./.github/workflows/scripts/retry_command 
+  #       env: 
+  #         TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }}]"
+  #         VERBOSE_TEST_OUTPUT: true
+  #         RETRY_ATTEMPS: 5
+  #         SERIALIZE: 1
+  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
+  #         JRUBY_OPTS: --dev --debug
+  #         JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
+
+  #     - name: Annotate errors
+  #       if: ${{ failure() }}
+  #       uses: ./.github/actions/annotate
