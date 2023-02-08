@@ -3,13 +3,18 @@
 # RETRY_ATTEMPTS
 # TEST_CMD
 
+echo "---1"
 count=0
 return_val=1
 
+echo "---2"
+
 while [[ $return_val != 0  && $count -lt $RETRY_ATTEMPTS ]]; do
+  echo "---3"
   $TEST_CMD
   return_val=$?
   count=$((count + 1))
+  echo "---4"
   if [[ $return_val != 0 ]]; then
     echo $'\n*************************************************************************************************************\n'
     echo "FAILURE ON ATTEMPT $((count)) of $((RETRY_ATTEMPTS))"
@@ -19,4 +24,5 @@ while [[ $return_val != 0  && $count -lt $RETRY_ATTEMPTS ]]; do
   fi
 done
 
+echo "---5"
 exit $return_val
