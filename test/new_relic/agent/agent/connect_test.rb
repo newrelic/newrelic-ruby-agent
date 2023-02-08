@@ -22,7 +22,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     @stats_engine = NewRelic::Agent::StatsEngine.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
-    NewRelic::Agent.instance.service = @service
+    NewRelic::Agent.instance.instance_variable_set(:@service, @service)
 
     NewRelic::Agent.reset_config
   end
@@ -109,12 +109,6 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     end
   end
 
-  def test_apdex_f
-    with_config(:apdex_t => 10) do
-      assert_equal 40, apdex_f
-    end
-  end
-
   def test_set_sql_recording_default
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       assert_equal(:obfuscated, NewRelic::Agent::Database.record_sql_method)
@@ -147,9 +141,9 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_connect_gets_config
     NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.instance_variable_set(:@service, default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'}
-    )
+    ))
 
     response = NewRelic::Agent.agent.connect_to_server
 
@@ -196,12 +190,12 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_logging_collector_messages
     NewRelic::Agent.manual_start
-    NewRelic::Agent.instance.service = default_service(
+    NewRelic::Agent.instance.instance_variable_set(:@service, default_service(
       :connect => {
         'messages' => [{'message' => 'beep boop', 'level' => 'INFO'},
           {'message' => 'ha cha cha', 'level' => 'WARN'}]
       }
-    )
+    ))
 
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')

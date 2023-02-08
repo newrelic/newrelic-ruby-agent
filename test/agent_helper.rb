@@ -699,7 +699,7 @@ end
 def wait_for_backtrace_service_poll(opts = {})
   defaults = {
     :timeout => 10.0,
-    :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
+    :service => NewRelic::Agent.agent.instance_variable_get(:@agent_command_router).backtrace_service,
     :iterations => 1
   }
   opts = defaults.merge(opts)

@@ -498,7 +498,5 @@ module NewRelic
         attr_accessor :sql_sampler_transaction_data
       end
     end
-
-    TransactionState = Tracer
   end
 end
