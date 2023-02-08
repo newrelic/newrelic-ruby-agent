@@ -11,7 +11,6 @@ module NewRelic
         SEGMENT_PLACEHOLDER = '*'.freeze
         ADJACENT_PLACEHOLDERS_REGEX = %r{((?:^|/)\*)(?:/\*)*}.freeze
         ADJACENT_PLACEHOLDERS_REPLACEMENT = '\1'.freeze
-        VALID_PREFIX_SEGMENT_COUNT = 2
 
         attr_reader :prefix, :terms
 

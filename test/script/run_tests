@@ -1,0 +1,187 @@
+#!/bin/bash
+
+help() {
+  echo "Runs the unit, env, or multiverse tests"
+  echo
+  echo "Syntax: run_tests [-u|e|m|q] arg1 arg2 arg3"
+  echo "  options:"
+  echo "  -u    Runs unit tests"
+  echo "          optional arg 1: file_path OR test_name"
+  echo "          optional arg 2: test_name (if also passing in file_path in arg 1)"
+  echo "          Examples: "
+  echo "            ./test/script/run_tests -u"
+  echo "            ./test/script/run_tests -u test_name"
+  echo "            ./test/script/run_tests -u path/to/test_file.rb"
+  echo "            ./test/script/run_tests -u path/to/test_file.rb test_name"
+  echo "        "
+  echo "  -e    Runs env tests"
+  echo "          arg 1: rails version to test. The leading 'rails' can be left off. 61,70 works like rails61,rails70"
+  echo "          optional arg 2: file_path OR test_name"
+  echo "          optional arg 3: test_name (if also passing in file_path in arg 2)"
+  echo "          Examples: "
+  echo "            ./test/script/run_tests -e 61"
+  echo "            ./test/script/run_tests -e 61,71 test_name"
+  echo "            ./test/script/run_tests -e rails61 path/to/test_file.rb"
+  echo "            ./test/script/run_tests -e rails61,rails71 path/to/test_file.rb test_name"
+  echo "        "
+  echo "  -m    Runs multiverse tests"
+  echo "          arg 1: multiverse suite to run (or any other args you wanna pass in to multiverse)"
+  echo "            the 'debug' multiverse arg is automatically included"
+  echo "          optional arg 2: file_path OR test_name"
+  echo "          optional arg 3: test_name (if also passing in file_path in arg 2)"
+  echo "          Examples: "
+  echo "            ./test/script/run_tests -m rake"
+  echo "            ./test/script/run_tests -m rake,env=2"
+  echo "            ./test/script/run_tests -m rake test_name"
+  echo "            ./test/script/run_tests -m rake path/to/test_file.rb"
+  echo "            ./test/script/run_tests -m rake path/to/test_file.rb test_name"
+  echo "        "
+  echo "  -q    Runs quick multiverse tests. Prepend method only and env 0, unless env number is passed in"
+  echo "          arg 1: multiverse suite to run (or any other args you wanna pass in to multiverse)"
+  echo "            the 'debug' multiverse arg is automatically included"
+  echo "          optional arg 2: env# OR file_path OR test_name"
+  echo "          optional arg 3: file_path OR test_name (if also passing in env # in arg 2)"
+  echo "          optional arg 4: test_name (if also passing in file_path in arg 3)"
+  echo "          Examples: "
+  echo "            ./test/script/run_tests -m rake"
+  echo "            ./test/script/run_tests -m rake 2"
+  echo "            ./test/script/run_tests -m rake test_name"
+  echo "            ./test/script/run_tests -m rake path/to/test_file.rb"
+  echo "            ./test/script/run_tests -m rake path/to/test_file.rb test_name"
+  echo "        "
+}
+
+
+unit_command() {
+  # echo "ENV   TEST="$TEST"    TESTOPTS="$TESTOPTS""
+  # echo "bundle exec rake test -q;"
+  bundle exec rake test -q;
+}
+
+env_test_command() { 
+  # echo "ENV   TEST="$TEST"    TESTOPTS="$TESTOPTS""
+  # echo "bundle exec rake test:env["$@"];"
+  bundle exec rake test:env["$@"];
+  }
+
+multiverse_command() {
+  # echo "ENV   TEST="$TEST"    TESTOPTS="$TESTOPTS""
+  # echo "bundle exec rake test:multiverse["$@",debug];"
+  bundle exec rake test:multiverse["$@",debug];
+}
+
+# doesn't overwrite testopts that already exist, 
+# that way you can still pass in a seed if you want
+set_test_opts() {
+  test_opts_result=""$TESTOPTS" --name="$1""
+}
+
+# organizes the args for mutiverse and calls the command
+run_multiverse() {  
+  if [[ -n "$3" ]]; then
+    # echo "running file and name"
+    multiverse_command "$1",file="$2",name="$3"; 
+  elif [[ -n "$2"  && "$2" =~ ^test_ ]]; then
+    # echo "running name"
+    multiverse_command "$1",name="$2"; 
+  elif [[ -n "$2" ]]; then
+    # echo "running file"
+    multiverse_command "$1",file="$2"; 
+  else
+    # echo "running suite $1" 
+    multiverse_command "$1"; 
+  fi
+}
+
+# calls multiverse but only env 0 or specified and method prepend
+run_multiverse_quick() {
+  if [[ "$2" =~ [0-9]+ && ! "$2" =~ ^test ]]; then
+    run_multiverse "$1",env="$2",method=prepend "$3" "$4"
+  else
+    run_multiverse "$1",env=0,method=prepend "$2" "$3"
+  fi
+}
+
+# organizes the args for env tests and calls the command
+run_env_tests() {
+  # this will add "rails" before any number so you can pass in just "61" or "61,70"
+  ENVARGS=$(echo "$1" | sed -E -e 's/(\,)|(\,rails)/,rails/g' | sed '/^rails/!s/^/rails/');
+
+  if [[ -n "$3" ]]; then
+    # echo "running file and name"
+    set_test_opts $3
+    TEST="../../../$2" TESTOPTS="$test_opts_result" env_test_command "$ENVARGS";
+  elif [[ -n "$2"  && "$2" =~ ^test_ ]]; then
+    # echo "running name"
+    set_test_opts $2
+    TESTOPTS="$test_opts_result" env_test_command "$ENVARGS";
+  elif [[ -n "$2" ]]; then
+    # echo "running file"
+    TEST="../../../$2" env_test_command "$ENVARGS";
+  else
+    # echo "running env tests"
+    env_test_command "$ENVARGS";
+  fi
+}
+
+# organizes the args for the unit tests and calls the command
+run_unit_tests() {
+  if [[ -n "$2" ]]; then
+    # echo "running file and name"
+    set_test_opts $2
+    TEST="$1" TESTOPTS="$test_opts_result" unit_command;
+  elif [[ -n "$1"  && "$1" =~ ^test_ ]]; then
+    # echo "running name"
+    set_test_opts $1
+    TESTOPTS="$test_opts_result" unit_command;
+  elif [[ -n "$1" ]]; then
+    # echo "running file"
+    TEST="$1" unit_command;
+  else
+    # echo "running unit tests"
+    unit_command;
+  fi
+}
+
+# helper method to output the help info and error and then exit the script
+output_arg_error(){
+  help
+  echo $1
+  exit
+}
+
+while getopts "huemq" option; do
+  shift 1 # removes the option (ex: -u) from the args so we can pass all the args with $@
+  case $option in
+    h) 
+      help
+      exit;;
+
+    u)
+      run_unit_tests $@
+      exit;;
+
+    e)
+      if ! [[ -n "$1" ]]; then
+        output_arg_error "ERROR: Must specify at least one rails version"
+      fi
+      run_env_tests $@
+      exit;;
+
+    m)
+      if ! [[ -n "$1" ]]; then
+        output_arg_error "ERROR: Must specify multiverse suite"
+      fi
+      run_multiverse $@
+      exit;;
+
+    q)
+      if ! [[ -n "$1" ]]; then
+        output_arg_error "ERROR: Must specify multiverse suite"
+      fi
+      run_multiverse_quick $@
+      exit;;
+  esac
+done
+
+help
