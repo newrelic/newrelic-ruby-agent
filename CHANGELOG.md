@@ -58,7 +58,7 @@
 
 - **Add Fiber Instrumentation**
 
-  Fibers are now automatically instrumented similarly to threads. This can be configured using `instrumentation.fiber`.
+  `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be configured using `instrumentation.fiber`.
 
 
 - **Ruby 2.2 and 2.3 Dropped**
