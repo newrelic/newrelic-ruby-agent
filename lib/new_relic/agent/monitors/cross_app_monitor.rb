@@ -12,7 +12,6 @@ module NewRelic
   module Agent
     module DistributedTracing
       class CrossAppMonitor < InboundRequestMonitor
-        NEWRELIC_ID_HEADER = 'X-NewRelic-ID'.freeze
         NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
         NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
