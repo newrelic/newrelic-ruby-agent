@@ -27,7 +27,7 @@ DependencyDetection.defer do
       NewRelic::Agent.logger.info('Installing Sequel instrumentation')
 
       if Sequel::Database.respond_to?(:extension)
-        Sequel::Database.extension(:newrelic_instrumentation)
+        Sequel::Database.extension(:new_relic_instrumentation)
       else
         NewRelic::Agent.logger.info("Detected Sequel version %s." % [Sequel::VERSION])
         NewRelic::Agent.logger.info("Please see additional documentation: " +
@@ -35,7 +35,7 @@ DependencyDetection.defer do
       end
 
       Sequel.synchronize { Sequel::DATABASES.dup }.each do |db|
-        db.extension(:newrelic_instrumentation)
+        db.extension(:new_relic_instrumentation)
       end
 
       Sequel::Model.plugin(:new_relic_instrumentation) if defined?(Sequel::Model)
