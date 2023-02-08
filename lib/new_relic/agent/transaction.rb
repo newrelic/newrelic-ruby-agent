@@ -270,10 +270,9 @@ module NewRelic
       end
 
       def current_segment
-        return current_segment_by_thread[current_segment_key] if current_segment_by_thread[current_segment_key]
-        return current_segment_by_thread[parent_segment_key] if current_segment_by_thread[parent_segment_key]
-
-        current_segment_by_thread[@starting_segment_key]
+        current_segment_by_thread[current_segment_key] ||
+          current_segment_by_thread[parent_segment_key] ||
+          current_segment_by_thread[@starting_segment_key]
       end
 
       def set_current_segment(new_segment)
