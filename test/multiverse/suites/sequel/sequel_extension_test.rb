@@ -17,7 +17,7 @@ if Sequel.const_defined?(:MAJOR) &&
     def setup
       super
 
-      DB.extension(:newrelic_instrumentation)
+      DB.extension(:new_relic_instrumentation)
 
       @posts = DB[:posts]
 

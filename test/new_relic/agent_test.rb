@@ -142,19 +142,19 @@ module NewRelic
     def test_is_sql_recorded_true
       NewRelic::Agent::Tracer.state.record_sql = true
 
-      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is set')
+      assert_predicate(NewRelic::Agent::Tracer.state, :is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
       NewRelic::Agent::Tracer.state.record_sql = nil
 
-      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is not set')
+      assert_predicate(NewRelic::Agent::Tracer.state, :is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
       NewRelic::Agent::Tracer.state.record_sql = false
 
-      refute(NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
+      refute(NewRelic::Agent::Tracer.state.is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
