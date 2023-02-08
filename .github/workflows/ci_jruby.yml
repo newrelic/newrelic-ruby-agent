@@ -149,7 +149,8 @@ jobs:
       - name: Run Multiverse Tests
         run: ./.github/workflows/scripts/retry_command 
         env: 
-          TEST_CMD: "bundle exec rake test:multiverse[group=agent]"
+          # TEST_CMD: "bundle exec rake test:multiverse[group=agent]"
+          TEST_CMD: "sdfasdf"
           VERBOSE_TEST_OUTPUT: true
           RETRY_ATTEMPS: 5
           SERIALIZE: 1
