@@ -87,7 +87,7 @@
 
 - **Renamed ActiveJob metrics**
 
-  Previously, ActiveJob was cateterogized as a message broker, which is inaccurate. We've updated the naming of ActiveJob traces from leading with `MessageBroker/ActiveJob` to simply leading with `ActiveJob`.
+  Previously, ActiveJob was categorized as a message broker, which is inaccurate. We've updated the naming of ActiveJob traces from leading with `MessageBroker/ActiveJob` to simply leading with `ActiveJob`.
 
 - **Code cleanup**
 
