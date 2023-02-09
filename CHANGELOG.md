@@ -91,8 +91,9 @@
 
 - **Code cleanup**
 
-  Thank you to community member [@esquith](https://github.com/esquith) for contributing some cleanup of orphaned constants in our code base. [PR#1793](https://github.com/newrelic/newrelic-ruby-agent/pull/1793) [PR#1794](https://github.com/newrelic/newrelic-ruby-agent/pull/1794)
+  Thank you to community member [@esquith](https://github.com/esquith) for contributing some cleanup of orphaned constants in our code base. [PR#1793](https://github.com/newrelic/newrelic-ruby-agent/pull/1793) [PR#1794](https://github.com/newrelic/newrelic-ruby-agent/pull/1794) [PR#1808](https://github.com/newrelic/newrelic-ruby-agent/pull/1808)
 
+  Community member [@fchatterji](https://github.com/fchatterji) helped standardize how we reference `NewRelic` throughout our codebase. Thanks fchatterji! [PR#1795](https://github.com/newrelic/newrelic-ruby-agent/pull/1795)
 
 
 ## 8.16.0
