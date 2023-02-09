@@ -78,17 +78,17 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_set_record_sql
     @agent.set_record_sql(false)
 
-    refute NewRelic::Agent.tl_is_sql_recorded?
+    refute NewRelic::Agent::Tracer.state.is_sql_recorded?
     NewRelic::Agent.disable_sql_recording do
-      refute NewRelic::Agent.tl_is_sql_recorded?
+      refute NewRelic::Agent::Tracer.state.is_sql_recorded?
       NewRelic::Agent.disable_sql_recording do
-        refute NewRelic::Agent.tl_is_sql_recorded?
+        refute NewRelic::Agent::Tracer.state.is_sql_recorded?
       end
 
-      refute NewRelic::Agent.tl_is_sql_recorded?
+      refute NewRelic::Agent::Tracer.state.is_sql_recorded?
     end
 
-    refute NewRelic::Agent.tl_is_sql_recorded?
+    refute NewRelic::Agent::Tracer.state.is_sql_recorded?
     @agent.set_record_sql(nil)
   end
 
