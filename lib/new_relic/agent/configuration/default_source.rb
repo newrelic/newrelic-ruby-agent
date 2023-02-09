@@ -1909,6 +1909,7 @@ If `true`, disables agent middleware for Sinatra. This middleware is responsible
           :default => false,
           :public => true,
           :type => Boolean,
+          :external => true, # this config is used directly from the ENV variables
           :allowed_from_server => false,
           :description => <<-DESCRIPTION
             If `true`, when the agent is in an application using Ruby on Rails, it will start after `config/initializers` run.
