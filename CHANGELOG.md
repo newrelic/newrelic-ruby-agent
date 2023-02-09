@@ -85,6 +85,10 @@
 
   The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
 
+- **Renamed ActiveJob metrics**
+
+  Previously, ActiveJob was categorized as a message broker, which is inaccurate. We've updated the naming of ActiveJob traces from leading with `MessageBroker/ActiveJob` to simply leading with `ActiveJob`.
+
 - **Code cleanup**
 
   Thank you to community member [@esquith](https://github.com/esquith) for contributing some cleanup of orphaned constants in our code base. [PR#1793](https://github.com/newrelic/newrelic-ruby-agent/pull/1793) [PR#1794](https://github.com/newrelic/newrelic-ruby-agent/pull/1794)
