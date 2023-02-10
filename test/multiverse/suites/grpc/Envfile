@@ -19,4 +19,4 @@ def gem_list(grpc_version = nil)
   RB
 end
 
-create_gemfiles(GRPC_VERSIONS, gem_list)
+create_gemfiles(GRPC_VERSIONS)

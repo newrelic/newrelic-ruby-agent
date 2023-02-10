@@ -54,7 +54,7 @@ def gem_list(rails_version = nil)
   RB
 end
 
-create_gemfiles(RAILS_VERSIONS, gem_list)
+create_gemfiles(RAILS_VERSIONS)
 
 # TODO: MAJOR VERSION - Remove these two gemfiles.
 # Rails 3.2 requires minitest ~> 4.2

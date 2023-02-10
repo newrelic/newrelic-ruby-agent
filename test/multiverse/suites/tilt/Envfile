@@ -23,4 +23,4 @@ def gem_list(tilt_version = nil)
   RB
 end
 
-create_gemfiles(TILT_VERSIONS, gem_list)
+create_gemfiles(TILT_VERSIONS)

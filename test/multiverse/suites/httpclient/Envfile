@@ -21,4 +21,4 @@ def gem_list(httpclient_version = nil)
   RB
 end
 
-create_gemfiles(HTTPCLIENT_VERSIONS, gem_list)
+create_gemfiles(HTTPCLIENT_VERSIONS)

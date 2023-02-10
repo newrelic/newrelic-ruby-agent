@@ -23,4 +23,4 @@ def gem_list(sidekiq_version = nil)
   RB
 end
 
-create_gemfiles(SIDEKIQ_VERSIONS, gem_list)
+create_gemfiles(SIDEKIQ_VERSIONS)

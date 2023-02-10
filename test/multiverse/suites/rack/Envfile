@@ -22,7 +22,7 @@ def gem_list(puma_version = nil)
   RB
 end
 
-create_gemfiles(PUMA_VERSIONS, gem_list)
+create_gemfiles(PUMA_VERSIONS)
 
 if RUBY_VERSION >= '2.4.0'
   gemfile <<~RB

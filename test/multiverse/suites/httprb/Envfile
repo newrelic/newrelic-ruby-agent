@@ -31,4 +31,4 @@ def gem_list(httprb_version = nil)
   RB
 end
 
-create_gemfiles(HTTPRB_VERSIONS, gem_list)
+create_gemfiles(HTTPRB_VERSIONS)
