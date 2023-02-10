@@ -43,7 +43,7 @@ module Multiverse
           add_version(version)
         end
 
-        gemfile(specified_gems(version))
+        gemfile(gem_list(version))
       end
     end
 
