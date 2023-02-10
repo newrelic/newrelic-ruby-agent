@@ -16,4 +16,4 @@ def gem_list(elasticsearch_version = nil)
   RB
 end
 
-create_gemfiles(ELASTICSEARCH_VERSIONS, gem_list)
+create_gemfiles(ELASTICSEARCH_VERSIONS)

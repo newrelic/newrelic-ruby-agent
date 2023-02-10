@@ -20,4 +20,4 @@ def gem_list(capistrano_version = nil)
   RB
 end
 
-create_gemfiles(CAPISTRANO_VERSIONS, gem_list)
+create_gemfiles(CAPISTRANO_VERSIONS)
