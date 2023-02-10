@@ -40,7 +40,7 @@ def gem_list(rake_version = nil)
   RB
 end
 
-create_gemfiles(RAKE_VERSIONS, gem_list)
+create_gemfiles(RAKE_VERSIONS)
 
 def rack_version
   return '3.0.1' if RUBY_VERSION >= '3.1.0'

@@ -22,4 +22,4 @@ def gem_list(yajl_version = nil)
   RB
 end
 
-create_gemfiles(YAJL_VERSIONS, gem_list)
+create_gemfiles(YAJL_VERSIONS)

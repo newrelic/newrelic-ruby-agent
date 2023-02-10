@@ -26,7 +26,7 @@ def gem_list(activerecord_version = nil)
   RB
 end
 
-create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
+create_gemfiles(ACTIVERECORD_VERSIONS)
 # Removing JRuby from CI until we can understand why initialization fails on GitHub Actions
 # if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
 
