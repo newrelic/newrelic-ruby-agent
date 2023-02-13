@@ -27,4 +27,4 @@ def gem_list(typhoeus_version = nil)
   RB
 end
 
-create_gemfiles(TYPHOEUS_VERSIONS, gem_list)
+create_gemfiles(TYPHOEUS_VERSIONS)

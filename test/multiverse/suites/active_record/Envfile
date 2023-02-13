@@ -55,4 +55,4 @@ def gem_list(activerecord_version = nil)
   RB
 end
 
-create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
+create_gemfiles(ACTIVERECORD_VERSIONS)

@@ -15,4 +15,4 @@ def gem_list(resque_version = nil)
   RB
 end
 
-create_gemfiles(RESQUE_VERSIONS, gem_list)
+create_gemfiles(RESQUE_VERSIONS)

@@ -18,4 +18,4 @@ def gem_list(concurrent_version = nil)
   RB
 end
 
-create_gemfiles(CONCURRENT_RUBY_VERSIONS, gem_list)
+create_gemfiles(CONCURRENT_RUBY_VERSIONS)

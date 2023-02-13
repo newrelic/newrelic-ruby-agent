@@ -24,4 +24,4 @@ def gem_list(unicorn_version = nil)
   RB
 end
 
-create_gemfiles(SUPPORTED_UNICORN_VERSIONS, gem_list)
+create_gemfiles(SUPPORTED_UNICORN_VERSIONS)

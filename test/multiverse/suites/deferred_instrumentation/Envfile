@@ -18,5 +18,5 @@ def gem_list(sinatra_version = nil)
   RB
 end
 
-create_gemfiles(SINATRA_VERSIONS, gem_list)
+create_gemfiles(SINATRA_VERSIONS)
 
