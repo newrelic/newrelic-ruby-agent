@@ -2,12 +2,12 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent enables thread tracing, adds fiber instrumentation, removes several deprecated configuration options and API methods, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, updates `rails_defer_initialization` to be a environment variable only configuration option, and changes how the API method `set_transaction_name` works.
+  Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables thread tracing by default, adds fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
 
 
 - **Remove Deprecated Configuration Options**
 
-  The following configuration options have been removed in this version and will no longer work. Please replace them with the appropriate configurations.
+  The following configuration options have been removed in this version and will no longer work. Please replace them with the appropriate configurations. [PR#1782](https://github.com/newrelic/newrelic-ruby-agent/pull/1782)
 
   |  Removed                                  | Replacement                               | `newrelic.yml` example                                                              |
   | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -54,21 +54,21 @@
 
 - **Enable Thread Instrumentation by default**
 
-  The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
+  The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists. [PR#1767](https://github.com/newrelic/newrelic-ruby-agent/pull/1767)
 
 - **Add Fiber Instrumentation**
 
-  `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be configured using `instrumentation.fiber`.
+  `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be configured using `instrumentation.fiber`. [PR#1802](https://github.com/newrelic/newrelic-ruby-agent/pull/1802)
 
 
 - **Ruby 2.2 and 2.3 Dropped**
 
   Support for Ruby 2.2 and 2.3 dropped with this release. They are no longer included in our test matrices and are not supported
-  for 9.0.0 and onward.
+  for 9.0.0 and onward. [PR#1778](https://github.com/newrelic/newrelic-ruby-agent/pull/1778)
 
 - **Instrumentation dropped for select gems**
 
-  Support for the following gems had been dropped:
+  Support for the following gems had been dropped. [PR#1788](https://github.com/newrelic/newrelic-ruby-agent/pull/1788)
     - Acts As Solr
     - Authlogic
     - DataMapper
@@ -78,29 +78,29 @@
 
 - **Changes how the API method `set_transaction_name` works**
 
-  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed in to the method. This is a change from how it functioned in previous agent versions. Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category that was already assigned to a transaction, neither the new name nor category would be saved to the transaction. 
+  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed in to the method. This is a change from how it functioned in previous agent versions. Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category that was already assigned to a transaction, neither the new name nor category would be saved to the transaction. [PR#1797](https://github.com/newrelic/newrelic-ruby-agent/pull/1797)
 
 
 - **Dropped method: `NewRelic::Agent.disable_transaction_tracing`**
 
-  The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
+  The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`. [PR#1792](https://github.com/newrelic/newrelic-ruby-agent/pull/1792)
 
 - **Renamed ActiveJob metrics**
 
-  Previously, ActiveJob was categorized as a message broker, which is inaccurate. We've updated the naming of ActiveJob traces from leading with `MessageBroker/ActiveJob` to simply leading with `ActiveJob`.
+  Previously, ActiveJob was categorized as a message broker, which is inaccurate. We've updated the naming of ActiveJob traces from leading with `MessageBroker/ActiveJob` to simply leading with `ActiveJob`. [PR#1811](https://github.com/newrelic/newrelic-ruby-agent/pull/1811)
 
 - **Code cleanup**
 
   Thank you to community member [@esquith](https://github.com/esquith) for contributing some cleanup of orphaned constants in our code base. [PR#1793](https://github.com/newrelic/newrelic-ruby-agent/pull/1793) [PR#1794](https://github.com/newrelic/newrelic-ruby-agent/pull/1794) [PR#1808](https://github.com/newrelic/newrelic-ruby-agent/pull/1808)
 
-  Community member [@fchatterji](https://github.com/fchatterji) helped standardize how we reference `NewRelic` throughout our codebase. Thanks fchatterji! [PR#1795](https://github.com/newrelic/newrelic-ruby-agent/pull/1795)
+  Community member [@fchatterji](https://github.com/fchatterji) helped standardize how we reference `NewRelic` throughout our codebase [PR#1795](https://github.com/newrelic/newrelic-ruby-agent/pull/1795) and updated our README's community header [PR#1815](https://github.com/newrelic/newrelic-ruby-agent/pull/1815). Thanks fchatterji!
 
 
 - **Bugfix: Allow rails initialization to be deferred by environment variable**
 
   The Ruby agent may force some Rails libraries to load on agent initialization, preventing some settings defined in `config/initializers` from being applied. Changing the initialization process to run after `config/initializers`, however, may break the configuration for other gems (ex. Roadie Rails).
 
-  For those having troubles with agent initialization and Rails initializers, you can now pass the environment variable `NEW_RELIC_DEFER_RAILS_INITIALIZATION=true` to make the agent initialize after `config/initializers` are run. This config option can only be set using an environment variable and can't be set using YAML.
+  For those having troubles with agent initialization and Rails initializers, you can now pass the environment variable `NEW_RELIC_DEFER_RAILS_INITIALIZATION=true` to make the agent initialize after `config/initializers` are run. This config option can only be set using an environment variable and can't be set using YAML. [PR#1791](https://github.com/newrelic/newrelic-ruby-agent/pull/1791)
 
   Thanks to [@jdelStrother](https://github.com/jdelStrother) for bringing this issue to our attention and testing our fixes along the way. [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662) [PR#1791](https://github.com/newrelic/newrelic-ruby-agent/pull/1791)
 
