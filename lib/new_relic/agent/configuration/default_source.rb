@@ -1614,12 +1614,17 @@ module NewRelic
         # Rails
         :'defer_rails_initialization' => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
+          :external => true, # this config is used directly from the ENV variables
           :allowed_from_server => false,
-          :description => 'This configuration option is currently unreachable. Please do not use. ' \
-            'If `true`, when the agent is in an application using Ruby on Rails, it will start after ' \
-            'config/initializers have run.'
+          :description => <<-DESCRIPTION
+            If `true`, when the agent is in an application using Ruby on Rails, it will start after `config/initializers` run.
+
+            <Callout variant="caution">
+              This option may only be set by environment variable.
+            </Callout>
+          DESCRIPTION
         },
         # Rake
         :'rake.tasks' => {

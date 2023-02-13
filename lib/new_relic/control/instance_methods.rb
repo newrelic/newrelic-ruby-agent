@@ -65,7 +65,7 @@ module NewRelic
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
         # Rails applications load the next two lines before any other initializers are run
-        unless defined?(Rails::VERSION) && NewRelic::Agent.config[:defer_rails_initialization]
+        unless defined?(Rails::VERSION) && ENV['NEW_RELIC_DEFER_RAILS_INITIALIZATION']
           Module.send(:include, NewRelic::Agent::MethodTracer::ClassMethods)
           Module.send(:include, NewRelic::Agent::MethodTracer)
         end

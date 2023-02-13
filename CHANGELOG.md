@@ -96,6 +96,15 @@
   Community member [@fchatterji](https://github.com/fchatterji) helped standardize how we reference `NewRelic` throughout our codebase. Thanks fchatterji! [PR#1795](https://github.com/newrelic/newrelic-ruby-agent/pull/1795)
 
 
+- **Bugfix: Allow rails initialization to be deferred by environment variable**
+
+  The Ruby agent may force some Rails libraries to load on agent initialization, preventing some settings defined in `config/initializers` from being applied. Changing the initialization process to run after `config/initializers`, however, may break the configuration for other gems (ex. Roadie Rails).
+
+  For those having troubles with agent initialization and Rails initializers, you can now pass the environment variable `NEW_RELIC_DEFER_RAILS_INITIALIZATION=true` to make the agent initialize after `config/initializers` are run. This config option can only be set using an environment variable and can't be set using YAML.
+
+  Thanks to [@jdelStrother](https://github.com/jdelStrother) for bringing this issue to our attention and testing our fixes along the way. [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662) [PR#1791](https://github.com/newrelic/newrelic-ruby-agent/pull/1791)
+
+
 ## 8.16.0
 
 Version 8.16.0 introduces more Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).

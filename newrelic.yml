@@ -162,10 +162,6 @@ common: &default_settings
   # or  port_path_or_id parameters to transaction or slow SQL traces.
   # datastore_tracer.instance_reporting.enabled: true
 
-  # If true, when the agent is in an application using Ruby on Rails, it will start after
-  # config/initializers have run.
-  # defer_rails_initialization: false
-
   # If true, disables Action Cable instrumentation.
   # disable_action_cable_instrumentation: false
 
