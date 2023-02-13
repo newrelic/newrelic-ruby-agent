@@ -98,7 +98,7 @@
 
 - **Bugfix: Allow rails initialization to be deferred by environment variable**
 
-  The Ruby agent may force some Rails frameworks to load on agent initialization, preventing some settings defined in `config/initializers` from being applied. Changing the initialization process to run after `config/initializers`, however, may break the configuration for other gems (ex. Roadie Rails).
+  The Ruby agent may force some Rails libraries to load on agent initialization, preventing some settings defined in `config/initializers` from being applied. Changing the initialization process to run after `config/initializers`, however, may break the configuration for other gems (ex. Roadie Rails).
 
   For those having troubles with agent initialization and Rails initializers, you can now pass the environment variable `NEW_RELIC_DEFER_RAILS_INITIALIZATION=true` to make the agent initialize after `config/initializers` are run. This config option can only be set using an environment variable and can't be set using YAML.
 
