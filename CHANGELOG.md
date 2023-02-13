@@ -2,7 +2,7 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent enables thread tracing, removes several deprecated configuration options, removes support for Ruby versions 2.2 and 2.3, and changes how the API method `set_transaction_name` works..
+  Version 9.0.0 of the agent enables thread tracing, adds fiber instrumentation, removes several deprecated configuration options and API methods, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, updates `rails_defer_initialization` to be a environment variable only configuration option, and changes how the API method `set_transaction_name` works.
 
 
 - **Remove Deprecated Configuration Options**
