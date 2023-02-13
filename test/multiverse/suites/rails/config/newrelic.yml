@@ -15,7 +15,7 @@ common: &default_settings
     stack_trace_threshold: 0.500
   error_collector:
     enabled: true
-    ignore_errors: NewRelic::TestHelpers::Exceptions::IgnoredError
+    ignore_classes: NewRelic::TestHelpers::Exceptions::IgnoredError
 
 development:
   <<: *default_settings

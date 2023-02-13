@@ -113,12 +113,6 @@ class APISupportabilityMetricsTest < Minitest::Test
     assert_api_supportability_metric_recorded(:disable_sql_recording)
   end
 
-  def test_disable_transaction_tracing_records_supportability_metric
-    NewRelic::Agent.disable_transaction_tracing {}
-
-    assert_api_supportability_metric_recorded(:disable_transaction_tracing)
-  end
-
   def test_ignore_apdex_records_supportability_metric
     NewRelic::Agent.ignore_apdex
 

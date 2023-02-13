@@ -25,7 +25,7 @@ module NewRelic
         end
 
         def initialize
-          raise Unsupported, "DJ queue sampler disabled" if Agent.config[:disable_dj]
+          raise Unsupported, "DJ queue sampler disabled" if Agent.config[:'instrumentation.delayed_job'] == 'disabled'
           raise Unsupported, "DJ queue sampling unsupported with backend '#{::Delayed::Worker.backend}'" unless self.class.supported_backend?
           raise Unsupported, "No DJ worker present. Skipping DJ queue sampler" unless NewRelic::DelayedJobInjection.worker_name
         end

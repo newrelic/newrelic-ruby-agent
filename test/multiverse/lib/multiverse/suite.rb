@@ -153,8 +153,6 @@ module Multiverse
     end
 
     def explicit_bundler_version(dir)
-      return if RUBY_VERSION.to_f < 2.3
-
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
       safe_explicit(version.to_s == "" ? nil : "_#{version}_")
@@ -287,7 +285,7 @@ module Multiverse
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
         # pin webrick until we investigate why 1.8.1 breaks things
-        f.puts "gem 'webrick', '< 1.8.0'" if RUBY_VERSION > '2.3.0'
+        f.puts "gem 'webrick', '< 1.8.0'"
         # f.puts ruby3_gem_webrick
 
         f.puts "gem 'warning'" if RUBY_VERSION >= '2.4.0'

@@ -13,7 +13,6 @@ module NewRelic
           policies = {
             "record_sql" => {"enabled" => false, "required" => false, "position" => 0},
             "custom_events" => {"enabled" => false, "required" => false, "position" => 3},
-            "job_arguments" => {"enabled" => false, "required" => false, "position" => 7},
             "custom_parameters" => {"enabled" => false, "required" => false, "position" => 4},
             "attributes_include" => {"enabled" => false, "required" => false, "position" => 1},
             "message_parameters" => {"enabled" => false, "required" => false, "position" => 6},
@@ -25,7 +24,6 @@ module NewRelic
             "security_policies" => {
               "record_sql" => {"enabled" => false},
               "custom_events" => {"enabled" => false},
-              "job_arguments" => {"enabled" => false},
               "custom_parameters" => {"enabled" => false},
               "attributes_include" => {"enabled" => false},
               "message_parameters" => {"enabled" => false},

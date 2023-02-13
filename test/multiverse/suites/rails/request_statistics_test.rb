@@ -34,7 +34,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   #
 
   def test_doesnt_send_when_disabled
-    with_config(:'analytics_events.enabled' => false) do
+    with_config(:'transaction_events.enabled' => false) do
       5.times { get('/request_stats/stats_action') }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
@@ -44,7 +44,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_times_should_be_reported_if_enabled
-    with_config(:'analytics_events.enabled' => true) do
+    with_config(:'transaction_events.enabled' => true) do
       5.times { get('/request_stats/stats_action') }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)

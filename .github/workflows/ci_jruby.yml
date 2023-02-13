@@ -1,6 +1,9 @@
 name: JRuby Continuous Integration
 
 on:
+  push:
+    branches:
+      - major-release-9
   schedule:
     - cron: '0 9 * * *'
   workflow_dispatch:

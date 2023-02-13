@@ -1,5 +1,101 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.0.0
+
+  Version 9.0.0 of the agent enables thread tracing, removes several deprecated configuration options, removes support for Ruby versions 2.2 and 2.3, and changes how the API method `set_transaction_name` works..
+
+
+- **Remove Deprecated Configuration Options**
+
+  The following configuration options have been removed in this version and will no longer work. Please replace them with the appropriate configurations.
+
+  |  Removed                                  | Replacement                               | `newrelic.yml` example                                                              |
+  | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
+  | `analytics_events.capture_attributes`     | `transaction_events.attributes.enabled`   | `transaction_events.attributes.enabled: false`                                      |
+  | `browser_monitoring.capture_attributes`   | `browser_monitoring.attributes.enabled`   | `browser_monitoring.attributes.enabled: false`                                      |
+  | `error_collector.capture_attributes`      | `error_collector.attributes.enabled`      | `error_collector.attributes.enabled: false`                                         |
+  | `resque.capture_params`                   | `attributes.include`                      | `attributes.include: ['job.resque.args.*']`                                         |
+  | `sidekiq.capture_params`                  | `attributes.include`                      | `attributes.include: ['job.sidekiq.args.*']`                                        |
+  | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false`                                      |
+  | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | `error_collector.ignore_classes: ['ActionController::RoutingError', 'CustomError']` |
+  | `analytics_events.enabled`                | `transaction_events.enabled`              | `transaction_events.enabled: false`                                                 |
+  | `analytics_events.max_samples_stored`     | `transaction_events.max_samples_stored`   | `transaction_events.max_samples_stored: 1200`                                       |
+  | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `disable_sequel_instrumentation: true`                                              |
+  | `disable_bunny`                           | `instrumentation.bunny`                   | `instrumentation.bunny: disabled`                                                   |
+  | `disable_curb`                            | `instrumentation.curb`                    | `instrumentation.curb: disabled`                                                    |
+  | `disable_dj`                              | `instrumentation.delayed_job`             | `instrumentation.delayed_job: disabled`                                             |
+  | `disable_excon`                           | `instrumentation.excon`                   | `instrumentation.excon: disabled`                                                   |
+  | `disable_grape`                           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
+  | `disable_grape_instrumentation`           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
+  | `disable_httpclient`                      | `instrumentation.httpclient`              | `instrumentation.httpcient: disabled`                                               |
+  | `disable_httprb`                          | `instrumentation.httprb`                  | `instrumentation.httprb: disabled`                                                  |
+  | `disable_dalli`                           | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_dalli_cas_client`                | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcache_client`                 | `instrumentation.memcache-client`         | `instrumentation.memcache-client: disabled`                                         |
+  | `disable_memcache_instrumentation`        | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcached`                       | `instrumentation.memcached`               | `instrumentation.memcached: disabled`                                               |
+  | `disable_mongo`                           | `instrumentation.mongo`                   | `instrumentation.mongo: disabled`                                                   |
+  | `disable_net_http`                        | `instrumentation.net_http`                | `instrumentation.net_http: disabled`                                                |
+  | `prepend_net_instrumentation`             | `instrumentation.net_http`                | `instrumentation.net_http: prepend`                                                 |
+  | `disable_puma_rack`                       | `instrumentation.puma_rack`               | `instrumentation.puma_rack: disabled`                                               |
+  | `disable_puma_rack_urlmap`                | `instrumentation.puma_rack_urlmap`        | `instrumentation.puma_rack_urlmap: disabled`                                        |
+  | `disable_rack`                            | `instrumentation.rack`                    | `instrumentation.rack: disabled`                                                    |
+  | `disable_rack_urlmap`                     | `instrumentation.rack_urlmap`             | `instrumentation.rack_urlmap: disabled`                                             |
+  | `disable_redis`                           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
+  | `disable_redis_instrumentation`           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
+  | `disable_resque`                          | `instrumentation.resque`                  | `instrumentation.resque: disabled`                                                  |
+  | `disable_sinatra`                         | `instrumentation.sinatra`                 | `instrumentation.sinatra: disabled`                                                 |
+  | `disable_rake`                            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
+  | `disable_rake_instrumentation`            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
+  | `disable_typhoeus`                        | `instrumentation.typhoeus`                | `instrumentation.typhoeus: disabled`                                                |
+
+
+
+
+- **Enable Thread Instrumentation by default**
+
+  The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists.
+
+- **Add Fiber Instrumentation**
+
+  `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be configured using `instrumentation.fiber`.
+
+
+- **Ruby 2.2 and 2.3 Dropped**
+
+  Support for Ruby 2.2 and 2.3 dropped with this release. They are no longer included in our test matrices and are not supported
+  for 9.0.0 and onward.
+
+- **Instrumentation dropped for select gems**
+
+  Support for the following gems had been dropped:
+    - Acts As Solr
+    - Authlogic
+    - DataMapper
+    - Rainbows
+    - Sunspot
+
+
+- **Changes how the API method `set_transaction_name` works**
+
+  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed in to the method. This is a change from how it functioned in previous agent versions. Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category that was already assigned to a transaction, neither the new name nor category would be saved to the transaction. 
+
+
+- **Dropped method: `NewRelic::Agent.disable_transaction_tracing`**
+
+  The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`.
+
+- **Renamed ActiveJob metrics**
+
+  Previously, ActiveJob was categorized as a message broker, which is inaccurate. We've updated the naming of ActiveJob traces from leading with `MessageBroker/ActiveJob` to simply leading with `ActiveJob`.
+
+- **Code cleanup**
+
+  Thank you to community member [@esquith](https://github.com/esquith) for contributing some cleanup of orphaned constants in our code base. [PR#1793](https://github.com/newrelic/newrelic-ruby-agent/pull/1793) [PR#1794](https://github.com/newrelic/newrelic-ruby-agent/pull/1794) [PR#1808](https://github.com/newrelic/newrelic-ruby-agent/pull/1808)
+
+  Community member [@fchatterji](https://github.com/fchatterji) helped standardize how we reference `NewRelic` throughout our codebase. Thanks fchatterji! [PR#1795](https://github.com/newrelic/newrelic-ruby-agent/pull/1795)
+
+
 ## 8.16.0
 
 Version 8.16.0 introduces more Ruby on Rails instrumentation (especially for Rails 6 and 7) for various Action\*/Active\* libraries whose actions produce [Active Support notifications events](https://guides.rubyonrails.org/active_support_instrumentation.html).
