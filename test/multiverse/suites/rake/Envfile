@@ -15,12 +15,12 @@
 
 # These two are kept as comments to mark oldest supported and latest unsupported.
 # There are no plans to re-enable these going forward.
-# gemfile <<-RB
+# gemfile <<~RB
 #   gem 'rack'
 #   gem 'rake', '10.0.0' # Oldest supported version
 # RB
 
-# gemfile <<-RB
+# gemfile <<~RB
 #   gem 'rack'
 #   gem 'rake', '0.9.6' # Newest unsupported version
 # RB
@@ -33,7 +33,7 @@ RAKE_VERSIONS = [
 ]
 
 def gem_list(rake_version = nil)
-  <<-RB
+  <<~RB
     gem 'rack'
     gem 'rake'#{rake_version}
     
@@ -45,10 +45,10 @@ create_gemfiles(RAKE_VERSIONS)
 def rack_version
   return '3.0.1' if RUBY_VERSION >= '3.1.0'
 
-  RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'
+  '2.2.4'
 end
 
-gemfile <<-RB
+gemfile <<~RB
   gem 'rack', "~> #{rack_version}"
   gem 'rake'
   

@@ -32,9 +32,6 @@ NewRelic::Agent.ignore_enduser
 NewRelic::Agent.disable_all_tracing do
 end
 
-NewRelic::Agent.disable_transaction_tracing do
-end
-
 NewRelic::Agent.disable_sql_recording do
 end
 

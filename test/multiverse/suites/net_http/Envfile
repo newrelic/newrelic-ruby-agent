@@ -4,7 +4,7 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
+gemfile <<~RB
   gem 'rack'
   
 RB

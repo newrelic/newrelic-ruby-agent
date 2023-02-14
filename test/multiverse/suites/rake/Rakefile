@@ -45,14 +45,20 @@ namespace :named do
   task :all => [:'named:before', :'named:during', :'named:after']
 
   task :before do
+    a = NewRelic::Agent::Tracer.start_segment(name: 'custom_before')
     puts "named:before"
+    a.finish
   end
 
   task :during do
+    a = NewRelic::Agent::Tracer.start_segment(name: 'custom_during')
     puts "named:during"
+    a.finish
   end
 
   task :after do
+    a = NewRelic::Agent::Tracer.start_segment(name: 'custom_after')
     puts "named:after"
+    a.finish
   end
 end

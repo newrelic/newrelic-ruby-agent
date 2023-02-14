@@ -162,7 +162,7 @@ module NewRelic
 
         def connect_options(options)
           {
-            keep_retrying: Agent.config[:keep_retrying],
+            keep_retrying: true,
             force_reconnect: Agent.config[:force_reconnect]
           }.merge(options)
         end

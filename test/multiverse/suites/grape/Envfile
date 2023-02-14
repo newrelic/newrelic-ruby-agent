@@ -11,11 +11,11 @@ GRAPE_VERSIONS = [
 ]
 
 def gem_list(grape_version = nil)
-  <<-RB
+  <<~RB
     gem 'rack'
     gem 'rack-test', '>= 0.8.0'
     gem 'grape'#{grape_version}
-    
+
     gem 'activesupport'
   RB
 end

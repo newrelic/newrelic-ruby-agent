@@ -11,7 +11,7 @@ REDIS_VERSIONS = [
 ]
 
 def gem_list(redis_version = nil)
-  <<-RB
+  <<~RB
     gem 'rack'
     gem 'redis'#{redis_version}
     

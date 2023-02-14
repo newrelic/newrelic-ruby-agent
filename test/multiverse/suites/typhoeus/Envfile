@@ -19,7 +19,7 @@ TYPHOEUS_VERSIONS = [
 ]
 
 def gem_list(typhoeus_version = nil)
-  <<-RB
+  <<~RB
     gem 'typhoeus'#{typhoeus_version}
     gem 'ethon' if RUBY_PLATFORM == 'java'
     gem 'rack'

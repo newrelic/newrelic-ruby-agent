@@ -9,20 +9,14 @@ end
 SIDEKIQ_VERSIONS = [
   [nil, 2.7],
   ['6.4.0', 2.5],
-  ['5.0.3', 2.3],
-  ['4.2.0', 2.2]
+  ['5.0.3', 2.4],
+  ['4.2.0', 2.4]
 ]
 
 def gem_list(sidekiq_version = nil)
-  # must use older gems for older Rubies
-  gem_redis = RUBY_VERSION <= "2.3.0" ? "gem 'redis', '<= 4.1.0'" : ""
-  gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
   <<-RB
-    gem 'rack', "~> #{RUBY_VERSION >= '2.3.0' ? '2.2.4' : '2.1.4.1'}"
+    gem 'rack', "~> 2.2.4"
     gem 'json'
-    #{gem_connection_pool}
-    #{gem_redis}
-    
     #{ruby3_gem_sorted_set}
     gem 'sidekiq'#{sidekiq_version}
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

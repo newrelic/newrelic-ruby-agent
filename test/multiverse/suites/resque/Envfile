@@ -4,12 +4,12 @@
 
 RESQUE_VERSIONS = [
   [nil],
-  ['2.2.0', 2.3],
+  ['2.2.0', 2.4],
   ['1.27.0']
 ]
 
 def gem_list(resque_version = nil)
-  <<-RB
+  <<~RB
   gem 'resque'#{resque_version}
   
   RB

@@ -5,8 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 TILT_VERSIONS = [
-  [nil, 2.2],
-  ['1.4.1', 2.2, 2.7]
+  [nil, 2.4],
+  ['1.4.1', 2.4, 2.7]
 ]
 
 def haml_version(tilt_version)
@@ -16,7 +16,7 @@ def haml_version(tilt_version)
 end
 
 def gem_list(tilt_version = nil)
-  <<-RB
+  <<~RB
     gem 'tilt'#{tilt_version}
     gem 'haml'#{haml_version(tilt_version)}
     

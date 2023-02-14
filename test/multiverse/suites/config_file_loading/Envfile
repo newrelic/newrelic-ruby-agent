@@ -11,12 +11,8 @@ PSYCH_VERSIONS = [
   ['3.3.0', 2.4]
 ]
 
-# TODO: stop testing this older Psych version after support for Ruby 2.3 has
-#       been dropped
-PSYCH_VERSIONS.push(%w[3.0.3]) if RUBY_VERSION < '2.4'
-
 def gem_list(psych_version = nil)
-  <<-RB
+  <<~RB
     # stub file system so we can test that newrelic.yml can be loaded from
     # various places.
     gem 'fakefs', :require => false

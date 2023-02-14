@@ -26,7 +26,7 @@ module NewRelic
         @error_filter = NewRelic::Agent::ErrorFilter.new
 
         %w[
-          ignore_errors ignore_classes ignore_messages ignore_status_codes
+          ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
         ].each do |w|
           Agent.config.register_callback(:"error_collector.#{w}") do |value|

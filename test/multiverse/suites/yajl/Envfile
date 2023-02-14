@@ -9,13 +9,12 @@ end
 YAJL_VERSIONS = [
   [nil, 2.4],
   ['1.4.1', 2.4],
-  ['1.3.0', 2.2],
-  ['1.2.1', 2.2],
-  ['1.1.0', 2.2, 2.3]
+  ['1.3.0', 2.4],
+  ['1.2.1', 2.4]
 ]
 
 def gem_list(yajl_version = nil)
-  <<-RB
+  <<~RB
     gem 'rack'
     gem 'yajl-ruby'#{yajl_version}, require: ['yajl', 'yajl/json_gem']
     

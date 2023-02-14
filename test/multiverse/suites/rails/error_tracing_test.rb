@@ -304,18 +304,6 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_captured_errors_should_not_include_custom_params_if_legacy_setting_says_no
-    with_config(:'error_collector.capture_attributes' => false) do
-      get('/error/error_with_custom_params')
-
-      assert_error_reported_once('bad things')
-
-      attributes = user_attributes_for_single_error_posted
-
-      assert_empty attributes
-    end
-  end
-
   def test_should_not_increment_metrics_on_expected_error_errors
     get('/error/noticed_error_with_expected_error')
 
@@ -366,7 +354,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
     $collector.stub('connect', {
       "agent_run_id" => 1,
       "agent_config" => {
-        "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
+        "error_collector.ignore_classes" => ['NewRelic::TestHelpers::Exceptions::IgnoredError', 'NewRelic::TestHelpers::Exceptions::ServerIgnoredError'],
         "error_collector.enabled" => true
       },
       "collect_errors" => true

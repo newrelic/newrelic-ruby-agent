@@ -8,13 +8,9 @@
 # don't change the first index to a number ending in other than zero
 # it is used by jdbc_version
 ACTIVERECORD_VERSIONS = [
-  ['5.2.0', 2.2, 2.6],
-  ['5.1.0', 2.2, 2.5],
-  ['5.0.0', 2.2, 2.4],
-  ['4.2.0', 2.2, 2.3],
-  ['4.1.0', 2.2, 2.3],
-  ['4.0.0', 2.2, 2.3],
-  ['3.2.0', 2.2, 2.2]
+  ['5.2.0', 2.4, 2.6],
+  ['5.1.0', 2.4, 2.5],
+  ['5.0.0', 2.4, 2.4]
 ]
 
 def jdbc_version(activerecord_version)
@@ -50,13 +46,9 @@ def minitest_activerecord_version(activerecord_version)
   end
 end
 
-def rack_version
-  add_version('2.1.4.1', false) if RUBY_VERSION < '2.3.0'
-end
-
 def gem_list(activerecord_version = nil)
-  <<-RB
-    gem 'rack'#{rack_version}
+  <<~RB
+    gem 'rack'
     gem 'minitest'#{minitest_activerecord_version(activerecord_version)}
     gem 'activerecord'#{activerecord_version}
     #{mysql_gem(activerecord_version)}

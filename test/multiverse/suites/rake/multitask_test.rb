@@ -18,23 +18,30 @@ if NewRelic::Agent::Instrumentation::Rake.should_install?
         assert_metric_names_posted "OtherTransaction/Rake/invoke/named:all",
           "OtherTransaction/Rake/all",
           "OtherTransaction/all",
-          "Rake/execute/multitask"
-
-        refute_metric_names_posted "Rake/execute/named:before",
+          "Rake/execute/multitask",
+          "Rake/execute/named:before",
           "Rake/execute/named:during",
           "Rake/execute/named:after"
       end
     end
 
-    def test_generate_transaction_trace_with_placeholder_node
+    def test_generate_transaction_trace_with_multitask
       with_tasks_traced("named:all") do
         run_rake("named:all --multitask")
 
-        expected = [{},
-          [{},
-            [{"statement" => "Couldn't trace concurrent prereq tasks: named:before, named:during, named:after"}]]]
+        expected_nodes = ["ROOT",
+          "OtherTransaction/Rake/invoke/named:all",
+          "Rake/execute/multitask",
+          "Rake/execute/named:before",
+          "custom_before",
+          "Rake/execute/named:during",
+          "custom_during",
+          "Rake/execute/named:after",
+          "custom_after"]
 
-        assert_equal expected, single_transaction_trace_posted.tree.node_params
+        actual_nodes = single_transaction_trace_posted.tree.nodes.flatten
+        # check to make sure all expected nodes are inside of actual
+        assert_empty expected_nodes - actual_nodes
       end
     end
   end
