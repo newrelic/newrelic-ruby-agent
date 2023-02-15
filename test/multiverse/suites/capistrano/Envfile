@@ -12,7 +12,7 @@ CAPISTRANO_VERSIONS = [
 ]
 
 def gem_list(capistrano_version = nil)
-  <<-RB
+  <<~RB
     gem 'sshkit', '1.16.0'
     gem 'rack'
     
@@ -20,4 +20,4 @@ def gem_list(capistrano_version = nil)
   RB
 end
 
-create_gemfiles(CAPISTRANO_VERSIONS, gem_list)
+create_gemfiles(CAPISTRANO_VERSIONS)

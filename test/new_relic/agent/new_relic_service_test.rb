@@ -921,7 +921,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => {:call_count => 1}
+      "Supportability/Ruby/Collector/foobar/MaxPayloadSizeLimit" => {:call_count => 1}
     )
   end
 

@@ -21,7 +21,6 @@ module NewRelic
       :browser_timing_header,
       :disable_all_tracing,
       :disable_sql_recording,
-      :disable_transaction_tracing,
       :drop_buffered_data,
       :get_request_metadata,
       :get_response_metadata,

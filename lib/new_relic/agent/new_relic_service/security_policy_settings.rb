@@ -14,7 +14,6 @@ module NewRelic
           custom_parameters
           custom_instrumentation_editor
           message_parameters
-          job_arguments
         ].map(&:freeze)
 
         def self.preliminary_settings(security_policies)

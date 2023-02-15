@@ -43,7 +43,7 @@ module Format
   def flatten_config_hash(config_hash)
     sections = []
     config = [GENERAL, 'transaction_tracer', 'error_collector',
-      'browser_monitoring', 'analytics_events', 'transaction_events',
+      'browser_monitoring', 'transaction_events',
       'application_logging']
 
     config.each { |config| sections << pluck(config, config_hash) }

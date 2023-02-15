@@ -6,7 +6,7 @@ module SequelHelpers
   def setup
     super
 
-    DB.extension(:newrelic_instrumentation)
+    DB.extension(:new_relic_instrumentation)
 
     NewRelic::Agent.drop_buffered_data
   end

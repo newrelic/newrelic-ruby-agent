@@ -142,19 +142,19 @@ module NewRelic
     def test_is_sql_recorded_true
       NewRelic::Agent::Tracer.state.record_sql = true
 
-      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is set')
+      assert_predicate(NewRelic::Agent::Tracer.state, :is_sql_recorded?, 'should be true since the thread local is set')
     end
 
     def test_is_sql_recorded_blank
       NewRelic::Agent::Tracer.state.record_sql = nil
 
-      assert_predicate(NewRelic::Agent, :tl_is_sql_recorded?, 'should be true since the thread local is not set')
+      assert_predicate(NewRelic::Agent::Tracer.state, :is_sql_recorded?, 'should be true since the thread local is not set')
     end
 
     def test_is_sql_recorded_false
       NewRelic::Agent::Tracer.state.record_sql = false
 
-      refute(NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
+      refute(NewRelic::Agent::Tracer.state.is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
@@ -462,19 +462,6 @@ module NewRelic
       rescue => e
         assert_nil ::NewRelic::Agent.notice_error(e)
       end
-    end
-
-    def test_disable_transaction_tracing_deprecated
-      log = with_array_logger(:warn) do
-        NewRelic::Agent.disable_transaction_tracing do
-          in_transaction do |txn|
-            # no-op
-          end
-        end
-      end
-
-      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.') }
-      assert log.array.any? { |msg| msg.include?('Please use disable_all_tracing or ignore_transaction instead.') }
     end
 
     def test_eventing_helpers

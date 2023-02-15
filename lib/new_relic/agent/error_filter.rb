@@ -19,7 +19,7 @@ module NewRelic
 
       def load_all
         %i[
-          ignore_errors ignore_classes ignore_messages ignore_status_codes
+          ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
         ].each { |setting| load_from_config(setting) }
       end
@@ -31,7 +31,7 @@ module NewRelic
         return if new_value.nil? || (new_value.respond_to?(:empty?) && new_value.empty?)
 
         case setting.to_sym
-        when :ignore_errors, :ignore_classes
+        when :ignore_classes
           new_value = new_value.split(',').map!(&:strip) if new_value.is_a?(String)
           errors = @ignore_classes = new_value
         when :ignore_messages
@@ -120,7 +120,7 @@ module NewRelic
 
       def log_filter(setting, errors)
         case setting
-        when :ignore_errors, :ignore_classes
+        when :ignore_classes
           errors.each do |error|
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
           end

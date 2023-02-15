@@ -14,7 +14,7 @@ class Instrumentation < Thor
   NEWRELIC_YML_LOCATION = 'newrelic.yml'
 
   desc('scaffold NAME', 'Scaffold the required files for adding new instrumentation')
-  long_desc <<-LONGDESC
+  long_desc <<~LONGDESC
     `instrumentation scaffold` requires one parameter by default: the name of the
     library or class you are instrumenting. This task generates the basic
     file structure needed to add new instrumentation to the Ruby agent.
@@ -96,7 +96,7 @@ class Instrumentation < Thor
   end
 
   def config_block(name)
-    <<-CONFIG
+    <<~CONFIG
         :'instrumentation.#{name.downcase}' => {
           :default => 'auto',
           :public => true,
@@ -108,16 +108,13 @@ class Instrumentation < Thor
     CONFIG
   end
 
-  # TODO: OLD RUBIES - RUBY_VERSION 2.2
-  # When we only support 2.3+ this can be changed to a sqiggle heredoc (<<~)
-  # and use standard indentation
   def yaml_block(name)
-<<HEREDOC # rubocop:disable Layout/IndentationWidth
+    <<~HEREDOC
 
-  # Controls auto-instrumentation of #{name} at start up.
-  # May be one of [auto|prepend|chain|disabled]
-  # instrumentation.#{name.downcase}: auto
-HEREDOC
+      # Controls auto-instrumentation of #{name} at start up.
+      # May be one of [auto|prepend|chain|disabled]
+      # instrumentation.#{name.downcase}: auto
+    HEREDOC
   end
 end
 
