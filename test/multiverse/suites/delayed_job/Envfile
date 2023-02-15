@@ -19,12 +19,12 @@ def bigdecimal
     "gem 'bigdecimal', '~> 3.0.0'"
   end
 
-  if RUBY_VERSION <= '2.5.0' && RUBY_VERSION >= '2.3.0'
+  if RUBY_VERSION <= '2.5.0'
     "gem 'bigdecimal', '~> 1.4.0'"
   end
 end
 
-boilerplate_gems = <<-SQLITE
+boilerplate_gems = <<~SQLITE
   gem 'rack'
   #{sqlite}
   #{bigdecimal}
@@ -32,14 +32,14 @@ boilerplate_gems = <<-SQLITE
 SQLITE
 
 if RUBY_VERSION >= '2.6.0'
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'delayed_job'
     gem 'i18n'
     #{boilerplate_gems}
   RB
 
   # As of 6/13/22 delayed_job_active_record was not compatible with Rails 7
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'delayed_job'
     gem 'delayed_job_active_record'
     gem 'activerecord', '~> 6.1.0'
@@ -49,7 +49,7 @@ if RUBY_VERSION >= '2.6.0'
 end
 
 # delayed_job_mongoid is currently unsupported, but check that we behave
-gemfile <<-RB
+gemfile <<~RB
   gem 'delayed_job', '~> 4.1.0'
   gem 'delayed_job_mongoid', '~> 2.3.0'
   gem 'i18n', '~> 0.7.0'
@@ -62,7 +62,7 @@ gemfile <<-RB
 RB
 
 if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'delayed_job', '~> 4.1.0'
     gem 'delayed_job_active_record', '~> 4.1.1'
     gem 'minitest', '~> 4.7.5' # required for Rails < 4.1
@@ -74,7 +74,7 @@ end
 
 if RUBY_VERSION < '2.5.0' && RUBY_PLATFORM != 'java'
   # delayed_job_active_record 4.1.2 drops support for Rails 3
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'delayed_job', '~> 4.1.4'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 5.0.0'
@@ -85,7 +85,7 @@ if RUBY_VERSION < '2.5.0' && RUBY_PLATFORM != 'java'
 end
 
 if RUBY_VERSION < '2.5.0'
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'delayed_job', '~> 4.1.4'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 4.2.0'
@@ -97,41 +97,41 @@ end
 
 # delayed_job_active_record (and older baked into delayed_job) support
 if RUBY_VERSION < '2.4.0'
-  dj4_with_active_record = <<-DJ
+  dj4_with_active_record = <<~DJ
     gem 'delayed_job', '~> 4.0.4'
     gem 'delayed_job_active_record', '~> 4.0.2'
     #{boilerplate_gems}
   DJ
 else
-  dj4_with_active_record = <<-DJ
+  dj4_with_active_record = <<~DJ
     gem 'delayed_job', '~> 4.0.4'
     gem 'delayed_job_active_record', '= 4.0.2'
     #{boilerplate_gems}
   DJ
 end
 
-dj3_with_active_record = <<-DJ
+dj3_with_active_record = <<~DJ
   gem 'delayed_job', '~> 3.0.5'
   gem 'delayed_job_active_record', '~> 0.4.4'
   #{boilerplate_gems}
 DJ
 
 if RUBY_VERSION < '2.4.0'
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'activerecord', '~> 4.2.0'
     gem 'i18n', '~> 0.7.0'
     #{dj4_with_active_record}
     gem 'minitest', '~> 5.2.3'
   RB
 
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'activerecord', '~> 4.1.6'
     gem 'i18n', '~> 0.6.11'
     #{dj4_with_active_record}
     gem 'minitest', '~> 5.2.3'
   RB
 
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'activerecord', '~> 4.0.10'
     gem 'minitest', '~> 4.7.5' # required for Rails < 4.1
     gem 'i18n', '~> 0.6.11'
@@ -139,13 +139,3 @@ if RUBY_VERSION < '2.4.0'
   RB
 end
 
-if RUBY_VERSION < '2.3.0'
-  [dj4_with_active_record, dj3_with_active_record].each do |dj|
-    gemfile <<-RB
-      gem 'activerecord', '~> 3.2.19'
-      gem 'minitest', '~> 4.7.5' # required for Rails < 4.1
-      gem 'i18n', '~> 0.6.11'
-      #{dj}
-    RB
-  end
-end

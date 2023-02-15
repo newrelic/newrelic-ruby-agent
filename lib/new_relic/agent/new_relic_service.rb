@@ -595,7 +595,7 @@ module NewRelic
         return if post_string.size < Agent.config[:max_payload_size_in_bytes]
 
         ::NewRelic::Agent.logger.debug("Tried to send too much data: #{post_string.size} bytes")
-        NewRelic::Agent.increment_metric("Supportability/Agent/Collector/#{endpoint}/MaxPayloadSizeLimit")
+        NewRelic::Agent.increment_metric("Supportability/Ruby/Collector/#{endpoint}/MaxPayloadSizeLimit")
         raise UnrecoverableServerException.new('413 Request Entity Too Large')
       end
 

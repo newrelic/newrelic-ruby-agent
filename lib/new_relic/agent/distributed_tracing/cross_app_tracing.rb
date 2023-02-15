@@ -166,8 +166,7 @@ module NewRelic
 
       def cross_application_tracer_enabled?
         !NewRelic::Agent.config[:"distributed_tracing.enabled"] &&
-          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
-           NewRelic::Agent.config[:cross_application_tracing])
+          NewRelic::Agent.config[:"cross_application_tracer.enabled"]
       end
 
       def obfuscator

@@ -17,7 +17,7 @@ ACTIVERECORD_VERSIONS = [
 ]
 
 def gem_list(activerecord_version = nil)
-  <<-RB
+  <<~RB
     gem 'activerecord'#{activerecord_version}
     gem 'pg'
     
@@ -26,23 +26,23 @@ def gem_list(activerecord_version = nil)
   RB
 end
 
-create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
+create_gemfiles(ACTIVERECORD_VERSIONS)
 # Removing JRuby from CI until we can understand why initialization fails on GitHub Actions
-# if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
+# if RUBY_PLATFORM == 'java'
 
-#   gemfile <<-RB
+#   gemfile <<~RB
 #     gem 'activerecord', '~> 5.0.0'
 #     gem 'activerecord-jdbcpostgresql-adapter', '~> 50.0', :platform => :jruby
 #     #{boilerplate_gems}
 #   RB
 
-#   gemfile <<-RB
+#   gemfile <<~RB
 #     gem 'activerecord', '~> 5.1.0'
 #     gem 'activerecord-jdbcpostgresql-adapter', '~> 51.0',  :platform => :jruby
 #     #{boilerplate_gems}
 #   RB
 
-#   gemfile <<-RB
+#   gemfile <<~RB
 #     gem 'activerecord', '~> 5.2.0'
 #     gem 'activerecord-jdbcpostgresql-adapter', '~> 52.0',  :platform => :jruby
 #     #{boilerplate_gems}
@@ -51,13 +51,13 @@ create_gemfiles(ACTIVERECORD_VERSIONS, gem_list)
 
 # if RUBY_VERSION >= '2.5.0' && RUBY_PLATFORM == 'java'
 
-#   gemfile <<-RB
+#   gemfile <<~RB
 #     gem 'activerecord', '~> 6.0.0'
 #     gem 'activerecord-jdbcpostgresql-adapter', '~> 60.0', :platform => :jruby
 #     #{boilerplate_gems}
 #   RB
 
-#   gemfile <<-RB
+#   gemfile <<~RB
 #     gem 'activerecord', '~> 6.1.0'
 #     gem 'activerecord-jdbcpostgresql-adapter', '~> 61.0',  :platform => :jruby
 #     #{boilerplate_gems}

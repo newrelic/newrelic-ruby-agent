@@ -464,19 +464,6 @@ module NewRelic
       end
     end
 
-    def test_disable_transaction_tracing_deprecated
-      log = with_array_logger(:warn) do
-        NewRelic::Agent.disable_transaction_tracing do
-          in_transaction do |txn|
-            # no-op
-          end
-        end
-      end
-
-      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.') }
-      assert log.array.any? { |msg| msg.include?('Please use disable_all_tracing or ignore_transaction instead.') }
-    end
-
     def test_eventing_helpers
       called = false
       NewRelic::Agent.subscribe(:boo) { called = true }

@@ -27,8 +27,7 @@ module Multiverse
       @condition = block
     end
 
-    # TODO: create_gemfiles doesn't need gem_list as arg. Refactor all callers of create_gemfiles
-    def create_gemfiles(versions, gem_list)
+    def create_gemfiles(versions)
       versions.each do |version|
         if version.is_a?(Array)
           version, first_supported_ruby_version, last_supported_ruby_version = version

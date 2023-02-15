@@ -5,7 +5,7 @@ require "newrelic_prepender/version"
 
 Gem::Specification.new do |spec|
   spec.name = "newrelic_prepender"
-  spec.version = NewrelicPrepender::VERSION
+  spec.version = NewRelicPrepender::VERSION
   spec.authors = ["Kenichi Nakamura"]
   spec.email = ["knakamura@newrelic.com"]
   spec.summary = 'test module for prepend metrics'

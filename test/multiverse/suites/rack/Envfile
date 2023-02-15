@@ -14,27 +14,24 @@ PUMA_VERSIONS = [
 ]
 
 def gem_list(puma_version = nil)
-  # try to test with the latest Rack version by not specifying a version
-  # constraint at all, but provide one for older Rubies not supporting Rack v3+
-  rack_version = ", '~> 2.1.4'" if RUBY_VERSION < '2.3.0'
-  <<-RB
+  <<~RB
     gem 'puma'#{puma_version}
-    gem 'rack'#{rack_version}
+    gem 'rack'
     gem 'rack-test'
     
   RB
 end
 
-create_gemfiles(PUMA_VERSIONS, gem_list)
+create_gemfiles(PUMA_VERSIONS)
 
-if RUBY_VERSION >= '2.3.0'
-  gemfile <<-RB
+if RUBY_VERSION >= '2.4.0'
+  gemfile <<~RB
     gem 'rack'
     gem 'rack-test'
     
   RB
 
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'rack', '2.2.4'
     gem 'rack-test'
     
@@ -42,7 +39,7 @@ if RUBY_VERSION >= '2.3.0'
 end
 
 if RUBY_VERSION < '3.2.0'
-  gemfile <<-RB
+  gemfile <<~RB
     gem 'rack', '1.6.13'
     gem 'rack-test'
     

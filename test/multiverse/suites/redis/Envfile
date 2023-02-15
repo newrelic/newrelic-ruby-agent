@@ -11,11 +11,11 @@ REDIS_VERSIONS = [
 ]
 
 def gem_list(redis_version = nil)
-  <<-RB
+  <<~RB
     gem 'rack'
     gem 'redis'#{redis_version}
     
   RB
 end
 
-create_gemfiles(REDIS_VERSIONS, gem_list)
+create_gemfiles(REDIS_VERSIONS)

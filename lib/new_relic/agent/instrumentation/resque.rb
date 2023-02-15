@@ -10,7 +10,7 @@ DependencyDetection.defer do
   @name = :resque
 
   depends_on do
-    defined?(Resque::Job) && !NewRelic::Agent.config[:disable_resque]
+    defined?(Resque::Job)
   end
 
   # Airbrake uses method chaining on Resque::Job on versions < 11.0.3

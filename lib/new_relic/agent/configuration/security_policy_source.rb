@@ -191,22 +191,6 @@ module NewRelic
               disabled_value: false,
               permitted_fn: nil
             }
-          ],
-          "job_arguments" => [
-            {
-              option: :'resque.capture_params',
-              supported: true,
-              enabled_fn: method(:enabled?),
-              disabled_value: false,
-              permitted_fn: nil
-            },
-            {
-              option: :'sidekiq.capture_params',
-              supported: true,
-              enabled_fn: method(:enabled?),
-              disabled_value: false,
-              permitted_fn: nil
-            }
           ]
         }
 

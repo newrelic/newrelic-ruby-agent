@@ -12,7 +12,7 @@ if NewRelic::Agent::Instrumentation::Rake.should_install? &&
       setup_and_teardown_agent
 
       def test_disabling_rake_instrumentation
-        with_environment("NEW_RELIC_DISABLE_RAKE" => "true",
+        with_environment("NEW_RELIC_INSTRUMENTATION_RAKE" => "disabled",
           "NEW_RELIC_SYNC_STARTUP" => "true") do
           run_rake
         end

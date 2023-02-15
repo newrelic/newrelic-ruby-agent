@@ -10,8 +10,7 @@ module NewRelic
         # requests, we need to wait until the children are forked
         # before connecting, otherwise the parent process sends useless data
         def using_forking_dispatcher?
-          # TODO: MAJOR VERSION - remove :rainbows
-          if [:puma, :passenger, :rainbows, :unicorn].include?(Agent.config[:dispatcher])
+          if [:puma, :passenger, :unicorn].include?(Agent.config[:dispatcher])
             ::NewRelic::Agent.logger.info("Deferring startup of agent reporting thread because " \
               "#{Agent.config[:dispatcher]} may fork.")
             true

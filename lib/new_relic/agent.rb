@@ -371,7 +371,7 @@ module NewRelic
     # jobs or other work.  If you are doing this with a web dispatcher
     # that forks worker processes then you will need to force the
     # agent to reconnect, which it won't do by default.  Passenger and
-    # Rainbows and Unicorn are already handled, nothing special needed for them.
+    # Unicorn are already handled, nothing special needed for them.
     #
     # Options:
     # * <tt>:force_reconnect => true</tt> to force the spawned process to
@@ -509,18 +509,6 @@ module NewRelic
       ensure
         agent.pop_trace_execution_flag
       end
-    end
-
-    # This method disables the recording of transaction traces in the given
-    # block.  See also #disable_all_tracing
-    #
-    # @api public
-    #
-    def disable_transaction_tracing
-      Deprecator.deprecate(:disable_transaction_tracing,
-        'disable_all_tracing or ignore_transaction')
-      record_api_supportability_metric(:disable_transaction_tracing)
-      yield
     end
 
     # This method sets the state of sql recording in the transaction

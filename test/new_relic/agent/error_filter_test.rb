@@ -110,16 +110,6 @@ module NewRelic::Agent
         end
       end
 
-      # compatibility for deprecated config setting
-      def test_ignore_errors
-        with_config(:'error_collector.ignore_errors' => 'TestExceptionA,TestExceptionC') do
-          @error_filter.load_all
-
-          assert @error_filter.ignore?(TestExceptionA.new)
-          refute @error_filter.ignore?(TestExceptionB.new)
-        end
-      end
-
       def test_expected_classes
         with_config(:'error_collector.expected_classes' => %w[TestExceptionA TestExceptionC]) do
           @error_filter.load_all

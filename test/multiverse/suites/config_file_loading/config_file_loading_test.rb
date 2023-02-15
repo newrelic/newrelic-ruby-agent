@@ -63,13 +63,13 @@ class ConfigFileLoadingTest < Minitest::Test
       if config_file_content
         f.write(config_file_content)
       else
-        f.print <<-YAML
-development:
-  foo: "success!!"
-test:
-  foo: "success!!"
-bazbangbarn:
-  i_am: "bazbangbarn"
+        f.print <<~YAML
+          development:
+            foo: "success!!"
+          test:
+            foo: "success!!"
+          bazbangbarn:
+            i_am: "bazbangbarn"
         YAML
       end
     end
@@ -170,13 +170,13 @@ bazbangbarn:
   end
 
   def test_exclude_commented_out_erb_lines
-    config_contents = <<-YAML
-development:
-  foo: "success!!"
-test:
-  foo: "success!!"
-boom:
-  # <%= this is not ruby %>
+    config_contents = <<~YAML
+      development:
+        foo: "success!!"
+      test:
+        foo: "success!!"
+      boom:
+        # <%= this is not ruby %>
     YAML
 
     path = File.join(@cwd, 'config', 'newrelic.yml')
@@ -214,22 +214,22 @@ boom:
   end
 
   def test_parses_default_settings_correctly
-    config_contents = <<-YAML
-common: &default_settings
-  app_name: playground
-  foo: success!!
+    config_contents = <<~YAML
+      common: &default_settings
+        app_name: playground
+        foo: success!!
 
-development:
-  <<: *default_settings
-  app_name: playground (Development)
+      development:
+        <<: *default_settings
+        app_name: playground (Development)
 
-test:
-  <<: *default_settings
-  monitor_mode: false
+      test:
+        <<: *default_settings
+        monitor_mode: false
 
-bazbangbarn:
-  <<: *default_settings
-  app_name: playground (Bazbangbarn)
+      bazbangbarn:
+        <<: *default_settings
+        app_name: playground (Bazbangbarn)
     YAML
 
     path = File.join(@cwd, 'config', 'newrelic.yml')
