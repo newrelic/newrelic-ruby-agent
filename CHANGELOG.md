@@ -98,10 +98,9 @@
 
 - **Updated API method `set_transaction_name`**
 
-  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed into the method. This is a change from previous agent versions. [PR#1797](https://github.com/newrelic/newrelic-ruby-agent/pull/1797)
+  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed into the method. This is a change from previous agent versions.
 
-  Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category already assigned to a transaction, neither the new name nor category would be saved to the transaction. If this method is being called in a situation in which it was previously ignored due to category differences, this will now change the name and category of the transaction. 
-
+  Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category already assigned to a transaction, neither the new name nor category would be saved to the transaction. If this method is being called in a situation in which it was previously ignored due to category differences, this will now change the name and category of the transaction. [PR#1797](https://github.com/newrelic/newrelic-ruby-agent/pull/1797)
 
 - **Removed API method: `NewRelic::Agent.disable_transaction_tracing`**
 
