@@ -123,7 +123,7 @@
 
   For those having troubles with agent initialization and Rails initializers, you can now pass the environment variable `NEW_RELIC_DEFER_RAILS_INITIALIZATION=true` to make the agent initialize after `config/initializers` are run. This config option can only be set using an environment variable and can't be set using YAML. [PR#1791](https://github.com/newrelic/newrelic-ruby-agent/pull/1791)
 
-  Thanks to [@jdelStrother](https://github.com/jdelStrother) for bringing this issue to our attention and testing our fixes along the way. [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662) [PR#1791](https://github.com/newrelic/newrelic-ruby-agent/pull/1791)
+  Thanks to [@jdelStrother](https://github.com/jdelStrother) for bringing this issue to our attention and testing our fixes along the way. [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662)
 
 
 ## 8.16.0
