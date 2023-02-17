@@ -2,12 +2,12 @@
 
 ## v9.0.0
 
-  Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables thread tracing by default, adds fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
+  Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables Thread tracing by default, adds Fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
 
 
-- **Remove Deprecated Configuration Options**
+- **Remove deprecated configuration options**
 
-  The following configuration options have been removed in this version and will no longer work. Please replace them with the appropriate configurations. [PR#1782](https://github.com/newrelic/newrelic-ruby-agent/pull/1782)
+  The following configuration options have been removed and will no longer work. Please update all configs to use the replacements listed below. [PR#1782](https://github.com/newrelic/newrelic-ruby-agent/pull/1782)
 
   |  Removed                                  | Replacement                               | `newrelic.yml` example                                                              |
   | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -52,38 +52,61 @@
 
 
 
-- **Enable Thread Instrumentation by default**
+- **Enable Thread instrumentation by default**
 
-  The configuration option `instrumentation.thread.tracing` is now enabled by default. This will allow the agent to properly monitor code that occurs inside of threads. If you are currently using custom instrumentation to start a new transaction inside of threads, this may be a breaking change, as it will no longer start a new transaction if one already exists. [PR#1767](https://github.com/newrelic/newrelic-ruby-agent/pull/1767)
+  The configuration option `instrumentation.thread.tracing` is now enabled by default. This configuration allows the agent to properly monitor code occurring inside threads. In Ruby agent 9.0, instrumented code within threads will be recorded and associated with the current transaction when the thread was created.
 
-- **Add Fiber Instrumentation**
+  This may be a breaking change if you are currently using custom thread instrumentation. New transactions inside of threads will no longer be started if one already exists. [PR#1767](https://github.com/newrelic/newrelic-ruby-agent/pull/1767)
+
+- **Add Fiber instrumentation**
 
   `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be configured using `instrumentation.fiber`. [PR#1802](https://github.com/newrelic/newrelic-ruby-agent/pull/1802)
 
 
-- **Ruby 2.2 and 2.3 Dropped**
+- **Removed support for Ruby 2.2 and 2.3**
 
-  Support for Ruby 2.2 and 2.3 dropped with this release. They are no longer included in our test matrices and are not supported
-  for 9.0.0 and onward. [PR#1778](https://github.com/newrelic/newrelic-ruby-agent/pull/1778)
+  Ruby 2.2 and 2.3 are no longer supported by the Ruby agent. To continue using the latest Ruby Agent version, please update to Ruby 2.4.0 or above. [PR#1778](https://github.com/newrelic/newrelic-ruby-agent/pull/1778)
 
-- **Instrumentation dropped for select gems**
+- **Removed deprecated instrumentation**
 
-  Support for the following gems had been dropped. [PR#1788](https://github.com/newrelic/newrelic-ruby-agent/pull/1788)
+  Instrumentation for the following gems had been previously deprecated and has now been removed. [PR#1788](https://github.com/newrelic/newrelic-ruby-agent/pull/1788)
     - Acts As Solr
     - Authlogic
     - DataMapper
     - Rainbows
     - Sunspot
 
+  Versions of the following technologies had been previously deprecated and are no longer supported.
 
-- **Changes how the API method `set_transaction_name` works**
+    - CRuby: 2.2.x, 2.3.x
+    - Passenger: 2.2.x - 4.0.x
+    - Puma: 2.0.x
+    - Grape: 0.2.0
+    - Padrino: 0.14.x
+    - Rails: 3.2.x
+    - Sinatra: 1.4.x, 1.5.x
+    - Mongo: 1.8.x - 2.3.x
+    - Sequel: 3.37.x, 4.0.x
+    - Delayed_Job: 2.0.x - 4.0.x
+    - Sidekiq: 4.2.x
+    - Excon: below 0.55.0
+    - HttpClient: 2.2.0 - 2.8.0
+    - HttpRb: 0.9.9 - 2.2.1
+    - Typhoeus: 0.5.3 - 1.2.x
+    - Bunny: 2.0.x - 2.6.x 
+    - ActiveMerchant: 1.25.0 - 1.64.x 
 
-  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed in to the method. This is a change from how it functioned in previous agent versions. Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category that was already assigned to a transaction, neither the new name nor category would be saved to the transaction. [PR#1797](https://github.com/newrelic/newrelic-ruby-agent/pull/1797)
+
+- **Updated API method `set_transaction_name`**
+
+  When the method `NewRelic::Agent.set_transaction_name` is called, it will now always change the name and category of the currently running transaction to what is passed into the method. This is a change from previous agent versions. [PR#1797](https://github.com/newrelic/newrelic-ruby-agent/pull/1797)
+
+  Previously, if `set_transaction_name` was called with a new transaction name and a new category that did not match the category already assigned to a transaction, neither the new name nor category would be saved to the transaction. If this method is being called in a situation in which it was previously ignored due to category differences, this will now change the name and category of the transaction. 
 
 
-- **Dropped method: `NewRelic::Agent.disable_transaction_tracing`**
+- **Removed API method: `NewRelic::Agent.disable_transaction_tracing`**
 
-  The previously deprecated `NewRelic::Agent.disable_transaction_tracing` method has been removed. Users are encouraged to use `NewRelic::Agent.disable_all_tracing` or `NewRelic::Agent.ignore_transaction`. [PR#1792](https://github.com/newrelic/newrelic-ruby-agent/pull/1792)
+  The deprecated API method `NewRelic::Agent.disable_transaction_tracing` has been removed. Instead use either `NewRelic::Agent#ignore_transaction` to disable the recording of the current transaction or `NewRelic::Agent.disable_all_tracing` to yield a block without collecting any metrics or traces in any of the subsequent calls. [PR#1792](https://github.com/newrelic/newrelic-ruby-agent/pull/1792)
 
 - **Renamed ActiveJob metrics**
 
