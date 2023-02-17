@@ -60,7 +60,7 @@
 
 - **Add Fiber instrumentation**
 
-  `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be configured using `instrumentation.fiber`. [PR#1802](https://github.com/newrelic/newrelic-ruby-agent/pull/1802)
+  `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be [configured](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#instrumentation-fiber) using `instrumentation.fiber`. [PR#1802](https://github.com/newrelic/newrelic-ruby-agent/pull/1802)
 
 
 - **Removed support for Ruby 2.2 and 2.3**
