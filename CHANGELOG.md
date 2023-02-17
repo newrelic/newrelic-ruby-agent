@@ -78,7 +78,6 @@
 
   Versions of the following technologies had been previously deprecated and are no longer supported.
 
-    - CRuby: 2.2.x, 2.3.x
     - Passenger: 2.2.x - 4.0.x
     - Puma: 2.0.x
     - Grape: 0.2.0
