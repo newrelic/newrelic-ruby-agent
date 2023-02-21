@@ -285,7 +285,7 @@ module HttpClientTestCases
 
   def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
     NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
+    with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
 
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
@@ -295,7 +295,7 @@ module HttpClientTestCases
 
   def test_adds_newrelic_transaction_header
     NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
-    with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
+    with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
       guid = nil
       path_hash = nil
       in_transaction do |txn|

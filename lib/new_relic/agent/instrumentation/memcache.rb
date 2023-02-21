@@ -46,7 +46,7 @@ DependencyDetection.defer do
 end
 
 DependencyDetection.defer do
-  named :dalli
+  @name = :dalli
   configure_with :memcache
 
   depends_on { defined? Dalli::Client }
@@ -67,7 +67,7 @@ end
 # dalli/cas/client. Use a separate dependency block so it can potentially
 # re-evaluate after they've done that require.
 DependencyDetection.defer do
-  named :dalli_cas_client
+  @name = :dalli_cas_client
   configure_with :memcache
 
   depends_on { defined? Dalli::Client }

@@ -155,7 +155,7 @@ class RubyProcess
   def gdb_script_body(backtrace_file)
     backtrace_gathering_code = 'Thread.list.each { |t| bt = t.backtrace rescue nil; ' \
       'puts \"#{t.inspect}\n#{bt && bt.join(\"\n\")}\n\n\" }'
-    <<-END
+    <<~END
       attach #{pid}
       t a a bt
       call (void)close(1)
@@ -247,21 +247,21 @@ class ProcessReport
 end
 
 def prompt_for_confirmation(target_pid, target_cmd)
-  puts <<-PROMPT
-  Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?
-  
-  ************************** !WARNING! **************************
-  Extracting debug information from this process may cause it to CRASH OR HANG.
-  
-  It is highly recommended that you only run this script against processes that
-  are already unresponsive.
-  
-  Additionally, the output may contain sensitive information from the program's
-  command line arguments, environment, or open file list. Please examine the
-  output before sharing it.
-  ************************** !WARNING! **************************
-  
-  To continue, type 'continue':
+  puts <<~PROMPT
+    Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?
+
+    ************************** !WARNING! **************************
+    Extracting debug information from this process may cause it to CRASH OR HANG.
+
+    It is highly recommended that you only run this script against processes that
+    are already unresponsive.
+
+    Additionally, the output may contain sensitive information from the program's
+    command line arguments, environment, or open file list. Please examine the
+    output before sharing it.
+    ************************** !WARNING! **************************
+
+    To continue, type 'continue':
   PROMPT
 
   until $stdin.gets.strip == 'continue'

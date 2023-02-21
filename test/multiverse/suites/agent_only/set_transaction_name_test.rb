@@ -41,11 +41,12 @@ class SetTransactionNameTest < Minitest::Test
   def test_metric_names_when_child_has_different_category
     TestTransactor.new.parent_txn(:task)
 
+    # background task does not record apdex
     assert_metrics_recorded([
-      'Controller/TestTransactor/parent',
+      'OtherTransaction/Background/TestTransactor/child',
       'Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn',
-      ['Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn', 'Controller/TestTransactor/parent'],
-      'Apdex/TestTransactor/parent'
+      ['Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn', 'OtherTransaction/Background/TestTransactor/child'], # check child method segment metric still exists
+      ['Nested/Controller/SetTransactionNameTest::TestTransactor/parent_txn', 'OtherTransaction/Background/TestTransactor/child'] # check parent segment metric still exists
     ])
   end
 

@@ -180,7 +180,7 @@ module NewRelic
             code_info = NewRelic::Agent::MethodTracerHelpers.code_information(self, method)
             argument_list = generate_argument_list(options.merge(code_info))
 
-            class_eval(<<-EOC)
+            class_eval(<<~EOC)
               def #{with_method_name}(*args, &block)
                 perform_action_with_newrelic_trace(#{argument_list.join(',')}) do
                   #{without_method_name}(*args, &block)

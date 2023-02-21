@@ -5,28 +5,26 @@
 instrumentation_methods :chain, :prepend
 
 SINATRA_VERSIONS = [
-  [nil, 2.3],
-  ['2.1.0', 2.3],
-  ['2.0.0', 2.2],
-  ['1.4.8', 2.2]
+  [nil, 2.4],
+  ['2.1.0', 2.4],
+  ['2.0.0', 2.4],
+  ['1.4.8', 2.4]
 ]
 
-# rack v2.2+ requires ruby 2.3+, use rack v2.0 for older rubies
 # sinatra v1.x needs rack v1.x, regardless of ruby version
 def rack_version(sinatra_version)
   return '~> 1.5' if sinatra_version.to_s =~ /^[^\d]*1/
 
-  RUBY_VERSION < '2.3.0' ? '~> 2.0' : '~> 2.2'
+  '~> 2.2'
 end
 
 def gem_list(sinatra_version = nil)
-  rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
-  <<-RB
+  <<~RB
     gem 'sinatra'#{sinatra_version}
     gem 'rack', '#{rack_version(sinatra_version)}'
-    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+    gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
     
   RB
 end
 
-create_gemfiles(SINATRA_VERSIONS, gem_list)
+create_gemfiles(SINATRA_VERSIONS)

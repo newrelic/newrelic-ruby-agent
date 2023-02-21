@@ -9,13 +9,13 @@ end
 instrumentation_methods :chain, :prepend
 
 BUNNY_VERSIONS = [
-  [nil, 2.3],
-  ['2.19.0', 2.3],
-  ['2.9.1', 2.2]
+  [nil, 2.4],
+  ['2.19.0', 2.4],
+  ['2.9.1', 2.4]
 ]
 
 def gem_list(bunny_version = nil)
-  <<-RB
+  <<~RB
     gem 'rack'
     gem 'bunny'#{bunny_version}
     gem 'amq-protocol'
@@ -23,4 +23,4 @@ def gem_list(bunny_version = nil)
   RB
 end
 
-create_gemfiles(BUNNY_VERSIONS, gem_list)
+create_gemfiles(BUNNY_VERSIONS)

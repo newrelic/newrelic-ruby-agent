@@ -60,8 +60,8 @@ if Rails::VERSION::STRING >= "4.2.0"
       end
     end
 
-    ENQUEUE_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Produce/Named"
-    PERFORM_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Consume/Named"
+    ENQUEUE_PREFIX = "ActiveJob/Inline/Queue/Produce/Named"
+    PERFORM_PREFIX = "ActiveJob/Inline/Queue/Consume/Named"
 
     PERFORM_TRANSACTION_NAME = 'OtherTransaction/ActiveJob::Inline/MyJob/execute'
     PERFORM_TRANSACTION_ROLLUP = 'OtherTransaction/ActiveJob::Inline/all'

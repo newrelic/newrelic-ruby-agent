@@ -5,7 +5,7 @@
 SEQUEL_VERSIONS = [
   [nil],
   ['5.58.0'],
-  ['5.17.0', 2.2, 2.7]
+  ['5.17.0', 2.4, 2.7]
 ]
 
 def sqlite3_version
@@ -17,7 +17,7 @@ def sqlite3_version
 end
 
 def gem_list(sequel_version = nil)
-  <<-RB
+  <<~RB
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
     gem 'jdbc-sqlite3', '3.7.2', :platform => :jruby
     gem 'sqlite3',#{sqlite3_version} :platform => :ruby
@@ -25,4 +25,4 @@ def gem_list(sequel_version = nil)
   RB
 end
 
-create_gemfiles(SEQUEL_VERSIONS, gem_list)
+create_gemfiles(SEQUEL_VERSIONS)

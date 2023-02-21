@@ -371,7 +371,7 @@ module NewRelic
     # jobs or other work.  If you are doing this with a web dispatcher
     # that forks worker processes then you will need to force the
     # agent to reconnect, which it won't do by default.  Passenger and
-    # Rainbows and Unicorn are already handled, nothing special needed for them.
+    # Unicorn are already handled, nothing special needed for them.
     #
     # Options:
     # * <tt>:force_reconnect => true</tt> to force the spawned process to
@@ -511,18 +511,6 @@ module NewRelic
       end
     end
 
-    # This method disables the recording of transaction traces in the given
-    # block.  See also #disable_all_tracing
-    #
-    # @api public
-    #
-    def disable_transaction_tracing
-      Deprecator.deprecate(:disable_transaction_tracing,
-        'disable_all_tracing or ignore_transaction')
-      record_api_supportability_metric(:disable_transaction_tracing)
-      yield
-    end
-
     # This method sets the state of sql recording in the transaction
     # sampler feature. Within the given block, no sql will be recorded
     #
@@ -552,12 +540,6 @@ module NewRelic
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
       NewRelic::Agent::Tracer.state.is_execution_traced?
-    end
-
-    # helper method to check the thread local to determine whether sql
-    # is being recorded or not
-    def tl_is_sql_recorded?
-      NewRelic::Agent::Tracer.state.is_sql_recorded?
     end
 
     # @!group Adding custom attributes to traces

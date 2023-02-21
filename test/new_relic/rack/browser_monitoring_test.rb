@@ -35,17 +35,17 @@ if defined?(Rack::Test)
 
       def call(env)
         advance_process_time(0.1)
-        @@doc ||= <<-EOL
-<html>
-  <head>
-    <title>im a title</title>
-    <meta some-crap="1"/>
-    <script>
-      junk
-    </script>
-  </head>
-  <body>im some body text</body>
-</html>
+        @@doc ||= <<~EOL
+          <html>
+            <head>
+              <title>im a title</title>
+              <meta some-crap="1"/>
+              <script>
+                junk
+              </script>
+            </head>
+            <body>im some body text</body>
+          </html>
         EOL
         response = @@next_response || Rack::Response.new(@@doc)
         @@next_response = nil

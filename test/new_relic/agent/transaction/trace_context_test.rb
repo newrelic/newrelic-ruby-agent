@@ -360,19 +360,19 @@ module NewRelic::Agent
           assert_equal now_ms, payload.timestamp
         end
 
-        def test_omits_transaction_guid_from_payload_when_analytics_events_disabled
+        def test_omits_transaction_guid_from_payload_when_atransaction_events_disabled
           nr_freeze_process_time
 
           payload = nil
           parent_id = nil
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
-          disabled_analytics_events = @config.merge({
-            :'analytics_events.enabled' => false
+          disabled_transaction_events = @config.merge({
+            :'transaction_events.enabled' => false
           })
 
-          with_config(disabled_analytics_events) do
-            refute Agent.config[:'analytics_events.enabled']
+          with_config(disabled_transaction_events) do
+            refute Agent.config[:'transaction_events.enabled']
             txn = in_transaction do |t|
               t.sampled = true
               payload = t.distributed_tracer.create_trace_state_payload

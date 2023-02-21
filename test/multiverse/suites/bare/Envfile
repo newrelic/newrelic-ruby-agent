@@ -2,6 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-gemfile <<-RB
+gemfile <<~RB
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
 RB

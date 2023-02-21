@@ -17,7 +17,7 @@ module Sequel
   # instrumentation is loaded:
   #
   #     db = Sequel.connect( ... )
-  #     db.extension :newrelic_instrumentation
+  #     db.extension :new_relic_instrumentation
   #
   # Versions 3.47.0 and later use `Database.extension` to automatically
   # install the extension for new connections.
@@ -93,6 +93,6 @@ module Sequel
     end
   end # module NewRelicInstrumentation
 
-  NewRelic::Agent.logger.debug("Registering the :newrelic_instrumentation extension.")
-  Database.register_extension(:newrelic_instrumentation, NewRelicInstrumentation)
+  NewRelic::Agent.logger.debug("Registering the :new_relic_instrumentation extension.")
+  Database.register_extension(:new_relic_instrumentation, NewRelicInstrumentation)
 end # module Sequel

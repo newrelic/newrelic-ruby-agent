@@ -98,10 +98,10 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent" => %w[agent_only bare config_file_loading deferred_instrumentation high_security no_json json marshalling yajl],
+      "agent" => %w[agent_only bare config_file_loading deferred_instrumentation high_security no_json json marshalling thread yajl],
       "background" => %w[delayed_job sidekiq resque],
       "background_2" => ["rake"],
-      "database" => %w[datamapper elasticsearch mongo redis sequel],
+      "database" => %w[elasticsearch mongo redis sequel],
       "rails" => %w[active_record active_record_pg rails rails_prepend activemerchant],
       "frameworks" => %w[sinatra padrino grape],
       "httpclients" => %w[curb excon httpclient],
@@ -110,11 +110,6 @@ module Multiverse
 
       "rest" => [] # Specially handled below
     }
-
-    # Would like to reinstate but requires investigation, see RUBY-1749
-    if RUBY_VERSION < '2.3'
-      GROUPS['background_2'].delete('rake')
-    end
 
     if RUBY_PLATFORM == "java"
       GROUPS['agent'].delete('agent_only')
@@ -127,7 +122,6 @@ module Multiverse
     end
 
     def excluded?(suite)
-      return true if suite == 'rake' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
     end

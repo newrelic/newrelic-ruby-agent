@@ -9,7 +9,7 @@ require_relative 'grape/prepend'
 DependencyDetection.defer do
   # Why not just :grape? newrelic-grape used that name already, and while we're
   # not shipping yet, overloading the name interferes with the plugin.
-  named :grape_instrumentation
+  @name = :grape_instrumentation
   configure_with :grape
 
   depends_on do

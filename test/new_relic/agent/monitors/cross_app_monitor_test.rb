@@ -104,7 +104,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_config_disabled
-      with_config(:"cross_application_tracer.enabled" => false, :cross_application_tracing => false) do
+      with_config(:"cross_application_tracer.enabled" => false) do
         when_request_runs
 
         assert_nil response_app_data
