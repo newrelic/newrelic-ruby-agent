@@ -7,7 +7,7 @@
 
 - **Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
 
-  Previously, the agent would log a warning in the newrelic_agent.log every time it attempted to accept empty distributed tracing headers from sidekiq jobs which could result in an excessive number of warnings. Now the agent will no longer create these warnings when using sidekiq. [PR#1834](https://github.com/newrelic/newrelic-ruby-agent/pull/1834)
+  Previously, the agent would log a warning to `newrelic_agent.log` every time it attempted to accept empty Distributed Tracing headers from Sidekiq jobs which could result in an excessive number of warnings. Now the agent will no longer create these warnings when using Sidekiq. [PR#1834](https://github.com/newrelic/newrelic-ruby-agent/pull/1834)
 
 ## v9.0.0
 
