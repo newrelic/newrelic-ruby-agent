@@ -182,6 +182,14 @@ class SidekiqTest < Minitest::Test
     Sidekiq::CLI.instance.handle_exception(exception)
   end
 
+  def test_accept_dt_headers_not_called_if_headers_nil
+    NewRelic::Agent::DistributedTracing.stubs(:insert_distributed_trace_headers)
+    NewRelic::Agent::DistributedTracing.expects(:accept_distributed_trace_headers).never
+    in_transaction do
+      run_jobs
+    end
+  end
+
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
 
