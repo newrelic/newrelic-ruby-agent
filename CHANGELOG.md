@@ -2,7 +2,7 @@
 
 ## dev
 
-  Upcoming version removes distributed tracing warnings from agent logs when using sidekiq.
+  Upcoming version removes Distributed Tracing warnings from agent logs when using Sidekiq.
 
 
 - **Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
