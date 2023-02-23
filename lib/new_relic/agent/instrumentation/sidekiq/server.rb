@@ -21,7 +21,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
         NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.args',
           NewRelic::Agent::AttributeFilter::DST_NONE)
 
-        ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, "Other") if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
+        ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, "Other") if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
         yield
       end
     end
