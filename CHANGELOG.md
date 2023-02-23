@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+  Upcoming version removes distributed tracing warnings from agent logs when using sidekiq.
+
+
+- **Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
+
+  Previously, the agent would log a warning in the newrelic_agent.log every time it attempted to accept empty distributed tracing headers from sidekiq jobs which could result in an excessive number of warnings. Now the agent will no longer create these warnings when using sidekiq. [PR#1834](https://github.com/newrelic/newrelic-ruby-agent/pull/1834)
+
 ## v9.0.0
 
   Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables Thread tracing by default, adds Fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
