@@ -63,11 +63,6 @@ Minitest/EmptyLineBeforeAssertionMethods:
     - 'test/new_relic/agent_test.rb'
     - 'test/new_relic/cli/commands/deployments_test.rb'
 
-# Offense count: 23
-# This cop supports safe autocorrection (--autocorrect).
-Performance/RegexpMatch:
-  Enabled: false
-
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: OnlySumOrWithInitialValue.

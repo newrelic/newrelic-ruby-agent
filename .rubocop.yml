@@ -130,6 +130,8 @@ Performance/RedundantSplitRegexpArgument: # new in 1.10
   Enabled: true
 Performance/RedundantStringChars: # new in 1.7
   Enabled: true
+Performance/RegexpMatch:
+  Enabled: true
 Performance/ReverseFirst: # new in 1.7
   Enabled: true
 Performance/SortReverse: # new in 1.7

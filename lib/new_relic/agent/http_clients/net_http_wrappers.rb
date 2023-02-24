@@ -61,7 +61,7 @@ module NewRelic
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@request.path)
           else
             connection_address = @connection.address
-            if connection_address =~ Resolv::IPv6::Regex
+            if Resolv::IPv6::Regex.match?(connection_address)
               connection_address = "[#{connection_address}]"
             end
 
