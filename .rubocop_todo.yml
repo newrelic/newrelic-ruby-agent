@@ -36,6 +36,7 @@ Minitest/DuplicateTestRun:
 Minitest/EmptyLineBeforeAssertionMethods:
   Exclude:
     - 'test/new_relic/agent_test.rb'
+    - 'test/new_relic/cli/commands/deployments_test.rb'
 
 # Offense count: 269
 Minitest/MultipleAssertions:
@@ -56,11 +57,6 @@ Style/ConcatArrayLiterals:
 
 Minitest/RefuteRespondTo:
   Exclude:
-    - 'test/new_relic/cli/commands/deployments_test.rb'
-
-Minitest/EmptyLineBeforeAssertionMethods:
-  Exclude:
-    - 'test/new_relic/agent_test.rb'
     - 'test/new_relic/cli/commands/deployments_test.rb'
 
 # Offense count: 21
