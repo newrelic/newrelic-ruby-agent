@@ -99,12 +99,12 @@ module HttpClientTestCases
   end
 
   def test_request_headers
-    header_key = 'honolooploop'
+    header_key = 'Honolooploop'
     instance = request_instance
-    instance[header_key] = 'charles petrescu'
+    instance[header_key] = 'Charles Petrescu'
 
     assert instance.headers.is_a?(Hash)
-    assert_includes instance.headers, header_key
+    assert instance.headers.any? { |k, v| k.casecmp?(header_key) }
   end
 
   # Some libraries (older Typhoeus), have had odd behavior around [] for
