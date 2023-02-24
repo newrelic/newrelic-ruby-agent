@@ -14,9 +14,9 @@ module NewRelic
       #
       # @api public
       class AbstractRequest
-        [:[], :[]=, :type, :host_from_header, :host, :method, :headers].each do |name|
+        [:[], :[]=, :type, :host_from_header, :host, :method, :headers, :uri].each do |name|
           define_method "#{name}" do |i|
-            not_implemented
+            not_implemented(__method__)
           end
         end
 
