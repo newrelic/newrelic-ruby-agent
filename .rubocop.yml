@@ -142,6 +142,8 @@ Performance/StringIdentifierArgument: # new in 1.13
   Enabled: true
 Performance/StringInclude: # new in 1.7
   Enabled: true
+Performance/Sum: # new in 1.8
+  Enabled: true
 
 
 # Old cops

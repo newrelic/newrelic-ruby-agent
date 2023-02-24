@@ -63,13 +63,6 @@ Minitest/EmptyLineBeforeAssertionMethods:
     - 'test/new_relic/agent_test.rb'
     - 'test/new_relic/cli/commands/deployments_test.rb'
 
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: OnlySumOrWithInitialValue.
-Performance/Sum:
-  Exclude:
-    - 'lib/new_relic/agent/system_info.rb'
-
 # Offense count: 72
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Performance/UnfreezeString:
