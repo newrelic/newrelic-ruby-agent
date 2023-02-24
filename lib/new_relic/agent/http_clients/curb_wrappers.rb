@@ -62,7 +62,7 @@ module NewRelic
         def append_header_data(data)
           key, value = data.split(/:\s*/, 2)
           @headers[key.downcase] = value
-          @wrapped_response._nr_header_str ||= String.new
+          @wrapped_response._nr_header_str ||= +''
           @wrapped_response._nr_header_str << data
         end
 

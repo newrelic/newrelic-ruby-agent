@@ -182,7 +182,7 @@ def _normalize_metric_expectations(expectations)
 end
 
 def dump_stats(stats)
-  str = String.new("  Call count:           #{stats.call_count}\n")
+  str = +"  Call count:           #{stats.call_count}\n"
   str << "  Total call time:      #{stats.total_call_time}\n"
   str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
   str << "  Min call time:        #{stats.min_call_time}\n"
@@ -891,7 +891,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
     incorrect_attributes << name unless actual_value == expected_value
   end
 
-  msg = String.new("Found missing or incorrect attribute values in #{test_name}:\n")
+  msg = +"Found missing or incorrect attribute values in #{test_name}:\n"
 
   incorrect_attributes.each do |name|
     msg << "  #{name}: expected = #{expected_attributes[name].inspect}, actual = #{event_attrs[name].inspect}\n"

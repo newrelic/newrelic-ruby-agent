@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def to_s_compact
-          str = String.new('')
+          str = +''
           str << metric_name
           if children.any?
             str << "{#{children.map { |cs| cs.to_s_compact }.join(',')}}"
@@ -67,7 +67,7 @@ module NewRelic
         end
 
         def to_debug_str(depth)
-          tab = String.new('  ') * depth
+          tab = (+'  ') * depth
           s = tab.clone
           s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
           unless params.empty?

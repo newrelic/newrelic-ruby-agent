@@ -191,9 +191,9 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     sql = 'select count(id) from blogs limit 1'
 
-    plan = String.new("Limit  (cost=11.75..11.76 rows=1 width=4)
+    plan = +"Limit  (cost=11.75..11.76 rows=1 width=4)
   ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)
-        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)")
+        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
@@ -481,7 +481,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
-  INVALID_UTF8_STRING = String.new("select \x80").force_encoding('UTF-8')
+  INVALID_UTF8_STRING = (+"select \x80").force_encoding('UTF-8')
 
   def test_capture_query_mis_encoded
     query = INVALID_UTF8_STRING

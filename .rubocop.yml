@@ -144,8 +144,9 @@ Performance/StringInclude: # new in 1.7
   Enabled: true
 Performance/Sum: # new in 1.8
   Enabled: true
-
-
+Performance/UnfreezeString:
+  Enabled: true
+  
 # Old cops
 
 Bundler/DuplicatedGem:

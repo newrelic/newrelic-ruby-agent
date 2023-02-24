@@ -19,7 +19,7 @@ module NewRelic::Agent::Threading
     end
 
     def assert_backtrace_trees_equal(a, b, original_a = a, original_b = b)
-      message = String.new("Thread profiles did not match.\n\n")
+      message = +"Thread profiles did not match.\n\n"
       message << "Expected tree:\n#{original_a.dump_string}\n\n"
       message << "Actual tree:\n#{original_b.dump_string}\n"
 
