@@ -61,6 +61,57 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_includes attributes_for(last_traced_error, :intrinsic), :client_cross_process_id
   end
 
+  def test_grpc_headers_returns_nil_if_the_headers_object_is_nil
+    assert_nil tracer.send(:grpc_headers?, nil)
+  end
+
+  def test_grpc_headrs_returns_nil_if_the_headers_object_class_is_nil
+    headers = MiniTest::Mock.new
+    headers.expect :class, nil
+
+    assert_nil tracer.send(:grpc_headers?, headers)
+    headers.verify
+  end
+
+  def test_grpc_headers_returns_nil_if_the_headers_object_class_name_is_nil
+    klass = MiniTest::Mock.new
+    klass.expect :name, nil
+    headers = MiniTest::Mock.new
+    headers.expect :class, klass
+
+    assert_nil tracer.send(:grpc_headers?, headers)
+    klass.verify
+    headers.verify
+  end
+
+  def test_grpc_headers_returns_false_if_the_headers_object_class_name_does_not_include_grpc
+    klass = MiniTest::Mock.new
+    klass.expect :name, 'The::Old::Man::and::the::Sea'
+    headers = MiniTest::Mock.new
+    headers.expect :class, klass
+
+    refute tracer.send(:grpc_headers?, headers)
+    klass.verify
+    headers.verify
+  end
+
+  def test_grpc_headers_returns_true_if_the_headers_object_class_name_does_include_grpc
+    klass = MiniTest::Mock.new
+    klass.expect :name, 'NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper'
+    headers = MiniTest::Mock.new
+    headers.expect :class, klass
+
+    assert tracer.send(:grpc_headers?, headers)
+    klass.verify
+    headers.verify
+  end
+
+  # quick memoized access to an instance of a class that includes the
+  # CrossAppTracing module
+  def tracer
+    @tracer ||= NewRelic::Agent::Transaction::DistributedTracer.new(nil)
+  end
+
   load_cross_agent_test("cat_map").each do |test_case|
     # We only can do test cases here that don't involve outgoing calls
     if !test_case["outboundRequests"]
