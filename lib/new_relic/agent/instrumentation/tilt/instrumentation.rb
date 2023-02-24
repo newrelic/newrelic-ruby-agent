@@ -32,7 +32,7 @@ module NewRelic
               raise
             end
           ensure
-            finishable.finish if finishable
+            finishable&.finish
           end
         end
       end

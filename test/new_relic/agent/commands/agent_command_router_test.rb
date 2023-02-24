@@ -43,7 +43,7 @@ class AgentCommandRouterTest < Minitest::Test
   end
 
   def teardown
-    agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
+    agent_commands.backtrace_service.worker_thread&.join
   end
 
   # Helpers for DataContainerTests
@@ -59,7 +59,7 @@ class AgentCommandRouterTest < Minitest::Test
   def populate_container(container, n)
     start_profile('duration' => 1.0)
     advance_process_time(1.1)
-    agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
+    agent_commands.backtrace_service.worker_thread&.join
   end
 
   # General command routing

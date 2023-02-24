@@ -13,7 +13,7 @@ module NewRelic
             ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
               statement.config)
           end
-          if connection && connection.respond_to?(:execute)
+          if connection&.respond_to?(:execute)
             return connection.execute("EXPLAIN #{statement.sql}")
           end
         end

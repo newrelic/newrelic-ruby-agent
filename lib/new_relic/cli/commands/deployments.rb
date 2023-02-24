@@ -33,7 +33,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     @changelog = nil
     @user = nil
     super(command_line_args)
-    @description ||= @leftover && @leftover.join(" ")
+    @description ||= @leftover&.join(" ")
     @user ||= ENV['USER']
     control.env = @environment if @environment
 

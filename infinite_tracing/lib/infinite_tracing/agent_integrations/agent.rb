@@ -23,7 +23,7 @@ module NewRelic::Agent
     def handle_force_restart(error)
       ::NewRelic::Agent.logger.debug(error.message)
       drop_buffered_data
-      @service.force_restart if @service
+      @service&.force_restart
       @connect_state = :pending
       close_infinite_tracer
       sleep(30)

@@ -64,7 +64,7 @@ module NewRelic::Agent
       # is overridden by the presence of the port on the host entry.
       def port_from_host_entry
         port_str = NewRelic::Agent.config[:'infinite_tracing.trace_observer.host'].scan(%r{:(\d+)$}).flatten
-        if port = (port_str[0] and port_str[0].to_i)
+        if port = (port_str[0]&.to_i)
           NewRelic::Agent.logger.warn(":'infinite_tracing.trace_observer.port' is ignored if present because :'infinite_tracing.trace_observer.host' specifies the port")
           return port
         end

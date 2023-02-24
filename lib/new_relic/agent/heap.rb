@@ -26,7 +26,7 @@ module NewRelic
       def initialize(items = nil, &priority_fn)
         @items = []
         @priority_fn = priority_fn || ->(x) { x }
-        items.each { |item| push(item) } if items
+        items&.each { |item| push(item) }
       end
 
       def [](index)

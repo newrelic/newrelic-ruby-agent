@@ -1731,6 +1731,9 @@ Style/RescueStandardError:
 Style/ReturnNil:
   Enabled: false
 
+Style/SafeNavigation:
+  Enabled: true
+
 Style/Sample:
   Enabled: true
 

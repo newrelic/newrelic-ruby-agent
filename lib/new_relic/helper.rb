@@ -63,7 +63,7 @@ module NewRelic
         raise NewRelic::CommandRunFailedError.new("Failed to run command '#{command}': #{message}")
       end
 
-      output.chomp if output
+      output&.chomp
     end
 
     # TODO: Open3 defers the actual execution of a binary to Process.spawn,

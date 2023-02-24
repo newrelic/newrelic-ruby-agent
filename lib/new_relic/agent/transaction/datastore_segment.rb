@@ -24,7 +24,7 @@ module NewRelic
           @nosql_statement = nil
           @record_sql = true
           set_instance_info(host, port_path_or_id)
-          @database_name = database_name ? database_name.to_s : nil
+          @database_name = database_name&.to_s
           super(Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
                 nil,
                 start_time)

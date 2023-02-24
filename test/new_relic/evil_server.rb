@@ -34,7 +34,7 @@ module NewRelic
     end
 
     def start
-      return if @thread && @thread.alive?
+      return if @thread&.alive?
 
       @requests = []
       @server = TCPServer.new(0)

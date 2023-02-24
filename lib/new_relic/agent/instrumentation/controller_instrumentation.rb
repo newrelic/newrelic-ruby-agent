@@ -236,7 +236,7 @@ module NewRelic
           end
 
           def self.prefix_for_category(txn, category = nil)
-            category ||= (txn && txn.category)
+            category ||= (txn&.category)
             case category
             when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :web then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
@@ -360,7 +360,7 @@ module NewRelic
           skip_tracing = do_not_trace? || !state.is_execution_traced?
 
           if skip_tracing
-            state.current_transaction.ignore! if state.current_transaction
+            state.current_transaction&.ignore!
             NewRelic::Agent.disable_all_tracing { return yield }
           end
 
@@ -386,7 +386,7 @@ module NewRelic
               raise
             end
           ensure
-            finishable.finish if finishable
+            finishable&.finish
           end
         end
 

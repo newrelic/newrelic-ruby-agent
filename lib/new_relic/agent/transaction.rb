@@ -155,7 +155,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:recording_web_transaction?)
 
         txn = tl_current
-        txn && txn.recording_web_transaction?
+        txn&.recording_web_transaction?
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)
@@ -181,7 +181,7 @@ module NewRelic
 
       def add_agent_attribute(key, value, default_destinations)
         @attributes.add_agent_attribute(key, value, default_destinations)
-        current_segment.add_agent_attribute(key, value) if current_segment
+        current_segment&.add_agent_attribute(key, value)
       end
 
       def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
@@ -194,7 +194,7 @@ module NewRelic
 
       def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
-        current_segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations) if current_segment
+        current_segment&.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
       end
 
       @@java_classes_loaded = false
@@ -309,15 +309,15 @@ module NewRelic
       end
 
       def referer
-        @request_attributes && @request_attributes.referer
+        @request_attributes&.referer
       end
 
       def request_path
-        @request_attributes && @request_attributes.request_path
+        @request_attributes&.request_path
       end
 
       def request_port
-        @request_attributes && @request_attributes.port
+        @request_attributes&.port
       end
 
       # This transaction-local hash may be used as temporary storage by
@@ -594,9 +594,7 @@ module NewRelic
           add_agent_attribute(:'response.headers.contentType', response_content_type, default_destinations)
         end
 
-        if @request_attributes
-          @request_attributes.assign_agent_attributes(self)
-        end
+        @request_attributes&.assign_agent_attributes(self)
 
         display_host = Agent.config[:'process_host.display_name']
         unless display_host == NewRelic::Agent::Hostname.get

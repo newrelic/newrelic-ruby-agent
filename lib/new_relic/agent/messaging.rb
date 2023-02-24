@@ -148,7 +148,7 @@ module NewRelic
         yield
       ensure
         begin
-          txn.finish if txn
+          txn&.finish
         rescue => e
           NewRelic::Agent.logger.error("Error stopping Message Broker consume transaction", e)
         end
@@ -190,7 +190,7 @@ module NewRelic
 
         raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
-        original_headers = headers.nil? ? nil : headers.dup
+        original_headers = headers&.dup
 
         segment = Tracer.start_message_broker_segment(
           action: :produce,

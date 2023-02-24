@@ -36,7 +36,7 @@ module NewRelic
               uri = ::URI.parse(url)
             end
           end
-          uri.host.downcase! unless uri.host.nil?
+          uri.host&.downcase!
           uri
         end
 

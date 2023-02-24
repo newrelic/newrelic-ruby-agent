@@ -109,6 +109,6 @@ DependencyDetection.defer do
   end
 
   def delayed_job_version
-    Gem.loaded_specs['delayed_job'].version if Gem.loaded_specs['delayed_job']
+    Gem.loaded_specs['delayed_job']&.version
   end
 end

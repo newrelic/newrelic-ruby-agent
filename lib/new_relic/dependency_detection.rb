@@ -37,7 +37,7 @@ module DependencyDetection
 
   def installed?(name)
     item = dependency_by_name(name)
-    item && item.executed
+    item&.executed
   end
 
   def items

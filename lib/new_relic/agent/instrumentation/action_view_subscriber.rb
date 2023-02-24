@@ -99,11 +99,11 @@ module NewRelic
         end
 
         def finish
-          @finishable.finish if @finishable
+          @finishable&.finish
         end
 
         def notice_error(error)
-          @finishable.notice_error(error) if @finishable
+          @finishable&.notice_error(error)
         end
       end
     end

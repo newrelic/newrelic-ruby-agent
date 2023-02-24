@@ -227,7 +227,7 @@ module NewRelic
       def notice_error(exception, options = {}, span_id = nil)
         state = ::NewRelic::Agent::Tracer.state
         transaction = state.current_transaction
-        status_code = transaction ? transaction.http_response_code : nil
+        status_code = transaction&.http_response_code
 
         return if skip_notice_error?(exception, status_code)
 
@@ -242,8 +242,8 @@ module NewRelic
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
         transaction = state.current_transaction
-        payload = transaction ? transaction.payload : nil
-        span_id ||= transaction && transaction.current_segment ? transaction.current_segment.guid : nil
+        payload = transaction&.payload
+        span_id ||= transaction&.current_segment ? transaction.current_segment.guid : nil
         error_event_aggregator.record(noticed_error, payload, span_id)
         exception
       rescue => e

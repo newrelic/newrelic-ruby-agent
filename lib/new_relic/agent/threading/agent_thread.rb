@@ -45,7 +45,7 @@ module NewRelic
 
             if txn && !txn.recording_web_transaction?
               :background
-            elsif txn && txn.recording_web_transaction?
+            elsif txn&.recording_web_transaction?
               :request
             else
               :other

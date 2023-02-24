@@ -462,13 +462,13 @@ module Multiverse
 
       configure_instrumentation_method(instrumentation_method)
 
-      environments.before.call if environments.before
+      environments.before&.call
       if should_serialize?
         execute_serial(instrumentation_method)
       else
         execute_parallel(instrumentation_method)
       end
-      environments.after.call if environments.after
+      environments.after&.call
     rescue => e
       puts e.backtrace
       puts red("Failure during execution of suite #{directory.inspect}.")

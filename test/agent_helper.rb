@@ -379,8 +379,8 @@ end
 #   in_transaction('foobar', :category => :controller) { ... }
 #
 def in_transaction(*args, &blk)
-  opts = args.last && args.last.is_a?(Hash) ? args.pop : {}
-  category = (opts && opts.delete(:category)) || :other
+  opts = args.last&.is_a?(Hash) ? args.pop : {}
+  category = (opts&.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
   name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) : args.first || 'dummy'
@@ -671,7 +671,7 @@ def undefine_constant(constant_symbol)
   const_str = constant_symbol.to_s
   parent = get_parent(const_str)
   const_name = const_str.gsub(/.*::/, '')
-  return yield unless parent && parent.constants.include?(const_name.to_sym)
+  return yield unless parent&.constants&.include?(const_name.to_sym)
 
   removed_constant = parent.send(:remove_const, const_name)
   yield

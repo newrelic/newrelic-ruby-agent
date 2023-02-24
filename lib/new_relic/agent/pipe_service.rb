@@ -65,7 +65,7 @@ module NewRelic
       end
 
       def shutdown
-        @pipe.close if @pipe
+        @pipe&.close
       end
 
       # Invokes the block it is passed.  This is used to implement HTTP
@@ -82,7 +82,7 @@ module NewRelic
       end
 
       def write_to_pipe(endpoint, data)
-        @pipe.write(marshal_payload([endpoint, data])) if @pipe
+        @pipe&.write(marshal_payload([endpoint, data]))
       end
     end
   end

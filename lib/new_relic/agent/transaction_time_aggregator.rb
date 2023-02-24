@@ -101,7 +101,7 @@ module NewRelic
 
         def thread_is_alive?(thread_id)
           thread = thread_by_id(thread_id)
-          thread && thread.alive?
+          thread&.alive?
         rescue StandardError
           false
         end
@@ -145,8 +145,7 @@ module NewRelic
         end
 
         def log_missing_elapsed_transaction_time
-          transaction_name = Tracer.current_transaction &&
-            Tracer.current_transaction.best_name ||
+          transaction_name = Tracer.current_transaction&.best_name ||
             "unknown"
           NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end

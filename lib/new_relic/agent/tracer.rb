@@ -107,7 +107,7 @@ module NewRelic
             current_transaction.notice_error(exception)
             raise
           ensure
-            finishable.finish if finishable
+            finishable&.finish
           end
         end
 
@@ -355,7 +355,7 @@ module NewRelic
 
           yield
         rescue => exception
-          if segment && segment.is_a?(Transaction::AbstractSegment)
+          if segment&.is_a?(Transaction::AbstractSegment)
             segment.notice_error(exception)
           end
           raise
@@ -487,7 +487,7 @@ module NewRelic
         end
 
         def pop_traced
-          @untraced.pop if @untraced
+          @untraced&.pop
         end
 
         def is_execution_traced?

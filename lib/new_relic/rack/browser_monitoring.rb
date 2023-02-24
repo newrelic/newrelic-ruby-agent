@@ -96,11 +96,11 @@ module NewRelic
       end
 
       def html?(headers)
-        headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML)
+        headers[CONTENT_TYPE]&.include?(TEXT_HTML)
       end
 
       def attachment?(headers)
-        headers[CONTENT_DISPOSITION] && headers[CONTENT_DISPOSITION].include?(ATTACHMENT)
+        headers[CONTENT_DISPOSITION]&.include?(ATTACHMENT)
       end
 
       def streaming?(env, headers)
@@ -150,12 +150,12 @@ module NewRelic
 
       def find_x_ua_compatible_position(beginning_of_source)
         match = X_UA_COMPATIBLE_RE.match(beginning_of_source)
-        match.end(0) if match
+        match&.end(0)
       end
 
       def find_charset_position(beginning_of_source)
         match = CHARSET_RE.match(beginning_of_source)
-        match.end(0) if match
+        match&.end(0)
       end
 
       def find_end_of_head_open(beginning_of_source)

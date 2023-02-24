@@ -28,7 +28,7 @@ module NewRelic
 
         def controller_name_for_metric(payload)
           # redirect_to
-          return payload[:request].controller_class.controller_path if payload[:request] && payload[:request].controller_class
+          return payload[:request].controller_class.controller_path if payload[:request]&.controller_class
 
           # unpermitted_parameters
           ::NewRelic::LanguageSupport.constantize(payload[:context][:controller]).controller_path if payload[:context] && payload[:context][:controller]

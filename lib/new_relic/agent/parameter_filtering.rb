@@ -42,7 +42,7 @@ module NewRelic
 
       def filter_rack_file_data(env, params)
         content_type = env["CONTENT_TYPE"]
-        multipart = content_type && content_type.start_with?("multipart")
+        multipart = content_type&.start_with?("multipart")
 
         params.inject({}) do |memo, (k, v)|
           if multipart && v.is_a?(Hash) && v[:tempfile]

@@ -29,9 +29,7 @@ module NewRelic
           @handlers['start_profiler'] = proc { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler'] = proc { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
-          if event_listener
-            event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
-          end
+          event_listener&.subscribe(:before_shutdown, &method(:on_before_shutdown))
         end
 
         def new_relic_service

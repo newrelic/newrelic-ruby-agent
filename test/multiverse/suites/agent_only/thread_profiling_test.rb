@@ -115,11 +115,9 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   def join_background_threads
-    if @threads
-      @threads.each do |thread|
-        thread.run
-        thread.join
-      end
+    @threads&.each do |thread|
+      thread.run
+      thread.join
     end
   end
 

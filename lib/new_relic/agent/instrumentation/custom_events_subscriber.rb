@@ -23,7 +23,7 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.notice_error(payload[:exception_object]) if payload.key?(:exception_object)
 
       finishable = pop_segment(id)
-      finishable.finish if finishable
+      finishable&.finish
     rescue => e
       log_notification_error(e, name, 'finish')
     end

@@ -32,7 +32,7 @@ module NewRelic::Agent::Threading
 
     def create_node(frame, parent = nil, runnable_count = 0)
       node = BacktraceNode.new(frame)
-      parent.add_child_unless_present(node) if parent
+      parent&.add_child_unless_present(node)
       node.runnable_count = runnable_count
       node
     end

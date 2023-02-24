@@ -136,10 +136,8 @@ module NewRelic
         def each_node(&block)
           yield(self)
 
-          if @children
-            @children.each do |node|
-              node.each_node(&block)
-            end
+          @children&.each do |node|
+            node.each_node(&block)
           end
         end
 
@@ -149,10 +147,8 @@ module NewRelic
           summary = yield(self)
           summary.current_nest_count += 1 if summary
 
-          if @children
-            @children.each do |node|
-              node.each_node_with_nest_tracking(&block)
-            end
+          @children&.each do |node|
+            node.each_node_with_nest_tracking(&block)
           end
 
           summary.current_nest_count -= 1 if summary

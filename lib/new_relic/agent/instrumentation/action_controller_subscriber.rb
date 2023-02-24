@@ -19,7 +19,7 @@ module NewRelic
           else
             # if this transaction is ignored, make sure child
             # transaction are also ignored
-            state.current_transaction.ignore! if state.current_transaction
+            state.current_transaction&.ignore!
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
         rescue => e
@@ -90,7 +90,7 @@ module NewRelic
         end
 
         def queue_start(request)
-          if request && request.respond_to?(:env)
+          if request&.respond_to?(:env)
             QueueTime.parse_frontend_timestamp(request.env, Process.clock_gettime(Process::CLOCK_REALTIME))
           end
         end

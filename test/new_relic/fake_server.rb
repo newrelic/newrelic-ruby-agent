@@ -57,7 +57,7 @@ module NewRelic
     end
 
     def running?
-      @thread && @thread.alive?
+      @thread&.alive?
     end
 
     def run

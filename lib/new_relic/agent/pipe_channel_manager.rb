@@ -218,7 +218,7 @@ module NewRelic
         def close_all_pipes
           @pipes_lock.synchronize do
             @pipes.each do |id, pipe|
-              pipe.close if pipe
+              pipe&.close
             end
             @pipes = {}
           end
