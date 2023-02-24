@@ -347,23 +347,6 @@ module NewRelic::Agent
         assert request.headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
       end
 
-      def test_cat_headers_are_not_inserted_for_grpc_requests
-        grpc_request_class_name = 'NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper'
-        request = RequestWrapper.new
-        with_config(cat_config) do
-          in_transaction(:category => :controller) do
-            segment = external_request_segment
-            request.stub :class, grpc_request_class_name do
-              segment.add_request_headers(request)
-            end
-            segment.finish
-          end
-        end
-
-        refute request.headers.key?("X-NewRelic-ID"), 'Did not expect to find X-NewRelic-ID header'
-        refute request.headers.key?("X-NewRelic-Transaction"), 'Did not expect to find X-NewRelic-Transaction header'
-      end
-
       def test_segment_writes_outbound_request_headers_for_trace_context
         request = RequestWrapper.new
         with_config(trace_context_config) do
@@ -988,14 +971,12 @@ module NewRelic::Agent
         @obfuscator.obfuscate(args.to_json) + "\n"
       end
 
-      def external_request_segment(&block)
+      def external_request_segment
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: :foo,
           uri: 'http://example.com/root/index',
           procedure: :get
         )
-        return segment unless block
-
         v = yield(segment)
         segment.finish
         v

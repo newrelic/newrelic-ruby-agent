@@ -52,9 +52,6 @@ module NewRelic
 
       def insert_cross_app_header(headers)
         return unless CrossAppTracing.cross_app_enabled?
-        # do not insert CAT headers for gRPC requests
-        # https://github.com/newrelic/newrelic-ruby-agent/issues/1730
-        return if grpc_headers?(headers)
 
         @is_cross_app_caller = true
         txn_guid = transaction.guid
@@ -250,10 +247,6 @@ module NewRelic
         if (referring_guid = payload.referring_guid)
           txn.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
         end
-      end
-
-      def grpc_headers?(headers)
-        headers&.class&.name&.include?('::GRPC::')
       end
     end
   end
