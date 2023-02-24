@@ -65,12 +65,6 @@ Minitest/RefuteRespondTo:
 Style/FetchEnvVar:
   Enabled: true
 
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-Style/RedundantStringEscape:
-  Exclude:
-    - 'test/new_relic/agent/logging_test.rb'
-
 # Offense count: 115
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: ConvertCodeThatCanStartToReturnNil, AllowedMethods, MaxChainLength.
