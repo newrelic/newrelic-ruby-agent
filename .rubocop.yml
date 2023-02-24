@@ -146,7 +146,7 @@ Performance/Sum: # new in 1.8
   Enabled: true
 Performance/UnfreezeString:
   Enabled: true
-  
+
 # Old cops
 
 Bundler/DuplicatedGem:
@@ -1321,6 +1321,9 @@ Style/ExplicitBlockArgument:
   Enabled: false
 
 Style/ExponentialNotation:
+  Enabled: false
+
+Style/FetchEnvVar:
   Enabled: false
 
 Style/FloatDivision:
