@@ -37,6 +37,10 @@ module NewRelic
         def method
           raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
         end
+
+        def headers
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+        end
       end
 
       # This class implements the adaptor pattern and is used internally provide
