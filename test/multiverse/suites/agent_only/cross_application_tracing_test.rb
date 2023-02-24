@@ -65,7 +65,7 @@ class CrossApplicationTracingTest < Minitest::Test
     assert_nil tracer.send(:grpc_headers?, nil)
   end
 
-  def test_grpc_headrs_returns_nil_if_the_headers_object_class_is_nil
+  def test_grpc_headers_returns_nil_if_the_headers_object_class_is_nil
     headers = MiniTest::Mock.new
     headers.expect :class, nil
 
