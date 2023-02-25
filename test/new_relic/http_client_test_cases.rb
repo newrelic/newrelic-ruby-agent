@@ -73,6 +73,7 @@ module HttpClientTestCases
     req = request_instance
 
     assert_implements req, :type
+    assert_implements req, :headers
     assert_implements req, :host
     assert_implements req, :host_from_header
     assert_implements req, :method
@@ -95,6 +96,15 @@ module HttpClientTestCases
     res = get_wrapped_response(default_url)
 
     assert_equal 200, res.status_code
+  end
+
+  def test_request_headers
+    header_key = 'Honolooploop'
+    instance = request_instance
+    instance[header_key] = 'Charles Petrescu'
+
+    assert instance.headers.is_a?(Hash)
+    assert instance.headers.any? { |k, v| k.casecmp?(header_key) }
   end
 
   # Some libraries (older Typhoeus), have had odd behavior around [] for

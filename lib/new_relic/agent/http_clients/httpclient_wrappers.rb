@@ -57,11 +57,15 @@ module NewRelic
         end
 
         def [](key)
-          request.headers[key]
+          headers[key]
         end
 
         def []=(key, value)
           request.http_header[key] = value
+        end
+
+        def headers
+          request.headers
         end
       end
     end

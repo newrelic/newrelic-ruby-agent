@@ -2,12 +2,16 @@
 
 ## dev
 
-  Upcoming version removes Distributed Tracing warnings from agent logs when using Sidekiq.
+  Upcoming version removes Distributed Tracing warnings from agent logs when using Sidekiq and fixes a bug regarding logged request headers.
 
 
-- **Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
+- **Bugfix: Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
 
   Previously, the agent would log a warning to `newrelic_agent.log` every time it attempted to accept empty Distributed Tracing headers from Sidekiq jobs which could result in an excessive number of warnings. Now the agent will no longer create these warnings when using Sidekiq. [PR#1834](https://github.com/newrelic/newrelic-ruby-agent/pull/1834)
+
+- **Bugfix: Log request headers in debug-level logs instead of human-readable Objects**
+
+  Previously, the agent sometimes received children of the `NewRelic::Agent::HTTPClients::AbstractRequest` class as an argument when `NewRelic::Agent::Transaction::DistributedTracers#log_request_headers` was called. This caused debug-level log messages that print the request headers to show human-readable Objects (ex. `#<NewRelic::Agent::HTTPClients::HTTPClientRequest:0x00007fd0dda983e0>`) instead of the request headers. Now, the hash of the request headers should always be logged. [PR#1839](https://github.com/newrelic/newrelic-ruby-agent/pull/1839)
 
 ## v9.0.0
 
@@ -101,8 +105,8 @@
     - HttpClient: 2.2.0 - 2.8.0
     - HttpRb: 0.9.9 - 2.2.1
     - Typhoeus: 0.5.3 - 1.2.x
-    - Bunny: 2.0.x - 2.6.x 
-    - ActiveMerchant: 1.25.0 - 1.64.x 
+    - Bunny: 2.0.x - 2.6.x
+    - ActiveMerchant: 1.25.0 - 1.64.x
 
 
 - **Updated API method `set_transaction_name`**
