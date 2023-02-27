@@ -13,7 +13,7 @@
 
   Previously, the agent sometimes received children of the `NewRelic::Agent::HTTPClients::AbstractRequest` class as an argument when `NewRelic::Agent::Transaction::DistributedTracers#log_request_headers` was called. This caused debug-level log messages that print the request headers to show human-readable Objects (ex. `#<NewRelic::Agent::HTTPClients::HTTPClientRequest:0x00007fd0dda983e0>`) instead of the request headers. Now, the hash of the request headers should always be logged. [PR#1839](https://github.com/newrelic/newrelic-ruby-agent/pull/1839)
 
-- **Bugfix: Undefined method `controller_path` logged when Action Controller Instrumentation**
+- **Bugfix: Undefined method `controller_path` logged in Action Controller Instrumentation**
 
   Previously, agent could log an error when trying to determine the metric name in the Action Controller instrumentation if the contrller class did not respond to `controller_path`. This has been resolved and the agent will no longer call this method unless the class responds to it. Thank you to @ for letting us know about this issue [PR#1844](https://github.com/newrelic/newrelic-ruby-agent/pull/1844)
 
