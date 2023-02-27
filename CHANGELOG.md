@@ -15,7 +15,7 @@
 
 - **Bugfix: Undefined method `controller_path` logged in Action Controller Instrumentation**
 
-  Previously, agent could log an error when trying to determine the metric name in the Action Controller instrumentation if the contrller class did not respond to `controller_path`. This has been resolved and the agent will no longer call this method unless the class responds to it. Thank you to @ for letting us know about this issue [PR#1844](https://github.com/newrelic/newrelic-ruby-agent/pull/1844)
+  Previously, the agent could log an error when trying to determine the metric name in the Action Controller instrumentation if the controller class did not respond to `controller_path`. This has been resolved and the agent will no longer call this method unless the class responds to it. Thank you to [@gsar](https://github.com/gsar) for letting us know about this issue. [PR#1844](https://github.com/newrelic/newrelic-ruby-agent/pull/1844)
 
 
 ## v9.0.0
