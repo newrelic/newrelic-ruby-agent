@@ -96,7 +96,7 @@ module NewRelic
       end
 
       def html?(headers)
-        # needs else branch coverage 
+        # needs else branch coverage
         headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML) # rubocop:disable Style/SafeNavigation
       end
 

@@ -147,7 +147,7 @@ module NewRelic
           summary = yield(self)
           summary.current_nest_count += 1 if summary
 
-          # no then branch coverage 
+          # no then branch coverage
           # rubocop:disable Style/SafeNavigation
           if @children
             @children.each do |node|

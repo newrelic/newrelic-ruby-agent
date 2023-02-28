@@ -149,8 +149,8 @@ module NewRelic
         def log_missing_elapsed_transaction_time
           # rubocop:disable Style/SafeNavigation
           transaction_name = transaction_name = Tracer.current_transaction &&
-          Tracer.current_transaction.best_name ||
-          "unknown"
+            Tracer.current_transaction.best_name ||
+            "unknown"
           # rubocop:enable Style/SafeNavigation
           NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
