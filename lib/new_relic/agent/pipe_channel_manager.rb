@@ -218,7 +218,8 @@ module NewRelic
         def close_all_pipes
           @pipes_lock.synchronize do
             @pipes.each do |id, pipe|
-              pipe&.close
+              # Needs else branch coverage
+              pipe.close if pipe # rubocop:disable Style/SafeNavigation
             end
             @pipes = {}
           end

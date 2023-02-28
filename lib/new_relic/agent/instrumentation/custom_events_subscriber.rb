@@ -23,7 +23,8 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.notice_error(payload[:exception_object]) if payload.key?(:exception_object)
 
       finishable = pop_segment(id)
-      finishable&.finish
+      # the following line needs else branch coverage
+      finishable.finish if finishable # rubocop:disable Style/SafeNavigation
     rescue => e
       log_notification_error(e, name, 'finish')
     end

@@ -236,7 +236,8 @@ module NewRelic
           end
 
           def self.prefix_for_category(txn, category = nil)
-            category ||= (txn&.category)
+            # the following line needs else branch coverage
+            category ||= (txn && txn.category) # rubocop:disable Style/SafeNavigation
             case category
             when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :web then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
@@ -386,7 +387,8 @@ module NewRelic
               raise
             end
           ensure
-            finishable&.finish
+            # the following line needs else branch coverage
+            finishable.finish if finishable # rubocop:disable Style/SafeNavigation
           end
         end
 

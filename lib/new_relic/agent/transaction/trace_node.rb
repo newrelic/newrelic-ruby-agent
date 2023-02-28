@@ -147,9 +147,14 @@ module NewRelic
           summary = yield(self)
           summary.current_nest_count += 1 if summary
 
-          @children&.each do |node|
-            node.each_node_with_nest_tracking(&block)
+          # no then branch coverage 
+          # rubocop:disable Style/SafeNavigation
+          if @children
+            @children.each do |node|
+              node.each_node_with_nest_tracking(&block)
+            end
           end
+          # rubocop:enable Style/SafeNavigation
 
           summary.current_nest_count -= 1 if summary
         end

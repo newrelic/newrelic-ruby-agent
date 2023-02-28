@@ -109,6 +109,7 @@ DependencyDetection.defer do
   end
 
   def delayed_job_version
-    Gem.loaded_specs['delayed_job']&.version
+    # the following line needs else branch coverage
+    Gem.loaded_specs['delayed_job'].version if Gem.loaded_specs['delayed_job'] # rubocop:disable Style/SafeNavigation
   end
 end

@@ -181,7 +181,8 @@ module NewRelic
 
       def add_agent_attribute(key, value, default_destinations)
         @attributes.add_agent_attribute(key, value, default_destinations)
-        current_segment&.add_agent_attribute(key, value)
+        # the following line needs else branch coverage
+        current_segment.add_agent_attribute(key, value) if current_segment # rubocop:disable Style/SafeNavigation
       end
 
       def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)

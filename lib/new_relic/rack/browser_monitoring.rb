@@ -96,7 +96,8 @@ module NewRelic
       end
 
       def html?(headers)
-        headers[CONTENT_TYPE]&.include?(TEXT_HTML)
+        # needs else branch coverage 
+        headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML) # rubocop:disable Style/SafeNavigation
       end
 
       def attachment?(headers)
