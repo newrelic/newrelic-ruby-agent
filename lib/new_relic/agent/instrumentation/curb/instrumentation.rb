@@ -141,12 +141,12 @@ module NewRelic
             request._nr_original_on_complete = original_callback
             request.on_complete do |finished_request|
               begin
-                segment.process_response_headers(wrapped_response) if segment
+                segment&.process_response_headers(wrapped_response)
               ensure
                 ::NewRelic::Agent::Transaction::Segment.finish(segment)
                 # Make sure the existing completion callback is run, and restore the
                 # on_complete callback to how it was before.
-                original_callback.call(finished_request) if original_callback
+                original_callback&.call(finished_request)
                 remove_instrumentation_callbacks(request)
               end
             end
@@ -173,7 +173,7 @@ module NewRelic
                   segment.notice_error(noticeable_error)
                 end
               ensure
-                original_callback.call(failed_request, error) if original_callback
+                original_callback&.call(failed_request, error)
                 remove_failure_callback(failed_request)
               end
             end

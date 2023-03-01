@@ -66,7 +66,7 @@ Style/RedundantEach: # new in 1.38
   Enabled: true
 Style/RedundantInitialize: # new in 1.27
   Enabled: true
-Style/RedundantStringEscape: # new in 1.37
+Style/RedundantStringEscape: # new in 1.37, 'pending' by default so enabled to make sure it's applied
   Enabled: true
 Style/YodaExpression: # new in 1.42
   Enabled: true
@@ -140,7 +140,8 @@ Performance/StringIdentifierArgument: # new in 1.13
   Enabled: true
 Performance/StringInclude: # new in 1.7
   Enabled: true
-
+Performance/Sum: # new in 1.8, pending so left enabled explicitly until 2.0
+  Enabled: true
 
 # Old cops
 
@@ -1316,6 +1317,9 @@ Style/ExplicitBlockArgument:
   Enabled: false
 
 Style/ExponentialNotation:
+  Enabled: false
+
+Style/FetchEnvVar:
   Enabled: false
 
 Style/FloatDivision:

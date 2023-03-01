@@ -145,7 +145,7 @@ module NewRelic::Agent
     def test_logged_when_docker_container_id_is_unrecognized
       NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
       NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
-      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns(String.new('whatever'))
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns((+'whatever'))
       NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
 
       expects_logging(:debug, includes("YOLO"))

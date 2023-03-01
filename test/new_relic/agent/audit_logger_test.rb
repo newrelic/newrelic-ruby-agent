@@ -68,7 +68,7 @@ class AuditLoggerTest < Minitest::Test
 
   def test_log_formatter
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-    Socket.stubs(:gethostname).returns(String.new('dummyhost'))
+    Socket.stubs(:gethostname).returns((+'dummyhost'))
     formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
     time = '2012-01-01 00:00:00'
     msg = 'hello'
@@ -81,7 +81,7 @@ class AuditLoggerTest < Minitest::Test
   def test_log_formatter_to_stdout
     with_config(:'audit_log.path' => "STDOUT") do
       NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-      Socket.stubs(:gethostname).returns(String.new('dummyhost'))
+      Socket.stubs(:gethostname).returns((+'dummyhost'))
       formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
       time = '2012-01-01 00:00:00'
       msg = 'hello'
@@ -164,7 +164,7 @@ class AuditLoggerTest < Minitest::Test
 
   def test_should_cache_hostname
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
-    hostname = String.new('cachey-mccaherson')
+    hostname = +'cachey-mccaherson'
     Socket.expects(:gethostname).once.returns(hostname)
     setup_fake_logger
     3.times do
@@ -231,7 +231,7 @@ class AuditLoggerTest < Minitest::Test
 
   def capturing_stdout
     orig = $stdout.dup
-    output = String.new('')
+    output = +''
     $stdout = StringIO.new(output)
     yield
     output

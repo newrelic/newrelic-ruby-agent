@@ -87,7 +87,7 @@ class UtilizationDataCollectionTest < Minitest::Test
 
     yield(metadata_service)
   ensure
-    metadata_service.stop if metadata_service
+    metadata_service&.stop
     unredirect_link_local_address
   end
 

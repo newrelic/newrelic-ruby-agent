@@ -317,7 +317,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     wake_mock = MiniTest::Mock.new
     out_mock = MiniTest::Mock.new
     4.times { wake_mock.expect(:out, out_mock) }
-    error_stub = proc { |msg| desired_error_messages_seen += 1 if msg =~ /^(?:Issue while|Ready pipes)/ }
+    error_stub = proc { |msg| desired_error_messages_seen += 1 if /^(?:Issue while|Ready pipes)/.match?(msg) }
     ready_pipes_mock = MiniTest::Mock.new
 
     ::IO.stub(:select, [ready_pipes_mock]) do

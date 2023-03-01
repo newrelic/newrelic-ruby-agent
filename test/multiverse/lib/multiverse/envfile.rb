@@ -37,7 +37,7 @@ module Multiverse
           )
         end
 
-        version = if version && version.start_with?('=')
+        version = if version&.start_with?('=')
           add_version(version.sub('= ', ''), false) # don't twiddle wakka
         else
           add_version(version)

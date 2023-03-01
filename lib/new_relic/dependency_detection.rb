@@ -37,7 +37,8 @@ module DependencyDetection
 
   def installed?(name)
     item = dependency_by_name(name)
-    item && item.executed
+    # needs test coverage
+    item && item.executed # rubocop:disable Style/SafeNavigation
   end
 
   def items

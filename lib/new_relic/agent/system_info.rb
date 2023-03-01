@@ -128,7 +128,7 @@ module NewRelic
 
         num_physical_packages = cores.keys.map(&:first).uniq.size
         num_physical_cores = cores.size
-        num_logical_processors = cores.values.reduce(0, :+)
+        num_logical_processors = cores.values.sum
 
         if num_physical_cores == 0
           num_logical_processors = total_processors
@@ -242,7 +242,7 @@ module NewRelic
       def self.proc_try_read(path)
         return nil unless File.exist?(path)
 
-        content = String.new('')
+        content = +''
         File.open(path) do |f|
           loop do
             begin

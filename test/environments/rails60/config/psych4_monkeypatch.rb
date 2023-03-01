@@ -17,7 +17,7 @@ module Rails
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
+        config = if yaml&.exist?
           require "yaml"
           require "erb"
 

@@ -102,7 +102,7 @@ module NewRelic
           # TODO: OLD RUBIES - RUBY_VERSION < 2.5
           # With Ruby 2.5+ we could use #delete_suffix instead of #chomp for a
           # potential speed boost
-          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name && adapter_name.end_with?(MAKARA_SUFFIX)
+          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name&.end_with?(MAKARA_SUFFIX)
 
           adapter_name
         end
@@ -118,7 +118,7 @@ module NewRelic
         SPACE = ' '.freeze
 
         def split_name(name)
-          if name && name.respond_to?(:split)
+          if name&.respond_to?(:split)
             name.split(SPACE)
           else
             NewRelic::EMPTY_ARRAY

@@ -75,7 +75,7 @@ module NewRelic
           # so do not mistake rendering a collection for rendering a file.
           if identifier.nil? && name != RENDER_COLLECTION_EVENT_NAME
             'file'
-          elsif identifier =~ /template$/
+          elsif /template$/.match?(identifier)
             identifier
           elsif identifier && (parts = identifier.split('/')).size > 1
             parts[-2..-1].join('/')
@@ -99,11 +99,11 @@ module NewRelic
         end
 
         def finish
-          @finishable.finish if @finishable
+          @finishable&.finish
         end
 
         def notice_error(error)
-          @finishable.notice_error(error) if @finishable
+          @finishable&.notice_error(error)
         end
       end
     end

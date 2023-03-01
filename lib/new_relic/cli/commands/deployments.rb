@@ -33,7 +33,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     @changelog = nil
     @user = nil
     super(command_line_args)
-    @description ||= @leftover && @leftover.join(" ")
+    # needs else branch coverage
+    @description ||= @leftover && @leftover.join(" ") # rubocop:disable Style/SafeNavigation
     @user ||= ENV['USER']
     control.env = @environment if @environment
 

@@ -35,7 +35,7 @@ class FrameworkTest < Minitest::Test
     end
 
     # does the path match "rails\d" (ex: rails7) or "railsedge"?
-    if ENV['BUNDLE_GEMFILE'] =~ /rails(?:\d|edge)/
+    if /rails(?:\d|edge)/.match?(ENV['BUNDLE_GEMFILE'])
       # rubocop:disable Performance/StringInclude
       assert_truthy NewRelic::Agent.config[:framework].match(/rails/)
       # rubocop:enable Performance/StringInclude

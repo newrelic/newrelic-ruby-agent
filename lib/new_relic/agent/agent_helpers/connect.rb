@@ -115,7 +115,7 @@ module NewRelic
           ::NewRelic::Agent.logger.debug("Connected to NewRelic Service at #{@service.collector.name}")
           ::NewRelic::Agent.logger.debug("Agent Run       = #{@service.agent_id}.")
           ::NewRelic::Agent.logger.debug("Connection data = #{config_data.inspect}")
-          if config_data['messages'] && config_data['messages'].any?
+          if config_data['messages']&.any?
             log_collector_messages(config_data['messages'])
           end
         end

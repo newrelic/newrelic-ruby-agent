@@ -41,7 +41,7 @@ module NewRelic
         end
 
         def call(severity, time, progname, msg)
-          message = String.new('{')
+          message = +'{'
           if app_name
             add_key_value(message, ENTITY_NAME_KEY, app_name)
             message << COMMA

@@ -14,9 +14,7 @@ module NewRelic
         @starting_pid = nil
         @after_forker = after_forker
 
-        if events
-          events.subscribe(:start_transaction, &method(:on_transaction))
-        end
+        events&.subscribe(:start_transaction, &method(:on_transaction))
       end
 
       def on_transaction(*_)

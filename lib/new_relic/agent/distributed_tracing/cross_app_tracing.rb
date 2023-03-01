@@ -35,7 +35,7 @@ module NewRelic
       end
 
       def cat_trip_id
-        cross_app_payload && cross_app_payload.referring_trip_id || transaction.guid
+        cross_app_payload&.referring_trip_id || transaction.guid
       end
 
       def cross_app_monitor
@@ -73,7 +73,7 @@ module NewRelic
       end
 
       def record_cross_app_metrics
-        if (id = cross_app_payload && cross_app_payload.id)
+        if (id = cross_app_payload&.id)
           app_time_in_seconds = [
             Process.clock_gettime(Process::CLOCK_REALTIME) - transaction.start_time,
             0.0
@@ -103,11 +103,11 @@ module NewRelic
       end
 
       def cat_referring_path_hash
-        cross_app_payload && cross_app_payload.referring_path_hash
+        cross_app_payload&.referring_path_hash
       end
 
       def append_cat_info(payload)
-        if (referring_guid = cross_app_payload && cross_app_payload.referring_guid)
+        if (referring_guid = cross_app_payload&.referring_guid)
           payload[:referring_transaction_guid] = referring_guid
         end
 

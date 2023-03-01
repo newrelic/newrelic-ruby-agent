@@ -45,7 +45,8 @@ module NewRelic::Agent::Instrumentation
 
       def try_to_use(app, clazz)
         install_lock.synchronize do
-          has_middleware = app.middleware && app.middleware.any? { |info| info && info[0] == clazz }
+          # The following line needs else branch coverage
+          has_middleware = app.middleware && app.middleware.any? { |info| info && info[0] == clazz } # rubocop:disable Style/SafeNavigation
           app.use(clazz) unless has_middleware
         end
       end

@@ -51,7 +51,7 @@ module NewRelic
 
         def harvest
           NewRelic::Agent.logger.debug(
-            "Harvesting from Thread Profiler #{@finished_profile.to_log_description unless @finished_profile.nil?}"
+            "Harvesting from Thread Profiler #{@finished_profile&.to_log_description}"
           )
           profile = @finished_profile
           @backtrace_service.profile_agent_code = false

@@ -1220,7 +1220,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     def last_request_payload
-      return nil unless @last_request && @last_request.body
+      return nil unless @last_request&.body
 
       content_encoding = @last_request['Content-Encoding']
       body = if content_encoding == 'deflate'

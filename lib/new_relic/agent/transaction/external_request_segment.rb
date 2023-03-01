@@ -62,7 +62,7 @@ module NewRelic
         # @api public
         def add_request_headers(request)
           process_host_header(request)
-          synthetics_header = transaction && transaction.raw_synthetics_header
+          synthetics_header = transaction&.raw_synthetics_header
           insert_synthetics_header(request, synthetics_header) if synthetics_header
 
           return unless record_metrics?

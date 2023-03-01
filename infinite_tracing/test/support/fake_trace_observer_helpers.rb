@@ -52,7 +52,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def teardown
-            @mock_thread.kill if @mock_thread
+            @mock_thread&.kill
             @mock_thread = nil
             @server_response_enum = nil
             reset_buffers_and_caches
@@ -170,7 +170,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
           ensure
-            client.stop unless client.nil?
+            client&.stop
           end
 
           # when the server responds with an error that should stop the server
@@ -215,7 +215,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def join_grpc_mock
-            @mock_thread.join if @mock_thread
+            @mock_thread&.join
           end
 
           # Simulates a Messages seen response from the mock grpc server

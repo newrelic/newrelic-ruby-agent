@@ -104,7 +104,8 @@ module NewRelic
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
-            if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
+            # the following line needs else branch coverage
+            if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!") # rubocop:disable Style/SafeNavigation
               app_name = File.basename(ENV["GEM_HOME"], ".jar!")
               paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml")
               paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml.erb")

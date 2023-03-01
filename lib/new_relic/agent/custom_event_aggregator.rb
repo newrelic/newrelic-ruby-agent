@@ -27,7 +27,7 @@ module NewRelic
         return unless enabled?
 
         type = @type_strings[type]
-        unless type =~ EVENT_TYPE_REGEX
+        unless EVENT_TYPE_REGEX.match?(type)
           note_dropped_event(type)
           return false
         end

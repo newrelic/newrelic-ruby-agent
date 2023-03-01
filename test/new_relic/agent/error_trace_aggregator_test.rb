@@ -25,7 +25,7 @@ module NewRelic
 
       def populate_container(aggregator, n)
         n.times do |i|
-          error = NewRelic::NoticedError.new(String.new('path'), String.new('yay errors'))
+          error = NewRelic::NoticedError.new((+'path'), (+'yay errors'))
           aggregator.add_to_error_queue(error)
         end
       end

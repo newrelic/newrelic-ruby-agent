@@ -112,7 +112,8 @@ DependencyDetection.defer do
       def render_with_newrelic(context, options)
         # This is needed for rails 3.2 compatibility
         @details = extract_details(options) if respond_to?(:extract_details, true)
-        identifier = determine_template(options) ? determine_template(options).identifier : nil
+        # this file can't be found in SimpleCov, need to check test coverage
+        identifier = determine_template(options) ? determine_template(options).identifier : nil # rubocop:disable Style/SafeNavigation
         scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
         trace_execution_scoped(scope_name) do
           render_without_newrelic(context, options)

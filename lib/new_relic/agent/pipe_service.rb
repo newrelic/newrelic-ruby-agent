@@ -65,7 +65,8 @@ module NewRelic
       end
 
       def shutdown
-        @pipe.close if @pipe
+        # no else branch coverage
+        @pipe.close if @pipe # rubocop:disable Style/SafeNavigation
       end
 
       # Invokes the block it is passed.  This is used to implement HTTP
@@ -82,7 +83,8 @@ module NewRelic
       end
 
       def write_to_pipe(endpoint, data)
-        @pipe.write(marshal_payload([endpoint, data])) if @pipe
+        # the following line needs else branch coverage
+        @pipe.write(marshal_payload([endpoint, data])) if @pipe # rubocop:disable Style/SafeNavigation
       end
     end
   end

@@ -78,7 +78,7 @@ module NewRelic
           end
 
           def create_trace_state_entry(entry_key, payload)
-            "#{entry_key}=#{payload}".dup
+            +"#{entry_key}=#{payload}"
           end
 
           private
@@ -138,7 +138,7 @@ module NewRelic
 
             payload = nil
             trace_state_size = 0
-            trace_state_vendors = String.new
+            trace_state_vendors = +''
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
               if entry == NewRelic::EMPTY_STR
@@ -223,7 +223,7 @@ module NewRelic
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
             return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size
 
-            joined_trace_state = ''.dup
+            joined_trace_state = +''
 
             used_size = 0
 

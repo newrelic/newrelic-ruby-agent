@@ -78,7 +78,7 @@ class NewRelic::Agent::StatsEngine
         GC::Profiler.enable
 
         count_before_allocations = GC.count
-        100000.times { String.new }
+        100000.times { +'' }
         GC.start
         count_after_allocations = GC.count
         GC::Profiler.clear

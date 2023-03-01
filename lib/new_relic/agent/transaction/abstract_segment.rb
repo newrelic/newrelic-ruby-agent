@@ -56,7 +56,7 @@ module NewRelic
           @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
           return unless transaction
 
-          parent.child_start(self) if parent
+          parent&.child_start(self)
         end
 
         def finish
@@ -228,7 +228,7 @@ module NewRelic
 
           if finished?
             transaction.async = true
-            parent.descendant_complete(self, segment) if parent
+            parent&.descendant_complete(self, segment)
           end
         end
 
@@ -269,7 +269,7 @@ module NewRelic
 
         def run_complete_callbacks
           segment_complete
-          parent.child_complete(self) if parent
+          parent&.child_complete(self)
           transaction.segment_complete(self)
         end
 
