@@ -69,17 +69,17 @@ module NewRelic
 
       private
 
-      def autoinstrument_source(response, headers, js_to_inject)
+      def autoinstrument_source(response, _headers, js_to_inject)
         source = gather_source(response)
         close_old_response(response)
         return unless source
 
-        modify_source(source)
+        modify_source(source, js_to_inject)
       rescue => e
         NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception: #{e.class} - #{e.message}")
       end
 
-      def modify_source(source)
+      def modify_source(source, js_to_inject)
         # Only scan the first 50k (roughly) then give up.
         beginning_of_source = source[0..SCAN_LIMIT]
         meta_tag_positions = find_meta_tag_positions(beginning_of_source)
