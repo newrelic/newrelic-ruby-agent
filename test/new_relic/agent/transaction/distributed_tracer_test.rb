@@ -166,6 +166,37 @@ module NewRelic::Agent
           end
         end
       end
+
+      def test_log_request_headers_with_hash_argument
+        test_header = {'Snow' => 'Day'}
+        log = with_array_logger(level = :debug) do
+          in_transaction do |txn|
+            txn.distributed_tracer.log_request_headers(test_header)
+          end
+        end
+
+        assert_log_contains(log, /REQUEST HEADERS: #{test_header}/)
+      end
+
+      def test_log_request_headers_with_request_argument
+        skip_unless_minitest5_or_above
+
+        test_header = {'Test' => 'Header'}
+        request = MiniTest::Mock.new
+
+        request.expect :headers, test_header
+        request.expect :is_a?, true, [NewRelic::Agent::HTTPClients::AbstractRequest]
+
+        log = with_array_logger(level = :debug) do
+          in_transaction do |txn|
+            txn.distributed_tracer.log_request_headers(request)
+          end
+        end
+
+        assert_log_contains(log, /REQUEST HEADERS: #{test_header}/)
+
+        request.verify
+      end
     end
   end
 end

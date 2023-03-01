@@ -33,15 +33,19 @@ module NewRelic
         end
 
         def [](key)
-          @curlobj.headers[key]
+          headers[key]
         end
 
         def []=(key, value)
-          @curlobj.headers[key] = value
+          headers[key] = value
         end
 
         def uri
           @uri ||= URIUtil.parse_and_normalize_url(@curlobj.url)
+        end
+
+        def headers
+          @curlobj.headers
         end
       end
 
