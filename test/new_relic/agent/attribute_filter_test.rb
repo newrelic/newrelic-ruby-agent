@@ -23,7 +23,7 @@ module NewRelic::Agent
           expected_destinations = to_bitfield(test_case['expected_destinations'])
 
           assert_equal(to_names(expected_destinations), to_names(actual_destinations),
-            PP.pp(test_case, String.new('')) + PP.pp(filter.rules, String.new('')))
+            PP.pp(test_case, (+'')) + PP.pp(filter.rules, (+'')))
         end
       end
     end

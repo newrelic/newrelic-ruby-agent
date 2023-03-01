@@ -386,7 +386,8 @@ module NewRelic
     #
     def after_fork(options = {})
       record_api_supportability_metric(:after_fork)
-      agent.after_fork(options) if agent
+      # the following line needs else branch coverage
+      agent.after_fork(options) if agent # rubocop:disable Style/SafeNavigation
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
@@ -398,7 +399,7 @@ module NewRelic
     #
     def shutdown(options = {})
       record_api_supportability_metric(:shutdown)
-      agent.shutdown if agent
+      agent&.shutdown
     end
 
     # Clear out any data the agent has buffered but has not yet transmitted
@@ -406,7 +407,8 @@ module NewRelic
     #
     # @api public
     def drop_buffered_data
-      agent.drop_buffered_data if agent
+      # the following line needs else branch coverage
+      agent.drop_buffered_data if agent # rubocop:disable Style/SafeNavigation
       record_api_supportability_metric(:drop_buffered_data)
     end
 
@@ -465,8 +467,7 @@ module NewRelic
     #
     def ignore_transaction
       record_api_supportability_metric(:ignore_transaction)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore!
     end
 
     # This method disables the recording of Apdex metrics in the current
@@ -476,8 +477,7 @@ module NewRelic
     #
     def ignore_apdex
       record_api_supportability_metric(:ignore_apdex)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore_apdex! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore_apdex!
     end
 
     # This method disables browser monitoring javascript injection in the
@@ -487,8 +487,7 @@ module NewRelic
     #
     def ignore_enduser
       record_api_supportability_metric(:ignore_enduser)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore_enduser! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore_enduser!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -564,8 +563,7 @@ module NewRelic
       record_api_supportability_metric(:add_custom_attributes)
 
       if params.is_a?(Hash)
-        txn = Transaction.tl_current
-        txn.add_custom_attributes(params) if txn
+        Transaction.tl_current&.add_custom_attributes(params)
 
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment

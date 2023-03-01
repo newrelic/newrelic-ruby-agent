@@ -95,20 +95,18 @@ module NewRelic
 
               assert_equal expected, {gcp: @vendor.metadata}
 
-              if test_case[:expected_metrics]
-                test_case[:expected_metrics].each do |metric, v|
-                  if v[:call_count] == 0
-                    if uri_obj[:timeout]
-                      refute detection, '@vendor.detect should have returned false'
-                    else
-                      assert detection, '@vendor.detect should have returned truthy'
-                    end
-
-                    assert_metrics_not_recorded [metric.to_s]
-                  else
+              test_case[:expected_metrics]&.each do |metric, v|
+                if v[:call_count] == 0
+                  if uri_obj[:timeout]
                     refute detection, '@vendor.detect should have returned false'
-                    assert_metrics_recorded [metric.to_s]
+                  else
+                    assert detection, '@vendor.detect should have returned truthy'
                   end
+
+                  assert_metrics_not_recorded [metric.to_s]
+                else
+                  refute detection, '@vendor.detect should have returned false'
+                  assert_metrics_recorded [metric.to_s]
                 end
               end
             end

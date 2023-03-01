@@ -183,7 +183,7 @@ def _normalize_metric_expectations(expectations)
 end
 
 def dump_stats(stats)
-  str = String.new("  Call count:           #{stats.call_count}\n")
+  str = +"  Call count:           #{stats.call_count}\n"
   str << "  Total call time:      #{stats.total_call_time}\n"
   str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
   str << "  Min call time:        #{stats.min_call_time}\n"
@@ -380,8 +380,8 @@ end
 #   in_transaction('foobar', :category => :controller) { ... }
 #
 def in_transaction(*args, &blk)
-  opts = args.last && args.last.is_a?(Hash) ? args.pop : {}
-  category = (opts && opts.delete(:category)) || :other
+  opts = args.last&.is_a?(Hash) ? args.pop : {}
+  category = (opts&.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
   name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) : args.first || 'dummy'
@@ -672,7 +672,7 @@ def undefine_constant(constant_symbol)
   const_str = constant_symbol.to_s
   parent = get_parent(const_str)
   const_name = const_str.gsub(/.*::/, '')
-  return yield unless parent && parent.constants.include?(const_name.to_sym)
+  return yield unless parent&.constants&.include?(const_name.to_sym)
 
   removed_constant = parent.send(:remove_const, const_name)
   yield
@@ -892,7 +892,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
     incorrect_attributes << name unless actual_value == expected_value
   end
 
-  msg = String.new("Found missing or incorrect attribute values in #{test_name}:\n")
+  msg = +"Found missing or incorrect attribute values in #{test_name}:\n"
 
   incorrect_attributes.each do |name|
     msg << "  #{name}: expected = #{expected_attributes[name].inspect}, actual = #{event_attrs[name].inspect}\n"

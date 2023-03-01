@@ -166,7 +166,7 @@ if defined?(Rack::Test)
     end
 
     def test_with_invalid_us_ascii_encoding
-      response = String.new('<html><body>Jürgen</body></html>')
+      response = +'<html><body>Jürgen</body></html>'
       response.force_encoding(Encoding.find("US-ASCII"))
       TestApp.next_response = Rack::Response.new(response)
 

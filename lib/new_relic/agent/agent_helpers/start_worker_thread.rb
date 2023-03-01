@@ -42,7 +42,7 @@ module NewRelic
         # The use-case where this typically arises is in cronjob scheduled rake tasks where there's
         # also some network stability/latency issues happening.
         def stop_event_loop
-          @event_loop.stop if @event_loop
+          @event_loop&.stop
           # Wait the end of the event loop thread.
           if @worker_thread
             unless @worker_thread.join(3)
@@ -77,7 +77,7 @@ module NewRelic
         def handle_force_restart(error)
           ::NewRelic::Agent.logger.debug(error.message)
           drop_buffered_data
-          @service.force_restart if @service
+          @service&.force_restart
           @connect_state = :pending
           sleep(30)
         end

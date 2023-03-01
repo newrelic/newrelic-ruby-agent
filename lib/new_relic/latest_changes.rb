@@ -30,8 +30,8 @@ EOS
 
       current_item = nil
       latest.each do |line|
-        if line =~ /^\s*\*.*/
-          if line =~ /\(#{patch_level}\)/
+        if /^\s*\*.*/.match?(line)
+          if /\(#{patch_level}\)/.match?(line)
             # Found a patch level item, so start tracking the lines!
             current_item = line
           else
@@ -52,7 +52,7 @@ EOS
       changes = []
       version_count = 0
       contents.each_line do |line|
-        if line =~ /##\s+v[\d.]+/
+        if /##\s+v[\d.]+/.match?(line)
           version_count += 1
         end
         break if version_count >= 2

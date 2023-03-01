@@ -275,8 +275,8 @@ module Multiverse
       File.open(gemfile, 'w') do |f|
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
-        f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+        f.puts newrelic_gemfile_line unless /^\s*gem .newrelic_rpm./.match?(gemfile_text)
+        f.puts minitest_line unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
         f.puts "gem 'rackup'" if need_rackup?(gemfile_text)
@@ -462,13 +462,13 @@ module Multiverse
 
       configure_instrumentation_method(instrumentation_method)
 
-      environments.before.call if environments.before
+      environments.before&.call
       if should_serialize?
         execute_serial(instrumentation_method)
       else
         execute_parallel(instrumentation_method)
       end
-      environments.after.call if environments.after
+      environments.after&.call
     rescue => e
       puts e.backtrace
       puts red("Failure during execution of suite #{directory.inspect}.")

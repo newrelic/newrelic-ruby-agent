@@ -124,7 +124,7 @@ module NewRelic
               config['transaction_tracer']['transaction_threshold'].to_s =~ /apdex_f/i
             # when value is "apdex_f" remove the config and defer to default
             config['transaction_tracer'].delete('transaction_threshold')
-          elsif config['transaction_tracer.transaction_threshold'].to_s =~ /apdex_f/i
+          elsif /apdex_f/i.match?(config['transaction_tracer.transaction_threshold'].to_s)
             config.delete('transaction_tracer.transaction_threshold')
           end
         end

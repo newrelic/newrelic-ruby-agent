@@ -37,7 +37,7 @@ module NewRelic
               raise
             end
           ensure
-            txn.finish if txn
+            txn&.finish
           end
 
           def add_http2_port_with_tracing(*args)
@@ -55,12 +55,12 @@ module NewRelic
           def add_attributes(txn, metadata, streamer_type)
             grpc_params(metadata, streamer_type).each do |attr, value|
               txn.add_agent_attribute(attr, value, DESTINATIONS)
-              txn.current_segment.add_agent_attribute(attr, value) if txn.current_segment
+              txn.current_segment&.add_agent_attribute(attr, value)
             end
           end
 
           def metadata_for_call(active_call)
-            return NewRelic::EMPTY_HASH unless active_call && active_call.metadata
+            return NewRelic::EMPTY_HASH unless active_call&.metadata
 
             active_call.metadata
           end

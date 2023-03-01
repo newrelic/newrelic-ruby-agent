@@ -99,7 +99,7 @@ module Environments
 
     def run(dir)
       puts "Starting tests for dir '#{dir}'..." if ENV['VERBOSE_TEST_OUTPUT']
-      cmd = String.new("cd #{dir} && bundle exec rake")
+      cmd = +"cd #{dir} && bundle exec rake"
       # if the shell running the original test:env rake task has a "file" env
       # var, replicate it here in the subshell
       cmd << " file=#{ENV['file']}" if ENV["file"]

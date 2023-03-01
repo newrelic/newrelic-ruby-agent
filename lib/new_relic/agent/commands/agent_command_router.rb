@@ -29,7 +29,8 @@ module NewRelic
           @handlers['start_profiler'] = proc { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler'] = proc { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
-          if event_listener
+          # the following statement needs else branch coverage
+          if event_listener # rubocop:disable Style/SafeNavigation
             event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
           end
         end

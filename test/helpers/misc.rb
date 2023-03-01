@@ -48,7 +48,7 @@ def fixture_tcp_socket(response)
 
     stubs(:check_write) { self.write_checker = Proc.new }
     stubs(:write) do |buf|
-      self.write_checker.call(buf) if self.write_checker
+      self.write_checker&.call(buf)
       buf.length
     end
 

@@ -161,7 +161,7 @@ module NewRelic
       end
 
       def reschedule_timer_for_event(e)
-        @timers[e].reschedule if @timers[e]
+        @timers[e]&.reschedule
       end
 
       def on(event, &blk)

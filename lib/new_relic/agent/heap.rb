@@ -26,7 +26,8 @@ module NewRelic
       def initialize(items = nil, &priority_fn)
         @items = []
         @priority_fn = priority_fn || ->(x) { x }
-        items.each { |item| push(item) } if items
+        # the following line needs else branch coverage
+        items.each { |item| push(item) } if items # rubocop:disable Style/SafeNavigation
       end
 
       def [](index)

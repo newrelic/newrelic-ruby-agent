@@ -148,7 +148,8 @@ module NewRelic
         yield
       ensure
         begin
-          txn.finish if txn
+          # the following line needs else branch coverage
+          txn.finish if txn # rubocop:disable Style/SafeNavigation
         rescue => e
           NewRelic::Agent.logger.error("Error stopping Message Broker consume transaction", e)
         end
@@ -190,7 +191,8 @@ module NewRelic
 
         raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
-        original_headers = headers.nil? ? nil : headers.dup
+        # The following line needs else branch coverage
+        original_headers = headers.nil? ? nil : headers.dup # rubocop:disable Style/SafeNavigation
 
         segment = Tracer.start_message_broker_segment(
           action: :produce,

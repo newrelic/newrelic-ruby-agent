@@ -48,7 +48,7 @@ module NewRelic
 
         def environment_metadata
           env_copy = {}
-          ENV.keys.each { |k| env_copy[k] = ENV[k] if k =~ /^NEW_RELIC_METADATA_/ }
+          ENV.keys.each { |k| env_copy[k] = ENV[k] if /^NEW_RELIC_METADATA_/.match?(k) }
           env_copy
         end
 

@@ -110,7 +110,7 @@ module Format
   end
 
   def section_key(key, components)
-    if key =~ /^disable_/ # "disable_httpclient"
+    if /^disable_/.match?(key) # "disable_httpclient"
       DISABLING
     elsif components.length >= 2 && !(components[1] == "attributes") # "analytics_events.enabled"
       components.first

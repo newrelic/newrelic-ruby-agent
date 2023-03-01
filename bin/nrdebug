@@ -216,7 +216,7 @@ class ProcessReport
 
       section(f) do
         c_backtraces, ruby_backtraces = @target.gather_backtraces
-        if c_backtraces =~ /could not attach/i
+        if /could not attach/i.match?(c_backtraces)
           fail("Failed to attach to target process. Please try again with sudo.")
         end
 

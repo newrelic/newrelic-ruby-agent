@@ -19,7 +19,7 @@ module NewRelic::Agent::Threading
     end
 
     def assert_backtrace_trees_equal(a, b, original_a = a, original_b = b)
-      message = String.new("Thread profiles did not match.\n\n")
+      message = +"Thread profiles did not match.\n\n"
       message << "Expected tree:\n#{original_a.dump_string}\n\n"
       message << "Actual tree:\n#{original_b.dump_string}\n"
 
@@ -32,7 +32,7 @@ module NewRelic::Agent::Threading
 
     def create_node(frame, parent = nil, runnable_count = 0)
       node = BacktraceNode.new(frame)
-      parent.add_child_unless_present(node) if parent
+      parent&.add_child_unless_present(node)
       node.runnable_count = runnable_count
       node
     end

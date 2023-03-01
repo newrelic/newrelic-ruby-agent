@@ -37,6 +37,7 @@ Minitest/DuplicateTestRun:
 Minitest/EmptyLineBeforeAssertionMethods:
   Exclude:
     - 'test/new_relic/agent_test.rb'
+    - 'test/new_relic/cli/commands/deployments_test.rb'
 
 # Offense count: 269
 Minitest/MultipleAssertions:
@@ -58,44 +59,3 @@ Style/ConcatArrayLiterals:
 Minitest/RefuteRespondTo:
   Exclude:
     - 'test/new_relic/cli/commands/deployments_test.rb'
-
-Minitest/EmptyLineBeforeAssertionMethods:
-  Exclude:
-    - 'test/new_relic/agent_test.rb'
-    - 'test/new_relic/cli/commands/deployments_test.rb'
-
-# Offense count: 23
-# This cop supports safe autocorrection (--autocorrect).
-Performance/RegexpMatch:
-  Enabled: false
-
-# Offense count: 1
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: OnlySumOrWithInitialValue.
-Performance/Sum:
-  Exclude:
-    - 'lib/new_relic/agent/system_info.rb'
-
-# Offense count: 72
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Performance/UnfreezeString:
-  Enabled: false
-
-# Offense count: 21
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowedVars.
-Style/FetchEnvVar:
-  Enabled: false
-
-# Offense count: 1
-# This cop supports safe autocorrection (--autocorrect).
-Style/RedundantStringEscape:
-  Exclude:
-    - 'test/new_relic/agent/logging_test.rb'
-
-# Offense count: 115
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: ConvertCodeThatCanStartToReturnNil, AllowedMethods, MaxChainLength.
-# AllowedMethods: present?, blank?, presence, try, try!
-Style/SafeNavigation:
-  Enabled: false
