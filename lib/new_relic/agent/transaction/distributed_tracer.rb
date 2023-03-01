@@ -69,7 +69,8 @@ module NewRelic
         end
 
         def log_request_headers(headers, direction = "OUTGOING")
-          NewRelic::Agent.logger.debug("#{direction} REQUEST HEADERS: #{headers}")
+          printed_headers = headers.is_a?(NewRelic::Agent::HTTPClients::AbstractRequest) ? headers.headers : headers
+          NewRelic::Agent.logger.debug("#{direction} REQUEST HEADERS: #{printed_headers}")
         end
 
         def insert_headers(headers)

@@ -56,6 +56,10 @@ module NewRelic
         def []=(key, value)
           @wrapped_request.headers[key] = value
         end
+
+        def headers
+          @wrapped_request.headers.to_hash
+        end
       end
     end
   end

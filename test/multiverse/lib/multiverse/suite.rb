@@ -575,9 +575,9 @@ module Multiverse
 
       # MiniTest 5.0 moved things around, so choose which way to run it
       if ::MiniTest.respond_to?(:run)
-        test_run = ::MiniTest.run(options)
+        passed = ::MiniTest.run(options)
       else
-        test_run = ::MiniTest::Unit.new.run(options)
+        passed = ::MiniTest::Unit.new.run(options)
       end
 
       load(@after_file) if @after_file
@@ -593,13 +593,9 @@ module Multiverse
         end
       end
 
-      if test_run
-        exit(test_run)
-      else
-        puts "No tests found with those options."
-        puts "options: #{original_options}"
-        exit(1)
-      end
+      puts 'One or more failures or errors were seen!' unless passed
+      puts "Options used: #{original_options}"
+      exit(passed) # `exit true` returns 0, `exit false` returns 1
     end
 
     def configure_before_bundling

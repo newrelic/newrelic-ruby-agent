@@ -71,6 +71,10 @@ module NewRelic
             )
           end
         end
+
+        def headers
+          @request.instance_variable_get(:@header)
+        end
       end
     end
   end

@@ -108,5 +108,26 @@ if defined?(ActionController::Live)
 
       assert_metrics_recorded(['Controller/data/not_allowed', segment_name])
     end
+
+    class TestClassActionController; end
+    def test_no_metric_naming_error
+      payloads = [
+        {request: "Not gonna respond to controller_class"},
+        {request: Class.new do
+          def controller_class
+            "not gonna respond to controller_path"
+          end
+        end},
+        {context: {}},
+        {context: {controller: TestClassActionController.name}},
+        {},
+        nil
+      ]
+
+      payloads.each do |payload|
+        # make sure no error is raised
+        NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber.new.controller_name_for_metric(payload)
+      end
+    end
   end
 end
