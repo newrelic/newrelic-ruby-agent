@@ -72,8 +72,14 @@ module NewRelic
       def autoinstrument_source(response, headers, js_to_inject)
         source = gather_source(response)
         close_old_response(response)
-        return nil unless source
+        return unless source
 
+        modify_source(source)
+      rescue => e
+        NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception: #{e.class} - #{e.message}")
+      end
+
+      def modify_source(source)
         # Only scan the first 50k (roughly) then give up.
         beginning_of_source = source[0..SCAN_LIMIT]
         meta_tag_positions = find_meta_tag_positions(beginning_of_source)
@@ -81,18 +87,15 @@ module NewRelic
           if insertion_index = find_insertion_index(meta_tag_positions, beginning_of_source, body_start)
             source = source_injection(source, insertion_index, js_to_inject)
           else
-            NewRelic::Agent.logger.debug("Skipping RUM instrumentation. Could not properly determine location to inject script.")
+            NewRelic::Agent.logger.debug('Skipping RUM instrumentation. Could not properly determine location to ' \
+                                         'inject script.')
           end
         else
           msg = "Skipping RUM instrumentation. Unable to find <body> tag in first #{SCAN_LIMIT} bytes of document."
           NewRelic::Agent.logger.log_once(:warn, :rum_insertion_failure, msg)
           NewRelic::Agent.logger.debug(msg)
         end
-
         source
-      rescue => e
-        NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception.", e)
-        nil
       end
 
       def html?(headers)

@@ -80,34 +80,34 @@ module NewRelic
           default_settings[:transform] if default_settings
         end
 
-        def self.config_search_paths
+        def self.config_search_paths # rubocop:disable Metrics/AbcSize
           proc {
-            paths = [
-              File.join("config", "newrelic.yml"),
-              File.join("newrelic.yml"),
-              File.join("config", "newrelic.yml.erb"),
-              File.join("newrelic.yml.erb")
-            ]
+            yaml = 'newrelic.yml'
+            config_yaml = File.join('config', yaml)
+            erb = 'newrelic.yml.erb'
+            config_erb = File.join('config', erb)
+
+            paths = [config_yaml, yaml, config_erb, erb]
 
             if NewRelic::Control.instance.root
-              paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml")
-              paths << File.join(NewRelic::Control.instance.root, "newrelic.yml")
-              paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml.erb")
-              paths << File.join(NewRelic::Control.instance.root, "newrelic.yml.erb")
+              paths << File.join(NewRelic::Control.instance.root, config_yaml)
+              paths << File.join(NewRelic::Control.instance.root, yaml)
+              paths << File.join(NewRelic::Control.instance.root, config_erb)
+              paths << File.join(NewRelic::Control.instance.root, erb)
             end
 
             if ENV['HOME']
-              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml")
-              paths << File.join(ENV['HOME'], "newrelic.yml")
-              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml.erb")
-              paths << File.join(ENV['HOME'], "newrelic.yml.erb")
+              paths << File.join(ENV['HOME'], '.newrelic', yaml)
+              paths << File.join(ENV['HOME'], yaml)
+              paths << File.join(ENV['HOME'], '.newrelic', erb)
+              paths << File.join(ENV['HOME'], erb)
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
-            if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
-              app_name = File.basename(ENV["GEM_HOME"], ".jar!")
-              paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml")
-              paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml.erb")
+            if ENV['GEM_HOME'] && ENV['GEM_HOME'].end_with?('.jar!')
+              app_name = File.basename(ENV['GEM_HOME'], '.jar!')
+              paths << File.join(ENV['GEM_HOME'], app_name, config_yaml)
+              paths << File.join(ENV['GEM_HOME'], app_name, config_erb)
             end
 
             paths

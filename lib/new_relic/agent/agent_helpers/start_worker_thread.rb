@@ -60,36 +60,13 @@ module NewRelic
         end
 
         def create_and_run_event_loop
-          data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
-          event_harvest = :"#{Agent.config[:event_report_period]}_second_harvest"
-
           @event_loop = create_event_loop
+          data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
           @event_loop.on(data_harvest) do
             transmit_data
           end
-
-          @event_loop.on(interval_for(TRANSACTION_EVENT_DATA)) do
-            transmit_analytic_event_data
-          end
-          @event_loop.on(interval_for(CUSTOM_EVENT_DATA)) do
-            transmit_custom_event_data
-          end
-          @event_loop.on(interval_for(ERROR_EVENT_DATA)) do
-            transmit_error_event_data
-          end
-          @event_loop.on(interval_for(SPAN_EVENT_DATA)) do
-            transmit_span_event_data
-          end
-          @event_loop.on(interval_for(LOG_EVENT_DATA)) do
-            transmit_log_event_data
-          end
-
-          @event_loop.on(:reset_log_once_keys) do
-            ::NewRelic::Agent.logger.clear_already_logged
-          end
-          @event_loop.fire_every(Agent.config[:data_report_period], data_harvest)
-          @event_loop.fire_every(Agent.config[:event_report_period], event_harvest)
-          @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD, :reset_log_once_keys)
+          establish_interval_transmissions
+          establish_fire_everies(data_harvest)
 
           @event_loop.run
         end
@@ -160,6 +137,37 @@ module NewRelic
               end
             end
           end
+        end
+
+        private
+
+        def establish_interval_transmissions
+          @event_loop.on(interval_for(TRANSACTION_EVENT_DATA)) do
+            transmit_analytic_event_data
+          end
+          @event_loop.on(interval_for(CUSTOM_EVENT_DATA)) do
+            transmit_custom_event_data
+          end
+          @event_loop.on(interval_for(ERROR_EVENT_DATA)) do
+            transmit_error_event_data
+          end
+          @event_loop.on(interval_for(SPAN_EVENT_DATA)) do
+            transmit_span_event_data
+          end
+          @event_loop.on(interval_for(LOG_EVENT_DATA)) do
+            transmit_log_event_data
+          end
+        end
+
+        def establish_fire_everies(data_harvest)
+          @event_loop.on(:reset_log_once_keys) do
+            ::NewRelic::Agent.logger.clear_already_logged
+          end
+
+          event_harvest = :"#{Agent.config[:event_report_period]}_second_harvest"
+          @event_loop.fire_every(Agent.config[:data_report_period], data_harvest)
+          @event_loop.fire_every(Agent.config[:event_report_period], event_harvest)
+          @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD, :reset_log_once_keys)
         end
       end
     end

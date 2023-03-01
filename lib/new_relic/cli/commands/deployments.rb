@@ -162,24 +162,24 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   def options
     OptionParser.new(%Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40) do |o|
       o.separator("OPTIONS:")
-      o.on("-a", "--appname=NAME", String,
-        "Set the application name.",
-        "Default is app_name setting in newrelic.yml. Available only when using API v1.") { |e| @appname = e }
-      o.on("-i", "--appid=ID", String,
-        "Set the application ID",
-        "If not provided, will connect to the New Relic collector to get it") { |i| @application_id = i }
-      o.on("-e", "--environment=name", String,
-        "Override the (RAILS|RUBY|RACK)_ENV setting",
+      o.on('-a', '--appname=NAME', String,
+        'Set the application name.',
+        'Default is app_name setting in newrelic.yml. Available only when using API v1.') { |e| @appname = e }
+      o.on('-i', '--appid=ID', String,
+        'Set the application ID',
+        'If not provided, will connect to the New Relic collector to get it') { |i| @application_id = i }
+      o.on('-e', '--environment=name', String,
+        'Override the (RAILS|RUBY|RACK)_ENV setting',
         "currently: #{control.env}") { |e| @environment = e }
-      o.on("-u", "--user=USER", String,
-        "Specify the user deploying, for information only",
+      o.on('-u', '--user=USER', String,
+        'Specify the user deploying, for information only',
         "Default: #{@user || '<none>'}") { |u| @user = u }
-      o.on("-r", "--revision=REV", String,
-        "Specify the revision being deployed. Required when using New Relic REST API v2") { |r| @revision = r }
-      o.on("-l", "--license-key=KEY", String,
-        "Specify the license key of the account for the app being deployed") { |l| @license_key = l }
-      o.on("-c", "--changes",
-        "Read in a change log from the standard input") { @changelog = STDIN.read }
+      o.on('-r', '--revision=REV', String,
+        'Specify the revision being deployed. Required when using New Relic REST API v2') { |r| @revision = r }
+      o.on('-l', '--license-key=KEY', String,
+        'Specify the license key of the account for the app being deployed') { |l| @license_key = l }
+      o.on('-c', '--changes',
+        'Read in a change log from the standard input') { @changelog = STDIN.read }
       yield(o) if block_given?
     end
   end
