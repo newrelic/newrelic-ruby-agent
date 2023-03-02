@@ -734,15 +734,19 @@ module NewRelic
       def record_exceptions
         error_recorded = false
         @exceptions.each do |exception, options|
-          options[:uri] ||= request_path if request_path
-          options[:port] = request_port if request_port
-          options[:metric] = best_name
-          options[:attributes] = @attributes
-
-          span_id = options.delete(:span_id)
-          error_recorded = !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
+          error_recorded = record_exception(exception, options, error_recorded)
         end
-        payload[:error] = error_recorded if payload
+        payload&.[]=(:error, error_recorded)
+      end
+
+      def record_exception(exception, options, error_recorded)
+        options[:uri] ||= request_path if request_path
+        options[:port] = request_port if request_port
+        options[:metric] = best_name
+        options[:attributes] = @attributes
+
+        span_id = options.delete(:span_id)
+        !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
       end
 
       # Do not call this.  Invoke the class method instead.
