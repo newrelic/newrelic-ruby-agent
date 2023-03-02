@@ -40,7 +40,7 @@ module NewRelic
 
         js_to_inject = NewRelic::Agent.browser_timing_header
         if (js_to_inject != NewRelic::EMPTY_STR) && should_instrument?(env, status, headers)
-          response_string = autoinstrument_source(response, headers, js_to_inject)
+          response_string = autoinstrument_source(response, js_to_inject)
           if headers.key?(CONTENT_LENGTH)
             content_length = response_string ? response_string.bytesize : 0
             headers[CONTENT_LENGTH] = content_length.to_s
@@ -69,7 +69,7 @@ module NewRelic
 
       private
 
-      def autoinstrument_source(response, _headers, js_to_inject)
+      def autoinstrument_source(response, js_to_inject)
         source = gather_source(response)
         close_old_response(response)
         return unless source
