@@ -11,7 +11,7 @@ class ThreadProfilingTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent(:'thread_profiler.enabled' => true) do |collector|
-    collector.stub('connect', {"agent_run_id" => 666})
+    collector.stub('connect', {'agent_run_id' => 666})
     collector.stub('get_agent_commands', [])
     collector.stub('agent_command_results', [])
   end
@@ -30,22 +30,22 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   START_COMMAND = [[666, {
-    "name" => "start_profiler",
-    "arguments" => {
-      "profile_id" => -1,
-      "sample_period" => 0.01,
-      "duration" => 0.75,
-      "only_runnable_threads" => false,
-      "only_request_threads" => false,
-      "profile_agent_code" => true
+    'name' => 'start_profiler',
+    'arguments' => {
+      'profile_id' => -1,
+      'sample_period' => 0.01,
+      'duration' => 0.75,
+      'only_runnable_threads' => false,
+      'only_request_threads' => false,
+      'profile_agent_code' => true
     }
   }]]
 
   STOP_COMMAND = [[666, {
-    "name" => "stop_profiler",
-    "arguments" => {
-      "profile_id" => -1,
-      "report_data" => true
+    'name' => 'stop_profiler',
+    'arguments' => {
+      'profile_id' => -1,
+      'report_data' => true
     }
   }]]
 
@@ -69,10 +69,10 @@ class ThreadProfilingTest < Minitest::Test
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
     assert(profile_data.poll_count >= 2, "Expected sample_count >= 2, but was #{profile_data.poll_count}")
 
-    assert_saw_traces(profile_data, "OTHER")
-    assert_saw_traces(profile_data, "AGENT")
-    assert_saw_traces(profile_data, "REQUEST")
-    assert_saw_traces(profile_data, "BACKGROUND")
+    assert_saw_traces(profile_data, 'OTHER')
+    assert_saw_traces(profile_data, 'AGENT')
+    assert_saw_traces(profile_data, 'REQUEST')
+    assert_saw_traces(profile_data, 'BACKGROUND')
   end
 
   def test_thread_profiling_can_stop

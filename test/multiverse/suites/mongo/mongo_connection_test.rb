@@ -20,7 +20,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
     def setup
       @client = Mongo::Connection.new($mongo.host, $mongo.port)
-      @database_name = "multiverse"
+      @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = "tribbles-#{fake_guid(16)}"
       @collection = @database.collection(@collection_name)

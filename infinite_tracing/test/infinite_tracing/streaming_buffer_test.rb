@@ -23,10 +23,10 @@ module NewRelic
             buffer, _segments = stream_segments(total_spans)
             consume_spans(buffer)
 
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+            refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
             assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
+              'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 1},
+              'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 1}
             })
           end
         end
@@ -43,10 +43,10 @@ module NewRelic
             buffer.flush_queue
             consumer.join
 
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+            refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
             assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
+              'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 1},
+              'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 1}
             })
             assert_watched_threads_finished buffer
           end
@@ -62,13 +62,13 @@ module NewRelic
             assert_equal total_spans, spans.size
             spans.each_with_index do |span, index|
               assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-              assert_equal segments[index].transaction.trace_id, span["trace_id"]
+              assert_equal segments[index].transaction.trace_id, span['trace_id']
             end
 
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+            refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
             assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+              'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+              'Supportability/InfiniteTracing/Span/Sent' => {:call_count => total_spans}
             })
             assert_watched_threads_finished buffer
           end
@@ -122,13 +122,13 @@ module NewRelic
             assert_equal total_spans, spans.size
             spans.each_with_index do |span, index|
               assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-              assert_equal segments[index].transaction.trace_id, span["trace_id"]
+              assert_equal segments[index].transaction.trace_id, span['trace_id']
             end
 
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+            refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
             assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+              'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+              'Supportability/InfiniteTracing/Span/Sent' => {:call_count => total_spans}
             })
             assert_watched_threads_finished buffer
           end
@@ -146,13 +146,13 @@ module NewRelic
             spans = consume_spans(buffer)
 
             assert_equal 1, spans.size
-            assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
-            assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
+            assert_equal segments[-1].transaction.trace_id, spans[0]['trace_id']
+            assert_equal segments[-1].transaction.trace_id, spans[0]['intrinsics']['traceId'].string_value
 
             assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
+              'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 9},
+              'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 1},
+              'Supportability/InfiniteTracing/Span/AgentQueueDumped' => {:call_count => 2}
             })
             assert_watched_threads_finished buffer
           end
@@ -184,14 +184,14 @@ module NewRelic
             buffer.flush_queue
             consumer.join
 
-            assert emptied, "spans streamed reached total but buffer not empty!"
-            assert closed, "failed to close the buffer"
+            assert emptied, 'spans streamed reached total but buffer not empty!'
+            assert closed, 'failed to close the buffer'
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
 
             assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+              'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+              'Supportability/InfiniteTracing/Span/Sent' => {:call_count => total_spans}
             })
             assert_watched_threads_finished buffer
           end

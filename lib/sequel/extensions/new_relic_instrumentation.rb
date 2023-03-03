@@ -32,7 +32,7 @@ module Sequel
   module NewRelicInstrumentation
     module Naming
       def self.query_method_name
-        if Sequel::VERSION >= "4.35.0"
+        if Sequel::VERSION >= '4.35.0'
           :log_connection_yield
         else
           :log_yield
@@ -86,13 +86,13 @@ module Sequel
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
           self[sql].explain
         else
-          NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, "Not running SQL explains because Sequel is not in recognized multi-threaded mode")
+          NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, 'Not running SQL explains because Sequel is not in recognized multi-threaded mode')
           nil
         end
       end
     end
   end # module NewRelicInstrumentation
 
-  NewRelic::Agent.logger.debug("Registering the :new_relic_instrumentation extension.")
+  NewRelic::Agent.logger.debug('Registering the :new_relic_instrumentation extension.')
   Database.register_extension(:new_relic_instrumentation, NewRelicInstrumentation)
 end # module Sequel

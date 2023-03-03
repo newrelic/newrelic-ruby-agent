@@ -13,22 +13,22 @@ require 'new_relic/agent/commands/thread_profiler_session'
 
 module ThreadProfilerSessionTestHelpers
   START = {
-    "profile_id" => 42,
-    "sample_period" => 0.02,
-    "duration" => 0.025,
-    "only_runnable_threads" => false,
-    "only_request_threads" => false,
-    "profile_agent_code" => false
+    'profile_id' => 42,
+    'sample_period' => 0.02,
+    'duration' => 0.025,
+    'only_runnable_threads' => false,
+    'only_request_threads' => false,
+    'profile_agent_code' => false
   }
 
   STOP = {
-    "profile_id" => 42,
-    "report_data" => true
+    'profile_id' => 42,
+    'report_data' => true
   }
 
   STOP_AND_DISCARD = {
-    "profile_id" => 42,
-    "report_data" => false
+    'profile_id' => 42,
+    'report_data' => false
   }
 
   def start_command

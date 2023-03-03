@@ -7,7 +7,7 @@ require 'new_relic/agent/heap'
 module NewRelic
   module Agent
     class TimestampSampledBuffer < PrioritySampledBuffer
-      TIMESTAMP_KEY = "timestamp".freeze
+      TIMESTAMP_KEY = 'timestamp'.freeze
 
       private
 

@@ -5,8 +5,8 @@
 module NewRelic
   module Agent
     module HTTPClients
-      MUST_IMPLEMENT_ERROR = "Subclasses of %s must implement a :%s method"
-      WHINY_NIL_ERROR = "%s cannot initialize with a nil wrapped_response object."
+      MUST_IMPLEMENT_ERROR = 'Subclasses of %s must implement a :%s method'
+      WHINY_NIL_ERROR = '%s cannot initialize with a nil wrapped_response object.'
 
       # This class provides a public interface for wrapping HTTP requests. This
       # may be used to create wrappers that are compatible with New Relic's

@@ -64,7 +64,7 @@ module NewRelic
         def handle_license_error(error)
           ::NewRelic::Agent.logger.error( \
             error.message, \
-            "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+            'Visit NewRelic.com to obtain a valid license key, or to upgrade your account.'
           )
           disconnect
         end
@@ -149,7 +149,7 @@ module NewRelic
           return if connected?
 
           @waited_on_connect = true
-          NewRelic::Agent.logger.debug("Waiting on connect to complete.")
+          NewRelic::Agent.logger.debug('Waiting on connect to complete.')
 
           @wait_on_connect_mutex.synchronize do
             @wait_on_connect_condition.wait(@wait_on_connect_mutex, timeout)
@@ -203,7 +203,7 @@ module NewRelic
         rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
           retry if retry_from_error?(e, opts)
         rescue Exception => e
-          ::NewRelic::Agent.logger.error("Exception of unexpected type during Agent#connect():", e)
+          ::NewRelic::Agent.logger.error('Exception of unexpected type during Agent#connect():', e)
 
           raise
         end

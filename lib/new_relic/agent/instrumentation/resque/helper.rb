@@ -10,7 +10,7 @@ module NewRelic
           extend self
 
           def resque_fork_per_job?
-            ENV["FORK_PER_JOB"] != 'false' && NewRelic::LanguageSupport.can_fork?
+            ENV['FORK_PER_JOB'] != 'false' && NewRelic::LanguageSupport.can_fork?
           end
         end
       end

@@ -46,7 +46,7 @@ module NewRelic
                 exchange_type: type
               )
             rescue => e
-              NewRelic::Agent.logger.error("Error starting message broker segment in Bunny::Exchange#publish", e)
+              NewRelic::Agent.logger.error('Error starting message broker segment in Bunny::Exchange#publish', e)
               yield
             else
               NewRelic::Agent::Tracer.capture_segment_error(segment) do
@@ -90,7 +90,7 @@ module NewRelic
                 start_time: t0
               )
             rescue => e
-              NewRelic::Agent.logger.error("Error starting message broker segment in Bunny::Queue#pop", e)
+              NewRelic::Agent.logger.error('Error starting message broker segment in Bunny::Queue#pop', e)
             else
               if bunny_error
                 segment.notice_error(bunny_error)
@@ -113,7 +113,7 @@ module NewRelic
                 destination_name: name
               )
             rescue => e
-              NewRelic::Agent.logger.error("Error starting message broker segment in Bunny::Queue#purge", e)
+              NewRelic::Agent.logger.error('Error starting message broker segment in Bunny::Queue#purge', e)
               yield
             else
               NewRelic::Agent::Tracer.capture_segment_error(segment) do

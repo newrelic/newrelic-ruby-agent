@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Datastores
       module Redis
-        BINARY_DATA_PLACEHOLDER = "<binary data>"
+        BINARY_DATA_PLACEHOLDER = '<binary data>'
 
         MAXIMUM_COMMAND_LENGTH = 1000
         MAXIMUM_ARGUMENT_LENGTH = 64
@@ -83,7 +83,7 @@ module NewRelic
         end
 
         def self.is_supported_version?
-          Gem::Version.new(::Redis::VERSION) >= Gem::Version.new("3.0.0")
+          Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('3.0.0')
         end
 
         def self.ellipsize(result, string)
@@ -106,8 +106,8 @@ module NewRelic
         end
 
         def self.safe_from_third_party_gem?
-          if NewRelic::LanguageSupport.bundled_gem?("newrelic-redis")
-            ::NewRelic::Agent.logger.info("Not installing New Relic supported Redis instrumentation because the third party newrelic-redis gem is present")
+          if NewRelic::LanguageSupport.bundled_gem?('newrelic-redis')
+            ::NewRelic::Agent.logger.info('Not installing New Relic supported Redis instrumentation because the third party newrelic-redis gem is present')
             false
           else
             true

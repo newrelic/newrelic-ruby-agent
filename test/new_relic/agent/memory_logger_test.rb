@@ -23,11 +23,11 @@ class MemoryLoggerTest < Minitest::Test
     # work with old versions of Mocha.
     def real_logger.warn(*); end
 
-    real_logger.expects(:fatal).with("message at fatal")
-    real_logger.expects(:error).with("message at error")
-    real_logger.expects(:warn).with("message at warn")
-    real_logger.expects(:info).with("message at info")
-    real_logger.expects(:debug).with("message at debug")
+    real_logger.expects(:fatal).with('message at fatal')
+    real_logger.expects(:error).with('message at error')
+    real_logger.expects(:warn).with('message at warn')
+    real_logger.expects(:info).with('message at info')
+    real_logger.expects(:debug).with('message at debug')
 
     @logger.dump(real_logger)
   end
@@ -67,8 +67,8 @@ class MemoryLoggerTest < Minitest::Test
   end
 
   def test_log_once
-    @logger.log_once(:debug, :once, "Once")
-    @logger.log_once(:debug, :once, "Twice?")
+    @logger.log_once(:debug, :once, 'Once')
+    @logger.log_once(:debug, :once, 'Twice?')
 
     real_logger = stub
     real_logger.expects(:debug).once

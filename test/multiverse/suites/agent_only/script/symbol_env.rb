@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-ENV["NEW_RELIC_LOG_FILE_PATH"] = "STDOUT"
+ENV['NEW_RELIC_LOG_FILE_PATH'] = 'STDOUT'
 
 require 'newrelic_rpm'
 

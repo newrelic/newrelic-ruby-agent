@@ -16,7 +16,7 @@ module NewRelic
         def deferred_dependency_check
           return if self.class._nr_deferred_detection_ran
 
-          NewRelic::Agent.logger.info("Doing deferred dependency-detection before Rack startup")
+          NewRelic::Agent.logger.info('Doing deferred dependency-detection before Rack startup')
           DependencyDetection.detect!
           self.class._nr_deferred_detection_ran = true
         end

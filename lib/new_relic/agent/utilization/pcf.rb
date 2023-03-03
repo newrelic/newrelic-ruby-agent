@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     module Utilization
       class PCF < Vendor
-        vendor_name "pcf"
+        vendor_name 'pcf'
         keys %w[CF_INSTANCE_GUID CF_INSTANCE_IP MEMORY_LIMIT]
         key_transforms [:downcase, :to_sym]
 

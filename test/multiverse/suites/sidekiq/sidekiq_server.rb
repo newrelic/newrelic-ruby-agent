@@ -19,9 +19,9 @@ class SidekiqServer
     set_redis_host
   end
 
-  def run(file = "test_worker.rb")
-    @sidekiq.parse(["--require", File.join(File.dirname(__FILE__), file),
-      "--queue", "#{queue_name},1"])
+  def run(file = 'test_worker.rb')
+    @sidekiq.parse(['--require', File.join(File.dirname(__FILE__), file),
+      '--queue', "#{queue_name},1"])
     @cli_thread = Thread.new { @sidekiq.run }
   end
 
@@ -29,7 +29,7 @@ class SidekiqServer
   # Launcher actor in Sidekiq to throw a fuss and exit with a failed code.
   def stop
     puts "Trying to stop Sidekiq gracefully from #{$$}"
-    Process.kill("INT", $$)
+    Process.kill('INT', $$)
     if @cli_thread.join(THREAD_JOIN_TIMEOUT).nil?
       puts "#{$$} Sidekiq::CLI thread timeout on exit"
     end

@@ -26,11 +26,11 @@ module NewRelic
       ATTACHMENT = 'attachment'.freeze
       TEXT_HTML = 'text/html'.freeze
 
-      BODY_START = "<body".freeze
-      HEAD_START = "<head".freeze
-      GT = ">".freeze
+      BODY_START = '<body'.freeze
+      HEAD_START = '<head'.freeze
+      GT = '>'.freeze
 
-      ALREADY_INSTRUMENTED_KEY = "newrelic.browser_monitoring_already_instrumented"
+      ALREADY_INSTRUMENTED_KEY = 'newrelic.browser_monitoring_already_instrumented'
       CHARSET_RE = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
       X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv\s*=\s*['"]x-ua-compatible['"][^>]*>/im.freeze
 

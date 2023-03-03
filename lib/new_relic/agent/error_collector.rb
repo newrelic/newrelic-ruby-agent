@@ -156,13 +156,13 @@ module NewRelic
       end
 
       def aggregated_metric_names(txn)
-        metric_names = ["Errors/all"]
+        metric_names = ['Errors/all']
         return metric_names unless txn
 
         if txn.recording_web_transaction?
-          metric_names << "Errors/allWeb"
+          metric_names << 'Errors/allWeb'
         else
-          metric_names << "Errors/allOther"
+          metric_names << 'Errors/allOther'
         end
 
         metric_names

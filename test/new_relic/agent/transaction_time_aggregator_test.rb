@@ -101,7 +101,7 @@ class NewRelic::Agent::TransactionTimeAggregatorTest < Minitest::Test
 
     NewRelic::Agent::TransactionTimeAggregator.harvest!
 
-    spec = NewRelic::MetricSpec.new("Instance/Busy")
+    spec = NewRelic::MetricSpec.new('Instance/Busy')
     stats = NewRelic::Agent.instance.stats_engine.to_h[spec]
 
     refute_nil stats

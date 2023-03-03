@@ -44,7 +44,7 @@ module NewRelic
           end
         end
 
-        if RUBY_VERSION < "2.7.0"
+        if RUBY_VERSION < '2.7.0'
           def log_with_newrelic_instrumentation(*args, &block)
             state = NewRelic::Agent::Tracer.state
 

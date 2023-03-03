@@ -18,14 +18,14 @@ server = NewRelic::FakeExternalServer.new(3035)
 server.reset
 server.run
 
-puts JSON.dump({:message => "started"})
+puts JSON.dump({:message => 'started'})
 
 while message = JSON.parse(gets)
-  case message["command"]
-  when "shutdown"
+  case message['command']
+  when 'shutdown'
     server.stop
     exit(0)
-  when "add_headers"
-    server.override_response_headers(message["payload"])
+  when 'add_headers'
+    server.override_response_headers(message['payload'])
   end
 end

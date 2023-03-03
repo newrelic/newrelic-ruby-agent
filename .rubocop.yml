@@ -1785,17 +1785,6 @@ Style/StringConcatenation:
 Style/StringHashKeys:
   Enabled: false
 
-# Disabling for now
-Style/StringLiterals:
-  Enabled: false
-#   EnforcedStyle: double_quotes
-#   ConsistentQuotesInMultiline: false
-
-# Disabling for now
-Style/StringLiteralsInInterpolation:
-  Enabled: false
-  # EnforcedStyle: double_quotes
-
 Style/StringMethods:
   Enabled: false
 

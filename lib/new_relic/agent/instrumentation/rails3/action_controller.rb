@@ -37,7 +37,7 @@ module NewRelic
             extend self
             def template_metric(identifier, options = {})
               if options[:file]
-                "file"
+                'file'
               elsif identifier.nil?
                 ::NewRelic::Agent::UNKNOWN_METRIC
               elsif identifier.include?('/') # this is a filepath

@@ -12,8 +12,8 @@ gem 'rack-test'
 gem 'sprockets', '3.7.2'
 
 platforms :jruby do
-  gem "activerecord-jdbcmysql-adapter", "~> 61.0"
-  gem "activerecord-jdbcsqlite3-adapter", "~> 61.0"
+  gem 'activerecord-jdbcmysql-adapter', '~> 61.0'
+  gem 'activerecord-jdbcsqlite3-adapter', '~> 61.0'
 end
 
 platforms :ruby, :rbx do
@@ -31,5 +31,5 @@ gem 'newrelic_rpm', path: '../../..'
 
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
-gem 'simplecov' if ENV["VERBOSE_TEST_OUTPUT"]
+gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
 gem 'warning' if RUBY_VERSION >= '2.4.0'

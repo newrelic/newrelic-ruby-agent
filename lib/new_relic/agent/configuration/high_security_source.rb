@@ -24,9 +24,9 @@ module NewRelic
           })
         end
 
-        OFF = "off".freeze
-        RAW = "raw".freeze
-        OBFUSCATED = "obfuscated".freeze
+        OFF = 'off'.freeze
+        RAW = 'raw'.freeze
+        OBFUSCATED = 'obfuscated'.freeze
 
         SET_TO_OBFUSCATED = [RAW, OBFUSCATED]
 

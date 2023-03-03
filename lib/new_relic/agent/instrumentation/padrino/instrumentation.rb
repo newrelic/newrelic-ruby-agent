@@ -6,9 +6,9 @@ module NewRelic::Agent::Instrumentation
   module Padrino
     def invoke_route_with_tracing(*args)
       begin
-        env["newrelic.last_route"] = args[0].original_path
+        env['newrelic.last_route'] = args[0].original_path
       rescue => e
-        ::NewRelic::Agent.logger.debug("Failed determining last route in Padrino", e)
+        ::NewRelic::Agent.logger.debug('Failed determining last route in Padrino', e)
       end
 
       begin
@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
           )
         end
       rescue => e
-        ::NewRelic::Agent.logger.debug("Failed during invoke_route to set transaction name", e)
+        ::NewRelic::Agent.logger.debug('Failed during invoke_route to set transaction name', e)
       end
 
       yield

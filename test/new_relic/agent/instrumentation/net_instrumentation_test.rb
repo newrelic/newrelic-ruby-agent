@@ -31,8 +31,8 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
     @socket.stubs(:write).raises('fake network error')
     @socket.stubs(:write_nonblock).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction("test") do
-        segment = NewRelic::Agent::Tracer.start_segment(name: "dummy")
+      in_transaction('test') do
+        segment = NewRelic::Agent::Tracer.start_segment(name: 'dummy')
         Net::HTTP.get(URI.parse('http://www.google.com/index.html')) rescue nil
         segment.finish
       end

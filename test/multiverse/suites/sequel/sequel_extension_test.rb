@@ -35,12 +35,12 @@ if Sequel.const_defined?(:MAJOR) &&
 
     def expected_metrics_for_operation(operation)
       [
-        ["Datastore/operation/#{product_name}/#{operation}", "dummy"],
+        ["Datastore/operation/#{product_name}/#{operation}", 'dummy'],
         "Datastore/operation/#{product_name}/#{operation}",
         "Datastore/#{product_name}/allWeb",
-        "Datastore/allWeb",
+        'Datastore/allWeb',
         "Datastore/#{product_name}/all",
-        "Datastore/all"
+        'Datastore/all'
       ]
     end
 
@@ -142,5 +142,5 @@ if Sequel.const_defined?(:MAJOR) &&
   end
 
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because unsupported Sequel version" if ENV["VERBOSE_TEST_OUTPUT"]
+  puts "Skipping tests in #{File.basename(__FILE__)} because unsupported Sequel version" if ENV['VERBOSE_TEST_OUTPUT']
 end

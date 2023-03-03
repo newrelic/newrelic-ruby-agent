@@ -80,31 +80,31 @@ class ConfigFileLoadingTest < Minitest::Test
   def assert_config_read_from(path, manual_config_options = {})
     setup_config(path, manual_config_options)
 
-    assert_equal("success!!", NewRelic::Agent.config[:foo],
+    assert_equal('success!!', NewRelic::Agent.config[:foo],
       "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}")
   end
 
   def assert_config_not_read_from(path)
     setup_config(path)
 
-    refute_equal NewRelic::Agent.config[:foo], "success!!",
+    refute_equal NewRelic::Agent.config[:foo], 'success!!',
       "Read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
   end
 
   def test_config_loads_from_config_newrelic_yml
-    assert_config_read_from(File.join(@cwd, "config/newrelic.yml"))
+    assert_config_read_from(File.join(@cwd, 'config/newrelic.yml'))
   end
 
   def test_config_loads_from_newrelic_yml
-    assert_config_read_from(File.join(@cwd, "newrelic.yml"))
+    assert_config_read_from(File.join(@cwd, 'newrelic.yml'))
   end
 
   def test_config_loads_from_home_newrelic_yml
-    assert_config_read_from(ENV['HOME'] + "/newrelic.yml")
+    assert_config_read_from(ENV['HOME'] + '/newrelic.yml')
   end
 
   def test_config_loads_from_home_dot_newrelic_newrelic_yml
-    assert_config_read_from(ENV['HOME'] + "/.newrelic/newrelic.yml")
+    assert_config_read_from(ENV['HOME'] + '/.newrelic/newrelic.yml')
   end
 
   def test_config_loads_from_config_path_option_to_manual_start
@@ -185,32 +185,32 @@ class ConfigFileLoadingTest < Minitest::Test
 
     log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_equal "success!!", NewRelic::Agent.config[:foo]
+    assert_equal 'success!!', NewRelic::Agent.config[:foo]
 
     refute_log_contains(log, /ERROR.*Failed ERB processing/)
     refute_log_contains(log, /\(erb\)/)
   end
 
   def test_config_loads_from_env_NRCONFIG
-    ENV["NRCONFIG"] = "/tmp/foo/bar.yml"
+    ENV['NRCONFIG'] = '/tmp/foo/bar.yml'
 
-    assert_config_read_from("/tmp/foo/bar.yml")
+    assert_config_read_from('/tmp/foo/bar.yml')
   ensure
-    ENV["NRCONFIG"] = nil
+    ENV['NRCONFIG'] = nil
   end
 
   def test_config_isnt_loaded_from_somewhere_crazy
-    assert_config_not_read_from(File.join(@cwd, "somewhere/crazy/newrelic.yml"))
+    assert_config_not_read_from(File.join(@cwd, 'somewhere/crazy/newrelic.yml'))
   end
 
   def test_config_will_load_settings_for_environment_passed_manual_start
-    path = File.join(@cwd, "config/newrelic.yml")
+    path = File.join(@cwd, 'config/newrelic.yml')
 
     # pass an env key to NewRelic::Agent.manual_start which should cause it to
     # load that section of newrelic.yml
     setup_config(path, {:env => 'bazbangbarn'})
 
-    assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
+    assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], 'Agent.config did not load bazbangbarn config as requested'
   end
 
   def test_parses_default_settings_correctly

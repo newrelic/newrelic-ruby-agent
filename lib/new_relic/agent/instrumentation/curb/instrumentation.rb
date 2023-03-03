@@ -81,7 +81,7 @@ module NewRelic
           def perform_with_tracing
             return yield if first_request_is_serial?
 
-            trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
+            trace_execution_scoped('External/Multiple/Curb::Multi/perform') do
               yield
             end
           end
@@ -107,7 +107,7 @@ module NewRelic
               request._nr_instrumented = true
             end
           rescue => err
-            NewRelic::Agent.logger.error("Untrapped exception", err)
+            NewRelic::Agent.logger.error('Untrapped exception', err)
           end
 
           # Create request and response adapter objects for the specified +request+

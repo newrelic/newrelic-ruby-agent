@@ -12,15 +12,15 @@ module NewRelic
         class InstanceIdentificationTest < Minitest::Test
           def test_for_constructs_id_with_configured_host_and_port
             config = {
-              :host => "jonan.local",
+              :host => 'jonan.local',
               :port => 42
             }
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "jonan.local", host
-            assert_equal "42", ppid
+            assert_equal 'jonan.local', host
+            assert_equal '42', ppid
           end
 
           def test_for_constructs_id_with_unspecified_configuration
@@ -28,31 +28,31 @@ module NewRelic
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "localhost", host
-            assert_equal "default", ppid
+            assert_equal 'localhost', host
+            assert_equal 'default', ppid
           end
 
           def test_for_constructs_id_with_weird_configs
             config = {
-              :host => "",
-              :port => ""
+              :host => '',
+              :port => ''
             }
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "unknown", host
-            assert_equal "unknown", ppid
+            assert_equal 'unknown', host
+            assert_equal 'unknown', ppid
           end
 
           def test_for_constructs_id_with_configured_host_without_port
-            config = {:host => "jonan.gummy_planet"}
+            config = {:host => 'jonan.gummy_planet'}
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "jonan.gummy_planet", host
-            assert_equal "default", ppid
+            assert_equal 'jonan.gummy_planet', host
+            assert_equal 'default', ppid
           end
 
           def test_for_constructs_id_with_port_without_host
@@ -61,48 +61,48 @@ module NewRelic
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "localhost", host
-            assert_equal "1337", ppid
+            assert_equal 'localhost', host
+            assert_equal '1337', ppid
           end
 
           def test_for_constructs_id_with_default_port
             config = {
-              :adapter => "mysql",
-              :host => "jonan.gummy_planet"
+              :adapter => 'mysql',
+              :host => 'jonan.gummy_planet'
             }
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "jonan.gummy_planet", host
-            assert_equal "3306", ppid
+            assert_equal 'jonan.gummy_planet', host
+            assert_equal '3306', ppid
           end
 
           def test_for_constructs_id_with_postgres_directory
             config = {
-              :adapter => "postgresql",
-              :host => "/tmp"
+              :adapter => 'postgresql',
+              :host => '/tmp'
             }
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
 
-            assert_equal "localhost", host
-            assert_equal "default", ppid
+            assert_equal 'localhost', host
+            assert_equal 'default', ppid
           end
 
           def test_for_constructs_id_with_mysql_socket
             %w[ mysql mysql2 jdbcmysql ].each do |adapter|
               config = {
                 :adapter => adapter,
-                :socket => "/var/run/mysqld.sock"
+                :socket => '/var/run/mysqld.sock'
               }
 
               host = InstanceIdentification.host(config)
               ppid = InstanceIdentification.port_path_or_id(config)
 
-              assert_equal "localhost", host
-              assert_equal "/var/run/mysqld.sock", ppid
+              assert_equal 'localhost', host
+              assert_equal '/var/run/mysqld.sock', ppid
             end
           end
 
@@ -123,7 +123,7 @@ module NewRelic
 
               in_transaction do
                 config = convert_test_case_to_config(test)
-                product, operation, collection = ActiveRecordHelper.product_operation_collection_for("Blog Find", nil, config[:adapter])
+                product, operation, collection = ActiveRecordHelper.product_operation_collection_for('Blog Find', nil, config[:adapter])
                 host = ActiveRecordHelper::InstanceIdentification.host(config)
                 port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
@@ -142,10 +142,10 @@ module NewRelic
           end
 
           CONFIG_NAMES = {
-            "db_hostname" => :host,
-            "unix_socket" => :socket,
-            "port" => :port,
-            "product" => :adapter
+            'db_hostname' => :host,
+            'unix_socket' => :socket,
+            'port' => :port,
+            'product' => :adapter
           }
 
           def convert_test_case_to_config(test_case)
@@ -160,9 +160,9 @@ module NewRelic
           end
 
           PRODUCT_TO_ADAPTER_NAMES = {
-            "Postgres" => "postgresql",
-            "MySQL" => "mysql",
-            "SQLite" => "sqlite3"
+            'Postgres' => 'postgresql',
+            'MySQL' => 'mysql',
+            'SQLite' => 'sqlite3'
           }
 
           def convert_product_to_adapter(config)

@@ -39,7 +39,7 @@ module NewRelic
 
       def self.heroku_dyno_name_prefix(dyno_name)
         get_dyno_prefixes.find do |dyno_prefix|
-          dyno_name.start_with?(dyno_prefix + ".")
+          dyno_name.start_with?(dyno_prefix + '.')
         end
       end
 

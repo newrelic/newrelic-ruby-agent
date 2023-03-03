@@ -84,7 +84,7 @@ module NewRelic
           # so warn about it since it's very likely to be unintended.
           NewRelic::Agent.logger.warn(
             "No configuration file found. Working directory = #{Dir.pwd}",
-            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(", ")}"
+            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(', ')}"
           )
         end
 
@@ -96,7 +96,7 @@ module NewRelic
             file.gsub!(/^\s*#.*$/, '#')
             ERB.new(file).result(binding)
           rescue ScriptError, StandardError => e
-            log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
+            log_failure('Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.', e)
             nil
           end
         end

@@ -7,7 +7,7 @@ module NewRelic
     module ParameterFiltering
       extend self
 
-      ACTION_DISPATCH_PARAMETER_FILTER ||= "action_dispatch.parameter_filter".freeze
+      ACTION_DISPATCH_PARAMETER_FILTER ||= 'action_dispatch.parameter_filter'.freeze
 
       if defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('5.0.0')
         Rails.application.config.to_prepare do
@@ -41,12 +41,12 @@ module NewRelic
       end
 
       def filter_rack_file_data(env, params)
-        content_type = env["CONTENT_TYPE"]
-        multipart = content_type&.start_with?("multipart")
+        content_type = env['CONTENT_TYPE']
+        multipart = content_type&.start_with?('multipart')
 
         params.inject({}) do |memo, (k, v)|
           if multipart && v.is_a?(Hash) && v[:tempfile]
-            memo[k] = "[FILE]"
+            memo[k] = '[FILE]'
           else
             memo[k] = v
           end
@@ -56,8 +56,8 @@ module NewRelic
 
       def filter_rails_request_parameters(params)
         result = params.dup
-        result.delete("controller")
-        result.delete("action")
+        result.delete('controller')
+        result.delete('action')
         result
       end
 

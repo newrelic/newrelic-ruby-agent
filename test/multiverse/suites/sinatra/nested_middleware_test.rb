@@ -4,7 +4,7 @@
 
 class MiddlewareApp < Sinatra::Base
   get '/middle' do
-    "From the middlewarez"
+    'From the middlewarez'
   end
 end
 
@@ -12,7 +12,7 @@ class MainApp < Sinatra::Base
   use MiddlewareApp
 
   get '/main' do
-    "mainly done"
+    'mainly done'
   end
 end
 
@@ -30,7 +30,7 @@ class NestedMiddlewareTest < Minitest::Test
     get('/main')
 
     assert_metrics_recorded(["Controller/Sinatra/MainApp/#{name_for_route('main')}"])
-    assert_metrics_not_recorded(["Controller/Sinatra/MiddlewareApp/GET (unknown)"])
+    assert_metrics_not_recorded(['Controller/Sinatra/MiddlewareApp/GET (unknown)'])
   end
 
   def test_outer_transaction

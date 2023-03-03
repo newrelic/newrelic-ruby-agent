@@ -14,7 +14,7 @@ module NewRelic
       end
 
       def stub_service(response)
-        conn = stub("http_connection", request: response)
+        conn = stub('http_connection', request: response)
         @agent.service.stubs(:http_connection).returns(conn)
       end
 

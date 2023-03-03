@@ -9,12 +9,12 @@ if defined?(ActionController::Live)
   class DataController < ApplicationController
     # send_file
     def send_test_file
-      send_file(Rails.root + "../../../../README.md")
+      send_file(Rails.root + '../../../../README.md')
     end
 
     # send_data
     def send_test_data
-      send_data("wow its a adata")
+      send_data('wow its a adata')
     end
 
     # halted_callback
@@ -23,7 +23,7 @@ if defined?(ActionController::Live)
 
     # redirect_to
     def do_a_redirect
-      redirect_to("http://foo.bar/")
+      redirect_to('http://foo.bar/')
     end
 
     # unpermitted_parameters
@@ -59,7 +59,7 @@ if defined?(ActionController::Live)
 
       # depending on the rails version, the value will be either
       # "do_a_redirect" OR :do_a_redirect OR ":do_a_redirect"
-      assert_includes(tt_node.params[:filter].to_s, "do_a_redirect")
+      assert_includes(tt_node.params[:filter].to_s, 'do_a_redirect')
       assert_metrics_recorded(['Controller/data/halt_my_callback', 'Ruby/ActionController/halted_callback'])
     end
 
@@ -112,10 +112,10 @@ if defined?(ActionController::Live)
     class TestClassActionController; end
     def test_no_metric_naming_error
       payloads = [
-        {request: "Not gonna respond to controller_class"},
+        {request: 'Not gonna respond to controller_class'},
         {request: Class.new do
           def controller_class
-            "not gonna respond to controller_path"
+            'not gonna respond to controller_path'
           end
         end},
         {context: {}},

@@ -9,9 +9,9 @@ require 'pp'
 
 module NewRelic::Agent
   class AttributeFilterTest < Minitest::Test
-    test_cases = load_cross_agent_test("attribute_configuration")
+    test_cases = load_cross_agent_test('attribute_configuration')
     test_cases.each do |test_case|
-      define_method("test_#{test_case['testname'].gsub(/\W/, "_")}") do
+      define_method("test_#{test_case['testname'].gsub(/\W/, '_')}") do
         with_config(test_case['config']) do
           filter = AttributeFilter.new(NewRelic::Agent.config)
 

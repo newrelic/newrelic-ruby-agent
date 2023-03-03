@@ -13,8 +13,8 @@ module NewRelic
 
         attr_reader :obfuscator
 
-        QUERY_TOO_LARGE_MESSAGE = "Query too large (over 16k characters) to safely obfuscate".freeze
-        ELLIPSIS = "...".freeze
+        QUERY_TOO_LARGE_MESSAGE = 'Query too large (over 16k characters) to safely obfuscate'.freeze
+        ELLIPSIS = '...'.freeze
 
         def initialize
           reset

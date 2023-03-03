@@ -12,7 +12,7 @@ module NewRelic
           {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => true,
-            :'infinite_tracing.trace_observer.host' => "localhost:80"
+            :'infinite_tracing.trace_observer.host' => 'localhost:80'
           }
         end
 
@@ -20,7 +20,7 @@ module NewRelic
           {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => true,
-            :'infinite_tracing.trace_observer.host' => "https://example.com"
+            :'infinite_tracing.trace_observer.host' => 'https://example.com'
           }
         end
 
@@ -31,7 +31,7 @@ module NewRelic
             channel = Channel.new
             credentials = channel.send(:credentials)
 
-            assert_equal "example.com:443", channel.send(:host_and_port)
+            assert_equal 'example.com:443', channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
         ensure
@@ -42,14 +42,14 @@ module NewRelic
           Config.stubs(:test_framework?).returns(false)
           # HTTP instead of HTTPS...
           insecure_remote_config = remote_config.merge({
-            :'infinite_tracing.trace_observer.host' => "http://example.com"
+            :'infinite_tracing.trace_observer.host' => 'http://example.com'
           })
 
           with_config(insecure_remote_config) do
             channel = Channel.new
             credentials = channel.send(:credentials)
 
-            assert_equal "example.com:443", channel.send(:host_and_port)
+            assert_equal 'example.com:443', channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
         ensure

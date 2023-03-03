@@ -274,7 +274,7 @@ module NewRelic
         end
 
         def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+          raise NotImplementedError, 'Subclasses must implement record_metrics'
         end
 
         # callback for subclasses to override

@@ -13,7 +13,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     @started_event.stubs(:command_name).returns('find')
     @started_event.stubs(:database_name).returns('mongodb-test')
     @started_event.stubs(:command).returns({'find' => 'users', 'filter' => {'name' => 'test'}})
-    address = stub('address', :host => "127.0.0.1", :port => 27017)
+    address = stub('address', :host => '127.0.0.1', :port => 27017)
     @started_event.stubs(:address).returns(address)
 
     @succeeded_event = mock('succeeded event')
@@ -22,7 +22,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     @subscriber = NewRelic::Agent::Instrumentation::MongodbCommandSubscriber.new
 
-    NewRelic::Agent::Hostname.stubs(:get).returns("nerd-server")
+    NewRelic::Agent::Hostname.stubs(:get).returns('nerd-server')
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
   end
@@ -76,7 +76,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
   end
 
   def test_records_instance_metrics_for_unix_domain_socket
-    address = stub('address', :host => "/tmp/mongodb-27017.sock", :port => nil)
+    address = stub('address', :host => '/tmp/mongodb-27017.sock', :port => nil)
     @started_event.stubs(:address).returns(address)
     in_transaction { simulate_query }
 
@@ -103,7 +103,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
   end
 
   def test_does_not_record_unknown_unknown_metric_when_data_empty
-    address = stub('address', :host => "", :port => "")
+    address = stub('address', :host => '', :port => '')
     @started_event.stubs(:address).returns(address)
     in_transaction { simulate_query }
 

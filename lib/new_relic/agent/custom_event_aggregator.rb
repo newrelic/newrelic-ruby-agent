@@ -71,9 +71,9 @@ module NewRelic
 
       def record_supportability_metrics(total_count, captured_count, dropped_count)
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("Events/Customer/Seen", total_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Sent", captured_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Dropped", dropped_count)
+        engine.tl_record_supportability_metric_count('Events/Customer/Seen', total_count)
+        engine.tl_record_supportability_metric_count('Events/Customer/Sent', captured_count)
+        engine.tl_record_supportability_metric_count('Events/Customer/Dropped', dropped_count)
       end
 
       def note_dropped_event(type)

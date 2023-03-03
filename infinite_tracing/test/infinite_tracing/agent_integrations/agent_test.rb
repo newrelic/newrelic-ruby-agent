@@ -11,7 +11,7 @@ module NewRelic
         include FakeTraceObserverHelpers
 
         def test_injects_infinite_tracer
-          assert ::NewRelic::Agent.instance, "expected to get an Agent instance"
+          assert ::NewRelic::Agent.instance, 'expected to get an Agent instance'
           assert ::NewRelic::Agent.instance.infinite_tracer
         end
 

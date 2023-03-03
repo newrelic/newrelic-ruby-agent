@@ -24,16 +24,16 @@ module NewRelic::Agent
         []
       end
 
-      load_cross_agent_test("distributed_tracing/distributed_tracing").each do |test_case|
-        test_case['test_name'] = test_case['test_name'].tr(" ", "_")
+      load_cross_agent_test('distributed_tracing/distributed_tracing').each do |test_case|
+        test_case['test_name'] = test_case['test_name'].tr(' ', '_')
 
         if focus_tests.empty? || focus_tests.include?(test_case['test_name'])
           define_method("test_#{test_case['test_name']}") do
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
+            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case['force_sampled_true'])
 
             config = {
               :account_id => test_case['account_id'],
-              :primary_application_id => "2827902",
+              :primary_application_id => '2827902',
               :trusted_account_key => test_case['trusted_account_key'],
               :'span_events.enabled' => test_case['span_events_enabled'],
               :'distributed_tracing.enabled' => true
@@ -46,7 +46,7 @@ module NewRelic::Agent
           end
         else
           define_method("test_#{test_case['test_name']}") do
-            skip("marked pending by exclusion from #only_tests")
+            skip('marked pending by exclusion from #only_tests')
           end
         end
       end
@@ -55,8 +55,8 @@ module NewRelic::Agent
 
       def run_test_case(test_case)
         outbound_payloads = []
-        if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
-          skip("marked pending in trace_context.json")
+        if test_case['test_name'] =~ /^pending|^skip/ || test_case['pending'] || test_case['skip']
+          skip('marked pending in trace_context.json')
         end
         in_transaction(in_transaction_options(test_case)) do |txn|
           accept_payloads(test_case, txn)
@@ -76,7 +76,7 @@ module NewRelic::Agent
 
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
-          carrier = {"HTTP_NEWRELIC" => payload}
+          carrier = {'HTTP_NEWRELIC' => payload}
           DistributedTracing.accept_distributed_trace_headers(carrier, test_case['transport_type'])
         end
       end

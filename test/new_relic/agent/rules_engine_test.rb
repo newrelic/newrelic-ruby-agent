@@ -119,11 +119,11 @@ class RulesEngineTest < Minitest::Test
     define_method("test_#{testcase['testname']}") do
       engine = NewRelic::Agent::RulesEngine.create_metric_rules('metric_name_rules' => testcase['rules'])
 
-      testcase["tests"].each do |test|
-        if test["expected"].nil?
-          assert_nil engine.rename(test["input"]), "Input: #{test['input'].inspect}"
+      testcase['tests'].each do |test|
+        if test['expected'].nil?
+          assert_nil engine.rename(test['input']), "Input: #{test['input'].inspect}"
         else
-          assert_equal test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}"
+          assert_equal test['expected'], engine.rename(test['input']), "Input: #{test['input'].inspect}"
         end
       end
     end
@@ -134,7 +134,7 @@ class RulesEngineTest < Minitest::Test
       engine = NewRelic::Agent::RulesEngine.create_transaction_rules(testcase)
 
       testcase['tests'].each do |test|
-        assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
+        assert_equal(test['expected'], engine.rename(test['input']), "Input: #{test['input'].inspect}")
       end
     end
   end

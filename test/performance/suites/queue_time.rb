@@ -5,9 +5,9 @@
 class QueueTimePerfTests < Performance::TestCase
   def setup
     @headers = [
-      {'HTTP_X_REQUEST_START' => "t=1409849996.2152882"},
-      {'HTTP_X_REQUEST_START' => "t=1409850011020.236"},
-      {'HTTP_X_REQUEST_START' => "t=1409850011020236.0"}
+      {'HTTP_X_REQUEST_START' => 't=1409849996.2152882'},
+      {'HTTP_X_REQUEST_START' => 't=1409850011020.236'},
+      {'HTTP_X_REQUEST_START' => 't=1409850011020236.0'}
     ]
   end
 

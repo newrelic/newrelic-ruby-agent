@@ -23,12 +23,12 @@ module NewRelic::Agent::Instrumentation
           api_class = (context.class.respond_to?(:base) && context.class.base) || context.class
           handle_transaction(endpoint, api_class.name, version)
         rescue => e
-          ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
+          ::NewRelic::Agent.logger.warn('Error in Grape instrumentation', e)
         end
       end
 
       def prepare!
-        if defined?(::Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("0.16.0")
+        if defined?(::Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('0.16.0')
           send(:remove_method, :name_for_transaction_deprecated)
         else
           send(:remove_method, :name_for_transaction)
@@ -40,7 +40,7 @@ module NewRelic::Agent::Instrumentation
       API_VERSION = 'api.version'.freeze
       FORMAT_REGEX = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
       VERSION_REGEX = /:version(\/|$)/.freeze
-      MIN_VERSION = Gem::Version.new("0.2.0")
+      MIN_VERSION = Gem::Version.new('0.2.0')
       PIPE_STRING = '|'.freeze
 
       def handle_transaction(endpoint, class_name, version)
@@ -91,7 +91,7 @@ module NewRelic::Agent::Instrumentation
         txn = ::NewRelic::Agent::Transaction.tl_current
         env = endpoint.request.env
         params = ::NewRelic::Agent::ParameterFiltering::apply_filters(env, endpoint.params)
-        params.delete("route_info")
+        params.delete('route_info')
         txn.filtered_params = params
         txn.merge_request_parameters(params)
       end

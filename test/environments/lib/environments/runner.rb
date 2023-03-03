@@ -24,14 +24,14 @@ module Environments
       overall_status = 0
       failures = []
 
-      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + "/", "") }.join("\n\t")}") if ENV['VERBOSE_TEST_OUTPUT']
-      env_file = ENV["file"]
+      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + '/', '') }.join("\n\t")}") if ENV['VERBOSE_TEST_OUTPUT']
+      env_file = ENV['file']
 
       tests_to_run.each do |dir|
         Bundler.with_unbundled_env do
-          ENV["file"] = env_file if env_file
+          ENV['file'] = env_file if env_file
           dir = File.expand_path(dir)
-          puts "", yellow("Running tests for #{dir}") if ENV['VERBOSE_TEST_OUTPUT']
+          puts '', yellow("Running tests for #{dir}") if ENV['VERBOSE_TEST_OUTPUT']
           status = bundle(dir)
           status = run(dir) if status.success?
 
@@ -43,16 +43,16 @@ module Environments
       end
 
       if overall_status == 0
-        puts green("All good to go. Yippy!")
+        puts green('All good to go. Yippy!')
       else
-        puts red("Oh no, #{overall_status} environments failed!"), "", red(failures.join("\n"))
+        puts red("Oh no, #{overall_status} environments failed!"), '', red(failures.join("\n"))
       end
 
       exit(overall_status)
     end
 
     def tests_to_run
-      original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib" }
+      original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == 'lib' }
 
       return original_dirs if envs.empty?
 
@@ -65,18 +65,18 @@ module Environments
 
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
-      return version if version.to_s == ""
+      return version if version.to_s == ''
 
       test_version = `bundle #{version} --version`.include?('Could not find command')
-      test_version ? "" : version
+      test_version ? '' : version
     end
 
     def explicit_bundler_version(dir)
       return if RUBY_PLATFORM == 'java'
 
-      fn = File.join(dir, ".bundler-version")
+      fn = File.join(dir, '.bundler-version')
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
-      safe_explicit(version.to_s == "" ? nil : "_#{version}_")
+      safe_explicit(version.to_s == '' ? nil : "_#{version}_")
     end
 
     def bundle_config(dir, bundle_cmd)
@@ -93,7 +93,7 @@ module Environments
       result = Multiverse::ShellUtils.try_command_n_times(command, 3)
 
       result = red(result) unless $?.success?
-      puts result if ENV["VERBOSE_TEST_OUTPUT"]
+      puts result if ENV['VERBOSE_TEST_OUTPUT']
       $?
     end
 
@@ -102,7 +102,7 @@ module Environments
       cmd = +"cd #{dir} && bundle exec rake"
       # if the shell running the original test:env rake task has a "file" env
       # var, replicate it here in the subshell
-      cmd << " file=#{ENV['file']}" if ENV["file"]
+      cmd << " file=#{ENV['file']}" if ENV['file']
       # if the shell running the original test:env rake task has CLI args (not
       # Rake task args) such as '--trace', replicate them here in the subshell
       cmd << " #{ARGV[1..-1].join(' ')}" if ARGV.size > 1

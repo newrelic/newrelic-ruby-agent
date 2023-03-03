@@ -17,19 +17,19 @@ module NewRelic
             sampled = nil
             priority = nil
             timestamp = nil
-            sql_statement = "select * from table"
+            sql_statement = 'select * from table'
 
             span_events = generate_and_stream_segments do
               in_web_transaction('wat') do |txn|
                 txn.stubs(:sampled?).returns(true)
 
                 segment = Tracer.start_datastore_segment(
-                  product: "SQLite",
-                  collection: "Blahg",
-                  operation: "select",
-                  host: "rachel.foo",
+                  product: 'SQLite',
+                  collection: 'Blahg',
+                  operation: 'select',
+                  host: 'rachel.foo',
                   port_path_or_id: 1337807,
-                  database_name: "calzone_zone"
+                  database_name: 'calzone_zone'
                 )
 
                 segment.notice_sql(sql_statement)
@@ -83,8 +83,8 @@ module NewRelic
                 txn.stubs(:sampled?).returns(false)
 
                 segment = Tracer.start_datastore_segment(
-                  product: "SQLite",
-                  operation: "select",
+                  product: 'SQLite',
+                  operation: 'select',
                   port_path_or_id: 1337807
                 )
 
@@ -105,8 +105,8 @@ module NewRelic
                 txn.stubs(:ignore?).returns(true)
 
                 segment = Tracer.start_datastore_segment(
-                  product: "SQLite",
-                  operation: "select",
+                  product: 'SQLite',
+                  operation: 'select',
                   port_path_or_id: 1337807
                 )
 

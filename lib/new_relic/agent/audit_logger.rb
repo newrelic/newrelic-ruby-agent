@@ -32,9 +32,9 @@ module NewRelic
 
         @log.info("REQUEST HEADERS: #{headers}")
       rescue StandardError, SystemStackError, SystemCallError => e
-        ::NewRelic::Agent.logger.warn("Failed writing request headers to audit log", e)
+        ::NewRelic::Agent.logger.warn('Failed writing request headers to audit log', e)
       rescue Exception => e
-        ::NewRelic::Agent.logger.warn("Failed writing request headers to audit log with exception. Re-raising in case of interrupt.", e)
+        ::NewRelic::Agent.logger.warn('Failed writing request headers to audit log with exception. Re-raising in case of interrupt.', e)
         raise
       end
 
@@ -50,9 +50,9 @@ module NewRelic
         @log.info("REQUEST: #{uri}")
         @log.info("REQUEST BODY: #{request_body}")
       rescue StandardError, SystemStackError, SystemCallError => e
-        ::NewRelic::Agent.logger.warn("Failed writing to audit log", e)
+        ::NewRelic::Agent.logger.warn('Failed writing to audit log', e)
       rescue Exception => e
-        ::NewRelic::Agent.logger.warn("Failed writing to audit log with exception. Re-raising in case of interrupt.", e)
+        ::NewRelic::Agent.logger.warn('Failed writing to audit log with exception. Re-raising in case of interrupt.', e)
         raise
       end
 
@@ -64,7 +64,7 @@ module NewRelic
         if wants_stdout?
           # Using $stdout global for easier reassignment in testing
           @log = ::Logger.new($stdout)
-          ::NewRelic::Agent.logger.info("Audit log enabled to STDOUT")
+          ::NewRelic::Agent.logger.info('Audit log enabled to STDOUT')
         elsif path = ensure_log_path
           @log = ::Logger.new(path)
           ::NewRelic::Agent.logger.info("Audit log enabled at '#{path}'")

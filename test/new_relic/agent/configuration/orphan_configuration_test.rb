@@ -47,7 +47,7 @@ class OrphanedConfigTest < Minitest::Test
 
   def test_documented_all_named_instrumentation_files
     non_test_files.each do |file|
-      next unless file.include?("new_relic/agent/instrumentation")
+      next unless file.include?('new_relic/agent/instrumentation')
 
       lines_in(file).each_with_index do |line, index|
         dependency = line.match(NAMED_DEPENDENCY_PATTERN)

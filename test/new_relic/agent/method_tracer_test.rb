@@ -18,7 +18,7 @@ class Insider
       # don't use a real sampler because we can't instantiate one
       # NewRelic::Agent::TransactionSampler.new(NewRelic::Agent.instance)
       begin
-        fail "This should not have worked."
+        fail 'This should not have worked.'
       rescue
       end
     else
@@ -40,7 +40,7 @@ module TestModuleWithLog
   class << self
     def other_method
       # just here to be traced
-      log("12345")
+      log('12345')
     end
 
     def log(msg)
@@ -78,7 +78,7 @@ class MyProxyClass < BasicObject
   include ::NewRelic::Agent::MethodTracer
 
   def hello
-    "hello"
+    'hello'
   end
 
   add_method_tracer :hello, 'Custom/proxy/hello'
@@ -115,7 +115,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_records_metric_data
-    metric = "hello"
+    metric = 'hello'
 
     in_transaction do
       self.class.trace_execution_scoped(metric) do
@@ -144,7 +144,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded 'yeap' => {:call_count => 1}
   end
 
-  METRIC = "metric"
+  METRIC = 'metric'
 
   def test_add_method_tracer
     @metric_name = METRIC
@@ -179,7 +179,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       MyClass.class_method
     end
 
-    metric = "Custom/MyClass/Class/class_method"
+    metric = 'Custom/MyClass/Class/class_method'
 
     assert_metrics_recorded metric => {:call_count => 1}
   end
@@ -202,7 +202,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       MyModule.module_method
     end
 
-    metric = "Custom/MyModule/Class/module_method"
+    metric = 'Custom/MyModule/Class/module_method'
 
     assert_metrics_recorded metric => {:call_count => 1}
   end
@@ -237,7 +237,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       cls.new.instance_method
     end
 
-    metric = "Custom/AnonymousClass/instance_method"
+    metric = 'Custom/AnonymousClass/instance_method'
 
     assert_metrics_recorded metric => {:call_count => 1}
   end
@@ -297,9 +297,9 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_tt_only
-    self.class.add_method_tracer(:method_c1, "c1", :push_scope => true)
-    self.class.add_method_tracer(:method_c2, "c2", :metric => false)
-    self.class.add_method_tracer(:method_c3, "c3", :push_scope => false)
+    self.class.add_method_tracer(:method_c1, 'c1', :push_scope => true)
+    self.class.add_method_tracer(:method_c2, 'c2', :metric => false)
+    self.class.add_method_tracer(:method_c3, 'c3', :push_scope => false)
 
     in_transaction do
       method_c1
@@ -310,8 +310,8 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_nested_scope_tracer
-    Insider.add_method_tracer(:catcher, "catcher", :push_scope => true)
-    Insider.add_method_tracer(:thrower, "thrower", :push_scope => true)
+    Insider.add_method_tracer(:catcher, 'catcher', :push_scope => true)
+    Insider.add_method_tracer(:thrower, 'thrower', :push_scope => true)
 
     mock = Insider.new(@stats_engine)
 
@@ -321,8 +321,8 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     assert_metrics_recorded({
-      "catcher" => {:call_count => 2},
-      "thrower" => {:call_count => 6}
+      'catcher' => {:call_count => 2},
+      'thrower' => {:call_count => 6}
     })
 
     sample = last_transaction_trace
@@ -351,7 +351,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def test_add_tracer_with_dynamic_metric
     metric_code = -> (*args) { "#{args[0]}.#{args[1]}" }
     @metric_name = metric_code
-    expected_metric = "1.2"
+    expected_metric = '1.2'
     self.class.add_method_tracer(:method_to_be_traced, metric_code)
 
     in_transaction do
@@ -417,7 +417,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def test_exception
     begin
-      metric = "hey"
+      metric = 'hey'
       in_transaction do
         self.class.trace_execution_scoped(metric) do
           raise StandardError.new

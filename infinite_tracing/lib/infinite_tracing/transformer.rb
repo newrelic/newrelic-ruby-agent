@@ -10,10 +10,10 @@ module NewRelic::Agent
       def transform(span_event)
         intrinsics, user_attributes, agent_attributes = span_event
         {
-          "trace_id" => intrinsics[NewRelic::Agent::SpanEventPrimitive::TRACE_ID_KEY],
-          "intrinsics" => hash_to_attributes(intrinsics),
-          "user_attributes" => hash_to_attributes(user_attributes),
-          "agent_attributes" => hash_to_attributes(agent_attributes)
+          'trace_id' => intrinsics[NewRelic::Agent::SpanEventPrimitive::TRACE_ID_KEY],
+          'intrinsics' => hash_to_attributes(intrinsics),
+          'user_attributes' => hash_to_attributes(user_attributes),
+          'agent_attributes' => hash_to_attributes(agent_attributes)
         }
       end
 

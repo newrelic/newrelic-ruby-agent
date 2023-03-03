@@ -37,18 +37,18 @@ module NewRelic
           []
         end
 
-        load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
-          test_case['test_name'] = test_case['test_name'].tr(" ", "_")
+        load_cross_agent_test('distributed_tracing/trace_context').each do |test_case|
+          test_case['test_name'] = test_case['test_name'].tr(' ', '_')
 
           if focus_tests.empty? || focus_tests.include?(test_case['test_name'])
 
             define_method("test_#{test_case['test_name']}") do
-              NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
+              NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case['force_sampled_true'])
 
               config = {
                 :'distributed_tracing.enabled' => true,
                 :account_id => test_case['account_id'],
-                :primary_application_id => "2827902",
+                :primary_application_id => '2827902',
                 :'transaction_events.enabled' => test_case.fetch('transaction_events_enabled', true),
                 :trusted_account_key => test_case['trusted_account_key'],
                 :'span_events.enabled' => test_case.fetch('span_events_enabled', true)
@@ -60,7 +60,7 @@ module NewRelic
             end
           else
             define_method("test_#{test_case['test_name']}") do
-              skip("marked pending by exclusion from #focus_tests")
+              skip('marked pending by exclusion from #focus_tests')
             end
           end
         end
@@ -69,8 +69,8 @@ module NewRelic
 
         def run_test_case(test_case)
           outbound_payloads = []
-          if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
-            skip("marked pending in trace_context.json")
+          if test_case['test_name'] =~ /^pending|^skip/ || test_case['pending'] || test_case['skip']
+            skip('marked pending in trace_context.json')
           end
           in_transaction(in_transaction_options(test_case)) do |txn|
             accept_headers(test_case, txn)
@@ -107,7 +107,7 @@ module NewRelic
           outbound_payloads = []
           if test_case['outbound_newrelic_payloads']
             w3c_payloads.each do |w3c_payload|
-              if newrelic_header = w3c_payload["newrelic"]
+              if newrelic_header = w3c_payload['newrelic']
                 outbound_payloads << DistributedTracePayload.from_http_safe(newrelic_header)
               else
                 outbound_payloads << nil
@@ -133,11 +133,11 @@ module NewRelic
           return unless newrelic_header
           return unless newrelic_payload = DistributedTracePayload.from_http_safe(newrelic_header)
 
-          payload["newrelic"] = {
+          payload['newrelic'] = {
             newrelic_key(:version) => newrelic_payload.version,
             newrelic_key(:data) => {}
           }
-          data_payload = payload["newrelic"][newrelic_key(:data)]
+          data_payload = payload['newrelic'][newrelic_key(:data)]
           assign_not_nil_value(data_payload, :parent_type, newrelic_payload.parent_type)
           assign_not_nil_value(data_payload, :parent_account_id, newrelic_payload.parent_account_id)
           assign_not_nil_value(data_payload, :parent_app, newrelic_payload.parent_app_id)
@@ -223,10 +223,10 @@ module NewRelic
 
         def verify_attributes(test_case_attributes, actual_attributes, event_type)
           if verbose_attributes?
-            puts "", "*" * 80
+            puts '', '*' * 80
             puts event_type
             pp(actual_attributes)
-            puts "*" * 80
+            puts '*' * 80
           end
 
           (test_case_attributes['exact'] || []).each do |k, v|
@@ -291,7 +291,7 @@ module NewRelic
           harvested_events = NewRelic::Agent.agent.span_event_aggregator.harvest!
           last_span_events = harvested_events[1]
 
-          refute_empty last_span_events, "no span events harvested!"
+          refute_empty last_span_events, 'no span events harvested!'
 
           actual_intrinsics = last_span_events[0][0]
 
@@ -305,7 +305,7 @@ module NewRelic
 
           test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
             context_hash = trace_context_headers_to_hash(actual)
-            add_newrelic_entries(context_hash, actual["newrelic"])
+            add_newrelic_entries(context_hash, actual['newrelic'])
 
             dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new(context_hash)
             stringified_hash = stringify_keys_in_object(dotted_context_hash)
@@ -352,7 +352,7 @@ module NewRelic
             tracestate['span_id'] = tracestate_values[4] unless tracestate_values[4].empty?
             tracestate['transaction_id'] = tracestate_values[5] unless tracestate_values[5].empty?
             tracestate['sampled'] = tracestate_values[6]
-            tracestate['priority'] = tracestate_values[7].chomp("0")
+            tracestate['priority'] = tracestate_values[7].chomp('0')
             tracestate['timestamp'] = tracestate_values[8]
             tracestate['tracingVendors'] = header_data.trace_state_vendors
           else
@@ -367,9 +367,9 @@ module NewRelic
         def rack_format(test_case, carrier)
           carrier ||= {}
           rack_headers = {}
-          rack_headers["HTTP_TRACEPARENT"] = carrier['traceparent'] if carrier['traceparent']
-          rack_headers["HTTP_TRACESTATE"] = carrier['tracestate'] if carrier['tracestate']
-          rack_headers["HTTP_NEWRELIC"] = carrier["newrelic"] if carrier["newrelic"]
+          rack_headers['HTTP_TRACEPARENT'] = carrier['traceparent'] if carrier['traceparent']
+          rack_headers['HTTP_TRACESTATE'] = carrier['tracestate'] if carrier['tracestate']
+          rack_headers['HTTP_NEWRELIC'] = carrier['newrelic'] if carrier['newrelic']
           rack_headers
         end
       end

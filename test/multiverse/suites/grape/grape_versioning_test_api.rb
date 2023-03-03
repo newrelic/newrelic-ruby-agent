@@ -10,12 +10,12 @@ unless Grape::VERSION == '0.1.5'
       format :json
 
       get do
-        "root"
+        'root'
       end
 
       resource :fish do
         get do
-          "api v1"
+          'api v1'
         end
       end
     end
@@ -27,19 +27,19 @@ unless Grape::VERSION == '0.1.5'
 
       resource :fish do
         get do
-          "api v2"
+          'api v2'
         end
       end
     end
 
     class ApiV3 < Grape::API
-      version 'v3', :using => :header, :vendor => "newrelic"
+      version 'v3', :using => :header, :vendor => 'newrelic'
 
       format :json
 
       resource :fish do
         get do
-          "api v3"
+          'api v3'
         end
       end
     end
@@ -54,7 +54,7 @@ unless Grape::VERSION == '0.1.5'
 
       resource :fish do
         get do
-          "api v4"
+          'api v4'
         end
       end
     end
@@ -69,7 +69,7 @@ unless Grape::VERSION == '0.1.5'
 
       resource :fish do
         get do
-          "api v5"
+          'api v5'
         end
       end
 
@@ -81,7 +81,7 @@ unless Grape::VERSION == '0.1.5'
 
       resource :fish do
         get do
-          "api v5"
+          'api v5'
         end
       end
     end
@@ -91,7 +91,7 @@ unless Grape::VERSION == '0.1.5'
       version 'v1', 'v2', 'v3', 'v4'
       resource :fish do
         get do
-          "api v1-4"
+          'api v1-4'
         end
       end
     end
@@ -101,7 +101,7 @@ unless Grape::VERSION == '0.1.5'
       version 'v1', 'v2', 'v3', 'v4' do
         resource :fish do
           get do
-            "api v1-4"
+            'api v1-4'
           end
         end
       end
@@ -109,10 +109,10 @@ unless Grape::VERSION == '0.1.5'
 
     class DefaultHeaderApi < Grape::API
       format :json
-      version 'v2', 'v3', :using => :header, :vendor => "newrelic"
+      version 'v2', 'v3', :using => :header, :vendor => 'newrelic'
       resource :fish do
         get do
-          "api v1-4"
+          'api v1-4'
         end
       end
     end
@@ -122,7 +122,7 @@ unless Grape::VERSION == '0.1.5'
       version 'v2', 'v3', :using => :accept_version_header
       resource :fish do
         get do
-          "api v1-4"
+          'api v1-4'
         end
       end
     end

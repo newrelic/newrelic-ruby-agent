@@ -34,7 +34,7 @@ module NewRelic
             end
           else
             NewRelic::Agent.logger.log_once(:warn, :gc_profiler_disabled,
-              "Tried to measure GC time, but GC::Profiler was not enabled.")
+              'Tried to measure GC time, but GC::Profiler was not enabled.')
           end
 
           @total_time_s

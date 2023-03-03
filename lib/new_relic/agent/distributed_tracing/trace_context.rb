@@ -29,14 +29,14 @@ module NewRelic
         TP_UNDEFINED_FIELDS = "(?<#{UNDEFINED_FIELDS_KEY}>-[a-zA-Z\\d-]*)"
         TRACE_PARENT_REGEX = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
 
-        TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x"
+        TRACE_PARENT_FORMAT_STRING = '%02x-%s-%s-%02x'
 
         MAX_TRACE_STATE_SIZE = 512 # bytes
         MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
-        SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
-        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION = "Supportability/TraceContext/TraceState/Parse/Exception"
-        SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
+        SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = 'Supportability/TraceContext/TraceParent/Parse/Exception'
+        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION = 'Supportability/TraceContext/TraceState/Parse/Exception'
+        SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = 'Supportability/TraceContext/TraceState/InvalidNrEntry'
 
         class << self
           def insert(format: NewRelic::FORMAT_NON_RACK,

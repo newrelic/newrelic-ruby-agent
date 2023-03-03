@@ -41,7 +41,7 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
-    refute block_ran, "Expected block passed to #session to have not run"
+    refute block_ran, 'Expected block passed to #session to have not run'
   end
 
   def test_session_block_reuses_http_handle_with_aggressive_keepalive_off
@@ -225,7 +225,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_initialize_uses_license_key_from_manual_start
     service = NewRelic::Agent::NewRelicService.new
-    NewRelic::Agent.manual_start(:license_key => "geronimo")
+    NewRelic::Agent.manual_start(:license_key => 'geronimo')
 
     assert_equal 'geronimo', service.send(:license_key)
     NewRelic::Agent.shutdown
@@ -514,7 +514,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data([])
 
-    assert_equal({"profile" => 123}, response)
+    assert_equal({'profile' => 123}, response)
   end
 
   def test_profile_data_does_not_normalize_encodings
@@ -616,7 +616,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/HTTPError/400" => {:call_count => 1}
+      'Supportability/Agent/Collector/HTTPError/400' => {:call_count => 1}
     )
   end
 
@@ -629,7 +629,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.send(:invoke_remote, :foobar, payload)
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/Duration" => {:call_count => 1}
+      'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1}
     )
   end
 
@@ -644,7 +644,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/metric_data/Attempts" => {:call_count => 1}
+      'Supportability/Agent/Collector/metric_data/Attempts' => {:call_count => 1}
     )
   end
 
@@ -692,7 +692,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_json_marshaller_handles_binary_strings
-    input_string = (0..255).to_a.pack("C*")
+    input_string = (0..255).to_a.pack('C*')
     roundtripped_string = roundtrip_data(input_string)
 
     assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
@@ -702,7 +702,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_json_marshaller_handles_strings_with_incorrect_encoding
-    input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
+    input_string = (0..255).to_a.pack('C*').force_encoding('UTF-8')
     roundtripped_string = roundtrip_data(input_string)
 
     assert_equal(Encoding.find('UTF-8'), input_string.encoding)
@@ -712,7 +712,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_json_marshaller_failure_when_not_normalizing
-    input_string = (0..255).to_a.pack("C*")
+    input_string = (0..255).to_a.pack('C*')
     assert_raises(NewRelic::Agent::SerializationError) do
       roundtrip_data(input_string, false)
     end
@@ -854,7 +854,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_not_valid_to_marshal
-    @service.marshaller.stubs(:dump).raises(StandardError.new("Failed to marshal"))
+    @service.marshaller.stubs(:dump).raises(StandardError.new('Failed to marshal'))
 
     refute @service.valid_to_marshal?({})
   end
@@ -921,7 +921,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Ruby/Collector/foobar/MaxPayloadSizeLimit" => {:call_count => 1}
+      'Supportability/Ruby/Collector/foobar/MaxPayloadSizeLimit' => {:call_count => 1}
     )
   end
 
@@ -1048,7 +1048,7 @@ class NewRelicServiceTest < Minitest::Test
     meth = alphabet.respond_to?(:sample) ? :sample : :choice
     length.times { bytes << alphabet.send(meth) }
 
-    string = bytes.pack("C*")
+    string = bytes.pack('C*')
     string.force_encoding(encoding) if encoding
     string
   end

@@ -31,7 +31,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def populate_container(sampler, n)
     n.times do |i|
       sampler.on_start_transaction(@state)
-      sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", {}, 1, @state)
+      sampler.notice_sql("SELECT * FROM test#{i}", 'Database/test/select', {}, 1, @state)
       sampler.on_finishing_transaction(@state, 'txn')
     end
   end
@@ -53,15 +53,15 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_notice_sql_no_transaction
     assert_nil @sampler.tl_transaction_data
-    @sampler.notice_sql("select * from test", "Database/test/select", nil, 10, @state)
+    @sampler.notice_sql('select * from test', 'Database/test/select', nil, 10, @state)
   end
 
   def test_notice_sql
     @sampler.on_start_transaction(@state)
-    @sampler.notice_sql("select * from test", "Database/test/select", nil, 1.5, @state)
-    @sampler.notice_sql("select * from test2", "Database/test2/select", nil, 1.3, @state)
+    @sampler.notice_sql('select * from test', 'Database/test/select', nil, 1.5, @state)
+    @sampler.notice_sql('select * from test2', 'Database/test2/select', nil, 1.3, @state)
     # this sql will not be captured
-    @sampler.notice_sql("select * from test", "Database/test/select", nil, 0, @state)
+    @sampler.notice_sql('select * from test', 'Database/test/select', nil, 0, @state)
 
     refute_nil @sampler.tl_transaction_data
     assert_equal 2, @sampler.tl_transaction_data.sql_data.size
@@ -70,8 +70,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_notice_sql_statement
     @sampler.on_start_transaction(@state)
 
-    sql = "select * from test"
-    metric_name = "Database/test/select"
+    sql = 'select * from test'
+    metric_name = 'Database/test/select'
     statement = NewRelic::Agent::Database::Statement.new(sql, {:adapter => :mysql})
 
     @sampler.notice_sql_statement(statement, metric_name, 1.5)
@@ -85,19 +85,19 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_notice_sql_truncates_query
     @sampler.on_start_transaction(@state)
     message = 'a' * 17_000
-    @sampler.notice_sql(message, "Database/test/select", nil, 1.5, @state)
+    @sampler.notice_sql(message, 'Database/test/select', nil, 1.5, @state)
 
     assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
   end
 
   def test_save_slow_sql
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
     data.sql_data.concat([
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.5),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.2),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test2"), "Database/test2/select", 1.1)
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test'), 'Database/test/select', 1.5),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test'), 'Database/test/select', 1.2),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test2'), 'Database/test2/select', 1.1)
     ])
     @sampler.save_slow_sql(data)
 
@@ -105,27 +105,27 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_sql_aggregation
-    query = "select * from test"
-    slow_sql = NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new(query), "Database/test/select", 1.2)
+    query = 'select * from test'
+    slow_sql = NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new(query), 'Database/test/select', 1.2)
 
-    sql_trace = NewRelic::Agent::SqlTrace.new(query, slow_sql, "tx_name", "uri")
+    sql_trace = NewRelic::Agent::SqlTrace.new(query, slow_sql, 'tx_name', 'uri')
 
-    sql_trace.aggregate(NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new(query), "Database/test/select", 1.5), "slowest_tx_name", "slow_uri")
-    sql_trace.aggregate(NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new(query), "Database/test/select", 1.1), "other_tx_name", "uri2")
+    sql_trace.aggregate(NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new(query), 'Database/test/select', 1.5), 'slowest_tx_name', 'slow_uri')
+    sql_trace.aggregate(NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new(query), 'Database/test/select', 1.1), 'other_tx_name', 'uri2')
 
     assert_equal 3, sql_trace.call_count
-    assert_equal "slowest_tx_name", sql_trace.path
-    assert_equal "slow_uri", sql_trace.url
+    assert_equal 'slowest_tx_name', sql_trace.path
+    assert_equal 'slow_uri', sql_trace.url
     assert_in_delta(1.5, sql_trace.max_call_time)
   end
 
   def test_harvest
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
-    data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.5),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"), "Database/test/select", 1.2),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test2"), "Database/test2/select", 1.1)])
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
+    data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test'), 'Database/test/select', 1.5),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test'), 'Database/test/select', 1.2),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test2'), 'Database/test2/select', 1.1)])
     @sampler.save_slow_sql(data)
 
     sql_traces = @sampler.harvest!
@@ -135,8 +135,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_harvest_should_not_take_more_than_10
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
     15.times do |i|
       statement = NewRelic::Agent::Database::Statement.new("select * from test#{(i + 97).chr}")
       data.sql_data << NewRelic::Agent::SlowSql.new(statement, "Database/test#{(i + 97).chr}/select", i)
@@ -151,12 +151,12 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_harvest_should_aggregate_similar_queries
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
     queries = [
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select  * from test where foo in (1, 2)  "), "Database/test/select", 1.5),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')"), "Database/test/select", 1.2),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test2 where foo in (1,2)"), "Database/test2/select", 1.1)
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select  * from test where foo in (1, 2)  '), 'Database/test/select', 1.5),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo in (1,2, 3 ,4,  5,6, 'snausage')"), 'Database/test/select', 1.2),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test2 where foo in (1,2)'), 'Database/test2/select', 1.1)
     ]
     data.sql_data.concat(queries)
     @sampler.save_slow_sql(data)
@@ -167,23 +167,23 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_harvest_should_collect_explain_plans
-    @connection.expects(:execute).with("EXPLAIN select * from test") \
-      .returns(dummy_mysql_explain_result({"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}))
-    @connection.expects(:execute).with("EXPLAIN select * from test2") \
-      .returns(dummy_mysql_explain_result({"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}))
+    @connection.expects(:execute).with('EXPLAIN select * from test') \
+      .returns(dummy_mysql_explain_result({'header0' => 'foo0', 'header1' => 'foo1', 'header2' => 'foo2'}))
+    @connection.expects(:execute).with('EXPLAIN select * from test2') \
+      .returns(dummy_mysql_explain_result({'header0' => 'bar0', 'header1' => 'bar1', 'header2' => 'bar2'}))
 
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
     explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
     config = {:adapter => 'mysql'}
     queries = [
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test", config, explainer),
-        "Database/test/select", 1.5),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test", config, explainer),
-        "Database/test/select", 1.2),
-      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test2", config, explainer),
-        "Database/test2/select", 1.1)
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test', config, explainer),
+        'Database/test/select', 1.5),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test', config, explainer),
+        'Database/test/select', 1.2),
+      NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test2', config, explainer),
+        'Database/test2/select', 1.1)
     ]
     data.sql_data.concat(queries)
     @sampler.save_slow_sql(data)
@@ -208,11 +208,11 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_should_not_collect_explain_plans_when_disabled
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("/c/a", 'guid')
-      data.set_transaction_name("WebTransaction/Controller/c/a")
+      data.set_transaction_info('/c/a', 'guid')
+      data.set_transaction_name('WebTransaction/Controller/c/a')
       queries = [
-        NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"),
-          "Database/test/select", 1.5)
+        NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test'),
+          'Database/test/select', 1.5)
       ]
       data.sql_data.concat(queries)
       @sampler.save_slow_sql(data)
@@ -232,8 +232,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
     with_config(settings) do
       in_transaction do
-        sql = "SELECT * FROM test"
-        metric_name = "Database/test/select"
+        sql = 'SELECT * FROM test'
+        metric_name = 'Database/test/select'
         sampler.notice_sql(sql, metric_name, {}, 10)
       end
     end
@@ -244,25 +244,25 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_sql_id_fits_in_a_mysql_int_11
-    statement = NewRelic::Agent::Database::Statement.new("select * from test")
-    sql_trace = NewRelic::Agent::SqlTrace.new("select * from test",
+    statement = NewRelic::Agent::Database::Statement.new('select * from test')
+    sql_trace = NewRelic::Agent::SqlTrace.new('select * from test',
       NewRelic::Agent::SlowSql.new(statement,
-        "Database/test/select", 1.2),
-      "tx_name", "uri")
+        'Database/test/select', 1.2),
+      'tx_name', 'uri')
 
-    assert(-2147483648 <= sql_trace.sql_id, "sql_id too small")
-    assert(2147483647 >= sql_trace.sql_id, "sql_id too large")
+    assert(-2147483648 <= sql_trace.sql_id, 'sql_id too small')
+    assert(2147483647 >= sql_trace.sql_id, 'sql_id too large')
   end
 
   def test_sends_obfuscated_queries_when_configured
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("/c/a", 'guid')
-      data.set_transaction_name("WebTransaction/Controller/c/a")
+      data.set_transaction_info('/c/a', 'guid')
+      data.set_transaction_name('WebTransaction/Controller/c/a')
       data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo = 'bar'"),
-        "Database/test/select", 1.5),
-        NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo in (1,2,3,4,5)"),
-          "Database/test/select", 1.2)])
+        'Database/test/select', 1.5),
+        NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test where foo in (1,2,3,4,5)'),
+          'Database/test/select', 1.2)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
@@ -278,12 +278,12 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     }
     with_config(settings) do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("/c/a", 'guid')
-      data.set_transaction_name("WebTransaction/Controller/c/a")
+      data.set_transaction_info('/c/a', 'guid')
+      data.set_transaction_name('WebTransaction/Controller/c/a')
       data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo = 'bar'"),
-        "Database/test/select", 1.5),
-        NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test where foo in (1,2,3,4,5)"),
-          "Database/test/select", 1.2)])
+        'Database/test/select', 1.5),
+        NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test where foo in (1,2,3,4,5)'),
+          'Database/test/select', 1.2)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!.sort_by(&:total_call_time).reverse
 
@@ -298,7 +298,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
       in_transaction do
         sql = %Q[INSERT INTO "items" ("name", "price") VALUES ('continuum transfunctioner', 100000) RETURNING "id"]
-        sampler.notice_sql(sql, "Database/test/insert", {:adapter => "postgres"}, 1.23)
+        sampler.notice_sql(sql, 'Database/test/insert', {:adapter => 'postgres'}, 1.23)
       end
       sql_traces = sampler.harvest!
 
@@ -308,8 +308,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_takes_slowest_samples
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
 
     count = NewRelic::Agent::SqlSampler::MAX_SAMPLES * 2
     durations = (0...count).to_a.shuffle
@@ -330,8 +330,8 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
       explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
-      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test", {}, explainer),
-        "Database/test/select", 1.5)])
+      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test', {}, explainer),
+        'Database/test/select', 1.5)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
@@ -342,10 +342,10 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def test_to_collector_array
     with_config(:'transaction_tracer.explain_enabled' => false) do
       data = NewRelic::Agent::TransactionSqlData.new
-      data.set_transaction_info("/c/a", 'guid')
-      data.set_transaction_name("WebTransaction/Controller/c/a")
-      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test"),
-        "Database/test/select", 1.5)])
+      data.set_transaction_info('/c/a', 'guid')
+      data.set_transaction_name('WebTransaction/Controller/c/a')
+      data.sql_data.concat([NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test'),
+        'Database/test/select', 1.5)])
       @sampler.save_slow_sql(data)
       sql_traces = @sampler.harvest!
 
@@ -361,69 +361,69 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_to_collector_array_with_bad_values
-    statement = NewRelic::Agent::Database::Statement.new("query")
-    slow = NewRelic::Agent::SlowSql.new(statement, "transaction", Rational(12, 1))
-    trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
+    statement = NewRelic::Agent::Database::Statement.new('query')
+    slow = NewRelic::Agent::SlowSql.new(statement, 'transaction', Rational(12, 1))
+    trace = NewRelic::Agent::SqlTrace.new('query', slow, 'path', 'uri')
     trace.call_count = Rational(10, 1)
-    trace.instance_variable_set(:@sql_id, "1234")
+    trace.instance_variable_set(:@sql_id, '1234')
 
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
     params = "eJyrrgUAAXUA+Q==\n"
 
-    expected = ["path", "uri", 1234, "query", "transaction",
+    expected = ['path', 'uri', 1234, 'query', 'transaction',
       10, 12000, 12000, 12000, params]
 
     assert_equal expected, trace.to_collector_array(marshaller.default_encoder)
   end
 
   def test_to_collector_array_with_database_instance_params
-    statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "1337", "pizza_cube")
-    slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
-    trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
+    statement = NewRelic::Agent::Database::Statement.new('query', nil, nil, nil, nil, 'jonan.gummy_planet', '1337', 'pizza_cube')
+    slow = NewRelic::Agent::SlowSql.new(statement, 'transaction', 1.0)
+    trace = NewRelic::Agent::SqlTrace.new('query', slow, 'path', 'uri')
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
     params = trace.to_collector_array(encoder).last
 
-    assert_equal "jonan.gummy_planet", params[:host]
-    assert_equal "1337", params[:port_path_or_id]
-    assert_equal "pizza_cube", params[:database_name]
+    assert_equal 'jonan.gummy_planet', params[:host]
+    assert_equal '1337', params[:port_path_or_id]
+    assert_equal 'pizza_cube', params[:database_name]
   end
 
   def test_to_collector_array_with_instance_reporting_disabled
     with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
-      statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "1337", "pizza_cube")
-      slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
-      trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
+      statement = NewRelic::Agent::Database::Statement.new('query', nil, nil, nil, nil, 'jonan.gummy_planet', '1337', 'pizza_cube')
+      slow = NewRelic::Agent::SlowSql.new(statement, 'transaction', 1.0)
+      trace = NewRelic::Agent::SqlTrace.new('query', slow, 'path', 'uri')
       encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
       params = trace.to_collector_array(encoder).last
 
       refute params.key?(:host)
       refute params.key?(:port_path_or_id)
-      assert_equal "pizza_cube", params[:database_name]
+      assert_equal 'pizza_cube', params[:database_name]
     end
   end
 
   def test_to_collector_array_with_database_name_reporting_disabled
     with_config(:'datastore_tracer.database_name_reporting.enabled' => false) do
-      statement = NewRelic::Agent::Database::Statement.new("query", nil, nil, nil, nil, "jonan.gummy_planet", "1337", "pizza_cube")
-      slow = NewRelic::Agent::SlowSql.new(statement, "transaction", 1.0)
-      trace = NewRelic::Agent::SqlTrace.new("query", slow, "path", "uri")
+      statement = NewRelic::Agent::Database::Statement.new('query', nil, nil, nil, nil, 'jonan.gummy_planet', '1337', 'pizza_cube')
+      slow = NewRelic::Agent::SlowSql.new(statement, 'transaction', 1.0)
+      trace = NewRelic::Agent::SqlTrace.new('query', slow, 'path', 'uri')
       encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
       params = trace.to_collector_array(encoder).last
 
-      assert_equal "jonan.gummy_planet", params[:host]
-      assert_equal "1337", params[:port_path_or_id]
+      assert_equal 'jonan.gummy_planet', params[:host]
+      assert_equal '1337', params[:port_path_or_id]
       refute params.key?(:database_name)
     end
   end
 
   def test_merge_without_existing_trace
-    query = "select * from test"
+    query = 'select * from test'
     statement = NewRelic::Agent::Database::Statement.new(query, {})
-    slow_sql = NewRelic::Agent::SlowSql.new(statement, "Database/test/select", 1)
-    trace = NewRelic::Agent::SqlTrace.new(query, slow_sql, "txn_name", "uri")
+    slow_sql = NewRelic::Agent::SlowSql.new(statement, 'Database/test/select', 1)
+    trace = NewRelic::Agent::SqlTrace.new(query, slow_sql, 'txn_name', 'uri')
 
     @sampler.merge!([trace])
 
@@ -431,13 +431,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_merge_with_existing_trace
-    query = "select * from test"
+    query = 'select * from test'
     statement = NewRelic::Agent::Database::Statement.new(query, {})
-    slow_sql0 = NewRelic::Agent::SlowSql.new(statement, "Database/test/select", 1)
-    slow_sql1 = NewRelic::Agent::SlowSql.new(statement, "Database/test/select", 2)
+    slow_sql0 = NewRelic::Agent::SlowSql.new(statement, 'Database/test/select', 1)
+    slow_sql1 = NewRelic::Agent::SlowSql.new(statement, 'Database/test/select', 2)
 
-    trace0 = NewRelic::Agent::SqlTrace.new(query, slow_sql0, "txn_name", "uri")
-    trace1 = NewRelic::Agent::SqlTrace.new(query, slow_sql1, "txn_name", "uri")
+    trace0 = NewRelic::Agent::SqlTrace.new(query, slow_sql0, 'txn_name', 'uri')
+    trace1 = NewRelic::Agent::SqlTrace.new(query, slow_sql1, 'txn_name', 'uri')
 
     @sampler.merge!([trace0])
     @sampler.merge!([trace1])
@@ -450,13 +450,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_on_finishing_transaction_with_busted_transaction_state_does_not_crash
     state = NewRelic::Agent::Tracer.state
-    @sampler.on_finishing_transaction(state, "whatever")
+    @sampler.on_finishing_transaction(state, 'whatever')
   end
 
   def test_caps_collection_of_unique_statements
     data = NewRelic::Agent::TransactionSqlData.new
-    data.set_transaction_info("/c/a", 'guid')
-    data.set_transaction_name("WebTransaction/Controller/c/a")
+    data.set_transaction_info('/c/a', 'guid')
+    data.set_transaction_name('WebTransaction/Controller/c/a')
 
     count = NewRelic::Agent::SqlSampler::MAX_SAMPLES + 1
     count.times do |i|
@@ -473,7 +473,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     payload = nil
     NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     with_config({:'distributed_tracing.enabled' => true,
-                 :primary_application_id => "46954",
+                 :primary_application_id => '46954',
                  :trusted_account_key => 'trust_this!',
                  :account_id => 190,
                  :'slow_sql.explain_threshold' => -1}) do
@@ -493,16 +493,16 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       segment = nil
       txn = nil
       sampled = nil
-      txn = in_web_transaction("test_txn") do |t|
+      txn = in_web_transaction('test_txn') do |t|
         t.sampled = true
         t.distributed_tracer.accept_distributed_trace_payload(payload.text)
         sampled = t.sampled?
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
-          product: "SQLite",
-          operation: "insert",
-          collection: "Blog"
+          product: 'SQLite',
+          operation: 'insert',
+          collection: 'Blog'
         )
-        segment.notice_sql("SELECT * FROM Blog")
+        segment.notice_sql('SELECT * FROM Blog')
         segment.finish
       end
 

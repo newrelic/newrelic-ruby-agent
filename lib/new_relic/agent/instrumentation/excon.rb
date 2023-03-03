@@ -18,7 +18,7 @@ DependencyDetection.defer do
   # but alas, it does not yet.
 
   # TODO: MAJOR VERSION - update min version to 0.56.0
-  EXCON_MIN_VERSION = Gem::Version.new("0.19.0")
+  EXCON_MIN_VERSION = Gem::Version.new('0.19.0')
 
   depends_on do
     defined?(Excon) && defined?(Excon::VERSION)
@@ -46,7 +46,7 @@ DependencyDetection.defer do
       deprecation_msg
     )
 
-    NewRelic::Agent.record_metric("Supportability/Deprecated/Excon", 1)
+    NewRelic::Agent.record_metric('Supportability/Deprecated/Excon', 1)
   end
 
   def install_excon_instrumentation(excon_version)
@@ -64,7 +64,7 @@ DependencyDetection.defer do
     if defaults[:middlewares]
       defaults[:middlewares] << Excon::Middleware::NewRelicCrossAppTracing
     else
-      NewRelic::Agent.logger.warn("Did not find :middlewares key in Excon.defaults, skipping Excon instrumentation")
+      NewRelic::Agent.logger.warn('Did not find :middlewares key in Excon.defaults, skipping Excon instrumentation')
     end
   end
 end

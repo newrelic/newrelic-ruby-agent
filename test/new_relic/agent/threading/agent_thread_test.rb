@@ -8,21 +8,21 @@ require 'new_relic/agent/threading/agent_thread'
 module NewRelic::Agent::Threading
   class AgentThreadTest < Minitest::Test
     def test_sets_label
-      t = AgentThread.create("labelled") {}
+      t = AgentThread.create('labelled') {}
 
-      assert_equal "labelled", t[:newrelic_label]
+      assert_equal 'labelled', t[:newrelic_label]
       t.join
     end
 
     def test_bucket_thread_as_agent_when_profiling
-      t = AgentThread.create("labelled") {}
+      t = AgentThread.create('labelled') {}
 
       assert_equal :agent, AgentThread.bucket_thread(t, true)
       t.join
     end
 
     def test_bucket_thread_as_agent_when_not_profiling
-      t = AgentThread.create("labelled") {}
+      t = AgentThread.create('labelled') {}
 
       assert_equal :ignore, AgentThread.bucket_thread(t, false)
       t.join
@@ -86,16 +86,16 @@ module NewRelic::Agent::Threading
     def test_runs_block
       called = false
 
-      t = AgentThread.create("labelled") { called = true }
+      t = AgentThread.create('labelled') { called = true }
       t.join
 
       assert called
     end
 
     def test_standard_error_is_caught
-      expects_logging(:error, includes("exited"), any_parameters)
+      expects_logging(:error, includes('exited'), any_parameters)
 
-      t = AgentThread.create("fail") { raise "O_o" }
+      t = AgentThread.create('fail') { raise 'O_o' }
       t.join
 
       assert_thread_completed(t)
@@ -103,11 +103,11 @@ module NewRelic::Agent::Threading
 
     def test_exception_is_reraised
       with_thread_report_on_exception_disabled do
-        expects_logging(:error, includes("exited"), any_parameters)
+        expects_logging(:error, includes('exited'), any_parameters)
 
         assert_raises(Exception) do
           begin
-            t = AgentThread.create("fail") { raise Exception.new }
+            t = AgentThread.create('fail') { raise Exception.new }
             t.join
           ensure
             assert_thread_died_from_exception(t)
@@ -168,8 +168,8 @@ module NewRelic::Agent::Threading
     def test_agent_thread_creation_ignores_current_transaction
       with_config(:'instrumentation.thread.tracing' => true) do
         in_transaction do |txn|
-          t = AgentThread.create("label") do
-            refute ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].current_transaction, "Agent thread should not contain a current transaction"
+          t = AgentThread.create('label') do
+            refute ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].current_transaction, 'Agent thread should not contain a current transaction'
           end
           t.join
         end

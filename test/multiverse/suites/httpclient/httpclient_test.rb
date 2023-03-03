@@ -2,15 +2,15 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "httpclient"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'httpclient'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 class HTTPClientTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
-    "HTTPClient"
+    'HTTPClient'
   end
 
   def timeout_error_class
@@ -35,15 +35,15 @@ class HTTPClientTest < Minitest::Test
   end
 
   def post_response
-    HTTPClient.post(default_url, :body => "")
+    HTTPClient.post(default_url, :body => '')
   end
 
   def put_response
-    HTTPClient.put(default_url, :body => "")
+    HTTPClient.put(default_url, :body => '')
   end
 
   def delete_response
-    HTTPClient.delete(default_url, :body => "")
+    HTTPClient.delete(default_url, :body => '')
   end
 
   def request_instance
@@ -84,6 +84,6 @@ class HTTPClientTest < Minitest::Test
 
     last_node = find_last_transaction_node()
 
-    assert_equal("External/localhost/HTTPClient/GET", last_node.metric_name)
+    assert_equal('External/localhost/HTTPClient/GET', last_node.metric_name)
   end
 end

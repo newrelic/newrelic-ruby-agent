@@ -10,8 +10,8 @@ module NewRelic
 
         def initialize(raw_collector_command)
           @id = raw_collector_command[0]
-          @name = raw_collector_command[1]["name"]
-          @arguments = raw_collector_command[1]["arguments"]
+          @name = raw_collector_command[1]['name']
+          @arguments = raw_collector_command[1]['arguments']
         end
       end
     end

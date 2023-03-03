@@ -104,7 +104,7 @@ class Marshalling < Performance::TestCase
         i * rand(10),
         "This/Is/The/Name/Of/A/Transaction/Trace/Node/Depth/#{depth}/#{i}",
         {
-          "sql" => "SELECT #{(0..100).to_a.join(",")}"
+          'sql' => "SELECT #{(0..100).to_a.join(',')}"
         },
         []
       ]

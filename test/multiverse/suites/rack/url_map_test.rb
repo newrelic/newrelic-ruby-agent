@@ -159,9 +159,9 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
     # revisit how we verify that
     def get(path)
       env = {
-        "REQUEST_METHOD" => "GET",
-        "PATH_INFO" => path,
-        "SCRIPT_NAME" => ""
+        'REQUEST_METHOD' => 'GET',
+        'PATH_INFO' => path,
+        'SCRIPT_NAME' => ''
       }
 
       app.call(env)

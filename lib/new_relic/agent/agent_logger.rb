@@ -13,7 +13,7 @@ module NewRelic
     class AgentLogger
       include LogOnce
 
-      def initialize(root = "", override_logger = nil)
+      def initialize(root = '', override_logger = nil)
         @already_logged_lock = Mutex.new
         clear_already_logged
         create_log(root, override_logger)
@@ -53,13 +53,13 @@ module NewRelic
       # default behavior of backtraces logged at debug, use one of the methods
       # above and pass an Exception as one of the args.
       def log_exception(level, e, backtrace_level = level)
-        @log.send(level, "%p: %s" % [e.class, e.message])
+        @log.send(level, '%p: %s' % [e.class, e.message])
         @log.send(backtrace_level) do
           backtrace = backtrace_from_exception(e)
           if backtrace
             "Debugging backtrace:\n" + backtrace.join("\n  ")
           else
-            "No backtrace available."
+            'No backtrace available.'
           end
         end
       end
@@ -150,11 +150,11 @@ module NewRelic
       end
 
       LOG_LEVELS = {
-        "debug" => ::Logger::DEBUG,
-        "info" => ::Logger::INFO,
-        "warn" => ::Logger::WARN,
-        "error" => ::Logger::ERROR,
-        "fatal" => ::Logger::FATAL
+        'debug' => ::Logger::DEBUG,
+        'info' => ::Logger::INFO,
+        'warn' => ::Logger::WARN,
+        'error' => ::Logger::ERROR,
+        'fatal' => ::Logger::FATAL
       }
 
       def self.log_level_for(level)
@@ -165,7 +165,7 @@ module NewRelic
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
         @log.formatter = proc do |severity, timestamp, progname, msg|
-          "#{@prefix}[#{timestamp.strftime("%F %H:%M:%S %z")} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
+          "#{@prefix}[#{timestamp.strftime('%F %H:%M:%S %z')} #{@hostname} (#{$$})] #{severity} : #{msg}\n"
         end
       end
 

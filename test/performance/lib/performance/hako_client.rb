@@ -17,7 +17,7 @@ module Performance
     def submit(result)
       body = JSON.dump('result' => result.to_h)
 
-      uri = URI(BASE_URI + "/api/results")
+      uri = URI(BASE_URI + '/api/results')
       req = Net::HTTP::Post.new(uri.to_s)
       req.body = body
       req.content_type = 'application/json'

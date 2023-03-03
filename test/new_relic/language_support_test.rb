@@ -91,20 +91,20 @@ class NewRelic::LanguageSupportTest < Minitest::Test
   end
 
   def test_should_look_within_module
-    assert_equal ::Outer::Included, NewRelic::LanguageSupport.constantize("Outer::Included")
+    assert_equal ::Outer::Included, NewRelic::LanguageSupport.constantize('Outer::Included')
   end
 
   def test_shouldnt_look_outside_module_for_class
-    assert_nil NewRelic::LanguageSupport.constantize("Outer::Excluded")
+    assert_nil NewRelic::LanguageSupport.constantize('Outer::Excluded')
   end
 
   def test_shouldnt_look_outside_module_for_module
-    assert_nil NewRelic::LanguageSupport.constantize("Outer::Outer")
+    assert_nil NewRelic::LanguageSupport.constantize('Outer::Outer')
   end
 
   def test_should_allow_object_in_module_names
     assert_equal ::ContainsAnObject::ContainedObject,
-      NewRelic::LanguageSupport.constantize("ContainsAnObject::ContainedObject")
+      NewRelic::LanguageSupport.constantize('ContainsAnObject::ContainedObject')
   end
 
   def test_should_camelize_names_with_hyphens

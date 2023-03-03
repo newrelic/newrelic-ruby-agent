@@ -16,12 +16,12 @@ class ErrorEventsTest < Minitest::Test
 
     intrinsics, _, _ = last_error_event
 
-    assert_equal txn.best_name, intrinsics["transactionName"]
-    assert_equal "RuntimeError", intrinsics["error.class"]
-    assert_equal "Big Controller", intrinsics["error.message"]
-    refute intrinsics["error.expected"]
-    assert_equal "TransactionError", intrinsics["type"]
-    assert_equal txn.payload[:duration], intrinsics["duration"]
+    assert_equal txn.best_name, intrinsics['transactionName']
+    assert_equal 'RuntimeError', intrinsics['error.class']
+    assert_equal 'Big Controller', intrinsics['error.message']
+    refute intrinsics['error.expected']
+    assert_equal 'TransactionError', intrinsics['type']
+    assert_equal txn.payload[:duration], intrinsics['duration']
   end
 
   def test_error_events_honor_expected_option
@@ -31,7 +31,7 @@ class ErrorEventsTest < Minitest::Test
 
     intrinsics, _, _ = last_error_event
 
-    assert intrinsics["error.expected"]
+    assert intrinsics['error.expected']
   end
 
   def test_records_supportability_metrics
@@ -41,8 +41,8 @@ class ErrorEventsTest < Minitest::Test
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
       assert_metrics_recorded({
-        "Supportability/Events/TransactionError/Sent" => {:call_count => 10},
-        "Supportability/Events/TransactionError/Seen" => {:call_count => 15}
+        'Supportability/Events/TransactionError/Sent' => {:call_count => 10},
+        'Supportability/Events/TransactionError/Seen' => {:call_count => 15}
       })
     end
   end
@@ -94,21 +94,21 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_error_events_created_outside_of_transaction
-    NewRelic::Agent.notice_error(RuntimeError.new("No Txn"))
+    NewRelic::Agent.notice_error(RuntimeError.new('No Txn'))
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
 
     intrinsics, _, _ = last_error_event
 
-    assert_equal "TransactionError", intrinsics["type"]
-    assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics["timestamp"], 0.001
-    assert_equal "RuntimeError", intrinsics["error.class"]
-    assert_equal "No Txn", intrinsics["error.message"]
-    assert intrinsics["priority"], "Priority is nil"
+    assert_equal 'TransactionError', intrinsics['type']
+    assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
+    assert_equal 'RuntimeError', intrinsics['error.class']
+    assert_equal 'No Txn', intrinsics['error.message']
+    assert intrinsics['priority'], 'Priority is nil'
   end
 
   def test_error_events_during_txn_abide_by_custom_attributes_config
     with_config(:'custom_attributes.enabled' => false) do
-      generate_errors(1, {:foo => "bar"})
+      generate_errors(1, {:foo => 'bar'})
     end
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
@@ -120,7 +120,7 @@ class ErrorEventsTest < Minitest::Test
 
   def test_error_events_outside_txn_abide_by_custom_attributes_config
     with_config(:'custom_attributes.enabled' => false) do
-      NewRelic::Agent.notice_error(RuntimeError.new("Big Controller"), {:foo => "bar"})
+      NewRelic::Agent.notice_error(RuntimeError.new('Big Controller'), {:foo => 'bar'})
     end
 
     NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
@@ -131,8 +131,8 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def generate_errors(num_errors = 1, options = {})
-    in_transaction(:transaction_name => "Controller/blogs/index") do |t|
-      num_errors.times { t.notice_error(RuntimeError.new("Big Controller"), options) }
+    in_transaction(:transaction_name => 'Controller/blogs/index') do |t|
+      num_errors.times { t.notice_error(RuntimeError.new('Big Controller'), options) }
     end
   end
 

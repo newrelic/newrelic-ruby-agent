@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Threading
       class BacktraceService
-        ALL_TRANSACTIONS = "**ALL**".freeze
+        ALL_TRANSACTIONS = '**ALL**'.freeze
 
         def self.is_supported?
           !is_resque?

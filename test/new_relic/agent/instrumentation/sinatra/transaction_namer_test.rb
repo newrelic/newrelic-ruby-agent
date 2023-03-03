@@ -11,28 +11,28 @@ module NewRelic
       module Sinatra
         class TransactionNamerTest < Minitest::Test
           def test_transaction_name_for_route
-            env = {"newrelic.last_route" => /^\/the_route$/}
-            request = stub(:request_method => "GET")
+            env = {'newrelic.last_route' => /^\/the_route$/}
+            request = stub(:request_method => 'GET')
             result = TransactionNamer.transaction_name_for_route(env, request)
 
-            assert_equal "GET the_route", result
+            assert_equal 'GET the_route', result
           end
 
           def test_transaction_name_for_route_padrino
             env = {}
-            route = stub(:original_path => "/path/:id")
-            request = stub(:route_obj => route, :request_method => "GET")
+            route = stub(:original_path => '/path/:id')
+            request = stub(:route_obj => route, :request_method => 'GET')
             result = TransactionNamer.transaction_name_for_route(env, request)
 
-            assert_equal "GET path/:id", result
+            assert_equal 'GET path/:id', result
           end
 
           def test_transaction_name_for_root_route
-            env = {"newrelic.last_route" => /\A\/\z/}
-            request = stub(:request_method => "GET")
+            env = {'newrelic.last_route' => /\A\/\z/}
+            request = stub(:request_method => 'GET')
             result = TransactionNamer.transaction_name_for_route(env, request)
 
-            assert_equal "GET /", result
+            assert_equal 'GET /', result
           end
 
           def test_transaction_name_for_route_without_routes
@@ -40,15 +40,15 @@ module NewRelic
           end
 
           def test_basic_sinatra_naming
-            assert_transaction_name "(unknown)", "(unknown)"
+            assert_transaction_name '(unknown)', '(unknown)'
 
             # Sinatra < 1.4 style regexes
-            assert_transaction_name "will_boom", "^/will_boom$"
-            assert_transaction_name "hello/([^/?#]+)", "^/hello/([^/?#]+)$"
+            assert_transaction_name 'will_boom', '^/will_boom$'
+            assert_transaction_name 'hello/([^/?#]+)', '^/hello/([^/?#]+)$'
 
             # Sinatra 1.4 style regexs
-            assert_transaction_name "will_boom", "\A/will_boom\z"
-            assert_transaction_name "hello/([^/?#]+)", "\A/hello/([^/?#]+)\z"
+            assert_transaction_name 'will_boom', "\A/will_boom\z"
+            assert_transaction_name 'hello/([^/?#]+)', "\A/hello/([^/?#]+)\z"
           end
 
           def assert_transaction_name(expected, original)

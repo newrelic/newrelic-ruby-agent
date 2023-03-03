@@ -31,7 +31,7 @@ module NewRelic::Agent
           Connection.instance.notify_agent_started
         rescue => error
           NewRelic::Agent.logger.error( \
-            "Error during notify :server_source_configuration_added event",
+            'Error during notify :server_source_configuration_added event',
             error
           )
         end
@@ -102,8 +102,8 @@ module NewRelic::Agent
 
         @lock.synchronize do
           @metadata = {
-            "license_key" => license_key,
-            "agent_run_token" => agent_id
+            'license_key' => license_key,
+            'agent_run_token' => agent_id
           }
           @metadata.merge!(request_headers_map)
           merge_gzip_metadata
@@ -168,7 +168,7 @@ module NewRelic::Agent
           yield
         rescue => exception
           retry_connection_period = retry_connection_period(exponential_backoff)
-          ::NewRelic::Agent.logger.error("Error establishing connection with infinite tracing service:", exception)
+          ::NewRelic::Agent.logger.error('Error establishing connection with infinite tracing service:', exception)
           ::NewRelic::Agent.logger.info("Will re-attempt infinite tracing connection in #{retry_connection_period} seconds")
           sleep(retry_connection_period)
           note_connect_failure

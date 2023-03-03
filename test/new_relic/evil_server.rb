@@ -27,7 +27,7 @@ module NewRelic
       @state = :stopped
 
       # just a lazy way of just forcing the server to wakeup from accept
-      TCPSocket.open("localhost", @port).close rescue nil
+      TCPSocket.open('localhost', @port).close rescue nil
 
       @thread.join
       @thread = nil

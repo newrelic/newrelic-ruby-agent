@@ -53,7 +53,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => false) do
       get('/parameter_capture/error?other=1234&secret=4567')
 
-      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted('agentAttributes')['request.uri'])
     end
   end
 
@@ -61,7 +61,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => true) do
       get('/parameter_capture/error?other=1234&secret=4567')
 
-      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted('agentAttributes')['request.uri'])
     end
   end
 
@@ -74,7 +74,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
         headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'})
       attributes = agent_attributes_for_single_error_posted
 
-      assert_equal('/foo/bar', attributes["request.headers.referer"])
+      assert_equal('/foo/bar', attributes['request.headers.referer'])
     end
   end
 
@@ -84,7 +84,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
         headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'})
       attributes = agent_attributes_for_single_error_posted
 
-      assert_equal('/foo/bar', attributes["request.headers.referer"])
+      assert_equal('/foo/bar', attributes['request.headers.referer'])
     end
   end
 
@@ -205,7 +205,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => false) do
       get('/parameter_capture/error?param1=value1&param2=value2')
 
-      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted('agentAttributes')['request.uri'])
     end
   end
 
@@ -216,7 +216,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => true) do
       get('/parameter_capture/error?param1=value1&param2=value2')
 
-      assert_equal('/parameter_capture/error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
+      assert_equal('/parameter_capture/error', attributes_for_single_error_posted('agentAttributes')['request.uri'])
     end
   end
 
@@ -244,8 +244,8 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
-    expected = {"request.parameters.param1" => "value1",
-                "request.parameters.param2" => "value2"}
+    expected = {'request.parameters.param1' => 'value1',
+                'request.parameters.param2' => 'value2'}
 
     assert_equal expected, actual
   end
@@ -254,56 +254,56 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     get('/parameter_capture/transaction')
 
     expected = {
-      "response.headers.contentType" => "#{response.content_type}; charset=#{response.charset}",
-      "request.headers.contentLength" => request.content_length.to_i,
-      "request.headers.host" => request.host,
-      "request.headers.accept" => request.accept
+      'response.headers.contentType' => "#{response.content_type}; charset=#{response.charset}",
+      'request.headers.contentLength' => request.content_length.to_i,
+      'request.headers.host' => request.host,
+      'request.headers.accept' => request.accept
     }
 
     if request.content_type
-      expected["request.headers.contentType"] = request.content_type
+      expected['request.headers.contentType'] = request.content_type
     end
 
     # ActionController::IntegrationTest sets this header whereas ActionDispatch::IntegrationTest
     # does not. Since we test using both we need to conditionally expect content_length to be set.
 
     unless defined?(ActionDispatch::IntegrationTest)
-      expected["response.headers.contentLength"] = response.content_length
+      expected['response.headers.contentLength'] = response.content_length
     end
 
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
-    assert_equal request.request_method.to_s.upcase, actual["request.method"]
-    assert_includes actual["response.headers.contentType"], response.content_type
-    assert_includes actual["response.headers.contentType"], response.charset
+    assert_equal request.request_method.to_s.upcase, actual['request.method']
+    assert_includes actual['response.headers.contentType'], response.content_type
+    assert_includes actual['response.headers.contentType'], response.charset
     unless defined?(ActionDispatch::IntegrationTest)
-      assert_equal actual["response.headers.contentLength"], response.content_length
+      assert_equal actual['response.headers.contentLength'], response.content_length
     end
   end
 
   def test_params_tts_should_be_filtered_when_serviced_by_rack_app
-    params = {"secret" => "shhhhhhh", "name" => "name"}
+    params = {'secret' => 'shhhhhhh', 'name' => 'name'}
     with_config(:capture_params => true) do
       post('/filtering_test/', params: params)
     end
 
     expected = {
-      "request.parameters.secret" => "[FILTERED]",
-      "request.parameters.name" => "name"
+      'request.parameters.secret' => '[FILTERED]',
+      'request.parameters.name' => 'name'
     }
 
     assert_equal expected, last_transaction_trace_request_params
   end
 
   def test_params_on_errors_should_be_filtered_when_serviced_by_rack_app
-    params = {"secret" => "shhhhhhh", "name" => "name"}
+    params = {'secret' => 'shhhhhhh', 'name' => 'name'}
     with_config(:capture_params => true) do
       post('/filtering_test?raise=1', params: params)
 
       expected = {
-        "request.parameters.secret" => "[FILTERED]",
-        "request.parameters.name" => "name",
-        "request.parameters.raise" => "1"
+        'request.parameters.secret' => '[FILTERED]',
+        'request.parameters.name' => 'name',
+        'request.parameters.raise' => '1'
       }
       attributes = agent_attributes_for_single_error_posted
 
@@ -314,12 +314,12 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   end
 
   def test_parameter_filtering_should_not_mutate_argument
-    input = {"foo" => "bar", "secret" => "baz"}
-    env = {"action_dispatch.parameter_filter" => ["secret"]}
+    input = {'foo' => 'bar', 'secret' => 'baz'}
+    env = {'action_dispatch.parameter_filter' => ['secret']}
     filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
 
-    assert_equal({"foo" => "bar", "secret" => "[FILTERED]"}, filtered)
-    assert_equal({"foo" => "bar", "secret" => "baz"}, input)
+    assert_equal({'foo' => 'bar', 'secret' => '[FILTERED]'}, filtered)
+    assert_equal({'foo' => 'bar', 'secret' => 'baz'}, input)
   end
 
   if defined?(Sinatra)
@@ -327,14 +327,14 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       with_config(:capture_params => true) do
         get('/sinatra_app/',
           params: {
-            "secret" => "shhhhhhh",
-            "name" => "name"
+            'secret' => 'shhhhhhh',
+            'name' => 'name'
           })
       end
 
       expected = {
-        "request.parameters.secret" => "[FILTERED]",
-        "request.parameters.name" => "name"
+        'request.parameters.secret' => '[FILTERED]',
+        'request.parameters.name' => 'name'
       }
 
       assert_equal expected, last_transaction_trace_request_params
@@ -344,14 +344,14 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       with_config(:capture_params => true) do
         get('/sinatra_app?raise=1',
           params: {
-            "secret" => "shhhhhhh",
-            "name" => "name"
+            'secret' => 'shhhhhhh',
+            'name' => 'name'
           })
         attributes = agent_attributes_for_single_error_posted
 
-        assert_equal "[FILTERED]", attributes["request.parameters.secret"]
-        assert_equal "name", attributes["request.parameters.name"]
-        assert_equal "1", attributes["request.parameters.raise"]
+        assert_equal '[FILTERED]', attributes['request.parameters.secret']
+        assert_equal 'name', attributes['request.parameters.name']
+        assert_equal '1', attributes['request.parameters.raise']
       end
     end
 
@@ -366,7 +366,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
         result = single_transaction_trace_posted
 
-        assert_equal "#<ActionDispatch::Http::UploadedFile>", result.agent_attributes["request.parameters.file"]
+        assert_equal '#<ActionDispatch::Http::UploadedFile>', result.agent_attributes['request.parameters.file']
       end
     end
   end

@@ -353,7 +353,7 @@ module NewRelic
     # @api public
     #
     def manual_start(options = {})
-      raise "Options must be a hash" unless Hash === options
+      raise 'Options must be a hash' unless Hash === options
 
       NewRelic::Control.instance.init_plugin({:agent_enabled => true, :sync_startup => true}.merge(options))
       record_api_supportability_metric(:manual_start)
@@ -684,7 +684,7 @@ module NewRelic
     def notify(event_type, *args)
       agent.events.notify(event_type, *args)
     rescue
-      NewRelic::Agent.logger.debug("Ignoring exception during %p event notification" % [event_type])
+      NewRelic::Agent.logger.debug('Ignoring exception during %p event notification' % [event_type])
     end
 
     # @!group Trace and Entity metadata

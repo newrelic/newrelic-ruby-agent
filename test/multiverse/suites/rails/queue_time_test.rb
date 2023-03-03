@@ -9,7 +9,7 @@ require './app'
 class QueueController < ApplicationController
   def queued
     respond_to do |format|
-      format.html { render(body: "<html><head></head><body>Queued</body></html>") }
+      format.html { render(body: '<html><head></head><body>Queued</body></html>') }
     end
   end
 
@@ -28,7 +28,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key", :js_agent_loader => "loader")
+  setup_and_teardown_agent(:beacon => 'beacon', :browser_key => 'key', :js_agent_loader => 'loader')
 
   def test_should_track_queue_time_metric
     t0 = nr_freeze_process_time

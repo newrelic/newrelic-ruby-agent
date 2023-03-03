@@ -114,7 +114,7 @@ module NewRelic
 
           sample = last_transaction_trace
 
-          assert_nil sample, "Did not expect a transaction to be created for transmit"
+          assert_nil sample, 'Did not expect a transaction to be created for transmit'
           refute_metrics_recorded ['Ruby/ActionCable/TestChannel/transmit']
         end
 
@@ -125,7 +125,7 @@ module NewRelic
 
           sample = last_transaction_trace
 
-          assert_nil sample, "Did not expect a transaction to be created for broadcast"
+          assert_nil sample, 'Did not expect a transaction to be created for broadcast'
           refute_metrics_recorded ['Ruby/ActionCable/TestBroadcasting/broadcast']
         end
 
@@ -185,11 +185,11 @@ module NewRelic
         private
 
         def payload_for_perform_action(action = 'test_action')
-          {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action" => "#{action}"}}
+          {:channel_class => 'TestChannel', :action => action.to_sym, :data => {'action' => "#{action}"}}
         end
 
         def payload_for_transmit(data = {}, via = nil)
-          {:channel_class => "TestChannel", :data => data, :via => via}
+          {:channel_class => 'TestChannel', :data => data, :via => via}
         end
 
         def payload_for_broadcast

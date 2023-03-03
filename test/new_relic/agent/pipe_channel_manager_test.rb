@@ -80,7 +80,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_error_traces
       sampler = NewRelic::Agent.agent.error_collector
-      sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
+      sampler.notice_error(Exception.new('message'), :uri => '/myurl/',
         :metric => 'path', :referer => 'test_referer',
         :request_params => {:x => 'y'})
       NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.error_trace_aggregator.harvest!)
@@ -94,7 +94,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       run_child(668) do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new(NewRelic::Agent.instance.events)
-        new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
+        new_sampler.notice_error(Exception.new('new message'), :uri => '/myurl/',
           :metric => 'path', :referer => 'test_referer',
           :request_params => {:x => 'y'})
         service = NewRelic::Agent::PipeService.new(668)
@@ -134,7 +134,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       reset_lifetime_counts!(error_event_aggregator)
 
       sampler = NewRelic::Agent.agent.error_collector
-      sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
+      sampler.notice_error(Exception.new('message'), :uri => '/myurl/',
         :metric => 'path', :referer => 'test_referer',
         :request_params => {:x => 'y'})
 
@@ -143,7 +143,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       run_child(668) do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new(NewRelic::Agent.instance.events)
-        new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
+        new_sampler.notice_error(Exception.new('new message'), :uri => '/myurl/',
           :metric => 'path', :referer => 'test_referer',
           :request_params => {:x => 'y'})
         service = NewRelic::Agent::PipeService.new(668)
@@ -226,7 +226,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     def create_sql_sample(sampler)
       state = NewRelic::Agent::Tracer.state
       sampler.on_start_transaction(state)
-      sampler.notice_sql("SELECT * FROM table", "ActiveRecord/Widgets/find", nil, 100, state)
+      sampler.notice_sql('SELECT * FROM table', 'ActiveRecord/Widgets/find', nil, 100, state)
       sampler.on_finishing_transaction(state, 'noodles')
     end
   end
@@ -243,11 +243,11 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     # If we only read three bytes, it isn't valid.
     # We can't tell whether any four bytes or more are a "good" length or not.
-    read_pipe = stub(:read => "jrc")
+    read_pipe = stub(:read => 'jrc')
     IO.stubs(:pipe).returns([read_pipe, write_pipe])
 
     # Includes the failed bytes
-    expects_logging(:error, includes("[6a 72 63]"))
+    expects_logging(:error, includes('[6a 72 63]'))
 
     pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
 

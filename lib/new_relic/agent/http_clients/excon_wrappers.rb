@@ -46,7 +46,7 @@ module NewRelic
       class ExconHTTPRequest < AbstractRequest
         attr_reader :method
 
-        EXCON = "Excon"
+        EXCON = 'Excon'
         LHOST = 'host'
         UHOST = 'Host'
         COLON = ':'

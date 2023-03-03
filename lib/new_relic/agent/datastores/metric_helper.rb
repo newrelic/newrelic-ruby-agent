@@ -6,12 +6,12 @@ module NewRelic
   module Agent
     module Datastores
       module MetricHelper
-        ROLLUP_METRIC = "Datastore/all".freeze
-        OTHER = "Other".freeze
+        ROLLUP_METRIC = 'Datastore/all'.freeze
+        OTHER = 'Other'.freeze
 
-        ALL = "all".freeze
-        ALL_WEB = "allWeb".freeze
-        ALL_OTHER = "allOther".freeze
+        ALL = 'all'.freeze
+        ALL_WEB = 'allWeb'.freeze
+        ALL_OTHER = 'allOther'.freeze
 
         def self.statement_metric_for(product, collection, operation)
           "Datastore/statement/#{product}/#{collection}/#{operation}"

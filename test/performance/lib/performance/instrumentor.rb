@@ -6,7 +6,7 @@ module Performance
   module Instrumentation
     def self.load_instrumentors
       dir = File.expand_path(File.join(File.dirname(__FILE__), 'instrumentation'))
-      Dir.glob(File.join(dir, "*.rb")).each do |filename|
+      Dir.glob(File.join(dir, '*.rb')).each do |filename|
         require filename
       end
     end
@@ -73,7 +73,7 @@ module Performance
       end
 
       def pretty_name
-        self.class.name.split("::").last
+        self.class.name.split('::').last
       end
 
       def artifacts_dir_for(test_case, test_name)
