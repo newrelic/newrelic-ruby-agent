@@ -4,7 +4,7 @@
 
 module Performance
   class Baseline
-    PERSIST_PATH = File.expand_path(ENV.fetch("NEWRELIC_RPM_BASELINE_FILE", "~/.newrelic_rpm_baseline"))
+    PERSIST_PATH = File.expand_path(ENV.fetch('NEWRELIC_RPM_BASELINE_FILE', '~/.newrelic_rpm_baseline'))
 
     attr_reader :results
 

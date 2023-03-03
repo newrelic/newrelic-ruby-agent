@@ -62,7 +62,7 @@ module NewRelic
           #
           # Can't help if the constant isn't a class...
           if result.is_a?(Module)
-            expected_name = "#{namespace}::#{name}".gsub(/^Object::/, "")
+            expected_name = "#{namespace}::#{name}".gsub(/^Object::/, '')
             return unless expected_name == result.to_s
           end
 

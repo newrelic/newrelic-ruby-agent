@@ -63,7 +63,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_root_node
     assert_in_delta(0.0, @trace.root_node.entry_timestamp)
-    assert_equal "ROOT", @trace.root_node.metric_name
+    assert_equal 'ROOT', @trace.root_node.metric_name
   end
 
   def test_prepare_to_send_returns_self
@@ -108,7 +108,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
     node.stubs(:explain_sql).returns('')
-    node[:sql] = NewRelic::Agent::Database::Statement.new("select * from pelicans")
+    node[:sql] = NewRelic::Agent::Database::Statement.new('select * from pelicans')
 
     @trace.root_node.children << node
 
@@ -129,7 +129,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     @trace.prepare_to_send!
 
-    assert_equal "select * from pelicans where name = ?;", node[:sql]
+    assert_equal 'select * from pelicans where name = ?;', node[:sql]
   end
 
   def test_prepare_to_send_strips_sql
@@ -216,7 +216,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     @trace.prepare_sql_for_transmission!
 
-    assert_equal "select * from pelicans where name = ?;", node[:sql]
+    assert_equal 'select * from pelicans where name = ?;', node[:sql]
   end
 
   def test_prepare_sql_for_transmission_does_not_modify_sql_if_record_sql_method_is_raw
@@ -354,7 +354,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     expected = {
       'agentAttributes' => {:foo => 'bar'},
-      'userAttributes' => {"foo" => 'bar'},
+      'userAttributes' => {'foo' => 'bar'},
       'intrinsics' => {:foo => 'bar'}
     }
 

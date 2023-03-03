@@ -9,7 +9,7 @@ def fixtures_path
 end
 
 def span_event_fixture(fixture_name)
-  fixture_filename = File.join(fixtures_path, "span_events", "#{fixture_name}.yml")
+  fixture_filename = File.join(fixtures_path, 'span_events', "#{fixture_name}.yml")
 
   assert_path_exists(fixture_filename, "Missing Span Event Fixture: #{fixture_name}. Looked for #{fixture_filename}")
   if YAML.respond_to?(:unsafe_load)

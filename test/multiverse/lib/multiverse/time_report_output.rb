@@ -9,7 +9,7 @@ module TimeReportOutput
       test_times = hash_values_to_float(test_times)
       print_top_ten(sort_ten_slowest_tests(test_times))
     else
-      puts yellow('Test timing data not found.') if ENV["VERBOSE_TEST_OUTPUT"]
+      puts yellow('Test timing data not found.') if ENV['VERBOSE_TEST_OUTPUT']
     end
   end
 
@@ -27,7 +27,7 @@ module TimeReportOutput
   end
 
   def print_top_ten(top_ten)
-    return unless ENV["VERBOSE_TEST_OUTPUT"]
+    return unless ENV['VERBOSE_TEST_OUTPUT']
 
     puts "\n====== Ten slowest tests ======\n"
     top_ten.each_with_index do |element, index|

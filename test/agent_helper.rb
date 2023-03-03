@@ -148,7 +148,7 @@ def assert_audit_log_contains_object(audit_log_contents, o, format = :json)
     end
   when NilClass
 
-    assert_audit_log_contains(audit_log_contents, format == :json ? "null" : "nil")
+    assert_audit_log_contains(audit_log_contents, format == :json ? 'null' : 'nil')
   else
     assert_audit_log_contains(audit_log_contents, o.inspect)
   end
@@ -435,10 +435,10 @@ def capture_segment_with_error
     segment_with_error = nil
     with_segment do |segment|
       segment_with_error = segment
-      raise "oops!"
+      raise 'oops!'
     end
   rescue Exception => exception
-    assert segment_with_error, "expected to have a segment_with_error"
+    assert segment_with_error, 'expected to have a segment_with_error'
     build_deferred_error_attributes(segment_with_error)
     return segment_with_error, exception
   end
@@ -477,7 +477,7 @@ end
 def last_transaction_trace_request_params
   agent_attributes = attributes_for(last_transaction_trace, :agent)
   agent_attributes.inject({}) do |memo, (key, value)|
-    memo[key] = value if key.to_s.start_with?("request.parameters.")
+    memo[key] = value if key.to_s.start_with?('request.parameters.')
     memo
   end
 end
@@ -694,7 +694,7 @@ ensure
 end
 
 def create_agent_command(args = {})
-  NewRelic::Agent::Commands::AgentCommand.new([-1, {"name" => "command_name", "arguments" => args}])
+  NewRelic::Agent::Commands::AgentCommand.new([-1, {'name' => 'command_name', 'arguments' => args}])
 end
 
 def wait_for_backtrace_service_poll(opts = {})
@@ -730,7 +730,7 @@ def with_array_logger(level = :info)
   override_logger = Logger.new(logdev)
 
   with_config(config) do
-    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    NewRelic::Agent.logger = NewRelic::Agent::AgentLogger.new('', override_logger)
     yield
   end
 
@@ -877,7 +877,7 @@ def load_cross_agent_test(name)
 end
 
 def each_cross_agent_test(options)
-  options = {:dir => nil, :pattern => "*"}.update(options)
+  options = {:dir => nil, :pattern => '*'}.update(options)
   path = File.join([cross_agent_tests_dir, options[:dir], options[:pattern]].compact)
   Dir.glob(path).each { |file| yield(file) }
 end
@@ -931,10 +931,10 @@ def message_for_status_code(code)
   end
 
   case code
-  when 200 then "OK"
-  when 404 then "Not Found"
-  when 403 then "Forbidden"
-  else "Unknown"
+  when 200 then 'OK'
+  when 404 then 'Not Found'
+  when 403 then 'Forbidden'
+  else 'Unknown'
   end
 end
 
@@ -943,7 +943,7 @@ end
 # a "status_code" may be passed in the headers to alter the HTTP Status Code
 # that is wrapped in the response.
 def mock_http_response(headers, wrap_it = true)
-  status_code = (headers.delete("status_code") || 200).to_i
+  status_code = (headers.delete('status_code') || 200).to_i
   net_http_resp = Net::HTTPResponse.new(1.0, status_code, message_for_status_code(status_code))
   headers.each do |key, value|
     net_http_resp.add_field(key.to_s, value)
@@ -967,7 +967,7 @@ end
 def assert_segment_noticed_error(txn, segment_name, error_classes, error_message)
   error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
 
-  assert error_segment, "Expected at least one segment with a noticed_error"
+  assert error_segment, 'Expected at least one segment with a noticed_error'
 
   assert_match_or_equal segment_name, error_segment.name
 
@@ -978,15 +978,15 @@ def assert_segment_noticed_error(txn, segment_name, error_classes, error_message
 end
 
 def assert_transaction_noticed_error(txn, error_classes)
-  refute_empty txn.exceptions, "Expected transaction to notice the error"
+  refute_empty txn.exceptions, 'Expected transaction to notice the error'
   assert_match_or_equal error_classes, txn.exceptions.keys.first.class.name
 end
 
 def refute_transaction_noticed_error(txn, error_class)
   error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
 
-  assert error_segment, "Expected at least one segment with a noticed_error"
-  assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
+  assert error_segment, 'Expected at least one segment with a noticed_error'
+  assert_empty txn.exceptions, 'Expected transaction to NOT notice any segment errors'
 end
 
 def refute_raises(*exp)
@@ -1022,6 +1022,6 @@ def defer_testing_to_min_supported_rails(test_file, min_rails_version, supports_
 
     yield
   else
-    puts "Skipping tests in #{File.basename(test_file)} because Rails >= #{min_rails_version} is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
+    puts "Skipping tests in #{File.basename(test_file)} because Rails >= #{min_rails_version} is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
   end
 end

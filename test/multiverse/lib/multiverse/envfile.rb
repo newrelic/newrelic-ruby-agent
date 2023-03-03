@@ -12,7 +12,7 @@ module Multiverse
 
     def initialize(file_path)
       self.file_path = file_path
-      @instrumentation_permutations = ["chain"]
+      @instrumentation_permutations = ['chain']
       @gemfiles = []
       @mode = 'fork'
       if File.exist?(file_path)
@@ -62,7 +62,7 @@ module Multiverse
     end
 
     def ruby3_gem_sorted_set
-      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
+      RUBY_VERSION >= '3.0.0' ? "gem 'sorted_set'" : ''
     end
 
     def omit_collector!

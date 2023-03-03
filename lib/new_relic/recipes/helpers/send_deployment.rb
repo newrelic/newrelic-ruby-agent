@@ -5,9 +5,9 @@
 module SendDeployment
   def send_deployment_notification_to_newrelic
     require 'new_relic/cli/command'
-    debug("Uploading deployment to New Relic")
+    debug('Uploading deployment to New Relic')
     NewRelic::Cli::Deployments.new(deploy_options).run
-    info("Uploaded deployment information to New Relic")
+    info('Uploaded deployment information to New Relic')
   rescue NewRelic::Cli::Command::CommandFailure => e
     info(e.message)
   rescue => e
@@ -34,7 +34,7 @@ module SendDeployment
   end
 
   def fetch_environment
-    fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, "production"))))
+    fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, 'production'))))
   end
 
   def fetch_rev
@@ -59,9 +59,9 @@ module SendDeployment
     current_revision = fetch(:current_revision)
     return unless current_revision && previous_revision
 
-    debug("Retrieving changelog for New Relic Deployment details")
+    debug('Retrieving changelog for New Relic Deployment details')
 
-    if Rake::Task.task_defined?("git:check")
+    if Rake::Task.task_defined?('git:check')
       log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
         "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
       `#{log_command}`

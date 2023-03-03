@@ -37,8 +37,8 @@ module NewRelic
       PEER_HOSTNAME_KEY = 'peer.hostname'
       SPAN_KIND_KEY = 'span.kind'
       ENTRY_POINT_KEY = 'nr.entryPoint'
-      TRUSTED_PARENT_KEY = "trustedParentId"
-      TRACING_VENDORS_KEY = "tracingVendors"
+      TRUSTED_PARENT_KEY = 'trustedParentId'
+      TRACING_VENDORS_KEY = 'tracingVendors'
       TRANSACTION_NAME_KEY = 'transaction.name'
 
       # Strings for static values of the event structure

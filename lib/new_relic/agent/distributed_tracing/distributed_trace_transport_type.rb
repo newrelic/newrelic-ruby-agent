@@ -11,12 +11,12 @@ module NewRelic
         NewRelic::UNKNOWN,
         NewRelic::HTTP,
         NewRelic::HTTPS,
-        "Kafka",
-        "JMS",
-        "IronMQ",
-        "AMQP",
-        "Queue",
-        "Other"
+        'Kafka',
+        'JMS',
+        'IronMQ',
+        'AMQP',
+        'Queue',
+        'Other'
       ].freeze
 
       URL_SCHEMES = {

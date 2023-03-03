@@ -38,7 +38,7 @@ module NewRelic
         else
           # parse command line args.  Throw an exception on a bad arg.
           @options = options do |opts|
-            opts.on("-h", "Show this help") { raise CommandFailure, opts.to_s }
+            opts.on('-h', 'Show this help') { raise CommandFailure, opts.to_s }
           end
           @leftover = @options.parse(command_line_args)
         end
@@ -64,7 +64,7 @@ module NewRelic
             $stdout.puts "warning: the 'newrelic_cmd' script has been renamed 'newrelic'"
             script_name = 'newrelic'
           end
-          opts.banner = "Usage: #{script_name} [ #{@command_names.join(" | ")} ] [options]"
+          opts.banner = "Usage: #{script_name} [ #{@command_names.join(' | ')} ] [options]"
           opts.separator("use '#{script_name} <command> -h' to see detailed command options")
           opts
         end

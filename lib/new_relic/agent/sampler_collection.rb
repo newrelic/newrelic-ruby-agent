@@ -64,7 +64,7 @@ module NewRelic
       rescue NewRelic::Agent::Sampler::Unsupported => e
         ::NewRelic::Agent.logger.info("#{sampler_class.name} not available: #{e}")
       rescue => e
-        ::NewRelic::Agent.logger.error("Error registering sampler:", e)
+        ::NewRelic::Agent.logger.error('Error registering sampler:', e)
       end
     end
   end

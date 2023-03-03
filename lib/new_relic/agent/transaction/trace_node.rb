@@ -69,7 +69,7 @@ module NewRelic
         def to_debug_str(depth)
           tab = (+'  ') * depth
           s = tab.clone
-          s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
+          s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split('::').last}] #{metric_name} \n"
           unless params.empty?
             params.each do |k, v|
               s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"

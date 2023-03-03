@@ -32,7 +32,7 @@ module NewRelic
           if segment = NewRelic::Agent::Tracer.current_segment
             segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
           else
-            NewRelic::Agent.logger.debug("Attempted to merge untrusted attributes without segment")
+            NewRelic::Agent.logger.debug('Attempted to merge untrusted attributes without segment')
           end
         end
 

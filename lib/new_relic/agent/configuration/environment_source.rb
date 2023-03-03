@@ -101,7 +101,7 @@ module NewRelic
             end
           else
             ::NewRelic::Agent.logger.info("#{environment_key} does not have a corresponding configuration setting (#{config_key} does not exist).")
-            ::NewRelic::Agent.logger.info("Run `rake newrelic:config:docs` or visit https://newrelic.com/docs/ruby/ruby-agent-configuration to see a list of available configuration settings.")
+            ::NewRelic::Agent.logger.info('Run `rake newrelic:config:docs` or visit https://newrelic.com/docs/ruby/ruby-agent-configuration to see a list of available configuration settings.')
             self[config_key] = value
           end
         end

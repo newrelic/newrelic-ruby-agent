@@ -9,20 +9,20 @@ module NewRelic
   module Agent
     class LogEventAggregator < EventAggregator
       # Per-message keys
-      LEVEL_KEY = "level".freeze
-      MESSAGE_KEY = "message".freeze
-      TIMESTAMP_KEY = "timestamp".freeze
-      PRIORITY_KEY = "priority".freeze
+      LEVEL_KEY = 'level'.freeze
+      MESSAGE_KEY = 'message'.freeze
+      TIMESTAMP_KEY = 'timestamp'.freeze
+      PRIORITY_KEY = 'priority'.freeze
 
       # Metric keys
-      LINES = "Logging/lines".freeze
-      DROPPED_METRIC = "Logging/Forwarding/Dropped".freeze
-      SEEN_METRIC = "Supportability/Logging/Forwarding/Seen".freeze
-      SENT_METRIC = "Supportability/Logging/Forwarding/Sent".freeze
-      OVERALL_SUPPORTABILITY_FORMAT = "Supportability/Logging/Ruby/Logger/%s".freeze
-      METRICS_SUPPORTABILITY_FORMAT = "Supportability/Logging/Metrics/Ruby/%s".freeze
-      FORWARDING_SUPPORTABILITY_FORMAT = "Supportability/Logging/Forwarding/Ruby/%s".freeze
-      DECORATING_SUPPORTABILITY_FORMAT = "Supportability/Logging/LocalDecorating/Ruby/%s".freeze
+      LINES = 'Logging/lines'.freeze
+      DROPPED_METRIC = 'Logging/Forwarding/Dropped'.freeze
+      SEEN_METRIC = 'Supportability/Logging/Forwarding/Seen'.freeze
+      SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
+      OVERALL_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
+      METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
+      FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
+      DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
 
       named :LogEventAggregator
@@ -54,7 +54,7 @@ module NewRelic
       def record(formatted_message, severity)
         return unless enabled?
 
-        severity = "UNKNOWN" if severity.nil? || severity.empty?
+        severity = 'UNKNOWN' if severity.nil? || severity.empty?
 
         if NewRelic::Agent.config[METRICS_ENABLED_KEY]
           @counter_lock.synchronize do
@@ -174,9 +174,9 @@ module NewRelic
       def record_configuration_metric(format, key)
         state = NewRelic::Agent.config[key]
         label = if !enabled?
-          "disabled"
+          'disabled'
         else
-          state ? "enabled" : "disabled"
+          state ? 'enabled' : 'disabled'
         end
         NewRelic::Agent.increment_metric(format % label)
       end

@@ -70,7 +70,7 @@ class DependencyDetectionTest < Minitest::Test
     # Requires that depends_on would let failures pass through, which it does
     DependencyDetection.defer do
       depends_on { false }
-      depends_on { raise "OH NOES" }
+      depends_on { raise 'OH NOES' }
       executes { executed = true }
     end
     DependencyDetection.detect!
@@ -140,7 +140,7 @@ class DependencyDetectionTest < Minitest::Test
       executes { executed = true }
     end
 
-    with_config(:'instrumentation.testing' => "disabled") do
+    with_config(:'instrumentation.testing' => 'disabled') do
       executed = false
       DependencyDetection.detect!
 
@@ -150,7 +150,7 @@ class DependencyDetectionTest < Minitest::Test
       refute executed
     end
 
-    with_config(:'instrumentation.testing' => "enabled") do
+    with_config(:'instrumentation.testing' => 'enabled') do
       executed = false
       DependencyDetection.detect!
 
@@ -180,7 +180,7 @@ class DependencyDetectionTest < Minitest::Test
       executes { executed = true }
     end
 
-    with_config(:'instrumentation.testing' => "enabled") do
+    with_config(:'instrumentation.testing' => 'enabled') do
       executed = false
       DependencyDetection.detect!
 
@@ -190,7 +190,7 @@ class DependencyDetectionTest < Minitest::Test
       assert_predicate dd, :use_prepend?
     end
 
-    with_config(:'instrumentation.testing' => "auto") do
+    with_config(:'instrumentation.testing' => 'auto') do
       DependencyDetection.detect!
 
       refute dd.disabled_configured?
@@ -198,7 +198,7 @@ class DependencyDetectionTest < Minitest::Test
       assert_predicate dd, :use_prepend?
     end
 
-    with_config(:'instrumentation.testing' => "prepend") do
+    with_config(:'instrumentation.testing' => 'prepend') do
       DependencyDetection.detect!
 
       refute dd.disabled_configured?
@@ -206,7 +206,7 @@ class DependencyDetectionTest < Minitest::Test
       assert_predicate dd, :use_prepend?
     end
 
-    with_config(:'instrumentation.testing' => "chain") do
+    with_config(:'instrumentation.testing' => 'chain') do
       DependencyDetection.detect!
 
       refute dd.disabled_configured?
@@ -228,14 +228,14 @@ class DependencyDetectionTest < Minitest::Test
       assert_predicate dd, :use_prepend?
     end
 
-    with_config(:'instrumentation.testing' => "prepend") do
+    with_config(:'instrumentation.testing' => 'prepend') do
       DependencyDetection.detect!
 
       assert_equal :prepend, dd.config_value
       assert_predicate dd, :use_prepend?
     end
 
-    with_config(:'instrumentation.testing' => "disabled") do
+    with_config(:'instrumentation.testing' => 'disabled') do
       DependencyDetection.detect!
 
       refute dd.use_prepend?
@@ -250,7 +250,7 @@ class DependencyDetectionTest < Minitest::Test
       executes { executed = true }
     end
 
-    with_config(:'instrumentation.testing' => "chain") do
+    with_config(:'instrumentation.testing' => 'chain') do
       DependencyDetection.detect!
 
       refute dd.use_prepend?
@@ -269,7 +269,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert conflicted, "should be truthy!"
+    assert conflicted, 'should be truthy!'
   end
 
   def test_conflicts_simple_falsey
@@ -282,7 +282,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    refute conflicted, "should be falsey!"
+    refute conflicted, 'should be falsey!'
   end
 
   def test_conflicts_defined_falsey
@@ -295,8 +295,8 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    refute conflicted, "should be falsey!"
-    assert_predicate dd, :use_prepend?, "should use prepend when no conflicts exist"
+    refute conflicted, 'should be falsey!'
+    assert_predicate dd, :use_prepend?, 'should use prepend when no conflicts exist'
   end
 
   def test_conflicts_defined_truthy
@@ -309,8 +309,8 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert conflicted, "should be truthy!"
-    refute dd.use_prepend?, "should not use prepend when conflicts exist"
+    assert conflicted, 'should be truthy!'
+    refute dd.use_prepend?, 'should not use prepend when conflicts exist'
   end
 
   def test_conflicts_multiples_truthy
@@ -324,14 +324,14 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert conflicted, "should be truthy!"
-    refute dd.use_prepend?, "should not use prepend when conflicts exist"
+    assert conflicted, 'should be truthy!'
+    refute dd.use_prepend?, 'should not use prepend when conflicts exist'
   end
 
   def test_exception_during_depends_on_check_doesnt_propagate
     DependencyDetection.defer do
       named(:something_exceptional)
-      depends_on { raise "Oops" }
+      depends_on { raise 'Oops' }
     end
 
     DependencyDetection.detect!
@@ -344,7 +344,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.defer do
       named(:something_exceptional)
-      executes { raise "Ack!" }
+      executes { raise 'Ack!' }
       executes { ran_second_block = true }
     end
 

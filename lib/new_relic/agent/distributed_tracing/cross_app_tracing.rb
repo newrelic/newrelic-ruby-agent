@@ -149,7 +149,7 @@ module NewRelic
         if Agent.config[:cross_process_id] && Agent.config[:cross_process_id].length > 0
           true
         else
-          NewRelic::Agent.logger.debug("No cross_process_id configured")
+          NewRelic::Agent.logger.debug('No cross_process_id configured')
           false
         end
       end
@@ -158,7 +158,7 @@ module NewRelic
         if Agent.config[:encoding_key] && Agent.config[:encoding_key].length > 0
           true
         else
-          NewRelic::Agent.logger.debug("No encoding_key set")
+          NewRelic::Agent.logger.debug('No encoding_key set')
           false
         end
       end

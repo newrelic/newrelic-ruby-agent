@@ -9,7 +9,7 @@ class AgentHooksTest < Minitest::Test
   def setup
     @app = stub_everything
     @hooks = NewRelic::Rack::AgentHooks.new(@app)
-    @env = {:env => "env"}
+    @env = {:env => 'env'}
   end
 
   def test_before_call

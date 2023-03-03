@@ -15,7 +15,7 @@ class TestingApp
     request = Rack::Request.new(env)
     params = request.params
     if params['fail']
-      raise "O_o"
+      raise 'O_o'
     end
 
     if params['transaction_name']
@@ -36,8 +36,8 @@ class TestingApp
 end
 
 class TestingBackgroundJob
-  FIRST_NAME = "OtherTransaction/Custom/TestingBackgroundJob/first"
-  SECOND_NAME = "OtherTransaction/Custom/TestingBackgroundJob/second"
+  FIRST_NAME = 'OtherTransaction/Custom/TestingBackgroundJob/first'
+  SECOND_NAME = 'OtherTransaction/Custom/TestingBackgroundJob/second'
 
   def first(awhile = nil)
     job(FIRST_NAME, awhile)

@@ -23,15 +23,15 @@ class ViewsController < ApplicationController
   end
 
   def text_render
-    render(body: "Yay")
+    render(body: 'Yay')
   end
 
   def json_render
-    render(:json => {"a" => "b"})
+    render(:json => {'a' => 'b'})
   end
 
   def xml_render
-    render(:xml => {"a" => "b"})
+    render(:xml => {'a' => 'b'})
   end
 
   def js_render
@@ -41,7 +41,7 @@ class ViewsController < ApplicationController
   def file_render
     # The choice of filename is significant here: we want a dot in the filename
     # in order to expose an issue on Rails 2.
-    file = File.expand_path(File.join(File.dirname(__FILE__), "dummy.txt"))
+    file = File.expand_path(File.join(File.dirname(__FILE__), 'dummy.txt'))
     render(:file => file, :content_type => 'text/plain', :layout => false)
   end
 
@@ -50,7 +50,7 @@ class ViewsController < ApplicationController
   end
 
   def inline_render
-    render(:inline => "<% Time.now %><p><%= Time.now %></p>")
+    render(:inline => '<% Time.now %><p><%= Time.now %></p>')
   end
 
   def haml_render
@@ -79,7 +79,7 @@ class ViewsController < ApplicationController
   end
 
   def raise_render
-    raise "this is an uncaught RuntimeError"
+    raise 'this is an uncaught RuntimeError'
   end
 end
 
@@ -106,7 +106,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     end
 
     def test_should_allow_uncaught_exception_to_propagate
-      get("/views/raise_render")
+      get('/views/raise_render')
 
       assert_equal 500, status
     end
@@ -126,7 +126,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       partial_nodes = find_all_nodes_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
 
-      assert_equal 3, partial_nodes.size, "sanity check"
+      assert_equal 3, partial_nodes.size, 'sanity check'
       assert_equal ['View/views/_a_partial.html.erb/Partial'], partial_nodes.map(&:metric_name).uniq
     end
 
@@ -136,7 +136,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       text_node = find_node_with_name(sample, 'View/inline template/Rendering')
 
-      assert text_node, "Failed to find a node named View/inline template/Rendering"
+      assert text_node, 'Failed to find a node named View/inline template/Rendering'
       assert_metrics_recorded('View/inline template/Rendering')
     end
 
@@ -155,7 +155,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
         sample = last_transaction_trace
         text_node = find_node_with_name(sample, 'View/text template/Rendering')
 
-        assert text_node, "Failed to find a node named View/text template/Rendering"
+        assert text_node, 'Failed to find a node named View/text template/Rendering'
         assert_metrics_recorded('View/text template/Rendering')
       end
     end
@@ -166,7 +166,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       text_node = find_node_with_name(sample, 'View/views/haml_view.html.haml/Rendering')
 
-      assert text_node, "Failed to find a node named View/views/haml_view.html.haml/Rendering"
+      assert text_node, 'Failed to find a node named View/views/haml_view.html.haml/Rendering'
       assert_metrics_recorded('View/views/haml_view.html.haml/Rendering')
     end
 
@@ -189,7 +189,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       get('/views/collection_render')
       sample = last_transaction_trace
 
-      assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
+      assert find_node_with_name(sample, 'View/foos/_foo.html.haml/Partial')
     end
 
     RENDERING_OPTIONS.each do |action|

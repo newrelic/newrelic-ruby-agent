@@ -23,6 +23,6 @@ Rake::TestTask.new do |t|
 
   t.libs << "#{ROOT}/test"
   t.libs << "#{ROOT}/lib"
-  t.pattern = Array(file_pattern).join(",")
-  t.verbose = ENV["VERBOSE"]
+  t.pattern = Array(file_pattern).join(',')
+  t.verbose = ENV['VERBOSE']
 end

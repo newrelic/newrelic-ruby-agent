@@ -91,7 +91,7 @@ module NewRelic
             transaction.distributed_tracer.log_request_headers(headers)
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error during message header processing", e)
+          NewRelic::Agent.logger.error('Error during message header processing', e)
         end
       end
     end

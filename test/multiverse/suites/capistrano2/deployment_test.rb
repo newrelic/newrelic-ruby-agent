@@ -14,22 +14,22 @@ class DeploymentTest < Minitest::Test
   def test_deploys_to_configured_application
     cap_it
 
-    assert_deployment_value("application_id", "test")
+    assert_deployment_value('application_id', 'test')
   end
 
   def test_deploys_with_commandline_parameter
-    cap_it("-s newrelic_user=someone -s newrelic_appname=somewhere")
+    cap_it('-s newrelic_user=someone -s newrelic_appname=somewhere')
 
-    assert_deployment_value("user", "someone")
-    assert_deployment_value("application_id", "somewhere")
+    assert_deployment_value('user', 'someone')
+    assert_deployment_value('application_id', 'somewhere')
   end
 
   def assert_deployment_value(key, value)
     assert_equal(1, @rpm_site.requests.count)
-    assert_equal(value, @rpm_site.requests.first["deployment"][key])
+    assert_equal(value, @rpm_site.requests.first['deployment'][key])
   end
 
-  def cap_it(options = "")
+  def cap_it(options = '')
     cmd = "cap newrelic:notice_deployment #{options}"
     output = with_environment('FAKE_RPM_SITE_PORT' => @rpm_site.port.to_s) do
       `#{cmd}`

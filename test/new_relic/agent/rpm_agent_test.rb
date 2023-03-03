@@ -27,7 +27,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
       nil
     end
     with_ignore_error_filter(filter) do
-      NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
+      NewRelic::Agent.notice_error(StandardError.new('message'), :request_params => {:x => 'y'})
     end
 
     assert(ignore_called)
@@ -61,17 +61,17 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   end
 
   def test_manual_overrides
-    NewRelic::Agent.manual_start(:app_name => "testjobs")
+    NewRelic::Agent.manual_start(:app_name => 'testjobs')
 
-    assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
+    assert_equal 'testjobs', NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 
   def test_agent_restart
-    NewRelic::Agent.manual_start(:app_name => "noapp")
-    NewRelic::Agent.manual_start(:app_name => "testjobs")
+    NewRelic::Agent.manual_start(:app_name => 'noapp')
+    NewRelic::Agent.manual_start(:app_name => 'testjobs')
 
-    assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
+    assert_equal 'testjobs', NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 

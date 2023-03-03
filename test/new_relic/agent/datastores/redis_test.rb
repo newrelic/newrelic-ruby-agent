@@ -7,7 +7,7 @@ require_relative '../../../test_helper'
 
 class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   def test_format_command
-    expected = "set \"foo\" \"bar\""
+    expected = 'set "foo" "bar"'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
@@ -17,8 +17,8 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_command_truncates_long_arguments
-    key = "namespace.other_namespace.different_namespace.why.would.you.do.this.key"
-    expected_key = "namespace.other_namespace.dif...ace.why.would.you.do.this.key"
+    key = 'namespace.other_namespace.different_namespace.why.would.you.do.this.key'
+    expected_key = 'namespace.other_namespace.dif...ace.why.would.you.do.this.key'
 
     expected = "set \"#{expected_key}\" \"redoctober\""
 
@@ -30,7 +30,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_command_truncates_long_commands
-    key = "key"
+    key = 'key'
     command = [:set] + Array.new(NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH, key)
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
@@ -49,7 +49,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_command_in_pipeline
-    expected = "set \"foo\" \"bar\""
+    expected = 'set "foo" "bar"'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
@@ -93,19 +93,19 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
 
   def test_format_pipeline_commands_truncates_long_commands
     pipeline = Array.new(NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH) do
-      [:set, "0123456789"]
+      [:set, '0123456789']
     end
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
 
       assert_equal result.length, NewRelic::Agent::Datastores::Redis::MAXIMUM_COMMAND_LENGTH
-      assert result.end_with?("012345...")
+      assert result.end_with?('012345...')
     end
   end
 
   def test_format_command_with_non_string_argument
-    expected = "set \"key\" true"
+    expected = 'set "key" true'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'key', true])
@@ -115,7 +115,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_command_handles_binary_strings
-    binary_string = (0..255).to_a.pack("c*")
+    binary_string = (0..255).to_a.pack('c*')
     expected = 'set "key" <binary data>'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
@@ -126,7 +126,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   end
 
   def test_format_command_in_pipeline_handles_binary_strings
-    binary_string = (0..255).to_a.pack("c*")
+    binary_string = (0..255).to_a.pack('c*')
     expected = 'set "key" <binary data>'
 
     with_config(:'transaction_tracer.record_redis_arguments' => true) do

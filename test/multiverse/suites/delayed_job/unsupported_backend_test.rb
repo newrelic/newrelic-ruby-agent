@@ -9,7 +9,7 @@ if !NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     include MultiverseHelpers
 
     setup_and_teardown_agent do
-      NewRelic::DelayedJobInjection.worker_name = "delayed"
+      NewRelic::DelayedJobInjection.worker_name = 'delayed'
     end
 
     def test_unsupported_raises_on_instantiation

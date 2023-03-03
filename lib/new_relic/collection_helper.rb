@@ -52,7 +52,7 @@ module NewRelic
         real_string = flatten(string)
         if real_string.size > len
           real_string = real_string.slice(0...len)
-          real_string << "..."
+          real_string << '...'
         end
         real_string
       else

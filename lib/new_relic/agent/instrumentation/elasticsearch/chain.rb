@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Elasticsearch
     def self.instrument!
       to_instrument = if ::Gem::Version.create(::Elasticsearch::VERSION) <
-          ::Gem::Version.create("8.0.0")
+          ::Gem::Version.create('8.0.0')
         ::Elasticsearch::Transport::Client
       else
         ::Elastic::Transport::Client

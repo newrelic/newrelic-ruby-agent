@@ -53,7 +53,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_to_array_with_bad_values
     node = NewRelic::Agent::Transaction::TraceNode.new(nil, nil)
     node.end_trace(Rational(10, 1))
-    expected = [0, 10_000.0, "<unknown>", {}, []]
+    expected = [0, 10_000.0, '<unknown>', {}, []]
 
     assert_equal(expected, node.to_array)
   end
@@ -61,26 +61,26 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_path_string
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
 
-    assert_equal("Custom/test/metric[]", s.path_string)
+    assert_equal('Custom/test/metric[]', s.path_string)
 
     fake_node = mock('node')
     fake_node.expects(:path_string).returns('Custom/other/metric[]')
 
     s.children << fake_node
 
-    assert_equal("Custom/test/metric[Custom/other/metric[]]", s.path_string)
+    assert_equal('Custom/test/metric[Custom/other/metric[]]', s.path_string)
   end
 
   def test_to_s_compact
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
 
-    assert_equal("Custom/test/metric", s.to_s_compact)
+    assert_equal('Custom/test/metric', s.to_s_compact)
 
     fake_node = mock('node')
     fake_node.expects(:to_s_compact).returns('Custom/other/metric')
     s.children << fake_node
 
-    assert_equal("Custom/test/metric{Custom/other/metric}", s.to_s_compact)
+    assert_equal('Custom/test/metric{Custom/other/metric}', s.to_s_compact)
   end
 
   def test_to_debug_str_basic
@@ -105,7 +105,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_to_debug_str_closed_with_nonnumeric
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
-    s.end_trace("0.1")
+    s.end_trace('0.1')
 
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n<< 0.1 Custom/test/metric\n", s.to_debug_str(0))
   end
@@ -295,25 +295,25 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
     s.params = {:sql => statement}
-    NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
+    NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new('whee'))
     s.explain_sql
   end
 
   def test_explain_sql_can_handle_missing_config
     # If TT node came over from Resque child, might not be a Statement
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    s.params = {:sql => "SELECT * FROM galaxy"}
+    s.params = {:sql => 'SELECT * FROM galaxy'}
     s.explain_sql
   end
 
   def test_explain_sql_can_use_already_existing_plan
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
     s.params = {
-      :sql => "SELECT * FROM galaxy",
-      :explain_plan => "EXPLAIN IT!"
+      :sql => 'SELECT * FROM galaxy',
+      :explain_plan => 'EXPLAIN IT!'
     }
 
-    assert_equal("EXPLAIN IT!", s.explain_sql)
+    assert_equal('EXPLAIN IT!', s.explain_sql)
   end
 
   def test_params_equal

@@ -4,7 +4,7 @@
 
 require_relative 'config/database'
 
-desc "Setup for ActiveRecord"
+desc 'Setup for ActiveRecord'
 task :environment do
   if defined?(DatabaseTasks)
     ActiveRecord::Base.configurations = DatabaseTasks.database_configuration

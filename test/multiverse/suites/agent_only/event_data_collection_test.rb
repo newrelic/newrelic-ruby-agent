@@ -10,11 +10,11 @@ class EventDataCollectionTest < Minitest::Test
   def test_sends_all_event_capacities_on_connect
     expected = {
       'harvest_limits' => {
-        "analytic_event_data" => 1200,
-        "custom_event_data" => 3000,
-        "error_event_data" => 100,
-        "span_event_data" => 2000,
-        "log_event_data" => 10000
+        'analytic_event_data' => 1200,
+        'custom_event_data' => 3000,
+        'error_event_data' => 100,
+        'span_event_data' => 2000,
+        'log_event_data' => 10000
       }
     }
 
@@ -25,14 +25,14 @@ class EventDataCollectionTest < Minitest::Test
 
   def test_sets_event_report_period_on_connect_response
     connect_response = {
-      "agent_run_id" => 1,
-      "event_harvest_config" => {
-        "report_period_ms" => 5000,
-        "harvest_limits" => {
-          "analytic_event_data" => 1200,
-          "custom_event_data" => 3000,
-          "error_event_data" => 100,
-          "log_event_data" => 10000
+      'agent_run_id' => 1,
+      'event_harvest_config' => {
+        'report_period_ms' => 5000,
+        'harvest_limits' => {
+          'analytic_event_data' => 1200,
+          'custom_event_data' => 3000,
+          'error_event_data' => 100,
+          'log_event_data' => 10000
         }
       }
     }
@@ -46,14 +46,14 @@ class EventDataCollectionTest < Minitest::Test
 
   def test_resets_event_report_period_on_reconnect
     connect_response = {
-      "agent_run_id" => 1,
-      "event_harvest_config" => {
-        "report_period_ms" => 5000,
-        "harvest_limits" => {
-          "analytic_event_data" => 1200,
-          "custom_event_data" => 3000,
-          "error_event_data" => 100,
-          "log_event_data" => 10000
+      'agent_run_id' => 1,
+      'event_harvest_config' => {
+        'report_period_ms' => 5000,
+        'harvest_limits' => {
+          'analytic_event_data' => 1200,
+          'custom_event_data' => 3000,
+          'error_event_data' => 100,
+          'log_event_data' => 10000
         }
       }
     }

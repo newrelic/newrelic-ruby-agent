@@ -21,9 +21,9 @@ class NewRelic::NoticedError
   UNKNOWN_ERROR_CLASS_NAME = 'Error'
   NIL_ERROR_MESSAGE = '<no message>'
 
-  USER_ATTRIBUTES = "userAttributes"
-  AGENT_ATTRIBUTES = "agentAttributes"
-  INTRINSIC_ATTRIBUTES = "intrinsics"
+  USER_ATTRIBUTES = 'userAttributes'
+  AGENT_ATTRIBUTES = 'agentAttributes'
+  INTRINSIC_ATTRIBUTES = 'intrinsics'
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 

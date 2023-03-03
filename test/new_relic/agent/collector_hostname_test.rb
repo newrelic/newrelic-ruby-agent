@@ -6,10 +6,10 @@ require_relative '../../test_helper'
 
 module NewRelic::Agent
   class CollectorHostname < Minitest::Test
-    test_cases = load_cross_agent_test("collector_hostname")
+    test_cases = load_cross_agent_test('collector_hostname')
 
     test_cases.each do |test_case|
-      define_method("test_#{test_case['name']}".tr(" ", "_")) do
+      define_method("test_#{test_case['name']}".tr(' ', '_')) do
         # The configuration manager checks the following places to
         # determine the collector host:
         #

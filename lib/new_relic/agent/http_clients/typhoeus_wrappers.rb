@@ -42,7 +42,7 @@ module NewRelic
           end
         end
 
-        TYPHOEUS = "Typhoeus".freeze
+        TYPHOEUS = 'Typhoeus'.freeze
 
         def type
           TYPHOEUS

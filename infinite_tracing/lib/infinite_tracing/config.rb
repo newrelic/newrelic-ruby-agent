@@ -10,7 +10,7 @@ module NewRelic::Agent
       COMPRESSION_LEVEL_DISABLED = :none
       COMPRESSION_LEVEL_DEFAULT = :high
       COMPRESSION_LEVEL_LIST = %i[none low medium high].freeze
-      TRACE_OBSERVER_NOT_CONFIGURED_ERROR = "Trace Observer host not configured!"
+      TRACE_OBSERVER_NOT_CONFIGURED_ERROR = 'Trace Observer host not configured!'
 
       # We only want to load the infinite tracing gem's files when
       #   a) we're inside test framework and running tests

@@ -18,7 +18,7 @@ module NewRelic
 
     def call(env)
       @requests << unpack(env)
-      [200, {}, ["Fine"]]
+      [200, {}, ['Fine']]
     end
 
     def unpack(env)

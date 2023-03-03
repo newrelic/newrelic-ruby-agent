@@ -19,7 +19,7 @@ module NewRelic
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
-        @config = {:license_key => "a" * 40}
+        @config = {:license_key => 'a' * 40}
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
@@ -81,7 +81,7 @@ module NewRelic
 
           @agent.after_fork(:report_to_channel => 123)
 
-          refute_equal old_engine, @agent.stats_engine, "Still got our old engine around!"
+          refute_equal old_engine, @agent.stats_engine, 'Still got our old engine around!'
         end
       end
 
@@ -90,13 +90,13 @@ module NewRelic
           @agent.stubs(:connected?).returns(true)
 
           errors = []
-          errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
+          errors << NewRelic::NoticedError.new('', {}, Exception.new('boo'))
           @agent.merge_data_for_endpoint(:error_data, errors)
 
           @agent.after_fork(:report_to_channel => 123)
           errors = @agent.error_collector.error_trace_aggregator.harvest!
 
-          assert_equal 0, errors.length, "Still got errors collected in parent"
+          assert_equal 0, errors.length, 'Still got errors collected in parent'
         end
       end
 
@@ -190,7 +190,7 @@ module NewRelic
         traces = [mock('tt1'), mock('tt2')]
 
         @agent.transaction_sampler.expects(:harvest!).returns(traces)
-        @agent.service.stubs(:transaction_sample_data).raises("wat")
+        @agent.service.stubs(:transaction_sample_data).raises('wat')
         @agent.transaction_sampler.expects(:merge!).with(traces)
 
         @agent.send(:harvest_and_send_transaction_traces)
@@ -282,7 +282,7 @@ module NewRelic
 
       def test_merge_data_for_endpoint_abides_by_error_queue_limit
         errors = []
-        40.times { |i| errors << NewRelic::NoticedError.new("", {}, Exception.new("boo #{i}")) }
+        40.times { |i| errors << NewRelic::NoticedError.new('', {}, Exception.new("boo #{i}")) }
 
         @agent.merge_data_for_endpoint(:error_data, errors)
 
@@ -292,7 +292,7 @@ module NewRelic
 
         # This method should NOT increment error counts, since that has already
         # been counted in the child
-        assert_metrics_not_recorded "Errors/all"
+        assert_metrics_not_recorded 'Errors/all'
       end
 
       def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
@@ -558,7 +558,7 @@ module NewRelic
         end
         logmsg = logdev.array.first.delete("\n")
 
-        refute @agent.started?, "agent was started"
+        refute @agent.started?, 'agent was started'
         assert_match(/No application name configured/i, logmsg)
       end
 
@@ -696,7 +696,7 @@ module NewRelic
       end
 
       def test_revert_to_default_configuration_removes_manual_and_server_source
-        manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => "source")
+        manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => 'source')
         Agent.config.replace_or_add_config(manual_source)
 
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
@@ -717,7 +717,7 @@ module NewRelic
 
       def test_log_ignore_url_regexes
         with_config(:rules => {:ignore_url_regexes => %w[foo bar baz]}) do
-          expects_logging(:info, includes("/foo/, /bar/, /baz/"))
+          expects_logging(:info, includes('/foo/, /bar/, /baz/'))
           @agent.log_ignore_url_regexes
         end
       end
@@ -775,8 +775,8 @@ module NewRelic
           # Write HTTP response with partial gzip content, leaving connection open.
           gzip = Zlib.gzip('Hello World!')
           headers = [
-            "HTTP/1.1 200",
-            "Content-Encoding: gzip",
+            'HTTP/1.1 200',
+            'Content-Encoding: gzip',
             "Content-Length: #{gzip.length}",
             gzip.byteslice(0..-2)
           ].join("\r\n")

@@ -8,9 +8,9 @@ module NewRelic
   module Agent
     module Utilization
       class GCP < Vendor
-        vendor_name "gcp"
-        endpoint "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true"
-        headers "Metadata-Flavor" => "Google"
+        vendor_name 'gcp'
+        endpoint 'http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true'
+        headers 'Metadata-Flavor' => 'Google'
         keys %w[id machineType name zone]
         key_transforms :to_sym
 

@@ -33,7 +33,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
   end
 
   def test_process_route_with_bad_arguments
-    @app.stubs(:env).raises("Boo")
+    @app.stubs(:env).raises('Boo')
     yielded = false
     @app.process_route_with_tracing do
       yielded = true
@@ -43,7 +43,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
   end
 
   def test_route_eval_with_bad_params
-    @app.stubs(:env).raises("Boo")
+    @app.stubs(:env).raises('Boo')
     yielded = false
     @app.route_eval_with_tracing do
       yielded = true

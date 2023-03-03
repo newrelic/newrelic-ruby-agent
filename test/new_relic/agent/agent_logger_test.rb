@@ -11,8 +11,8 @@ class AgentLoggerTest < Minitest::Test
 
   def setup
     NewRelic::Agent.config.add_config_for_testing(
-      :log_file_path => "log/",
-      :log_file_name => "testlog.log",
+      :log_file_path => 'log/',
+      :log_file_name => 'testlog.log',
       :log_level => :info
     )
   end
@@ -40,7 +40,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_initializes_from_override
     override_logger = Logger.new('/dev/null')
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    logger = NewRelic::Agent::AgentLogger.new('', override_logger)
 
     assert_equal override_logger, logger.instance_variable_get(:@log)
   end
@@ -49,7 +49,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     LEVELS.each do |level|
-      logger.send(level, "Boo!")
+      logger.send(level, 'Boo!')
     end
 
     assert_logged(/FATAL/,
@@ -62,7 +62,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     LEVELS.each do |level|
-      logger.send(level, "What", "up?")
+      logger.send(level, 'What', 'up?')
     end
 
     assert_logged(/FATAL/, /FATAL/,
@@ -75,7 +75,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     LEVELS.each do |level|
-      logger.send(:log_once, level, :special_key, "Special!")
+      logger.send(:log_once, level, :special_key, 'Special!')
     end
 
     assert_logged(/Special/)
@@ -118,7 +118,7 @@ class AgentLoggerTest < Minitest::Test
     assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for(:info)
     assert_equal Logger::DEBUG, NewRelic::Agent::AgentLogger.log_level_for(:debug)
 
-    assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for("")
+    assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for('')
     assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for(:unknown)
   end
 
@@ -127,7 +127,7 @@ class AgentLoggerTest < Minitest::Test
       override_logger = Logger.new($stderr)
       override_logger.level = Logger::FATAL
 
-      NewRelic::Agent::AgentLogger.new("", override_logger)
+      NewRelic::Agent::AgentLogger.new('', override_logger)
 
       assert_equal Logger::DEBUG, override_logger.level
     end
@@ -160,7 +160,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_startup_purges_memory_logger
     LEVELS.each do |level|
-      ::NewRelic::Agent::StartupLogger.instance.send(level, "boo!")
+      ::NewRelic::Agent::StartupLogger.instance.send(level, 'boo!')
     end
 
     create_basic_logger
@@ -175,7 +175,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     begin
-      raise "Something bad happened"
+      raise 'Something bad happened'
     rescue => err
       logger.error(err)
     end
@@ -188,7 +188,7 @@ class AgentLoggerTest < Minitest::Test
       logger = create_basic_logger
 
       begin
-        raise "Something bad happened"
+        raise 'Something bad happened'
       rescue => err
         logger.error(err)
       end
@@ -202,7 +202,7 @@ class AgentLoggerTest < Minitest::Test
     with_config(:log_level => :debug) do
       logger = create_basic_logger
 
-      logger.info("The nice thing about standards is that you have so many to choose from. -- ast")
+      logger.info('The nice thing about standards is that you have so many to choose from. -- ast')
 
       assert_logged(/#{Date.today.strftime("%Y-%m-%d")}/)
     end
@@ -212,7 +212,7 @@ class AgentLoggerTest < Minitest::Test
     with_config(:log_level => :debug) do
       logger = create_basic_logger
 
-      e = Exception.new("Look Ma, no backtrace!")
+      e = Exception.new('Look Ma, no backtrace!')
 
       assert_nil(e.backtrace)
       logger.error(e)
@@ -225,7 +225,7 @@ class AgentLoggerTest < Minitest::Test
   def test_log_exception_logs_backtrace_at_same_level_as_message_by_default
     logger = create_basic_logger
 
-    e = Exception.new("howdy")
+    e = Exception.new('howdy')
     e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:info, e)
@@ -237,7 +237,7 @@ class AgentLoggerTest < Minitest::Test
   def test_log_exception_logs_backtrace_at_explicitly_specified_level
     logger = create_basic_logger
 
-    e = Exception.new("howdy")
+    e = Exception.new('howdy')
     e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:warn, e, :info)
@@ -323,7 +323,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_should_allow_blocks_that_return_a_single_string
     logger = create_basic_logger
-    logger.warn { "Surely you jest!" }
+    logger.warn { 'Surely you jest!' }
 
     assert_logged(/WARN : Surely you jest!/)
   end
@@ -331,7 +331,7 @@ class AgentLoggerTest < Minitest::Test
   def test_should_allow_blocks_that_return_an_array
     logger = create_basic_logger
     logger.warn do
-      ["You must be joking!", "You can't be serious!"]
+      ['You must be joking!', "You can't be serious!"]
     end
 
     assert_logged(
@@ -353,15 +353,15 @@ class AgentLoggerTest < Minitest::Test
 
   def test_clear_already_logged
     logger = create_basic_logger
-    logger.log_once(:warn, :positive, "thoughts")
-    logger.log_once(:warn, :positive, "thoughts")
+    logger.log_once(:warn, :positive, 'thoughts')
+    logger.log_once(:warn, :positive, 'thoughts')
 
-    assert_logged "thoughts"
+    assert_logged 'thoughts'
 
     logger.clear_already_logged
-    logger.log_once(:warn, :positive, "thoughts")
+    logger.log_once(:warn, :positive, 'thoughts')
 
-    assert_logged "thoughts", "thoughts"
+    assert_logged 'thoughts', 'thoughts'
   end
 
   def test_doesnt_write_log_event_aggregator
@@ -374,7 +374,7 @@ class AgentLoggerTest < Minitest::Test
 
       _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
 
-      assert_empty logs.select { |log| log.last["message"].include?(message) }
+      assert_empty logs.select { |log| log.last['message'].include?(message) }
     end
   end
 
@@ -388,7 +388,7 @@ class AgentLoggerTest < Minitest::Test
 
       _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
 
-      assert_empty logs.select { |log| log.last["message"].include?(message) }
+      assert_empty logs.select { |log| log.last['message'].include?(message) }
     end
   end
 
@@ -403,7 +403,7 @@ class AgentLoggerTest < Minitest::Test
   def create_basic_logger
     @logdev = ArrayLogDevice.new
     override_logger = Logger.new(@logdev)
-    NewRelic::Agent::AgentLogger.new("", override_logger)
+    NewRelic::Agent::AgentLogger.new('', override_logger)
   end
 
   def with_squelched_stdout

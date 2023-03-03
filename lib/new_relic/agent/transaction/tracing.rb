@@ -52,8 +52,8 @@ module NewRelic
           segments.each { |s| s.finalize }
         end
 
-        WEB_TRANSACTION_TOTAL_TIME = "WebTransactionTotalTime".freeze
-        OTHER_TRANSACTION_TOTAL_TIME = "OtherTransactionTotalTime".freeze
+        WEB_TRANSACTION_TOTAL_TIME = 'WebTransactionTotalTime'.freeze
+        OTHER_TRANSACTION_TOTAL_TIME = 'OtherTransactionTotalTime'.freeze
 
         def record_total_time_metrics
           total_time_metric = if recording_web_transaction?

@@ -35,9 +35,9 @@ module NewRelic
       CAT_REFERRING_PATH_HASH_KEY = 'nr.referringPathHash'
       CAT_ALTERNATE_PATH_HASHES_KEY = 'nr.alternatePathHashes'
       APDEX_PERF_ZONE_KEY = 'nr.apdexPerfZone'
-      SYNTHETICS_RESOURCE_ID_KEY = "nr.syntheticsResourceId"
-      SYNTHETICS_JOB_ID_KEY = "nr.syntheticsJobId"
-      SYNTHETICS_MONITOR_ID_KEY = "nr.syntheticsMonitorId"
+      SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'
+      SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'
+      SYNTHETICS_MONITOR_ID_KEY = 'nr.syntheticsMonitorId'
 
       def create(payload)
         intrinsics = {

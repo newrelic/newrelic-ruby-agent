@@ -20,8 +20,8 @@ module NewRelic
                 simulator.join # ensure our simulation happens!
                 metadata = connection.send(:metadata)
 
-                assert_equal "swiss_cheese", metadata["license_key"]
-                assert_equal "fiddlesticks", metadata["agent_run_token"]
+                assert_equal 'swiss_cheese', metadata['license_key']
+                assert_equal 'fiddlesticks', metadata['agent_run_token']
               end
             end
           end
@@ -37,8 +37,8 @@ module NewRelic
                 connection = Connection.instance # instantiate after simulated connection
                 metadata = connection.send(:metadata)
 
-                assert_equal "swiss_cheese", metadata["license_key"]
-                assert_equal "fiddlesticks", metadata["agent_run_token"]
+                assert_equal 'swiss_cheese', metadata['license_key']
+                assert_equal 'fiddlesticks', metadata['agent_run_token']
               end
             end
           end
@@ -54,8 +54,8 @@ module NewRelic
                 connection = Connection.instance
                 metadata = connection.send(:metadata)
 
-                assert_equal "swiss_cheese", metadata["license_key"]
-                assert_equal "fiddlesticks", metadata["agent_run_token"]
+                assert_equal 'swiss_cheese', metadata['license_key']
+                assert_equal 'fiddlesticks', metadata['agent_run_token']
               end
             end
           end
@@ -71,15 +71,15 @@ module NewRelic
                 simulator.join
                 metadata = connection.send(:metadata)
 
-                assert_equal "swiss_cheese", metadata["license_key"]
-                assert_equal "fiddlesticks", metadata["agent_run_token"]
+                assert_equal 'swiss_cheese', metadata['license_key']
+                assert_equal 'fiddlesticks', metadata['agent_run_token']
 
                 simulate_reconnect_to_collector(reconnect_config)
 
                 metadata = connection.send(:metadata)
 
-                assert_equal "swiss_cheese", metadata["license_key"]
-                assert_equal "shazbat", metadata["agent_run_token"]
+                assert_equal 'swiss_cheese', metadata['license_key']
+                assert_equal 'shazbat', metadata['agent_run_token']
               end
             end
           end
@@ -106,17 +106,17 @@ module NewRelic
               spans, segments, active_client = emulate_streaming_to_unimplemented(total_spans)
 
               assert_kind_of SuspendedStreamingBuffer, active_client.buffer
-              assert_predicate active_client, :suspended?, "expected client to be suspended."
+              assert_predicate active_client, :suspended?, 'expected client to be suspended.'
 
               assert_equal total_spans, segments.size
               assert_equal 0, spans.size
 
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Sent'
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Response/Error'
 
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+                'Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED' => {:call_count => 1}
               })
             end
           end
@@ -131,17 +131,17 @@ module NewRelic
               spans, segments, active_client = emulate_streaming_to_failed_precondition(total_spans)
 
               refute_kind_of SuspendedStreamingBuffer, active_client.buffer
-              refute active_client.suspended?, "expected client to not be suspended."
+              refute active_client.suspended?, 'expected client to not be suspended.'
 
               assert_equal total_spans, segments.size
               assert_equal 0, spans.size
 
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Sent'
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Response/Error'
 
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+                'Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION' => {:call_count => 5}
               })
             end
           end
@@ -151,16 +151,16 @@ module NewRelic
           with_config('infinite_tracing.batching': false) do
             with_detailed_trace do
               total_spans = 5
-              expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
+              expects_logging(:debug, all_of(includes('closed the stream'), includes('OK response.')), anything)
 
               spans, segments = emulate_streaming_with_ok_close_response(total_spans)
 
               assert_equal total_spans, segments.size
-              assert_equal total_spans, spans.size, "spans got dropped/discarded?"
+              assert_equal total_spans, spans.size, 'spans got dropped/discarded?'
 
-              refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              refute_metrics_recorded 'Supportability/InfiniteTracing/Span/Response/Error'
 
-              assert_metrics_recorded("Supportability/InfiniteTracing/Span/Sent")
+              assert_metrics_recorded('Supportability/InfiniteTracing/Span/Sent')
             end
           end
         end
@@ -188,14 +188,14 @@ module NewRelic
         def test_metadata_includes_request_headers_map
           with_serial_lock do
             with_config(localhost_config) do
-              NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata" => "test_metadata"})
+              NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {'NR-UtilizationMetadata' => 'test_metadata'})
 
               connection = Connection.instance # instantiate before simulation
               simulate_connect_to_collector(fiddlesticks_config, 0.01) do |simulator|
                 simulator.join # ensure our simulation happens!
                 metadata = connection.send(:metadata)
 
-                assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
+                assert_equal 'test_metadata', metadata['nr-utilizationmetadata']
               end
             end
           end

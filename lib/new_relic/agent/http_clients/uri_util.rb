@@ -40,7 +40,7 @@ module NewRelic
           uri
         end
 
-        QUESTION_MARK = "?"
+        QUESTION_MARK = '?'
 
         def self.strip_query_string(fragment)
           if fragment.include?(QUESTION_MARK)

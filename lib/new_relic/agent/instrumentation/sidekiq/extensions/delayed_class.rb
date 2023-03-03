@@ -23,7 +23,7 @@ if defined?(Sidekiq::VERSION) && Sidekiq::VERSION < '7.0.0'
         :category => 'OtherTransaction/SidekiqJob'
       }
     rescue => e
-      NewRelic::Agent.logger.error("Failure during deserializing YAML for Sidekiq::Extensions::DelayedClass", e)
+      NewRelic::Agent.logger.error('Failure during deserializing YAML for Sidekiq::Extensions::DelayedClass', e)
       NewRelic::Agent::Instrumentation::Sidekiq::Server.default_trace_args(msg)
     end
   end

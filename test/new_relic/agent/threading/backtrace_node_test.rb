@@ -48,7 +48,7 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-        ["irb.rb", "catch", 69],
+        ['irb.rb', 'catch', 69],
         0, 0,
         []
       ],
@@ -63,7 +63,7 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node, child_node])
 
       assert_equal([
-        ["irb.rb", "catch", 69],
+        ['irb.rb', 'catch', 69],
         0, 0,
         [
           [
@@ -82,7 +82,7 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-        ["transaction_sample_buffer.rb", "visit_node", -1],
+        ['transaction_sample_buffer.rb', 'visit_node', -1],
         0, 0,
         []
       ],
@@ -91,12 +91,12 @@ module NewRelic::Agent::Threading
 
     def test_gracefully_handle_bad_values_in_to_array
       node = BacktraceNode.new(SINGLE_LINE)
-      node.stubs(:parse_backtrace_frame).returns(["irb.rb", "catch", "blarg"])
+      node.stubs(:parse_backtrace_frame).returns(['irb.rb', 'catch', 'blarg'])
       node.runnable_count = Rational(10, 1)
       convert_nodes_to_array([node])
 
       assert_equal([
-        ["irb.rb", "catch", 0],
+        ['irb.rb', 'catch', 0],
         10, 0,
         []
       ],

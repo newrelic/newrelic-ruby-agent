@@ -20,7 +20,7 @@ class AutostartTest < Minitest::Test
       Rails.send(:remove_const, :Console)
     end
   else
-    puts "Skipping `test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined` in #{File.basename(__FILE__)} because Rails is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
+    puts "Skipping `test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined` in #{File.basename(__FILE__)} because Rails is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
   end
 
   def test_agent_will_autostart_if_global_CONSOLE_constant_is_defined
@@ -57,7 +57,7 @@ class AutostartTest < Minitest::Test
 
   MY_CONST = true
   def test_denylisted_constants_can_be_configured
-    with_config('autostart.denylisted_constants' => "IRB,::AutostartTest::MY_CONST") do
+    with_config('autostart.denylisted_constants' => 'IRB,::AutostartTest::MY_CONST') do
       refute ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when environment contains denylisted constant"
     end
   end

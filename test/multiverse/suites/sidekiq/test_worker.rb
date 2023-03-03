@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative "sidekiq_server"
+require_relative 'sidekiq_server'
 
 class TestWorker
   include Sidekiq::Worker
@@ -70,7 +70,7 @@ class TestWorker
 
   def perform(key, val)
     if self.class.am_i_a_failure?
-      raise "Uh oh"
+      raise 'Uh oh'
     else
       TestWorker.record(key, val)
     end

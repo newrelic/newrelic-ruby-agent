@@ -30,7 +30,7 @@ end
 
 def fixture_tcp_socket(response)
   # Don't actually talk to Google.
-  socket = stub("socket").tap do |s|
+  socket = stub('socket').tap do |s|
     s.stubs(:closed?).returns(false)
     s.stubs(:close)
     s.stubs(:setsockopt)

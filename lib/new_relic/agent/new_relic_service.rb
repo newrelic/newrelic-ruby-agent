@@ -65,7 +65,7 @@ module NewRelic
         Agent.config.register_callback(:marshaller) do |marshaller|
           if marshaller != 'json'
             ::NewRelic::Agent.logger.warn("Non-JSON marshaller '#{marshaller}' requested but not supported, using " \
-              "JSON marshaller instead. pruby marshalling has been removed as of version 3.14.0.")
+              'JSON marshaller instead. pruby marshalling has been removed as of version 3.14.0.')
           end
 
           @marshaller = JsonMarshaller.new
@@ -195,16 +195,16 @@ module NewRelic
       def error_event_data(data)
         metadata, items = data
         response = invoke_remote(:error_event_data, [@agent_id, *data], :item_count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Sent", :count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Seen", :count => metadata[:events_seen])
+        NewRelic::Agent.record_metric('Supportability/Events/TransactionError/Sent', :count => items.size)
+        NewRelic::Agent.record_metric('Supportability/Events/TransactionError/Seen', :count => metadata[:events_seen])
         response
       end
 
       def span_event_data(data)
         metadata, items = data
         response = invoke_remote(:span_event_data, [@agent_id, *data], :item_count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/SpanEvents/Sent", :count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/SpanEvents/Seen", :count => metadata[:events_seen])
+        NewRelic::Agent.record_metric('Supportability/Events/SpanEvents/Sent', :count => items.size)
+        NewRelic::Agent.record_metric('Supportability/Events/SpanEvents/Seen', :count => metadata[:events_seen])
         response
       end
 
@@ -305,7 +305,7 @@ module NewRelic
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         set_cert_store(conn)
       rescue StandardError, LoadError
-        msg = "SSL is not available in the environment; please install SSL support."
+        msg = 'SSL is not available in the environment; please install SSL support.'
         raise UnrecoverableAgentException.new(msg)
       end
 
@@ -313,7 +313,7 @@ module NewRelic
         if NewRelic::Agent.config[:ca_bundle_path]
           conn.cert_store = ssl_cert_store
         else
-          ::NewRelic::Agent.logger.debug("Using default security certificates")
+          ::NewRelic::Agent.logger.debug('Using default security certificates')
         end
       end
 
@@ -363,7 +363,7 @@ module NewRelic
         start_connection(conn)
         conn
       rescue Timeout::Error
-        ::NewRelic::Agent.logger.info("Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.")
+        ::NewRelic::Agent.logger.info('Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.')
         raise
       end
 
@@ -380,7 +380,7 @@ module NewRelic
         @marshaller.dump(data)
         true
       rescue StandardError, SystemStackError => e
-        NewRelic::Agent.logger.warn("Unable to marshal environment report on connect.", e)
+        NewRelic::Agent.logger.warn('Unable to marshal environment report on connect.', e)
         false
       end
 
@@ -409,7 +409,7 @@ module NewRelic
         end
         @audit_logger.log_request_headers(opts[:uri], headers)
         request['user-agent'] = user_agent
-        request.content_type = "application/octet-stream"
+        request.content_type = 'application/octet-stream'
         request.body = opts[:data]
         request
       end
@@ -551,7 +551,7 @@ module NewRelic
       end
 
       def handle_serialization_error(method, e)
-        NewRelic::Agent.increment_metric("Supportability/serialization_failure")
+        NewRelic::Agent.increment_metric('Supportability/serialization_failure')
         NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
         msg = "Failed to serialize #{method} data using #{@marshaller.class}: #{e.inspect}"
         error = SerializationError.new(msg)
@@ -566,7 +566,7 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method}/Duration", request_duration)
         end
         if serialize_time
-          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize", serialize_time)
+          NewRelic::Agent.record_metric('Supportability/invoke_remote_serialize', serialize_time)
           NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method}", serialize_time)
         end
       end
@@ -581,7 +581,7 @@ module NewRelic
       # of items as arguments.
       def record_size_supportability_metrics(method, size_bytes, item_count)
         metrics = [
-          "Supportability/Ruby/Collector/Output/Bytes",
+          'Supportability/Ruby/Collector/Output/Bytes',
           "Supportability/Ruby/Collector/#{method}/Output/Bytes"
         ]
         # we may not have an item count, in which case, just record 0 for the exclusive time

@@ -23,10 +23,10 @@ module NewRelic
       include Tracing
 
       # for nested transactions
-      NESTED_TRANSACTION_PREFIX = "Nested/"
-      CONTROLLER_PREFIX = "Controller/"
-      MIDDLEWARE_PREFIX = "Middleware/Rack/"
-      OTHER_TRANSACTION_PREFIX = "OtherTransaction/"
+      NESTED_TRANSACTION_PREFIX = 'Nested/'
+      CONTROLLER_PREFIX = 'Controller/'
+      MIDDLEWARE_PREFIX = 'Middleware/Rack/'
+      OTHER_TRANSACTION_PREFIX = 'OtherTransaction/'
       TASK_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Background/"
       RAKE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Rake/"
       MESSAGE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Message/"
@@ -37,21 +37,21 @@ module NewRelic
 
       WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
 
-      MIDDLEWARE_SUMMARY_METRICS = ["Middleware/all"].freeze
-      WEB_SUMMARY_METRIC = "HttpDispatcher"
+      MIDDLEWARE_SUMMARY_METRICS = ['Middleware/all'].freeze
+      WEB_SUMMARY_METRIC = 'HttpDispatcher'
       OTHER_SUMMARY_METRIC = "#{OTHER_TRANSACTION_PREFIX}all"
-      QUEUE_TIME_METRIC = "WebFrontend/QueueTime"
+      QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'
 
-      APDEX_S = "S"
-      APDEX_T = "T"
-      APDEX_F = "F"
-      APDEX_ALL_METRIC = "ApdexAll"
-      APDEX_METRIC = "Apdex"
-      APDEX_OTHER_METRIC = "ApdexOther"
-      APDEX_TXN_METRIC_PREFIX = "Apdex/"
-      APDEX_OTHER_TXN_METRIC_PREFIX = "ApdexOther/Transaction/"
+      APDEX_S = 'S'
+      APDEX_T = 'T'
+      APDEX_F = 'F'
+      APDEX_ALL_METRIC = 'ApdexAll'
+      APDEX_METRIC = 'Apdex'
+      APDEX_OTHER_METRIC = 'ApdexOther'
+      APDEX_TXN_METRIC_PREFIX = 'Apdex/'
+      APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'
 
-      JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
+      JRUBY_CPU_TIME_ERROR = 'Error calculating JRuby CPU Time'
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -189,7 +189,7 @@ module NewRelic
         if txn = tl_current
           txn.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         else
-          NewRelic::Agent.logger.debug("Attempted to merge untrusted attributes without transaction")
+          NewRelic::Agent.logger.debug('Attempted to merge untrusted attributes without transaction')
         end
       end
 
@@ -534,7 +534,7 @@ module NewRelic
 
         commit!(initial_segment.name) unless @ignore_this_transaction
       rescue => e
-        NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
+        NewRelic::Agent.logger.error('Exception during Transaction#finish', e)
         nil
       ensure
         state.reset

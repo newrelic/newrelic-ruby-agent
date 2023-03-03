@@ -24,7 +24,7 @@ module NewRelic::Agent
       events = create_events(5..9)
       events.each { |e| buffer.append(event: e) }
 
-      buffer.append(event: create_event(priority: 4)) { raise "This should not be evaluated" }
+      buffer.append(event: create_event(priority: 4)) { raise 'This should not be evaluated' }
 
       assert_equal(5, buffer.size)
       assert_equal_unordered(events, buffer.to_a)
@@ -73,7 +73,7 @@ module NewRelic::Agent
       events.each { |e| buffer.append(event: e) }
 
       items = buffer.to_a
-      items << create_event(priority: "blarg")
+      items << create_event(priority: 'blarg')
 
       assert_equal(events, buffer.to_a)
     end
@@ -95,13 +95,13 @@ module NewRelic::Agent
       4.times do |i|
         buffer.append(event: create_event(priority: i))
 
-        refute buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full"
+        refute buffer.full?, '#PrioritySampledBuffer#append should return false until buffer is full'
       end
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
 
-        assert_predicate(buffer, :full?, "#PrioritySampledBuffer#append should return true once buffer is full")
+        assert_predicate(buffer, :full?, '#PrioritySampledBuffer#append should return true once buffer is full')
       end
     end
 
@@ -249,7 +249,7 @@ module NewRelic::Agent
     # for this test file.
     def create_event(priority: nil, name: nil)
       name ||= "event_#{priority}"
-      [{"priority" => priority, "name" => name}, {}, {}]
+      [{'priority' => priority, 'name' => name}, {}, {}]
     end
 
     def create_events(priorities)

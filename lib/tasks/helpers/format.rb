@@ -66,24 +66,24 @@ module Format
 
   def format_description(value)
     description = ''
-    description += "<b>DEPRECATED</b> " if value[:deprecated]
+    description += '<b>DEPRECATED</b> ' if value[:deprecated]
     description += value[:description]
     description
   end
 
   def format_env_var(key)
-    return "None" if NON_ENV_CONFIGS.include?(key)
+    return 'None' if NON_ENV_CONFIGS.include?(key)
 
-    "NEW_RELIC_#{key.tr(".", "_").upcase}"
+    "NEW_RELIC_#{key.tr('.', '_').upcase}"
   end
 
   def format_name(key)
     name = NAME_OVERRIDES[key]
     return name if name
 
-    key.split("_")
+    key.split('_')
       .each { |fragment| fragment[0] = fragment[0].upcase }
-      .join(" ")
+      .join(' ')
   end
 
   def format_sections(key, value)
@@ -98,7 +98,7 @@ module Format
 
   def format_type(type)
     if type == NewRelic::Agent::Configuration::Boolean
-      "Boolean"
+      'Boolean'
     else
       type
     end
@@ -112,9 +112,9 @@ module Format
   def section_key(key, components)
     if /^disable_/.match?(key) # "disable_httpclient"
       DISABLING
-    elsif components.length >= 2 && !(components[1] == "attributes") # "analytics_events.enabled"
+    elsif components.length >= 2 && !(components[1] == 'attributes') # "analytics_events.enabled"
       components.first
-    elsif components[1] == "attributes" # "transaction_tracer.attributes.enabled"
+    elsif components[1] == 'attributes' # "transaction_tracer.attributes.enabled"
       ATTRIBUTES
     else
       GENERAL

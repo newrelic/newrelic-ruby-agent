@@ -118,7 +118,7 @@ module NewRelic
       def inspect_full
         variables = instance_variables.map do |ivar|
           "#{ivar.to_s}=#{instance_variable_get(ivar).inspect}"
-        end.join(" ")
+        end.join(' ')
         "#<NewRelic::Agent::Stats #{variables}>"
       end
 

@@ -16,14 +16,14 @@ class SlackNotifierTests < Minitest::Test
 
   def test_send_slack_message_too_many_args
     assert_raises(ArgumentError) {
-      SlackNotifier.send_slack_message("I am a notification message!", "But I'm one too many")
+      SlackNotifier.send_slack_message('I am a notification message!', "But I'm one too many")
     }
   end
 
   def test_send_slack_message
     SlackNotifier.stub(:sleep, nil) do
       HTTParty.stub(:post, nil) do
-        assert_nil SlackNotifier.send_slack_message("I am a notification message!")
+        assert_nil SlackNotifier.send_slack_message('I am a notification message!')
       end
     end
   end
@@ -31,7 +31,7 @@ class SlackNotifierTests < Minitest::Test
   def test_errors_array_no_errors
     SlackNotifier.stub(:sleep, nil) do
       HTTParty.stub(:post, nil) do
-        SlackNotifier.send_slack_message("I am a notification message!")
+        SlackNotifier.send_slack_message('I am a notification message!')
 
         assert_empty SlackNotifier.errors_array
       end
@@ -40,7 +40,7 @@ class SlackNotifierTests < Minitest::Test
 
   def test_errors_array_one_error
     HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
-      SlackNotifier.send_slack_message("I am a notification message!")
+      SlackNotifier.send_slack_message('I am a notification message!')
 
       assert_equal 1, SlackNotifier.errors_array.length
     end
@@ -49,8 +49,8 @@ class SlackNotifierTests < Minitest::Test
 
   def test_errors_array_multiple_errors
     HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
-      SlackNotifier.send_slack_message("I am a notification message!")
-      SlackNotifier.send_slack_message("I am a another notification message!")
+      SlackNotifier.send_slack_message('I am a notification message!')
+      SlackNotifier.send_slack_message('I am a another notification message!')
 
       assert_equal 2, SlackNotifier.errors_array.length
     end

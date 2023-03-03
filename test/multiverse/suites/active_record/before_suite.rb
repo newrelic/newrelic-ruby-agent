@@ -4,7 +4,7 @@
 
 def redefine_mysql_primary_key(const_str)
   const = Object.const_get(const_str) rescue return
-  const[:primary_key] = "int(11) auto_increment PRIMARY KEY"
+  const[:primary_key] = 'int(11) auto_increment PRIMARY KEY'
 end
 
 # MySql 5.7 and later no longer support NULL in primary keys
@@ -14,8 +14,8 @@ if defined? Mysql2
   require 'active_record'
   require 'active_record/connection_adapters/mysql2_adapter'
 
-  redefine_mysql_primary_key "::ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::NATIVE_DATABASE_TYPES"
-  redefine_mysql_primary_key "::ActiveRecord::ConnectionAdapters::Mysql2Adapter::NATIVE_DATABASE_TYPES"
+  redefine_mysql_primary_key '::ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::NATIVE_DATABASE_TYPES'
+  redefine_mysql_primary_key '::ActiveRecord::ConnectionAdapters::Mysql2Adapter::NATIVE_DATABASE_TYPES'
 end
 
 begin

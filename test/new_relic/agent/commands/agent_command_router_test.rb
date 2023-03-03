@@ -8,25 +8,25 @@ require 'new_relic/agent/commands/agent_command_router'
 
 class AgentCommandRouterTest < Minitest::Test
   DEFAULT_ARGS = {
-    "profile_id" => 42
+    'profile_id' => 42
   }
 
   BAZZLE_ID = 123
   BAZZLE = [BAZZLE_ID, {
-    "name" => "bazzle",
-    "arguments" => DEFAULT_ARGS
+    'name' => 'bazzle',
+    'arguments' => DEFAULT_ARGS
   }]
 
   BOOM_ID = 666
   BOOM = [BOOM_ID, {
-    "name" => "boom",
-    "arguments" => DEFAULT_ARGS
+    'name' => 'boom',
+    'arguments' => DEFAULT_ARGS
   }]
 
   UNRECOGNIZED_ID = 42
   UNRECOGNIZED = [UNRECOGNIZED_ID, {
-    "name" => "JIBBERISH",
-    "arguments" => {}
+    'name' => 'JIBBERISH',
+    'arguments' => {}
   }]
 
   attr_reader :service, :agent_commands, :calls
@@ -38,8 +38,8 @@ class AgentCommandRouterTest < Minitest::Test
     @events = NewRelic::Agent::EventListener.new
 
     @agent_commands = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
-    @agent_commands.handlers["bazzle"] = proc { |args| handle_bazzle_command(args) }
-    @agent_commands.handlers["boom"] = proc { |args| handle_boom_command(args) }
+    @agent_commands.handlers['bazzle'] = proc { |args| handle_bazzle_command(args) }
+    @agent_commands.handlers['boom'] = proc { |args| handle_boom_command(args) }
   end
 
   def teardown
@@ -82,7 +82,7 @@ class AgentCommandRouterTest < Minitest::Test
 
   def test_check_for_and_handle_agent_commands_dispatches_with_error
     service.stubs(:get_agent_commands).returns([BOOM])
-    service.expects(:agent_command_results).with({BOOM_ID.to_s => {"error" => "BOOOOOM"}})
+    service.expects(:agent_command_results).with({BOOM_ID.to_s => {'error' => 'BOOOOOM'}})
 
     agent_commands.check_for_and_handle_agent_commands
   end
@@ -90,7 +90,7 @@ class AgentCommandRouterTest < Minitest::Test
   def test_check_for_and_handle_agent_commands_allows_multiple
     service.stubs(:get_agent_commands).returns([BAZZLE, BOOM])
     service.expects(:agent_command_results).with({BAZZLE_ID.to_s => {},
-                                                   BOOM_ID.to_s => {"error" => "BOOOOOM"}})
+                                                   BOOM_ID.to_s => {'error' => 'BOOOOOM'}})
     agent_commands.check_for_and_handle_agent_commands
   end
 
@@ -184,7 +184,7 @@ class AgentCommandRouterTest < Minitest::Test
   end
 
   def handle_boom_command(command)
-    raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
+    raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new('BOOOOOM')
   end
 
   def start_profile(args = {})

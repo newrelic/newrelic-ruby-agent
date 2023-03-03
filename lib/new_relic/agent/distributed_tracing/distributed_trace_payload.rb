@@ -17,7 +17,7 @@ module NewRelic
       extend Coerce
 
       VERSION = [0, 1].freeze
-      PARENT_TYPE = "App"
+      PARENT_TYPE = 'App'
 
       # Key names for serialization
       VERSION_KEY = 'v'

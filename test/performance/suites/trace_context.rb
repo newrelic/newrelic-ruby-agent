@@ -9,8 +9,8 @@ require 'new_relic/agent/transaction/trace_context'
 class TraceContext < Performance::TestCase
   CONFIG = {
     :'distributed_tracing.enabled' => true,
-    :account_id => "190",
-    :primary_application_id => "46954",
+    :account_id => '190',
+    :primary_application_id => '46954',
     :disable_harvest_thread => true
   }
 
@@ -23,7 +23,7 @@ class TraceContext < Performance::TestCase
     measure do
       NewRelic::Agent::DistributedTracing::TraceContext.parse( \
         carrier: carrier,
-        trace_state_entry_key: "33@nr"
+        trace_state_entry_key: '33@nr'
       )
     end
   end

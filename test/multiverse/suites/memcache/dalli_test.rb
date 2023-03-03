@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "./memcache_test_cases"
+require './memcache_test_cases'
 
 if defined?(Dalli)
 
@@ -21,7 +21,7 @@ if defined?(Dalli)
     end
 
     def simulate_error
-      Dalli::Client.any_instance.stubs("perform").raises(simulated_error_class, "No server available")
+      Dalli::Client.any_instance.stubs('perform').raises(simulated_error_class, 'No server available')
       key = set_key_for_testcase
       @cache.get(key)
     end
@@ -76,7 +76,7 @@ if defined?(Dalli)
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('unknown', 'unknown')
         server = DALLI_SERVER_PROTOCOL.new('/tmp/jonanfs.sock')
-        server.stubs(:hostname).raises("oops")
+        server.stubs(:hostname).raises('oops')
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 

@@ -16,10 +16,10 @@ module NewRelic
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'
         APP_DATA_KEY = 'NewRelicAppData'
 
-        EXTERNAL_ALL = "External/all"
-        EXTERNAL_ALL_WEB = "External/allWeb"
-        EXTERNAL_ALL_OTHER = "External/allOther"
-        MISSING_STATUS_CODE = "MissingHTTPStatusCode"
+        EXTERNAL_ALL = 'External/all'
+        EXTERNAL_ALL_WEB = 'External/allWeb'
+        EXTERNAL_ALL_OTHER = 'External/allOther'
+        MISSING_STATUS_CODE = 'MissingHTTPStatusCode'
 
         attr_reader :library, :uri, :procedure, :http_status_code
         attr_writer :record_agent_attributes
@@ -69,7 +69,7 @@ module NewRelic
 
           transaction.distributed_tracer.insert_headers(request)
         rescue => e
-          NewRelic::Agent.logger.error("Error in add_request_headers", e)
+          NewRelic::Agent.logger.error('Error in add_request_headers', e)
         end
 
         # This method extracts app data from an external response if present. If
@@ -92,10 +92,10 @@ module NewRelic
             @app_data = data
             update_segment_name
           else
-            NewRelic::Agent.logger.debug("External segment response has invalid cross_app_id")
+            NewRelic::Agent.logger.debug('External segment response has invalid cross_app_id')
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error in read_response_headers", e)
+          NewRelic::Agent.logger.error('Error in read_response_headers', e)
         end
 
         def cross_app_request? # :nodoc:
@@ -154,7 +154,7 @@ module NewRelic
 
           end
         rescue => e
-          NewRelic::Agent.logger.error("error during get_request_metadata", e)
+          NewRelic::Agent.logger.error('error during get_request_metadata', e)
         end
 
         # Process obfuscated +String+ sent from a called application that is also running a New Relic agent and
@@ -176,13 +176,13 @@ module NewRelic
               @app_data = app_data
               update_segment_name
             else
-              NewRelic::Agent.logger.error("error processing response metadata: invalid/non-trusted ID")
+              NewRelic::Agent.logger.error('error processing response metadata: invalid/non-trusted ID')
             end
           end
 
           nil
         rescue => e
-          NewRelic::Agent.logger.error("error during process_response_metadata", e)
+          NewRelic::Agent.logger.error('error during process_response_metadata', e)
         end
 
         def record_metrics

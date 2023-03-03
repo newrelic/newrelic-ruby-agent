@@ -154,7 +154,7 @@ module NewRelic
         end
       end
 
-      PRIORITY = "priority".freeze
+      PRIORITY = 'priority'.freeze
 
       def distributed_trace_attributes(state)
         transaction = state.current_transaction

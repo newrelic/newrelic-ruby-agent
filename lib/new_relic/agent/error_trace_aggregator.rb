@@ -82,12 +82,12 @@ module NewRelic
           return if @errors.any? { |err| err.exception_class_name == exception.class.name }
 
           trace = exception.backtrace || caller.dup
-          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError", exception)
+          noticed_error = NewRelic::NoticedError.new('NewRelic/AgentError', exception)
           noticed_error.stack_trace = trace
           @errors << noticed_error
         end
       rescue => e
-        NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
+        NewRelic::Agent.logger.info('Unable to capture internal agent error due to an exception:', e)
       end
 
       def register_config_callbacks

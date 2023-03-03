@@ -41,7 +41,7 @@ class GrpcServerTest < Minitest::Test
   def current_segment
     t = MiniTest::Mock.new
     t.expect(:add_agent_attribute, nil, [:'request.headers', {}])
-    t.expect(:add_agent_attribute, nil, [:'request.uri', "grpc://:/"])
+    t.expect(:add_agent_attribute, nil, [:'request.uri', 'grpc://:/'])
     t.expect(:add_agent_attribute, nil, [:'request.method', nil])
     t.expect(:add_agent_attribute, nil, [:'request.grpc_type', nil])
     t
@@ -54,7 +54,7 @@ class GrpcServerTest < Minitest::Test
   def transaction
     t = MiniTest::Mock.new
     t.expect(:add_agent_attribute, nil, [:'request.headers', {}, destinations])
-    t.expect(:add_agent_attribute, nil, [:'request.uri', "grpc://:/", destinations])
+    t.expect(:add_agent_attribute, nil, [:'request.uri', 'grpc://:/', destinations])
     t.expect(:add_agent_attribute, nil, [:'request.method', nil, destinations])
     t.expect(:add_agent_attribute, nil, [:'request.grpc_type', nil, destinations])
     t.expect(:current_segment, nil) # 4 existence checks

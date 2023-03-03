@@ -2,9 +2,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "newrelic_rpm"
-require "fake_external_server"
-require "evil_server"
+require 'newrelic_rpm'
+require 'fake_external_server'
+require 'evil_server'
 
 module HttpClientTestCases
   include NewRelic::Agent::Instrumentation::ControllerInstrumentation,
@@ -18,8 +18,8 @@ module HttpClientTestCases
 
   setup_and_teardown_agent(
     :"cross_application_tracer.enabled" => false,
-    :cross_process_id => "269975#22824",
-    :encoding_key => "gringletoes",
+    :cross_process_id => '269975#22824',
+    :encoding_key => 'gringletoes',
     :trusted_account_ids => [269975]
   )
 
@@ -45,7 +45,7 @@ module HttpClientTestCases
   end
 
   def protocol
-    @ssl ? "https" : "http"
+    @ssl ? 'https' : 'http'
   end
 
   def default_url
@@ -77,8 +77,8 @@ module HttpClientTestCases
     assert_implements req, :host
     assert_implements req, :host_from_header
     assert_implements req, :method
-    assert_implements req, :[], "foo"
-    assert_implements req, :[]=, "foo", "bar"
+    assert_implements req, :[], 'foo'
+    assert_implements req, :[]=, 'foo', 'bar'
     assert_implements req, :uri
   end
 
@@ -86,7 +86,7 @@ module HttpClientTestCases
     res = response_instance
 
     assert_implements res, :get_status_code
-    assert_implements res, :[], "foo"
+    assert_implements res, :[], 'foo'
     assert_implements res, :to_hash
   end
 
@@ -111,11 +111,11 @@ module HttpClientTestCases
   # missing keys. This generates log messages, although it behaves right in
   # terms of metrics, so double-check we get what we expect
   def test_request_headers_for_missing_key
-    assert_nil request_instance["boo"]
+    assert_nil request_instance['boo']
   end
 
   def test_response_headers_for_missing_key
-    assert_nil response_instance["boo"]
+    assert_nil response_instance['boo']
   end
 
   def test_response_wrapper_ignores_case_in_header_keys
@@ -129,7 +129,7 @@ module HttpClientTestCases
     in_transaction { res = get_response }
 
     assert_match %r{<head>}i, body(res)
-    assert_externals_recorded_for("localhost", "GET")
+    assert_externals_recorded_for('localhost', 'GET')
   end
 
   # Although rare, some clients do explicitly set the "host" header on their
@@ -146,7 +146,7 @@ module HttpClientTestCases
     end
 
     assert_match %r{<head>}i, body(res)
-    assert_externals_recorded_for("test.local", "GET")
+    assert_externals_recorded_for('test.local', 'GET')
   end
 
   def test_get_with_host_header_lowercase
@@ -159,7 +159,7 @@ module HttpClientTestCases
     end
 
     assert_match %r{<head>}i, body(res)
-    assert_externals_recorded_for("test.local", "GET")
+    assert_externals_recorded_for('test.local', 'GET')
   end
 
   # Only some HTTP clients support explicit connection reuse, so this test
@@ -179,47 +179,47 @@ module HttpClientTestCases
 
       expected = {:call_count => n}
 
-      assert_externals_recorded_for("localhost", "GET", :counts => expected)
+      assert_externals_recorded_for('localhost', 'GET', :counts => expected)
     end
   end
 
   def test_background
     res = nil
 
-    perform_action_with_newrelic_trace(:name => "task", :category => :task) do
+    perform_action_with_newrelic_trace(:name => 'task', :category => :task) do
       res = get_response
     end
 
     assert_match %r{<head>}i, body(res)
-    assert_externals_recorded_for("localhost", "GET")
+    assert_externals_recorded_for('localhost', 'GET')
     assert_metrics_recorded([
       ["External/localhost/#{client_name}/GET", "OtherTransaction/Background/#{self.class.name}/task"],
       "OtherTransaction/Background/#{self.class.name}/task",
-      "OtherTransaction/Background/all",
-      "OtherTransaction/all"
+      'OtherTransaction/Background/all',
+      'OtherTransaction/all'
     ])
   end
 
   def test_transactional_metrics
     res = nil
 
-    perform_action_with_newrelic_trace(:name => "task") do
+    perform_action_with_newrelic_trace(:name => 'task') do
       res = get_response
     end
 
     assert_match %r{<head>}i, body(res)
-    assert_externals_recorded_for("localhost", "GET", :transaction_type => "Web")
+    assert_externals_recorded_for('localhost', 'GET', :transaction_type => 'Web')
     assert_metrics_recorded([
       "Controller/#{self.class.name}/task"
     ])
 
     assert_metrics_not_recorded([
-      "External/allOther"
+      'External/allOther'
     ])
   end
 
   def test_transactional_traces_nodes
-    perform_action_with_newrelic_trace(:name => "task") do
+    perform_action_with_newrelic_trace(:name => 'task') do
       get_response
     end
 
@@ -243,7 +243,7 @@ module HttpClientTestCases
   def test_head
     in_transaction { head_response }
 
-    assert_externals_recorded_for("localhost", "HEAD")
+    assert_externals_recorded_for('localhost', 'HEAD')
   end
 
   def test_post
@@ -251,7 +251,7 @@ module HttpClientTestCases
 
     in_transaction { post_response }
 
-    assert_externals_recorded_for("localhost", "POST")
+    assert_externals_recorded_for('localhost', 'POST')
   end
 
   def test_put
@@ -259,13 +259,13 @@ module HttpClientTestCases
 
     in_transaction { put_response }
 
-    assert_externals_recorded_for("localhost", "PUT")
+    assert_externals_recorded_for('localhost', 'PUT')
   end
 
   def test_delete
     in_transaction { delete_response }
 
-    assert_externals_recorded_for("localhost", "DELETE")
+    assert_externals_recorded_for('localhost', 'DELETE')
   end
 
   if defined?(::Addressable)
@@ -276,7 +276,7 @@ module HttpClientTestCases
       end
 
       assert_match %r{<head>}i, body(res)
-      assert_externals_recorded_for("localhost", "GET")
+      assert_externals_recorded_for('localhost', 'GET')
     end
   end
 
@@ -288,7 +288,7 @@ module HttpClientTestCases
     with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
 
-      assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
+      assert_equal 'VURQV1BZRkZdXUFT', server.requests.last['HTTP_X_NEWRELIC_ID']
     end
     NewRelic::Agent::Agent.any_instance.unstub(:connected?)
   end
@@ -298,7 +298,7 @@ module HttpClientTestCases
     with_config(:'cross_application_tracer.enabled' => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
 
-      assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
+      assert_equal 'VURQV1BZRkZdXUFT', server.requests.last['HTTP_X_NEWRELIC_ID']
     end
     NewRelic::Agent::Agent.any_instance.unstub(:connected?)
   end
@@ -314,7 +314,7 @@ module HttpClientTestCases
         get_response
       end
 
-      transaction_data = server.requests.last["HTTP_X_NEWRELIC_TRANSACTION"]
+      transaction_data = server.requests.last['HTTP_X_NEWRELIC_TRANSACTION']
 
       refute_empty(transaction_data)
 
@@ -337,7 +337,7 @@ module HttpClientTestCases
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
     with_config(:'cross_application_tracer.enabled' => true,
       :'distributed_tracing.enabled' => false,
-      :cross_process_id => "") do
+      :cross_process_id => '') do
       in_transaction { get_response }
 
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
@@ -348,7 +348,7 @@ module HttpClientTestCases
     with_config(
       :'cross_application_tracer.enabled' => true,
       :'distributed_tracing.enabled' => false,
-      :encoding_key => ""
+      :encoding_key => ''
     ) do
       in_transaction { get_response }
 
@@ -360,33 +360,33 @@ module HttpClientTestCases
     $fake_server.override_response_headers('X-NewRelic-App-Data' => '')
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction("test") do
+      in_transaction('test') do
         get_response
       end
     end
 
-    assert_externals_recorded_for("localhost", "GET")
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", "test"]])
+    assert_externals_recorded_for('localhost', 'GET')
+    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
   end
 
   def test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload("18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID))
+      make_app_data_payload('18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID))
 
-    in_transaction("test") do
+    in_transaction('test') do
       get_response
     end
 
-    assert_externals_recorded_for("localhost", "GET")
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", "test"]])
+    assert_externals_recorded_for('localhost', 'GET')
+    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
   end
 
   def test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload("18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID))
+      make_app_data_payload('18#1884', 'txn-name', 2, 8, 0, TRANSACTION_GUID))
 
     with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction("test") do
+      in_transaction('test') do
         get_response
       end
     end
@@ -397,21 +397,21 @@ module HttpClientTestCases
     assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
 
     assert_metrics_recorded([
-      "External/all",
-      "External/allOther",
-      "ExternalApp/localhost/18#1884/all",
-      "ExternalTransaction/localhost/18#1884/txn-name",
-      "External/localhost/all",
-      ["ExternalTransaction/localhost/18#1884/txn-name", "test"]
+      'External/all',
+      'External/allOther',
+      'ExternalApp/localhost/18#1884/all',
+      'ExternalTransaction/localhost/18#1884/txn-name',
+      'External/localhost/all',
+      ['ExternalTransaction/localhost/18#1884/txn-name', 'test']
     ])
   end
 
   def test_crossapp_metrics_allow_valid_utf8_characters
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload("12#1114", "世界線航跡蔵", 18.0, 88.1, 4096, TRANSACTION_GUID))
+      make_app_data_payload('12#1114', '世界線航跡蔵', 18.0, 88.1, 4096, TRANSACTION_GUID))
 
     with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
-      in_transaction("test") do
+      in_transaction('test') do
         get_response
       end
     end
@@ -422,27 +422,27 @@ module HttpClientTestCases
     assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
 
     assert_metrics_recorded([
-      "External/all",
-      "External/allOther",
-      "ExternalApp/localhost/12#1114/all",
-      "External/localhost/all",
-      "ExternalTransaction/localhost/12#1114/世界線航跡蔵",
-      ["ExternalTransaction/localhost/12#1114/世界線航跡蔵", "test"]
+      'External/all',
+      'External/allOther',
+      'ExternalApp/localhost/12#1114/all',
+      'External/localhost/all',
+      'ExternalTransaction/localhost/12#1114/世界線航跡蔵',
+      ['ExternalTransaction/localhost/12#1114/世界線航跡蔵', 'test']
     ])
   end
 
   def test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
-      make_app_data_payload("88#88#88", "invalid", 1, 2, 4096, TRANSACTION_GUID))
+      make_app_data_payload('88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID))
 
     with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction("test") do
+      in_transaction('test') do
         get_response
       end
     end
 
-    assert_externals_recorded_for("localhost", "GET")
-    assert_metrics_recorded([["External/localhost/#{client_name}/GET", "test"]])
+    assert_externals_recorded_for('localhost', 'GET')
+    assert_metrics_recorded([["External/localhost/#{client_name}/GET", 'test']])
   end
 
   def test_doesnt_affect_the_request_if_an_exception_is_raised_while_setting_up_tracing
@@ -480,7 +480,7 @@ module HttpClientTestCases
     end
 
     refute_match(/undefined method `.*" for nil:NilClass/i,
-      logger.messages.flatten.map { |log| log.to_s }.join(" "))
+      logger.messages.flatten.map { |log| log.to_s }.join(' '))
   end
 
   def test_includes_full_url_in_transaction_trace
@@ -498,19 +498,19 @@ module HttpClientTestCases
   # https://newrelic.atlassian.net/browse/RUBY-1244
   def test_failure_in_our_start_code_still_records_externals
     # Fake a failure in our start-up code...
-    ::JSON.stubs(:dump).raises("Boom!")
+    ::JSON.stubs(:dump).raises('Boom!')
 
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction { get_response }
     end
 
-    assert_externals_recorded_for("localhost", "GET")
+    assert_externals_recorded_for('localhost', 'GET')
   end
 
   # https://newrelic.atlassian.net/browse/RUBY-1244
   def test_failure_to_add_tt_node_doesnt_append_params_to_wrong_node
     # Fake a failure in our start-up code...
-    ::JSON.stubs(:dump).raises("Boom!")
+    ::JSON.stubs(:dump).raises('Boom!')
 
     in_transaction do
       with_config(:"cross_application_tracer.enabled" => true) do
@@ -519,7 +519,7 @@ module HttpClientTestCases
     end
 
     last_node = find_last_transaction_node()
-    unless last_node.metric_name.start_with?("External")
+    unless last_node.metric_name.start_with?('External')
       refute last_node.params.key?(:uri)
     end
   end
@@ -532,7 +532,7 @@ module HttpClientTestCases
     # fixing it for old versions of Typhoeus would require large changes to
     # the instrumentation, makes us say 'meh'.
     is_typhoeus = (client_name == 'Typhoeus')
-    if !is_typhoeus || (is_typhoeus && Typhoeus::VERSION >= "0.5.4")
+    if !is_typhoeus || (is_typhoeus && Typhoeus::VERSION >= '0.5.4')
       evil_server = NewRelic::EvilServer.new
       evil_server.start
 
@@ -557,11 +557,11 @@ module HttpClientTestCases
   def test_raw_synthetics_header_is_passed_along_if_present
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction do
-        NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = "boo"
+        NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'
 
         get_response
 
-        assert_equal "boo", server.requests.last["HTTP_X_NEWRELIC_SYNTHETICS"]
+        assert_equal 'boo', server.requests.last['HTTP_X_NEWRELIC_SYNTHETICS']
       end
     end
   end
@@ -571,7 +571,7 @@ module HttpClientTestCases
       in_transaction do
         get_response
 
-        refute_includes server.requests.last.keys, "HTTP_X_NEWRELIC_SYNTHETICS"
+        refute_includes server.requests.last.keys, 'HTTP_X_NEWRELIC_SYNTHETICS'
       end
     end
   end
@@ -579,16 +579,16 @@ module HttpClientTestCases
   def test_raw_synthetics_header_is_passed_along_when_cat_disabled
     with_config(:"cross_application_tracer.enabled" => false) do
       in_transaction do
-        NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = "boo"
+        NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'
 
         get_response
 
-        assert_equal "boo", server.requests.last["HTTP_X_NEWRELIC_SYNTHETICS"]
+        assert_equal 'boo', server.requests.last['HTTP_X_NEWRELIC_SYNTHETICS']
       end
     end
   end
 
-  load_cross_agent_test("cat_map").each do |test_case|
+  load_cross_agent_test('cat_map').each do |test_case|
     # Test cases that don't involve outgoing calls are done elsewhere
     if test_case['outboundRequests']
       define_method("test_#{test_case['name']}") do
@@ -611,7 +611,7 @@ module HttpClientTestCases
               set_explicit_transaction_name(req['outboundTxnName'])
               get_response
 
-              outbound_payload = server.requests.last["HTTP_X_NEWRELIC_TRANSACTION"]
+              outbound_payload = server.requests.last['HTTP_X_NEWRELIC_TRANSACTION']
               decoded_outbound_payload = decode_payload(outbound_payload)
 
               assert_equal(req['expectedOutboundPayload'], decoded_outbound_payload)
@@ -679,7 +679,7 @@ module HttpClientTestCases
   end
 
   def http_header_name_to_rack_key(name)
-    "HTTP_" + name.upcase.tr('-', '_')
+    'HTTP_' + name.upcase.tr('-', '_')
   end
 
   def make_app_data_payload(*args)
@@ -693,25 +693,25 @@ module HttpClientTestCases
   end
 
   def set_explicit_transaction_name(name)
-    parts = name.split("/")
+    parts = name.split('/')
     category = parts.shift
     NewRelic::Agent.set_transaction_name(parts.join('/'), :category => category)
   end
 
   def assert_externals_recorded_for(host, meth, opts = {})
-    txn_type = opts.fetch(:transaction_type, "Other")
+    txn_type = opts.fetch(:transaction_type, 'Other')
     counts = opts.fetch(:counts, nil)
 
     if counts.nil?
       assert_metrics_recorded([
-        "External/all",
+        'External/all',
         "External/all#{txn_type}",
         "External/#{host}/#{client_name}/#{meth}",
         "External/#{host}/all"
       ])
     else
       assert_metrics_recorded(
-        "External/all" => counts,
+        'External/all' => counts,
         "External/all#{txn_type}" => counts,
         "External/#{host}/#{client_name}/#{meth}" => counts,
         "External/#{host}/all" => counts

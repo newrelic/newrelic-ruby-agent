@@ -14,7 +14,7 @@ class SinatraRouteTestApp < Sinatra::Base
   end
 
   get '/user/login' do
-    "please log in"
+    'please log in'
   end
 
   # this action will always return 404 because of the condition.

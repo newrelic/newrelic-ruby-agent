@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "./memcache_test_cases"
+require './memcache_test_cases'
 
 if defined?(Memcached)
   class MemcachedTest < Minitest::Test
@@ -13,7 +13,7 @@ if defined?(Memcached)
     end
 
     def simulate_error
-      Memcached.any_instance.stubs("check_return_code").raises(simulated_error_class, "No server available")
+      Memcached.any_instance.stubs('check_return_code').raises(simulated_error_class, 'No server available')
       key = set_key_for_testcase
       @cache.get(key)
     end

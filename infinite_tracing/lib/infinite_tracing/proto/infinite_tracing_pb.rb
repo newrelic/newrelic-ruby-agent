@@ -6,16 +6,16 @@
 # source: infinite_tracing.proto
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
-  add_message "com.newrelic.trace.v1.SpanBatch" do
-    repeated :spans, :message, 1, "com.newrelic.trace.v1.Span"
+  add_message 'com.newrelic.trace.v1.SpanBatch' do
+    repeated :spans, :message, 1, 'com.newrelic.trace.v1.Span'
   end
-  add_message "com.newrelic.trace.v1.Span" do
+  add_message 'com.newrelic.trace.v1.Span' do
     optional :trace_id, :string, 1
-    map :intrinsics, :string, :message, 2, "com.newrelic.trace.v1.AttributeValue"
-    map :user_attributes, :string, :message, 3, "com.newrelic.trace.v1.AttributeValue"
-    map :agent_attributes, :string, :message, 4, "com.newrelic.trace.v1.AttributeValue"
+    map :intrinsics, :string, :message, 2, 'com.newrelic.trace.v1.AttributeValue'
+    map :user_attributes, :string, :message, 3, 'com.newrelic.trace.v1.AttributeValue'
+    map :agent_attributes, :string, :message, 4, 'com.newrelic.trace.v1.AttributeValue'
   end
-  add_message "com.newrelic.trace.v1.AttributeValue" do
+  add_message 'com.newrelic.trace.v1.AttributeValue' do
     oneof :value do
       optional :string_value, :string, 1
       optional :bool_value, :bool, 2
@@ -23,7 +23,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :double_value, :double, 4
     end
   end
-  add_message "com.newrelic.trace.v1.RecordStatus" do
+  add_message 'com.newrelic.trace.v1.RecordStatus' do
     optional :messages_seen, :uint64, 1
   end
 end
@@ -32,10 +32,10 @@ module Com
   module Newrelic
     module Trace
       module V1
-        SpanBatch = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.SpanBatch").msgclass
-        Span = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.Span").msgclass
-        AttributeValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.AttributeValue").msgclass
-        RecordStatus = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.RecordStatus").msgclass
+        SpanBatch = Google::Protobuf::DescriptorPool.generated_pool.lookup('com.newrelic.trace.v1.SpanBatch').msgclass
+        Span = Google::Protobuf::DescriptorPool.generated_pool.lookup('com.newrelic.trace.v1.Span').msgclass
+        AttributeValue = Google::Protobuf::DescriptorPool.generated_pool.lookup('com.newrelic.trace.v1.AttributeValue').msgclass
+        RecordStatus = Google::Protobuf::DescriptorPool.generated_pool.lookup('com.newrelic.trace.v1.RecordStatus').msgclass
       end
     end
   end

@@ -7,8 +7,8 @@ class AgentAttributesTests < Performance::TestCase
     require 'new_relic/agent/attribute_filter'
   end
 
-  ALPHA = "alpha".freeze
-  BETA = "beta".freeze
+  ALPHA = 'alpha'.freeze
+  BETA = 'beta'.freeze
 
   def test_empty_agent_attributes
     @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)

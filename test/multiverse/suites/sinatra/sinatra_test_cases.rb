@@ -46,7 +46,7 @@ module SinatraTestCases
   include SinatraRouteNaming
 
   def app
-    raise "Must implement app on your test case"
+    raise 'Must implement app on your test case'
   end
 
   def app_name
@@ -76,7 +76,7 @@ module SinatraTestCases
   def test_queue_time_headers_are_passed_to_agent
     get('/user/login', {}, {'HTTP_X_REQUEST_START' => 't=1360973845'})
 
-    assert_metrics_recorded(["WebFrontend/QueueTime"])
+    assert_metrics_recorded(['WebFrontend/QueueTime'])
   end
 
   def test_shown_errors_get_caught
@@ -97,7 +97,7 @@ module SinatraTestCases
     get('/error')
 
     assert_equal 200, last_response.status
-    assert_equal "nothing happened", last_response.body
+    assert_equal 'nothing happened', last_response.body
   end
 
   def test_sees_handled_error
@@ -163,7 +163,7 @@ module SinatraTestCases
 
   def test_rack_request_params_errors_are_logged
     NewRelic::Agent.logger.stubs(:debug)
-    NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.", kind_of(StandardError)).at_least_once
+    NewRelic::Agent.logger.expects(:debug).with('Failed to get params from Rack request.', kind_of(StandardError)).at_least_once
 
     trigger_error_on_params
 
@@ -194,7 +194,7 @@ module SinatraTestCases
     def trigger_error_on_params
       Sinatra::Request.any_instance
         .stubs(:params).returns({})
-        .then.raises(StandardError.new("Rack::Request#params error"))
+        .then.raises(StandardError.new('Rack::Request#params error'))
     end
   else
     def trigger_error_on_params

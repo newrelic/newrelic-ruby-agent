@@ -58,7 +58,7 @@ class FetchedGem
   end
 
   def fetch!
-    File.open(path, "w") do |f|
+    File.open(path, 'w') do |f|
       rsp = HTTParty.get(uri)
       f.write(rsp.body)
     end

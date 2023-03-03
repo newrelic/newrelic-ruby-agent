@@ -14,7 +14,7 @@ module NewRelic
           warn_for_yajl
         end
 
-        OK_YAJL_VERSION = Gem::Version.new("1.2.1")
+        OK_YAJL_VERSION = Gem::Version.new('1.2.1')
 
         def warn_for_yajl
           if defined?(::Yajl)
@@ -24,7 +24,7 @@ module NewRelic
             end
           end
         rescue => err
-          ::NewRelic::Agent.logger.warn("Failed trying to watch for problematic yajl-ruby version.", err)
+          ::NewRelic::Agent.logger.warn('Failed trying to watch for problematic yajl-ruby version.', err)
         end
 
         def dump(ruby, opts = {})

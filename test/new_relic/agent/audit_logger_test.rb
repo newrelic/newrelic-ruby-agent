@@ -10,7 +10,7 @@ class AuditLoggerTest < Minitest::Test
   def setup
     NewRelic::Agent.config.add_config_for_testing(:'audit_log.enabled' => true)
 
-    @uri = "http://really.notreal"
+    @uri = 'http://really.notreal'
     @marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
     @dummy_data = {
       'foo' => [1, 2, 3],
@@ -51,9 +51,9 @@ class AuditLoggerTest < Minitest::Test
   def test_never_setup_if_disabled
     with_config(:'audit_log.enabled' => false) do
       logger = NewRelic::Agent::AuditLogger.new
-      logger.log_request(@uri, "hi there", @marshaller)
+      logger.log_request(@uri, 'hi there', @marshaller)
 
-      refute logger.setup?, "Expected logger to not have been setup"
+      refute logger.setup?, 'Expected logger to not have been setup'
     end
   end
 
@@ -62,7 +62,7 @@ class AuditLoggerTest < Minitest::Test
       logger = NewRelic::Agent::AuditLogger.new
       marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
       marshaller.expects(:prepare).never
-      logger.log_request(@uri, "hi there", @marshaller)
+      logger.log_request(@uri, 'hi there', @marshaller)
     end
   end
 
@@ -79,7 +79,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_log_formatter_to_stdout
-    with_config(:'audit_log.path' => "STDOUT") do
+    with_config(:'audit_log.path' => 'STDOUT') do
       NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       Socket.stubs(:gethostname).returns((+'dummyhost'))
       formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
@@ -114,7 +114,7 @@ class AuditLoggerTest < Minitest::Test
   def test_log_request_captures_system_call_errors
     logger = NewRelic::Agent::AuditLogger.new
     dummy_sink = StringIO.new
-    dummy_sink.stubs(:write).raises(SystemCallError, "nope")
+    dummy_sink.stubs(:write).raises(SystemCallError, 'nope')
     logger.stubs(:ensure_log_path).returns(dummy_sink)
 
     # In 1.9.2 and later, Logger::LogDevice#write captures any errors during
@@ -177,7 +177,7 @@ class AuditLoggerTest < Minitest::Test
   TRAPPABLE_ERRORS = [
     StandardError.new,
     SystemStackError.new,
-    SystemCallError.new("Syscalls FTW")
+    SystemCallError.new('Syscalls FTW')
   ]
 
   TRAPPABLE_ERRORS.each do |error|
@@ -223,7 +223,7 @@ class AuditLoggerTest < Minitest::Test
       logger.log_request(@uri, @dummy_data, @marshaller)
 
       _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
-      audits = logs.select { |log| log.last["message"].include?("REQUEST") }
+      audits = logs.select { |log| log.last['message'].include?('REQUEST') }
 
       assert_empty audits
     end

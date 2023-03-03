@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class NotificationsSubscriberTest < Minitest::Test
-        DEFAULT_EVENT = "any.event"
+        DEFAULT_EVENT = 'any.event'
 
         def setup
           nr_freeze_process_time
@@ -69,7 +69,7 @@ module NewRelic
           name = "Ruby/#{DEFAULT_EVENT}"
           spans = harvest_span_events!
 
-          refute_empty(spans[1].select { |s| s[0]["name"] == name })
+          refute_empty(spans[1].select { |s| s[0]['name'] == name })
         end
       end
     end

@@ -7,58 +7,58 @@ require 'new_relic/agent/http_clients/uri_util'
 
 class URIUtilTest < Minitest::Test
   def test_obfuscated
-    assert_obfuscated("http://foo.com/bar/baz",
-      "http://foo.com/bar/baz")
+    assert_obfuscated('http://foo.com/bar/baz',
+      'http://foo.com/bar/baz')
   end
 
   def test_obfuscated_custom_port
-    assert_obfuscated("http://foo.com:1234/bar/baz",
-      "http://foo.com:1234/bar/baz")
+    assert_obfuscated('http://foo.com:1234/bar/baz',
+      'http://foo.com:1234/bar/baz')
   end
 
   def test_obfuscated_omits_query_params
-    assert_obfuscated("http://foo.com/bar/baz?a=1&b=2",
-      "http://foo.com/bar/baz")
+    assert_obfuscated('http://foo.com/bar/baz?a=1&b=2',
+      'http://foo.com/bar/baz')
   end
 
   def test_obfuscated_omits_fragment
-    assert_obfuscated("http://foo.com/bar/baz#fragment",
-      "http://foo.com/bar/baz")
+    assert_obfuscated('http://foo.com/bar/baz#fragment',
+      'http://foo.com/bar/baz')
   end
 
   def test_obfuscated_omits_query_params_and_fragment
-    assert_obfuscated("http://foo.com/bar/baz?a=1&b=2#fragment",
-      "http://foo.com/bar/baz")
+    assert_obfuscated('http://foo.com/bar/baz?a=1&b=2#fragment',
+      'http://foo.com/bar/baz')
   end
 
   def test_obfuscated_reflects_use_of_ssl
-    assert_obfuscated("https://foo.com/bar/baz",
-      "https://foo.com/bar/baz")
+    assert_obfuscated('https://foo.com/bar/baz',
+      'https://foo.com/bar/baz')
   end
 
   def test_obfuscated_reflects_use_of_ssl_with_custom_port
-    assert_obfuscated("https://foo.com:9999/bar/baz",
-      "https://foo.com:9999/bar/baz")
+    assert_obfuscated('https://foo.com:9999/bar/baz',
+      'https://foo.com:9999/bar/baz')
   end
 
   def test_obfuscated_with_full_uri_request_path
-    assert_obfuscated("http://foo.com/bar/baz?a=1&b=2#fragment",
-      "http://foo.com/bar/baz")
+    assert_obfuscated('http://foo.com/bar/baz?a=1&b=2#fragment',
+      'http://foo.com/bar/baz')
   end
 
   def test_obfuscated_with_full_uri_request_path_https
-    assert_obfuscated("https://foo.com/bar/baz?a=1&b=2#fragment",
-      "https://foo.com/bar/baz")
+    assert_obfuscated('https://foo.com/bar/baz?a=1&b=2#fragment',
+      'https://foo.com/bar/baz')
   end
 
   def test_strips_credentials_embedded_in_uri
-    assert_obfuscated("http://user:pass@foo.com/bar/baz",
-      "http://foo.com/bar/baz")
+    assert_obfuscated('http://user:pass@foo.com/bar/baz',
+      'http://foo.com/bar/baz')
   end
 
   def test_invalid_url_normalization
-    assert_normalized("foobarbaz",
-      "foobarbaz")
+    assert_normalized('foobarbaz',
+      'foobarbaz')
   end
 
   def assert_obfuscated(original, expected)
@@ -71,8 +71,8 @@ class URIUtilTest < Minitest::Test
 
   def test_obfuscate_should_not_modify_uri_input
     test_urls = [
-      ::URI.parse("https://foo.com/bar/baz?a=1&b=2#fragment"),
-      "https://foo.com/bar/baz?a=1&b=2#fragment"
+      ::URI.parse('https://foo.com/bar/baz?a=1&b=2#fragment'),
+      'https://foo.com/bar/baz?a=1&b=2#fragment'
     ]
 
     test_urls.each do |original|

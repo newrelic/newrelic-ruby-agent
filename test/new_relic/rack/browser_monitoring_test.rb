@@ -88,9 +88,9 @@ if defined?(Rack::Test)
     end
 
     def test_should_only_instrument_successful_html_requests
-      assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'}), "Expected to instrument 200 requests."
-      refute app.should_instrument?({}, 500, {'Content-Type' => 'text/html'}), "Expected not to instrument 500 requests."
-      refute app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), "Expected not to instrument requests with content type other than text/html."
+      assert app.should_instrument?({}, 200, {'Content-Type' => 'text/html'}), 'Expected to instrument 200 requests.'
+      refute app.should_instrument?({}, 500, {'Content-Type' => 'text/html'}), 'Expected not to instrument 500 requests.'
+      refute app.should_instrument?({}, 200, {'Content-Type' => 'text/xhtml'}), 'Expected not to instrument requests with content type other than text/html.'
     end
 
     def test_should_not_instrument_when_content_disposition
@@ -128,12 +128,12 @@ if defined?(Rack::Test)
     # header manually, and then re-insert, verifying that it ends up in the right
     # place.
 
-    source_files = Dir[File.join(cross_agent_tests_dir, 'rum_loader_insertion_location', "*.html")]
+    source_files = Dir[File.join(cross_agent_tests_dir, 'rum_loader_insertion_location', '*.html')]
 
-    RUM_PLACEHOLDER = "EXPECTED_RUM_LOADER_LOCATION"
+    RUM_PLACEHOLDER = 'EXPECTED_RUM_LOADER_LOCATION'
 
     source_files.each do |source_file|
-      source_filename = File.basename(source_file).tr(".", "_")
+      source_filename = File.basename(source_file).tr('.', '_')
       instrumented_html = File.read(source_file)
       uninstrumented_html = instrumented_html.gsub(RUM_PLACEHOLDER, '')
 
@@ -157,7 +157,7 @@ if defined?(Rack::Test)
     end
 
     def test_should_close_response
-      TestApp.next_response = Rack::Response.new("<html/>")
+      TestApp.next_response = Rack::Response.new('<html/>')
       TestApp.next_response.expects(:close)
 
       get('/')
@@ -167,7 +167,7 @@ if defined?(Rack::Test)
 
     def test_with_invalid_us_ascii_encoding
       response = +'<html><body>Jürgen</body></html>'
-      response.force_encoding(Encoding.find("US-ASCII"))
+      response.force_encoding(Encoding.find('US-ASCII'))
       TestApp.next_response = Rack::Response.new(response)
 
       get('/')
@@ -176,7 +176,7 @@ if defined?(Rack::Test)
     end
 
     def test_should_not_close_if_not_responded_to
-      TestApp.next_response = Rack::Response.new("<html/>")
+      TestApp.next_response = Rack::Response.new('<html/>')
       TestApp.next_response.stubs(:respond_to?).with(:close).returns(false)
       TestApp.next_response.expects(:close).never
 
@@ -194,32 +194,32 @@ if defined?(Rack::Test)
 
     def test_content_length_set_when_we_modify_source
       original_headers = {
-        "Content-Length" => "0",
-        "Content-Type" => "text/html"
+        'Content-Length' => '0',
+        'Content-Type' => 'text/html'
       }
-      headers = headers_from_request(original_headers, "<html><body></body></html>")
+      headers = headers_from_request(original_headers, '<html><body></body></html>')
 
-      assert_equal "390", headers["Content-Length"]
+      assert_equal '390', headers['Content-Length']
     end
 
     def test_content_length_set_when_we_modify_source_containing_unicode
       original_headers = {
-        "Content-Length" => "0",
-        "Content-Type" => "text/html"
+        'Content-Length' => '0',
+        'Content-Type' => 'text/html'
       }
-      headers = headers_from_request(original_headers, "<html><body>☃</body></html>")
+      headers = headers_from_request(original_headers, '<html><body>☃</body></html>')
 
-      assert_equal "393", headers["Content-Length"]
+      assert_equal '393', headers['Content-Length']
     end
 
     def test_content_length_set_when_response_is_nil
       original_headers = {
-        "Content-Length" => "0",
-        "Content-Type" => "text/html"
+        'Content-Length' => '0',
+        'Content-Type' => 'text/html'
       }
       headers = headers_from_request(original_headers, nil)
 
-      assert_equal "0", headers["Content-Length"]
+      assert_equal '0', headers['Content-Length']
     end
 
     def headers_from_request(headers, content)
@@ -232,5 +232,5 @@ if defined?(Rack::Test)
     end
   end
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because Rack::Test is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
+  puts "Skipping tests in #{File.basename(__FILE__)} because Rack::Test is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
 end

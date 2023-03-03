@@ -10,7 +10,7 @@ module NewRelic
   module Agent
     module Database
       MAX_QUERY_LENGTH = 16384
-      ELLIPSIS = "...".freeze
+      ELLIPSIS = '...'.freeze
 
       extend self
 
@@ -150,7 +150,7 @@ module NewRelic
           begin
             @connections[config] = yield(config)
           rescue => e
-            ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain.", e)
+            ::NewRelic::Agent.logger.error('Caught exception trying to get connection to DB for explain.', e)
             nil
           end
         end
@@ -174,7 +174,7 @@ module NewRelic
 
         attr_accessor :sql, :config, :explainer, :binds, :name, :host, :port_path_or_id, :database_name
 
-        DEFAULT_QUERY_NAME = "SQL".freeze
+        DEFAULT_QUERY_NAME = 'SQL'.freeze
 
         def initialize(sql, config = {}, explainer = nil, binds = nil, name = DEFAULT_QUERY_NAME, host = nil, port_path_or_id = nil, database_name = nil)
           @sql = Database.capture_query(sql)
@@ -219,7 +219,7 @@ module NewRelic
             start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             plan = @explainer.call(self)
             ::NewRelic::Agent.record_metric(
-              "Supportability/Database/execute_explain_plan",
+              'Supportability/Database/execute_explain_plan',
               Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
             )
             return process_resultset(plan, adapter) if plan

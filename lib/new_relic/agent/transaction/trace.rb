@@ -14,7 +14,7 @@ module NewRelic
         attr_accessor :transaction_name, :guid, :attributes,
           :node_count, :finished, :threshold, :profile
 
-        ROOT = "ROOT".freeze
+        ROOT = 'ROOT'.freeze
 
         def initialize(start_time)
           @start_time = start_time

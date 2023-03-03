@@ -8,7 +8,7 @@ require_relative 'helpers/send_deployment'
 namespace :newrelic do
   include SendDeployment
   # notifies New Relic of a deployment
-  desc "Record a deployment in New Relic (newrelic.com)"
+  desc 'Record a deployment in New Relic (newrelic.com)'
   task :notice_deployment do
     if fetch(:newrelic_role)
       on roles(fetch(:newrelic_role)) do

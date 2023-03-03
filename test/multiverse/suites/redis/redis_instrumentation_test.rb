@@ -34,25 +34,25 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_metrics_for_connect
       redis = Redis.new
 
-      in_transaction("test_txn") do
-        redis.get("foo")
+      in_transaction('test_txn') do
+        redis.get('foo')
       end
 
       expected = {
-        "test_txn" => {:call_count => 1},
-        "OtherTransactionTotalTime" => {:call_count => 1},
-        "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
-        ["Datastore/operation/Redis/connect", "test_txn"] => {:call_count => 1},
-        "Datastore/operation/Redis/connect" => {:call_count => 1},
-        ["Datastore/operation/Redis/get", "test_txn"] => {:call_count => 1},
-        "Datastore/operation/Redis/get" => {:call_count => 1},
-        "Datastore/Redis/allOther" => {:call_count => 2},
-        "Datastore/Redis/all" => {:call_count => 2},
-        "Datastore/allOther" => {:call_count => 2},
-        "Datastore/all" => {:call_count => 2},
+        'test_txn' => {:call_count => 1},
+        'OtherTransactionTotalTime' => {:call_count => 1},
+        'OtherTransactionTotalTime/test_txn' => {:call_count => 1},
+        ['Datastore/operation/Redis/connect', 'test_txn'] => {:call_count => 1},
+        'Datastore/operation/Redis/connect' => {:call_count => 1},
+        ['Datastore/operation/Redis/get', 'test_txn'] => {:call_count => 1},
+        'Datastore/operation/Redis/get' => {:call_count => 1},
+        'Datastore/Redis/allOther' => {:call_count => 2},
+        'Datastore/Redis/all' => {:call_count => 2},
+        'Datastore/allOther' => {:call_count => 2},
+        'Datastore/all' => {:call_count => 2},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 2},
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => {:call_count => 1},
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => {:call_count => 1}
       }
 
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
@@ -61,7 +61,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_connect_tt_node_within_call_that_triggered_it
       in_transaction do
         redis = Redis.new
-        redis.get("foo")
+        redis.get('foo')
       end
 
       tt = last_transaction_trace
@@ -81,11 +81,11 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       expected = {
-        "Datastore/operation/Redis/set" => {:call_count => 1},
-        "Datastore/Redis/allOther" => {:call_count => 1},
-        "Datastore/Redis/all" => {:call_count => 1},
-        "Datastore/allOther" => {:call_count => 1},
-        "Datastore/all" => {:call_count => 1},
+        'Datastore/operation/Redis/set' => {:call_count => 1},
+        'Datastore/Redis/allOther' => {:call_count => 1},
+        'Datastore/Redis/all' => {:call_count => 1},
+        'Datastore/allOther' => {:call_count => 1},
+        'Datastore/all' => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
 
@@ -98,11 +98,11 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       expected = {
-        "Datastore/operation/Redis/set" => {:call_count => 1},
-        "Datastore/Redis/allWeb" => {:call_count => 1},
-        "Datastore/Redis/all" => {:call_count => 1},
-        "Datastore/allWeb" => {:call_count => 1},
-        "Datastore/all" => {:call_count => 1},
+        'Datastore/operation/Redis/set' => {:call_count => 1},
+        'Datastore/Redis/allWeb' => {:call_count => 1},
+        'Datastore/Redis/all' => {:call_count => 1},
+        'Datastore/allWeb' => {:call_count => 1},
+        'Datastore/all' => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
 
@@ -115,11 +115,11 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       expected = {
-        "Datastore/operation/Redis/get" => {:call_count => 1},
-        "Datastore/Redis/allOther" => {:call_count => 1},
-        "Datastore/Redis/all" => {:call_count => 1},
-        "Datastore/allOther" => {:call_count => 1},
-        "Datastore/all" => {:call_count => 1},
+        'Datastore/operation/Redis/get' => {:call_count => 1},
+        'Datastore/Redis/allOther' => {:call_count => 1},
+        'Datastore/Redis/all' => {:call_count => 1},
+        'Datastore/allOther' => {:call_count => 1},
+        'Datastore/all' => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
 
@@ -155,11 +155,11 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       expected = {
-        "Datastore/operation/Redis/get" => {:call_count => 1},
-        "Datastore/Redis/allWeb" => {:call_count => 1},
-        "Datastore/Redis/all" => {:call_count => 1},
-        "Datastore/allWeb" => {:call_count => 1},
-        "Datastore/all" => {:call_count => 1},
+        'Datastore/operation/Redis/get' => {:call_count => 1},
+        'Datastore/Redis/allWeb' => {:call_count => 1},
+        'Datastore/Redis/all' => {:call_count => 1},
+        'Datastore/allWeb' => {:call_count => 1},
+        'Datastore/all' => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
 
@@ -175,18 +175,18 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       expected = {
-        "test_txn" => {:call_count => 1},
-        "OtherTransactionTotalTime" => {:call_count => 1},
-        "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
-        ["Datastore/operation/Redis/pipeline", "test_txn"] => {:call_count => 1},
-        "Datastore/operation/Redis/pipeline" => {:call_count => 1},
-        "Datastore/Redis/allOther" => {:call_count => 1},
-        "Datastore/Redis/all" => {:call_count => 1},
-        "Datastore/allOther" => {:call_count => 1},
-        "Datastore/all" => {:call_count => 1},
+        'test_txn' => {:call_count => 1},
+        'OtherTransactionTotalTime' => {:call_count => 1},
+        'OtherTransactionTotalTime/test_txn' => {:call_count => 1},
+        ['Datastore/operation/Redis/pipeline', 'test_txn'] => {:call_count => 1},
+        'Datastore/operation/Redis/pipeline' => {:call_count => 1},
+        'Datastore/Redis/allOther' => {:call_count => 1},
+        'Datastore/Redis/all' => {:call_count => 1},
+        'Datastore/allOther' => {:call_count => 1},
+        'Datastore/all' => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1},
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => {:call_count => 1},
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => {:call_count => 1}
       }
 
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
@@ -215,18 +215,18 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
 
       expected = {
-        "test_txn" => {:call_count => 1},
-        "OtherTransactionTotalTime" => {:call_count => 1},
-        "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
-        ["Datastore/operation/Redis/multi", "test_txn"] => {:call_count => 1},
-        "Datastore/operation/Redis/multi" => {:call_count => 1},
-        "Datastore/Redis/allOther" => {:call_count => 1},
-        "Datastore/Redis/all" => {:call_count => 1},
-        "Datastore/allOther" => {:call_count => 1},
-        "Datastore/all" => {:call_count => 1},
+        'test_txn' => {:call_count => 1},
+        'OtherTransactionTotalTime' => {:call_count => 1},
+        'OtherTransactionTotalTime/test_txn' => {:call_count => 1},
+        ['Datastore/operation/Redis/multi', 'test_txn'] => {:call_count => 1},
+        'Datastore/operation/Redis/multi' => {:call_count => 1},
+        'Datastore/Redis/allOther' => {:call_count => 1},
+        'Datastore/Redis/all' => {:call_count => 1},
+        'Datastore/allOther' => {:call_count => 1},
+        'Datastore/all' => {:call_count => 1},
         "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1},
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => {:call_count => 1},
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => {:call_count => 1}
       }
 
       assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
@@ -264,7 +264,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_instance_parameters_on_tt_node_for_get
       in_transaction do
-        @redis.get("foo")
+        @redis.get('foo')
       end
 
       tt = last_transaction_trace
@@ -281,7 +281,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
-        redis.get("foo")
+        redis.get('foo')
       end
 
       tt = last_transaction_trace
@@ -295,7 +295,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def test_records_instance_parameters_on_tt_node_for_multi
       in_transaction do
         @redis.multi do |pipeline|
-          pipeline.get("foo")
+          pipeline.get('foo')
         end
       end
 
@@ -314,7 +314,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
       in_transaction do
         redis.multi do |pipeline|
-          pipeline.get("foo")
+          pipeline.get('foo')
         end
       end
 
@@ -330,7 +330,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       redis = Redis.new
       redis.send(client).stubs(:path).raises(StandardError.new)
       in_transaction do
-        redis.get("foo")
+        redis.get('foo')
       end
 
       assert_metrics_recorded('Datastore/instance/Redis/unknown/unknown')
@@ -342,8 +342,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def simulate_read_error
       redis = Redis.new
-      redis.send(client).stubs("connect").raises(simulated_error_class, "Error connecting to Redis")
-      redis.get("foo")
+      redis.send(client).stubs('connect').raises(simulated_error_class, 'Error connecting to Redis')
+      redis.get('foo')
     ensure
     end
 

@@ -47,12 +47,12 @@ module NewRelic
 
         def test_metrics_recorded_for_known_methods
           method_name_mapping = {
-            "cache_read.active_support" => "read".freeze,
-            "cache_generate.active_support" => "generate".freeze,
-            "cache_fetch_hit.active_support" => "fetch_hit".freeze,
-            "cache_write.active_support" => "write".freeze,
-            "cache_delete.active_support" => "delete".freeze,
-            "cache_exist?.active_support" => "exist?".freeze
+            'cache_read.active_support' => 'read'.freeze,
+            'cache_generate.active_support' => 'generate'.freeze,
+            'cache_fetch_hit.active_support' => 'fetch_hit'.freeze,
+            'cache_write.active_support' => 'write'.freeze,
+            'cache_delete.active_support' => 'delete'.freeze,
+            'cache_exist?.active_support' => 'exist?'.freeze
           }
 
           in_transaction('test') do
@@ -173,11 +173,11 @@ module NewRelic
             assert_equal 2, txn.segments.size
 
             # the :store key is only in the payload for Rails 6.1+
-            rails61 = Gem::Version.new(ActiveSupport::VERSION::STRING) >= Gem::Version.new("6.1.0")
+            rails61 = Gem::Version.new(ActiveSupport::VERSION::STRING) >= Gem::Version.new('6.1.0')
             segment_name = if rails61
               "Ruby/ActiveSupport/#{store}/write"
             else
-              "Ruby/ActiveSupport/write"
+              'Ruby/ActiveSupport/write'
             end
 
             assert_equal segment_name, segment.name

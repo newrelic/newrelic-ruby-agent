@@ -7,22 +7,22 @@ require 'new_relic/agent/attribute_processing'
 
 class AttributeProcessingTest < Minitest::Test
   def test_flatten_and_coerce_handles_nested_hashes
-    params = {"user" =>
-      {"addresses" =>
+    params = {'user' =>
+      {'addresses' =>
         [
-          {"street" => "123 Street", "city" => "City", "state" => "ST", "zip" => "12345"},
-          {"street" => "123 Blvd", "city" => "City2", "state" => "ST2", "zip" => "54321"}
+          {'street' => '123 Street', 'city' => 'City', 'state' => 'ST', 'zip' => '12345'},
+          {'street' => '123 Blvd', 'city' => 'City2', 'state' => 'ST2', 'zip' => '54321'}
         ]}}
 
     expected = {
-      "request.parameters.user.addresses.0.street" => "123 Street",
-      "request.parameters.user.addresses.0.city" => "City",
-      "request.parameters.user.addresses.0.state" => "ST",
-      "request.parameters.user.addresses.0.zip" => "12345",
-      "request.parameters.user.addresses.1.street" => "123 Blvd",
-      "request.parameters.user.addresses.1.city" => "City2",
-      "request.parameters.user.addresses.1.state" => "ST2",
-      "request.parameters.user.addresses.1.zip" => "54321"
+      'request.parameters.user.addresses.0.street' => '123 Street',
+      'request.parameters.user.addresses.0.city' => 'City',
+      'request.parameters.user.addresses.0.state' => 'ST',
+      'request.parameters.user.addresses.0.zip' => '12345',
+      'request.parameters.user.addresses.1.street' => '123 Blvd',
+      'request.parameters.user.addresses.1.city' => 'City2',
+      'request.parameters.user.addresses.1.state' => 'ST2',
+      'request.parameters.user.addresses.1.zip' => '54321'
     }
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params, 'request.parameters')
@@ -32,15 +32,15 @@ class AttributeProcessingTest < Minitest::Test
 
   def test_flatten_and_coerce_coerces_values
     params = {
-      "v1" => Class.new,
-      "v2" => :symbol,
-      "v3" => 1.01
+      'v1' => Class.new,
+      'v2' => :symbol,
+      'v3' => 1.01
     }
 
     expected = {
-      "request.parameters.v1" => "#<Class>",
-      "request.parameters.v2" => "symbol",
-      "request.parameters.v3" => 1.01
+      'request.parameters.v1' => '#<Class>',
+      'request.parameters.v2' => 'symbol',
+      'request.parameters.v3' => 1.01
     }
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params, 'request.parameters')
@@ -52,8 +52,8 @@ class AttributeProcessingTest < Minitest::Test
     params = {:foo => {:bar => %w[v1 v2]}}
 
     expected = {
-      "foo.bar.0" => "v1",
-      "foo.bar.1" => "v2"
+      'foo.bar.0' => 'v1',
+      'foo.bar.1' => 'v2'
     }
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
@@ -65,8 +65,8 @@ class AttributeProcessingTest < Minitest::Test
     params = [:foo => {:bar => %w[v1 v2]}]
 
     expected = {
-      "0.foo.bar.0" => "v1",
-      "0.foo.bar.1" => "v2"
+      '0.foo.bar.0' => 'v1',
+      '0.foo.bar.1' => 'v2'
     }
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
@@ -77,7 +77,7 @@ class AttributeProcessingTest < Minitest::Test
   def test_flatten_and_coerce_replaces_empty_hash_with_string_representation
     params = {:foo => {:bar => {}}}
 
-    expected = {"foo.bar" => "{}"}
+    expected = {'foo.bar' => '{}'}
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
 
@@ -87,7 +87,7 @@ class AttributeProcessingTest < Minitest::Test
   def test_flatten_and_coerce_replaces_empty_array_with_string_representation
     params = {:foo => {:bar => []}}
 
-    expected = {"foo.bar" => "[]"}
+    expected = {'foo.bar' => '[]'}
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
 
@@ -136,7 +136,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_flatten_and_coerce_logs_warning_with_unexpected_arguments
-    expects_logging(:warn, all_of(includes("Unexpected object"), includes("flatten_and_coerce")))
+    expects_logging(:warn, all_of(includes('Unexpected object'), includes('flatten_and_coerce')))
     NewRelic::Agent::AttributeProcessing.flatten_and_coerce(Object.new)
   end
 
@@ -146,7 +146,7 @@ class AttributeProcessingTest < Minitest::Test
 
     NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params) { |k, v| yielded[k] = v }
 
-    expected = {"foo.bar.0" => "qux", "foo.bar.1" => "quux"}
+    expected = {'foo.bar.0' => 'qux', 'foo.bar.1' => 'quux'}
 
     assert_equal expected, yielded
   end

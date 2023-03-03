@@ -55,7 +55,7 @@ module NewRelic::Agent
 
       # Turns camelcase base class name into upper snake case version of the name.
       def formatted_class_name(class_name)
-        class_name = class_name.split(":")[-1]
+        class_name = class_name.split(':')[-1]
         (class_name.gsub!(/(.)([A-Z])/, '\1_\2') || class_name).upcase
       end
 
@@ -73,7 +73,7 @@ module NewRelic::Agent
         else
           NewRelic::Agent.record_metric(GRPC_OTHER_ERROR_METRIC, 0.0)
         end
-        NewRelic::Agent.logger.warn("gRPC response error received.", error)
+        NewRelic::Agent.logger.warn('gRPC response error received.', error)
       end
 
       def handle_error(error)
@@ -99,8 +99,8 @@ module NewRelic::Agent
       # server and re-establish the gRPC bi-directional stream.  Useful for the server
       # to initiate a load-balancing scheme.
       def handle_close
-        NewRelic::Agent.logger.debug("The gRPC Trace Observer closed the stream with OK response. " \
-          "Restarting the stream.")
+        NewRelic::Agent.logger.debug('The gRPC Trace Observer closed the stream with OK response. ' \
+          'Restarting the stream.')
         start_streaming
       end
 
@@ -113,8 +113,8 @@ module NewRelic::Agent
         @lock.synchronize do
           @suspended = true
           @buffer = new_streaming_buffer
-          NewRelic::Agent.logger.warn("The Trace Observer host signaled to suspend streaming span events. " \
-            "No more span events will be sent during this session.")
+          NewRelic::Agent.logger.warn('The Trace Observer host signaled to suspend streaming span events. ' \
+            'No more span events will be sent during this session.')
         end
       end
 

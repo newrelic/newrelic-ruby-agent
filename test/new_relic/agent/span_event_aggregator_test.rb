@@ -70,7 +70,7 @@ module NewRelic
       end
 
       def name_for(event)
-        event[0]["name"]
+        event[0]['name']
       end
 
       def enabled_key

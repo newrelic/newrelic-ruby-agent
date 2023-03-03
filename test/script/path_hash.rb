@@ -26,7 +26,7 @@ path.each do |hop|
 
   identifier = "#{app_name};#{transaction_name}"
   md5sum = Digest::MD5.digest(identifier)
-  low4_of_md5 = md5sum.unpack("@12N").first
+  low4_of_md5 = md5sum.unpack('@12N').first
 
   rotated_path_hash = ((path_hash << 1) | (path_hash >> 31)) & 0xffffffff
 
@@ -39,7 +39,7 @@ path.each do |hop|
   puts ''
   puts "D: Input path_hash:     0x#{path_hash.to_s(16).rjust(8, '0')} (0b#{path_hash.to_s(2).rjust(32, '0')})"
   puts "E: Rotated E:           0x#{rotated_path_hash.to_s(16).rjust(8, '0')} (0b#{rotated_path_hash.to_s(2).rjust(32, '0')})"
-  puts ""
+  puts ''
   puts "F: XOR(D, F):           0x#{xor_result.to_s(16).rjust(8, '0')} (0b#{xor_result.to_s(2).rjust(32, '0')})"
   puts '--'
 

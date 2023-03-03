@@ -97,7 +97,7 @@ module NewRelic
           obfuscator.obfuscate(::JSON.dump(rmd))
         end
       rescue => e
-        NewRelic::Agent.logger.error("error during get_response_metadata", e)
+        NewRelic::Agent.logger.error('error during get_response_metadata', e)
       end
 
       private

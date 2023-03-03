@@ -37,7 +37,7 @@ module NewRelic
         NewRelic::Agent.logger.debug("Synthetics transaction event limit (#{metadata[:capacity]}) reached. Further synthetics events this harvest period dropped.")
 
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("SyntheticsEventAggregator/synthetics_events_dropped", num_dropped)
+        engine.tl_record_supportability_metric_count('SyntheticsEventAggregator/synthetics_events_dropped', num_dropped)
       end
     end
   end

@@ -25,7 +25,7 @@ module NewRelic
       class HTTPClientRequest < AbstractRequest
         attr_reader :request
 
-        HTTP_CLIENT = "HTTPClient".freeze
+        HTTP_CLIENT = 'HTTPClient'.freeze
         LHOST = 'host'.freeze
         UHOST = 'Host'.freeze
         COLON = ':'.freeze

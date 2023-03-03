@@ -64,7 +64,7 @@ module NewRelic
         DependencyDetection.detect!
         ruby_deprecation
         rails_32_deprecation
-        ::NewRelic::Agent.logger.info("Finished instrumentation")
+        ::NewRelic::Agent.logger.info('Finished instrumentation')
       end
     end
 

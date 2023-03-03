@@ -2,9 +2,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "net/http"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'net/http'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 module NetHttpTestCases
   include HttpClientTestCases
@@ -14,7 +14,7 @@ module NetHttpTestCases
   #
 
   def client_name
-    "Net::HTTP"
+    'Net::HTTP'
   end
 
   def timeout_error_class
@@ -57,11 +57,11 @@ module NetHttpTestCases
   end
 
   def post_response
-    start(default_uri) { |http| http.post(default_uri.path, "") }
+    start(default_uri) { |http| http.post(default_uri.path, '') }
   end
 
   def put_response
-    start(default_uri) { |http| http.put(default_uri.path, "") }
+    start(default_uri) { |http| http.put(default_uri.path, '') }
   end
 
   def delete_response

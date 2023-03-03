@@ -33,7 +33,7 @@ module NewRelic
           # defensive.
           return if defined?(cached?)
 
-          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= "5.1.0"
+          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= '5.1.0'
             def cached?(payload)
               payload.fetch(:cached, false)
             end

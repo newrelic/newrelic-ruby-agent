@@ -47,7 +47,7 @@ module Performance
     end
 
     def load_test_files(dir)
-      Dir.glob(File.join(dir, "**", "*.rb")).each do |filename|
+      Dir.glob(File.join(dir, '**', '*.rb')).each do |filename|
         require filename
       end
     end
@@ -120,7 +120,7 @@ module Performance
       unless @loaded_newrelic_rpm
         path = newrelic_rpm_path
         $:.unshift(path)
-        require "newrelic_rpm"
+        require 'newrelic_rpm'
         @newrelic_rpm_version = NewRelic::VERSION::STRING
         @newrelic_rpm_git_sha = find_newrelic_rpm_git_sha(path)
         @loaded_newrelic_rpm = true

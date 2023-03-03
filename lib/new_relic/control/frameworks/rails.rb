@@ -89,9 +89,9 @@ module NewRelic
             return unless NewRelic::Rack::AgentHooks.needed?
 
             config.middleware.use(NewRelic::Rack::AgentHooks)
-            ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
+            ::NewRelic::Agent.logger.debug('Installed New Relic Agent Hooks middleware')
           rescue => e
-            ::NewRelic::Agent.logger.warn("Error installing New Relic Agent Hooks middleware", e)
+            ::NewRelic::Agent.logger.warn('Error installing New Relic Agent Hooks middleware', e)
           end
         end
 
@@ -105,9 +105,9 @@ module NewRelic
             begin
               require 'new_relic/rack/browser_monitoring'
               config.middleware.use(NewRelic::Rack::BrowserMonitoring)
-              ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
+              ::NewRelic::Agent.logger.debug('Installed New Relic Browser Monitoring middleware')
             rescue => e
-              ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware", e)
+              ::NewRelic::Agent.logger.warn('Error installing New Relic Browser Monitoring middleware', e)
             end
           end
         end

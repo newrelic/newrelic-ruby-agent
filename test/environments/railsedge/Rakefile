@@ -7,11 +7,11 @@
 
 require_relative '../../warning_test_helper'
 
-require_relative "config/application"
+require_relative 'config/application'
 
 Rails.application.load_tasks
 
 require 'tasks/all'
 
-Rake::Task["default"].clear
+Rake::Task['default'].clear
 task :default => [:'test:newrelic']
