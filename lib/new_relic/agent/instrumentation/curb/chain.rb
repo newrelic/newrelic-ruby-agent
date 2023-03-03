@@ -7,7 +7,7 @@ require_relative 'instrumentation'
 module NewRelic::Agent::Instrumentation
   module Curb
     module Chain
-      def self.instrument!
+      def self.instrument! # rubocop:disable Metrics/AbcSize
         Curl::Easy.class_eval do
           include NewRelic::Agent::Instrumentation::Curb::Easy
 
