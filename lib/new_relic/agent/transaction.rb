@@ -210,7 +210,7 @@ module NewRelic
         end
       end
 
-      def initialize(category, options)
+      def initialize(category, options) # rubocop:disable Metrics/AbcSize
         @nesting_max_depth = 0
         @current_segment_by_thread = {}
         @current_segment_lock = Mutex.new

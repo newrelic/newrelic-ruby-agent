@@ -9,7 +9,7 @@
 # Offense count: 422
 # Configuration parameters: AllowedMethods, AllowedPatterns, IgnoredMethods, CountRepeatedAttributes.
 Metrics/AbcSize:
-  Max: 43
+  Max: 40
   Exclude:
     - infinite_tracing/test/**/*
     - lib/new_relic/cli/commands/deployments.rb
