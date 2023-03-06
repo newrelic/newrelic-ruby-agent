@@ -4,7 +4,7 @@
 
 # TODO: JRuby 9.3.7.0 crashes with Ubuntu 22 and JREs 8 and 11
 suite_condition("Typhoeus is skipped for JRuby with Ubuntu 22") do
-  RUBY_PLATFORM != 'java' || (RUBY_PLATFORM == 'java' &&
+  !(RUBY_PLATFORM == 'java' &&
     File.exist?('/etc/lsb-release') &&
     File.read('/etc/lsb-release') =~ /DISTRIB_RELEASE=22\.04/)
 end
