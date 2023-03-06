@@ -46,6 +46,7 @@ module NewRelic
       :require_test_helper,
       :set_sql_obfuscator,
       :set_transaction_name,
+      :set_user_id,
       :shutdown,
       :start_segment,
       :trace,
