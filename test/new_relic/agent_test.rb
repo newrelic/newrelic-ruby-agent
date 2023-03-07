@@ -548,7 +548,7 @@ module NewRelic
     def test_set_user_id_nil_or_empty_error
       [nil, ''].each do |test_user_id|
         in_transaction do |txn|
-          NewRelic::Agent.set_user_id(nil)
+          NewRelic::Agent.set_user_id(test_user_id)
           NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
         end
 
