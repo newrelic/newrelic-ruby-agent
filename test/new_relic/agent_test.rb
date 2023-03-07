@@ -535,7 +535,6 @@ module NewRelic
     def test_set_user_id_attribute
       test_user = 'test_user_id'
 
-      reset_error_traces!
       in_transaction do |txn|
         NewRelic::Agent.set_user_id(test_user)
         NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
