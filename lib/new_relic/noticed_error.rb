@@ -28,7 +28,7 @@ class NewRelic::NoticedError
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
   AGENT_ATTRIBUTE_REQUEST_URI = :'request.uri'
-  AGENT_ATTRIBUTE_ERROR_GRUP = :'error.group.name'
+  AGENT_ATTRIBUTE_ERROR_GROUP = :'error.group.name'
 
   ERROR_PREFIX_KEY = 'error'
   ERROR_MESSAGE_KEY = "#{ERROR_PREFIX_KEY}.message"

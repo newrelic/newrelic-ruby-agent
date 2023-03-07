@@ -326,7 +326,7 @@ module NewRelic
     #
     def set_error_group_callback(callback_proc)
       unless callback_proc.is_a?(Proc)
-        NewRelic::Agent.logger.error('The error group callback proc must be an instance of Proc, ' \
+        NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
                                      "got #{callback_proc.class}")
         return
       end
