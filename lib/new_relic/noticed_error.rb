@@ -144,10 +144,6 @@ class NewRelic::NoticedError
   end
 
   def build_agent_attributes(merged_attributes)
-
-    # when does this get called?
-
-
     agent_attributes = if @attributes
       @attributes.agent_attributes_for(DESTINATION)
     else
