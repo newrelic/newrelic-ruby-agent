@@ -73,6 +73,9 @@ module NewRelic
         refute NewRelic::Agent.config[:'transaction_tracer.enabled']
         refute NewRelic::Agent.config[:'error_collector.enabled']
       end
+
+      # resets the SSC to empty
+      NewRelic::Agent.config.replace_or_add_config(NewRelic::Agent::Configuration::ServerSource.new({}))
     end
 
     def test_after_fork
@@ -526,6 +529,33 @@ module NewRelic
         end
 
         break if stack.empty?
+      end
+    end
+
+    def test_set_user_id_attribute
+      test_user = 'test_user_id'
+
+      reset_error_traces!
+      in_transaction do |txn|
+        NewRelic::Agent.set_user_id(test_user)
+        NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
+      end
+
+      [harvest_transaction_events!, harvest_error_events!].each do |events|
+        assert_equal events[1][0][2]['enduser.id'], test_user
+      end
+    end
+
+    def test_set_user_id_nil_or_empty_error
+      [nil, ''].each do |test_user_id|
+        in_transaction do |txn|
+          NewRelic::Agent.set_user_id(nil)
+          NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
+        end
+
+        [harvest_transaction_events!, harvest_error_events!].each do |events|
+          refute events[1][0][2].key?('enduser.id')
+        end
       end
     end
 
