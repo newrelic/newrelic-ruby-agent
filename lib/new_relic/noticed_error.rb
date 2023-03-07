@@ -15,7 +15,7 @@ class NewRelic::NoticedError
     :stack_trace, :attributes_from_notice_error, :attributes,
     :expected
 
-  attr_reader :exception_id, :is_internal
+  attr_reader :error_group, :exception_id, :is_internal
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
   UNKNOWN_ERROR_CLASS_NAME = 'Error'
@@ -26,6 +26,9 @@ class NewRelic::NoticedError
   INTRINSIC_ATTRIBUTES = 'intrinsics'
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+  AGENT_ATTRIBUTE_REQUEST_URI = :'request.uri'
+  AGENT_ATTRIBUTE_ERROR_GRUP = :'error.group.name'
 
   ERROR_PREFIX_KEY = 'error'
   ERROR_MESSAGE_KEY = "#{ERROR_PREFIX_KEY}.message"
@@ -141,6 +144,10 @@ class NewRelic::NoticedError
   end
 
   def build_agent_attributes(merged_attributes)
+
+    # when does this get called?
+
+
     agent_attributes = if @attributes
       @attributes.agent_attributes_for(DESTINATION)
     else
@@ -150,8 +157,11 @@ class NewRelic::NoticedError
     # It's possible to override the request_uri from the transaction attributes
     # with a uri passed to notice_error. Add it to merged_attributes filter and
     # merge with the transaction attributes, possibly overriding the request_uri
-    if request_uri
-      merged_attributes.add_agent_attribute(:'request.uri', request_uri, DESTINATION)
+    {AGENT_ATTRIBUTE_REQUEST_URI => request_uri,
+     AGENT_ATTRIBUTE_ERROR_GROUP => error_group}.each do |name, value|
+      next unless value
+
+      merged_attributes.add_agent_attribute(name, value, DESTINATION)
       agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
     end
 
@@ -196,5 +206,11 @@ class NewRelic::NoticedError
       @exception_class_name = exception.is_a?(Exception) ? exception.class.name : UNKNOWN_ERROR_CLASS_NAME
       @message = exception.to_s
     end
+  end
+
+  def error_group=(name)
+    return unless name.nil? || name.empty?
+
+    @error_group = name
   end
 end

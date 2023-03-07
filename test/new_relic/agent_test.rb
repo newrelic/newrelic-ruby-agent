@@ -529,6 +529,40 @@ module NewRelic
       end
     end
 
+    def test_set_error_group_callback
+      lambda = -> { 'Hello, World!' }
+      NewRelic::Agent.set_error_group_callback(lambda)
+
+      assert_equal lambda,
+        NewRelic::Agent.instance_variable_get(:@error_group_callback),
+        'Supplied error group callback proc was not found to be set.'
+    end
+
+    def test_set_error_group_callback_can_be_called_multiple_times
+      procs = [proc { 'one' }, proc { 'two' }, proc { 'three' }]
+      procs.each { |proc| NewRelic::Agent.set_error_group_callback(proc) }
+
+      assert_equal procs.last,
+        NewRelic::Agent.instance_variable_get(:@error_group_callback),
+        'Supplied error group callback proc was not found to be set.'
+    end
+
+    def test_set_error_group_callback_rejects_non_proc
+      skip_unless_minitest5_or_above
+
+      NewRelic::Agent.instance_variable_set(:@error_group_callback, nil)
+
+      mock_logger = MiniTest::Mock.new
+      mock_logger.expect :error, nil, [/must be an instance of Proc/]
+
+      NewRelic::Agent.stub(:logger, mock_logger) do
+        NewRelic::Agent.set_error_group_callback([])
+      end
+
+      mock_logger.verify
+      assert_nil NewRelic::Agent.instance_variable_get(:@error_group_callback)
+    end
+
     private
 
     def with_unstarted_agent

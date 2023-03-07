@@ -106,6 +106,7 @@ module NewRelic
     UNKNOWN_METRIC = '(unknown)'.freeze
 
     @agent = nil
+    @error_group_callback = nil
     @logger = nil
     @tracer_lock = Mutex.new
     @tracer_queue = []
@@ -291,6 +292,46 @@ module NewRelic
 
       Transaction.notice_error(exception, options)
       nil # don't return a noticed error data structure. it can only hurt.
+    end
+
+    # Set a callback proc for determining an error's error group name
+    #
+    # @param [Proc] the callback proc
+    #
+    # Typically this method should be called only once to set a callback for
+    # use with all noticed errors. If it is called multiple times, each new
+    # callback given will replace the old one.
+    #
+    # The proc will be called with a single hash as its input argument and is
+    # expected to return a string representing the desired error group.
+    #
+    # see https://docs.newrelic.com/docs/errors-inbox/errors-inbox/#groups
+    #
+    # The hash passed to the customer defined callback proc has the following
+    # keys:
+    #
+    # :error => The Ruby error class instance, likely inheriting from
+    #           StandardError. Call `#class`, `#message`, and `#backtrace` on
+    #           the error object to retrieve the error's class, message, and
+    #           backtrace.
+    # :customAttributes => Any customer defined custom attributes that have been
+    #                      associated with the current transaction.
+    # :'request.uri' => The current request URI if available
+    # :'http.statusCode' => The HTTP status code (200, 404, etc.) if available
+    # :'http.method' => The HTTP method (GET, PUT, etc.) if available
+    # :'error.expected' => Whether (true) or not (false) the error was expected
+    # :options => The options hash passed to `NewRelic::Agent.notice_error`
+    #
+    # @api public
+    #
+    def set_error_group_callback(callback_proc)
+      unless callback_proc.is_a?(Proc)
+        NewRelic::Agent.logger.error('The error group callback proc must be an instance of Proc, ' \
+                                     "got #{callback_proc.class}")
+        return
+      end
+
+      @error_group_callback = callback_proc
     end
 
     # @!endgroup
