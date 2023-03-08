@@ -27,7 +27,7 @@ module NewRelic
       end
 
       def is_cross_app_callee?
-        cross_app_payload != nil
+        !cross_app_payload.nil?
       end
 
       def is_cross_app?
