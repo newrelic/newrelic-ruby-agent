@@ -290,6 +290,24 @@ module NewRelic
         end
       end
 
+      def test_noticed_internal_errors_invoke_the_error_group_callback
+        message = 'ton up'
+        group = 'cafe racer'
+        proc = proc { |hash| group if hash[:error].message.match?(message) }
+        NewRelic::Agent.set_error_group_callback(proc)
+
+        error = DifficultToDebugAgentError.new(message)
+        aggregator = NewRelic::Agent::ErrorTraceAggregator.new(1148)
+        aggregator.notice_agent_error(error)
+        noticed_error = aggregator.harvest!.first
+
+        assert_equal group, noticed_error.error_group
+      ensure
+        NewRelic::Agent.remove_instance_variable(:@error_group_callback)
+      end
+
+      private
+
       def create_noticed_error(exception, options = {})
         path = options.delete(:metric)
         noticed_error = NewRelic::NoticedError.new(path, exception)

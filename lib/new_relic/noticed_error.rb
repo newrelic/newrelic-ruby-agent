@@ -158,7 +158,7 @@ class NewRelic::NoticedError
       next unless value
 
       merged_attributes.add_agent_attribute(name, value, DESTINATION)
-      agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
+      agent_attributes = agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
     end
 
     agent_attributes

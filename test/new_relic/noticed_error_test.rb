@@ -306,6 +306,15 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal error_group, error.error_group
   end
 
+  def test_error_group_name_agent_attribute_is_set
+    error_group = 'spicy lavender'
+    error = NewRelic::NoticedError.new(@path, StandardError.new)
+    error.error_group = error_group
+    agent_attributes = error.agent_attributes
+
+    assert_equal error_group, agent_attributes[:'error.group.name']
+  end
+
   private
 
   def create_error(exception = StandardError.new)
