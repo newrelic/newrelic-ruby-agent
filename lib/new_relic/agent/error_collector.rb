@@ -312,10 +312,10 @@ module NewRelic
       private
 
       def update_error_group_name(noticed_error, exception, options)
-        return unless customer_error_group_callback
+        return unless error_group_callback
 
         callback_hash = build_customer_callback_hash(noticed_error, exception, options)
-        result = customer_error_group_callback.call(callback_hash)
+        result = error_group_callback.call(callback_hash)
         noticed_error.error_group = result
       rescue StandardError => e
         NewRelic::Agent.logger.error("Failed to obtain error group from customer callback: #{e.class} - #{e.message}")
@@ -326,13 +326,13 @@ module NewRelic
          customAttributes: noticed_error.custom_attributes,
          'request.uri': noticed_error.request_uri,
          'http.statusCode': noticed_error.agent_attributes[:'http.statusCode'],
-         'http.method': noticed_error.instrinsic_attributes[:'http.method'],
+         'http.method': noticed_error.intrinsic_attributes[:'http.method'],
          'error.expected': noticed_error.expected,
          options: options}
       end
 
-      def customer_error_group_callback
-        NewRelic::Agent.customer_error_group_callback
+      def error_group_callback
+        NewRelic::Agent.error_group_callback
       end
     end
   end

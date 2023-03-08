@@ -105,6 +105,8 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
+    attr_reader :error_group_callback
+
     @agent = nil
     @error_group_callback = nil
     @logger = nil

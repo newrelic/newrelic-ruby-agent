@@ -553,7 +553,7 @@ module NewRelic
       NewRelic::Agent.instance_variable_set(:@error_group_callback, nil)
 
       mock_logger = MiniTest::Mock.new
-      mock_logger.expect :error, nil, [/must be an instance of Proc/]
+      mock_logger.expect :error, nil, [/expected an argument of type Proc/]
 
       NewRelic::Agent.stub(:logger, mock_logger) do
         NewRelic::Agent.set_error_group_callback([])
@@ -561,6 +561,15 @@ module NewRelic
 
       mock_logger.verify
       assert_nil NewRelic::Agent.instance_variable_get(:@error_group_callback)
+    end
+
+    def test_error_group_callback_is_exposed
+      callback = 'lucky tiger'
+      NewRelic::Agent.instance_variable_set(:@error_group_callback, callback)
+
+      assert_equal callback, NewRelic::Agent.error_group_callback
+    ensure
+      NewRelic::Agent.remove_instance_variable(:@error_group_callback)
     end
 
     private

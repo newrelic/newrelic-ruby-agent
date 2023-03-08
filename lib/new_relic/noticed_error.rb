@@ -205,7 +205,7 @@ class NewRelic::NoticedError
   end
 
   def error_group=(name)
-    return unless name.nil? || name.empty?
+    return if name.nil? || name.empty?
 
     @error_group = name
   end
