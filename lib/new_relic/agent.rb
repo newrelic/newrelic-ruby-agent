@@ -605,7 +605,7 @@ module NewRelic
       end
     end
 
-    # Set the user id for the current transaction
+    # Set the user id for the current transaction. When present, this value will be included in the agent attributes for transaction and error events as 'enduser.id'.
     #
     # @param [String] user_id    The user id to add to the current transaction attributes
     #
