@@ -1256,9 +1256,6 @@ Style/DocumentationMethod:
 Style/DoubleCopDisableDirective:
   Enabled: false
 
-Style/DoubleNegation:
-  Enabled: false
-
 Style/EachForSimpleLoop:
   Enabled: true
 
