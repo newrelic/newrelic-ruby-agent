@@ -83,7 +83,7 @@ module NewRelic
 
           noticed_error = NewRelic::Agent.instance.error_collector.create_noticed_error(exception,
             {metric: 'NewRelic/AgentError'})
-          noticed_error.stack_trace ||= caller.dup
+          noticed_error.stack_trace = caller.dup unless exception.backtrace
 
           @errors << noticed_error
         end

@@ -150,15 +150,14 @@ class NewRelic::NoticedError
       NewRelic::EMPTY_HASH
     end
 
-    # It's possible to override the request_uri from the transaction attributes
-    # with a uri passed to notice_error. Add it to merged_attributes filter and
-    # merge with the transaction attributes, possibly overriding the request_uri
+    # If we have a local value for one of these properties, use it as the
+    # agent attribute value; possibly overwriting an existing value
     {AGENT_ATTRIBUTE_REQUEST_URI => request_uri,
      AGENT_ATTRIBUTE_ERROR_GROUP => error_group}.each do |name, value|
       next unless value
 
       merged_attributes.add_agent_attribute(name, value, DESTINATION)
-      agent_attributes = agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
+      agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
     end
 
     agent_attributes
