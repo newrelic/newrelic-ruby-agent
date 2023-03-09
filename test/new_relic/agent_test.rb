@@ -541,7 +541,7 @@ module NewRelic
       end
 
       [harvest_transaction_events!, harvest_error_events!].each do |events|
-        assert_equal events[1][0][2]['enduser.id'], test_user
+        assert_equal events[1][0][2][:'enduser.id'], test_user
       end
     end
 
