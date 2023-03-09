@@ -141,21 +141,9 @@ class NewRelic::NoticedError
   end
 
   def build_agent_attributes(merged_attributes)
-    agent_attributes = if @attributes
-      @attributes.agent_attributes_for(DESTINATION)
-    else
-      NewRelic::EMPTY_HASH
-    end
+    return NewRelic::EMPTY_HASH unless @attributes
 
-    # It's possible to override the request_uri from the transaction attributes
-    # with a uri passed to notice_error. Add it to merged_attributes filter and
-    # merge with the transaction attributes, possibly overriding the request_uri
-    if request_uri
-      merged_attributes.add_agent_attribute(:'request.uri', request_uri, DESTINATION)
-      agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
-    end
-
-    agent_attributes
+    @attributes.agent_attributes_for(DESTINATION)
   end
 
   def build_intrinsic_attributes
