@@ -2,7 +2,7 @@
 
 ## dev
 
-  Upcoming version removes Distributed Tracing warnings from agent logs when using Sidekiq and fixes a bug regarding logged request headers.
+  Upcoming version removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes a bug regarding logged request headers, and is tested against the recently released JRuby 9.4.2.0.
 
 
 - **Bugfix: Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
@@ -16,6 +16,10 @@
 - **Bugfix: Undefined method `controller_path` logged in Action Controller Instrumentation**
 
   Previously, the agent could log an error when trying to determine the metric name in the Action Controller instrumentation if the controller class did not respond to `controller_path`. This has been resolved and the agent will no longer call this method unless the class responds to it. Thank you to [@gsar](https://github.com/gsar) for letting us know about this issue. [PR#1844](https://github.com/newrelic/newrelic-ruby-agent/pull/1844)
+
+- **CI: target JRuby 9.4.2.0**
+
+  The agent is now actively being tested against JRuby 9.4.2.0. NOTE that this release does not contain any non-CI related changes for JRuby. Old agent versions are still expected to work with newer JRubies and the newest agent version is still expected to work with older JRubies.
 
 
 ## v9.0.0
