@@ -622,7 +622,7 @@ module NewRelic
         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
         NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-      NewRelic::Agent::Transaction.add_agent_attribute('enduser.id', user_id, default_destinations)
+      NewRelic::Agent::Transaction.add_agent_attribute(:'enduser.id', user_id, default_destinations)
     end
 
     # @!endgroup
