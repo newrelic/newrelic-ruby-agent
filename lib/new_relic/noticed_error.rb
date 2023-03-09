@@ -27,7 +27,6 @@ class NewRelic::NoticedError
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-  AGENT_ATTRIBUTE_REQUEST_URI = :'request.uri'
   AGENT_ATTRIBUTE_ERROR_GROUP = :'error.group.name'
 
   ERROR_PREFIX_KEY = 'error'
@@ -144,23 +143,12 @@ class NewRelic::NoticedError
   end
 
   def build_agent_attributes(merged_attributes)
-    agent_attributes = if @attributes
-      @attributes.agent_attributes_for(DESTINATION)
-    else
-      NewRelic::EMPTY_HASH
-    end
+    return NewRelic::EMPTY_HASH unless @attributes || error_group
 
-    # If we have a local value for one of these properties, use it as the
-    # agent attribute value; possibly overwriting an existing value
-    {AGENT_ATTRIBUTE_REQUEST_URI => request_uri,
-     AGENT_ATTRIBUTE_ERROR_GROUP => error_group}.each do |name, value|
-      next unless value
+    error_group_hash = {AGENT_ATTRIBUTE_ERROR_GROUP => error_group}
+    return error_group_hash unless @attributes
 
-      merged_attributes.add_agent_attribute(name, value, DESTINATION)
-      agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
-    end
-
-    agent_attributes
+    @attributes.agent_attributes_for(DESTINATION).merge(error_group_hash)
   end
 
   def build_intrinsic_attributes

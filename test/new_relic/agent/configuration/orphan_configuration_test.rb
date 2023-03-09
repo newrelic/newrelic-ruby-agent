@@ -56,8 +56,8 @@ class OrphanedConfigTest < Minitest::Test
           disable_key = "disable_#{name}".to_sym
           instrumentation_key = "instrumentation.#{name}".to_sym
 
-          has_disable_key = !!NewRelic::Agent::Configuration::DEFAULTS[disable_key]
-          has_instrumentation_key = !!NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key]
+          has_disable_key = !NewRelic::Agent::Configuration::DEFAULTS[disable_key].nil?
+          has_instrumentation_key = !NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key].nil?
 
           assert has_instrumentation_key || has_disable_key,
             "#{file}:#{index + 1} - Document key `#{instrumentation_key}` found as name for instrumentation.\n"

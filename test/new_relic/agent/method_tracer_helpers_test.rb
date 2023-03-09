@@ -91,7 +91,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
     end
   end
 
-  def test_provides_accurate_info_for_an_instance_method
+  def test_provides_accurate_info_for_a_private_instance_method
     with_config(:'code_level_metrics.enabled' => true) do
       info = NewRelic::Agent::MethodTracerHelpers.code_information(::The::Example, :private_method)
 
