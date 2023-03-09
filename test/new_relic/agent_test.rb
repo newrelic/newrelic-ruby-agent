@@ -553,7 +553,7 @@ module NewRelic
         end
 
         [harvest_transaction_events!, harvest_error_events!].each do |events|
-          refute events[1][0][2].key?('enduser.id')
+          refute events[1][0][2].key?(:'enduser.id')
         end
       end
     end
