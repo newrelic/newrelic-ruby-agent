@@ -45,11 +45,11 @@ module NewRelic
         record_api_supportability_metric(:insert_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn("Not configured to insert distributed trace headers")
+          NewRelic::Agent.logger.warn('Not configured to insert distributed trace headers')
           return nil
         end
 
-        return unless valid_api_argument_class?(headers, "headers", Hash)
+        return unless valid_api_argument_class?(headers, 'headers', Hash)
 
         return unless transaction = Transaction.tl_current
 
@@ -99,12 +99,12 @@ module NewRelic
         record_api_supportability_metric(:accept_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn("Not configured to accept distributed trace headers")
+          NewRelic::Agent.logger.warn('Not configured to accept distributed trace headers')
           return nil
         end
 
-        return unless valid_api_argument_class?(headers, "headers", Hash)
-        return unless valid_api_argument_class?(transport_type, "transport_type", String)
+        return unless valid_api_argument_class?(headers, 'headers', Hash)
+        return unless valid_api_argument_class?(transport_type, 'transport_type', String)
 
         return unless transaction = Transaction.tl_current
 

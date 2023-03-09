@@ -16,7 +16,7 @@ require 'new_relic/control' unless defined? NewRelic::Control
 
 class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   attr_reader :control
-  def self.command; "deployments"; end
+  def self.command; 'deployments'; end
 
   # Initialize the deployment uploader with command line args.
   # Use -h to see options.
@@ -33,7 +33,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     @changelog = nil
     @user = nil
     super(command_line_args)
-    @description ||= @leftover && @leftover.join(" ")
+    # needs else branch coverage
+    @description ||= @leftover && @leftover.join(' ') # rubocop:disable Style/SafeNavigation
     @user ||= ENV['USER']
     control.env = @environment if @environment
 
@@ -71,17 +72,17 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       end
 
       if !api_v1? && (@revision.nil? || @revision.empty?)
-        raise "revision required when using New Relic REST API v2 with api_key. Pass in revision using: -r, --revision=REV"
+        raise 'revision required when using New Relic REST API v2 with api_key. Pass in revision using: -r, --revision=REV'
       end
 
       request = if api_v1?
-        uri = "/deployments.xml"
-        create_request(uri, {'x-license-key' => @license_key}, "application/octet-stream").tap do |req|
+        uri = '/deployments.xml'
+        create_request(uri, {'x-license-key' => @license_key}, 'application/octet-stream').tap do |req|
           set_params_v1(req)
         end
       else
         uri = "/v2/applications/#{application_id}/deployments.json"
-        create_request(uri, {"Api-Key" => @api_key}, "application/json").tap do |req|
+        create_request(uri, {'Api-Key' => @api_key}, 'application/json').tap do |req|
           set_params_v2(req)
         end
       end
@@ -92,7 +93,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       if response.is_a?(Net::HTTPSuccess)
         info("Recorded deployment to '#{@appname}' (#{@description || Time.now})")
       else
-        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue response.message
+        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join('; ') rescue response.message
         raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
       end
     rescue SystemCallError, SocketError => e
@@ -150,7 +151,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
   def set_params_v2(request)
     request.body = {
-      "deployment" => {
+      'deployment' => {
         :description => @description,
         :user => @user,
         :revision => @revision,
@@ -161,25 +162,25 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
 
   def options
     OptionParser.new(%Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40) do |o|
-      o.separator("OPTIONS:")
-      o.on("-a", "--appname=NAME", String,
-        "Set the application name.",
-        "Default is app_name setting in newrelic.yml. Available only when using API v1.") { |e| @appname = e }
-      o.on("-i", "--appid=ID", String,
-        "Set the application ID",
-        "If not provided, will connect to the New Relic collector to get it") { |i| @application_id = i }
-      o.on("-e", "--environment=name", String,
-        "Override the (RAILS|RUBY|RACK)_ENV setting",
+      o.separator('OPTIONS:')
+      o.on('-a', '--appname=NAME', String,
+        'Set the application name.',
+        'Default is app_name setting in newrelic.yml. Available only when using API v1.') { |e| @appname = e }
+      o.on('-i', '--appid=ID', String,
+        'Set the application ID',
+        'If not provided, will connect to the New Relic collector to get it') { |i| @application_id = i }
+      o.on('-e', '--environment=name', String,
+        'Override the (RAILS|RUBY|RACK)_ENV setting',
         "currently: #{control.env}") { |e| @environment = e }
-      o.on("-u", "--user=USER", String,
-        "Specify the user deploying, for information only",
+      o.on('-u', '--user=USER', String,
+        'Specify the user deploying, for information only',
         "Default: #{@user || '<none>'}") { |u| @user = u }
-      o.on("-r", "--revision=REV", String,
-        "Specify the revision being deployed. Required when using New Relic REST API v2") { |r| @revision = r }
-      o.on("-l", "--license-key=KEY", String,
-        "Specify the license key of the account for the app being deployed") { |l| @license_key = l }
-      o.on("-c", "--changes",
-        "Read in a change log from the standard input") { @changelog = STDIN.read }
+      o.on('-r', '--revision=REV', String,
+        'Specify the revision being deployed. Required when using New Relic REST API v2') { |r| @revision = r }
+      o.on('-l', '--license-key=KEY', String,
+        'Specify the license key of the account for the app being deployed') { |l| @license_key = l }
+      o.on('-c', '--changes',
+        'Read in a change log from the standard input') { @changelog = STDIN.read }
       yield(o) if block_given?
     end
   end

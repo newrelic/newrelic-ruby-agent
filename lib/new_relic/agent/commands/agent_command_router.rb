@@ -29,7 +29,8 @@ module NewRelic
           @handlers['start_profiler'] = proc { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler'] = proc { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
-          if event_listener
+          # the following statement needs else branch coverage
+          if event_listener # rubocop:disable Style/SafeNavigation
             event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
           end
         end
@@ -77,10 +78,10 @@ module NewRelic
 
         def log_profiles(profiles)
           if profiles.empty?
-            ::NewRelic::Agent.logger.debug("No thread profiles with data found to send.")
+            ::NewRelic::Agent.logger.debug('No thread profiles with data found to send.')
           else
             profile_descriptions = profiles.map { |p| p.to_log_description }
-            ::NewRelic::Agent.logger.debug("Sending thread profiles [#{profile_descriptions.join(", ")}]")
+            ::NewRelic::Agent.logger.debug("Sending thread profiles [#{profile_descriptions.join(', ')}]")
           end
         end
 
@@ -114,7 +115,7 @@ module NewRelic
         end
 
         SUCCESS_RESULT = NewRelic::EMPTY_HASH
-        ERROR_KEY = "error"
+        ERROR_KEY = 'error'
 
         def success
           SUCCESS_RESULT

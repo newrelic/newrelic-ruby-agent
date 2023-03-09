@@ -10,7 +10,7 @@ module NewRelic::Agent
     module MockGCStats
       def time
         return 0 if @@values.empty?
-        raise "too many calls" if @@index >= @@values.size
+        raise 'too many calls' if @@index >= @@values.size
 
         @@curtime ||= 0
         @@curtime += (@@values[@@index] * 1e09).to_i
@@ -203,18 +203,18 @@ module NewRelic::Agent
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
         in_transaction('a') do
-          segment_b = Tracer.start_segment(name: "b")
+          segment_b = Tracer.start_segment(name: 'b')
           segment_b.finish
 
-          segment_c = Tracer.start_segment(name: "c")
-          segment_d = Tracer.start_segment(name: "d")
+          segment_c = Tracer.start_segment(name: 'c')
+          segment_d = Tracer.start_segment(name: 'd')
           segment_d.finish
           segment_c.finish
         end
 
         sample = last_transaction_trace
 
-        assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
+        assert_equal 'ROOT{a{b,c{d}}}', sample.to_s_compact
       end
     ensure
       MockGCStats.mock_values = []
@@ -281,7 +281,7 @@ module NewRelic::Agent
         @sampler.merge!([slowest])
         new_slowest = @sampler.harvest![0]
 
-        assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
+        assert((new_slowest != slowest), 'Should not harvest the same trace since the new one should be slower')
         assert_equal(10, new_slowest.duration.round, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
       end
       nr_unfreeze_process_time
@@ -377,7 +377,7 @@ module NewRelic::Agent
 
     def test_synthetics_parameters_included
       in_transaction do |txn|
-        txn.raw_synthetics_header = ""
+        txn.raw_synthetics_header = ''
         txn.synthetics_payload = [1, 1, 100, 200, 300]
       end
 
@@ -457,11 +457,11 @@ module NewRelic::Agent
       @sampler.notice_push_frame(state)
       @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0, state)
       yield if block_given?
-      @sampler.notice_pop_frame(state, "ab")
+      @sampler.notice_pop_frame(state, 'ab')
       @sampler.notice_push_frame(state)
       @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, state)
-      @sampler.notice_pop_frame(state, "ac")
-      @sampler.notice_pop_frame(state, "a")
+      @sampler.notice_pop_frame(state, 'ac')
+      @sampler.notice_pop_frame(state, 'a')
       @sampler.on_finishing_transaction(state, @txn)
     end
 

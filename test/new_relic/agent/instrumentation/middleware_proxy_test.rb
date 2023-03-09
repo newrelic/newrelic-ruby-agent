@@ -79,7 +79,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
     name = wrapped_instance.transaction_options[:transaction_name]
 
-    assert_equal("Middleware/Rack/AnonymousClass/call", name)
+    assert_equal('Middleware/Rack/AnonymousClass/call', name)
   end
 
   class BaseForAnonymous
@@ -189,7 +189,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
     wrapped.call({})
 
-    assert_metrics_recorded("HttpDispatcher")
+    assert_metrics_recorded('HttpDispatcher')
   end
 
   def test_should_respect_force_transaction_flag
@@ -209,7 +209,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   def test_should_get_the_right_name_when_target_is_a_class
     target_class = Class.new do
       def self.name
-        "GreatClass"
+        'GreatClass'
       end
 
       def self.call(env)
@@ -225,7 +225,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_should_emit_events_once
-    app = proc { |env| [200, {}, ["nothing"]] }
+    app = proc { |env| [200, {}, ['nothing']] }
     middleware = proc { |env| app.call(env) }
     wrapped_middleware = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware, true)
 
@@ -242,7 +242,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_before_call_should_receive_rack_env_hash
-    app = proc { |env| [200, {}, ["nothing"]] }
+    app = proc { |env| [200, {}, ['nothing']] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}
@@ -256,7 +256,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_after_call_should_receive_rack_env_hash
-    app = proc { |env| [200, {}, ["nothing"]] }
+    app = proc { |env| [200, {}, ['nothing']] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}

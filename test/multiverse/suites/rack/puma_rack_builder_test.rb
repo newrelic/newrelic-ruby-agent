@@ -64,22 +64,22 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
 
       assert_metrics_recorded_exclusive(
         [
-          "Apdex",
-          "ApdexAll",
-          "HttpDispatcher",
-          "Middleware/all",
-          "Apdex/Rack/PumaRackBuilderTest::ExampleApp/call",
-          "Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-          "Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call",
-          "Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call",
-          "Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-          "WebTransactionTotalTime",
-          "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
-          "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
-          "WebTransactionTotalTime/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-          ["Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
-          ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
-          ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
+          'Apdex',
+          'ApdexAll',
+          'HttpDispatcher',
+          'Middleware/all',
+          'Apdex/Rack/PumaRackBuilderTest::ExampleApp/call',
+          'Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+          'Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call',
+          'Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call',
+          'Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+          'WebTransactionTotalTime',
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb',
+          'WebTransactionTotalTime/Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+          ['Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call', 'Controller/Rack/PumaRackBuilderTest::ExampleApp/call'],
+          ['Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call', 'Controller/Rack/PumaRackBuilderTest::ExampleApp/call'],
+          ['Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call', 'Controller/Rack/PumaRackBuilderTest::ExampleApp/call']
         ],
         :ignore_filter => /^(Supportability|RubyVM|Memory|CPU|Logging)|(\/Rack\/Proc\/)/
       )

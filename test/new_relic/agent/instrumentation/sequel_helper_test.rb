@@ -9,26 +9,26 @@ module NewRelic
   module Agent
     class SequelHelperTest < Minitest::Test
       def test_product_name_from_adapter
-        expected_default = "Sequel"
+        expected_default = 'Sequel'
         default = Hash.new(expected_default)
 
         adapter_to_name = {
-          :ibmdb => "IBMDB2",
-          :firebird => "Firebird",
-          :informix => "Informix",
-          :jdbc => "JDBC",
-          :mysql => "MySQL",
-          :mysql2 => "MySQL",
-          :oracle => "Oracle",
-          :postgres => "Postgres",
-          :sqlite => "SQLite"
+          :ibmdb => 'IBMDB2',
+          :firebird => 'Firebird',
+          :informix => 'Informix',
+          :jdbc => 'JDBC',
+          :mysql => 'MySQL',
+          :mysql2 => 'MySQL',
+          :oracle => 'Oracle',
+          :postgres => 'Postgres',
+          :sqlite => 'SQLite'
         }
 
         default.merge(adapter_to_name).each do |adapter, name|
           assert_equal name, NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(adapter)
         end
 
-        default_result = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter("YouDontKnowThisAdapter")
+        default_result = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter('YouDontKnowThisAdapter')
 
         assert_equal expected_default, default_result
       end

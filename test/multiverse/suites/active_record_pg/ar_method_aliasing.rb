@@ -15,7 +15,7 @@ class InstrumentActiveRecordMethods < Minitest::Test
   setup_and_teardown_agent
 
   def test_basic_creation
-    a_user = User.new(:name => "Bob")
+    a_user = User.new(:name => 'Bob')
 
     assert_predicate a_user, :new_record?
     a_user.save!
@@ -25,14 +25,14 @@ class InstrumentActiveRecordMethods < Minitest::Test
   end
 
   def test_alias_collection_query_method
-    a_user = User.new(:name => "Bob")
+    a_user = User.new(:name => 'Bob')
     a_user.save!
 
     a_user = User.first
 
     assert_predicate User, :connected?
 
-    an_alias = Alias.new(:user_id => a_user.id, :aka => "the Blob")
+    an_alias = Alias.new(:user_id => a_user.id, :aka => 'the Blob')
 
     assert_predicate an_alias, :new_record?
     an_alias.save!

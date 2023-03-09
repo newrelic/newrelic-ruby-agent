@@ -26,7 +26,7 @@ class RumAutoInsertion < Performance::TestCase
       attr_accessor :text
 
       def call(*_)
-        [200, {"Content-Type" => "text/html"}, [text]]
+        [200, {'Content-Type' => 'text/html'}, [text]]
       end
     end.new
 

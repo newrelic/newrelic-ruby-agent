@@ -17,7 +17,7 @@ class DispatcherTest < Minitest::Test
   end
 
   def assert_dispatcher_reported_to_environment_report(dispatcher)
-    assert_equal dispatcher.to_s, NewRelic::EnvironmentReport.new["Dispatcher"]
+    assert_equal dispatcher.to_s, NewRelic::EnvironmentReport.new['Dispatcher']
   end
 
   def test_detects_dispatcher_via_loaded_libraries
@@ -33,7 +33,7 @@ class DispatcherTest < Minitest::Test
   end
 
   def test_detects_dispatcher_via_ENV_NEW_RELIC_DISPATCHER
-    ENV['NEW_RELIC_DISPATCHER'] = "foobared"
+    ENV['NEW_RELIC_DISPATCHER'] = 'foobared'
     NewRelic::Agent.reset_config
 
     assert_equal :foobared, NewRelic::Agent.config[:dispatcher]
@@ -43,7 +43,7 @@ class DispatcherTest < Minitest::Test
   end
 
   def test_detects_dispatcher_via_ENV_NEWRELIC_DISPATCHER
-    ENV['NEWRELIC_DISPATCHER'] = "bazbang"
+    ENV['NEWRELIC_DISPATCHER'] = 'bazbang'
     NewRelic::Agent.reset_config
 
     assert_equal :bazbang, NewRelic::Agent.config[:dispatcher]

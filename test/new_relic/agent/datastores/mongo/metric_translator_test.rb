@@ -20,7 +20,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_is_graceful_if_exceptions_are_raised
-    NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:find_one?).raises("Boom")
+    NewRelic::Agent::Datastores::Mongo::MetricTranslator.stubs(:find_one?).raises('Boom')
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, {})
 
     assert_nil result
@@ -29,7 +29,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   def test_operation_and_collection_for_find
     payload = {:database => @database_name,
                :collection => @collection_name,
-               :selector => {"name" => "soterios johnson"}}
+               :selector => {'name' => 'soterios johnson'}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -50,7 +50,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   def test_operation_and_collection_for_remove
     payload = {:database => @database_name,
                :collection => @collection_name,
-               :selector => {"name" => "soterios johnson"}}
+               :selector => {'name' => 'soterios johnson'}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:remove, payload)
 
@@ -60,8 +60,8 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   def test_operation_and_collection_for_update
     payload = {:database => @database_name,
                :collection => @collection_name,
-               :selector => {"name" => "soterios johnson"},
-               :document => {"name" => "codemonkey"}}
+               :selector => {'name' => 'soterios johnson'},
+               :document => {'name' => 'codemonkey'}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:update, payload)
 
@@ -70,10 +70,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_distinct
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:distinct => @collection_name,
-                             :key => "name",
+                             :key => 'name',
                              :query => nil}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:distinct, payload)
@@ -83,11 +83,11 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_count
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
-               :selector => {"count" => @collection_name,
-                             "query" => {},
-                             "fields" => nil}}
+               :selector => {'count' => @collection_name,
+                             'query' => {},
+                             'fields' => nil}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -96,13 +96,13 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_group
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
-               :selector => {"group" => {"ns" => @collection_name,
-                                         "$reduce" => stub("BSON::Code"),
-                                         "cond" => {},
-                                         "initial" => {:count => 0},
-                                         "key" => {"name" => 1}}}}
+               :selector => {'group' => {'ns' => @collection_name,
+                                         '$reduce' => stub('BSON::Code'),
+                                         'cond' => {},
+                                         'initial' => {:count => 0},
+                                         'key' => {'name' => 1}}}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -111,10 +111,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_aggregate
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
-               :selector => {"aggregate" => @collection_name,
-                             "pipeline" => [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]}}
+               :selector => {'aggregate' => @collection_name,
+                             'pipeline' => [{'$group' => {:_id => '$says', :total => {'$sum' => 1}}}]}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -123,12 +123,12 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_mapreduce
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
-               :selector => {"mapreduce" => @collection_name,
-                             "map" => stub("BSON::Code"),
-                             "reduce" => stub("BSON::Code"),
-                             :out => "results"}}
+               :selector => {'mapreduce' => @collection_name,
+                             'map' => stub('BSON::Code'),
+                             'reduce' => stub('BSON::Code'),
+                             :out => 'results'}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -137,11 +137,11 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_find_and_modify
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:findandmodify => @collection_name,
-                             :query => {"name" => "soterios johnson"},
-                             :update => {"name" => "codemonkey"}}}
+                             :query => {'name' => 'soterios johnson'},
+                             :update => {'name' => 'codemonkey'}}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -150,10 +150,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_find_and_remove
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:findandmodify => @collection_name,
-                             :query => {"name" => "soterios johnson"},
+                             :query => {'name' => 'soterios johnson'},
                              :remove => true}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
@@ -163,10 +163,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_create_index
     payload = {:database => @database_name,
-               :collection => "system.indexes",
-               :documents => [{:name => "name_1",
+               :collection => 'system.indexes',
+               :documents => [{:name => 'name_1',
                                :ns => "#{@database_name}.#{@collection_name}",
-                               :key => {"name" => 1}}]}
+                               :key => {'name' => 1}}]}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:insert, payload)
 
@@ -175,10 +175,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_drop_indexes
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:deleteIndexes => @collection_name,
-                             :index => "*"}}
+                             :index => '*'}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -187,10 +187,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_drop_index
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:deleteIndexes => @collection_name,
-                             :index => "name_1"}}
+                             :index => 'name_1'}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -199,7 +199,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_reindex
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:reIndex => @collection_name}}
 
@@ -210,7 +210,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_drop_collection
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:drop => @collection_name}}
 
@@ -221,7 +221,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_rename_collection
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:renameCollection => "#{@database_name}.#{@collection_name}",
                              :to => "#{@database_name}.renamed_#{@collection_name}"}}
@@ -233,11 +233,11 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_ismaster
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:ismaster => 1}}
 
-    @collection_name = "$cmd"
+    @collection_name = '$cmd'
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -246,7 +246,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_collstats
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:collstats => @collection_name}}
 
@@ -257,15 +257,15 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
   def test_operation_and_collection_for_unknown_command
     payload = {:database => @database_name,
-               :collection => "$cmd",
+               :collection => '$cmd',
                :limit => -1,
                :selector => {:mongomongomongo => @collection_name}}
 
-    @collection_name = "$cmd"
+    @collection_name = '$cmd'
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
     assert_equal ['mongomongomongo', @collection_name], result
-    assert_metrics_recorded(["Supportability/Mongo/UnknownCollection"])
+    assert_metrics_recorded(['Supportability/Mongo/UnknownCollection'])
   end
 end

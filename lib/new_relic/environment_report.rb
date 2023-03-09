@@ -52,7 +52,7 @@ module NewRelic
         # though so try it if the above fails.
         Bundler.load.specs.map do |spec|
           version = (spec.respond_to?(:version) && spec.version)
-          spec.name + (version ? "(#{version})" : "")
+          spec.name + (version ? "(#{version})" : '')
         end
       end
     end
@@ -118,19 +118,19 @@ module NewRelic
     def record_value(data, key, value)
       data[key] = value
 
-      Agent.record_metric("Supportability/EnvironmentReport/success", 0.0)
+      Agent.record_metric('Supportability/EnvironmentReport/success', 0.0)
       Agent.record_metric("Supportability/EnvironmentReport/success/#{key}", 0.0)
     end
 
     def record_empty_value(key, value)
       Agent.logger.debug("EnvironmentReport ignoring value for #{key.inspect} which came back falsey: #{value.inspect}")
-      Agent.record_metric("Supportability/EnvironmentReport/empty", 0.0)
+      Agent.record_metric('Supportability/EnvironmentReport/empty', 0.0)
       Agent.record_metric("Supportability/EnvironmentReport/empty/#{key}", 0.0)
     end
 
     def rescue_initialize(key, exception)
       Agent.logger.debug("EnvironmentReport failed to retrieve value for #{key.inspect}: #{exception}")
-      Agent.record_metric("Supportability/EnvironmentReport/error", 0.0)
+      Agent.record_metric('Supportability/EnvironmentReport/error', 0.0)
       Agent.record_metric("Supportability/EnvironmentReport/error/#{key}", 0.0)
     end
   end

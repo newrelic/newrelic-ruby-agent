@@ -12,9 +12,9 @@ db_dir = File.expand_path('../../db', __FILE__)
 config_dir = File.expand_path(File.dirname(__FILE__))
 
 if defined?(ActiveRecord::VERSION)
-  ENV['DATABASE_NAME'] = "multiverse_activerecord_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr(".", "_")
+  ENV['DATABASE_NAME'] = "multiverse_activerecord_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr('.', '_')
 else
-  ENV['DATABASE_NAME'] = "multiverse_activerecord_2_x_#{ENV["MULTIVERSE_ENV"]}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr(".", "_")
+  ENV['DATABASE_NAME'] = "multiverse_activerecord_2_x_#{ENV['MULTIVERSE_ENV']}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr('.', '_')
 end
 
 config_raw = File.read(File.join(config_dir, 'database.yml'))
@@ -26,12 +26,12 @@ else
 end
 
 # Rails 2.x didn't keep the Rails out of ActiveRecord much...
-RAILS_ENV = "test"
-RAILS_ROOT = File.join(db_dir, "..")
+RAILS_ENV = 'test'
+RAILS_ROOT = File.join(db_dir, '..')
 
 ActiveRecord::Base.configurations = config_yml
 ActiveRecord::Base.establish_connection(:test)
-ActiveRecord::Base.logger = Logger.new(ENV["VERBOSE"] ? STDOUT : StringIO.new)
+ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? STDOUT : StringIO.new)
 
 begin
   load('active_record/railties/databases.rake')
@@ -48,7 +48,7 @@ if defined?(ActiveRecord::Tasks)
     end
   end
 
-  DatabaseTasks.env = "test"
+  DatabaseTasks.env = 'test'
   DatabaseTasks.db_dir = db_dir
   DatabaseTasks.migrations_paths = File.join(db_dir, 'migrate')
   DatabaseTasks.database_configuration = config_yml
@@ -63,7 +63,7 @@ else
     end
 
     def env
-      ActiveSupport::StringInquirer.new(ENV["RACK_ENV"] || "development")
+      ActiveSupport::StringInquirer.new(ENV['RACK_ENV'] || 'development')
     end
 
     def application
@@ -77,7 +77,7 @@ else
     end
   end
 
-  Rake::Task.define_task("db:environment")
-  Rake::Task["db:load_config"].clear if Rake::Task.task_defined?("db:load_config")
-  Rake::Task.define_task("db:rails_env")
+  Rake::Task.define_task('db:environment')
+  Rake::Task['db:load_config'].clear if Rake::Task.task_defined?('db:load_config')
+  Rake::Task.define_task('db:rails_env')
 end

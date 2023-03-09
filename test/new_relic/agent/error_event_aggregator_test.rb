@@ -33,7 +33,7 @@ module NewRelic
 
       def populate_container(sampler, n)
         n.times do
-          error = NewRelic::NoticedError.new("Controller/blogs/index", RuntimeError.new("Big Controller"))
+          error = NewRelic::NoticedError.new('Controller/blogs/index', RuntimeError.new('Big Controller'))
           payload = in_transaction {}.payload
 
           @error_event_aggregator.record(error, payload, @span_id)
@@ -57,7 +57,7 @@ module NewRelic
       end
 
       def name_for(event)
-        event[0]["transactionName"]
+        event[0]['transactionName']
       end
 
       include NewRelic::CommonAggregatorTests
@@ -71,8 +71,8 @@ module NewRelic
 
         assert_equal 'TransactionError', intrinsics['type']
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
-        assert_equal "RuntimeError", intrinsics['error.class']
-        assert_equal "Big Controller!", intrinsics['error.message']
+        assert_equal 'RuntimeError', intrinsics['error.class']
+        assert_equal 'Big Controller!', intrinsics['error.message']
       end
 
       def test_generates_event_from_error
@@ -82,9 +82,9 @@ module NewRelic
 
         assert_equal 'TransactionError', intrinsics['type']
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
-        assert_equal "RuntimeError", intrinsics['error.class']
-        assert_equal "Big Controller!", intrinsics['error.message']
-        assert_equal "Controller/blogs/index", intrinsics['transactionName']
+        assert_equal 'RuntimeError', intrinsics['error.class']
+        assert_equal 'Big Controller!', intrinsics['error.message']
+        assert_equal 'Controller/blogs/index', intrinsics['transactionName']
         assert_in_delta(0.1, intrinsics['duration'])
         assert_equal 80, intrinsics['port']
       end
@@ -146,9 +146,9 @@ module NewRelic
       end
 
       def create_noticed_error(txn_name, options = {})
-        exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
+        exception = options.delete(:exception) || RuntimeError.new('Big Controller!')
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
-        noticed_error.request_uri = "http://site.com/blogs"
+        noticed_error.request_uri = 'http://site.com/blogs'
         noticed_error.request_port = 80
         noticed_error.attributes = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}

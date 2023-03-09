@@ -59,7 +59,7 @@ module NewRelic
       @id_counter = 0
       @mock = {
         'preconnect' => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
-        'connect' => Response.new(200, proc { {'return_value' => {"agent_run_id" => agent_run_id}} }),
+        'connect' => Response.new(200, proc { {'return_value' => {'agent_run_id' => agent_run_id}} }),
         'get_agent_commands' => Response.new(200, {'return_value' => []}),
         'agent_command_results' => Response.new(200, {'return_value' => []}),
         'metric_data' => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
@@ -103,7 +103,7 @@ module NewRelic
 
     def stub_wait(method, wait_time, status = 200)
       self.mock[method] ||= default_response
-      self.mock[method].override(status, proc { sleep(wait_time); {'return_value' => ""} })
+      self.mock[method].override(status, proc { sleep(wait_time); {'return_value' => ''} })
     end
 
     def method_from_request(req)
@@ -129,15 +129,15 @@ module NewRelic
         res.write(::JSON.dump(body))
       else
         res.status = 500
-        res.write("Method not found")
+        res.write('Method not found')
       end
       run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
       req.body.rewind
 
       begin
         raw_body = req.body.read
-        raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
-        raw_body = Zlib::GzipReader.new(StringIO.new(raw_body)).read if req.env["HTTP_CONTENT_ENCODING"] == "gzip"
+        raw_body = Zlib::Inflate.inflate(raw_body) if req.env['HTTP_CONTENT_ENCODING'] == 'deflate'
+        raw_body = Zlib::GzipReader.new(StringIO.new(raw_body)).read if req.env['HTTP_CONTENT_ENCODING'] == 'gzip'
 
         body = ::JSON.load(raw_body)
       rescue
@@ -241,7 +241,7 @@ module NewRelic
       end
 
       def metric_names
-        metrics.map { |m| m[0]["name"] }
+        metrics.map { |m| m[0]['name'] }
       end
     end
 
@@ -252,7 +252,7 @@ module NewRelic
       end
 
       def utilization
-        @body["utilization"]
+        @body['utilization']
       end
     end
 
@@ -387,15 +387,15 @@ module NewRelic
       end
 
       def agent_attributes
-        @params["agentAttributes"]
+        @params['agentAttributes']
       end
 
       def custom_attributes
-        @params["userAttributes"]
+        @params['userAttributes']
       end
 
       def intrinsic_attributes
-        @params["intrinsics"]
+        @params['intrinsics']
       end
     end
 
@@ -404,8 +404,8 @@ module NewRelic
 
       def initialize(opts = {})
         super
-        @common = body.first["common"]
-        @logs = body.first["logs"]
+        @common = body.first['common']
+        @logs = body.first['logs']
       end
     end
   end

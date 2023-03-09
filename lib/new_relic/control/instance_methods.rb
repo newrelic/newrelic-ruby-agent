@@ -82,10 +82,10 @@ module NewRelic
         if @started_in_env && @started_in_env != env
           Agent.logger.error("Attempted to start agent in #{env.inspect} environment, but agent was already running " \
             "in #{@started_in_env.inspect}", "The agent will continue running in #{@started_in_env.inspect}. To " \
-            "alter this, ensure the desired environment is set before the agent starts.")
+            'alter this, ensure the desired environment is set before the agent starts.')
         else
           Agent.logger.info("Starting the New Relic agent version #{NewRelic::VERSION::STRING} in #{env.inspect} " \
-            "environment.", "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or " \
+            'environment.', 'To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or ' \
             "modify the #{env.inspect} section of your newrelic.yml.")
         end
 
@@ -106,9 +106,9 @@ module NewRelic
       end
 
       def handle_invalid_security_settings
-        NewRelic::Agent.logger.error("Security Policies and High Security Mode cannot both be present in the agent " \
-          "configuration. If Security Policies have been set for your account, please ensure the " \
-          "security_policies_token is set but high_security is disabled (default).")
+        NewRelic::Agent.logger.error('Security Policies and High Security Mode cannot both be present in the agent ' \
+          'configuration. If Security Policies have been set for your account, please ensure the ' \
+          'security_policies_token is set but high_security is disabled (default).')
         install_shim
       end
 

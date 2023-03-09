@@ -38,7 +38,7 @@ module Performance
         missing_from_baseline.each do |identifier|
           puts "  #{identifier}"
         end
-        puts ""
+        puts ''
       end
 
       if !missing_from_baseline.empty?
@@ -46,7 +46,7 @@ module Performance
         missing_from_new.each do |identifier|
           puts "  #{identifier}"
         end
-        puts ""
+        puts ''
       end
 
       rows = []
@@ -98,7 +98,7 @@ module Performance
       end
 
       format_percent_delta = proc { |v|
-        prefix = v > 0 ? "+" : ""
+        prefix = v > 0 ? '+' : ''
         sprintf("#{prefix}%.1f%%", v)
       }
 

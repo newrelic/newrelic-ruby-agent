@@ -75,17 +75,17 @@ class SinatraMetricExplosionTest < Minitest::Test
     metric_names = ::NewRelic::Agent.agent.stats_engine.to_h.keys.map(&:to_s)
     metric_names -= [
       'CPU/User Time',
-      "Middleware/all",
-      "WebFrontend/QueueTime",
-      "WebFrontend/WebServer/all"
+      'Middleware/all',
+      'WebFrontend/QueueTime',
+      'WebFrontend/WebServer/all'
     ]
 
     name_beginnings_to_ignore = [
-      "ApdexAll",
-      "Supportability",
-      "GC/Transaction",
-      "Nested/Controller",
-      "Middleware"
+      'ApdexAll',
+      'Supportability',
+      'GC/Transaction',
+      'Nested/Controller',
+      'Middleware'
     ]
     metric_names.delete_if do |metric|
       name_beginnings_to_ignore.any? { |name| metric.start_with?(name) }

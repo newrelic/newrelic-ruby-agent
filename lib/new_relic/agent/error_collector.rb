@@ -156,13 +156,13 @@ module NewRelic
       end
 
       def aggregated_metric_names(txn)
-        metric_names = ["Errors/all"]
+        metric_names = ['Errors/all']
         return metric_names unless txn
 
         if txn.recording_web_transaction?
-          metric_names << "Errors/allWeb"
+          metric_names << 'Errors/allWeb'
         else
-          metric_names << "Errors/allOther"
+          metric_names << 'Errors/allOther'
         end
 
         metric_names
@@ -227,7 +227,7 @@ module NewRelic
       def notice_error(exception, options = {}, span_id = nil)
         state = ::NewRelic::Agent::Tracer.state
         transaction = state.current_transaction
-        status_code = transaction ? transaction.http_response_code : nil
+        status_code = transaction&.http_response_code
 
         return if skip_notice_error?(exception, status_code)
 
@@ -242,8 +242,8 @@ module NewRelic
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
         transaction = state.current_transaction
-        payload = transaction ? transaction.payload : nil
-        span_id ||= transaction && transaction.current_segment ? transaction.current_segment.guid : nil
+        payload = transaction&.payload
+        span_id ||= transaction&.current_segment ? transaction.current_segment.guid : nil
         error_event_aggregator.record(noticed_error, payload, span_id)
         exception
       rescue => e
@@ -277,7 +277,7 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 
-        noticed_error.expected = !!options.delete(:expected) || expected?(exception)
+        noticed_error.expected = !options.delete(:expected).nil? || expected?(exception)
 
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 

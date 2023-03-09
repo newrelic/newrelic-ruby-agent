@@ -66,7 +66,7 @@ Style/RedundantEach: # new in 1.38
   Enabled: true
 Style/RedundantInitialize: # new in 1.27
   Enabled: true
-Style/RedundantStringEscape: # new in 1.37
+Style/RedundantStringEscape: # new in 1.37, 'pending' by default so enabled to make sure it's applied
   Enabled: true
 Style/YodaExpression: # new in 1.42
   Enabled: true
@@ -140,7 +140,8 @@ Performance/StringIdentifierArgument: # new in 1.13
   Enabled: true
 Performance/StringInclude: # new in 1.7
   Enabled: true
-
+Performance/Sum: # new in 1.8, pending so left enabled explicitly until 2.0
+  Enabled: true
 
 # Old cops
 
@@ -1255,9 +1256,6 @@ Style/DocumentationMethod:
 Style/DoubleCopDisableDirective:
   Enabled: false
 
-Style/DoubleNegation:
-  Enabled: false
-
 Style/EachForSimpleLoop:
   Enabled: true
 
@@ -1316,6 +1314,9 @@ Style/ExplicitBlockArgument:
   Enabled: false
 
 Style/ExponentialNotation:
+  Enabled: false
+
+Style/FetchEnvVar:
   Enabled: false
 
 Style/FloatDivision:
@@ -1780,17 +1781,6 @@ Style/StringConcatenation:
 
 Style/StringHashKeys:
   Enabled: false
-
-# Disabling for now
-Style/StringLiterals:
-  Enabled: false
-#   EnforcedStyle: double_quotes
-#   ConsistentQuotesInMultiline: false
-
-# Disabling for now
-Style/StringLiteralsInInterpolation:
-  Enabled: false
-  # EnforcedStyle: double_quotes
 
 Style/StringMethods:
   Enabled: false

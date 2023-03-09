@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Threading
       class BacktraceService
-        ALL_TRANSACTIONS = "**ALL**".freeze
+        ALL_TRANSACTIONS = '**ALL**'.freeze
 
         def self.is_supported?
           !is_resque?
@@ -41,9 +41,7 @@ module NewRelic
             @overhead_percent_threshold = new_value
           end
 
-          if event_listener
-            event_listener.subscribe(:transaction_finished, &method(:on_transaction_finished))
-          end
+          event_listener&.subscribe(:transaction_finished, &method(:on_transaction_finished))
         end
 
         # Public interface
@@ -221,9 +219,7 @@ module NewRelic
 
         # This method is expected to be called with @lock held.
         def aggregate_global_backtrace(backtrace, bucket, thread)
-          if @profiles[ALL_TRANSACTIONS]
-            @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket, thread)
-          end
+          @profiles[ALL_TRANSACTIONS]&.aggregate(backtrace, bucket, thread)
         end
 
         # This method is expected to be called with @lock held.

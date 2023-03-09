@@ -13,36 +13,36 @@ module NewRelic
           DATABASE = 'multiverse'.freeze
 
           FIND_COMMAND = {
-            "find" => "tribbles",
-            "filter" => {"_id" => {"$gt" => 1}, "name" => "joe"},
-            "sort" => {"_id" => 1},
-            "limit" => 2,
-            "skip" => 2,
-            "comment" => "test",
-            "hint" => {"_id" => 1},
-            "max" => {"_id" => 6},
-            "maxScan" => 5000,
-            "maxTimeMS" => 6000,
-            "min" => {"_id" => 0},
-            "readPreference" => {"mode" => "secondaryPreferred"},
-            "returnKey" => false,
-            "showRecordId" => false,
-            "snapshot" => false
+            'find' => 'tribbles',
+            'filter' => {'_id' => {'$gt' => 1}, 'name' => 'joe'},
+            'sort' => {'_id' => 1},
+            'limit' => 2,
+            'skip' => 2,
+            'comment' => 'test',
+            'hint' => {'_id' => 1},
+            'max' => {'_id' => 6},
+            'maxScan' => 5000,
+            'maxTimeMS' => 6000,
+            'min' => {'_id' => 0},
+            'readPreference' => {'mode' => 'secondaryPreferred'},
+            'returnKey' => false,
+            'showRecordId' => false,
+            'snapshot' => false
           }.freeze
 
           INSERT_COMMAND = {
-            "insert" => "tribbles",
-            "ordered" => true,
-            "documents" => [{:name => "test"}]
+            'insert' => 'tribbles',
+            'ordered' => true,
+            'documents' => [{:name => 'test'}]
           }.freeze
 
           UPDATE_COMMAND = {
-            "update" => "tribbles",
-            "ordered" => true,
-            "updates" => [
+            'update' => 'tribbles',
+            'ordered' => true,
+            'updates' => [
               {
-                :q => {:_id => {"$gt" => 1}},
-                :u => {"$inc" => {:x => 1}},
+                :q => {:_id => {'$gt' => 1}},
+                :u => {'$inc' => {:x => 1}},
                 :multi => false,
                 :upsert => false
               }
@@ -50,16 +50,16 @@ module NewRelic
           }.freeze
 
           DELETE_COMMAND = {
-            "delete" => "tribbles",
-            "ordered" => true,
-            "deletes" => [{:q => {:_id => {"$gt" => 1}}, :limit => 1}]
+            'delete' => 'tribbles',
+            'ordered' => true,
+            'deletes' => [{:q => {:_id => {'$gt' => 1}}, :limit => 1}]
           }.freeze
 
           AGGREGATE_COMMAND = {
-            "aggregate" => "tribbles",
-            "pipeline" => [
-              {"$group" => {"_id" => "name", "max" => {"$max" => "$count"}}},
-              {"$match" => {"max" => {"$gte" => 1}}}
+            'aggregate' => 'tribbles',
+            'pipeline' => [
+              {'$group' => {'_id' => 'name', 'max' => {'$max' => '$count'}}},
+              {'$match' => {'max' => {'$gte' => 1}}}
             ]
           }
 
@@ -81,22 +81,22 @@ module NewRelic
             expected = {
               :operation => :find,
               :database => DATABASE,
-              :collection => "tribbles",
-              "find" => "tribbles",
-              "filter" => {"_id" => {"$gt" => "?"}, "name" => "?"},
-              "sort" => {"_id" => 1},
-              "limit" => 2,
-              "skip" => 2,
-              "comment" => "test",
-              "hint" => {"_id" => 1},
-              "max" => {"_id" => 6},
-              "maxScan" => 5000,
-              "maxTimeMS" => 6000,
-              "min" => {"_id" => 0},
-              "readPreference" => {"mode" => "secondaryPreferred"},
-              "returnKey" => false,
-              "showRecordId" => false,
-              "snapshot" => false
+              :collection => 'tribbles',
+              'find' => 'tribbles',
+              'filter' => {'_id' => {'$gt' => '?'}, 'name' => '?'},
+              'sort' => {'_id' => 1},
+              'limit' => 2,
+              'skip' => 2,
+              'comment' => 'test',
+              'hint' => {'_id' => 1},
+              'max' => {'_id' => 6},
+              'maxScan' => 5000,
+              'maxTimeMS' => 6000,
+              'min' => {'_id' => 0},
+              'readPreference' => {'mode' => 'secondaryPreferred'},
+              'returnKey' => false,
+              'showRecordId' => false,
+              'snapshot' => false
             }
 
             formatted = EventFormatter.format(:find, DATABASE, FIND_COMMAND)
@@ -121,9 +121,9 @@ module NewRelic
             expected = {
               :operation => :insert,
               :database => DATABASE,
-              :collection => "tribbles",
-              "insert" => "tribbles",
-              "ordered" => true
+              :collection => 'tribbles',
+              'insert' => 'tribbles',
+              'ordered' => true
             }
 
             formatted = EventFormatter.format(:insert, DATABASE, INSERT_COMMAND)
@@ -135,9 +135,9 @@ module NewRelic
             expected = {
               :operation => :update,
               :database => DATABASE,
-              :collection => "tribbles",
-              "update" => "tribbles",
-              "ordered" => true
+              :collection => 'tribbles',
+              'update' => 'tribbles',
+              'ordered' => true
             }
 
             formatted = EventFormatter.format(:update, DATABASE, UPDATE_COMMAND)
@@ -149,11 +149,11 @@ module NewRelic
             expected = {
               :operation => :aggregate,
               :database => DATABASE,
-              :collection => "tribbles",
-              "aggregate" => "tribbles",
-              "pipeline" => [
-                {"$group" => {"_id" => "?", "max" => {"$max" => "?"}}},
-                {"$match" => {"max" => {"$gte" => "?"}}}
+              :collection => 'tribbles',
+              'aggregate' => 'tribbles',
+              'pipeline' => [
+                {'$group' => {'_id' => '?', 'max' => {'$max' => '?'}}},
+                {'$match' => {'max' => {'$gte' => '?'}}}
               ]
             }
 
@@ -166,9 +166,9 @@ module NewRelic
             expected = {
               :operation => :delete,
               :database => DATABASE,
-              :collection => "tribbles",
-              "delete" => "tribbles",
-              "ordered" => true
+              :collection => 'tribbles',
+              'delete' => 'tribbles',
+              'ordered' => true
             }
 
             formatted = EventFormatter.format(:delete, DATABASE, DELETE_COMMAND)

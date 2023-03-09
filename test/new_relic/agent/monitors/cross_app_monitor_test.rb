@@ -8,10 +8,10 @@ module NewRelic::Agent
   class CrossAppMonitorTest < Minitest::Test
     NEWRELIC_ID_HEADER = DistributedTracing::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
     NEWRELIC_TXN_HEADER = DistributedTracing::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
-    CONTENT_LENGTH_KEY = "HTTP_CONTENT_LENGTH"
+    CONTENT_LENGTH_KEY = 'HTTP_CONTENT_LENGTH'
 
-    AGENT_CROSS_APP_ID = "qwerty"
-    REQUEST_CROSS_APP_ID = "42#1234"
+    AGENT_CROSS_APP_ID = 'qwerty'
+    REQUEST_CROSS_APP_ID = '42#1234'
     TRANSACTION_GUID = '941B0E8001E444E8'
     REF_TRANSACTION_GUID = '830092CDE59421D4'
 
@@ -78,13 +78,13 @@ module NewRelic::Agent
     end
 
     def test_doesnt_write_response_header_if_untrusted_id
-      when_request_runs(for_id("4#1234"))
+      when_request_runs(for_id('4#1234'))
 
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_improperly_formatted_id
-      when_request_runs(for_id("42"))
+      when_request_runs(for_id('42'))
 
       assert_nil response_app_data
     end
@@ -213,11 +213,11 @@ module NewRelic::Agent
         h3 = @monitor.path_hash('step3', h2.to_i(16))
         h4 = @monitor.path_hash('step4', h3.to_i(16))
 
-        assert_equal("eaaec1df", h0)
-        assert_equal("2e9a0b02", h1)
-        assert_equal("01d3f0eb", h2)
-        assert_equal("9a1b45e5", h3)
-        assert_equal("e9eecfee", h4)
+        assert_equal('eaaec1df', h0)
+        assert_equal('2e9a0b02', h1)
+        assert_equal('01d3f0eb', h2)
+        assert_equal('9a1b45e5', h3)
+        assert_equal('e9eecfee', h4)
       end
     end
 
@@ -239,7 +239,7 @@ module NewRelic::Agent
     end
 
     def for_id(id)
-      encoded_id = id == "" ? "" : Base64.encode64(id)
+      encoded_id = id == '' ? '' : Base64.encode64(id)
       encoded_txn_info = json_dump_and_encode([REF_TRANSACTION_GUID, false])
 
       return {

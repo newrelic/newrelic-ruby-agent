@@ -56,7 +56,7 @@ module NewRelic
           @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
           return unless transaction
 
-          parent.child_start(self) if parent
+          parent&.child_start(self)
         end
 
         def finish
@@ -228,7 +228,7 @@ module NewRelic
 
           if finished?
             transaction.async = true
-            parent.descendant_complete(self, segment) if parent
+            parent&.descendant_complete(self, segment)
           end
         end
 
@@ -263,18 +263,18 @@ module NewRelic
         def force_finish
           finish
           NewRelic::Agent.logger.warn("Segment: #{name} was unfinished at " \
-            "the end of transaction. Timing information for this segment's" \
+            "the end of transaction. Timing information for this segment's " \
             "parent #{parent.name} in #{transaction.best_name} may be inaccurate.")
         end
 
         def run_complete_callbacks
           segment_complete
-          parent.child_complete(self) if parent
+          parent&.child_complete(self)
           transaction.segment_complete(self)
         end
 
         def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+          raise NotImplementedError, 'Subclasses must implement record_metrics'
         end
 
         # callback for subclasses to override

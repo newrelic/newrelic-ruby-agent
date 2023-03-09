@@ -138,7 +138,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_poll_forwards_backtraces_to_subscribed_profiles
         fake_worker_loop(@service)
 
-        bt0, bt1 = ["bt0"], ["bt1"]
+        bt0, bt1 = ['bt0'], ['bt1']
 
         thread0 = fake_thread(:request, bt0)
         thread1 = fake_thread(:differenter_request, bt1)
@@ -165,7 +165,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
         scrubbed_backtrace = []
 
-        thread = fake_thread(:agent, ["trace"])
+        thread = fake_thread(:agent, ['trace'])
 
         AgentThread.stubs(:scrub_backtrace)
           .with(thread, any_parameters)
@@ -457,7 +457,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.buffer_backtrace_for_thread(thread, Process.clock_gettime(Process::CLOCK_REALTIME), stub, :request)
 
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
-        assert_metrics_recorded(["Supportability/ThreadProfiler/DroppedBacktraces"])
+        assert_metrics_recorded(['Supportability/ThreadProfiler/DroppedBacktraces'])
       end
 
       def test_dynamically_adjusts_worker_loop_period

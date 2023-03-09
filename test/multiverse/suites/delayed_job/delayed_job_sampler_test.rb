@@ -11,8 +11,8 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
     TestWorker = Struct.new(:name, :read_ahead)
 
     setup_and_teardown_agent do
-      NewRelic::DelayedJobInjection.worker_name = "delayed"
-      @worker = TestWorker.new("delayed", 1)
+      NewRelic::DelayedJobInjection.worker_name = 'delayed'
+      @worker = TestWorker.new('delayed', 1)
       @sampler = NewRelic::Agent::Samplers::DelayedJobSampler.new
     end
 
@@ -38,8 +38,8 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/failed_jobs" => {:total_call_time => 0},
-        "Workers/DelayedJob/locked_jobs" => {:total_call_time => 0}
+        'Workers/DelayedJob/failed_jobs' => {:total_call_time => 0},
+        'Workers/DelayedJob/locked_jobs' => {:total_call_time => 0}
       )
     end
 
@@ -53,7 +53,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/failed_jobs" => {:total_call_time => 1}
+        'Workers/DelayedJob/failed_jobs' => {:total_call_time => 1}
       )
     end
 
@@ -64,7 +64,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/locked_jobs" => {:total_call_time => 1}
+        'Workers/DelayedJob/locked_jobs' => {:total_call_time => 1}
       )
     end
 
@@ -74,8 +74,8 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/queue_length/priority/0" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/all" => {:total_call_time => 1}
+        'Workers/DelayedJob/queue_length/priority/0' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/all' => {:total_call_time => 1}
       )
     end
 
@@ -85,8 +85,8 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/queue_length/priority/7" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/all" => {:total_call_time => 1}
+        'Workers/DelayedJob/queue_length/priority/7' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/all' => {:total_call_time => 1}
       )
     end
 
@@ -98,39 +98,39 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/queue_length/name/default" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/all" => {:total_call_time => 1}
+        'Workers/DelayedJob/queue_length/name/default' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/all' => {:total_call_time => 1}
       )
     end
 
     def test_sampler_queue_depth_with_alternate_queues
       return unless Delayed::Job.instance_methods.include?(:queue)
 
-      IWantToWait.new.delay(:queue => "cue").take_action
-      IWantToWait.new.delay(:queue => "cute").take_action
+      IWantToWait.new.delay(:queue => 'cue').take_action
+      IWantToWait.new.delay(:queue => 'cute').take_action
 
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/queue_length/name/cue" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/name/cute" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/all" => {:total_call_time => 2}
+        'Workers/DelayedJob/queue_length/name/cue' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/name/cute' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/all' => {:total_call_time => 2}
       )
     end
 
     def test_sampler_queue_depth_with_queues_and_priorities
       return unless Delayed::Job.instance_methods.include?(:queue)
 
-      IWantToWait.new.delay(:priority => 1, :queue => "cue").take_action
-      IWantToWait.new.delay(:priority => 1, :queue => "cute").take_action
+      IWantToWait.new.delay(:priority => 1, :queue => 'cue').take_action
+      IWantToWait.new.delay(:priority => 1, :queue => 'cute').take_action
 
       @sampler.poll
 
       assert_metrics_recorded(
-        "Workers/DelayedJob/queue_length/name/cue" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/name/cute" => {:total_call_time => 1},
-        "Workers/DelayedJob/queue_length/priority/1" => {:total_call_time => 2},
-        "Workers/DelayedJob/queue_length/all" => {:total_call_time => 2}
+        'Workers/DelayedJob/queue_length/name/cue' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/name/cute' => {:total_call_time => 1},
+        'Workers/DelayedJob/queue_length/priority/1' => {:total_call_time => 2},
+        'Workers/DelayedJob/queue_length/all' => {:total_call_time => 2}
       )
     end
   end

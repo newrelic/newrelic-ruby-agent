@@ -2,15 +2,15 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "http"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'http'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 class HTTPTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
-    "http.rb"
+    'http.rb'
   end
 
   def is_unsupported_1x?
@@ -30,15 +30,15 @@ class HTTPTest < Minitest::Test
   end
 
   def post_response
-    HTTP.post(default_url, :body => "")
+    HTTP.post(default_url, :body => '')
   end
 
   def put_response
-    HTTP.put(default_url, :body => "")
+    HTTP.put(default_url, :body => '')
   end
 
   def delete_response
-    HTTP.delete(default_url, :body => "")
+    HTTP.delete(default_url, :body => '')
   end
 
   # NOTE, some versions of HTTPrb gem implements body with
@@ -70,7 +70,7 @@ class HTTPTest < Minitest::Test
       version: '1.1',
       headers: headers,
       body: '',
-      request: HTTP::Request.new(uri: "http://newrelic.com", verb: :get)
+      request: HTTP::Request.new(uri: 'http://newrelic.com', verb: :get)
     }
 
     httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(options)

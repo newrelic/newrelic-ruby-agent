@@ -37,23 +37,23 @@ module NewRelic::Agent
       request = stub(:path => '/path?hello=bob#none')
 
       in_transaction(:request => request) do |txn|
-        assert_equal "/path", txn.request_path
+        assert_equal '/path', txn.request_path
       end
     end
 
     def test_request_parsing_referer
-      request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar', :path => "/")
+      request = stub(:referer => 'https://www.yahoo.com:8080/path/hello?bob=none&foo=bar', :path => '/')
 
       in_transaction(:request => request) do |txn|
-        assert_equal "https://www.yahoo.com:8080/path/hello", txn.referer
+        assert_equal 'https://www.yahoo.com:8080/path/hello', txn.referer
       end
     end
 
     def test_strips_query_string_from_path_and_referer
       request = stub(:path => '/path?hello=bob#none', :referer => '/path/hello?bob=none&foo=bar')
       in_transaction(:request => request) do |txn|
-        assert_equal "/path", txn.request_path
-        assert_equal "/path/hello", txn.referer
+        assert_equal '/path', txn.request_path
+        assert_equal '/path/hello', txn.referer
       end
     end
 
@@ -68,7 +68,7 @@ module NewRelic::Agent
     def test_request_with_normal_path
       request = stub(:path => '/blogs')
       in_transaction(:request => request) do |txn|
-        assert_equal "/blogs", txn.request_path
+        assert_equal '/blogs', txn.request_path
         assert_nil txn.referer
       end
     end
@@ -76,7 +76,7 @@ module NewRelic::Agent
     def test_request_with_empty_path
       request = stub(:path => '')
       in_transaction(:request => request) do |txn|
-        assert_equal "/", txn.request_path
+        assert_equal '/', txn.request_path
         assert_nil txn.referer
       end
     end
@@ -84,7 +84,7 @@ module NewRelic::Agent
     def test_request_to_root_path
       request = stub(:path => '/')
       in_transaction(:request => request) do |txn|
-        assert_equal "/", txn.request_path
+        assert_equal '/', txn.request_path
         assert_nil txn.referer
       end
     end
@@ -92,7 +92,7 @@ module NewRelic::Agent
     def test_request_with_empty_path_with_query_string
       request = stub(:path => '?k=v')
       in_transaction(:request => request) do |txn|
-        assert_equal "/", txn.request_path
+        assert_equal '/', txn.request_path
         assert_nil txn.referer
       end
     end
@@ -361,7 +361,7 @@ module NewRelic::Agent
       in_transaction('foo', :category => :controller) do |txn|
         Transaction.set_default_transaction_name('bar')
 
-        assert_equal("Controller/bar", txn.best_name)
+        assert_equal('Controller/bar', txn.best_name)
       end
     end
 
@@ -369,7 +369,7 @@ module NewRelic::Agent
       in_transaction('foo', :category => :controller) do |txn|
         Transaction.set_default_transaction_name('bar', :rack)
 
-        assert_equal("Controller/Rack/bar", txn.best_name)
+        assert_equal('Controller/Rack/bar', txn.best_name)
       end
     end
 
@@ -424,7 +424,7 @@ module NewRelic::Agent
       end
 
       in_web_transaction('Controller/foo/1/bar/22') do
-        NewRelic::Agent.record_metric("HttpDispatcher", 2.1)
+        NewRelic::Agent.record_metric('HttpDispatcher', 2.1)
       end
 
       assert_in_delta(2.1, options['HttpDispatcher'].total_call_time)
@@ -477,7 +477,7 @@ module NewRelic::Agent
 
       with_config(:apdex_t => 2.0) do
         in_transaction do |txn|
-          referring_txn_info = ["another"]
+          referring_txn_info = ['another']
           cross_app_payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
           txn.distributed_tracer.cross_app_payload = cross_app_payload
         end
@@ -493,12 +493,12 @@ module NewRelic::Agent
       end
 
       in_transaction do |txn|
-        referring_txn_info = ["GUID"]
+        referring_txn_info = ['GUID']
         payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
         txn.distributed_tracer.cross_app_payload = payload
       end
 
-      assert_equal "GUID", referring_guid
+      assert_equal 'GUID', referring_guid
     end
 
     def test_end_fires_a_transaction_finished_event_without_referring_guid_if_not_present
@@ -630,7 +630,7 @@ module NewRelic::Agent
 
     def test_is_not_synthetic_request_without_payload
       in_transaction do |txn|
-        txn.raw_synthetics_header = ""
+        txn.raw_synthetics_header = ''
 
         refute txn.is_synthetics_request?
       end
@@ -646,7 +646,7 @@ module NewRelic::Agent
 
     def test_is_synthetic_request
       in_transaction do |txn|
-        txn.raw_synthetics_header = ""
+        txn.raw_synthetics_header = ''
         txn.synthetics_payload = [1, 2, 3, 4, 5]
 
         assert_predicate txn, :is_synthetics_request?
@@ -674,7 +674,7 @@ module NewRelic::Agent
       end
 
       in_transaction do |txn|
-        txn.raw_synthetics_header = "something"
+        txn.raw_synthetics_header = 'something'
         txn.synthetics_payload = [1, 1, 100, 200, 300]
       end
 
@@ -700,7 +700,7 @@ module NewRelic::Agent
     end
 
     def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_attributes
-      expects_logging(:warn, includes("add_custom_attributes"))
+      expects_logging(:warn, includes('add_custom_attributes'))
       in_transaction do
         NewRelic::Agent.add_custom_attributes('fooz')
       end
@@ -709,7 +709,7 @@ module NewRelic::Agent
     def test_ignores_custom_attributes_when_in_high_security
       with_config(:high_security => true) do
         in_transaction do |txn|
-          NewRelic::Agent.add_custom_attributes(:failure => "is an option")
+          NewRelic::Agent.add_custom_attributes(:failure => 'is an option')
 
           assert_empty attributes_for(txn, :custom)
         end
@@ -718,7 +718,7 @@ module NewRelic::Agent
 
     def test_notice_error_in_current_transaction_saves_it_for_finishing
       in_transaction('failing') do |txn|
-        Transaction.notice_error("")
+        Transaction.notice_error('')
 
         assert_equal 1, txn.exceptions.count
       end
@@ -726,7 +726,7 @@ module NewRelic::Agent
 
     def test_notice_error_in_transaction_sends_attributes_along
       txn = in_transaction('oops') do
-        Transaction.notice_error("wat?")
+        Transaction.notice_error('wat?')
       end
       errors = harvest_error_traces!
       error = errors.first
@@ -738,7 +738,7 @@ module NewRelic::Agent
       in_transaction('failing') do
         # no-op
       end
-      Transaction.notice_error("")
+      Transaction.notice_error('')
       errors = harvest_error_traces!
 
       assert_equal 1, errors.count
@@ -746,16 +746,16 @@ module NewRelic::Agent
 
     def test_notice_error_without_transaction_notifies_error_collector
       cleanup_transaction
-      Transaction.notice_error("")
+      Transaction.notice_error('')
       errors = harvest_error_traces!
 
       assert_equal 1, errors.count
     end
 
     def test_notice_error_sends_uri_and_referer_from_request
-      request = stub(:path => "/here")
+      request = stub(:path => '/here')
       in_transaction(:request => request) do |txn|
-        Transaction.notice_error("wat")
+        Transaction.notice_error('wat')
       end
 
       errors = harvest_error_traces!
@@ -764,14 +764,14 @@ module NewRelic::Agent
 
       error = errors.first
 
-      assert_equal "/here", error.request_uri
+      assert_equal '/here', error.request_uri
     end
 
     def test_notice_error_sets_expected_attribute
       Transaction.notice_error(RuntimeError.new, expected: true)
       errors = harvest_error_traces!
 
-      assert errors.first.expected, "Error should have had expected attribute set"
+      assert errors.first.expected, 'Error should have had expected attribute set'
     end
 
     def test_notice_error_sets_expected_attribute_in_transaction
@@ -781,7 +781,7 @@ module NewRelic::Agent
 
       errors = harvest_error_traces!
 
-      assert errors.first.expected, "Error should have had expected attribute set"
+      assert errors.first.expected, 'Error should have had expected attribute set'
     end
 
     def test_notice_error_does_not_set_span_id_attribute_on_error_event_outside_transaction
@@ -789,7 +789,7 @@ module NewRelic::Agent
 
       error_event = last_error_event
 
-      refute error_event[0].has_key?("spanId"), "Did not expect spanId intrinsic attribute"
+      refute error_event[0].has_key?('spanId'), 'Did not expect spanId intrinsic attribute'
     end
 
     def test_notice_error_sets_span_id_attribute_on_error_event_in_transaction
@@ -801,7 +801,7 @@ module NewRelic::Agent
 
       error_event = last_error_event
 
-      assert_equal span_id, error_event[0]["spanId"]
+      assert_equal span_id, error_event[0]['spanId']
     end
 
     def test_transport_duration_returned_in_seconds_when_positive
@@ -939,7 +939,7 @@ module NewRelic::Agent
           bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'Error calculating JRuby CPU Time')
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
-          expects_logging(:warn, includes("Error calculating JRuby CPU Time"), any_parameters)
+          expects_logging(:warn, includes('Error calculating JRuby CPU Time'), any_parameters)
           txn.send(:jruby_cpu_time)
           expects_no_logging(:warn)
           txn.send(:jruby_cpu_time)
@@ -955,9 +955,9 @@ module NewRelic::Agent
           bean.stubs(:getCurrentThreadUserTime).raises(StandardError, 'Error calculating JRuby CPU Time')
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
 
-          expects_logging(:warn, includes("Error calculating JRuby CPU Time"), any_parameters)
+          expects_logging(:warn, includes('Error calculating JRuby CPU Time'), any_parameters)
           txn.send(:jruby_cpu_time)
-          expects_logging(:debug, includes("Error calculating JRuby CPU Time"), any_parameters)
+          expects_logging(:debug, includes('Error calculating JRuby CPU Time'), any_parameters)
           txn.send(:jruby_cpu_time)
         end
       end
@@ -1126,13 +1126,13 @@ module NewRelic::Agent
 
     def test_failure_during_ignore_error_filter_doesnt_prevent_transaction
       filter = proc do |*_|
-        raise "HAHAHAHAH, error in the filter for ignoring errors!"
+        raise 'HAHAHAHAH, error in the filter for ignoring errors!'
       end
 
       with_ignore_error_filter(filter) do
-        expects_logging(:error, includes("HAHAHAHAH"), any_parameters)
+        expects_logging(:error, includes('HAHAHAHAH'), any_parameters)
 
-        in_transaction("Controller/boom") do
+        in_transaction('Controller/boom') do
           Transaction.notice_error(SillyError.new)
         end
 
@@ -1160,10 +1160,10 @@ module NewRelic::Agent
     end
 
     def test_start_safe_from_exceptions
-      Transaction.any_instance.stubs(:start).raises("Haha")
+      Transaction.any_instance.stubs(:start).raises('Haha')
       expects_logging(:error, any_parameters)
 
-      in_transaction("Controller/boom") do
+      in_transaction('Controller/boom') do
         # nope
       end
 
@@ -1183,10 +1183,10 @@ module NewRelic::Agent
     end
 
     def test_finish_safe_from_exceptions
-      Transaction.any_instance.stubs(:commit!).raises("Haha")
+      Transaction.any_instance.stubs(:commit!).raises('Haha')
       expects_logging(:error, any_parameters)
 
-      in_transaction("Controller/boom") do
+      in_transaction('Controller/boom') do
         # nope
       end
 
@@ -1216,7 +1216,7 @@ module NewRelic::Agent
     end
 
     def test_finish_resets_the_transaction_state_if_there_is_an_error
-      txn = Tracer.start_transaction(name: "test", category: :controller)
+      txn = Tracer.start_transaction(name: 'test', category: :controller)
       state = Tracer.state
       state.expects(:reset)
       txn.stubs(:commit!).raises(StandardError, 'StandardError')
@@ -1321,10 +1321,10 @@ module NewRelic::Agent
     def test_adding_custom_attributes
       with_config(:'transaction_tracer.attributes.enabled' => true) do
         in_transaction do |txn|
-          NewRelic::Agent.add_custom_attributes(:foo => "bar")
+          NewRelic::Agent.add_custom_attributes(:foo => 'bar')
           actual = txn.attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-          assert_equal({"foo" => "bar"}, actual)
+          assert_equal({'foo' => 'bar'}, actual)
         end
       end
     end
@@ -1332,10 +1332,10 @@ module NewRelic::Agent
     def test_adding_agent_attributes
       with_config(:'transaction_tracer.attributes.enabled' => true) do
         in_transaction do |txn|
-          txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+          txn.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
           actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-          assert_equal({:foo => "bar"}, actual)
+          assert_equal({:foo => 'bar'}, actual)
         end
       end
     end
@@ -1343,32 +1343,32 @@ module NewRelic::Agent
     def test_adding_agent_attributes_via_class
       with_config(:'transaction_tracer.attributes.enabled' => true) do
         in_transaction do |txn|
-          Transaction.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+          Transaction.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
           actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-          assert_equal({:foo => "bar"}, actual)
+          assert_equal({:foo => 'bar'}, actual)
         end
       end
     end
 
     def test_adding_agent_attributes_via_class_outside_of_txn_is_safe
-      expects_logging(:debug, includes("foo"))
-      Transaction.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+      expects_logging(:debug, includes('foo'))
+      Transaction.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
     end
 
     def test_adding_intrinsic_attributes
       in_transaction do |txn|
-        txn.attributes.add_intrinsic_attribute(:foo, "bar")
+        txn.attributes.add_intrinsic_attribute(:foo, 'bar')
 
         actual = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-        assert_equal({:foo => "bar"}, actual)
+        assert_equal({:foo => 'bar'}, actual)
       end
     end
 
     def test_assigns_synthetics_to_intrinsic_attributes
       txn = in_transaction do |t|
-        t.raw_synthetics_header = ""
+        t.raw_synthetics_header = ''
         t.synthetics_payload = [1, 1, 100, 200, 300]
         t
       end
@@ -1472,35 +1472,35 @@ module NewRelic::Agent
 
     def test_request_params_included_in_agent_attributes
       txn = with_config(:capture_params => true) do
-        in_transaction(:filtered_params => {:foo => "bar"}) do
+        in_transaction(:filtered_params => {:foo => 'bar'}) do
         end
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-      assert_equal "bar", actual['request.parameters.foo']
+      assert_equal 'bar', actual['request.parameters.foo']
     end
 
     def test_request_params_included_in_agent_attributes_in_nested_txn
       txn = with_config(:capture_params => true) do
-        in_transaction(:filtered_params => {:foo => "bar", :bar => "baz"}) do
-          in_transaction(:filtered_params => {:bar => "qux"}) do
+        in_transaction(:filtered_params => {:foo => 'bar', :bar => 'baz'}) do
+          in_transaction(:filtered_params => {:bar => 'qux'}) do
           end
         end
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
 
-      assert_equal "bar", actual['request.parameters.foo']
-      assert_equal "qux", actual['request.parameters.bar']
+      assert_equal 'bar', actual['request.parameters.foo']
+      assert_equal 'qux', actual['request.parameters.bar']
     end
 
     def test_request_params_get_key_length_limits
-      key = "x" * 1000
+      key = 'x' * 1000
       expects_logging(:debug, includes(key))
 
       txn = with_config(:capture_params => true) do
-        in_transaction(:filtered_params => {key => "bar"}) do
+        in_transaction(:filtered_params => {key => 'bar'}) do
         end
       end
 
@@ -1527,17 +1527,17 @@ module NewRelic::Agent
     end
 
     def test_referer_in_agent_attributes
-      request = stub('request', :referer => "/referred", :path => "/")
+      request = stub('request', :referer => '/referred', :path => '/')
       txn = in_transaction(:request => request) do
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR)
 
-      assert_equal "/referred", actual[:'request.headers.referer']
+      assert_equal '/referred', actual[:'request.headers.referer']
     end
 
     def test_referer_omitted_if_not_on_request
-      request = stub('request', :path => "/")
+      request = stub('request', :path => '/')
       txn = in_transaction(:request => request) do
       end
 
@@ -1550,44 +1550,44 @@ module NewRelic::Agent
       txn = in_transaction do
       end
 
-      refute txn.payload[:error], "Did not expected error to be recorded"
+      refute txn.payload[:error], 'Did not expected error to be recorded'
     end
 
     def test_error_recorded_predicate_true_when_error_recorded
       txn = in_transaction do |t|
-        t.notice_error(StandardError.new("Sorry!"))
+        t.notice_error(StandardError.new('Sorry!'))
       end
 
-      assert txn.payload[:error], "Expected error to be recorded"
+      assert txn.payload[:error], 'Expected error to be recorded'
     end
 
     def test_error_recorded_predicate_abides_by_ignore_filter
       filter = proc do |error|
-        error.message == "Sorry!" ? nil : error
+        error.message == 'Sorry!' ? nil : error
       end
 
       with_ignore_error_filter(filter) do
         txn = in_transaction do |t|
-          t.notice_error(StandardError.new("Sorry!"))
+          t.notice_error(StandardError.new('Sorry!'))
         end
 
-        refute txn.payload[:error], "Expected error to be apologetic"
+        refute txn.payload[:error], 'Expected error to be apologetic'
       end
     end
 
     def test_error_recorded_with_ignore_filter_and_multiple_errors
       filter = proc do |error|
-        error.message == "Sorry!" ? nil : error
+        error.message == 'Sorry!' ? nil : error
       end
 
       with_ignore_error_filter(filter) do
         txn = in_transaction do |t|
-          t.notice_error(StandardError.new("Sorry!"))
-          t.notice_error(StandardError.new("Not Sorry!"))
-          t.notice_error(StandardError.new("Sorry!"))
+          t.notice_error(StandardError.new('Sorry!'))
+          t.notice_error(StandardError.new('Not Sorry!'))
+          t.notice_error(StandardError.new('Sorry!'))
         end
 
-        assert txn.payload[:error], "Expected error to be recorded"
+        assert txn.payload[:error], 'Expected error to be recorded'
       end
     end
 
@@ -1606,36 +1606,36 @@ module NewRelic::Agent
     end
 
     def test_set_transaction_name_for_nested_transactions
-      in_web_transaction("Controller/Framework/webby") do |t|
-        in_web_transaction("Controller/Framework/inner_1") do
-          in_web_transaction("Controller/Framework/inner_2") do
-            segment = Tracer.start_segment(name: "Ruby/my_lib/my_meth")
-            NewRelic::Agent.set_transaction_name("RackFramework/action")
+      in_web_transaction('Controller/Framework/webby') do |t|
+        in_web_transaction('Controller/Framework/inner_1') do
+          in_web_transaction('Controller/Framework/inner_2') do
+            segment = Tracer.start_segment(name: 'Ruby/my_lib/my_meth')
+            NewRelic::Agent.set_transaction_name('RackFramework/action')
             segment.finish
           end
         end
       end
 
       assert_metrics_recorded_exclusive [
-        "Controller/RackFramework/action",
-        "HttpDispatcher",
-        "Apdex",
-        "ApdexAll",
-        "Apdex/RackFramework/action",
-        "Nested/Controller/Framework/webby",
-        "Nested/Controller/Framework/inner_1",
-        "Nested/Controller/Framework/inner_2",
-        "Ruby/my_lib/my_meth",
-        "Supportability/API/set_transaction_name",
-        "WebTransactionTotalTime",
-        "WebTransactionTotalTime/Controller/RackFramework/action",
-        ["Nested/Controller/Framework/webby", "Controller/RackFramework/action"],
-        ["Nested/Controller/Framework/inner_1", "Controller/RackFramework/action"],
-        ["Nested/Controller/Framework/inner_2", "Controller/RackFramework/action"],
-        ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"],
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
-        "Supportability/API/recording_web_transaction?",
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+        'Controller/RackFramework/action',
+        'HttpDispatcher',
+        'Apdex',
+        'ApdexAll',
+        'Apdex/RackFramework/action',
+        'Nested/Controller/Framework/webby',
+        'Nested/Controller/Framework/inner_1',
+        'Nested/Controller/Framework/inner_2',
+        'Ruby/my_lib/my_meth',
+        'Supportability/API/set_transaction_name',
+        'WebTransactionTotalTime',
+        'WebTransactionTotalTime/Controller/RackFramework/action',
+        ['Nested/Controller/Framework/webby', 'Controller/RackFramework/action'],
+        ['Nested/Controller/Framework/inner_1', 'Controller/RackFramework/action'],
+        ['Nested/Controller/Framework/inner_2', 'Controller/RackFramework/action'],
+        ['Ruby/my_lib/my_meth', 'Controller/RackFramework/action'],
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+        'Supportability/API/recording_web_transaction?',
+        'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
       ]
     end
 
@@ -1687,7 +1687,7 @@ module NewRelic::Agent
       ) do
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do
-          NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+          NewRelic::Agent.agent.log_event_aggregator.record('A message', 'FATAL')
 
           assert_equal 1, Transaction.tl_current.logs.size
         end
@@ -1704,7 +1704,7 @@ module NewRelic::Agent
           txn.ignore!
 
           NewRelic::Agent.agent.log_event_aggregator.reset!
-          NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+          NewRelic::Agent.agent.log_event_aggregator.record('A message', 'FATAL')
 
           assert_equal 1, Transaction.tl_current.logs.size
         end
@@ -1725,7 +1725,7 @@ module NewRelic::Agent
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do
           100.times do
-            NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+            NewRelic::Agent.agent.log_event_aggregator.record('A message', 'FATAL')
           end
 
           assert_equal limit, Transaction.tl_current.logs.size

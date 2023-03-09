@@ -22,7 +22,7 @@ module NewRelic
             install_newrelic_job_tracer
             NewRelic::Control.instance.init_plugin(:dispatcher => :delayed_job)
           else
-            NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
+            NewRelic::Agent.logger.warn('Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation')
           end
         end
       end

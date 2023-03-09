@@ -50,10 +50,10 @@ module SequelHelpers
   end
 
   def product_name
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
-      "JDBC"
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == 'jruby'
+      'JDBC'
     else
-      "SQLite"
+      'SQLite'
     end
   end
 

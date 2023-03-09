@@ -7,16 +7,16 @@ module NewRelic
 
   EMPTY_ARRAY = [].freeze
   EMPTY_HASH = {}.freeze
-  EMPTY_STR = ""
+  EMPTY_STR = ''
 
-  HTTP = "HTTP"
-  HTTPS = "HTTPS"
-  UNKNOWN = "Unknown"
+  HTTP = 'HTTP'
+  HTTPS = 'HTTPS'
+  UNKNOWN = 'Unknown'
 
   FORMAT_NON_RACK = 0
   FORMAT_RACK = 1
 
-  NEWRELIC_KEY = "newrelic"
+  NEWRELIC_KEY = 'newrelic'
   CANDIDATE_NEWRELIC_KEYS = [
     NEWRELIC_KEY,
     'NEWRELIC',
@@ -24,8 +24,8 @@ module NewRelic
     'Newrelic'
   ].freeze
 
-  TRACEPARENT_KEY = "traceparent"
-  TRACESTATE_KEY = "tracestate"
+  TRACEPARENT_KEY = 'traceparent'
+  TRACESTATE_KEY = 'tracestate'
 
   STANDARD_OUT = 'STDOUT'
 

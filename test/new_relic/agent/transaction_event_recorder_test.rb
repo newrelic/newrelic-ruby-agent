@@ -34,13 +34,13 @@ module NewRelic
             generate_request("syn_#{i}", :timestamp => i + 10, :synthetics_resource_id => 100)
           end
 
-          generate_request("syn_10", :timestamp => 20, :synthetics_resource_id => 100)
+          generate_request('syn_10', :timestamp => 20, :synthetics_resource_id => 100)
 
           _, txn_events = harvest_transaction_events!
           _, syn_events = harvest_synthetics_events!
 
           assert_equal 10, syn_events.size
-          assert_equal_unordered (10..19).map(&:to_f), syn_events.map { |e| e[0]["timestamp"] }
+          assert_equal_unordered (10..19).map(&:to_f), syn_events.map { |e| e[0]['timestamp'] }
           assert_equal 1, txn_events.size
         end
       end
@@ -54,7 +54,7 @@ module NewRelic
 
           expected = (0..4).map { |i| "Controller/sampled_#{i}" }
 
-          assert_equal_unordered expected, events.map { |e| e[0]["name"] }
+          assert_equal_unordered expected, events.map { |e| e[0]['name'] }
         end
       end
 
@@ -67,7 +67,7 @@ module NewRelic
 
           expected = (0..4).map { |i| "Controller/sampled_#{i}" }
 
-          assert_equal_unordered expected, events.map { |e| e[0]["name"] }
+          assert_equal_unordered expected, events.map { |e| e[0]['name'] }
         end
       end
 

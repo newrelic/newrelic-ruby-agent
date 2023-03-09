@@ -24,7 +24,7 @@ module Performance
       measurements = result.measurements.merge(:iterations => result.iterations)
 
       key_width = measurements.keys.map(&:size).max
-      formatted_values = measurements.values.map { |v| sprintf("%g", v) }
+      formatted_values = measurements.values.map { |v| sprintf('%g', v) }
       value_width = formatted_values.map(&:size).max
 
       rows = measurements.map do |key, value|
@@ -55,7 +55,7 @@ module Performance
           puts format_measurements(result)
         end
         unless result.artifacts.empty?
-          puts "  artifacts:"
+          puts '  artifacts:'
           result.artifacts.each do |artifact|
             puts "    #{make_relative(artifact)}"
           end

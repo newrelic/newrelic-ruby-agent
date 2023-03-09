@@ -32,7 +32,8 @@ module NewRelic
               raise
             end
           ensure
-            finishable.finish if finishable
+            # The following line needs else branch coverage
+            finishable.finish if finishable # rubocop:disable Style/SafeNavigation
           end
         end
       end

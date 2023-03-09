@@ -8,23 +8,23 @@ module NewRelic
       module StartWorkerThread
         LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
-        TRANSACTION_EVENT_DATA = "transaction_event_data".freeze
-        CUSTOM_EVENT_DATA = "custom_event_data".freeze
-        ERROR_EVENT_DATA = "error_event_data".freeze
-        SPAN_EVENT_DATA = "span_event_data".freeze
-        LOG_EVENT_DATA = "log_event_data".freeze
+        TRANSACTION_EVENT_DATA = 'transaction_event_data'.freeze
+        CUSTOM_EVENT_DATA = 'custom_event_data'.freeze
+        ERROR_EVENT_DATA = 'error_event_data'.freeze
+        SPAN_EVENT_DATA = 'span_event_data'.freeze
+        LOG_EVENT_DATA = 'log_event_data'.freeze
 
         # Try to launch the worker thread and connect to the server.
         #
         # See #connect for a description of connection_options.
         def start_worker_thread(connection_options = {})
           if disable = NewRelic::Agent.config[:disable_harvest_thread]
-            NewRelic::Agent.logger.info("Not starting Ruby Agent worker thread because :disable_harvest_thread is " \
+            NewRelic::Agent.logger.info('Not starting Ruby Agent worker thread because :disable_harvest_thread is ' \
               "#{disable}")
             return
           end
 
-          ::NewRelic::Agent.logger.debug("Creating Ruby Agent worker thread.")
+          ::NewRelic::Agent.logger.debug('Creating Ruby Agent worker thread.')
           @worker_thread = Threading::AgentThread.create('Worker Loop') do
             deferred_work!(connection_options)
           end
@@ -42,11 +42,11 @@ module NewRelic
         # The use-case where this typically arises is in cronjob scheduled rake tasks where there's
         # also some network stability/latency issues happening.
         def stop_event_loop
-          @event_loop.stop if @event_loop
+          @event_loop&.stop
           # Wait the end of the event loop thread.
           if @worker_thread
             unless @worker_thread.join(3)
-              ::NewRelic::Agent.logger.debug("Event loop thread did not stop within 3 seconds")
+              ::NewRelic::Agent.logger.debug('Event loop thread did not stop within 3 seconds')
             end
           end
         end
@@ -60,36 +60,13 @@ module NewRelic
         end
 
         def create_and_run_event_loop
-          data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
-          event_harvest = :"#{Agent.config[:event_report_period]}_second_harvest"
-
           @event_loop = create_event_loop
+          data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
           @event_loop.on(data_harvest) do
             transmit_data
           end
-
-          @event_loop.on(interval_for(TRANSACTION_EVENT_DATA)) do
-            transmit_analytic_event_data
-          end
-          @event_loop.on(interval_for(CUSTOM_EVENT_DATA)) do
-            transmit_custom_event_data
-          end
-          @event_loop.on(interval_for(ERROR_EVENT_DATA)) do
-            transmit_error_event_data
-          end
-          @event_loop.on(interval_for(SPAN_EVENT_DATA)) do
-            transmit_span_event_data
-          end
-          @event_loop.on(interval_for(LOG_EVENT_DATA)) do
-            transmit_log_event_data
-          end
-
-          @event_loop.on(:reset_log_once_keys) do
-            ::NewRelic::Agent.logger.clear_already_logged
-          end
-          @event_loop.fire_every(Agent.config[:data_report_period], data_harvest)
-          @event_loop.fire_every(Agent.config[:event_report_period], event_harvest)
-          @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD, :reset_log_once_keys)
+          establish_interval_transmissions
+          establish_fire_everies(data_harvest)
 
           @event_loop.run
         end
@@ -100,7 +77,7 @@ module NewRelic
         def handle_force_restart(error)
           ::NewRelic::Agent.logger.debug(error.message)
           drop_buffered_data
-          @service.force_restart if @service
+          @service&.force_restart
           @connect_state = :pending
           sleep(30)
         end
@@ -109,7 +86,7 @@ module NewRelic
         # is the worker thread that gathers data and talks to the
         # server.
         def handle_force_disconnect(error)
-          ::NewRelic::Agent.logger.warn("Agent received a ForceDisconnectException from the server, disconnecting. " \
+          ::NewRelic::Agent.logger.warn('Agent received a ForceDisconnectException from the server, disconnecting. ' \
             "(#{error.message})")
           disconnect
         end
@@ -118,7 +95,7 @@ module NewRelic
         # it and disconnecting the agent, since we are now in an
         # unknown state.
         def handle_other_error(error)
-          ::NewRelic::Agent.logger.error("Unhandled error in worker thread, disconnecting.")
+          ::NewRelic::Agent.logger.error('Unhandled error in worker thread, disconnecting.')
           # These errors are fatal (that is, they will prevent the agent from
           # reporting entirely), so we really want backtraces when they happen
           ::NewRelic::Agent.logger.log_exception(:error, error)
@@ -156,10 +133,41 @@ module NewRelic
                 # never reaches here unless there is a problem or
                 # the agent is exiting
               else
-                ::NewRelic::Agent.logger.debug("No connection.  Worker thread ending.")
+                ::NewRelic::Agent.logger.debug('No connection.  Worker thread ending.')
               end
             end
           end
+        end
+
+        private
+
+        def establish_interval_transmissions
+          @event_loop.on(interval_for(TRANSACTION_EVENT_DATA)) do
+            transmit_analytic_event_data
+          end
+          @event_loop.on(interval_for(CUSTOM_EVENT_DATA)) do
+            transmit_custom_event_data
+          end
+          @event_loop.on(interval_for(ERROR_EVENT_DATA)) do
+            transmit_error_event_data
+          end
+          @event_loop.on(interval_for(SPAN_EVENT_DATA)) do
+            transmit_span_event_data
+          end
+          @event_loop.on(interval_for(LOG_EVENT_DATA)) do
+            transmit_log_event_data
+          end
+        end
+
+        def establish_fire_everies(data_harvest)
+          @event_loop.on(:reset_log_once_keys) do
+            ::NewRelic::Agent.logger.clear_already_logged
+          end
+
+          event_harvest = :"#{Agent.config[:event_report_period]}_second_harvest"
+          @event_loop.fire_every(Agent.config[:data_report_period], data_harvest)
+          @event_loop.fire_every(Agent.config[:event_report_period], event_harvest)
+          @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD, :reset_log_once_keys)
         end
       end
     end

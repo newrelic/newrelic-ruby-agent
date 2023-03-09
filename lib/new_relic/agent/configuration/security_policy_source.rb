@@ -51,7 +51,7 @@ module NewRelic
         #   permitted by the security policy and is also enabled by the config
 
         SECURITY_SETTINGS_MAP = {
-          "record_sql" => [
+          'record_sql' => [
             {
               option: :'transaction_tracer.record_sql',
               supported: true,
@@ -96,7 +96,7 @@ module NewRelic
               permitted_fn: nil
             }
           ],
-          "attributes_include" => [
+          'attributes_include' => [
             {
               option: :'attributes.include',
               supported: true,
@@ -147,7 +147,7 @@ module NewRelic
               permitted_fn: nil
             }
           ],
-          "allow_raw_exception_messages" => [
+          'allow_raw_exception_messages' => [
             {
               option: :'strip_exception_messages.enabled',
               supported: true,
@@ -156,7 +156,7 @@ module NewRelic
               permitted_fn: nil
             }
           ],
-          "custom_events" => [
+          'custom_events' => [
             {
               option: :'custom_insights_events.enabled',
               supported: true,
@@ -165,7 +165,7 @@ module NewRelic
               permitted_fn: nil
             }
           ],
-          "custom_parameters" => [
+          'custom_parameters' => [
             {
               option: :'custom_attributes.enabled',
               supported: true,
@@ -174,7 +174,7 @@ module NewRelic
               permitted_fn: nil
             }
           ],
-          "custom_instrumentation_editor" => [
+          'custom_instrumentation_editor' => [
             {
               option: nil,
               supported: false,
@@ -183,7 +183,7 @@ module NewRelic
               permitted_fn: nil
             }
           ],
-          "message_parameters" => [
+          'message_parameters' => [
             {
               option: :'message_tracer.segment_parameters.enabled',
               supported: true,
@@ -198,8 +198,8 @@ module NewRelic
           super(build_overrides(security_policies))
         end
 
-        ENABLED = "enabled".freeze
-        COLON_COLON = "::".freeze
+        ENABLED = 'enabled'.freeze
+        COLON_COLON = '::'.freeze
 
         def build_overrides(security_policies)
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
@@ -222,7 +222,7 @@ module NewRelic
                 settings[policy[:option]] = policy[:disabled_value]
                 NewRelic::Agent.logger.info( \
                   "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
-                  "Source: SecurityPolicySource"
+                  'Source: SecurityPolicySource'
                 )
               end
             end

@@ -14,7 +14,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include NewRelic::MongoHelpers
 
     def setup
-      @database_name = "multiverse"
+      @database_name = 'multiverse'
       @collection_name = "tribbles-#{fake_guid(16)}"
       @tribble = {'name' => 'soterios johnson'}
 
@@ -31,7 +31,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
     def test_records_metrics_for_insert
       insert_to_collection
 
-      assert_metrics_not_recorded(["Datastore/all", "Datastore/allWeb", "Datastore/allOther"])
+      assert_metrics_not_recorded(['Datastore/all', 'Datastore/allWeb', 'Datastore/allOther'])
     end
 
     # API changes between 1.x and 2.x that we need to work around to make

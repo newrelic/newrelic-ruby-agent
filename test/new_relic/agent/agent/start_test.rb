@@ -10,17 +10,17 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   include NewRelic::Agent::AgentHelpers::SpecialStartup
 
   def setup
-    @harvester = stub("dummy harvester")
-    @harvest_samplers = stub("dummy sampler collection")
+    @harvester = stub('dummy harvester')
+    @harvest_samplers = stub('dummy sampler collection')
   end
 
   def test_already_started_positive
     dummy_logger = mock
-    dummy_logger.expects(:error).with("Agent Started Already!")
+    dummy_logger.expects(:error).with('Agent Started Already!')
     NewRelic::Agent.stubs(:logger).returns(dummy_logger)
     self.expects(:started?).returns(true)
 
-    assert_predicate self, :already_started?, "should have already started"
+    assert_predicate self, :already_started?, 'should have already started'
   end
 
   def test_already_started_negative

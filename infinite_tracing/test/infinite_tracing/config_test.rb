@@ -35,7 +35,7 @@ module NewRelic
           ]
           hostnames.each do |hostname|
             with_config(:'infinite_tracing.trace_observer.host' => hostname) do
-              assert_equal "example.com", Config.trace_observer_host
+              assert_equal 'example.com', Config.trace_observer_host
             end
           end
         end

@@ -3,12 +3,12 @@
 # frozen_string_literal: true
 
 class TransactionTracingPerfTests < Performance::TestCase
-  FAILURE_MESSAGE = "O_o"
+  FAILURE_MESSAGE = 'O_o'
 
-  BOO = "boo"
-  HOO = "hoo"
-  OH = "oh"
-  NO = "no"
+  BOO = 'boo'
+  HOO = 'hoo'
+  OH = 'oh'
+  NO = 'no'
 
   def klass(instrument)
     Class.new do
@@ -122,7 +122,7 @@ class TransactionTracingPerfTests < Performance::TestCase
     end
   end
 
-  TXNAME = "Controller/Blogs/index".freeze
+  TXNAME = 'Controller/Blogs/index'.freeze
 
   def test_start_with_tracer_start
     measure do
@@ -142,9 +142,9 @@ class TransactionTracingPerfTests < Performance::TestCase
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
-          product: "SQLite",
-          operation: "insert",
-          collection: "Blog"
+          product: 'SQLite',
+          operation: 'insert',
+          collection: 'Blog'
         )
         segment.finish
       end
@@ -157,9 +157,9 @@ class TransactionTracingPerfTests < Performance::TestCase
         txn.sampled = true
         thread = Thread.new do
           segment = NewRelic::Agent::Tracer.start_datastore_segment(
-            product: "SQLite",
-            operation: "insert",
-            collection: "Blog"
+            product: 'SQLite',
+            operation: 'insert',
+            collection: 'Blog'
           )
           segment.finish
         end
@@ -173,9 +173,9 @@ class TransactionTracingPerfTests < Performance::TestCase
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
-          library: "Net::HTTP",
-          uri: "http://remotehost.com/blogs/index",
-          procedure: "GET"
+          library: 'Net::HTTP',
+          uri: 'http://remotehost.com/blogs/index',
+          procedure: 'GET'
         )
         segment.finish
       end
@@ -187,9 +187,9 @@ class TransactionTracingPerfTests < Performance::TestCase
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
-          library: "Net::HTTP",
-          uri: "http://remotehost.com/blogs/index",
-          procedure: "GET"
+          library: 'Net::HTTP',
+          uri: 'http://remotehost.com/blogs/index',
+          procedure: 'GET'
         )
         segment.finish
       end

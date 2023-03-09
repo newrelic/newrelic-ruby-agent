@@ -26,13 +26,13 @@ class NewRelic::ControlTest < Minitest::Test
     assert File.directory?(NewRelic::Control.newrelic_root)
     return unless defined?(Rails::VERSION)
 
-    assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib"))
+    assert File.directory?(File.join(NewRelic::Control.newrelic_root, 'lib'))
   end
 
   def test_info
     NewRelic::Agent.manual_start
     if defined?(Rails::VERSION)
-      assert_match(/jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new["Database adapter"])
+      assert_match(/jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new['Database adapter'])
     end
   end
 

@@ -179,18 +179,18 @@ module NewRelic
 
         def generate_security_policies(default: false, enabled: [], disabled: [], required: [])
           policies = {
-            "record_sql" => {"enabled" => default, "required" => false, "position" => 0},
-            "custom_events" => {"enabled" => default, "required" => false, "position" => 3},
-            "custom_parameters" => {"enabled" => default, "required" => false, "position" => 4},
-            "attributes_include" => {"enabled" => default, "required" => false, "position" => 1},
-            "message_parameters" => {"enabled" => default, "required" => false, "position" => 6},
-            "allow_raw_exception_messages" => {"enabled" => default, "required" => false, "position" => 2},
-            "custom_instrumentation_editor" => {"enabled" => default, "required" => false, "position" => 5}
+            'record_sql' => {'enabled' => default, 'required' => false, 'position' => 0},
+            'custom_events' => {'enabled' => default, 'required' => false, 'position' => 3},
+            'custom_parameters' => {'enabled' => default, 'required' => false, 'position' => 4},
+            'attributes_include' => {'enabled' => default, 'required' => false, 'position' => 1},
+            'message_parameters' => {'enabled' => default, 'required' => false, 'position' => 6},
+            'allow_raw_exception_messages' => {'enabled' => default, 'required' => false, 'position' => 2},
+            'custom_instrumentation_editor' => {'enabled' => default, 'required' => false, 'position' => 5}
           }
 
-          enabled.each { |name| policies[name]["enabled"] = true }
-          disabled.each { |name| policies[name]["enabled"] = false }
-          required.each { |name| policies[name]["required"] = true }
+          enabled.each { |name| policies[name]['enabled'] = true }
+          disabled.each { |name| policies[name]['enabled'] = false }
+          required.each { |name| policies[name]['required'] = true }
 
           policies
         end

@@ -24,9 +24,9 @@ module NewRelic
                 txn.stubs(:sampled?).returns(true)
 
                 segment = Transaction::ExternalRequestSegment.new( \
-                  "Typhoeus",
-                  "http://remotehost.com/blogs/index",
-                  "GET"
+                  'Typhoeus',
+                  'http://remotehost.com/blogs/index',
+                  'GET'
                 )
 
                 txn.add_segment(segment)
@@ -75,9 +75,9 @@ module NewRelic
                 txn.stubs(:sampled?).returns(false)
 
                 segment = Transaction::ExternalRequestSegment.new( \
-                  "Typhoeus",
-                  "http://remotehost.com/blogs/index",
-                  "GET"
+                  'Typhoeus',
+                  'http://remotehost.com/blogs/index',
+                  'GET'
                 )
 
                 txn.add_segment(segment)
@@ -98,9 +98,9 @@ module NewRelic
                 txn.stubs(:ignore?).returns(true)
 
                 segment = Transaction::ExternalRequestSegment.new( \
-                  "Typhoeus",
-                  "http://remotehost.com/blogs/index",
-                  "GET"
+                  'Typhoeus',
+                  'http://remotehost.com/blogs/index',
+                  'GET'
                 )
 
                 txn.add_segment(segment)

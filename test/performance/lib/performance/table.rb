@@ -74,7 +74,7 @@ module Performance
     end
 
     def render_row(parts)
-      "| " + parts.join(" | ") + " |"
+      '| ' + parts.join(' | ') + ' |'
     end
 
     def left_corner
@@ -92,7 +92,7 @@ module Performance
     def render
       widths = column_widths
 
-      blanks = widths.map { |w| "-" * w }
+      blanks = widths.map { |w| '-' * w }
       top = left_corner + blanks.join(delimiter) + right_corner
       separator = '|-' + blanks.join(delimiter) + '-|'
       bottom = left_corner + blanks.join(delimiter) + right_corner

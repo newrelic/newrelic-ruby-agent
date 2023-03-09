@@ -29,14 +29,14 @@ module NewRelic
         TP_UNDEFINED_FIELDS = "(?<#{UNDEFINED_FIELDS_KEY}>-[a-zA-Z\\d-]*)"
         TRACE_PARENT_REGEX = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
 
-        TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x"
+        TRACE_PARENT_FORMAT_STRING = '%02x-%s-%s-%02x'
 
         MAX_TRACE_STATE_SIZE = 512 # bytes
         MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
-        SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
-        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION = "Supportability/TraceContext/TraceState/Parse/Exception"
-        SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
+        SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = 'Supportability/TraceContext/TraceParent/Parse/Exception'
+        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION = 'Supportability/TraceContext/TraceState/Parse/Exception'
+        SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = 'Supportability/TraceContext/TraceState/InvalidNrEntry'
 
         class << self
           def insert(format: NewRelic::FORMAT_NON_RACK,
@@ -78,7 +78,7 @@ module NewRelic
           end
 
           def create_trace_state_entry(entry_key, payload)
-            "#{entry_key}=#{payload}".dup
+            +"#{entry_key}=#{payload}"
           end
 
           private
@@ -138,7 +138,7 @@ module NewRelic
 
             payload = nil
             trace_state_size = 0
-            trace_state_vendors = String.new
+            trace_state_vendors = +''
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
               if entry == NewRelic::EMPTY_STR
@@ -223,7 +223,7 @@ module NewRelic
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
             return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size
 
-            joined_trace_state = ''.dup
+            joined_trace_state = +''
 
             used_size = 0
 

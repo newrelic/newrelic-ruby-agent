@@ -23,7 +23,7 @@ class Order < ActiveRecord::Base
   validate :touches_another_datastore
 
   def touches_another_datastore
-    NewRelic::Agent::Datastores.wrap("Memcached", "get") do
+    NewRelic::Agent::Datastores.wrap('Memcached', 'get') do
       # Fake hitting a cache during validation
     end
   end

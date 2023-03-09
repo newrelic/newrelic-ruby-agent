@@ -53,7 +53,7 @@ module NewRelic
 
             [name.to_s, collection]
           rescue => e
-            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
+            NewRelic::Agent.logger.debug('Failure during Mongo metric generation', e)
             nil
           end
 
@@ -64,10 +64,10 @@ module NewRelic
           NAMES_IN_SELECTOR = [
             :findandmodify,
 
-            "aggregate",
-            "count",
-            "group",
-            "mapreduce",
+            'aggregate',
+            'count',
+            'group',
+            'mapreduce',
 
             :distinct,
 
@@ -91,18 +91,18 @@ module NewRelic
             if command_key
               command_key.to_sym
             else
-              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              NewRelic::Agent.increment_metric('Supportability/Mongo/UnknownCollection')
               payload[:selector].first.first unless command_key
             end
           end
 
-          CMD_COLLECTION = "$cmd".freeze
+          CMD_COLLECTION = '$cmd'.freeze
 
           def self.get_collection_from_selector(command_key, payload)
             if command_key
               payload[:selector][command_key]
             else
-              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              NewRelic::Agent.increment_metric('Supportability/Mongo/UnknownCollection')
               CMD_COLLECTION
             end
           end
@@ -124,11 +124,11 @@ module NewRelic
           end
 
           def self.create_index?(name, payload)
-            name == :insert && payload[:collection] == "system.indexes"
+            name == :insert && payload[:collection] == 'system.indexes'
           end
 
           def self.drop_indexes?(name, payload)
-            name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == "*"
+            name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == '*'
           end
 
           def self.drop_index?(name, payload)
@@ -166,7 +166,7 @@ module NewRelic
           end
 
           def self.collection_name_from_group_selector(payload)
-            payload[:selector]["group"]["ns"]
+            payload[:selector]['group']['ns']
           end
 
           def self.collection_name_from_rename_selector(payload)

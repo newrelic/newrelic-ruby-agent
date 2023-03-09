@@ -16,16 +16,16 @@ module NewRelic
         def test_builds_trace_for_transaction
           txn = nil
           state = Tracer.state
-          Tracer.in_transaction(name: "test_txn", category: :controller) do
+          Tracer.in_transaction(name: 'test_txn', category: :controller) do
             txn = state.current_transaction
             advance_process_time(1)
-            segment_a = Tracer.start_segment(name: "segment_a")
-            segment_a.params[:foo] = "bar"
+            segment_a = Tracer.start_segment(name: 'segment_a')
+            segment_a.params[:foo] = 'bar'
             advance_process_time(1)
-            segment_b = Tracer.start_segment(name: "segment_b")
+            segment_b = Tracer.start_segment(name: 'segment_b')
             advance_process_time(2)
             segment_b.finish
-            segment_c = Tracer.start_segment(name: "segment_c")
+            segment_c = Tracer.start_segment(name: 'segment_c')
             advance_process_time(3)
             segment_c.finish
             segment_a.finish
@@ -35,32 +35,32 @@ module NewRelic
 
           root = trace.root_node
 
-          assert_equal "ROOT", root.metric_name
+          assert_equal 'ROOT', root.metric_name
           assert_in_delta(0.0, root.entry_timestamp)
           assert_in_delta(7.0, root.exit_timestamp)
 
           txn_segment = root.children[0]
 
-          assert_equal "test_txn", txn_segment.metric_name
+          assert_equal 'test_txn', txn_segment.metric_name
           assert_in_delta(0.0, txn_segment.entry_timestamp)
           assert_in_delta(7.0, txn_segment.exit_timestamp)
 
           segment_a = txn_segment.children[0]
 
-          assert_equal "segment_a", segment_a.metric_name
+          assert_equal 'segment_a', segment_a.metric_name
           assert_in_delta(1.0, segment_a.entry_timestamp)
           assert_in_delta(7.0, segment_a.exit_timestamp)
-          assert_equal "bar", segment_a.params[:foo]
+          assert_equal 'bar', segment_a.params[:foo]
 
           segment_b = segment_a.children[0]
 
-          assert_equal "segment_b", segment_b.metric_name
+          assert_equal 'segment_b', segment_b.metric_name
           assert_in_delta(2.0, segment_b.entry_timestamp)
           assert_in_delta(4.0, segment_b.exit_timestamp)
 
           segment_c = segment_a.children[1]
 
-          assert_equal "segment_c", segment_c.metric_name
+          assert_equal 'segment_c', segment_c.metric_name
           assert_in_delta(4.0, segment_c.entry_timestamp)
           assert_in_delta(7.0, segment_c.exit_timestamp)
         end
@@ -68,10 +68,10 @@ module NewRelic
         def test_trace_built_if_segment_left_unfinished
           txn = nil
           state = Tracer.state
-          Tracer.in_transaction(name: "test_txn", category: :controller) do
+          Tracer.in_transaction(name: 'test_txn', category: :controller) do
             txn = state.current_transaction
             advance_process_time(1)
-            Tracer.start_segment(name: "segment_a")
+            Tracer.start_segment(name: 'segment_a')
             advance_process_time(1)
           end
 
@@ -79,19 +79,19 @@ module NewRelic
 
           root = trace.root_node
 
-          assert_equal "ROOT", root.metric_name
+          assert_equal 'ROOT', root.metric_name
           assert_in_delta(0.0, root.entry_timestamp)
           assert_in_delta(2.0, root.exit_timestamp)
 
           txn_segment = root.children[0]
 
-          assert_equal "test_txn", txn_segment.metric_name
+          assert_equal 'test_txn', txn_segment.metric_name
           assert_in_delta(0.0, txn_segment.entry_timestamp)
           assert_in_delta(2.0, txn_segment.exit_timestamp)
 
           segment_a = txn_segment.children[0]
 
-          assert_equal "segment_a", segment_a.metric_name
+          assert_equal 'segment_a', segment_a.metric_name
           assert_in_delta(1.0, segment_a.entry_timestamp)
           assert_in_delta(2.0, segment_a.exit_timestamp)
         end

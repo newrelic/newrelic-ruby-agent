@@ -5,7 +5,7 @@
 require 'webrick'
 require 'webrick/https'
 require 'rack'
-require 'rackup/handler' unless Rack.release =~ /^1|2/
+require 'rackup/handler' unless /^1|2/.match?(Rack.release)
 require 'timeout'
 require 'json'
 
@@ -16,20 +16,20 @@ module NewRelic
 
     # Default server options
     DEFAULT_OPTIONS = {
-      :Logger => ::WEBrick::Log.new(String.new('/dev/null')),
-      :AccessLog => [[String.new('/dev/null'), '']]
+      :Logger => ::WEBrick::Log.new((+'/dev/null')),
+      :AccessLog => [[+'/dev/null', '']]
     }
 
     CONFIG_PATH = String.new(File.join(File.dirname(__FILE__), '..', 'config'))
-    FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, String.new('test.cert.crt'))
-    FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, String.new('test.cert.key'))
+    FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, (+'test.cert.crt'))
+    FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, (+'test.cert.key'))
 
     SSL_OPTIONS = {
       :SSLEnable => true,
       :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
       :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
       :SSLCertificate => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
-      :SSLCertName => [[String.new('CN'), String.new('newrelic.com')]]
+      :SSLCertName => [[+'CN', +'newrelic.com']]
     }
 
     def initialize(port = DEFAULT_PORT)
@@ -57,7 +57,7 @@ module NewRelic
     end
 
     def running?
-      @thread && @thread.alive?
+      @thread&.alive?
     end
 
     def run
@@ -66,7 +66,7 @@ module NewRelic
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)
-      @server.mount(String.new('/'), webrick_handler, app)
+      @server.mount((+'/'), webrick_handler, app)
 
       @thread = Thread.new(&self.method(:run_server)).tap { |t| t.abort_on_exception = true }
     end
@@ -114,7 +114,7 @@ module NewRelic
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
       res.status = 403
-      res.body = [String.new("Forbidden\n")]
+      res.body = [+"Forbidden\n"]
       res.finish
     end
 
@@ -130,7 +130,7 @@ module NewRelic
     end
 
     def call(env)
-      raise String.new('something went wrong!')
+      raise (+'something went wrong!')
     end
 
     def app

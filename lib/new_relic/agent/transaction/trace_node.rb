@@ -58,7 +58,7 @@ module NewRelic
         end
 
         def to_s_compact
-          str = String.new('')
+          str = +''
           str << metric_name
           if children.any?
             str << "{#{children.map { |cs| cs.to_s_compact }.join(',')}}"
@@ -67,9 +67,9 @@ module NewRelic
         end
 
         def to_debug_str(depth)
-          tab = String.new('  ') * depth
+          tab = (+'  ') * depth
           s = tab.clone
-          s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
+          s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split('::').last}] #{metric_name} \n"
           unless params.empty?
             params.each do |k, v|
               s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"
@@ -136,10 +136,8 @@ module NewRelic
         def each_node(&block)
           yield(self)
 
-          if @children
-            @children.each do |node|
-              node.each_node(&block)
-            end
+          @children&.each do |node|
+            node.each_node(&block)
           end
         end
 
@@ -149,11 +147,14 @@ module NewRelic
           summary = yield(self)
           summary.current_nest_count += 1 if summary
 
+          # no then branch coverage
+          # rubocop:disable Style/SafeNavigation
           if @children
             @children.each do |node|
               node.each_node_with_nest_tracking(&block)
             end
           end
+          # rubocop:enable Style/SafeNavigation
 
           summary.current_nest_count -= 1 if summary
         end

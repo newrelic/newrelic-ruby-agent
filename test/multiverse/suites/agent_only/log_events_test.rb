@@ -13,7 +13,7 @@ class LogEventsTest < Minitest::Test
     with_config(:'application_logging.forwarding.enabled' => true) do
       in_transaction do |txn|
         NewRelic::Agent.agent.log_event_aggregator.reset!
-        NewRelic::Agent.agent.log_event_aggregator.record("Deadly", "FATAL")
+        NewRelic::Agent.agent.log_event_aggregator.record('Deadly', 'FATAL')
         trace_id = NewRelic::Agent::Tracer.current_trace_id
         span_id = NewRelic::Agent::Tracer.current_span_id
       end
@@ -23,35 +23,35 @@ class LogEventsTest < Minitest::Test
 
     last_log = last_log_event
 
-    assert_equal "Deadly", last_log["message"]
-    assert_equal "FATAL", last_log["level"]
-    assert_equal trace_id, last_log["trace.id"]
-    assert_equal span_id, last_log["span.id"]
+    assert_equal 'Deadly', last_log['message']
+    assert_equal 'FATAL', last_log['level']
+    assert_equal trace_id, last_log['trace.id']
+    assert_equal span_id, last_log['span.id']
 
     common = last_logs_common
 
-    assert_nil common["attributes"]["entity.type"]
-    assert_equal NewRelic::Agent::Hostname.get, common["attributes"]["hostname"]
+    assert_nil common['attributes']['entity.type']
+    assert_equal NewRelic::Agent::Hostname.get, common['attributes']['hostname']
   end
 
   def test_log_event_data_sent_no_transaction
     NewRelic::Agent.agent.log_event_aggregator.reset!
     with_config(:'application_logging.forwarding.enabled' => true) do
-      NewRelic::Agent.agent.log_event_aggregator.record("Deadly", "FATAL")
+      NewRelic::Agent.agent.log_event_aggregator.record('Deadly', 'FATAL')
       NewRelic::Agent.agent.send(:harvest_and_send_log_event_data)
     end
 
     last_log = last_log_event
 
-    assert_equal "Deadly", last_log["message"]
-    assert_equal "FATAL", last_log["level"]
-    assert_nil last_log["trace.id"]
-    assert_nil last_log["span.id"]
+    assert_equal 'Deadly', last_log['message']
+    assert_equal 'FATAL', last_log['level']
+    assert_nil last_log['trace.id']
+    assert_nil last_log['span.id']
 
     common = last_logs_common
 
-    assert_nil common["attributes"]["entity.type"]
-    assert_equal NewRelic::Agent::Hostname.get, common["attributes"]["hostname"]
+    assert_nil common['attributes']['entity.type']
+    assert_equal NewRelic::Agent::Hostname.get, common['attributes']['hostname']
   end
 
   def last_log_event

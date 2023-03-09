@@ -27,7 +27,7 @@ module NewRelic
         return unless enabled?
 
         type = @type_strings[type]
-        unless type =~ EVENT_TYPE_REGEX
+        unless EVENT_TYPE_REGEX.match?(type)
           note_dropped_event(type)
           return false
         end
@@ -71,9 +71,9 @@ module NewRelic
 
       def record_supportability_metrics(total_count, captured_count, dropped_count)
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("Events/Customer/Seen", total_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Sent", captured_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Dropped", dropped_count)
+        engine.tl_record_supportability_metric_count('Events/Customer/Seen', total_count)
+        engine.tl_record_supportability_metric_count('Events/Customer/Sent', captured_count)
+        engine.tl_record_supportability_metric_count('Events/Customer/Dropped', dropped_count)
       end
 
       def note_dropped_event(type)

@@ -49,7 +49,7 @@ module NewRelic
 
             alias_method(:delete_all_without_newrelic, :delete_all)
 
-            if RUBY_VERSION < "2.7.0"
+            if RUBY_VERSION < '2.7.0'
               def delete_all(*args, &blk)
                 ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                   delete_all_without_newrelic(*args, &blk)
@@ -92,9 +92,9 @@ module NewRelic
           end
         end
 
-        ACTIVE_RECORD = "ActiveRecord".freeze
-        OTHER = "other".freeze
-        MAKARA_SUFFIX = "_makara".freeze
+        ACTIVE_RECORD = 'ActiveRecord'.freeze
+        OTHER = 'other'.freeze
+        MAKARA_SUFFIX = '_makara'.freeze
 
         # convert vendor (makara, etc.) wrapper names to their bare names
         # ex: postgresql_makara -> postgresql
@@ -102,7 +102,7 @@ module NewRelic
           # TODO: OLD RUBIES - RUBY_VERSION < 2.5
           # With Ruby 2.5+ we could use #delete_suffix instead of #chomp for a
           # potential speed boost
-          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name && adapter_name.end_with?(MAKARA_SUFFIX)
+          return adapter_name.chomp(MAKARA_SUFFIX) if adapter_name&.end_with?(MAKARA_SUFFIX)
 
           adapter_name
         end
@@ -118,7 +118,7 @@ module NewRelic
         SPACE = ' '.freeze
 
         def split_name(name)
-          if name && name.respond_to?(:split)
+          if name&.respond_to?(:split)
             name.split(SPACE)
           else
             NewRelic::EMPTY_ARRAY
@@ -163,47 +163,47 @@ module NewRelic
         end
 
         PRODUCT_NAMES = {
-          "mysql" => "MySQL",
-          "mysql2" => "MySQL",
+          'mysql' => 'MySQL',
+          'mysql2' => 'MySQL',
 
-          "postgresql" => "Postgres",
+          'postgresql' => 'Postgres',
 
-          "sqlite3" => "SQLite",
-
-          # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
-          "jdbcmysql" => "MySQL",
+          'sqlite3' => 'SQLite',
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
-          "jdbcpostgresql" => "Postgres",
+          'jdbcmysql' => 'MySQL',
+
+          # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
+          'jdbcpostgresql' => 'Postgres',
 
           # https://rubygems.org/gems/activerecord-postgis-adapter
-          "postgis" => "Postgres",
+          'postgis' => 'Postgres',
 
           # https://rubygems.org/gems/activerecord-jdbcsqlite3-adapter
-          "jdbcsqlite3" => "SQLite",
+          'jdbcsqlite3' => 'SQLite',
 
           # https://rubygems.org/gems/activerecord-jdbcderby-adapter
-          "derby" => "Derby",
-          "jdbcderby" => "Derby",
+          'derby' => 'Derby',
+          'jdbcderby' => 'Derby',
 
           # https://rubygems.org/gems/activerecord-jdbc-adapter
-          "jdbc" => "JDBC",
+          'jdbc' => 'JDBC',
 
           # https://rubygems.org/gems/activerecord-jdbcmssql-adapter
-          "jdbcmssql" => "MSSQL",
-          "mssql" => "MSSQL",
+          'jdbcmssql' => 'MSSQL',
+          'mssql' => 'MSSQL',
 
           # https://rubygems.org/gems/activerecord-sqlserver-adapter
-          "sqlserver" => "MSSQL",
+          'sqlserver' => 'MSSQL',
 
           # https://rubygems.org/gems/activerecord-odbc-adapter
-          "odbc" => "ODBC",
+          'odbc' => 'ODBC',
 
           # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
-          "oracle_enhanced" => "Oracle"
+          'oracle_enhanced' => 'Oracle'
         }.freeze
 
-        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
+        ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = 'ActiveRecord'.freeze
 
         def map_product(adapter_name)
           PRODUCT_NAMES.fetch(adapter_name, ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
@@ -213,24 +213,24 @@ module NewRelic
           extend self
 
           PRODUCT_SYMBOLS = {
-            "mysql" => :mysql,
-            "mysql2" => :mysql,
-            "jdbcmysql" => :mysql,
+            'mysql' => :mysql,
+            'mysql2' => :mysql,
+            'jdbcmysql' => :mysql,
 
-            "postgresql" => :postgres,
-            "jdbcpostgresql" => :postgres,
-            "postgis" => :postgres
+            'postgresql' => :postgres,
+            'jdbcpostgresql' => :postgres,
+            'postgis' => :postgres
           }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
-            :mysql => "3306",
-            :postgres => "5432"
+            :mysql => '3306',
+            :postgres => '5432'
           }.freeze
 
-          DEFAULT = "default".freeze
-          UNKNOWN = "unknown".freeze
-          SLASH = "/".freeze
-          LOCALHOST = "localhost".freeze
+          DEFAULT = 'default'.freeze
+          UNKNOWN = 'unknown'.freeze
+          SLASH = '/'.freeze
+          LOCALHOST = 'localhost'.freeze
 
           def adapter_from_config(config)
             bare_name = NewRelic::Agent::Instrumentation::ActiveRecordHelper.bare_adapter_name(config[:adapter])

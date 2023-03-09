@@ -14,7 +14,7 @@ module NewRelic
         # Check whether we have already started, which is an error condition
         def already_started?
           if started?
-            ::NewRelic::Agent.logger.error("Agent Started Already!")
+            ::NewRelic::Agent.logger.error('Agent Started Already!')
             true
           end
         end
@@ -87,15 +87,15 @@ module NewRelic
         end
 
         def log_app_name
-          ::NewRelic::Agent.logger.info("Application: #{Agent.config[:app_name].join(", ")}")
+          ::NewRelic::Agent.logger.info("Application: #{Agent.config[:app_name].join(', ')}")
         end
 
         def log_ignore_url_regexes
           regexes = NewRelic::Agent.config[:'rules.ignore_url_regexes']
 
           unless regexes.empty?
-            ::NewRelic::Agent.logger.info("Ignoring URLs that match the following regexes: " \
-              "#{regexes.map(&:inspect).join(", ")}.")
+            ::NewRelic::Agent.logger.info('Ignoring URLs that match the following regexes: ' \
+              "#{regexes.map(&:inspect).join(', ')}.")
           end
         end
 
@@ -138,10 +138,10 @@ module NewRelic
           if Agent.config[:license_key] && Agent.config[:license_key].length > 0
             true
           else
-            ::NewRelic::Agent.logger.warn("No license key found. " +
-              "This often means your newrelic.yml file was not found, or it lacks a section for the running " \
+            ::NewRelic::Agent.logger.warn('No license key found. ' +
+              'This often means your newrelic.yml file was not found, or it lacks a section for the running ' \
               "environment, '#{NewRelic::Control.instance.env}'. You may also want to try linting your newrelic.yml " \
-              "to ensure it is valid YML.")
+              'to ensure it is valid YML.')
             false
           end
         end
@@ -169,21 +169,21 @@ module NewRelic
           return false if already_started? || disabled?
 
           if defer_for_delayed_job?
-            ::NewRelic::Agent.logger.debug("Deferring startup for DelayedJob")
+            ::NewRelic::Agent.logger.debug('Deferring startup for DelayedJob')
             return false
           end
 
           if defer_for_resque?
-            ::NewRelic::Agent.logger.debug("Deferring startup for Resque in case it daemonizes")
+            ::NewRelic::Agent.logger.debug('Deferring startup for Resque in case it daemonizes')
             return false
           end
 
           unless app_name_configured?
-            NewRelic::Agent.logger.error("No application name configured.",
-              "The Agent cannot start without at least one. Please check your ",
-              "newrelic.yml and ensure that it is valid and has at least one ",
+            NewRelic::Agent.logger.error('No application name configured.',
+              'The Agent cannot start without at least one. Please check your ',
+              'newrelic.yml and ensure that it is valid and has at least one ',
               "value set for app_name in the #{NewRelic::Control.instance.env} ",
-              "environment.")
+              'environment.')
             return false
           end
 

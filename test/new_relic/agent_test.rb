@@ -34,7 +34,7 @@ module NewRelic
     end
 
     def test_shutdown_removes_manual_startup_config
-      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40, :some_absurd_setting => true)
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => 'a' * 40, :some_absurd_setting => true)
 
       assert NewRelic::Agent.config[:some_absurd_setting]
       NewRelic::Agent.shutdown
@@ -43,7 +43,7 @@ module NewRelic
     end
 
     def test_shutdown_removes_server_config
-      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40)
+      NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => 'a' * 40)
       response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
         NewRelic::Agent.instance, NewRelic::Agent.config
       )
@@ -105,7 +105,7 @@ module NewRelic
     end
 
     def test_manual_start_kicks_dependency_check_again
-      with_config(:monitor_mode => true, :license_key => "a" * 40, :sync_startup => true) do
+      with_config(:monitor_mode => true, :license_key => 'a' * 40, :sync_startup => true) do
         NewRelic::Agent.manual_start
 
         assert_predicate NewRelic::Agent.instance, :started?
@@ -135,7 +135,7 @@ module NewRelic
       old_agent = NewRelic::Agent.agent
       NewRelic::Agent.instance_eval { @agent = 'not nil' }
 
-      assert_equal('not nil', NewRelic::Agent.agent, "should return the value from @agent")
+      assert_equal('not nil', NewRelic::Agent.agent, 'should return the value from @agent')
       NewRelic::Agent.instance_eval { @agent = old_agent }
     end
 
@@ -187,7 +187,7 @@ module NewRelic
       NewRelic::Agent.manual_start
 
       assert_equal(NewRelic::Agent.agent, NewRelic::Agent.instance,
-        "should return the same agent for both identical methods")
+        'should return the same agent for both identical methods')
       NewRelic::Agent.shutdown
     end
 
@@ -317,7 +317,7 @@ module NewRelic
       engine.reset!
       Transactor.new.txn do
         NewRelic::Agent.set_transaction_name('a_new_name', :category => :task)
-        new_name = NewRelic::Agent.get_transaction_name + "2"
+        new_name = NewRelic::Agent.get_transaction_name + '2'
         NewRelic::Agent.set_transaction_name(new_name)
       end
 
@@ -458,7 +458,7 @@ module NewRelic
     # unexpectedly get a noticed error Hash returned from their methods.
     def test_notice_error_returns_nil
       begin
-        raise "WTF"
+        raise 'WTF'
       rescue => e
         assert_nil ::NewRelic::Agent.notice_error(e)
       end

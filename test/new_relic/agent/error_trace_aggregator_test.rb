@@ -25,7 +25,7 @@ module NewRelic
 
       def populate_container(aggregator, n)
         n.times do |i|
-          error = NewRelic::NoticedError.new(String.new('path'), String.new('yay errors'))
+          error = NewRelic::NoticedError.new((+'path'), (+'yay errors'))
           aggregator.add_to_error_queue(error)
         end
       end
@@ -33,7 +33,7 @@ module NewRelic
       include NewRelic::DataContainerTests
 
       def test_simple
-        notice_error(StandardError.new("message"),
+        notice_error(StandardError.new('message'),
           :uri => '/myurl/',
           :metric => 'path')
 
@@ -56,13 +56,13 @@ module NewRelic
       end
 
       def test_collect_failover
-        notice_error(StandardError.new("message"), :metric => 'first')
+        notice_error(StandardError.new('message'), :metric => 'first')
 
         errors = error_trace_aggregator.harvest!
 
-        notice_error(StandardError.new("message"), :metric => 'second')
-        notice_error(StandardError.new("message"), :metric => 'path')
-        notice_error(StandardError.new("message"), :metric => 'last')
+        notice_error(StandardError.new('message'), :metric => 'second')
+        notice_error(StandardError.new('message'), :metric => 'path')
+        notice_error(StandardError.new('message'), :metric => 'last')
 
         error_trace_aggregator.merge!(errors)
         errors = error_trace_aggregator.harvest!
@@ -70,8 +70,8 @@ module NewRelic
         assert_equal 4, errors.length
         assert_equal_unordered(%w[first second path last], errors.map { |e| e.path })
 
-        notice_error(StandardError.new("message"), :metric => 'first')
-        notice_error(StandardError.new("message"), :metric => 'last')
+        notice_error(StandardError.new('message'), :metric => 'first')
+        notice_error(StandardError.new('message'), :metric => 'last')
 
         errors = error_trace_aggregator.harvest!
 
@@ -91,15 +91,15 @@ module NewRelic
           [1.1, '1.1'],
           %w[hi hi],
           [:hi, 'hi'],
-          [StandardError.new("test"), "#<StandardError>"],
-          [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
+          [StandardError.new('test'), '#<StandardError>'],
+          [TestClass.new, '#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>']]
 
         types.each do |test|
-          notice_error(StandardError.new("message"),
+          notice_error(StandardError.new('message'),
             :metric => 'path',
             :custom_params => {:x => test[0]})
           error = error_trace_aggregator.harvest![0].to_collector_array
-          actual = error.last["userAttributes"]["x"]
+          actual = error.last['userAttributes']['x']
 
           assert_equal test[1], actual
         end
@@ -108,7 +108,7 @@ module NewRelic
       def test_obfuscates_error_messages_when_high_security_is_set
         with_config(:high_security => true) do
           notice_error(StandardError.new("BAAAAD SQL: choose * out_of test where foo = 'bar'"))
-          notice_error(StandardError.new("BAAAAD SQL: choose * out_of test where foo in (1,2,3,4,5)"))
+          notice_error(StandardError.new('BAAAAD SQL: choose * out_of test where foo in (1,2,3,4,5)'))
 
           errors = error_trace_aggregator.harvest!
 
@@ -124,7 +124,7 @@ module NewRelic
       def test_over_queue_limit_positive
         expects_logging(:warn, includes('The error reporting queue has reached 20'))
         21.times do
-          error = stub(:message => "", :is_internal => false)
+          error = stub(:message => '', :is_internal => false)
           error_trace_aggregator.add_to_error_queue(error)
         end
 
@@ -137,7 +137,7 @@ module NewRelic
         silence_stream(::STDOUT) do
           (max_q_length + 5).times do |n|
             notice_error(StandardError.new("exception #{n}"),
-              :metric => "path",
+              :metric => 'path',
               :custom_params => {:x => n})
           end
         end
@@ -147,7 +147,7 @@ module NewRelic
         assert_equal(max_q_length, errors.length)
         errors.each_index do |i|
           error = errors.shift
-          actual = error.to_collector_array.last["userAttributes"]["x"]
+          actual = error.to_collector_array.last['userAttributes']['x']
 
           assert_equal i.to_s, actual
         end
@@ -199,7 +199,7 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
         err = errors.first
 
-        assert_equal "NewRelic/AgentError", err.path
+        assert_equal 'NewRelic/AgentError', err.path
         refute_nil err.stack_trace
       end
 
@@ -225,7 +225,7 @@ module NewRelic
       end
 
       def test_notice_agent_error_allows_an_error_past_queue_limit
-        100.times { notice_error(StandardError.new("Ouch")) }
+        100.times { notice_error(StandardError.new('Ouch')) }
 
         exception = DifficultToDebugAgentError.new
         error_trace_aggregator.notice_agent_error(exception)
@@ -239,26 +239,26 @@ module NewRelic
         exception = DifficultToDebugAgentError.new
         error_trace_aggregator.notice_agent_error(exception)
 
-        100.times { notice_error(StandardError.new("Ouch")) }
+        100.times { notice_error(StandardError.new('Ouch')) }
         errors = error_trace_aggregator.harvest!
 
         assert_equal 21, errors.size
       end
 
       def test_notice_agent_error_adds_support_message
-        exception = DifficultToDebugAgentError.new("BOO")
+        exception = DifficultToDebugAgentError.new('BOO')
         error_trace_aggregator.notice_agent_error(exception)
 
         errors = error_trace_aggregator.harvest!
         err = errors.first
 
         assert_includes(err.message, exception.message)
-        assert_includes(err.message, "Ruby agent internal error")
+        assert_includes(err.message, 'Ruby agent internal error')
       end
 
       def test_errors_not_noticed_when_disabled
         with_config(:'error_collector.enabled' => false) do
-          notice_error(StandardError.new("Red hands"))
+          notice_error(StandardError.new('Red hands'))
           errors = error_trace_aggregator.harvest!
 
           assert_empty errors
@@ -271,7 +271,7 @@ module NewRelic
           :'error_collector.capture_events' => false
         }
         with_config(config) do
-          notice_error(StandardError.new("Red hands"))
+          notice_error(StandardError.new('Red hands'))
           errors = error_trace_aggregator.harvest!
 
           assert_equal 1, errors.size
@@ -280,7 +280,7 @@ module NewRelic
 
       def test_errors_not_harvested_when_changing_from_enabled_to_disabled
         with_config(:'error_collector.enabled' => true) do
-          notice_error(StandardError.new("Red hands"))
+          notice_error(StandardError.new('Red hands'))
 
           with_config(:'error_collector.enabled' => false) do
             errors = error_trace_aggregator.harvest!

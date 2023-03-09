@@ -36,11 +36,11 @@ module NewRelic
               uri = ::URI.parse(url)
             end
           end
-          uri.host.downcase! unless uri.host.nil?
+          uri.host&.downcase!
           uri
         end
 
-        QUESTION_MARK = "?"
+        QUESTION_MARK = '?'
 
         def self.strip_query_string(fragment)
           if fragment.include?(QUESTION_MARK)

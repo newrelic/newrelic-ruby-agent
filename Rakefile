@@ -15,11 +15,11 @@ task :default => :test
 task :test => ['test:newrelic']
 
 namespace :test do
-  desc "Run all tests"
+  desc 'Run all tests'
   task :all => %w[newrelic multiverse all_compatible_envs]
   agent_home = File.expand_path(File.dirname(__FILE__))
 
-  desc "Run agent performance tests"
+  desc 'Run agent performance tests'
   task :performance, [:suite, :name] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'performance', 'lib', 'performance'))
     options = {}
@@ -28,13 +28,13 @@ namespace :test do
     Performance::Runner.new(options).run_and_report
   end
 
-  desc "Run agent within existing mini environment(s): env[name1,name2,name3,etc.]"
+  desc 'Run agent within existing mini environment(s): env[name1,name2,name3,etc.]'
   task :env do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'environments', 'lib', 'environments', 'runner'))
     Environments::Runner.new(args.to_a).run_and_report
   end
 
-  desc "Run all mini environment tests known to work with the current Ruby version"
+  desc 'Run all mini environment tests known to work with the current Ruby version'
   task :all_compatible_envs do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'helpers', 'ruby_rails_mappings'))
     rails_versions = rails_versions_for_ruby_version(RUBY_VERSION)
@@ -62,10 +62,10 @@ task :record_build, [:build_number, :stage] do |t, args|
   build_string = args.build_number
   build_string << ".#{args.stage}" unless args.stage.nil? || args.stage.empty?
 
-  gitsha = File.exist?(".git") ? `git rev-parse HEAD` : "Unknown"
+  gitsha = File.exist?('.git') ? `git rev-parse HEAD` : 'Unknown'
   gitsha.chomp!
 
-  File.open("lib/new_relic/build.rb", "w") do |f|
+  File.open('lib/new_relic/build.rb', 'w') do |f|
     f.write("# GITSHA: #{gitsha}\n")
     f.write("module NewRelic; module VERSION; BUILD='#{build_string}'; end; end\n")
   end
@@ -93,14 +93,14 @@ task :update_ca_bundle do |t|
   bundle_last_update = `cd #{ca_bundle_path} && git show -s --format=%ci HEAD`
   puts "Source CA bundle last updated #{bundle_last_update}"
 
-  bundle_path = "cert/cacert.pem"
+  bundle_path = 'cert/cacert.pem'
   cert_paths = []
   Dir.glob("#{ca_bundle_path}/*.pem").each { |p| cert_paths << p }
   cert_paths.sort!
 
   puts "Writing #{cert_paths.size} certs to bundle at #{bundle_path}..."
 
-  File.open(bundle_path, "w") do |f|
+  File.open(bundle_path, 'w') do |f|
     cert_paths.each do |cert_path|
       cert_name = File.basename(cert_path, '.pem')
       puts "Adding #{cert_name}"

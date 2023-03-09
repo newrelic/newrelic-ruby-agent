@@ -111,7 +111,7 @@ module NewRelic
 
       def test_in_transaction_with_early_failure
         yielded = false
-        NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Boom")
+        NewRelic::Agent::Transaction.any_instance.stubs(:start).raises('Boom')
         NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
           yielded = true
         end
@@ -123,7 +123,7 @@ module NewRelic
 
       def test_in_transaction_with_late_failure
         yielded = false
-        NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Boom")
+        NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises('Boom')
         NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
           yielded = true
         end
@@ -135,17 +135,17 @@ module NewRelic
       def test_in_transaction_notices_errors
         assert_raises RuntimeError do
           NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
-            raise "O_o"
+            raise 'O_o'
           end
         end
 
-        assert_metrics_recorded(["Errors/all"])
+        assert_metrics_recorded(['Errors/all'])
       end
 
       def test_start_transaction_without_one_already_existing
         assert_nil Tracer.current_transaction
 
-        txn = Tracer.start_transaction(name: "Controller/Blogs/index",
+        txn = Tracer.start_transaction(name: 'Controller/Blogs/index',
           category: :controller)
 
         assert_equal txn, Tracer.current_transaction
@@ -159,7 +159,7 @@ module NewRelic
         in_transaction do |txn1|
           refute_nil Tracer.current_transaction
 
-          txn2 = Tracer.start_transaction(name: "Controller/Blogs/index",
+          txn2 = Tracer.start_transaction(name: 'Controller/Blogs/index',
             category: :controller)
 
           assert_equal txn2, txn1
@@ -171,7 +171,7 @@ module NewRelic
         assert_nil Tracer.current_transaction
 
         finishable = Tracer.start_transaction_or_segment(
-          name: "Controller/Blogs/index",
+          name: 'Controller/Blogs/index',
           category: :controller
         )
 
@@ -185,7 +185,7 @@ module NewRelic
       def test_start_transaction_or_segment_with_active_txn
         in_transaction do |txn|
           finishable = Tracer.start_transaction_or_segment(
-            name: "Middleware/Rack/MyMiddleWare/call",
+            name: 'Middleware/Rack/MyMiddleWare/call',
             category: :middleware
           )
 
@@ -202,21 +202,21 @@ module NewRelic
 
       def test_start_transaction_or_segment_multiple_calls
         f1 = Tracer.start_transaction_or_segment(
-          name: "Controller/Rack/Test::App/call",
+          name: 'Controller/Rack/Test::App/call',
           category: :rack
         )
 
         f2 = Tracer.start_transaction_or_segment(
-          name: "Middleware/Rack/MyMiddleware/call",
+          name: 'Middleware/Rack/MyMiddleware/call',
           category: :middleware
         )
 
         f3 = Tracer.start_transaction_or_segment(
-          name: "Controller/blogs/index",
+          name: 'Controller/blogs/index',
           category: :controller
         )
 
-        f4 = Tracer.start_segment(name: "Custom/MyClass/my_meth")
+        f4 = Tracer.start_segment(name: 'Custom/MyClass/my_meth')
 
         f4.finish
         f3.finish
@@ -224,31 +224,31 @@ module NewRelic
         f1.finish
 
         assert_metrics_recorded [
-          ["Nested/Controller/Rack/Test::App/call", "Controller/blogs/index"],
-          ["Middleware/Rack/MyMiddleware/call", "Controller/blogs/index"],
-          ["Nested/Controller/blogs/index", "Controller/blogs/index"],
-          ["Custom/MyClass/my_meth", "Controller/blogs/index"],
-          "Controller/blogs/index",
-          "Nested/Controller/Rack/Test::App/call",
-          "Middleware/Rack/MyMiddleware/call",
-          "Nested/Controller/blogs/index",
-          "Custom/MyClass/my_meth"
+          ['Nested/Controller/Rack/Test::App/call', 'Controller/blogs/index'],
+          ['Middleware/Rack/MyMiddleware/call', 'Controller/blogs/index'],
+          ['Nested/Controller/blogs/index', 'Controller/blogs/index'],
+          ['Custom/MyClass/my_meth', 'Controller/blogs/index'],
+          'Controller/blogs/index',
+          'Nested/Controller/Rack/Test::App/call',
+          'Middleware/Rack/MyMiddleware/call',
+          'Nested/Controller/blogs/index',
+          'Custom/MyClass/my_meth'
         ]
       end
 
       def test_start_transaction_or_segment_multiple_calls_with_partial_name
         f1 = Tracer.start_transaction_or_segment(
-          partial_name: "Test::App/call",
+          partial_name: 'Test::App/call',
           category: :rack
         )
 
         f2 = Tracer.start_transaction_or_segment(
-          partial_name: "MyMiddleware/call",
+          partial_name: 'MyMiddleware/call',
           category: :middleware
         )
 
         f3 = Tracer.start_transaction_or_segment(
-          partial_name: "blogs/index",
+          partial_name: 'blogs/index',
           category: :controller
         )
 
@@ -257,35 +257,35 @@ module NewRelic
         f1.finish
 
         assert_metrics_recorded [
-          ["Nested/Controller/Rack/Test::App/call", "Controller/blogs/index"],
-          ["Middleware/Rack/MyMiddleware/call", "Controller/blogs/index"],
-          ["Nested/Controller/blogs/index", "Controller/blogs/index"],
-          "Controller/blogs/index",
-          "Nested/Controller/Rack/Test::App/call",
-          "Middleware/Rack/MyMiddleware/call",
-          "Nested/Controller/blogs/index"
+          ['Nested/Controller/Rack/Test::App/call', 'Controller/blogs/index'],
+          ['Middleware/Rack/MyMiddleware/call', 'Controller/blogs/index'],
+          ['Nested/Controller/blogs/index', 'Controller/blogs/index'],
+          'Controller/blogs/index',
+          'Nested/Controller/Rack/Test::App/call',
+          'Middleware/Rack/MyMiddleware/call',
+          'Nested/Controller/blogs/index'
         ]
       end
 
       def test_start_transaction_with_partial_name
         txn = Tracer.start_transaction(
-          partial_name: "Test::App/call",
+          partial_name: 'Test::App/call',
           category: :rack
         )
 
         txn.finish
 
-        assert_metrics_recorded ["Controller/Rack/Test::App/call"]
+        assert_metrics_recorded ['Controller/Rack/Test::App/call']
       end
 
       def test_current_segment_with_transaction
         assert_nil Tracer.current_segment
 
-        txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+        txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
 
         assert_equal txn.initial_segment, Tracer.current_segment
 
-        segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+        segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation')
 
         assert_equal segment, Tracer.current_segment
 
@@ -296,7 +296,7 @@ module NewRelic
 
       def test_current_segment_without_transaction
         assert_nil Tracer.current_segment
-        Tracer.start_segment(name: "Custom/MyClass/myoperation")
+        Tracer.start_segment(name: 'Custom/MyClass/myoperation')
 
         assert_nil Tracer.current_segment
       end
@@ -304,18 +304,18 @@ module NewRelic
       def test_current_segment_in_nested_threads_with_traced_thread
         assert_nil Tracer.current_segment
 
-        txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+        txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
 
         assert_equal txn.initial_segment, Tracer.current_segment
         threads = []
 
         threads << ::NewRelic::TracedThread.new do
-          segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+          segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation')
 
           assert_equal segment, Tracer.current_segment
 
           threads << ::NewRelic::TracedThread.new do
-            segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
+            segment2 = Tracer.start_segment(name: 'Custom/MyClass/myoperation2')
 
             assert_equal segment2, Tracer.current_segment
             segment2.finish
@@ -337,18 +337,18 @@ module NewRelic
         with_config(:'instrumentation.thread.tracing' => true) do
           assert_nil Tracer.current_segment
 
-          txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+          txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
 
           assert_equal txn.initial_segment, Tracer.current_segment
           threads = []
 
           threads << ::Thread.new do
-            segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+            segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation')
 
             assert_equal segment, Tracer.current_segment
 
             threads << Thread.new do
-              segment2 = Tracer.start_segment(name: "Custom/MyClass/myoperation2")
+              segment2 = Tracer.start_segment(name: 'Custom/MyClass/myoperation2')
 
               assert_equal segment2, Tracer.current_segment
               segment2.finish
@@ -364,7 +364,7 @@ module NewRelic
           threads.each(&:join)
           txn.finish
 
-          assert_equal 2, txn.segments.count { |s| s.name == "Ruby/Thread" }
+          assert_equal 2, txn.segments.count { |s| s.name == 'Ruby/Thread' }
           assert_nil Tracer.current_segment
         end
       end
@@ -373,7 +373,7 @@ module NewRelic
         with_config(:'instrumentation.thread.tracing' => false) do
           assert_nil Tracer.current_segment
 
-          txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+          txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
 
           assert_equal txn.initial_segment, Tracer.current_segment
           threads = []
@@ -386,7 +386,7 @@ module NewRelic
           threads.each(&:join)
           txn.finish
 
-          assert_equal 0, txn.segments.count { |s| s.name == "Ruby/Thread" }
+          assert_equal 0, txn.segments.count { |s| s.name == 'Ruby/Thread' }
           assert_nil Tracer.current_segment
         end
       end
@@ -400,7 +400,7 @@ module NewRelic
             Thread.new { 'woof' }.join
           end
 
-          assert_match /Ruby\/Thread\/Thread\d+\/Fiber\d+/, txn.segments.last.name
+          assert_match %r{Ruby/Thread/Thread\d+/Fiber\d+}, txn.segments.last.name
         end
       end
 
@@ -413,17 +413,17 @@ module NewRelic
             Thread.new { 'woof' }.join
           end
 
-          assert_match /Ruby\/Thread$/, txn.segments.last.name
+          assert_match %r{Ruby/Thread$}, txn.segments.last.name
         end
       end
 
       def test_start_segment
-        name = "Custom/MyClass/myoperation"
+        name = 'Custom/MyClass/myoperation'
         unscoped_metrics = [
-          "Custom/Segment/something/all",
-          "Custom/Segment/something/allWeb"
+          'Custom/Segment/something/all',
+          'Custom/Segment/something/allWeb'
         ]
-        parent = Transaction::Segment.new("parent")
+        parent = Transaction::Segment.new('parent')
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
 
         in_transaction('test') do
@@ -441,14 +441,14 @@ module NewRelic
       end
 
       def test_start_datastore_segment
-        product = "MySQL"
-        operation = "INSERT"
-        collection = "blogs"
-        host = "localhost"
-        port_path_or_id = "3306"
-        database_name = "blog_app"
+        product = 'MySQL'
+        operation = 'INSERT'
+        collection = 'blogs'
+        host = 'localhost'
+        port_path_or_id = '3306'
+        database_name = 'blog_app'
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
-        parent = Transaction::Segment.new("parent")
+        parent = Transaction::Segment.new('parent')
 
         in_transaction('test') do
           segment = Tracer.start_datastore_segment(
@@ -469,11 +469,11 @@ module NewRelic
       end
 
       def test_start_external_request_segment
-        library = "Net::HTTP"
-        uri = "https://docs.newrelic.com"
-        procedure = "GET"
+        library = 'Net::HTTP'
+        uri = 'https://docs.newrelic.com'
+        procedure = 'GET'
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
-        parent = Transaction::Segment.new("parent")
+        parent = Transaction::Segment.new('parent')
 
         in_transaction('test') do
           segment = Tracer.start_external_request_segment(

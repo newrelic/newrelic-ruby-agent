@@ -11,7 +11,7 @@ module NewRelic
         # before connecting, otherwise the parent process sends useless data
         def using_forking_dispatcher?
           if [:puma, :passenger, :unicorn].include?(Agent.config[:dispatcher])
-            ::NewRelic::Agent.logger.info("Deferring startup of agent reporting thread because " \
+            ::NewRelic::Agent.logger.info('Deferring startup of agent reporting thread because ' \
               "#{Agent.config[:dispatcher]} may fork.")
             true
           else
@@ -65,7 +65,7 @@ module NewRelic
         def install_exit_handler
           return unless should_install_exit_handler?
 
-          NewRelic::Agent.logger.debug("Installing at_exit handler")
+          NewRelic::Agent.logger.debug('Installing at_exit handler')
           at_exit { shutdown }
         end
       end

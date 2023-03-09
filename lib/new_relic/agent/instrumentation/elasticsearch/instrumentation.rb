@@ -37,7 +37,7 @@ module NewRelic::Agent::Instrumentation
       end
       return nil unless operation_index
 
-      caller_locations[operation_index].to_s.split('`')[-1].gsub(/\W/, "")
+      caller_locations[operation_index].to_s.split('`')[-1].gsub(/\W/, '')
     end
 
     def nr_reported_query(query)
@@ -52,10 +52,10 @@ module NewRelic::Agent::Instrumentation
       return if nr_hosts.empty?
 
       NewRelic::Agent.disable_all_tracing do
-        @nr_cluster_name ||= perform_request('GET', '_cluster/health').body["cluster_name"]
+        @nr_cluster_name ||= perform_request('GET', '_cluster/health').body['cluster_name']
       end
     rescue StandardError => e
-      NewRelic::Agent.logger.error("Failed to get cluster name for elasticsearch", e)
+      NewRelic::Agent.logger.error('Failed to get cluster name for elasticsearch', e)
       nil
     end
 

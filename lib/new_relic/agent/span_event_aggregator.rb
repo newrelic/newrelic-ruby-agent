@@ -18,7 +18,7 @@ module NewRelic
 
       def record(priority: nil, event: nil, &blk)
         unless event || priority && blk
-          raise ArgumentError, "Expected priority and block, or event"
+          raise ArgumentError, 'Expected priority and block, or event'
         end
 
         return unless enabled?
@@ -29,9 +29,9 @@ module NewRelic
         end
       end
 
-      SUPPORTABILITY_TOTAL_SEEN = "Supportability/SpanEvent/TotalEventsSeen".freeze
-      SUPPORTABILITY_TOTAL_SENT = "Supportability/SpanEvent/TotalEventsSent".freeze
-      SUPPORTABILITY_DISCARDED = "Supportability/SpanEvent/Discarded".freeze
+      SUPPORTABILITY_TOTAL_SEEN = 'Supportability/SpanEvent/TotalEventsSeen'.freeze
+      SUPPORTABILITY_TOTAL_SENT = 'Supportability/SpanEvent/TotalEventsSent'.freeze
+      SUPPORTABILITY_DISCARDED = 'Supportability/SpanEvent/Discarded'.freeze
 
       def after_harvest(metadata)
         seen = metadata[:seen]

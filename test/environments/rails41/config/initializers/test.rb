@@ -8,9 +8,9 @@ class Bloodhound < ActiveRecord::Base
   include ::NewRelic::Agent::MethodTracer
 
   def sniff
-    puts "When a bloodhound sniffs a scent article (a piece of clothing or item touched only by the subject)," \
+    puts 'When a bloodhound sniffs a scent article (a piece of clothing or item touched only by the subject),' \
     "air rushes through its nasal cavity and chemical vapors — or odors — lodge in the mucus and bombard the dog's scent receptors. " \
-    "Source: https://www.pbs.org/wnet/nature/underdogs-the-bloodhounds-amazing-sense-of-smell/350/"
+    'Source: https://www.pbs.org/wnet/nature/underdogs-the-bloodhounds-amazing-sense-of-smell/350/'
   end
 
   add_method_tracer :sniff

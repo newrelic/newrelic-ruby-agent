@@ -6,27 +6,27 @@ module NewRelic
   module Agent
     module AgentHelpers
       module Transmit
-        TRANSACTION_EVENT = "TransactionEvent".freeze
+        TRANSACTION_EVENT = 'TransactionEvent'.freeze
         def transmit_analytic_event_data
           transmit_single_data_type(:harvest_and_send_analytic_event_data, TRANSACTION_EVENT)
         end
 
-        CUSTOM_EVENT = "CustomEvent".freeze
+        CUSTOM_EVENT = 'CustomEvent'.freeze
         def transmit_custom_event_data
           transmit_single_data_type(:harvest_and_send_custom_event_data, CUSTOM_EVENT)
         end
 
-        ERROR_EVENT = "ErrorEvent".freeze
+        ERROR_EVENT = 'ErrorEvent'.freeze
         def transmit_error_event_data
           transmit_single_data_type(:harvest_and_send_error_event_data, ERROR_EVENT)
         end
 
-        SPAN_EVENT = "SpanEvent".freeze
+        SPAN_EVENT = 'SpanEvent'.freeze
         def transmit_span_event_data
           transmit_single_data_type(:harvest_and_send_span_event_data, SPAN_EVENT)
         end
 
-        LOG_EVENT = "LogEvent".freeze
+        LOG_EVENT = 'LogEvent'.freeze
         def transmit_log_event_data
           transmit_single_data_type(:harvest_and_send_log_event_data, LOG_EVENT)
         end
@@ -47,7 +47,7 @@ module NewRelic
 
         def transmit_data
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          ::NewRelic::Agent.logger.debug("Sending data to New Relic Service")
+          ::NewRelic::Agent.logger.debug('Sending data to New Relic Service')
 
           @events.notify(:before_harvest)
           @service.session do # use http keep-alive

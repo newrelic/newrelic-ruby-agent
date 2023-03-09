@@ -26,15 +26,15 @@ module NewRelic
           assert_equal 0, spans.size
           spans.each_with_index do |span, index|
             assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-            assert_equal segments[index].transaction.trace_id, span["trace_id"]
+            assert_equal segments[index].transaction.trace_id, span['trace_id']
           end
 
           refute_metrics_recorded([
-            "Supportability/InfiniteTracing/Span/AgentQueueDumped",
-            "Supportability/InfiniteTracing/Span/Sent"
+            'Supportability/InfiniteTracing/Span/AgentQueueDumped',
+            'Supportability/InfiniteTracing/Span/Sent'
           ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans}
+            'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans}
           })
           assert_watched_threads_finished buffer
         end
@@ -66,17 +66,17 @@ module NewRelic
           buffer.flush_queue
           consumer.join
 
-          assert emptied, "spans streamed reached total but buffer not empty!"
-          assert closed, "failed to close the buffer"
+          assert emptied, 'spans streamed reached total but buffer not empty!'
+          assert closed, 'failed to close the buffer'
           assert_equal total_spans, segments.size
           assert_equal 0, spans.size
 
           refute_metrics_recorded([
-            "Supportability/InfiniteTracing/Span/AgentQueueDumped",
-            "Supportability/InfiniteTracing/Span/Sent"
+            'Supportability/InfiniteTracing/Span/AgentQueueDumped',
+            'Supportability/InfiniteTracing/Span/Sent'
           ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans}
+            'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans}
           })
           assert_watched_threads_finished buffer
         end

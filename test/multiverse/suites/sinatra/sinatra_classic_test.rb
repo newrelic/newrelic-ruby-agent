@@ -22,11 +22,11 @@ configure do
 end
 
 get '/' do
-  "root path"
+  'root path'
 end
 
 get '/user/login' do
-  "please log in"
+  'please log in'
 end
 
 # this action will always return 404 because of the condition.
@@ -35,7 +35,7 @@ get '/user/:id', :my_condition => false do |id|
 end
 
 get '/raise' do
-  raise "Uh-oh"
+  raise 'Uh-oh'
 end
 
 # check that pass works properly
@@ -52,7 +52,7 @@ get('/error', :error_condition => true) {}
 
 set(:precondition_check) do |_|
   condition do
-    raise "Boo" if $precondition_already_checked
+    raise 'Boo' if $precondition_already_checked
 
     $precondition_already_checked = true
   end

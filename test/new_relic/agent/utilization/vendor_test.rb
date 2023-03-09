@@ -10,15 +10,15 @@ module NewRelic
     module Utilization
       class VendorTest < Minitest::Test
         class ExampleVendor < Vendor
-          vendor_name "example"
-          endpoint "http://169.254.169.254/metadata"
-          headers "meta" => "yes"
+          vendor_name 'example'
+          endpoint 'http://169.254.169.254/metadata'
+          headers 'meta' => 'yes'
           keys %w[vm_type vm_id vm_zone]
           key_transforms :to_sym
         end
 
         class LambdaVendor < Vendor
-          headers "river" => -> { "phoenix".upcase }
+          headers 'river' => -> { 'phoenix'.upcase }
         end
 
         def setup
@@ -30,21 +30,21 @@ module NewRelic
         end
 
         def test_has_name
-          assert_equal "example", @vendor.vendor_name
+          assert_equal 'example', @vendor.vendor_name
         end
 
         def test_has_endpoint
-          assert_equal URI("http://169.254.169.254/metadata"), @vendor.endpoint
+          assert_equal URI('http://169.254.169.254/metadata'), @vendor.endpoint
         end
 
         def test_has_headers
-          expected = {"meta" => "yes"}
+          expected = {'meta' => 'yes'}
 
           assert_equal expected, @vendor.headers
         end
 
         def test_headers_with_lambda_values
-          assert_equal "PHOENIX", LambdaVendor.new.headers["river"]
+          assert_equal 'PHOENIX', LambdaVendor.new.headers['river']
         end
 
         def test_assigns_expected_keys
@@ -54,9 +54,9 @@ module NewRelic
           assert @vendor.detect
 
           expected = {
-            :vm_type => "large",
-            :vm_id => "x123",
-            :vm_zone => "danger_zone"
+            :vm_type => 'large',
+            :vm_id => 'x123',
+            :vm_zone => 'danger_zone'
           }
 
           assert_equal expected, @vendor.metadata
@@ -67,7 +67,7 @@ module NewRelic
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
-          assert_metrics_recorded "Supportability/utilization/example/error" => {:call_count => 1}
+          assert_metrics_recorded 'Supportability/utilization/example/error' => {:call_count => 1}
         end
 
         def test_detect_fails_when_expected_field_has_invalid_chars
@@ -75,7 +75,7 @@ module NewRelic
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
-          assert_metrics_recorded "Supportability/utilization/example/error" => {:call_count => 1}
+          assert_metrics_recorded 'Supportability/utilization/example/error' => {:call_count => 1}
         end
       end
     end

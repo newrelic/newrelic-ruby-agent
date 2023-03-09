@@ -25,13 +25,13 @@ module NewRelic::Agent::Configuration
     end
 
     def test_turns_keys_to_symbols
-      hash = DottedHash.new({"turtle" => {"turtle" => {"turtle" => 1}}})
+      hash = DottedHash.new({'turtle' => {'turtle' => {'turtle' => 1}}})
 
       assert_equal({:'turtle.turtle.turtle' => 1}, hash)
     end
 
     def test_to_hash
-      dotted = DottedHash.new({"turtle" => {"turtle" => {"turtle" => 1}}})
+      dotted = DottedHash.new({'turtle' => {'turtle' => {'turtle' => 1}}})
       hash = dotted.to_hash
 
       assert_instance_of(Hash, hash)

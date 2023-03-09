@@ -42,7 +42,7 @@ module NewRelic
           end
         end
 
-        TYPHOEUS = "Typhoeus".freeze
+        TYPHOEUS = 'Typhoeus'.freeze
 
         def type
           TYPHOEUS
@@ -66,14 +66,17 @@ module NewRelic
         end
 
         def [](key)
-          return nil unless @request.options && @request.options[:headers]
+          return nil unless @request.options && headers
 
-          @request.options[:headers][key]
+          headers[key]
         end
 
         def []=(key, value)
-          @request.options[:headers] ||= {}
-          @request.options[:headers][key] = value
+          headers[key] = value
+        end
+
+        def headers
+          @request.options[:headers] || {}
         end
 
         def uri

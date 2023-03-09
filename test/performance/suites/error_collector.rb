@@ -4,8 +4,8 @@
 
 class ErrorCollectorTests < Performance::TestCase
   def setup
-    @txn_name = "Controller/blogs/index".freeze
-    @err_msg = "Sorry!".freeze
+    @txn_name = 'Controller/blogs/index'.freeze
+    @err_msg = 'Sorry!'.freeze
   end
 
   def test_notice_error
@@ -17,7 +17,7 @@ class ErrorCollectorTests < Performance::TestCase
   end
 
   def test_notice_error_with_custom_attributes
-    opts = {:custom_params => {:name => "Wes Mantooth", :channel => 9}}
+    opts = {:custom_params => {:name => 'Wes Mantooth', :channel => 9}}
 
     measure do
       in_transaction(:name => @txn_name) do

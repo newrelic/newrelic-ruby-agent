@@ -46,7 +46,7 @@ module NewRelic
       class ExconHTTPRequest < AbstractRequest
         attr_reader :method
 
-        EXCON = "Excon"
+        EXCON = 'Excon'
         LHOST = 'host'
         UHOST = 'Host'
         COLON = ':'
@@ -65,7 +65,6 @@ module NewRelic
         end
 
         def host_from_header
-          headers = @datum[:headers]
           if hostname = (headers[LHOST] || headers[UHOST])
             hostname.split(COLON).first
           end
@@ -76,17 +75,20 @@ module NewRelic
         end
 
         def [](key)
-          @datum[:headers][key]
+          headers[key]
         end
 
         def []=(key, value)
-          @datum[:headers] ||= {}
-          @datum[:headers][key] = value
+          headers[key] = value
         end
 
         def uri
           url = "#{@scheme}://#{host}:#{@port}#{@path}"
           URIUtil.parse_and_normalize_url(url)
+        end
+
+        def headers
+          @datum[:headers]
         end
       end
     end

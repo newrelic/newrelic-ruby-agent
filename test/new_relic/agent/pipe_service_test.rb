@@ -114,7 +114,7 @@ class PipeServiceTest < Minitest::Test
     end
 
     def test_log_event_data
-      payload = [{}, [[{"priority" => 1}, {"message" => "yo"}]]]
+      payload = [{}, [[{'priority' => 1}, {'message' => 'yo'}]]]
       received_data = data_from_forked_process do
         @service.log_event_data(payload)
       end

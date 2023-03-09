@@ -128,7 +128,7 @@ module NewRelic
 
         num_physical_packages = cores.keys.map(&:first).uniq.size
         num_physical_cores = cores.size
-        num_logical_processors = cores.values.reduce(0, :+)
+        num_logical_processors = cores.values.sum
 
         if num_physical_cores == 0
           num_logical_processors = total_processors
@@ -202,7 +202,7 @@ module NewRelic
           return
         when /docker/
           ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id unrecognized: '#{cpu_cgroup}'")
-          ::NewRelic::Agent.increment_metric("Supportability/utilization/docker/error")
+          ::NewRelic::Agent.increment_metric('Supportability/utilization/docker/error')
           return
         else
           ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
@@ -211,7 +211,7 @@ module NewRelic
 
         if container_id && container_id.size != 64
           ::NewRelic::Agent.logger.debug("Found docker container_id with invalid length: #{container_id}")
-          ::NewRelic::Agent.increment_metric("Supportability/utilization/docker/error")
+          ::NewRelic::Agent.increment_metric('Supportability/utilization/docker/error')
           nil
         else
           container_id
@@ -242,7 +242,7 @@ module NewRelic
       def self.proc_try_read(path)
         return nil unless File.exist?(path)
 
-        content = String.new('')
+        content = +''
         File.open(path) do |f|
           loop do
             begin
@@ -289,8 +289,8 @@ module NewRelic
 
           if bid.ascii_only?
             if bid.empty?
-              ::NewRelic::Agent.logger.debug("boot_id not found in /proc/sys/kernel/random/boot_id")
-              ::NewRelic::Agent.increment_metric("Supportability/utilization/boot_id/error")
+              ::NewRelic::Agent.logger.debug('boot_id not found in /proc/sys/kernel/random/boot_id')
+              ::NewRelic::Agent.increment_metric('Supportability/utilization/boot_id/error')
               nil
 
             elsif bid.bytesize == 36
@@ -298,19 +298,19 @@ module NewRelic
 
             else
               ::NewRelic::Agent.logger.debug("Found boot_id with invalid length: #{bid}")
-              ::NewRelic::Agent.increment_metric("Supportability/utilization/boot_id/error")
+              ::NewRelic::Agent.increment_metric('Supportability/utilization/boot_id/error')
               bid[0, 128]
 
             end
           else
             ::NewRelic::Agent.logger.debug("Found boot_id with non-ASCII characters: #{bid}")
-            ::NewRelic::Agent.increment_metric("Supportability/utilization/boot_id/error")
+            ::NewRelic::Agent.increment_metric('Supportability/utilization/boot_id/error')
             nil
 
           end
         else
-          ::NewRelic::Agent.logger.debug("boot_id not found in /proc/sys/kernel/random/boot_id")
-          ::NewRelic::Agent.increment_metric("Supportability/utilization/boot_id/error")
+          ::NewRelic::Agent.logger.debug('boot_id not found in /proc/sys/kernel/random/boot_id')
+          ::NewRelic::Agent.increment_metric('Supportability/utilization/boot_id/error')
           nil
 
         end

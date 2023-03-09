@@ -16,7 +16,7 @@ module NewRelic
               timeout = NewRelic::Agent.config[:'rake.connect_timeout']
               NewRelic::Agent.instance.wait_on_connect(timeout)
             rescue => e
-              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+              NewRelic::Agent.logger.error('Exception in wait_on_connect', e)
               return yield
             end
 
@@ -36,9 +36,9 @@ module NewRelic
         end
 
         def safe_from_third_party_gem?
-          return true unless NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
+          return true unless NewRelic::LanguageSupport.bundled_gem?('newrelic-rake')
 
-          ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
+          ::NewRelic::Agent.logger.info('Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present')
           false
         end
 
@@ -72,7 +72,7 @@ module NewRelic
         def instrument_invoke_prerequisites_concurrently(task)
           task.instance_eval do
             def invoke_prerequisites_concurrently(*_)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
+              NewRelic::Agent::MethodTracer.trace_execution_scoped('Rake/execute/multitask') do
                 super
               end
             end
@@ -87,11 +87,11 @@ module NewRelic
             instrument_invoke_prerequisites_concurrently(task)
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error during Rake task invoke", e)
+          NewRelic::Agent.logger.error('Error during Rake task invoke', e)
         end
 
         def record_attributes(args, task)
-          command_line = task.application.top_level_tasks.join(" ")
+          command_line = task.application.top_level_tasks.join(' ')
           NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({:command => command_line},
             :'job.rake',
             NewRelic::Agent::AttributeFilter::DST_NONE)
@@ -102,7 +102,7 @@ module NewRelic
               NewRelic::Agent::AttributeFilter::DST_NONE)
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)
+          NewRelic::Agent.logger.error('Error during Rake task attribute recording.', e)
         end
 
         # Expects literal args passed to the task and array of task names

@@ -65,10 +65,10 @@ module NewRelic
       end
 
       def test_enabled_reflects_config_value
-        assert_predicate @aggregator, :enabled?, "Expected enabled? to be true"
+        assert_predicate @aggregator, :enabled?, 'Expected enabled? to be true'
 
         with_server_source(:enabled_key => false) do
-          refute @aggregator.enabled?, "Expected enabled? to be false"
+          refute @aggregator.enabled?, 'Expected enabled? to be false'
         end
       end
 
@@ -92,7 +92,7 @@ module NewRelic
       end
 
       def test_notifies_full
-        expects_logging(:debug, includes("TestAggregator capacity of 5 reached"))
+        expects_logging(:debug, includes('TestAggregator capacity of 5 reached'))
         with_config(:cap_key => 5) do
           5.times { |i| @aggregator.record(i) }
         end
@@ -100,7 +100,7 @@ module NewRelic
 
       def test_notifies_full_only_once
         with_config(:cap_key => 5) do
-          msg = "TestAggregator capacity of 5 reached"
+          msg = 'TestAggregator capacity of 5 reached'
           # this will trigger a message to be logged
           5.times { |i| @aggregator.record(i) }
 
@@ -111,7 +111,7 @@ module NewRelic
       end
 
       def test_notifies_full_resets_after_harvest
-        msg = "TestAggregator capacity of 5 reached"
+        msg = 'TestAggregator capacity of 5 reached'
 
         expects_logging(:debug, includes(msg))
         with_config(:cap_key => 5) do
@@ -127,7 +127,7 @@ module NewRelic
       end
 
       def test_notifies_full_resets_after_buffer_reset
-        msg = "TestAggregator capacity of 5 reached"
+        msg = 'TestAggregator capacity of 5 reached'
 
         expects_logging(:debug, includes(msg))
         with_config(:cap_key => 5) do

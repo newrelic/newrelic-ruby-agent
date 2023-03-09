@@ -11,7 +11,7 @@ class CustomQueueTimeTest < Minitest::Test
 
   DummyRequest = Struct.new(:headers, :cookies) do
     def path
-      "/"
+      '/'
     end
   end
 

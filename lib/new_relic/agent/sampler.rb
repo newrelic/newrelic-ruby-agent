@@ -56,7 +56,7 @@ module NewRelic
       end
 
       def poll
-        raise "Implement in the subclass"
+        raise 'Implement in the subclass'
       end
     end
   end

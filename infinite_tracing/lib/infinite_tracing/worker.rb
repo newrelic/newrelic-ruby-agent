@@ -21,12 +21,12 @@ module NewRelic::Agent
       end
 
       def status
-        return "error" if error?
+        return 'error' if error?
 
         @lock.synchronize do
-          return "stopped" if @worker_thread.nil?
+          return 'stopped' if @worker_thread.nil?
 
-          @worker_thread.status || "idle"
+          @worker_thread.status || 'idle'
         end
       end
 
@@ -55,7 +55,7 @@ module NewRelic::Agent
 
       def start_thread
         NewRelic::Agent.logger.debug("starting worker #{@name} thread...")
-        @worker_thread = NewRelic::Agent::Threading::AgentThread.create("infinite_tracing_worker") do
+        @worker_thread = NewRelic::Agent::Threading::AgentThread.create('infinite_tracing_worker') do
           catch(:exit) do
             begin
               @job.call
@@ -67,7 +67,7 @@ module NewRelic::Agent
         end
         @worker_thread.abort_on_exception = true
         if @worker_thread.respond_to?(:report_on_exception)
-          @worker_thread.report_on_exception = NewRelic::Agent.config[:log_level] == "debug"
+          @worker_thread.report_on_exception = NewRelic::Agent.config[:log_level] == 'debug'
         end
       end
     end

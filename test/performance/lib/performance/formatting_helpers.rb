@@ -7,16 +7,16 @@ module Performance
     def self.format_duration(d)
       if d < 0.001
         ds = d * 1000 * 1000
-        unit = "µs"
+        unit = 'µs'
       elsif d < 1.0
         ds = d * 1000
-        unit = "ms"
+        unit = 'ms'
       else
         ds = d
-        unit = "s"
+        unit = 's'
       end
 
-      sprintf("%.2f %s", ds, unit)
+      sprintf('%.2f %s', ds, unit)
     end
   end
 end

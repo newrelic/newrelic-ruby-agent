@@ -26,7 +26,7 @@ class EventListenerTest < Minitest::Test
   end
 
   def assert_was_not_called
-    refute @called, "Event was called"
+    refute @called, 'Event was called'
   end
 
   #
@@ -35,14 +35,14 @@ class EventListenerTest < Minitest::Test
 
   def test_notifies
     @events.subscribe(:before_call, &@check_method)
-    @events.notify(:before_call, :env => "env")
+    @events.notify(:before_call, :env => 'env')
 
     assert_was_called
-    assert_equal([{:env => "env"}], @called_with)
+    assert_equal([{:env => 'env'}], @called_with)
   end
 
   def test_failure_during_notify_doesnt_block_other_hooks
-    @events.subscribe(:after_call) { raise "Boo!" }
+    @events.subscribe(:after_call) { raise 'Boo!' }
     @events.subscribe(:after_call, &@check_method)
 
     @events.notify(:after_call)
@@ -52,7 +52,7 @@ class EventListenerTest < Minitest::Test
 
   def test_runaway_events
     @events.runaway_threshold = 0
-    expects_logging(:debug, includes("my_event"))
+    expects_logging(:debug, includes('my_event'))
     @events.subscribe(:my_event) {}
   end
 

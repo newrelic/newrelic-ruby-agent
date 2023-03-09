@@ -70,7 +70,7 @@ class MarshalingTest < Minitest::Test
 
   def test_sql_trace_data_marshalling
     in_transaction do
-      agent.sql_sampler.notice_sql("select * from test", "Database/test/select",
+      agent.sql_sampler.notice_sql('select * from test', 'Database/test/select',
         nil, 1.5)
     end
 

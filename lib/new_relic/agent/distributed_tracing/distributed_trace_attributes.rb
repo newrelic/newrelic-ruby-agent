@@ -9,16 +9,16 @@ module NewRelic
 
       # Intrinsic Keys
       INTRINSIC_KEYS = [
-        PARENT_TYPE_KEY = "parent.type",
-        PARENT_APP_KEY = "parent.app",
-        PARENT_ACCOUNT_ID_KEY = "parent.account",
-        PARENT_TRANSPORT_TYPE_KEY = "parent.transportType",
-        PARENT_TRANSPORT_DURATION_KEY = "parent.transportDuration",
-        GUID_KEY = "guid",
-        TRACE_ID_KEY = "traceId",
-        PARENT_TRANSACTION_ID_KEY = "parentId",
-        PARENT_SPAN_ID_KEY = "parentSpanId",
-        SAMPLED_KEY = "sampled"
+        PARENT_TYPE_KEY = 'parent.type',
+        PARENT_APP_KEY = 'parent.app',
+        PARENT_ACCOUNT_ID_KEY = 'parent.account',
+        PARENT_TRANSPORT_TYPE_KEY = 'parent.transportType',
+        PARENT_TRANSPORT_DURATION_KEY = 'parent.transportDuration',
+        GUID_KEY = 'guid',
+        TRACE_ID_KEY = 'traceId',
+        PARENT_TRANSACTION_ID_KEY = 'parentId',
+        PARENT_SPAN_ID_KEY = 'parentSpanId',
+        SAMPLED_KEY = 'sampled'
       ].freeze
 
       # This method extracts intrinsics from the transaction_payload and

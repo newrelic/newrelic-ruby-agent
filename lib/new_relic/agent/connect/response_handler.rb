@@ -37,7 +37,7 @@ module NewRelic
 
         def add_server_side_config(config_data)
           if config_data['agent_config']
-            ::NewRelic::Agent.logger.debug("Using config from server")
+            ::NewRelic::Agent.logger.debug('Using config from server')
           end
 
           ::NewRelic::Agent.logger.debug("Server provided config: #{config_data.inspect}")

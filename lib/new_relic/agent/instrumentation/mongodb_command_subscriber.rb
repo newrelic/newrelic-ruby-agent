@@ -9,7 +9,7 @@ module NewRelic
     module Instrumentation
       class MongodbCommandSubscriber
         MONGODB = 'MongoDB'.freeze
-        COLLECTION = "collection".freeze
+        COLLECTION = 'collection'.freeze
 
         def started(event)
           begin
@@ -43,7 +43,7 @@ module NewRelic
             if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
               attributes = event.reply[error_key][-1]
-              segment.notice_error(Mongo::Error.new("%s (%s)" % [attributes["errmsg"], attributes["code"]]))
+              segment.notice_error(Mongo::Error.new('%s (%s)' % [attributes['errmsg'], attributes['code']]))
 
             # failing commands return a CommandFailed event with an error message
             # in the form of "% (%s)" for the message and code
@@ -106,8 +106,8 @@ module NewRelic
           )
         end
 
-        UNKNOWN = "unknown".freeze
-        LOCALHOST = "localhost".freeze
+        UNKNOWN = 'unknown'.freeze
+        LOCALHOST = 'localhost'.freeze
 
         def host_from_address(address)
           if unix_domain_socket?(address.host)
@@ -131,7 +131,7 @@ module NewRelic
           UNKNOWN
         end
 
-        SLASH = "/".freeze
+        SLASH = '/'.freeze
 
         def unix_domain_socket?(host)
           host.start_with?(SLASH)

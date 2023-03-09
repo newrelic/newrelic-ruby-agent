@@ -26,11 +26,11 @@ module NewRelic
       ATTACHMENT = 'attachment'.freeze
       TEXT_HTML = 'text/html'.freeze
 
-      BODY_START = "<body".freeze
-      HEAD_START = "<head".freeze
-      GT = ">".freeze
+      BODY_START = '<body'.freeze
+      HEAD_START = '<head'.freeze
+      GT = '>'.freeze
 
-      ALREADY_INSTRUMENTED_KEY = "newrelic.browser_monitoring_already_instrumented"
+      ALREADY_INSTRUMENTED_KEY = 'newrelic.browser_monitoring_already_instrumented'
       CHARSET_RE = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
       X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv\s*=\s*['"]x-ua-compatible['"][^>]*>/im.freeze
 
@@ -40,7 +40,7 @@ module NewRelic
 
         js_to_inject = NewRelic::Agent.browser_timing_header
         if (js_to_inject != NewRelic::EMPTY_STR) && should_instrument?(env, status, headers)
-          response_string = autoinstrument_source(response, headers, js_to_inject)
+          response_string = autoinstrument_source(response, js_to_inject)
           if headers.key?(CONTENT_LENGTH)
             content_length = response_string ? response_string.bytesize : 0
             headers[CONTENT_LENGTH] = content_length.to_s
@@ -69,11 +69,17 @@ module NewRelic
 
       private
 
-      def autoinstrument_source(response, headers, js_to_inject)
+      def autoinstrument_source(response, js_to_inject)
         source = gather_source(response)
         close_old_response(response)
-        return nil unless source
+        return unless source
 
+        modify_source(source, js_to_inject)
+      rescue => e
+        NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception: #{e.class} - #{e.message}")
+      end
+
+      def modify_source(source, js_to_inject)
         # Only scan the first 50k (roughly) then give up.
         beginning_of_source = source[0..SCAN_LIMIT]
         meta_tag_positions = find_meta_tag_positions(beginning_of_source)
@@ -81,26 +87,24 @@ module NewRelic
           if insertion_index = find_insertion_index(meta_tag_positions, beginning_of_source, body_start)
             source = source_injection(source, insertion_index, js_to_inject)
           else
-            NewRelic::Agent.logger.debug("Skipping RUM instrumentation. Could not properly determine location to inject script.")
+            NewRelic::Agent.logger.debug('Skipping RUM instrumentation. Could not properly determine location to ' \
+                                         'inject script.')
           end
         else
           msg = "Skipping RUM instrumentation. Unable to find <body> tag in first #{SCAN_LIMIT} bytes of document."
           NewRelic::Agent.logger.log_once(:warn, :rum_insertion_failure, msg)
           NewRelic::Agent.logger.debug(msg)
         end
-
         source
-      rescue => e
-        NewRelic::Agent.logger.debug("Skipping RUM instrumentation on exception.", e)
-        nil
       end
 
       def html?(headers)
-        headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML)
+        # needs else branch coverage
+        headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML) # rubocop:disable Style/SafeNavigation
       end
 
       def attachment?(headers)
-        headers[CONTENT_DISPOSITION] && headers[CONTENT_DISPOSITION].include?(ATTACHMENT)
+        headers[CONTENT_DISPOSITION]&.include?(ATTACHMENT)
       end
 
       def streaming?(env, headers)
@@ -150,12 +154,12 @@ module NewRelic
 
       def find_x_ua_compatible_position(beginning_of_source)
         match = X_UA_COMPATIBLE_RE.match(beginning_of_source)
-        match.end(0) if match
+        match&.end(0)
       end
 
       def find_charset_position(beginning_of_source)
         match = CHARSET_RE.match(beginning_of_source)
-        match.end(0) if match
+        match&.end(0)
       end
 
       def find_end_of_head_open(beginning_of_source)

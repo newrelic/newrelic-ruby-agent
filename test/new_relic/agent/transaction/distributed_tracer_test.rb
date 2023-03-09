@@ -17,9 +17,9 @@ module NewRelic::Agent
         {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "trust_this!"
+          :account_id => '190',
+          :primary_application_id => '46954',
+          :trusted_account_key => 'trust_this!'
         }
       end
 
@@ -37,10 +37,10 @@ module NewRelic::Agent
         begin
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           with_config(distributed_tracing_enabled) do
-            in_transaction("referring_txn") do |txn|
+            in_transaction('referring_txn') do |txn|
               payload = txn.distributed_tracer.create_distributed_trace_payload
 
-              assert payload, "failed to build a distributed_trace payload!"
+              assert payload, 'failed to build a distributed_trace payload!'
               env['HTTP_NEWRELIC'] = payload.http_safe
             end
           end
@@ -60,8 +60,8 @@ module NewRelic::Agent
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request(env)
 
-            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
-            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
+            assert txn.distributed_tracer.trace_context_header_data, 'Expected to accept trace context headers'
+            refute txn.distributed_tracer.distributed_trace_payload, 'Did not expect to accept a distributed trace payload'
           end
         end
       end
@@ -76,8 +76,8 @@ module NewRelic::Agent
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request(env)
 
-            refute txn.distributed_tracer.trace_context_header_data, "Did not expect to accept trace context headers"
-            assert txn.distributed_tracer.distributed_trace_payload, "Expected to accept a distributed trace payload"
+            refute txn.distributed_tracer.trace_context_header_data, 'Did not expect to accept trace context headers'
+            assert txn.distributed_tracer.distributed_trace_payload, 'Expected to accept a distributed trace payload'
           end
         end
       end
@@ -92,8 +92,8 @@ module NewRelic::Agent
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request(env)
 
-            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
-            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
+            assert txn.distributed_tracer.trace_context_header_data, 'Expected to accept trace context headers'
+            refute txn.distributed_tracer.distributed_trace_payload, 'Did not expect to accept a distributed trace payload'
           end
         end
       end
@@ -165,6 +165,37 @@ module NewRelic::Agent
             assert request['newrelic'], "expected distributed trace header to be present in #{request.keys}"
           end
         end
+      end
+
+      def test_log_request_headers_with_hash_argument
+        test_header = {'Snow' => 'Day'}
+        log = with_array_logger(level = :debug) do
+          in_transaction do |txn|
+            txn.distributed_tracer.log_request_headers(test_header)
+          end
+        end
+
+        assert_log_contains(log, /REQUEST HEADERS: #{test_header}/)
+      end
+
+      def test_log_request_headers_with_request_argument
+        skip_unless_minitest5_or_above
+
+        test_header = {'Test' => 'Header'}
+        request = MiniTest::Mock.new
+
+        request.expect :headers, test_header
+        request.expect :is_a?, true, [NewRelic::Agent::HTTPClients::AbstractRequest]
+
+        log = with_array_logger(level = :debug) do
+          in_transaction do |txn|
+            txn.distributed_tracer.log_request_headers(request)
+          end
+        end
+
+        assert_log_contains(log, /REQUEST HEADERS: #{test_header}/)
+
+        request.verify
       end
     end
   end
