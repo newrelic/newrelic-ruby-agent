@@ -200,7 +200,10 @@ module NewRelic
           'odbc' => 'ODBC',
 
           # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
-          'oracle_enhanced' => 'Oracle'
+          'oracle_enhanced' => 'Oracle',
+
+          # https://rubygems.org/gems/activerecord-amazon-timestream-adapter
+          'amazon_timestream' => 'Timestream'
         }.freeze
 
         ACTIVE_RECORD_DEFAULT_PRODUCT_NAME = 'ActiveRecord'.freeze

@@ -126,20 +126,36 @@ run_env_tests() {
 
 # organizes the args for the unit tests and calls the command
 run_unit_tests() {
+  find_test_file "$1" "new_relic"
   if [[ -n "$2" ]]; then
     # echo "running file and name"
     set_test_opts $2
-    TEST="$1" TESTOPTS="$test_opts_result" unit_command;
+    TEST=${TEST:-"$1"} TESTOPTS="$test_opts_result" unit_command;
   elif [[ -n "$1"  && "$1" =~ ^test_ ]]; then
     # echo "running name"
     set_test_opts $1
     TESTOPTS="$test_opts_result" unit_command;
   elif [[ -n "$1" ]]; then
     # echo "running file"
-    TEST="$1" unit_command;
+    TEST=${TEST:-"$1"} unit_command;
   else
     # echo "running unit tests"
     unit_command;
+  fi
+}
+
+# If the first argument doesn't contain a slash or start with test_
+# then assume it is a partial filename match. Find the file.
+find_test_file() {
+  if [[ "$1" != */* && "$1" != test* ]]; then
+    file=$(find "test/$2" -name "*$1*" -print -quit)
+    if [[ "$file" == "" ]]; then
+      echo "Could not find a file match for '$1'"
+      exit
+    else
+      echo "Testing against file '$file'..."
+      TEST="$file"
+    fi
   fi
 }
 
