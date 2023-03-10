@@ -2,8 +2,12 @@
 
 ## dev
 
-  Upcoming version removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes a bug regarding logged request headers, and is tested against the recently released JRuby 9.4.2.0.
+  Upcoming version identifies the Amazon Timesteam data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes a bug regarding logged request headers, and is tested against the recently released JRuby 9.4.2.0.
 
+
+- **Identify Amazon Timestream when the amazon_timestream AR adapter is used**
+
+  When the agent sees the [activerecord-amazon-timestream-adapter](https://rubygems.org/gems/activerecord-amazon-timestream-adapter) gem being used, it will now identify the data store as "Timestream". Thanks very much to [@wagner](https://github.com/wagner) for contributing this enhancement! [PR#1872](https://github.com/newrelic/newrelic-ruby-agent/pull/1872)
 
 - **Bugfix: Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
 

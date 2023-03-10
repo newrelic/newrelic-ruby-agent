@@ -63,6 +63,16 @@ module NewRelic::Agent::Instrumentation
       assert_nil collection
     end
 
+    def test_product_operation_collection_for_timestream_from_adapter
+      product, operation, collection = ActiveRecordHelper.product_operation_collection_for('Model Load',
+        nil,
+        'amazon_timestream')
+
+      assert_equal 'Timestream', product
+      assert_equal 'find', operation
+      assert_equal 'Model', collection
+    end
+
     def test_product_operation_collection_for_name_with_integer_returns_nil
       product, operation, collection = ActiveRecordHelper.product_operation_collection_for(1, '', nil)
 
