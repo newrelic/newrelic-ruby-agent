@@ -44,6 +44,7 @@ module NewRelic
       :record_metric,
       :recording_web_transaction?,
       :require_test_helper,
+      :set_error_group_callabck,
       :set_sql_obfuscator,
       :set_transaction_name,
       :shutdown,

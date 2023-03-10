@@ -572,6 +572,15 @@ module NewRelic
       NewRelic::Agent.remove_instance_variable(:@error_group_callback)
     end
 
+    def test_successful_set_error_group_callback_api_invocation_produces_supportability_metrics
+      called = false
+      verification_proc = proc { |name| called = true if name == :set_error_group_callback }
+      NewRelic::Agent.stub :record_api_supportability_metric, verification_proc do
+        NewRelic::Agent.set_error_group_callback(proc {})
+      end
+      assert called
+    end
+
     private
 
     def with_unstarted_agent

@@ -333,6 +333,7 @@ module NewRelic
         return
       end
 
+      record_api_supportability_metric(:set_error_group_callback)
       @error_group_callback = callback_proc
     end
 
