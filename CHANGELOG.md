@@ -1,5 +1,39 @@
 # New Relic Ruby Agent Release Notes
 
+## error_fingerprinting_and_user_tracking
+  
+  Version x.x.x of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking.
+
+- **Error fingerprinting**
+
+  A new `set_error_group_callback` public API method now exists that will accept a user defined proc. The proc will be invoked for each noticed error and whenever it returns a string, that string will be used as the error group name for the error and will take precedence over any server-side grouping that takes place with the New Relic errors inbox. This gives users much greater control over the grouping of their errors.
+
+  The customer defined proc will be expected to receive exactly one input argument, a hash. The hash contains the following:
+
+  |  Key                 | Value                                                                        |
+  | ---------------------| ---------------------------------------------------------------------------- |
+  | `:error`             | The Ruby error class instance. Offers `#class`, `#message`, and `#backtrace` |
+  | `:customAttributes`  | Any customer defined customed attributed for the current transaction         |
+  | `:'request.uri'`     | The current requeset URI if available                                        |
+  | `:'http.statusCode'` | The HTTP status code (200, 404, etc.) if available                           |
+  | `:'http.method'`     | The HTTP method (GET, PUT, etc.) if available                                |
+  | `:'error.expected'`  | Whether (true) or not (false) the error was expected                         |
+  | `:'options'`         | The options hash passed to `NewRelic::Agent.notice_error                     |
+
+  The callback only needs to be set once per initialization of the New Relic agent.
+
+  Example usage:
+
+  ```
+  proc = proc { |hash| "Access" if hash[:'http.statusCode'].to_s == '401' }
+  NewRelic::Agent.set_error_group_callback(proc)
+  ```
+
+- **User tracking**
+
+  A new `set_user_id` public API method now exists that will accept a string representation of a user id and associate that user id with the current transaction. Transactions and errors will then have a new `enduser.id` agent attribute associated with them. This will allow agent users to tag transactions and errors as belonging to given user ids in support of greater filtering and alerting capabilities.
+
+
 ## dev
 
   Upcoming version identifies the Amazon Timesteam data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes a bug regarding logged request headers, and is tested against the recently released JRuby 9.4.2.0.

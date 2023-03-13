@@ -271,6 +271,52 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
+  def test_error_group_can_be_read
+    error_group = 'lucky tiger'
+    error = NewRelic::NoticedError.new(@path, StandardError.new)
+    error.instance_variable_set(:@error_group, error_group)
+
+    assert_equal error_group, error.error_group
+  end
+
+  def test_error_group_can_be_set
+    error_group = 'lucky tiger'
+    error = NewRelic::NoticedError.new(@path, StandardError.new)
+    error.error_group = error_group
+
+    assert_equal error_group, error.error_group
+  end
+
+  def test_error_group_setting_ignores_empty_strings
+    error = NewRelic::NoticedError.new(@path, StandardError.new)
+
+    assert_nil error.error_group
+
+    error.error_group = ''
+
+    assert_nil error.error_group
+  end
+
+  def test_error_group_setting_ignores_nil
+    error = NewRelic::NoticedError.new(@path, StandardError.new)
+    error_group = 'lucky tiger'
+    error.instance_variable_set(:@error_group, error_group)
+    error.error_group = nil
+
+    assert_equal error_group, error.error_group
+  end
+
+  def test_error_group_name_agent_attribute_is_set
+    error_group = 'spicy lavender'
+    error = NewRelic::NoticedError.new(@path, StandardError.new)
+    error.error_group = error_group
+    agent_attributes = error.agent_attributes
+
+    assert_equal error_group, agent_attributes[:'error.group.name']
+  end
+
+  private
+
   def create_error(exception = StandardError.new)
     noticed_error = NewRelic::NoticedError.new(@path, exception, @time)
     noticed_error.attributes = @attributes

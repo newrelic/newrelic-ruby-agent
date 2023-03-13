@@ -15,7 +15,7 @@ class NewRelic::NoticedError
     :stack_trace, :attributes_from_notice_error, :attributes,
     :expected
 
-  attr_reader :exception_id, :is_internal
+  attr_reader :error_group, :exception_id, :is_internal
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
   UNKNOWN_ERROR_CLASS_NAME = 'Error'
@@ -26,6 +26,8 @@ class NewRelic::NoticedError
   INTRINSIC_ATTRIBUTES = 'intrinsics'
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+  AGENT_ATTRIBUTE_ERROR_GROUP = :'error.group.name'
 
   ERROR_PREFIX_KEY = 'error'
   ERROR_MESSAGE_KEY = "#{ERROR_PREFIX_KEY}.message"
@@ -141,9 +143,15 @@ class NewRelic::NoticedError
   end
 
   def build_agent_attributes(merged_attributes)
-    return NewRelic::EMPTY_HASH unless @attributes
+    return error_group_hash unless @attributes
 
-    @attributes.agent_attributes_for(DESTINATION)
+    @attributes.agent_attributes_for(DESTINATION).merge(error_group_hash)
+  end
+
+  def error_group_hash
+    return NewRelic::EMPTY_HASH unless error_group
+
+    {AGENT_ATTRIBUTE_ERROR_GROUP => error_group}
   end
 
   def build_intrinsic_attributes
@@ -184,5 +192,11 @@ class NewRelic::NoticedError
       @exception_class_name = exception.is_a?(Exception) ? exception.class.name : UNKNOWN_ERROR_CLASS_NAME
       @message = exception.to_s
     end
+  end
+
+  def error_group=(name)
+    return if name.nil? || name.empty?
+
+    @error_group = name
   end
 end

@@ -285,6 +285,8 @@ module NewRelic
         # get treated as custom attributes, so merge them into that hash.
         noticed_error.attributes_from_notice_error.merge!(options)
 
+        update_error_group_name(noticed_error, exception, options)
+
         noticed_error
       end
 
@@ -305,6 +307,32 @@ module NewRelic
         @error_trace_aggregator.reset!
         @error_event_aggregator.reset!
         nil
+      end
+
+      private
+
+      def update_error_group_name(noticed_error, exception, options)
+        return unless error_group_callback
+
+        callback_hash = build_customer_callback_hash(noticed_error, exception, options)
+        result = error_group_callback.call(callback_hash)
+        noticed_error.error_group = result
+      rescue StandardError => e
+        NewRelic::Agent.logger.error("Failed to obtain error group from customer callback: #{e.class} - #{e.message}")
+      end
+
+      def build_customer_callback_hash(noticed_error, exception, options)
+        {error: exception,
+         customAttributes: noticed_error.custom_attributes,
+         'request.uri': noticed_error.request_uri,
+         'http.statusCode': noticed_error.agent_attributes[:'http.statusCode'],
+         'http.method': noticed_error.intrinsic_attributes[:'http.method'],
+         'error.expected': noticed_error.expected,
+         options: options}
+      end
+
+      def error_group_callback
+        NewRelic::Agent.error_group_callback
       end
     end
   end
