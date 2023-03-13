@@ -641,7 +641,7 @@ module NewRelic::Agent
         error = ArgumentError.new
         error_group = 'lucky tiger'
         noticed_error = NewRelic::NoticedError.new(:watermelon, error)
-        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if error.is_a?(ArgumentError) })
+        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if hash[:error].is_a?(ArgumentError) })
         @error_collector.send(:update_error_group_name, noticed_error, error, {})
 
         assert_equal error_group, noticed_error.error_group
@@ -664,6 +664,17 @@ module NewRelic::Agent
           end
         end
         logger.verify
+      end
+
+      def test_noticed_errors_have_the_error_group_present_in_their_agent_attributes
+        error_group = 'blackcurrant tea'
+        exception = RuntimeError.new
+        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if hash[:error].is_a?(RuntimeError) })
+        noticed_error = @error_collector.create_noticed_error(exception, {})
+
+        assert_equal error_group, noticed_error.agent_attributes[::NewRelic::NoticedError::AGENT_ATTRIBUTE_ERROR_GROUP]
+      ensure
+        NewRelic::Agent.remove_instance_variable(:@error_group_callback)
       end
 
       private
