@@ -143,15 +143,9 @@ class NewRelic::NoticedError
   end
 
   def build_agent_attributes(merged_attributes)
-    return error_group_hash unless @attributes
+    return NewRelic::EMPTY_HASH unless @attributes
 
-    @attributes.agent_attributes_for(DESTINATION).merge(error_group_hash)
-  end
-
-  def error_group_hash
-    return NewRelic::EMPTY_HASH unless error_group
-
-    {AGENT_ATTRIBUTE_ERROR_GROUP => error_group}
+    @attributes.agent_attributes_for(DESTINATION)
   end
 
   def build_intrinsic_attributes
@@ -196,6 +190,13 @@ class NewRelic::NoticedError
 
   def error_group=(name)
     return if name.nil? || name.empty?
+
+    if processed_attributes[AGENT_ATTRIBUTES].frozen?
+      processed_attributes[AGENT_ATTRIBUTES] =
+        processed_attributes[AGENT_ATTRIBUTES].merge(AGENT_ATTRIBUTE_ERROR_GROUP => name)
+    else
+      processed_attributes[AGENT_ATTRIBUTES] = name
+    end
 
     @error_group = name
   end
