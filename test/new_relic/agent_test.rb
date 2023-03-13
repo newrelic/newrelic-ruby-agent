@@ -592,9 +592,8 @@ module NewRelic
         NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
       end
 
-      [harvest_transaction_events!, harvest_error_events!].each do |events|
-        assert_equal events[1][0][2][:'enduser.id'], test_user
-      end
+      assert_equal test_user, harvest_transaction_events![1][0][2][:'enduser.id']
+      assert_equal test_user, harvest_error_events![1][0][2][:'enduser.id']
     end
 
     def test_set_user_id_nil_or_empty_error
