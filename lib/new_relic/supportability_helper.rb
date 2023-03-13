@@ -47,6 +47,7 @@ module NewRelic
       :set_error_group_callback,
       :set_sql_obfuscator,
       :set_transaction_name,
+      :set_user_id,
       :shutdown,
       :start_segment,
       :trace,

@@ -649,6 +649,26 @@ module NewRelic
       end
     end
 
+    # Set the user id for the current transaction. When present, this value will be included in the agent attributes for transaction and error events as 'enduser.id'.
+    #
+    # @param [String] user_id    The user id to add to the current transaction attributes
+    #
+    # @api public
+    def set_user_id(user_id)
+      record_api_supportability_metric(:set_user_id)
+
+      if user_id.nil? || user_id.empty?
+        ::NewRelic::Agent.logger.warn('NewRelic::Agent.set_user_id called with a nil or empty user id.')
+        return
+      end
+
+      default_destinations = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+        NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+        NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+      NewRelic::Agent::Transaction.add_agent_attribute(:'enduser.id', user_id, default_destinations)
+    end
+
     # @!endgroup
 
     # @!group Transaction naming
