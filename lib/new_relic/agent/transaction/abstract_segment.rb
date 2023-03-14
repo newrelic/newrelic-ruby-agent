@@ -262,7 +262,7 @@ module NewRelic
 
         def force_finish
           finish
-          NewRelic::Agent.logger.warn("Segment: #{name} was unfinished at " \
+          NewRelic::Agent.logger.debug("Segment: #{name} was unfinished at " \
             "the end of transaction. Timing information for this segment's " \
             "parent #{parent&.name} in #{transaction.best_name} may be inaccurate.")
         end
