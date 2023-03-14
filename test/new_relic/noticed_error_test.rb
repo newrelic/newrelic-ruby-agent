@@ -315,6 +315,16 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal error_group, agent_attributes[:'error.group.name']
   end
 
+  def test_noticed_errors_group_is_not_frozen
+    error_group = 'mint tea'
+    exception = RuntimeError.new
+    noticed_error = ::NewRelic::NoticedError.new('www.mint_tea.com', exception)
+    noticed_error.instance_variable_set(:@processed_attributes, {noticed_error.class::AGENT_ATTRIBUTES => {}})
+    noticed_error.send(:error_group=, error_group)
+
+    assert_equal error_group, noticed_error.agent_attributes[::NewRelic::NoticedError::AGENT_ATTRIBUTE_ERROR_GROUP]
+  end
+
   private
 
   def create_error(exception = StandardError.new)

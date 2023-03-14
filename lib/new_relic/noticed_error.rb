@@ -191,11 +191,10 @@ class NewRelic::NoticedError
   def error_group=(name)
     return if name.nil? || name.empty?
 
-    if processed_attributes[AGENT_ATTRIBUTES].frozen?
-      processed_attributes[AGENT_ATTRIBUTES] =
-        processed_attributes[AGENT_ATTRIBUTES].merge(AGENT_ATTRIBUTE_ERROR_GROUP => name)
+    if agent_attributes.frozen?
+      processed_attributes[AGENT_ATTRIBUTES] = agent_attributes.merge(AGENT_ATTRIBUTE_ERROR_GROUP => name)
     else
-      processed_attributes[AGENT_ATTRIBUTES] = name
+      agent_attributes[AGENT_ATTRIBUTE_ERROR_GROUP] = name
     end
 
     @error_group = name
