@@ -262,10 +262,9 @@ module NewRelic
 
         def force_finish
           finish
-          message = "Segment: #{name} was unfinished at " \
+          NewRelic::Agent.logger.send(transaction.async? ? :debug : :warn, "Segment: #{name} was unfinished at " \
             "the end of transaction. Timing information for this segment's " \
-            "parent #{parent&.name} in #{transaction.best_name} may be inaccurate."
-          transaction.async? ? NewRelic::Agent.logger.debug(message) : NewRelic::Agent.logger.warn(message)
+            "parent #{parent&.name} in #{transaction.best_name} may be inaccurate.")
         end
 
         def run_complete_callbacks
