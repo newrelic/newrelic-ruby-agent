@@ -15,7 +15,7 @@ TYPHOEUS_VERSIONS = [
   nil,
   '1.4.0',
   '1.3.1',
-  '1.3.0',
+  '1.3.0'
 ]
 
 def gem_list(typhoeus_version = nil)
