@@ -56,6 +56,6 @@ class HarvestTimestampsTest < Minitest::Test
   end
 
   def simulate_fork
-    NewRelic::Agent.instance.harvester.instance_variable_set(:@starting_pid, nil)
+    NewRelic::Agent.instance.instance_variable_get(:@harvester).instance_variable_set(:@starting_pid, nil)
   end
 end

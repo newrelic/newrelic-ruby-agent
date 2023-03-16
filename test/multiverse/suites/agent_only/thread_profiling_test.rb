@@ -20,7 +20,7 @@ class ThreadProfilingTest < Minitest::Test
     agent.service.request_timeout = 0.5
     agent.service.agent_id = 666
 
-    @thread_profiler_session = agent.agent_command_router.thread_profiler_session
+    @thread_profiler_session = agent.instance_variable_get(:@agent_command_router).thread_profiler_session
     @threads = []
   end
 
