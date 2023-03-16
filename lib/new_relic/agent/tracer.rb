@@ -426,6 +426,7 @@ module NewRelic
             begin
               if current_txn
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
+                current_txn.async = true
                 segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
                 segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent)
               end
