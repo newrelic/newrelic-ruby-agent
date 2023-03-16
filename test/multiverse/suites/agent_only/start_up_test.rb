@@ -41,21 +41,21 @@ class StartUpTest < Minitest::Test
 
     expected_noise << JRUBY_9000_NOISE if jruby_9000
 
-    expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
+    expected_noise.flatten.each { |noise| output.gsub!(noise, '') }
 
     assert_equal '', output.chomp
   end
 
   def test_instrumentation_loads_clean_even_without_dependencies
-    assert_runs_without_errors("bundle exec ruby script/loading.rb")
+    assert_runs_without_errors('bundle exec ruby script/loading.rb')
   end
 
   def test_manual_start_with_symbol_for_environment
-    assert_runs_without_errors("bundle exec ruby script/symbol_env.rb")
+    assert_runs_without_errors('bundle exec ruby script/symbol_env.rb')
   end
 
   def test_can_call_public_api_methods_when_agent_disabled
-    assert_runs_without_errors("bundle exec ruby script/public_api_when_disabled.rb")
+    assert_runs_without_errors('bundle exec ruby script/public_api_when_disabled.rb')
   end
 
   def test_manual_start_logs_about_mismatched_environment
@@ -94,13 +94,13 @@ RUBY
 
         NewRelic::Agent.manual_start(:app_name => 'my great app')
 
-        in_transaction("outer txn") do
+        in_transaction('outer txn') do
           pid = Process.fork do
             read.close
             NewRelic::Agent.after_fork
 
             txn = NewRelic::Agent::Tracer.current_transaction
-            txn_name = txn ? txn.best_name : nil
+            txn_name = txn&.best_name
             Marshal.dump(txn_name, write)
           end
           write.close
@@ -124,7 +124,7 @@ RUBY
       expected_noise << JRUBY_9000_NOISE if jruby_9000
       expected_noise << BUNDLER_NOISE if bundler_rubygem_conflicts?
 
-      expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
+      expected_noise.flatten.each { |noise| output.gsub!(noise, '') }
       output.strip!
 
       assert_equal NewRelic::VERSION::STRING, output
@@ -142,11 +142,11 @@ RUBY
   end
 
   def jruby_9000
-    defined?(JRUBY_VERSION) && Gem::Version.new(JRUBY_VERSION) >= Gem::Version.new("9.0.0")
+    defined?(JRUBY_VERSION) && Gem::Version.new(JRUBY_VERSION) >= Gem::Version.new('9.0.0')
   end
 
   def bundler_rubygem_conflicts?
-    Gem::Version.new(Gem::VERSION) == Gem::Version.new("2.6.6") and
-      Gem::Version.new(Bundler::VERSION) == Gem::Version.new("1.12.5")
+    Gem::Version.new(Gem::VERSION) == Gem::Version.new('2.6.6') and
+      Gem::Version.new(Bundler::VERSION) == Gem::Version.new('1.12.5')
   end
 end

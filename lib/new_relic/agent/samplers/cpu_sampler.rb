@@ -16,26 +16,26 @@ module NewRelic
           @last_time = nil
           @processor_count = NewRelic::Agent::SystemInfo.num_logical_processors
           if @processor_count.nil?
-            NewRelic::Agent.logger.warn("Failed to determine processor count, assuming 1")
+            NewRelic::Agent.logger.warn('Failed to determine processor count, assuming 1')
             @processor_count = 1
           end
           poll
         end
 
         def record_user_util(value)
-          NewRelic::Agent.record_metric("CPU/User/Utilization", value)
+          NewRelic::Agent.record_metric('CPU/User/Utilization', value)
         end
 
         def record_system_util(value)
-          NewRelic::Agent.record_metric("CPU/System/Utilization", value)
+          NewRelic::Agent.record_metric('CPU/System/Utilization', value)
         end
 
         def record_usertime(value)
-          NewRelic::Agent.record_metric("CPU/User Time", value)
+          NewRelic::Agent.record_metric('CPU/User Time', value)
         end
 
         def record_systemtime(value)
-          NewRelic::Agent.record_metric("CPU/System Time", value)
+          NewRelic::Agent.record_metric('CPU/System Time', value)
         end
 
         def self.supported_on_this_platform?

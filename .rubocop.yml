@@ -66,7 +66,7 @@ Style/RedundantEach: # new in 1.38
   Enabled: true
 Style/RedundantInitialize: # new in 1.27
   Enabled: true
-Style/RedundantStringEscape: # new in 1.37
+Style/RedundantStringEscape: # new in 1.37, 'pending' by default so enabled to make sure it's applied
   Enabled: true
 Style/YodaExpression: # new in 1.42
   Enabled: true
@@ -140,7 +140,8 @@ Performance/StringIdentifierArgument: # new in 1.13
   Enabled: true
 Performance/StringInclude: # new in 1.7
   Enabled: true
-
+Performance/Sum: # new in 1.8, pending so left enabled explicitly until 2.0
+  Enabled: true
 
 # Old cops
 
@@ -1081,18 +1082,6 @@ Performance/MapCompact:
 Performance/MethodObjectAsBlock:
   Enabled: false
 
-# TODO: OLD RUBIES - Requires 2.4
-Performance/RegexpMatch:
-  Enabled: false
-
-# TODO: OLD RUBIES - Requires 2.4
-Performance/Sum:
-  Enabled: false
-
-# TODO: OLD RUBIES - Requires 2.3
-Performance/UnfreezeString:
-  Enabled: false
-
 # Disabling for now
 Security/Eval:
   Enabled: false
@@ -1267,9 +1256,6 @@ Style/DocumentationMethod:
 Style/DoubleCopDisableDirective:
   Enabled: false
 
-Style/DoubleNegation:
-  Enabled: false
-
 Style/EachForSimpleLoop:
   Enabled: true
 
@@ -1330,8 +1316,6 @@ Style/ExplicitBlockArgument:
 Style/ExponentialNotation:
   Enabled: false
 
-# TODO: MAJOR VERSION - Re-enable FetchEnvVar after dropping support for Ruby 2.2
-#                       Ruby 2.3+ allows for ENV.fetch('KEY') { default }
 Style/FetchEnvVar:
   Enabled: false
 
@@ -1740,17 +1724,6 @@ Style/RescueStandardError:
 Style/ReturnNil:
   Enabled: false
 
-# Can't use, not available in Ruby 2.2
-Style/SafeNavigation:
-  Enabled: false
-  # ConvertCodeThatCanStartToReturnNil: false
-  # AllowedMethods:
-  #   - present?
-  #   - blank?
-  #   - presence
-  #   - try
-  #   - try!
-
 Style/Sample:
   Enabled: true
 
@@ -1808,17 +1781,6 @@ Style/StringConcatenation:
 
 Style/StringHashKeys:
   Enabled: false
-
-# Disabling for now
-Style/StringLiterals:
-  Enabled: false
-#   EnforcedStyle: double_quotes
-#   ConsistentQuotesInMultiline: false
-
-# Disabling for now
-Style/StringLiteralsInInterpolation:
-  Enabled: false
-  # EnforcedStyle: double_quotes
 
 Style/StringMethods:
   Enabled: false

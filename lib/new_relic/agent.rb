@@ -210,6 +210,8 @@ module NewRelic
       record_metric(metric_name, value)
     end
 
+    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
+
     # Increment a simple counter metric.
     #
     # +metric_name+ should follow a slash separated path convention. Application
@@ -218,9 +220,7 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
-
-    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
-
+    #
     def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
       return unless agent
 
@@ -353,7 +353,7 @@ module NewRelic
     # @api public
     #
     def manual_start(options = {})
-      raise "Options must be a hash" unless Hash === options
+      raise 'Options must be a hash' unless Hash === options
 
       NewRelic::Control.instance.init_plugin({:agent_enabled => true, :sync_startup => true}.merge(options))
       record_api_supportability_metric(:manual_start)
@@ -371,7 +371,7 @@ module NewRelic
     # jobs or other work.  If you are doing this with a web dispatcher
     # that forks worker processes then you will need to force the
     # agent to reconnect, which it won't do by default.  Passenger and
-    # Rainbows and Unicorn are already handled, nothing special needed for them.
+    # Unicorn are already handled, nothing special needed for them.
     #
     # Options:
     # * <tt>:force_reconnect => true</tt> to force the spawned process to
@@ -386,7 +386,8 @@ module NewRelic
     #
     def after_fork(options = {})
       record_api_supportability_metric(:after_fork)
-      agent.after_fork(options) if agent
+      # the following line needs else branch coverage
+      agent.after_fork(options) if agent # rubocop:disable Style/SafeNavigation
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
@@ -398,7 +399,7 @@ module NewRelic
     #
     def shutdown(options = {})
       record_api_supportability_metric(:shutdown)
-      agent.shutdown if agent
+      agent&.shutdown
     end
 
     # Clear out any data the agent has buffered but has not yet transmitted
@@ -406,7 +407,8 @@ module NewRelic
     #
     # @api public
     def drop_buffered_data
-      agent.drop_buffered_data if agent
+      # the following line needs else branch coverage
+      agent.drop_buffered_data if agent # rubocop:disable Style/SafeNavigation
       record_api_supportability_metric(:drop_buffered_data)
     end
 
@@ -465,8 +467,7 @@ module NewRelic
     #
     def ignore_transaction
       record_api_supportability_metric(:ignore_transaction)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore!
     end
 
     # This method disables the recording of Apdex metrics in the current
@@ -476,8 +477,7 @@ module NewRelic
     #
     def ignore_apdex
       record_api_supportability_metric(:ignore_apdex)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore_apdex! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore_apdex!
     end
 
     # This method disables browser monitoring javascript injection in the
@@ -487,8 +487,7 @@ module NewRelic
     #
     def ignore_enduser
       record_api_supportability_metric(:ignore_enduser)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore_enduser! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore_enduser!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -509,18 +508,6 @@ module NewRelic
       ensure
         agent.pop_trace_execution_flag
       end
-    end
-
-    # This method disables the recording of transaction traces in the given
-    # block.  See also #disable_all_tracing
-    #
-    # @api public
-    #
-    def disable_transaction_tracing
-      Deprecator.deprecate(:disable_transaction_tracing,
-        'disable_all_tracing or ignore_transaction')
-      record_api_supportability_metric(:disable_transaction_tracing)
-      yield
     end
 
     # This method sets the state of sql recording in the transaction
@@ -576,8 +563,7 @@ module NewRelic
       record_api_supportability_metric(:add_custom_attributes)
 
       if params.is_a?(Hash)
-        txn = Transaction.tl_current
-        txn.add_custom_attributes(params) if txn
+        Transaction.tl_current&.add_custom_attributes(params)
 
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment
@@ -698,7 +684,7 @@ module NewRelic
     def notify(event_type, *args)
       agent.events.notify(event_type, *args)
     rescue
-      NewRelic::Agent.logger.debug("Ignoring exception during %p event notification" % [event_type])
+      NewRelic::Agent.logger.debug('Ignoring exception during %p event notification' % [event_type])
     end
 
     # @!group Trace and Entity metadata

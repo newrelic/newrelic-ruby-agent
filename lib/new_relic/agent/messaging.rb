@@ -14,7 +14,7 @@ module NewRelic
     module Messaging
       extend self
 
-      RABBITMQ_TRANSPORT_TYPE = "RabbitMQ"
+      RABBITMQ_TRANSPORT_TYPE = 'RabbitMQ'
 
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
         AttributeFilter::DST_TRANSACTION_TRACER |
@@ -142,15 +142,16 @@ module NewRelic
           txn.add_agent_attribute(:'message.queueName', queue_name, ATTR_DESTINATION) if queue_name
           txn.add_agent_attribute(:'message.replyTo', reply_to, AttributeFilter::DST_NONE) if reply_to
         rescue => e
-          NewRelic::Agent.logger.error("Error starting Message Broker consume transaction", e)
+          NewRelic::Agent.logger.error('Error starting Message Broker consume transaction', e)
         end
 
         yield
       ensure
         begin
-          txn.finish if txn
+          # the following line needs else branch coverage
+          txn.finish if txn # rubocop:disable Style/SafeNavigation
         rescue => e
-          NewRelic::Agent.logger.error("Error stopping Message Broker consume transaction", e)
+          NewRelic::Agent.logger.error('Error stopping Message Broker consume transaction', e)
         end
       end
 
@@ -190,7 +191,8 @@ module NewRelic
 
         raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
-        original_headers = headers.nil? ? nil : headers.dup
+        # The following line needs else branch coverage
+        original_headers = headers.nil? ? nil : headers.dup # rubocop:disable Style/SafeNavigation
 
         segment = Tracer.start_message_broker_segment(
           action: :produce,

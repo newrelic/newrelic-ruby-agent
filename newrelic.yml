@@ -162,10 +162,6 @@ common: &default_settings
   # or  port_path_or_id parameters to transaction or slow SQL traces.
   # datastore_tracer.instance_reporting.enabled: true
 
-  # If true, when the agent is in an application using Ruby on Rails, it will start after
-  # config/initializers have run.
-  # defer_rails_initialization: false
-
   # If true, disables Action Cable instrumentation.
   # disable_action_cable_instrumentation: false
 
@@ -195,9 +191,6 @@ common: &default_settings
 
   # If true, disables ActiveSupport custom events instrumentation.
   # disable_custom_events_instrumentation: false
-
-  # If true, disables DataMapper instrumentation.
-  # disable_data_mapper: false
 
   # If true, the agent won't measure the depth of Delayed Job queues.
   # disable_delayed_job_sampler: false
@@ -337,6 +330,10 @@ common: &default_settings
   # May be one of [auto|prepend|chain|disabled].
   # instrumentation.bunny: auto
 
+  # Controls auto-instrumentation of Fiber at start up.
+  # May be one of [auto|prepend|chain|disabled]
+  # instrumentation.fiber: auto
+
   # Controls auto-instrumentation of concurrent_ruby at start up.
   # May be one of [auto|prepend|chain|disabled]
   # instrumentation.concurrent_ruby: auto
@@ -444,7 +441,7 @@ common: &default_settings
   # instrumentation.thread: auto
 
   # Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application.
-  # instrumentation.thread.tracing: false
+  # instrumentation.thread.tracing: true
 
   # Controls auto-instrumentation of gRPC clients at start up.
   # May be one of [auto|prepend|chain|disabled].

@@ -32,18 +32,18 @@ Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test
 # will be skipped.
 
 if ENV['NO_RAILS']
-  puts "Running tests in standalone mode without Rails."
+  puts 'Running tests in standalone mode without Rails.'
   require 'newrelic_rpm'
 else
   begin
     # try loading rails via attempted loading of config/environment.rb
     require './config/environment'
     require 'newrelic_rpm'
-    puts "Running in standalone mode with Rails" if ENV['VERBOSE_TEST_OUTPUT']
+    puts 'Running in standalone mode with Rails' if ENV['VERBOSE_TEST_OUTPUT']
   rescue LoadError
     # if there was not a file at config/environment.rb fall back to running without it
     require 'newrelic_rpm'
-    puts "Running in standalone mode without Rails" if ENV['VERBOSE_TEST_OUTPUT']
+    puts 'Running in standalone mode without Rails' if ENV['VERBOSE_TEST_OUTPUT']
   end
 end
 

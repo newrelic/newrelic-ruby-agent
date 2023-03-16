@@ -5,8 +5,8 @@
 module NewRelic
   module Agent
     module HTTPClients
-      MUST_IMPLEMENT_ERROR = "Subclasses of %s must implement a :%s method"
-      WHINY_NIL_ERROR = "%s cannot initialize with a nil wrapped_response object."
+      MUST_IMPLEMENT_ERROR = 'Subclasses of %s must implement a :%s method'
+      WHINY_NIL_ERROR = '%s cannot initialize with a nil wrapped_response object.'
 
       # This class provides a public interface for wrapping HTTP requests. This
       # may be used to create wrappers that are compatible with New Relic's
@@ -14,28 +14,16 @@ module NewRelic
       #
       # @api public
       class AbstractRequest
-        def []
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+        %i[[] []= type host_from_header host method headers uri].each do |name|
+          define_method(name) do
+            not_implemented(name)
+          end
         end
 
-        def []=
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
-        end
+        private
 
-        def type
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
-        end
-
-        def host_from_header
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
-        end
-
-        def host
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
-        end
-
-        def method
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+        def not_implemented(method_name)
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, method_name]
         end
       end
 

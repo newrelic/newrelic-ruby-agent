@@ -9,22 +9,22 @@ module NewRelic
         extend self
 
         # Fallback if the product cannot be determined
-        DEFAULT_PRODUCT_NAME = "Sequel".freeze
+        DEFAULT_PRODUCT_NAME = 'Sequel'.freeze
 
         # A Sequel adapter is called an "adapter_scheme" and can be accessed from
         # the database:
         #
         #   DB.adapter_scheme
         PRODUCT_NAMES = {
-          :ibmdb => "IBMDB2",
-          :firebird => "Firebird",
-          :informix => "Informix",
-          :jdbc => "JDBC",
-          :mysql => "MySQL",
-          :mysql2 => "MySQL",
-          :oracle => "Oracle",
-          :postgres => "Postgres",
-          :sqlite => "SQLite"
+          :ibmdb => 'IBMDB2',
+          :firebird => 'Firebird',
+          :informix => 'Informix',
+          :jdbc => 'JDBC',
+          :mysql => 'MySQL',
+          :mysql2 => 'MySQL',
+          :oracle => 'Oracle',
+          :postgres => 'Postgres',
+          :sqlite => 'SQLite'
         }.freeze
 
         def product_name_from_adapter(adapter)

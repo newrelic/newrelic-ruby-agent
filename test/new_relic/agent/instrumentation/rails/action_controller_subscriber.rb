@@ -85,7 +85,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     advance_process_time(1.5)
 
-    error = StandardError.new("boo")
+    error = StandardError.new('boo')
     @exit_payload[:exception] = error
     NewRelic::Agent.notice_error(error)
 
@@ -294,7 +294,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_filtered_request_params_in_txn
-    @request.env["action_dispatch.parameter_filter"] = [:password]
+    @request.env['action_dispatch.parameter_filter'] = [:password]
     with_config(:capture_params => true) do
       @entry_payload[:params]['password'] = 'secret'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
@@ -318,7 +318,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_records_span_level_error
     exception_class = StandardError
-    exception_msg = "Natural 1"
+    exception_msg = 'Natural 1'
     exception = exception_class.new(msg = exception_msg)
     # :exception_object was added in Rails 5 and above
     params = {:exception_object => exception, :exception => [exception_class.name, exception_msg]}
@@ -345,7 +345,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'index', attributes['code.function']
       assert_equal TestController.instance_method(:index).source_location.last, attributes['code.lineno']
-      assert_equal "NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest::TestController",
+      assert_equal 'NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest::TestController',
         attributes['code.namespace']
     end
   end

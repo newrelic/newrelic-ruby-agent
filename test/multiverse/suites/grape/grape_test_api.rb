@@ -20,7 +20,7 @@ class GrapeTestApi < Grape::API
     end
 
     get 'renamed' do
-      ::NewRelic::Agent.set_transaction_name("RenamedTxn")
+      ::NewRelic::Agent.set_transaction_name('RenamedTxn')
       'Totally renamed it.'
     end
 

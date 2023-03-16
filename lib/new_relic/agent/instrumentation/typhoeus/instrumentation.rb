@@ -6,10 +6,10 @@ module NewRelic
   module Agent
     module Instrumentation
       module Typhoeus
-        HYDRA_SEGMENT_NAME = "External/Multiple/Typhoeus::Hydra/run"
-        NOTICEABLE_ERROR_CLASS = "Typhoeus::Errors::TyphoeusError"
+        HYDRA_SEGMENT_NAME = 'External/Multiple/Typhoeus::Hydra/run'
+        NOTICEABLE_ERROR_CLASS = 'Typhoeus::Errors::TyphoeusError'
 
-        EARLIEST_VERSION = Gem::Version.new("0.5.3")
+        EARLIEST_VERSION = Gem::Version.new('0.5.3')
 
         def self.is_supported_version?
           Gem::Version.new(::Typhoeus::VERSION) >= EARLIEST_VERSION
@@ -26,7 +26,7 @@ module NewRelic
             response.return_message
           else
             # 0.5.4 seems to have lost xxxx_message methods altogether.
-            "timeout"
+            'timeout'
           end
         end
 
@@ -72,7 +72,7 @@ module NewRelic
           end
           request.on_complete.unshift(callback)
         rescue => e
-          NewRelic::Agent.logger.error("Exception during trace setup for Typhoeus request", e)
+          NewRelic::Agent.logger.error('Exception during trace setup for Typhoeus request', e)
         end
       end
     end

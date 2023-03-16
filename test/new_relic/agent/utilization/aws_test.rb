@@ -20,15 +20,15 @@ module NewRelic
         # ---
 
         def test_generates_expected_collector_hash_for_valid_response
-          fixture = File.read(File.join(aws_fixture_path, "valid.json"))
+          fixture = File.read(File.join(aws_fixture_path, 'valid.json'))
 
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
 
           expected = {
-            :instanceId => "i-08987cdeff7489fa7",
-            :instanceType => "c4.2xlarge",
-            :availabilityZone => "us-west-2c"
+            :instanceId => 'i-08987cdeff7489fa7',
+            :instanceType => 'c4.2xlarge',
+            :availabilityZone => 'us-west-2c'
           }
 
           assert @vendor.detect
@@ -36,33 +36,33 @@ module NewRelic
         end
 
         def test_fails_when_response_contains_invalid_chars
-          fixture = File.read(File.join(aws_fixture_path, "invalid_chars.json"))
+          fixture = File.read(File.join(aws_fixture_path, 'invalid_chars.json'))
 
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
 
           refute @vendor.detect
-          assert_metrics_recorded "Supportability/utilization/aws/error" => {:call_count => 1}
+          assert_metrics_recorded 'Supportability/utilization/aws/error' => {:call_count => 1}
         end
 
         def test_fails_when_response_is_missing_required_value
-          fixture = File.read(File.join(aws_fixture_path, "missing_value.json"))
+          fixture = File.read(File.join(aws_fixture_path, 'missing_value.json'))
 
           mock_response = mock(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
 
           refute @vendor.detect
-          assert_metrics_recorded "Supportability/utilization/aws/error" => {:call_count => 1}
+          assert_metrics_recorded 'Supportability/utilization/aws/error' => {:call_count => 1}
         end
 
         def test_fails_based_on_response_code
-          fixture = File.read(File.join(aws_fixture_path, "valid.json"))
+          fixture = File.read(File.join(aws_fixture_path, 'valid.json'))
 
           mock_response = stub(code: '404', body: fixture)
           @vendor.stubs(:request_metadata).returns(mock_response)
 
           refute @vendor.detect
-          refute_metrics_recorded "Supportability/utilization/aws/error"
+          refute_metrics_recorded 'Supportability/utilization/aws/error'
         end
 
         def test_that_the_headers_lambda_is_processed_properly
@@ -70,7 +70,7 @@ module NewRelic
           mock_response = mock(code: '200', body: phony_imds_token)
           Net::HTTP.any_instance.stubs(:send_request).returns(mock_response)
 
-          assert_equal @vendor.headers, "X-aws-ec2-metadata-token" => phony_imds_token
+          assert_equal @vendor.headers, 'X-aws-ec2-metadata-token' => phony_imds_token
         end
 
         # ---
@@ -81,10 +81,10 @@ module NewRelic
 
         # ---
 
-        load_cross_agent_test("utilization_vendor_specific/aws").each do |test_case|
+        load_cross_agent_test('utilization_vendor_specific/aws').each do |test_case|
           test_case = symbolize_keys_in_object(test_case)
 
-          define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
+          define_method("test_#{test_case[:testname]}".tr(' ', '_')) do
             NewRelic::Agent::Utilization::AWS.stubs(:imds_token).returns('John Howe')
             uri_obj_key = test_case[:uri].keys.detect do |key|
               key =~ %r{http://169.254.169.254/(?:2016-09-02|latest)/dynamic/instance-identity/document}
@@ -106,20 +106,18 @@ module NewRelic
 
               assert_equal expected, {aws: @vendor.metadata}
 
-              if test_case[:expected_metrics]
-                test_case[:expected_metrics].each do |metric, v|
-                  if v[:call_count] == 0
-                    if uri_obj[:timeout]
-                      refute detection, '@vendor.detect should have returned false'
-                    else
-                      assert detection, '@vendor.detect should have returned truthy'
-                    end
-
-                    assert_metrics_not_recorded [metric.to_s]
-                  else
+              test_case[:expected_metrics]&.each do |metric, v|
+                if v[:call_count] == 0
+                  if uri_obj[:timeout]
                     refute detection, '@vendor.detect should have returned false'
-                    assert_metrics_recorded [metric.to_s]
+                  else
+                    assert detection, '@vendor.detect should have returned truthy'
                   end
+
+                  assert_metrics_not_recorded [metric.to_s]
+                else
+                  refute detection, '@vendor.detect should have returned false'
+                  assert_metrics_recorded [metric.to_s]
                 end
               end
             end

@@ -10,12 +10,12 @@ module NewRelic::Agent::Database
     attr_reader :obfuscator
 
     def self.input_files
-      fixture_dir = File.join(cross_agent_tests_dir, "postgres_explain_obfuscation")
+      fixture_dir = File.join(cross_agent_tests_dir, 'postgres_explain_obfuscation')
       Dir["#{fixture_dir}/*.explain.txt"]
     end
 
     def self.name_for_input_file(input_file)
-      File.basename(input_file, ".explain.txt")
+      File.basename(input_file, '.explain.txt')
     end
 
     input_files.each do |input_file|
@@ -29,7 +29,7 @@ module NewRelic::Agent::Database
     end
 
     def obfuscated_filename(query_file)
-      query_file.gsub(".explain.", ".colon_obfuscated.")
+      query_file.gsub('.explain.', '.colon_obfuscated.')
     end
   end
 end

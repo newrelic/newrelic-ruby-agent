@@ -66,7 +66,7 @@ class NewRelic::MetricDataTest < Minitest::Test
 
     new_spec = mock('new metric_spec')
 
-    assert_equal(new_spec, md1.metric_spec = (new_spec), "should return the new spec")
+    assert_equal(new_spec, md1.metric_spec = (new_spec), 'should return the new spec')
 
     new_original_spec = md1.instance_variable_get(:@original_spec)
 
@@ -83,7 +83,7 @@ class NewRelic::MetricDataTest < Minitest::Test
 
     new_spec = mock('new metric_spec')
 
-    assert_equal(new_spec, md1.metric_spec = (new_spec), "should return the new spec")
+    assert_equal(new_spec, md1.metric_spec = (new_spec), 'should return the new spec')
 
     new_original_spec = md1.instance_variable_get(:@original_spec)
 
@@ -104,17 +104,17 @@ class NewRelic::MetricDataTest < Minitest::Test
       md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
       json = md.to_json
 
-      assert_includes(json, '"Custom/test/method"', "should include the metric spec in the json")
+      assert_includes(json, '"Custom/test/method"', 'should include the metric spec in the json')
     end
 
   else
-    puts "Skipping tests in #{File.basename(__FILE__)} because Hash#to_json not available" if ENV["VERBOSE_TEST_OUTPUT"]
+    puts "Skipping tests in #{File.basename(__FILE__)} because Hash#to_json not available" if ENV['VERBOSE_TEST_OUTPUT']
   end
 
   def test_to_s_with_metric_spec
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
 
-    assert_equal('Custom/test/method(): [ 0 calls 0.0000s / 0.0000s ex]', md.to_s, "should include the metric spec")
+    assert_equal('Custom/test/method(): [ 0 calls 0.0000s / 0.0000s ex]', md.to_s, 'should include the metric spec')
   end
 
   def test_to_collector_array_with_spec
@@ -140,7 +140,7 @@ class NewRelic::MetricDataTest < Minitest::Test
 
     spec = NewRelic::MetricSpec.new('foo')
     md = NewRelic::MetricData.new(spec, stats)
-    expected = [{"name" => "foo", "scope" => ""}, [1, 2.0, 3.0, 4.0, 5.0, 6.0]]
+    expected = [{'name' => 'foo', 'scope' => ''}, [1, 2.0, 3.0, 4.0, 5.0, 6.0]]
 
     assert_equal expected, md.to_collector_array
   end
@@ -148,15 +148,15 @@ class NewRelic::MetricDataTest < Minitest::Test
   def test_to_collector_array_with_bad_values
     stats = NewRelic::Agent::Stats.new
     stats.call_count = nil
-    stats.total_call_time = "junk"
+    stats.total_call_time = 'junk'
     stats.total_exclusive_time = Object.new
     stats.min_call_time = []
     stats.max_call_time = {}
-    stats.sum_of_squares = Exception.new("Boo")
+    stats.sum_of_squares = Exception.new('Boo')
 
     spec = NewRelic::MetricSpec.new('foo')
     md = NewRelic::MetricData.new(spec, stats)
-    expected = [{"name" => "foo", "scope" => ""}, [0, 0, 0, 0, 0, 0]]
+    expected = [{'name' => 'foo', 'scope' => ''}, [0, 0, 0, 0, 0, 0]]
 
     assert_equal expected, md.to_collector_array
   end

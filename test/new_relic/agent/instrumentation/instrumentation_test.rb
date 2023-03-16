@@ -6,8 +6,8 @@ require_relative '../../../test_helper'
 
 class NewRelic::Agent::Instrumentation::InstrumentationTest < Minitest::Test
   Dir.glob('lib/new_relic/agent/instrumentation/**/*.rb') do |filename|
-    sub_folder = File.dirname(filename).split("/")[-1]
-    base_name = File.basename(filename).split(".")[0]
+    sub_folder = File.dirname(filename).split('/')[-1]
+    base_name = File.basename(filename).split('.')[0]
 
     # checking for syntax errors and unguarded code
     define_method("test_load_#{sub_folder}_#{base_name}") do

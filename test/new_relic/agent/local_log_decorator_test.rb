@@ -84,10 +84,10 @@ module NewRelic::Agent
       end
 
       def test_URI_encodes_entity_name
-        with_config(app_name: "My App | Production") do
+        with_config(app_name: 'My App | Production') do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
 
-          assert_includes decorated_message, "My%20App%20%7C%20Production"
+          assert_includes decorated_message, 'My%20App%20%7C%20Production'
         end
       end
 

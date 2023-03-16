@@ -9,15 +9,15 @@ module Multiverse
     end
 
     def red(string)
-      colorize("0;31;49", string)
+      colorize('0;31;49', string)
     end
 
     def green(string)
-      colorize("0;32;49", string)
+      colorize('0;32;49', string)
     end
 
     def yellow(string)
-      colorize("0;33;49", string)
+      colorize('0;33;49', string)
     end
   end
 end

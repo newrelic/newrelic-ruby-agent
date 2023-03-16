@@ -8,5 +8,5 @@ require 'new_relic/agent/instrumentation/notifications_subscriber'
 if defined?(ActiveSupport)
   require_relative 'rails/notifications_subscriber'
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because Active Support is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
+  puts "Skipping tests in #{File.basename(__FILE__)} because Active Support is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
 end

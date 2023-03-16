@@ -14,16 +14,16 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
 
       # haml prepends a module on ActionView::Base
       #
-      "Supportability/PrependedModules/ActionView::Base" => metric_values_for(value_for_haml_version),
+      'Supportability/PrependedModules/ActionView::Base' => metric_values_for(value_for_haml_version),
 
-      "Supportability/PrependedModules/ActionView::Template" => metric_values_for(1),
-      "Supportability/PrependedModules/ActionView::Renderer" => metric_values_for(1)
+      'Supportability/PrependedModules/ActionView::Template' => metric_values_for(1),
+      'Supportability/PrependedModules/ActionView::Renderer' => metric_values_for(1)
     })
   end
 
   def test_action_controller_prepended_metrics
-    metrics = ["Supportability/PrependedModules/ActionController::Base"]
-    metrics << "Supportability/PrependedModules/ActionController::API" if ::Rails::VERSION::MAJOR.to_i == 5
+    metrics = ['Supportability/PrependedModules/ActionController::Base']
+    metrics << 'Supportability/PrependedModules/ActionController::API' if ::Rails::VERSION::MAJOR.to_i == 5
 
     assert_metrics_recorded(metrics.reduce({}) { |h, m| h[m] = metric_values_for(1); h })
   end
@@ -31,13 +31,13 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   if ::Rails::VERSION::MAJOR.to_i == 5
     def test_action_cable_prepended_metrics
       assert_metrics_recorded({
-        "Supportability/PrependedModules/ActionCable::Engine" => metric_values_for(1),
-        "Supportability/PrependedModules/ActionCable::RemoteConnections" => metric_values_for(1)
+        'Supportability/PrependedModules/ActionCable::Engine' => metric_values_for(1),
+        'Supportability/PrependedModules/ActionCable::RemoteConnections' => metric_values_for(1)
       })
     end
 
     def test_active_job_prepended_metrics
-      assert_metrics_recorded({"Supportability/PrependedModules/ActiveJob::Base" => metric_values_for(1)})
+      assert_metrics_recorded({'Supportability/PrependedModules/ActiveJob::Base' => metric_values_for(1)})
     end
   end
 
@@ -48,8 +48,8 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
     val += 1 if ::Rails::VERSION::MAJOR.to_i == 5 and ::Rails::VERSION::MINOR.to_i == 0
 
     assert_metrics_recorded({
-      "Supportability/PrependedModules/ActiveRecord::Base" => metric_values_for(1),
-      "Supportability/PrependedModules/ActiveRecord::Relation" => metric_values_for(val)
+      'Supportability/PrependedModules/ActiveRecord::Base' => metric_values_for(1),
+      'Supportability/PrependedModules/ActiveRecord::Relation' => metric_values_for(val)
     })
   end
 

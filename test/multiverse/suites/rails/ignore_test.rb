@@ -11,15 +11,15 @@ class IgnoredController < ApplicationController
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 
   def action_to_ignore
-    render(body: "Ignore this")
+    render(body: 'Ignore this')
   end
 
   def action_to_ignore_apdex
-    render(body: "This too")
+    render(body: 'This too')
   end
 
   def action_not_ignored
-    render(body: "Not this!")
+    render(body: 'Not this!')
   end
 end
 
@@ -40,7 +40,7 @@ end
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:cross_process_id => "boo",
+  setup_and_teardown_agent(:cross_process_id => 'boo',
     :encoding_key => "\0",
     :trusted_account_ids => [1])
 
@@ -58,8 +58,8 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
   def test_metric__ignore_apdex
     get('/ignored/action_to_ignore_apdex')
 
-    assert_metrics_recorded(["Controller/ignored/action_to_ignore_apdex"])
-    assert_metrics_not_recorded(["Apdex"])
+    assert_metrics_recorded(['Controller/ignored/action_to_ignore_apdex'])
+    assert_metrics_not_recorded(['Apdex'])
   end
 
   def test_ignored_transaction_traces_dont_leak
@@ -75,14 +75,14 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
     get('/ignored/action_to_ignore',
       headers: {'X-NewRelic-ID' => Base64.encode64('1#234')})
 
-    refute @response.headers["X-NewRelic-App-Data"]
+    refute @response.headers['X-NewRelic-App-Data']
   end
 
   def test_apdex_ignored_if_ignored_in_parent_class
     get('/child/foo')
     get('/child/bar')
 
-    assert_metrics_not_recorded("Apdex")
+    assert_metrics_not_recorded('Apdex')
   end
 
   def test_ignored_transaction_does_not_record_span_events

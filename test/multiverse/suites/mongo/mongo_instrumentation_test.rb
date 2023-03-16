@@ -22,7 +22,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
     def setup
       @client = Mongo::MongoClient.new($mongo.host, $mongo.port, logger: mongo_logger)
-      @database_name = "multiverse"
+      @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = "tribbles-#{fake_guid(16)}"
       @collection = @database.collection(@collection_name)
@@ -34,7 +34,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     end
 
     def test_noticed_error_at_segment_and_txn_when_violating_unique_constraints
-      expected_error_class = "Mongo::OperationFailure"
+      expected_error_class = 'Mongo::OperationFailure'
       txn = nil
       begin
         in_transaction do |db_txn|
@@ -51,7 +51,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     end
 
     def test_noticed_error_only_at_segment_when_violating_unique_constraints
-      expected_error_class = "Mongo::OperationFailure"
+      expected_error_class = 'Mongo::OperationFailure'
       txn = nil
       in_transaction do |db_txn|
         begin

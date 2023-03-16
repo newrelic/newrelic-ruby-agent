@@ -16,6 +16,6 @@ class DefaultSourceRequireTest < Minitest::Test
       exception = e
     end
 
-    assert_nil exception, "Expected not to raise when requiring default source without the agent"
+    assert_nil exception, 'Expected not to raise when requiring default source without the agent'
   end
 end

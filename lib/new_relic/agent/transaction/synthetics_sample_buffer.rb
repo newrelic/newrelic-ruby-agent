@@ -13,7 +13,7 @@ module NewRelic
         end
 
         def allow_sample?(sample)
-          sample.synthetics_resource_id != nil
+          !sample.synthetics_resource_id.nil?
         end
 
         def truncate_samples

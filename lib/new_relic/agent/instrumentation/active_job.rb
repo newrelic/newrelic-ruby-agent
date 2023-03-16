@@ -57,7 +57,7 @@ module NewRelic
 
           # Don't nest transactions if we're already in a web transaction.
           # Probably inline processing the job if that happens, so just trace.
-          if txn && txn.recording_web_transaction?
+          if txn&.recording_web_transaction?
             run_in_trace(job, block, :Consume)
           elsif txn && !txn.recording_web_transaction?
             ::NewRelic::Agent::Transaction.set_default_transaction_name(
@@ -71,7 +71,7 @@ module NewRelic
         end
 
         def self.run_in_trace(job, block, event)
-          trace_execution_scoped("MessageBroker/#{adapter}/Queue/#{event}/Named/#{job.queue_name}",
+          trace_execution_scoped("ActiveJob/#{adapter.sub(/^ActiveJob::/, '')}/Queue/#{event}/Named/#{job.queue_name}",
             code_information: code_information_for_job(job)) do
             block.call
           end

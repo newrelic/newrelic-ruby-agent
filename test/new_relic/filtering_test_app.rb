@@ -13,8 +13,8 @@ class FilteringTestApp
     filtered = ::NewRelic::Agent::ParameterFiltering.apply_filters(env, params)
     txn.filtered_params = filtered
     txn.merge_request_parameters(filtered)
-    raise "Intentional error" if params["raise"]
+    raise 'Intentional error' if params['raise']
 
-    [200, {}, ["Filters applied"]]
+    [200, {}, ['Filters applied']]
   end
 end

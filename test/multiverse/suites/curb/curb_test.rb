@@ -34,7 +34,7 @@ class CurbTest < Minitest::Test
       end
     end
 
-    assert completed, "completion block was never run"
+    assert completed, 'completion block was never run'
   end
 
   def test_get_works_with_the_shortcut_api
@@ -92,7 +92,7 @@ class CurbTest < Minitest::Test
   end
 
   def test_doesnt_propagate_errors_in_instrumentation
-    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
+    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises('Booom')
 
     res = Curl::Easy.http_get(default_url)
 
@@ -103,7 +103,7 @@ class CurbTest < Minitest::Test
     results = []
     other_url = "http://localhost:#{$fake_server.port}/"
 
-    in_transaction("test") do
+    in_transaction('test') do
       Curl::Multi.get([default_url, other_url]) do |easy|
         results << easy.body_str
       end
@@ -115,7 +115,7 @@ class CurbTest < Minitest::Test
 
     last_node = find_last_transaction_node()
 
-    assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
+    assert_equal 'External/Multiple/Curb::Multi/perform', last_node.metric_name
   end
 
   def test_block_passed_to_multi_perform_should_be_called
@@ -123,7 +123,7 @@ class CurbTest < Minitest::Test
     num_requests = 2
     perform_block_called = false
 
-    in_transaction("test") do
+    in_transaction('test') do
       multi = Curl::Multi.new
 
       num_requests.times do |i|
@@ -136,12 +136,12 @@ class CurbTest < Minitest::Test
       multi.perform { perform_block_called = true }
 
       assert_equal(num_requests, successes)
-      assert(perform_block_called, "Block passed to Curl::Multi.perform should have been called")
+      assert(perform_block_called, 'Block passed to Curl::Multi.perform should have been called')
     end
 
     last_node = find_last_transaction_node()
 
-    assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
+    assert_equal 'External/Multiple/Curb::Multi/perform', last_node.metric_name
   end
 
   # https://github.com/newrelic/newrelic-ruby-agent/issues/1033
@@ -267,7 +267,7 @@ class CurbTest < Minitest::Test
   #
 
   def client_name
-    "Curb"
+    'Curb'
   end
 
   def timeout_error_class
@@ -275,7 +275,7 @@ class CurbTest < Minitest::Test
   end
 
   def simulate_error_response
-    get_response("http://localhost:666/evil")
+    get_response('http://localhost:666/evil')
   end
 
   def get_response(url = nil, headers = nil)
@@ -314,11 +314,11 @@ class CurbTest < Minitest::Test
   end
 
   def request_instance
-    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new("http://localhost"))
+    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new('http://localhost'))
   end
 
   def response_instance(headers = {})
-    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new("http://localhost"))
+    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new('http://localhost'))
     headers.each do |hdr, val|
       res.append_header_data("#{hdr}: #{val}")
     end

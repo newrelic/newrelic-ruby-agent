@@ -11,8 +11,6 @@ module NewRelic
         def initialize(local_settings)
           super({
             :capture_params => false,
-            :'resque.capture_params' => false,
-            :'sidekiq.capture_params' => false,
             :'attributes.include' => [],
 
             :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
@@ -26,9 +24,9 @@ module NewRelic
           })
         end
 
-        OFF = "off".freeze
-        RAW = "raw".freeze
-        OBFUSCATED = "obfuscated".freeze
+        OFF = 'off'.freeze
+        RAW = 'raw'.freeze
+        OBFUSCATED = 'obfuscated'.freeze
 
         SET_TO_OBFUSCATED = [RAW, OBFUSCATED]
 

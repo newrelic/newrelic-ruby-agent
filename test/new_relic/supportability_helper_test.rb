@@ -13,14 +13,14 @@ class NewRelic::SupportabilityHelperTest < Minitest::Test
   include NewRelic::SupportabilityHelper
 
   def test_valid_api_argument_class_truthy
-    assert valid_api_argument_class?({foo: :bar}, "headers", Hash)
+    assert valid_api_argument_class?({foo: :bar}, 'headers', Hash)
   end
 
   def test_valid_api_argument_class_falsey
     log = with_array_logger do
       NewRelic::Agent.manual_start
 
-      refute valid_api_argument_class?("bogus", "headers", Hash)
+      refute valid_api_argument_class?('bogus', 'headers', Hash)
     end
 
     assert_log_contains(log, /Bad argument passed to #block/)

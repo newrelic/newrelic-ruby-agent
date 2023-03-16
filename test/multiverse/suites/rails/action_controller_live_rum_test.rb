@@ -7,7 +7,7 @@ require './app'
 if defined?(ActionController::Live)
 
   class UndeadController < ApplicationController
-    RESPONSE_BODY = "<html><head></head><body>Brains!</body></html>"
+    RESPONSE_BODY = '<html><head></head><body>Brains!</body></html>'
 
     def brains
       render(:inline => RESPONSE_BODY)
@@ -25,9 +25,9 @@ if defined?(ActionController::Live)
   class ActionControllerLiveRumTest < ActionDispatch::IntegrationTest
     include MultiverseHelpers
 
-    JS_LOADER = "JS LOADER IN DA HOUSE"
+    JS_LOADER = 'JS LOADER IN DA HOUSE'
 
-    setup_and_teardown_agent(:js_agent_loader => JS_LOADER, :beacon => "beacon", :browser_key => "key")
+    setup_and_teardown_agent(:js_agent_loader => JS_LOADER, :beacon => 'beacon', :browser_key => 'key')
 
     def test_rum_instrumentation_when_not_streaming
       get('/undead/brains')

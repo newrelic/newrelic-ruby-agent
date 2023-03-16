@@ -20,14 +20,14 @@ module NewRelic
         # after its parent. We will use the optimized exclusive duration
         # calculation in all other cases.
         #
-        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_thread_id
+        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_segment_key
         attr_accessor :name, :parent, :children_time, :transaction, :transaction_name
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
         def initialize(name = nil, start_time = nil)
           @name = name
-          @starting_thread_id = ::Thread.current.object_id
+          @starting_segment_key = NewRelic::Agent::Tracer.current_segment_key
           @transaction_name = nil
           @transaction = nil
           @guid = NewRelic::Agent::GuidGenerator.generate_guid
@@ -56,7 +56,7 @@ module NewRelic
           @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
           return unless transaction
 
-          parent.child_start(self) if parent
+          parent&.child_start(self)
         end
 
         def finish
@@ -228,7 +228,7 @@ module NewRelic
 
           if finished?
             transaction.async = true
-            parent.descendant_complete(self, segment) if parent
+            parent&.descendant_complete(self, segment)
           end
         end
 
@@ -263,18 +263,18 @@ module NewRelic
         def force_finish
           finish
           NewRelic::Agent.logger.warn("Segment: #{name} was unfinished at " \
-            "the end of transaction. Timing information for this segment's" \
+            "the end of transaction. Timing information for this segment's " \
             "parent #{parent.name} in #{transaction.best_name} may be inaccurate.")
         end
 
         def run_complete_callbacks
           segment_complete
-          parent.child_complete(self) if parent
+          parent&.child_complete(self)
           transaction.segment_complete(self)
         end
 
         def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+          raise NotImplementedError, 'Subclasses must implement record_metrics'
         end
 
         # callback for subclasses to override

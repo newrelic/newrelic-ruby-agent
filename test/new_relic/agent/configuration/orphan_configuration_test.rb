@@ -47,7 +47,7 @@ class OrphanedConfigTest < Minitest::Test
 
   def test_documented_all_named_instrumentation_files
     non_test_files.each do |file|
-      next unless file.include?("new_relic/agent/instrumentation")
+      next unless file.include?('new_relic/agent/instrumentation')
 
       lines_in(file).each_with_index do |line, index|
         dependency = line.match(NAMED_DEPENDENCY_PATTERN)
@@ -56,8 +56,8 @@ class OrphanedConfigTest < Minitest::Test
           disable_key = "disable_#{name}".to_sym
           instrumentation_key = "instrumentation.#{name}".to_sym
 
-          has_disable_key = !!NewRelic::Agent::Configuration::DEFAULTS[disable_key]
-          has_instrumentation_key = !!NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key]
+          has_disable_key = !NewRelic::Agent::Configuration::DEFAULTS[disable_key].nil?
+          has_instrumentation_key = !NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key].nil?
 
           assert has_instrumentation_key || has_disable_key,
             "#{file}:#{index + 1} - Document key `#{instrumentation_key}` found as name for instrumentation.\n"

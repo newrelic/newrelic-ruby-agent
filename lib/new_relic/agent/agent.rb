@@ -255,8 +255,8 @@ module NewRelic
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
           if Agent.config[:dispatcher] == :litespeed
-            Signal.trap("SIGUSR1", "IGNORE")
-            Signal.trap("SIGTERM", "IGNORE")
+            Signal.trap('SIGUSR1', 'IGNORE')
+            Signal.trap('SIGTERM', 'IGNORE')
           end
         end
 

@@ -96,7 +96,7 @@ module NewRelic
       end
 
       def run
-        ::NewRelic::Agent.logger.debug("Running event loop")
+        ::NewRelic::Agent.logger.debug('Running event loop')
         while !stopped?
           run_once
         end
@@ -161,7 +161,7 @@ module NewRelic
       end
 
       def reschedule_timer_for_event(e)
-        @timers[e].reschedule if @timers[e]
+        @timers[e]&.reschedule
       end
 
       def on(event, &blk)
@@ -187,7 +187,7 @@ module NewRelic
         begin
           @self_pipe_wr.write_nonblock('.')
         rescue Errno::EAGAIN
-          ::NewRelic::Agent.logger.debug("Failed to wakeup event loop")
+          ::NewRelic::Agent.logger.debug('Failed to wakeup event loop')
         end
       end
     end

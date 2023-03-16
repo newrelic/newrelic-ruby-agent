@@ -84,7 +84,7 @@ module NewRelic
           # so warn about it since it's very likely to be unintended.
           NewRelic::Agent.logger.warn(
             "No configuration file found. Working directory = #{Dir.pwd}",
-            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(", ")}"
+            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(', ')}"
           )
         end
 
@@ -96,7 +96,7 @@ module NewRelic
             file.gsub!(/^\s*#.*$/, '#')
             ERB.new(file).result(binding)
           rescue ScriptError, StandardError => e
-            log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
+            log_failure('Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.', e)
             nil
           end
         end
@@ -124,7 +124,7 @@ module NewRelic
               config['transaction_tracer']['transaction_threshold'].to_s =~ /apdex_f/i
             # when value is "apdex_f" remove the config and defer to default
             config['transaction_tracer'].delete('transaction_threshold')
-          elsif config['transaction_tracer.transaction_threshold'].to_s =~ /apdex_f/i
+          elsif /apdex_f/i.match?(config['transaction_tracer.transaction_threshold'].to_s)
             config.delete('transaction_tracer.transaction_threshold')
           end
         end
@@ -135,7 +135,7 @@ module NewRelic
             if 'auto' == config[option]
               config.delete(option)
             elsif !config[option].nil? && !is_boolean?(config[option])
-              coerced_value = !!(config[option].to_s =~ /yes|on|true/i)
+              coerced_value = config[option].to_s.match?(/yes|on|true/i)
               if !coerced_value
                 log_failure("Unexpected value (#{config[option]}) for '#{option}' in #{@path}")
               end

@@ -70,7 +70,7 @@ module DependencyDetection
     # Given "NewRelic::Agent::Instrumentation::NetHTTP::Prepend"
     # Will extract "NetHTTP" which is in the 2nd to last spot
     def extract_supportability_name(instrumenting_module)
-      instrumenting_module.to_s.split("::")[-2]
+      instrumenting_module.to_s.split('::')[-2]
     end
 
     def log_and_instrument(method, instrumenting_module, supportability_name)
@@ -81,20 +81,20 @@ module DependencyDetection
     end
 
     def prepend_instrument(target_class, instrumenting_module, supportability_name = nil)
-      log_and_instrument("Prepend", instrumenting_module, supportability_name) do
+      log_and_instrument('Prepend', instrumenting_module, supportability_name) do
         target_class.send(:prepend, instrumenting_module)
       end
     end
 
     def chain_instrument(instrumenting_module, supportability_name = nil)
-      log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
+      log_and_instrument('MethodChaining', instrumenting_module, supportability_name) do
         instrumenting_module.instrument!
       end
     end
 
     def chain_instrument_target(target, instrumenting_module, supportability_name = nil)
       NewRelic::Agent.logger.info("Installing deferred #{target} instrumentation")
-      log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
+      log_and_instrument('MethodChaining', instrumenting_module, supportability_name) do
         instrumenting_module.instrument!(target)
       end
     end

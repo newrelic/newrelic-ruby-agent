@@ -56,9 +56,9 @@ if !defined?(MyApp)
 
     class SinatraTestApp < Sinatra::Base
       get '/' do
-        raise "Intentional error" if params["raise"]
+        raise 'Intentional error' if params['raise']
 
-        "SinatraTestApp#index"
+        'SinatraTestApp#index'
       end
     end
   end
@@ -66,23 +66,23 @@ if !defined?(MyApp)
   class MyApp < Rails::Application
     # We need a secret token for session, cookies, etc.
     config.active_support.deprecation = :log
-    config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
+    config.secret_token = '49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk'
     config.eager_load = false
     config.filter_parameters += [:secret]
     config.secret_key_base = fake_guid(64)
-    if Rails::VERSION::STRING >= "7.0.0"
+    if Rails::VERSION::STRING >= '7.0.0'
       config.action_controller.default_protect_from_forgery = true
     end
     if config.respond_to?(:hosts)
-      config.hosts << "www.example.com"
+      config.hosts << 'www.example.com'
     end
-    initializer "install_error_middleware" do
+    initializer 'install_error_middleware' do
       config.middleware.use(ErrorMiddleware)
     end
-    initializer "install_middleware_by_name" do
+    initializer 'install_middleware_by_name' do
       config.middleware.use(NamedMiddleware)
     end
-    initializer "install_middleware_instance" do
+    initializer 'install_middleware_instance' do
       config.middleware.use(InstanceMiddleware.new)
     end
   end
@@ -115,7 +115,7 @@ if !defined?(MyApp)
     # With the patch below we can write our tests using render :body but have
     # that converted to render :text for Rails versions that do not support
     # render :body.
-    if Rails::VERSION::STRING < "4.1.0"
+    if Rails::VERSION::STRING < '4.1.0'
       def render(*args)
         options = args.first
         if Hash === options && options.key?(:body)

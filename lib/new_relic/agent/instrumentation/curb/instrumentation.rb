@@ -81,7 +81,7 @@ module NewRelic
           def perform_with_tracing
             return yield if first_request_is_serial?
 
-            trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
+            trace_execution_scoped('External/Multiple/Curb::Multi/perform') do
               yield
             end
           end
@@ -107,7 +107,7 @@ module NewRelic
               request._nr_instrumented = true
             end
           rescue => err
-            NewRelic::Agent.logger.error("Untrapped exception", err)
+            NewRelic::Agent.logger.error('Untrapped exception', err)
           end
 
           # Create request and response adapter objects for the specified +request+
@@ -141,12 +141,12 @@ module NewRelic
             request._nr_original_on_complete = original_callback
             request.on_complete do |finished_request|
               begin
-                segment.process_response_headers(wrapped_response) if segment
+                segment&.process_response_headers(wrapped_response)
               ensure
                 ::NewRelic::Agent::Transaction::Segment.finish(segment)
                 # Make sure the existing completion callback is run, and restore the
                 # on_complete callback to how it was before.
-                original_callback.call(finished_request) if original_callback
+                original_callback&.call(finished_request)
                 remove_instrumentation_callbacks(request)
               end
             end
@@ -173,7 +173,7 @@ module NewRelic
                   segment.notice_error(noticeable_error)
                 end
               ensure
-                original_callback.call(failed_request, error) if original_callback
+                original_callback&.call(failed_request, error)
                 remove_failure_callback(failed_request)
               end
             end

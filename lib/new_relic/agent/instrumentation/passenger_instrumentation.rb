@@ -10,10 +10,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug("Installing Passenger event hooks.")
+    NewRelic::Agent.logger.debug('Installing Passenger event hooks.')
 
     PhusionPassenger.on_event(:stopping_worker_process) do
-      NewRelic::Agent.logger.debug("Passenger stopping this process, shutdown the agent.")
+      NewRelic::Agent.logger.debug('Passenger stopping this process, shutdown the agent.')
       NewRelic::Agent.instance.shutdown
     end
 

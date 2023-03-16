@@ -17,12 +17,12 @@ module NewRelic
       def test_creates_intrinsics
         intrinsics, *_ = TransactionEventPrimitive.create(generate_payload)
 
-        assert_equal "Transaction", intrinsics['type']
+        assert_equal 'Transaction', intrinsics['type']
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
-        assert_equal "Controller/whatever", intrinsics['name']
+        assert_equal 'Controller/whatever', intrinsics['name']
         refute intrinsics['error']
         assert_in_delta(0.1, intrinsics['duration'])
-        assert intrinsics["priority"].is_a?(Numeric)
+        assert intrinsics['priority'].is_a?(Numeric)
       end
 
       def test_event_includes_synthetics
@@ -96,26 +96,6 @@ module NewRelic
         end
       end
 
-      def test_doesnt_include_custom_attributes_in_event_when_configured_not_to_with_legacy_setting
-        with_config('analytics_events.capture_attributes' => false) do
-          attributes.merge_custom_attributes('bing' => 2)
-
-          _, custom_attrs, _ = TransactionEventPrimitive.create(generate_payload)
-
-          assert_empty custom_attrs
-        end
-      end
-
-      def test_doesnt_include_agent_attributes_in_event_when_configured_not_to_with_legacy_setting
-        with_config('analytics_events.capture_attributes' => false) do
-          attributes.add_agent_attribute('bing', 2, NewRelic::Agent::AttributeFilter::DST_ALL)
-
-          _, _, agent_attrs = TransactionEventPrimitive.create(generate_payload)
-
-          assert_empty agent_attrs
-        end
-      end
-
       def test_custom_attributes_in_event_cant_override_reserved_attributes
         metrics = NewRelic::Agent::TransactionMetrics.new()
         metrics.record_unscoped('HttpDispatcher', 0.01)
@@ -135,33 +115,33 @@ module NewRelic
         txn_metrics.record_unscoped('WebFrontend/QueueTime', 13)
         txn_metrics.record_unscoped('External/allWeb', 14)
         txn_metrics.record_unscoped('Datastore/all', 15)
-        txn_metrics.record_unscoped("GC/Transaction/all", 16)
+        txn_metrics.record_unscoped('GC/Transaction/all', 16)
 
         event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :metrics => txn_metrics))
 
-        assert_equal 13, event_data["queueDuration"]
-        assert_equal 14, event_data["externalDuration"]
-        assert_equal 15, event_data["databaseDuration"]
-        assert_equal 16, event_data["gcCumulative"]
+        assert_equal 13, event_data['queueDuration']
+        assert_equal 14, event_data['externalDuration']
+        assert_equal 15, event_data['databaseDuration']
+        assert_equal 16, event_data['gcCumulative']
 
-        assert_equal 1, event_data["externalCallCount"]
-        assert_equal 1, event_data["databaseCallCount"]
+        assert_equal 1, event_data['externalCallCount']
+        assert_equal 1, event_data['databaseCallCount']
       end
 
       def test_samples_on_transaction_finished_includes_expected_background_metrics
         txn_metrics = NewRelic::Agent::TransactionMetrics.new
         txn_metrics.record_unscoped('External/allOther', 12)
         txn_metrics.record_unscoped('Datastore/all', 13)
-        txn_metrics.record_unscoped("GC/Transaction/all", 14)
+        txn_metrics.record_unscoped('GC/Transaction/all', 14)
 
         event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :metrics => txn_metrics))
 
-        assert_equal 12, event_data["externalDuration"]
-        assert_equal 13, event_data["databaseDuration"]
-        assert_equal 14, event_data["gcCumulative"]
+        assert_equal 12, event_data['externalDuration']
+        assert_equal 13, event_data['databaseDuration']
+        assert_equal 14, event_data['gcCumulative']
 
-        assert_equal 1, event_data["databaseCallCount"]
-        assert_equal 1, event_data["externalCallCount"]
+        assert_equal 1, event_data['databaseCallCount']
+        assert_equal 1, event_data['externalCallCount']
       end
 
       def test_samples_on_transaction_finished_event_include_apdex_perf_zone
@@ -171,15 +151,15 @@ module NewRelic
       end
 
       def test_samples_on_transaction_finished_event_includes_guid
-        event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :guid => "GUID"))
+        event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :guid => 'GUID'))
 
-        assert_equal "GUID", event_data["nr.guid"]
+        assert_equal 'GUID', event_data['nr.guid']
       end
 
       def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
-        event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :referring_transaction_guid => "REFER"))
+        event_data, *_ = TransactionEventPrimitive.create(generate_payload('name', :referring_transaction_guid => 'REFER'))
 
-        assert_equal "REFER", event_data["nr.referringTransactionGuid"]
+        assert_equal 'REFER', event_data['nr.referringTransactionGuid']
       end
 
       def generate_payload(name = 'whatever', options = {})

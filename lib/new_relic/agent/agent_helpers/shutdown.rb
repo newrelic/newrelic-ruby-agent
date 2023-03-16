@@ -11,7 +11,7 @@ module NewRelic
         def shutdown
           return unless started?
 
-          ::NewRelic::Agent.logger.info("Starting Agent shutdown")
+          ::NewRelic::Agent.logger.info('Starting Agent shutdown')
 
           stop_event_loop
           trap_signals_for_litespeed
@@ -48,22 +48,22 @@ module NewRelic
               transmit_data_types
               shutdown_service
 
-              ::NewRelic::Agent.logger.debug("Graceful disconnect complete")
+              ::NewRelic::Agent.logger.debug('Graceful disconnect complete')
             rescue Timeout::Error, StandardError => e
               ::NewRelic::Agent.logger.debug("Error when disconnecting #{e.class.name}: #{e.message}")
             end
           else
-            ::NewRelic::Agent.logger.debug("Bypassing graceful disconnect - agent not connected")
+            ::NewRelic::Agent.logger.debug('Bypassing graceful disconnect - agent not connected')
           end
         end
 
         def shutdown_service
           if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
-            ::NewRelic::Agent.logger.debug("Sending New Relic service agent run shutdown message")
+            ::NewRelic::Agent.logger.debug('Sending New Relic service agent run shutdown message')
             @service.shutdown
           else
             ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending " \
-              "shutdown")
+              'shutdown')
           end
         end
       end

@@ -59,7 +59,7 @@ class RenameRuleTest < Minitest::Test
 
   def test_transaction_segment_terms_do_not_apply_to_metrics
     in_transaction do
-      NewRelic::Agent.record_metric("other/qux/foo/bar", 42)
+      NewRelic::Agent.record_metric('other/qux/foo/bar', 42)
     end
 
     assert_metrics_recorded(['other/qux/foo/bar'])

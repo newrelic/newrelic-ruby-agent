@@ -18,15 +18,15 @@ class AttributesTest < Minitest::Test
 
   def test_adds_custom_attribute
     attributes = create_attributes
-    attributes.merge_custom_attributes(:foo => "bar")
+    attributes.merge_custom_attributes(:foo => 'bar')
 
-    assert_equal({"foo" => "bar"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    assert_equal({'foo' => 'bar'}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_disable_custom_attributes
     with_config({:'transaction_tracer.attributes.enabled' => false}) do
       attributes = create_attributes
-      attributes.merge_custom_attributes(:foo => "bar")
+      attributes.merge_custom_attributes(:foo => 'bar')
 
       assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     end
@@ -35,7 +35,7 @@ class AttributesTest < Minitest::Test
   def test_disable_custom_attributes_in_high_security_mode
     with_config(:high_security => true) do
       attributes = create_attributes
-      attributes.merge_custom_attributes(:foo => "bar")
+      attributes.merge_custom_attributes(:foo => 'bar')
 
       assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     end
@@ -44,7 +44,7 @@ class AttributesTest < Minitest::Test
   def test_disable_merging_custom_attributes_in_high_security_mode
     with_config(:high_security => true) do
       attributes = create_attributes
-      attributes.merge_custom_attributes(:foo => "bar")
+      attributes.merge_custom_attributes(:foo => 'bar')
 
       assert_empty attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     end
@@ -52,23 +52,23 @@ class AttributesTest < Minitest::Test
 
   def test_merge_custom_attributes
     attributes = create_attributes
-    params = {:foo => {:bar => "baz"}}
+    params = {:foo => {:bar => 'baz'}}
     attributes.merge_custom_attributes(params)
 
-    assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    assert_equal({'foo.bar' => 'baz'}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_adds_agent_attribute
     attributes = create_attributes
-    attributes.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+    attributes.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
 
-    assert_equal({:foo => "bar"}, attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    assert_equal({:foo => 'bar'}, attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_disable_agent_attributes
     with_config({:'transaction_tracer.attributes.enabled' => false}) do
       attributes = create_attributes
-      attributes.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+      attributes.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ALL)
 
       assert_empty attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     end
@@ -76,16 +76,16 @@ class AttributesTest < Minitest::Test
 
   def test_agent_attributes_obey_default_destinations
     attributes = create_attributes
-    attributes.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ERROR_COLLECTOR)
+    attributes.add_agent_attribute(:foo, 'bar', AttributeFilter::DST_ERROR_COLLECTOR)
 
     assert_empty attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
   end
 
   def test_adds_intrinsic_attribute_to_only_traces_and_errors
     attributes = create_attributes
-    attributes.add_intrinsic_attribute(:foo, "bar")
+    attributes.add_intrinsic_attribute(:foo, 'bar')
 
-    expected = {:foo => "bar"}
+    expected = {:foo => 'bar'}
 
     assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
     assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR))
@@ -97,9 +97,9 @@ class AttributesTest < Minitest::Test
   def test_intrinsic_attributes_arent_disabled_for_traces_and_errors
     with_config({:'transaction_tracer.attributes.enabled' => false}) do
       attributes = create_attributes
-      attributes.add_intrinsic_attribute(:foo, "bar")
+      attributes.add_intrinsic_attribute(:foo, 'bar')
 
-      expected = {:foo => "bar"}
+      expected = {:foo => 'bar'}
 
       assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
       assert_equal(expected, attributes.intrinsic_attributes_for(AttributeFilter::DST_ERROR_COLLECTOR))
@@ -109,17 +109,17 @@ class AttributesTest < Minitest::Test
     end
   end
 
-  MULTIBYTE_CHARACTER = "七"
+  MULTIBYTE_CHARACTER = '七'
 
   def test_truncates_multibyte_string
     # Leading single byte character makes byteslice yield invalid string
-    value = "j" + MULTIBYTE_CHARACTER * 1000
+    value = 'j' + MULTIBYTE_CHARACTER * 1000
 
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-    result = custom_attributes["key"]
+    result = custom_attributes['key']
 
     assert_predicate result, :valid_encoding?
     assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
@@ -127,24 +127,24 @@ class AttributesTest < Minitest::Test
 
   def test_truncates_multibyte_symbol
     # Leading single byte character makes byteslice yield invalid string
-    value = ("j" + MULTIBYTE_CHARACTER * 1000).to_sym
+    value = ('j' + MULTIBYTE_CHARACTER * 1000).to_sym
 
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-    result = custom_attributes["key"]
+    result = custom_attributes['key']
 
     assert_predicate result, :valid_encoding?
     assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
 
   def test_limits_key_length
-    key = "x" * (Attributes::KEY_LIMIT + 1)
+    key = 'x' * (Attributes::KEY_LIMIT + 1)
     expects_logging(:warn, includes(key))
 
     attributes = create_attributes
-    attributes.merge_custom_attributes(key => "")
+    attributes.merge_custom_attributes(key => '')
 
     assert_custom_attributes_empty(attributes)
   end
@@ -154,61 +154,61 @@ class AttributesTest < Minitest::Test
     expects_logging(:warn, includes(key))
 
     attributes = create_attributes
-    attributes.merge_custom_attributes(key => "")
+    attributes.merge_custom_attributes(key => '')
 
     assert_custom_attributes_empty(attributes)
   end
 
   def test_limits_key_length_symbol
-    key = ("x" * (Attributes::KEY_LIMIT + 1)).to_sym
+    key = ('x' * (Attributes::KEY_LIMIT + 1)).to_sym
     expects_logging(:warn, includes(key.to_s))
 
     attributes = create_attributes
-    attributes.merge_custom_attributes(key => "")
+    attributes.merge_custom_attributes(key => '')
 
     assert_custom_attributes_empty(attributes)
   end
 
   def test_limits_key_length_on_merge_custom_attributes
-    key = ("x" * (Attributes::KEY_LIMIT + 1)).to_sym
+    key = ('x' * (Attributes::KEY_LIMIT + 1)).to_sym
     expects_logging(:warn, includes(key.to_s))
 
     attributes = create_attributes
-    attributes.merge_custom_attributes(key => "")
+    attributes.merge_custom_attributes(key => '')
 
     assert_custom_attributes_empty(attributes)
   end
 
   def test_allows_non_string_key_type
     attributes = create_attributes
-    attributes.merge_custom_attributes(1 => "value")
+    attributes.merge_custom_attributes(1 => 'value')
 
-    assert_equal "value", custom_attributes(attributes)["1"]
+    assert_equal 'value', custom_attributes(attributes)['1']
   end
 
   def test_truncates_string_values
-    value = "x" * 1000
+    value = 'x' * 1000
 
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
-    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)["key"].length
+    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)['key'].length
   end
 
   def test_truncates_symbol_values
-    value = ("x" * 1000).to_sym
+    value = ('x' * 1000).to_sym
 
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => value)
 
-    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)["key"].length
+    assert_equal Attributes::VALUE_LIMIT, custom_attributes(attributes)['key'].length
   end
 
   def test_leaves_numbers_alone
     attributes = create_attributes
     attributes.merge_custom_attributes(:key => 42)
 
-    assert_equal 42, custom_attributes(attributes)["key"]
+    assert_equal 42, custom_attributes(attributes)['key']
   end
 
   def test_limits_attribute_count
@@ -223,32 +223,32 @@ class AttributesTest < Minitest::Test
   end
 
   def test_merge_untrusted_agent_attributes
-    with_config(:'attributes.include' => "request.parameters.*") do
+    with_config(:'attributes.include' => 'request.parameters.*') do
       attributes = create_attributes
-      params = {:foo => {:bar => "baz"}}
+      params = {:foo => {:bar => 'baz'}}
       attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
 
-      assert_equal({"request.parameters.foo.bar" => "baz"}, agent_attributes(attributes))
+      assert_equal({'request.parameters.foo.bar' => 'baz'}, agent_attributes(attributes))
     end
   end
 
   def test_merge_untrusted_agent_attributes_drops_long_keys
-    with_config(:'attributes.include' => "request.parameters.*") do
+    with_config(:'attributes.include' => 'request.parameters.*') do
       attributes = create_attributes
       params = {
-        "a" * 256 => "too long",
-        "foo" => "bar"
+        'a' * 256 => 'too long',
+        'foo' => 'bar'
       }
       attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
 
-      assert_equal({"request.parameters.foo" => "bar"}, agent_attributes(attributes))
+      assert_equal({'request.parameters.foo' => 'bar'}, agent_attributes(attributes))
     end
   end
 
   def test_merge_untrusted_agent_attributes_disallowed_in_high_security
-    with_config(:high_security => true, :'attributes.include' => "request.parameters.*") do
+    with_config(:high_security => true, :'attributes.include' => 'request.parameters.*') do
       attributes = create_attributes
-      params = {"sneaky" => "code"}
+      params = {'sneaky' => 'code'}
 
       attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
 

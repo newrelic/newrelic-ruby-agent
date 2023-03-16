@@ -37,7 +37,7 @@ module NewRelic
           end
         end
 
-        vendor_name "aws"
+        vendor_name 'aws'
         endpoint "#{IMDS_BASE_URL}/dynamic/instance-identity/document"
         keys IMDS_KEYS
         headers 'X-aws-ec2-metadata-token' => -> { imds_token }

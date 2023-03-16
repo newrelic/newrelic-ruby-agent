@@ -27,11 +27,11 @@ DependencyDetection.defer do
   end
 
   conflicts_with_prepend do
-    defined?(Rack::MiniProfiler)
+    defined?(Rack::MiniProfiler) && !defined?(Rack::MINI_PROFILER_PREPEND_NET_HTTP_PATCH)
   end
 
   conflicts_with_prepend do
-    source_location_for(Net::HTTP, "request") =~ /airbrake|profiler/i
+    source_location_for(Net::HTTP, 'request') =~ /airbrake|profiler/i
   end
 
   executes do

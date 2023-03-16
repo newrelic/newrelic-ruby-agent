@@ -35,7 +35,7 @@ module NewRelic
         end
 
         def caller_transport_type
-          @caller_transport_type ||= "Unknown"
+          @caller_transport_type ||= 'Unknown'
         end
 
         def accept_transport_type_from_api(value)
@@ -68,8 +68,9 @@ module NewRelic
           )
         end
 
-        def log_request_headers(headers, direction = "OUTGOING")
-          NewRelic::Agent.logger.debug("#{direction} REQUEST HEADERS: #{headers}")
+        def log_request_headers(headers, direction = 'OUTGOING')
+          printed_headers = headers.is_a?(NewRelic::Agent::HTTPClients::AbstractRequest) ? headers.headers : headers
+          NewRelic::Agent.logger.debug("#{direction} REQUEST HEADERS: #{printed_headers}")
         end
 
         def insert_headers(headers)
@@ -82,12 +83,12 @@ module NewRelic
         end
 
         def consume_message_headers(headers, tracer_state, transport_type)
-          log_request_headers(headers, "INCOMING")
+          log_request_headers(headers, 'INCOMING')
           consume_message_distributed_tracing_headers(headers, transport_type)
           consume_message_cross_app_tracing_headers(headers, tracer_state)
           consume_message_synthetics_headers(headers)
         rescue => e
-          NewRelic::Agent.logger.error("Error in consume_message_headers", e)
+          NewRelic::Agent.logger.error('Error in consume_message_headers', e)
         end
 
         def assign_intrinsics
@@ -135,7 +136,7 @@ module NewRelic
             transaction.synthetics_payload = incoming_payload
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error in consume_message_synthetics_header", e)
+          NewRelic::Agent.logger.error('Error in consume_message_synthetics_header', e)
         end
 
         def consume_message_distributed_tracing_headers(headers, transport_type)

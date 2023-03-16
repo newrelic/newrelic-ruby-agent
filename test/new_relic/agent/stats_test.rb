@@ -64,7 +64,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s1 = NewRelic::Agent::Stats.new
     s1.trace_call(10)
 
-    assert_equal("[ 1 calls 10.0000s / 10.0000s ex]", s1.to_s)
+    assert_equal('[ 1 calls 10.0000s / 10.0000s ex]', s1.to_s)
   end
 
   def test_apdex_recording
@@ -161,7 +161,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     s3 = s1.merge(s2)
 
     assert_equal(s1.sum_of_squares, 4 * 4 + 7 * 7)
-    assert_equal(s3.sum_of_squares, 4 * 4 + 7 * 7 + 13 * 13 + 16 * 16, "check sum of squares")
+    assert_equal(s3.sum_of_squares, 4 * 4 + 7 * 7 + 13 * 13 + 16 * 16, 'check sum of squares')
   end
 
   def test_to_json_enforces_float_values

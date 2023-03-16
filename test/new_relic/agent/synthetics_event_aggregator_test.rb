@@ -49,13 +49,13 @@ module NewRelic
       end
 
       def name_for(event)
-        event[0]["name"]
+        event[0]['name']
       end
 
       include NewRelic::CommonAggregatorTests
 
       def test_includes_custom_attributes
-        attrs = {"user" => "Wes Mantooth", "channel" => 9}
+        attrs = {'user' => 'Wes Mantooth', 'channel' => 9}
 
         attributes.merge_custom_attributes(attrs)
 
@@ -109,14 +109,14 @@ module NewRelic
       end
 
       def test_includes_agent_attributes
-        attributes.add_agent_attribute(:'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS)
+        attributes.add_agent_attribute(:'request.headers.referer', 'http://blog.site/home', AttributeFilter::DST_TRANSACTION_EVENTS)
         attributes.add_agent_attribute(:'http.statusCode', 200, AttributeFilter::DST_TRANSACTION_EVENTS)
 
         generate_request
 
         _, _, agent_attrs = last_synthetics_event
 
-        expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
+        expected = {:"request.headers.referer" => 'http://blog.site/home', :'http.statusCode' => 200}
 
         assert_equal expected, agent_attrs
       end
@@ -127,7 +127,7 @@ module NewRelic
           aggregator.expects(:create_event).never
 
           payload = {
-            :name => "Doesnt/matter",
+            :name => 'Doesnt/matter',
             :synthetics_resource_id => 100,
             :priority => 0.123
           }

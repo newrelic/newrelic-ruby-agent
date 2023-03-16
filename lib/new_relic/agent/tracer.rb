@@ -107,7 +107,7 @@ module NewRelic
             current_transaction.notice_error(exception)
             raise
           ensure
-            finishable.finish if finishable
+            finishable&.finish
           end
         end
 
@@ -246,8 +246,8 @@ module NewRelic
           log_error('start_segment', exception)
         end
 
-        UNKNOWN = "Unknown".freeze
-        OTHER = "other".freeze
+        UNKNOWN = 'Unknown'.freeze
+        OTHER = 'other'.freeze
 
         # Creates and starts a datastore segment used to time
         # datastore operations.
@@ -355,7 +355,8 @@ module NewRelic
 
           yield
         rescue => exception
-          if segment && segment.is_a?(Transaction::AbstractSegment)
+          # needs else branch coverage
+          if segment && segment.is_a?(Transaction::AbstractSegment) # rubocop:disable Style/SafeNavigation
             segment.notice_error(exception)
           end
           raise
@@ -410,8 +411,17 @@ module NewRelic
 
         alias_method :tl_clear, :clear_state
 
+        def current_segment_key
+          ::Fiber.current.object_id
+        end
+
+        def thread_tracing_enabled?
+          NewRelic::Agent.config[:'instrumentation.thread.tracing']
+        end
+
         def thread_block_with_current_transaction(*args, segment_name:, parent: nil, &block)
-          current_txn = ::Thread.current[:newrelic_tracer_state].current_transaction if ::Thread.current[:newrelic_tracer_state] && ::Thread.current[:newrelic_tracer_state].is_execution_traced?
+          parent ||= current_segment
+          current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
           proc do
             begin
               if current_txn
@@ -478,7 +488,8 @@ module NewRelic
         end
 
         def pop_traced
-          @untraced.pop if @untraced
+          # needs else branch coverage
+          @untraced.pop if @untraced # rubocop:disable Style/SafeNavigation
         end
 
         def is_execution_traced?

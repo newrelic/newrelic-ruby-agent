@@ -72,7 +72,7 @@ module NewRelic
           all_nodes = @traces.values.map { |n| n.flattened }.flatten
 
           NewRelic::Agent.instance.stats_engine
-            .tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
+            .tl_record_supportability_metric_count('ThreadProfiler/NodeCount', all_nodes.size)
 
           all_nodes.sort! do |a, b|
             # we primarily prefer higher runnable_count
@@ -103,10 +103,10 @@ module NewRelic
           convert_N_trace_nodes_to_arrays(THREAD_PROFILER_NODES)
 
           {
-            "OTHER" => @traces[:other].as_array,
-            "REQUEST" => @traces[:request].as_array,
-            "AGENT" => @traces[:agent].as_array,
-            "BACKGROUND" => @traces[:background].as_array
+            'OTHER' => @traces[:other].as_array,
+            'REQUEST' => @traces[:request].as_array,
+            'AGENT' => @traces[:agent].as_array,
+            'BACKGROUND' => @traces[:background].as_array
           }
         end
 

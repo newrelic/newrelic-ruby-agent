@@ -47,22 +47,22 @@ module NewRelic
 
         def test_obfuscate_nested_hashes
           selector = {
-            "group" => {
-              "ns" => "tribbles",
-              "$reduce" => stub("BSON::Code"),
-              "cond" => {},
-              "initial" => {:count => 0},
-              "key" => {"name" => 1}
+            'group' => {
+              'ns' => 'tribbles',
+              '$reduce' => stub('BSON::Code'),
+              'cond' => {},
+              'initial' => {:count => 0},
+              'key' => {'name' => 1}
             }
           }
 
           expected = {
-            "group" => {
-              "ns" => "?",
-              "$reduce" => "?",
-              "cond" => {},
-              "initial" => {:count => "?"},
-              "key" => {"name" => "?"}
+            'group' => {
+              'ns' => '?',
+              '$reduce' => '?',
+              'cond' => {},
+              'initial' => {:count => '?'},
+              'key' => {'name' => '?'}
             }
           }
 
@@ -72,8 +72,8 @@ module NewRelic
         end
 
         def test_obfuscates_array_statement
-          statement = [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]
-          expected = [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
+          statement = [{'$group' => {:_id => '$says', :total => {'$sum' => 1}}}]
+          expected = [{'$group' => {:_id => '?', :total => {'$sum' => '?'}}}]
 
           obfuscated = NosqlObfuscator.obfuscate_statement(statement)
 
@@ -82,13 +82,13 @@ module NewRelic
 
         def test_obfuscate_nested_arrays
           selector = {
-            "aggregate" => "mongeese",
-            "pipeline" => [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]
+            'aggregate' => 'mongeese',
+            'pipeline' => [{'$group' => {:_id => '$says', :total => {'$sum' => 1}}}]
           }
 
           expected = {
-            "aggregate" => "?",
-            "pipeline" => [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
+            'aggregate' => '?',
+            'pipeline' => [{'$group' => {:_id => '?', :total => {'$sum' => '?'}}}]
           }
 
           obfuscated = NosqlObfuscator.obfuscate_statement(selector)

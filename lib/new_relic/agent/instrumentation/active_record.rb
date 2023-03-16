@@ -13,7 +13,8 @@ module NewRelic
             ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
               statement.config)
           end
-          if connection && connection.respond_to?(:execute)
+          # the following line needs else branch coverage
+          if connection && connection.respond_to?(:execute) # rubocop:disable Style/SafeNavigation
             return connection.execute("EXPLAIN #{statement.sql}")
           end
         end
@@ -43,7 +44,7 @@ module NewRelic
           end
         end
 
-        if RUBY_VERSION < "2.7.0"
+        if RUBY_VERSION < '2.7.0'
           def log_with_newrelic_instrumentation(*args, &block)
             state = NewRelic::Agent::Tracer.state
 

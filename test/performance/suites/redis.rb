@@ -10,7 +10,7 @@ require 'new_relic/agent/instrumentation/redis'
 class RedisTest < Performance::TestCase
   def test_no_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      command = ["lonely_command"]
+      command = ['lonely_command']
       measure do
         NewRelic::Agent::Datastores::Redis.format_command(command)
       end
@@ -28,7 +28,7 @@ class RedisTest < Performance::TestCase
 
   def test_long_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
-      commands = ["loooooong_command", "a" * 100, "b" * 100, "c" * 100]
+      commands = ['loooooong_command', 'a' * 100, 'b' * 100, 'c' * 100]
       measure do
         NewRelic::Agent::Datastores::Redis.format_command(commands)
       end
@@ -38,8 +38,8 @@ class RedisTest < Performance::TestCase
   def test_pipelined
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       pipeline = [
-        ["first", "a" * 100, "b" * 100, "c" * 100],
-        ["second", "a" * 100, "b" * 100, "c" * 100]
+        ['first', 'a' * 100, 'b' * 100, 'c' * 100],
+        ['second', 'a' * 100, 'b' * 100, 'c' * 100]
       ]
 
       measure do

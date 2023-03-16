@@ -16,7 +16,7 @@ module NewRelic
               timeout = NewRelic::Agent.config[:'rake.connect_timeout']
               NewRelic::Agent.instance.wait_on_connect(timeout)
             rescue => e
-              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+              NewRelic::Agent.logger.error('Exception in wait_on_connect', e)
               return yield
             end
 
@@ -36,9 +36,9 @@ module NewRelic
         end
 
         def safe_from_third_party_gem?
-          return true unless NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
+          return true unless NewRelic::LanguageSupport.bundled_gem?('newrelic-rake')
 
-          ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
+          ::NewRelic::Agent.logger.info('Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present')
           false
         end
 
@@ -72,11 +72,7 @@ module NewRelic
         def instrument_invoke_prerequisites_concurrently(task)
           task.instance_eval do
             def invoke_prerequisites_concurrently(*_)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
-                prereqs = self.prerequisite_tasks.map(&:name).join(", ")
-                if txn = ::NewRelic::Agent::Tracer.current_transaction
-                  txn.current_segment.params[:statement] = NewRelic::Agent::Database.truncate_query("Couldn't trace concurrent prereq tasks: #{prereqs}")
-                end
+              NewRelic::Agent::MethodTracer.trace_execution_scoped('Rake/execute/multitask') do
                 super
               end
             end
@@ -86,19 +82,16 @@ module NewRelic
         def before_invoke_transaction(task)
           ensure_at_exit
 
-          # We can't represent overlapping operations yet, so if multitask just
-          # make one node and annotate with prereq task names
+          instrument_execute_on_prereqs(task)
           if task.application.options.always_multitask
             instrument_invoke_prerequisites_concurrently(task)
-          else
-            instrument_execute_on_prereqs(task)
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error during Rake task invoke", e)
+          NewRelic::Agent.logger.error('Error during Rake task invoke', e)
         end
 
         def record_attributes(args, task)
-          command_line = task.application.top_level_tasks.join(" ")
+          command_line = task.application.top_level_tasks.join(' ')
           NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({:command => command_line},
             :'job.rake',
             NewRelic::Agent::AttributeFilter::DST_NONE)
@@ -109,7 +102,7 @@ module NewRelic
               NewRelic::Agent::AttributeFilter::DST_NONE)
           end
         rescue => e
-          NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)
+          NewRelic::Agent.logger.error('Error during Rake task attribute recording.', e)
         end
 
         # Expects literal args passed to the task and array of task names

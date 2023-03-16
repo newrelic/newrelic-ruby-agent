@@ -21,15 +21,15 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     private :internal
 
-    NewRelic::Agent::Datastores.trace(self, :find, "MyFirstDatabase")
-    NewRelic::Agent::Datastores.trace(self, :save, "MyFirstDatabase", "create")
-    NewRelic::Agent::Datastores.trace(self, :internal, "MyFirstDatabase")
+    NewRelic::Agent::Datastores.trace(self, :find, 'MyFirstDatabase')
+    NewRelic::Agent::Datastores.trace(self, :save, 'MyFirstDatabase', 'create')
+    NewRelic::Agent::Datastores.trace(self, :internal, 'MyFirstDatabase')
 
     def boom
-      raise "haha"
+      raise 'haha'
     end
 
-    NewRelic::Agent::Datastores.trace(self, :boom, "MyFirstDatabase", "boom")
+    NewRelic::Agent::Datastores.trace(self, :boom, 'MyFirstDatabase', 'boom')
   end
 
   def setup
@@ -42,32 +42,32 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_in_web_transaction
-    in_web_transaction("txn") do
+    in_web_transaction('txn') do
       MyFirstDatabase.new.find
     end
 
-    assert_metrics("find", "Web")
+    assert_metrics('find', 'Web')
   end
 
   def test_in_other_transaction
-    in_background_transaction("txn") do
+    in_background_transaction('txn') do
       MyFirstDatabase.new.find
     end
 
-    assert_metrics("find", "Other")
+    assert_metrics('find', 'Other')
   end
 
   def test_separate_operation_name
-    in_background_transaction("txn") do
+    in_background_transaction('txn') do
       MyFirstDatabase.new.save
     end
 
-    assert_metrics("create", "Other")
+    assert_metrics('create', 'Other')
   end
 
   def test_safe_to_reinstrument
     MyFirstDatabase.class_eval do
-      NewRelic::Agent::Datastores.trace(self, :find, "MyFirstDatabase", "find")
+      NewRelic::Agent::Datastores.trace(self, :find, 'MyFirstDatabase', 'find')
     end
 
     assert_equal MyFirstDatabase::THE_OBJECT, MyFirstDatabase.new.find
@@ -80,43 +80,43 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_wrap_doesnt_interfere
-    result = NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op") do
-      "yo"
+    result = NewRelic::Agent::Datastores.wrap('MyFirstDatabase', 'op') do
+      'yo'
     end
 
-    assert_equal "yo", result
+    assert_equal 'yo', result
   end
 
   def test_wrap
-    in_background_transaction("txn") do
-      NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op", "coll") do
+    in_background_transaction('txn') do
+      NewRelic::Agent::Datastores.wrap('MyFirstDatabase', 'op', 'coll') do
       end
     end
 
-    assert_statement_metrics("op", "coll", "Other")
+    assert_statement_metrics('op', 'coll', 'Other')
   end
 
   def test_wrap_with_only_operation
-    in_background_transaction("txn") do
-      NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op") do
+    in_background_transaction('txn') do
+      NewRelic::Agent::Datastores.wrap('MyFirstDatabase', 'op') do
       end
     end
 
-    assert_metrics("op", "Other")
+    assert_metrics('op', 'Other')
   end
 
   def test_wrap_with_no_operation
-    in_background_transaction("txn") do
-      NewRelic::Agent::Datastores.wrap("MyFirstDatabase", nil) do
+    in_background_transaction('txn') do
+      NewRelic::Agent::Datastores.wrap('MyFirstDatabase', nil) do
       end
     end
 
     refute_metrics_recorded([
-      "Datastore/operation/MyFirstDatabase/",
-      "Datastore/MyFirstDatabase/allOther",
-      "Datastore/MyFirstDatabase/all",
-      "Datastore/allOther",
-      "Datastore/all"
+      'Datastore/operation/MyFirstDatabase/',
+      'Datastore/MyFirstDatabase/allOther',
+      'Datastore/MyFirstDatabase/all',
+      'Datastore/allOther',
+      'Datastore/all'
     ])
   end
 
@@ -126,28 +126,28 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       noticed = args
     end
 
-    NewRelic::Agent::Datastores.wrap("MyFirstDatabase", "op", "coll", notice) do
-      "yo"
+    NewRelic::Agent::Datastores.wrap('MyFirstDatabase', 'op', 'coll', notice) do
+      'yo'
     end
 
     result, scoped_metric, elapsed = noticed
 
-    assert_equal "yo", result
-    assert_equal "Datastore/statement/MyFirstDatabase/coll/op", scoped_metric
+    assert_equal 'yo', result
+    assert_equal 'Datastore/statement/MyFirstDatabase/coll/op', scoped_metric
     assert_instance_of Float, elapsed
   end
 
   def test_notice_sql
-    query = "SELECT * FROM SomeThings"
-    metric = "Datastore/statement/MyFirstDatabase/SomeThing/find"
+    query = 'SELECT * FROM SomeThings'
+    metric = 'Datastore/statement/MyFirstDatabase/SomeThing/find'
     elapsed = 1.0
 
     in_transaction do |txn|
       nr_freeze_process_time
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
-        product: "MyFirstDatabase",
-        operation: "find",
-        collection: "SomeThing"
+        product: 'MyFirstDatabase',
+        operation: 'find',
+        collection: 'SomeThing'
       )
       NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
       advance_process_time(elapsed)
@@ -162,15 +162,15 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_notice_statement
-    query = "key"
+    query = 'key'
     elapsed = 1.0
 
     in_transaction do |txn|
       nr_freeze_process_time
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
-        product: "MyFirstDatastore",
-        operation: "get",
-        collection: "key"
+        product: 'MyFirstDatastore',
+        operation: 'get',
+        collection: 'key'
       )
       NewRelic::Agent::Datastores.notice_statement(query, elapsed)
       advance_process_time(elapsed)
@@ -185,7 +185,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_dont_notice_statement_based_on_record_sql_setting
-    query = "key"
+    query = 'key'
     elapsed = 1.0
 
     agent = NewRelic::Agent.instance
@@ -207,29 +207,29 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   rescue
     sample = last_transaction_trace
 
-    refute_nil find_node_with_name(sample, "Datastore/operation/MyFirstDatabase/boom")
+    refute_nil find_node_with_name(sample, 'Datastore/operation/MyFirstDatabase/boom')
   end
 
   def assert_statement_metrics(operation, collection, type)
     assert_metrics_recorded([
       "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
-      ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", "txn"],
+      ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", 'txn'],
       "Datastore/operation/MyFirstDatabase/#{operation}",
       "Datastore/MyFirstDatabase/all#{type}",
-      "Datastore/MyFirstDatabase/all",
+      'Datastore/MyFirstDatabase/all',
       "Datastore/all#{type}",
-      "Datastore/all"
+      'Datastore/all'
     ])
   end
 
   def assert_metrics(operation, type)
     assert_metrics_recorded([
       "Datastore/operation/MyFirstDatabase/#{operation}",
-      ["Datastore/operation/MyFirstDatabase/#{operation}", "txn"],
+      ["Datastore/operation/MyFirstDatabase/#{operation}", 'txn'],
       "Datastore/MyFirstDatabase/all#{type}",
-      "Datastore/MyFirstDatabase/all",
+      'Datastore/MyFirstDatabase/all',
       "Datastore/all#{type}",
-      "Datastore/all"
+      'Datastore/all'
     ])
   end
 end

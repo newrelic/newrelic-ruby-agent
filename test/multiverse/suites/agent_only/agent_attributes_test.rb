@@ -12,11 +12,11 @@ class AgentAttributesTest < Minitest::Test
       txn.http_response_code = 418
     end
 
-    assert_transaction_trace_has_agent_attribute("http.statusCode", 418)
-    assert_event_has_agent_attribute("http.statusCode", 418)
-    assert_error_has_agent_attribute("http.statusCode", 418)
+    assert_transaction_trace_has_agent_attribute('http.statusCode', 418)
+    assert_event_has_agent_attribute('http.statusCode', 418)
+    assert_error_has_agent_attribute('http.statusCode', 418)
 
-    refute_browser_monitoring_has_agent_attribute("http.statusCode")
+    refute_browser_monitoring_has_agent_attribute('http.statusCode')
   end
 
   def test_response_content_type_default_destinations
@@ -24,11 +24,11 @@ class AgentAttributesTest < Minitest::Test
       txn.response_content_type = 'application/json'
     end
 
-    assert_transaction_trace_has_agent_attribute("response.headers.contentType", "application/json")
-    assert_event_has_agent_attribute("response.headers.contentType", "application/json")
-    assert_error_has_agent_attribute("response.headers.contentType", "application/json")
+    assert_transaction_trace_has_agent_attribute('response.headers.contentType', 'application/json')
+    assert_event_has_agent_attribute('response.headers.contentType', 'application/json')
+    assert_error_has_agent_attribute('response.headers.contentType', 'application/json')
 
-    refute_browser_monitoring_has_agent_attribute("response.headers.contentType")
+    refute_browser_monitoring_has_agent_attribute('response.headers.contentType')
   end
 
   def test_response_content_length_default_destinations
@@ -36,97 +36,97 @@ class AgentAttributesTest < Minitest::Test
       txn.response_content_length = 100
     end
 
-    assert_transaction_trace_has_agent_attribute("response.headers.contentLength", 100)
-    assert_event_has_agent_attribute("response.headers.contentLength", 100)
-    assert_error_has_agent_attribute("response.headers.contentLength", 100)
+    assert_transaction_trace_has_agent_attribute('response.headers.contentLength', 100)
+    assert_event_has_agent_attribute('response.headers.contentLength', 100)
+    assert_error_has_agent_attribute('response.headers.contentLength', 100)
 
-    refute_browser_monitoring_has_agent_attribute("response.headers.contentLength")
+    refute_browser_monitoring_has_agent_attribute('response.headers.contentLength')
   end
 
   def test_request_headers_referer_default_destinations
-    txn_options = {:request => stub(:referer => "referrer", :path => "/")}
+    txn_options = {:request => stub(:referer => 'referrer', :path => '/')}
     run_transaction({}, txn_options) do |txn|
     end
 
-    assert_error_has_agent_attribute("request.headers.referer", "referrer")
+    assert_error_has_agent_attribute('request.headers.referer', 'referrer')
 
-    refute_transaction_trace_has_agent_attribute("request.headers.referer")
-    refute_event_has_agent_attribute("request.headers.referer")
-    refute_browser_monitoring_has_agent_attribute("request.headers.referer")
+    refute_transaction_trace_has_agent_attribute('request.headers.referer')
+    refute_event_has_agent_attribute('request.headers.referer')
+    refute_browser_monitoring_has_agent_attribute('request.headers.referer')
   end
 
   def test_request_parameters_default_destinations_without_capture_params
     run_transaction(:capture_params => false) do |txn|
-      txn.merge_request_parameters(:duly => "noted")
+      txn.merge_request_parameters(:duly => 'noted')
     end
 
-    refute_transaction_trace_has_agent_attribute("request.parameters.duly")
-    refute_event_has_agent_attribute("request.parameters.duly")
-    refute_error_has_agent_attribute("request.parameters.duly")
-    refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
+    refute_transaction_trace_has_agent_attribute('request.parameters.duly')
+    refute_event_has_agent_attribute('request.parameters.duly')
+    refute_error_has_agent_attribute('request.parameters.duly')
+    refute_browser_monitoring_has_agent_attribute('request.parameters.duly')
   end
 
   def test_request_parameters_default_destinations_with_capture_params
     run_transaction(:capture_params => true) do |txn|
-      txn.merge_request_parameters(:duly => "noted")
+      txn.merge_request_parameters(:duly => 'noted')
     end
 
-    assert_transaction_trace_has_agent_attribute("request.parameters.duly", "noted")
-    assert_error_has_agent_attribute("request.parameters.duly", "noted")
+    assert_transaction_trace_has_agent_attribute('request.parameters.duly', 'noted')
+    assert_error_has_agent_attribute('request.parameters.duly', 'noted')
 
-    refute_event_has_agent_attribute("request.parameters.duly")
-    refute_browser_monitoring_has_agent_attribute("request.parameters.duly")
+    refute_event_has_agent_attribute('request.parameters.duly')
+    refute_browser_monitoring_has_agent_attribute('request.parameters.duly')
   end
 
   def test_agent_attributes_assigned_from_request
     request = stub(
-      :path => "/",
-      :referer => "http://docs.newrelic.com",
-      :env => {"HTTP_ACCEPT" => "application/json"},
+      :path => '/',
+      :referer => 'http://docs.newrelic.com',
+      :env => {'HTTP_ACCEPT' => 'application/json'},
       :content_length => 103,
-      :content_type => "application/json",
+      :content_type => 'application/json',
       :host => 'chippy',
       :user_agent => 'Use This!',
-      :request_method => "GET"
+      :request_method => 'GET'
     )
 
     run_transaction({}, {:request => request}) do |txn|
     end
 
-    assert_error_has_agent_attribute "request.headers.referer", "http://docs.newrelic.com"
-    refute_transaction_trace_has_agent_attribute "request.headers.referer"
-    refute_event_has_agent_attribute "request.headers.referer"
-    refute_browser_monitoring_has_agent_attribute "request.headers.referer"
+    assert_error_has_agent_attribute 'request.headers.referer', 'http://docs.newrelic.com'
+    refute_transaction_trace_has_agent_attribute 'request.headers.referer'
+    refute_event_has_agent_attribute 'request.headers.referer'
+    refute_browser_monitoring_has_agent_attribute 'request.headers.referer'
 
-    assert_transaction_trace_has_agent_attribute "request.headers.accept", "application/json"
-    assert_event_has_agent_attribute "request.headers.accept", "application/json"
-    assert_error_has_agent_attribute "request.headers.accept", "application/json"
-    refute_browser_monitoring_has_agent_attribute "request.headers.accept"
+    assert_transaction_trace_has_agent_attribute 'request.headers.accept', 'application/json'
+    assert_event_has_agent_attribute 'request.headers.accept', 'application/json'
+    assert_error_has_agent_attribute 'request.headers.accept', 'application/json'
+    refute_browser_monitoring_has_agent_attribute 'request.headers.accept'
 
-    assert_transaction_trace_has_agent_attribute "request.headers.contentLength", 103
-    assert_event_has_agent_attribute "request.headers.contentLength", 103
-    assert_error_has_agent_attribute "request.headers.contentLength", 103
-    refute_browser_monitoring_has_agent_attribute "request.headers.contentLength"
+    assert_transaction_trace_has_agent_attribute 'request.headers.contentLength', 103
+    assert_event_has_agent_attribute 'request.headers.contentLength', 103
+    assert_error_has_agent_attribute 'request.headers.contentLength', 103
+    refute_browser_monitoring_has_agent_attribute 'request.headers.contentLength'
 
-    assert_transaction_trace_has_agent_attribute "request.headers.contentType", "application/json"
-    assert_event_has_agent_attribute "request.headers.contentType", "application/json"
-    assert_error_has_agent_attribute "request.headers.contentType", "application/json"
-    refute_browser_monitoring_has_agent_attribute "request.headers.contentType"
+    assert_transaction_trace_has_agent_attribute 'request.headers.contentType', 'application/json'
+    assert_event_has_agent_attribute 'request.headers.contentType', 'application/json'
+    assert_error_has_agent_attribute 'request.headers.contentType', 'application/json'
+    refute_browser_monitoring_has_agent_attribute 'request.headers.contentType'
 
-    assert_transaction_trace_has_agent_attribute "request.headers.host", "chippy"
-    assert_event_has_agent_attribute "request.headers.host", "chippy"
-    assert_error_has_agent_attribute "request.headers.host", "chippy"
-    refute_browser_monitoring_has_agent_attribute "request.headers.host"
+    assert_transaction_trace_has_agent_attribute 'request.headers.host', 'chippy'
+    assert_event_has_agent_attribute 'request.headers.host', 'chippy'
+    assert_error_has_agent_attribute 'request.headers.host', 'chippy'
+    refute_browser_monitoring_has_agent_attribute 'request.headers.host'
 
-    assert_transaction_trace_has_agent_attribute "request.headers.userAgent", "Use This!"
-    assert_event_has_agent_attribute "request.headers.userAgent", "Use This!"
-    assert_error_has_agent_attribute "request.headers.userAgent", "Use This!"
-    refute_browser_monitoring_has_agent_attribute "request.headers.userAgent"
+    assert_transaction_trace_has_agent_attribute 'request.headers.userAgent', 'Use This!'
+    assert_event_has_agent_attribute 'request.headers.userAgent', 'Use This!'
+    assert_error_has_agent_attribute 'request.headers.userAgent', 'Use This!'
+    refute_browser_monitoring_has_agent_attribute 'request.headers.userAgent'
 
-    assert_transaction_trace_has_agent_attribute "request.method", "GET"
-    assert_event_has_agent_attribute "request.method", "GET"
-    assert_error_has_agent_attribute "request.method", "GET"
-    refute_browser_monitoring_has_agent_attribute "request.method"
+    assert_transaction_trace_has_agent_attribute 'request.method', 'GET'
+    assert_event_has_agent_attribute 'request.method', 'GET'
+    assert_error_has_agent_attribute 'request.method', 'GET'
+    refute_browser_monitoring_has_agent_attribute 'request.method'
   end
 
   def test_custom_attributes_included
@@ -194,46 +194,46 @@ class AgentAttributesTest < Minitest::Test
   def test_request_parameters_captured_on_transaction_events_when_enabled
     config = {:'transaction_events.attributes.include' => 'request.parameters.*'}
     txn_options = {
-      :filtered_params => {:foo => "bar", :bar => "baz"}
+      :filtered_params => {:foo => 'bar', :bar => 'baz'}
     }
     run_transaction(config, txn_options)
 
-    assert_event_has_agent_attribute("request.parameters.foo", "bar")
-    assert_event_has_agent_attribute("request.parameters.bar", "baz")
+    assert_event_has_agent_attribute('request.parameters.foo', 'bar')
+    assert_event_has_agent_attribute('request.parameters.bar', 'baz')
   end
 
   def test_request_parameters_captured_in_bam_when_enabled
     config = {:'browser_monitoring.attributes.include' => 'request.parameters.*'}
     txn_options = {
-      :filtered_params => {:foo => "bar", :bar => "baz"}
+      :filtered_params => {:foo => 'bar', :bar => 'baz'}
     }
     run_transaction(config, txn_options)
 
-    assert_browser_monitoring_has_agent_attribute("request.parameters.foo", "bar")
-    assert_browser_monitoring_has_agent_attribute("request.parameters.bar", "baz")
+    assert_browser_monitoring_has_agent_attribute('request.parameters.foo', 'bar')
+    assert_browser_monitoring_has_agent_attribute('request.parameters.bar', 'baz')
   end
 
   def test_request_uri_collected_on_default_destinations
     config = {}
     txn_options = {
-      :request => stub(:path => "/foobar")
+      :request => stub(:path => '/foobar')
     }
     run_transaction(config, txn_options)
 
     last_transaction_trace = single_transaction_trace_posted
 
-    assert_equal "/foobar", last_transaction_trace.uri
-    assert_transaction_trace_has_agent_attribute("request.uri", "/foobar")
+    assert_equal '/foobar', last_transaction_trace.uri
+    assert_transaction_trace_has_agent_attribute('request.uri', '/foobar')
 
-    assert_error_has_agent_attribute("request.uri", "/foobar")
-    refute_event_has_agent_attribute("request.uri")
-    refute_browser_monitoring_has_agent_attribute("request.uri")
+    assert_error_has_agent_attribute('request.uri', '/foobar')
+    refute_event_has_agent_attribute('request.uri')
+    refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
   def test_request_uri_can_be_disabled_on_tts
     config = {:'transaction_tracer.attributes.exclude' => 'request.uri'}
     txn_options = {
-      :request => stub(:path => "/foobar")
+      :request => stub(:path => '/foobar')
     }
     run_transaction(config, txn_options)
 
@@ -241,40 +241,40 @@ class AgentAttributesTest < Minitest::Test
 
     refute last_transaction_trace.uri
 
-    assert_error_has_agent_attribute("request.uri", "/foobar")
-    refute_transaction_trace_has_agent_attribute("request.uri")
-    refute_event_has_agent_attribute("request.uri")
-    refute_browser_monitoring_has_agent_attribute("request.uri")
+    assert_error_has_agent_attribute('request.uri', '/foobar')
+    refute_transaction_trace_has_agent_attribute('request.uri')
+    refute_event_has_agent_attribute('request.uri')
+    refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
   def test_request_uri_can_be_disabled_on_error_traces
     config = {:'error_collector.attributes.exclude' => 'request.uri'}
     txn_options = {
-      :request => stub(:path => "/foobar")
+      :request => stub(:path => '/foobar')
     }
     run_transaction(config, txn_options)
 
     last_error_trace = single_error_posted
 
-    refute last_error_trace.params["agentAttributes"]["request.uri"]
+    refute last_error_trace.params['agentAttributes']['request.uri']
 
-    assert_transaction_trace_has_agent_attribute("request.uri", "/foobar")
-    refute_error_has_agent_attribute("request.uri")
-    refute_event_has_agent_attribute("request.uri")
-    refute_browser_monitoring_has_agent_attribute("request.uri")
+    assert_transaction_trace_has_agent_attribute('request.uri', '/foobar')
+    refute_error_has_agent_attribute('request.uri')
+    refute_event_has_agent_attribute('request.uri')
+    refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
   def test_request_uri_can_be_disabled_by_global_attributes_config
     config = {:'attributes.exclude' => 'request.uri'}
     txn_options = {
-      :request => stub(:path => "/foobar")
+      :request => stub(:path => '/foobar')
     }
     run_transaction(config, txn_options)
 
-    refute_transaction_trace_has_agent_attribute("request.uri")
-    refute_error_has_agent_attribute("request.uri")
-    refute_event_has_agent_attribute("request.uri")
-    refute_browser_monitoring_has_agent_attribute("request.uri")
+    refute_transaction_trace_has_agent_attribute('request.uri')
+    refute_error_has_agent_attribute('request.uri')
+    refute_event_has_agent_attribute('request.uri')
+    refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
   def test_http_response_code_excluded_in_txn_events_when_disabled
@@ -322,7 +322,7 @@ class AgentAttributesTest < Minitest::Test
           capture_js_data
 
           # Have to raise an error to exercise attribute capture there
-          raise "O_o"
+          raise 'O_o'
         end
       end
     end

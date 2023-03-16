@@ -23,18 +23,18 @@ module NewRelic
             @sampler = ProcStatus.new
             if !@sampler.can_run?
               ::NewRelic::Agent.logger.debug("Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead.")
-              @sampler = ShellPS.new("ps -o rsz")
+              @sampler = ShellPS.new('ps -o rsz')
             else
               ::NewRelic::Agent.logger.debug("Using /proc/#{$$}/status for reading process memory.")
             end
           elsif platform.include?('darwin9') # 10.5
-            @sampler = ShellPS.new("ps -o rsz")
-          elsif platform =~ /darwin(1|2)\d+/ # >= 10.6
-            @sampler = ShellPS.new("ps -o rss")
+            @sampler = ShellPS.new('ps -o rsz')
+          elsif /darwin(1|2)\d+/.match?(platform) # >= 10.6
+            @sampler = ShellPS.new('ps -o rss')
           elsif platform.include?('freebsd')
-            @sampler = ShellPS.new("ps -o rss")
+            @sampler = ShellPS.new('ps -o rss')
           elsif platform.include?('solaris')
-            @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
+            @sampler = ShellPS.new('/usr/bin/ps -o rss -p')
           end
 
           raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
@@ -64,7 +64,7 @@ module NewRelic
         def poll
           sample = @sampler.get_sample
           if sample
-            NewRelic::Agent.record_metric("Memory/Physical", sample)
+            NewRelic::Agent.record_metric('Memory/Physical', sample)
           end
         end
 
@@ -106,7 +106,7 @@ module NewRelic
           end
 
           def to_s
-            "JRuby Java heap sampler"
+            'JRuby Java heap sampler'
           end
         end
 
@@ -140,7 +140,7 @@ module NewRelic
         class ProcStatus < Base
           # Returns the amount of resident memory this process is using in MB
           def get_memory
-            proc_status = File.open(proc_status_file, "r") { |f| f.read_nonblock(4096).strip }
+            proc_status = File.open(proc_status_file, 'r') { |f| f.read_nonblock(4096).strip }
             if proc_status =~ /RSS:\s*(\d+) kB/i
               return $1.to_f / 1024.0
             end

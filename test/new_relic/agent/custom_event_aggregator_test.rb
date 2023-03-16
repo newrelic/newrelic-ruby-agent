@@ -50,7 +50,7 @@ module NewRelic::Agent
     end
 
     def name_for(event)
-      event[1]["name"]
+      event[1]['name']
     end
 
     include NewRelic::CommonAggregatorTests
@@ -123,9 +123,9 @@ module NewRelic::Agent
     def test_records_supportability_metrics_after_harvest
       with_config(:'custom_insights_events.max_samples_stored' => 5) do
         engine = NewRelic::Agent.instance.stats_engine
-        engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Seen", 9)
-        engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Sent", 5)
-        engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Dropped", 4)
+        engine.expects(:tl_record_supportability_metric_count).with('Events/Customer/Seen', 9)
+        engine.expects(:tl_record_supportability_metric_count).with('Events/Customer/Sent', 5)
+        engine.expects(:tl_record_supportability_metric_count).with('Events/Customer/Dropped', 4)
 
         9.times { @aggregator.record(:t, :foo => :bar) }
         @aggregator.harvest!

@@ -102,37 +102,37 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_analytics_events_max_samples
       assert_equal 833, @source[:'transaction_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/AnalyticEventData/HarvestLimit" => {total_call_time: 833}})
+      assert_metrics_recorded({'Supportability/EventHarvest/AnalyticEventData/HarvestLimit' => {total_call_time: 833}})
     end
 
     def test_should_set_custom_events_max_samples
       assert_equal 833, @source[:'custom_insights_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/CustomEventData/HarvestLimit" => {total_call_time: 833}})
+      assert_metrics_recorded({'Supportability/EventHarvest/CustomEventData/HarvestLimit' => {total_call_time: 833}})
     end
 
     def test_should_set_error_events_max_samples
       assert_equal 8, @source[:'error_collector.max_event_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/ErrorEventData/HarvestLimit" => {total_call_time: 8}})
+      assert_metrics_recorded({'Supportability/EventHarvest/ErrorEventData/HarvestLimit' => {total_call_time: 8}})
     end
 
     def test_should_set_log_events_max_samples
       assert_equal 833, @source[:'application_logging.forwarding.max_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/LogEventData/HarvestLimit" => {total_call_time: 833}})
+      assert_metrics_recorded({'Supportability/EventHarvest/LogEventData/HarvestLimit' => {total_call_time: 833}})
     end
 
     def test_should_set_span_events_max_samples
       assert_equal 89, @source[:'span_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/SpanEvent/Limit" => {total_call_time: 89}})
+      assert_metrics_recorded({'Supportability/SpanEvent/Limit' => {total_call_time: 89}})
     end
 
     def test_should_set_event_report_period
       assert_equal 5, @source[:'event_report_period']
-      assert_metrics_recorded({"Supportability/EventHarvest/ReportPeriod" => {total_call_time: 5}})
+      assert_metrics_recorded({'Supportability/EventHarvest/ReportPeriod' => {total_call_time: 5}})
     end
 
     def test_should_set_span_event_report_period
       assert_equal 80000, @source[:'event_report_period.span_event_data']
-      assert_metrics_recorded({"Supportability/SpanEvent/ReportPeriod" => {total_call_time: 80000}})
+      assert_metrics_recorded({'Supportability/SpanEvent/ReportPeriod' => {total_call_time: 80000}})
     end
 
     def test_should_correctly_handle_missing_event_type_from_event_harvest_config
@@ -140,7 +140,7 @@ module NewRelic::Agent::Configuration
       @source = ServerSource.new(@config)
 
       # Span events should fall back to default source
-      refute @source[:'span_events.max_samples_stored'], "Expected span events to be excluded from server source"
+      refute @source[:'span_events.max_samples_stored'], 'Expected span events to be excluded from server source'
 
       # The event report period and limits for other event types should still be in server source
       assert_equal 5, @source[:'event_report_period']

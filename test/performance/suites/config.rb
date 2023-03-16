@@ -5,7 +5,7 @@
 class ConfigPerfTests < Performance::TestCase
   def setup
     @config = NewRelic::Agent::Configuration::Manager.new
-    @config.add_config_for_testing(:my_value => "boo")
+    @config.add_config_for_testing(:my_value => 'boo')
   end
 
   def test_raw_access

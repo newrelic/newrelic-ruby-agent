@@ -45,19 +45,19 @@ class ErrorController < ApplicationController
   end
 
   def frozen_error
-    e = RuntimeError.new("frozen errors make a refreshing treat on a hot summer day")
+    e = RuntimeError.new('frozen errors make a refreshing treat on a hot summer day')
     e.freeze
     raise e
   end
 
   def string_noticed_error
-    NewRelic::Agent.notice_error("trilobites died out millions of years ago")
+    NewRelic::Agent.notice_error('trilobites died out millions of years ago')
     render(body: 'trilobites')
   end
 
   def noticed_error
     NewRelic::Agent.notice_error(RuntimeError.new('this error should be noticed'))
-    render(body: "Shoulda noticed an error")
+    render(body: 'Shoulda noticed an error')
   end
 
   def middleware_error
@@ -70,12 +70,12 @@ class ErrorController < ApplicationController
   end
 
   def noticed_error_with_trace_only
-    NewRelic::Agent.notice_error("Raise the gates!", :trace_only => true)
+    NewRelic::Agent.notice_error('Raise the gates!', :trace_only => true)
     render(body: 'Runner 5')
   end
 
   def noticed_error_with_expected_error
-    NewRelic::Agent.notice_error("Raise the gates!", :expected => true)
+    NewRelic::Agent.notice_error('Raise the gates!', :expected => true)
     render(body: 'Runner 5')
   end
 end
@@ -92,7 +92,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   # Let base class override this without moving where we start the agent
   def setup_collector_mocks
-    $collector.stub('connect', {"agent_run_id" => 666}, 200)
+    $collector.stub('connect', {'agent_run_id' => 666}, 200)
   end
 
   def last_error
@@ -126,7 +126,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_capture_request_uri_and_params
     get('/error/controller_error?eat=static')
 
-    assert_equal('/error/controller_error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
+    assert_equal('/error/controller_error', attributes_for_single_error_posted('agentAttributes')['request.uri'])
 
     expected_params = {
       'request.parameters.eat' => 'static',
@@ -170,15 +170,15 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_capture_frozen_errors
     get('/error/frozen_error')
 
-    assert_error_reported_once("frozen errors make a refreshing treat on a hot summer day",
-      "Controller/error/frozen_error")
+    assert_error_reported_once('frozen errors make a refreshing treat on a hot summer day',
+      'Controller/error/frozen_error')
   end
 
   def test_should_capture_string_noticed_errors
     get('/error/string_noticed_error')
 
-    assert_error_reported_once("trilobites died out millions of years ago",
-      "Controller/error/string_noticed_error")
+    assert_error_reported_once('trilobites died out millions of years ago',
+      'Controller/error/string_noticed_error')
   end
 
   # Important choice of controller_error, since this goes through both the
@@ -304,18 +304,6 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_captured_errors_should_not_include_custom_params_if_legacy_setting_says_no
-    with_config(:'error_collector.capture_attributes' => false) do
-      get('/error/error_with_custom_params')
-
-      assert_error_reported_once('bad things')
-
-      attributes = user_attributes_for_single_error_posted
-
-      assert_empty attributes
-    end
-  end
-
   def test_should_not_increment_metrics_on_expected_error_errors
     get('/error/noticed_error_with_expected_error')
 
@@ -327,8 +315,8 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       'Errors/Controller/error/noticed_error_with_expected_error'
     ])
 
-    assert_metrics_recorded("Apdex" => {:apdex_s => 1})
-    assert_metrics_recorded(["ErrorsExpected/all"])
+    assert_metrics_recorded('Apdex' => {:apdex_s => 1})
+    assert_metrics_recorded(['ErrorsExpected/all'])
   end
 
   protected
@@ -344,11 +332,11 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def assert_errors_reported(message, queued_count, total_count = queued_count, txn_name = nil, apdex_f = 1)
     expected = {:call_count => total_count}
 
-    assert_metrics_recorded("Errors/all" => expected)
+    assert_metrics_recorded('Errors/all' => expected)
     assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
 
     unless apdex_f.nil?
-      assert_metrics_recorded("Apdex" => {:apdex_f => apdex_f})
+      assert_metrics_recorded('Apdex' => {:apdex_f => apdex_f})
     end
 
     assert_equal(queued_count,
@@ -364,12 +352,12 @@ end
 class ErrorsWithSSCTest < ErrorsWithoutSSCTest
   def setup_collector_mocks
     $collector.stub('connect', {
-      "agent_run_id" => 1,
-      "agent_config" => {
-        "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
-        "error_collector.enabled" => true
+      'agent_run_id' => 1,
+      'agent_config' => {
+        'error_collector.ignore_classes' => ['NewRelic::TestHelpers::Exceptions::IgnoredError', 'NewRelic::TestHelpers::Exceptions::ServerIgnoredError'],
+        'error_collector.enabled' => true
       },
-      "collect_errors" => true
+      'collect_errors' => true
     }, 200)
   end
 

@@ -10,5 +10,5 @@ if defined?(ActionMailbox) &&
     ActionMailbox.gem_version >= Gem::Version.new('7.1.0.alpha') # notifications added in Rails 7.1
   require_relative 'rails/action_mailbox_subscriber'
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because ActionMailbox is unavailable or < 7.1" if ENV["VERBOSE_TEST_OUTPUT"]
+  puts "Skipping tests in #{File.basename(__FILE__)} because ActionMailbox is unavailable or < 7.1" if ENV['VERBOSE_TEST_OUTPUT']
 end

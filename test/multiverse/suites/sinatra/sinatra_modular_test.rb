@@ -22,11 +22,11 @@ class SinatraModularTestApp < Sinatra::Base
   end
 
   get '/' do
-    "root path"
+    'root path'
   end
 
   get '/user/login' do
-    "please log in"
+    'please log in'
   end
 
   # this action will always return 404 because of the condition.
@@ -35,7 +35,7 @@ class SinatraModularTestApp < Sinatra::Base
   end
 
   get '/raise' do
-    raise "Uh-oh"
+    raise 'Uh-oh'
   end
 
   # check that pass works properly
@@ -51,7 +51,7 @@ class SinatraModularTestApp < Sinatra::Base
   get('/error') {}
 
   condition do
-    raise "Boo" if $precondition_already_checked
+    raise 'Boo' if $precondition_already_checked
 
     $precondition_already_checked = true
   end

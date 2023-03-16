@@ -25,7 +25,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
     error = create_error(e)
     error.attributes.add_agent_attribute(:'request.uri',
-      "http://com.google",
+      'http://com.google',
       NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
     error.attributes_from_notice_error = @attributes_from_notice_error
 
@@ -47,7 +47,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_to_collector_array_merges_custom_attributes_and_params
     e = TestError.new('test exception')
-    @attributes.merge_custom_attributes(:custom => "attribute")
+    @attributes.merge_custom_attributes(:custom => 'attribute')
 
     error = create_error(e)
     error.attributes_from_notice_error = @attributes_from_notice_error
@@ -68,32 +68,32 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_to_collector_array_includes_agent_attributes
     e = TestError.new('test exception')
-    @attributes.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
+    @attributes.add_agent_attribute(:agent, 'attribute', NewRelic::Agent::AttributeFilter::DST_ALL)
     error = create_error(e)
 
     actual = extract_attributes(error)
 
-    assert_equal({:agent => "attribute"}, actual["agentAttributes"])
+    assert_equal({:agent => 'attribute'}, actual['agentAttributes'])
   end
 
   def test_to_collector_array_includes_intrinsic_attributes
     e = TestError.new('test exception')
-    @attributes.add_intrinsic_attribute(:intrinsic, "attribute")
+    @attributes.add_intrinsic_attribute(:intrinsic, 'attribute')
     error = create_error(e)
 
     actual = extract_attributes(error)
 
-    assert_equal({:intrinsic => "attribute"}, actual["intrinsics"])
+    assert_equal({:intrinsic => 'attribute'}, actual['intrinsics'])
   end
 
   def test_to_collector_array_happy_without_attribute_collections
-    error = NewRelic::NoticedError.new(@path, "BOOM")
+    error = NewRelic::NoticedError.new(@path, 'BOOM')
 
     expected = [
       (@time.to_f * 1000).round,
       @path,
-      "BOOM",
-      "Error",
+      'BOOM',
+      'Error',
       {
         'userAttributes' => {},
         'agentAttributes' => {},
@@ -110,8 +110,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     expected = [
       10_000.0,
       @path,
-      "<no message>",
-      "Error",
+      '<no message>',
+      'Error',
       {
         :'error.expected' => false,
         'userAttributes' => {},
@@ -142,7 +142,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_long_message
     # yes, times 500. it's a 5000 byte string. Assuming strings are
     # still 1 byte / char.
-    err = create_error(StandardError.new("1234567890" * 500))
+    err = create_error(StandardError.new('1234567890' * 500))
 
     assert_equal 4096, err.message.length
     assert_equal ('1234567890' * 500)[0..4095], err.message
@@ -208,24 +208,24 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_intrinsics_always_get_sent
     with_config(:'error_collector.attributes.enabled' => false) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      attributes.add_intrinsic_attribute(:intrinsic, "attribute")
+      attributes.add_intrinsic_attribute(:intrinsic, 'attribute')
 
-      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error = NewRelic::NoticedError.new(@path, Exception.new('O_o'))
       error.attributes = attributes
 
       serialized_attributes = extract_attributes(error)
 
-      assert_equal({:intrinsic => "attribute"}, serialized_attributes["intrinsics"])
+      assert_equal({:intrinsic => 'attribute'}, serialized_attributes['intrinsics'])
     end
   end
 
   def test_custom_attributes_sent_when_enabled
     with_config(:'error_collector.attributes.enabled' => true) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
+      custom_attrs = {'name' => 'Ron Burgundy', 'channel' => 4}
       attributes.merge_custom_attributes(custom_attrs)
 
-      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error = NewRelic::NoticedError.new(@path, Exception.new('O_o'))
       error.attributes = attributes
 
       assert_equal custom_attrs, error.custom_attributes
@@ -235,10 +235,10 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_custom_attributes_not_sent_when_disabled
     with_config(:'error_collector.attributes.enabled' => false) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
+      custom_attrs = {'name' => 'Ron Burgundy', 'channel' => 4}
       attributes.merge_custom_attributes(custom_attrs)
 
-      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error = NewRelic::NoticedError.new(@path, Exception.new('O_o'))
       error.attributes = attributes
 
       assert_empty(error.custom_attributes)
@@ -248,12 +248,12 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_agent_attributes_sent_when_enabled
     with_config(:'error_collector.attributes.enabled' => true) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      attributes.add_agent_attribute(:"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL)
+      attributes.add_agent_attribute(:"request.headers.referer", 'http://blog.site/home', NewRelic::Agent::AttributeFilter::DST_ALL)
 
-      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error = NewRelic::NoticedError.new(@path, Exception.new('O_o'))
       error.attributes = attributes
 
-      expected = {:"request.headers.referer" => "http://blog.site/home"}
+      expected = {:"request.headers.referer" => 'http://blog.site/home'}
 
       assert_equal expected, error.agent_attributes
     end
@@ -262,9 +262,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def test_agent_attributes_not_sent_when_disabled
     with_config(:'error_collector.attributes.enabled' => false) do
       attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-      attributes.add_agent_attribute(:"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL)
+      attributes.add_agent_attribute(:"request.headers.referer", 'http://blog.site/home', NewRelic::Agent::AttributeFilter::DST_ALL)
 
-      error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
+      error = NewRelic::NoticedError.new(@path, Exception.new('O_o'))
       error.attributes = attributes
 
       assert_empty(error.agent_attributes)

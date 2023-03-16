@@ -8,8 +8,8 @@ module NewRelic::Agent::Instrumentation
       SLASH = '/'
       UNKNOWN = 'unknown'
       LOCALHOST = 'localhost'
-      MULTIGET_METRIC_NAME = "get_multi_request"
-      MEMCACHED = "Memcached"
+      MULTIGET_METRIC_NAME = 'get_multi_request'
+      MEMCACHED = 'Memcached'
 
       def with_newrelic_tracing(operation, *args)
         segment = NewRelic::Agent::Tracer.start_datastore_segment( \

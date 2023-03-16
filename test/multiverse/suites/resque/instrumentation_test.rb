@@ -32,7 +32,7 @@ class ResqueTest < Minitest::Test
     end
 
     def self.request(args)
-      "we are not amused"
+      'we are not amused'
     end
   end
 
@@ -49,7 +49,7 @@ class ResqueTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       JOB_COUNT.times do |i|
-        Resque.enqueue(JobForTesting, "testing")
+        Resque.enqueue(JobForTesting, 'testing')
       end
     end
 
@@ -95,17 +95,6 @@ class ResqueTest < Minitest::Test
     refute_attributes_on_events
   end
 
-  def test_agent_posts_captured_args_to_job
-    stub_for_span_collection
-
-    with_config(:'resque.capture_params' => true) do
-      run_jobs
-    end
-
-    assert_attributes_on_transaction_traces
-    refute_attributes_on_events
-  end
-
   def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
     stub_for_span_collection
 
@@ -113,13 +102,14 @@ class ResqueTest < Minitest::Test
       run_jobs
     end
 
+    assert_attributes_on_transaction_traces
     assert_attributes_on_events
   end
 
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
 
-    assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
+    assert_equal(1, metric_data.size, 'expected exactly one metric_data post from agent')
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
 
     assert(metric, "could not find metric named #{name}")
@@ -137,7 +127,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal 'testing', sample.agent_attributes["job.resque.args.0"]
+        assert_equal 'testing', sample.agent_attributes['job.resque.args.0']
       end
     end
   end
@@ -161,7 +151,7 @@ class ResqueTest < Minitest::Test
     events = transaction_event_posts + span_event_posts
 
     events.each do |event|
-      assert_includes event[2].keys, "job.resque.args.0"
+      assert_includes event[2].keys, 'job.resque.args.0'
     end
   end
 
@@ -171,7 +161,7 @@ class ResqueTest < Minitest::Test
     events = transaction_event_posts + span_event_posts
 
     events.each do |event|
-      assert event[2].keys.none? { |k| k.start_with?("job.resque.args") }, "Found unexpected resque arguments"
+      assert event[2].keys.none? { |k| k.start_with?('job.resque.args') }, 'Found unexpected resque arguments'
     end
   end
 end

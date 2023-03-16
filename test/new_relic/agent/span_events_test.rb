@@ -11,9 +11,9 @@ module NewRelic
       def setup
         @config = {
           :'distributed_tracing.enabled' => true,
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "trust_this!"
+          :account_id => '190',
+          :primary_application_id => '46954',
+          :trusted_account_key => 'trust_this!'
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -33,9 +33,9 @@ module NewRelic
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
           external_segment = NewRelic::Agent::Tracer \
-            .start_external_request_segment(library: "net/http",
-              uri: "http://docs.newrelic.com",
-              procedure: "GET")
+            .start_external_request_segment(library: 'net/http',
+              uri: 'http://docs.newrelic.com',
+              procedure: 'GET')
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -50,9 +50,9 @@ module NewRelic
         external_segment = nil
         in_transaction('test_txn') do |txn|
           external_segment = NewRelic::Agent::Tracer \
-            .start_external_request_segment(library: "net/http",
-              uri: "http://docs.newrelic.com",
-              procedure: "GET")
+            .start_external_request_segment(library: 'net/http',
+              uri: 'http://docs.newrelic.com',
+              procedure: 'GET')
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -61,9 +61,9 @@ module NewRelic
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-        txn2_entry_span = last_span_events.detect { |ev| ev[0]["name"] == "test_txn2" }
+        txn2_entry_span = last_span_events.detect { |ev| ev[0]['name'] == 'test_txn2' }
 
-        assert_equal external_segment.guid, txn2_entry_span[0]["parentId"]
+        assert_equal external_segment.guid, txn2_entry_span[0]['parentId']
       end
 
       def test_span_event_parenting
@@ -81,20 +81,20 @@ module NewRelic
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
-        txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
+        txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]['name'] == 'test_txn' }
 
-        assert_equal txn.guid, txn_segment_event["transactionId"]
-        assert_nil txn_segment_event["parentId"]
+        assert_equal txn.guid, txn_segment_event['transactionId']
+        assert_nil txn_segment_event['parentId']
 
-        segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
+        segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]['name'] == 'segment_a' }
 
-        assert_equal txn.guid, segment_event_a["transactionId"]
-        assert_equal txn_segment.guid, segment_event_a["parentId"]
+        assert_equal txn.guid, segment_event_a['transactionId']
+        assert_equal txn_segment.guid, segment_event_a['parentId']
 
-        segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_b" }
+        segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]['name'] == 'segment_b' }
 
-        assert_equal txn.guid, segment_event_b["transactionId"]
-        assert_equal segment_a.guid, segment_event_b["parentId"]
+        assert_equal txn.guid, segment_event_b['transactionId']
+        assert_equal segment_a.guid, segment_event_b['parentId']
       end
 
       def test_entrypoint_attribute_added_to_first_span_only
@@ -106,9 +106,9 @@ module NewRelic
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
-        txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
+        txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]['name'] == 'test_txn' }
 
-        segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
+        segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]['name'] == 'segment_a' }
 
         assert txn_segment_event.key?('nr.entryPoint')
         assert txn_segment_event.fetch('nr.entryPoint')

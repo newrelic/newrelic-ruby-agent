@@ -40,22 +40,22 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   def test_should_connect_if_pending
     @connect_state = :pending
 
-    assert_predicate(self, :should_connect?, "should attempt to connect if pending")
+    assert_predicate(self, :should_connect?, 'should attempt to connect if pending')
   end
 
   def test_should_not_connect_if_disconnected
     @connect_state = :disconnected
 
-    refute should_connect?, "should not attempt to connect if force disconnected"
+    refute should_connect?, 'should not attempt to connect if force disconnected'
   end
 
   def test_should_connect_if_forced
     @connect_state = :disconnected
 
-    assert(should_connect?(true), "should connect if forced")
+    assert(should_connect?(true), 'should connect if forced')
     @connect_state = :connected
 
-    assert(should_connect?(true), "should connect if forced")
+    assert(should_connect?(true), 'should connect if forced')
   end
 
   def test_increment_retry_period
@@ -74,17 +74,17 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_log_error
-    error = StandardError.new("message")
+    error = StandardError.new('message')
 
     expects_logging(:error,
-      includes("Error establishing connection with New Relic Service"), \
+      includes('Error establishing connection with New Relic Service'), \
       instance_of(StandardError))
 
     log_error(error)
   end
 
   def test_handle_license_error
-    error = mock(:message => "error message")
+    error = mock(:message => 'error message')
     self.expects(:disconnect).once
     handle_license_error(error)
   end
@@ -158,7 +158,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     default_source = NewRelic::Agent::Configuration::DefaultSource.new
     expected_event_harvest_config_payload = {
       :harvest_limits => {
-        :analytic_event_data => default_source[:'analytics_events.max_samples_stored'],
+        :analytic_event_data => default_source[:'transaction_events.max_samples_stored'],
         :custom_event_data => default_source[:'custom_insights_events.max_samples_stored'],
         :error_event_data => default_source[:'error_collector.max_event_samples_stored'],
         :span_event_data => default_source[:'span_events.max_samples_stored'],
@@ -207,7 +207,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   def test_environment_for_connect
     assert environment_for_connect.detect { |(k, _)|
       k == 'Gems'
-    }, "expected connect_settings to include gems from environment"
+    }, 'expected connect_settings to include gems from environment'
   end
 
   def test_environment_for_connect_negative

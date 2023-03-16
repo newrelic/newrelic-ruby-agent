@@ -27,7 +27,7 @@ class MongoServer
   end
 
   def self.tmp_directory
-    ENV["MULTIVERSE_TMP"] || File.join(gem_root, 'tmp')
+    ENV['MULTIVERSE_TMP'] || File.join(gem_root, 'tmp')
   end
 
   def self.port_lock_directory
@@ -53,7 +53,7 @@ class MongoServer
   end
 
   def pingable?
-    ping == {"ok" => 1.0}
+    ping == {'ok' => 1.0}
   end
 
   def make_directories
@@ -136,12 +136,12 @@ class MongoServer
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
-    fork = "--fork"
+    fork = '--fork'
 
     dbpath = "--dbpath #{db_path}"
     port_flag = "--port #{self.port}"
     small_mongo = "--oplogSize 128#{smallfiles_switch}"
-    repl_set = "--replSet multiverse"
+    repl_set = '--replSet multiverse'
 
     base = "#{port_flag} #{fork} #{pid_file} #{log_file} #{small_mongo} #{dbpath}"
 

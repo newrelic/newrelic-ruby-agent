@@ -9,8 +9,8 @@ module NewRelic
     class TraceContextPayload
       VERSION = 0
       PARENT_TYPE = 0
-      DELIMITER = "-".freeze
-      SUPPORTABILITY_PARSE_EXCEPTION = "Supportability/TraceContext/Parse/Exception".freeze
+      DELIMITER = '-'.freeze
+      SUPPORTABILITY_PARSE_EXCEPTION = 'Supportability/TraceContext/Parse/Exception'.freeze
 
       TRUE_CHAR = '1'.freeze
       FALSE_CHAR = '0'.freeze
@@ -64,7 +64,7 @@ module NewRelic
         def handle_invalid_payload(error: nil, message: nil)
           NewRelic::Agent.increment_metric(SUPPORTABILITY_PARSE_EXCEPTION)
           if error
-            NewRelic::Agent.logger.warn("Error parsing trace context payload", error)
+            NewRelic::Agent.logger.warn('Error parsing trace context payload', error)
           elsif message
             NewRelic::Agent.logger.warn("Error parsing trace context payload: #{message}")
           end
@@ -118,7 +118,7 @@ module NewRelic
         result << DELIMITER << (id || NewRelic::EMPTY_STR)
         result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
-        result << DELIMITER << sprintf("%.6f", priority)
+        result << DELIMITER << sprintf('%.6f', priority)
         result << DELIMITER << timestamp.to_s # required
         result
       end

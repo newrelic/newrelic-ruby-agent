@@ -8,7 +8,7 @@ require 'uri'
 
 require 'newrelic_rpm'
 
-NewRelic::Agent.logger.debug("Detected New Relic Infinite Tracing Gem")
+NewRelic::Agent.logger.debug('Detected New Relic Infinite Tracing Gem')
 
 require 'infinite_tracing/version'
 require 'infinite_tracing/config'
@@ -21,7 +21,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug("Loading New Relic Infinite Tracing Library")
+    NewRelic::Agent.logger.debug('Loading New Relic Infinite Tracing Library')
 
     require 'infinite_tracing/proto'
 

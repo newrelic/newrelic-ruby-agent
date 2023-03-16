@@ -11,10 +11,10 @@ class ErrorMiddleware
 
   def call(env)
     path = ::Rack::Request.new(env).path_info
-    raise "middleware error" if path.include?('/middleware_error/before')
+    raise 'middleware error' if path.include?('/middleware_error/before')
 
     result = @app.call(env)
-    raise "middleware error" if path.include?('/middleware_error/after')
+    raise 'middleware error' if path.include?('/middleware_error/after')
 
     result
   end

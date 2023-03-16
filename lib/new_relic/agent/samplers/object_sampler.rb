@@ -16,7 +16,7 @@ module NewRelic
 
         def poll
           live_objects = ObjectSpace.live_objects
-          NewRelic::Agent.record_metric("GC/objects", live_objects)
+          NewRelic::Agent.record_metric('GC/objects', live_objects)
         end
       end
     end

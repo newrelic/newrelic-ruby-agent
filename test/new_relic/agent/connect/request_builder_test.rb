@@ -33,7 +33,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings
-    with_config(:app_name => ["apps"]) do
+    with_config(:app_name => ['apps']) do
       keys = %w[pid host identifier display_host app_name language agent_version environment settings].map(&:to_sym)
 
       settings = @request_builder.connect_payload
@@ -45,28 +45,28 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings_includes_correct_identifier
-    with_config(:app_name => "b;a;c") do
+    with_config(:app_name => 'b;a;c') do
       NewRelic::Agent::Connect::RequestBuilder.any_instance.stubs(:local_host).returns('lo-calhost')
       @environment_report = {}
 
       settings = @request_builder.connect_payload
 
-      assert_equal "ruby:lo-calhost:a,b,c", settings[:identifier]
+      assert_equal 'ruby:lo-calhost:a,b,c', settings[:identifier]
     end
   end
 
   def test_connect_settings_includes_labels_from_config
     with_config({:labels => {'Server' => 'East'}}) do
-      expected = [{"label_type" => "Server", "label_value" => "East"}]
+      expected = [{'label_type' => 'Server', 'label_value' => 'East'}]
 
       assert_equal expected, @request_builder.connect_payload[:labels]
     end
   end
 
   def test_connect_settings_includes_labels_from_semicolon_separated_config
-    with_config(:labels => "Server:East;Server:West;") do
+    with_config(:labels => 'Server:East;Server:West;') do
       expected = [
-        {"label_type" => "Server", "label_value" => "West"}
+        {'label_type' => 'Server', 'label_value' => 'West'}
       ]
 
       assert_equal expected, @request_builder.connect_payload[:labels]

@@ -18,7 +18,7 @@ module NewRelic
 
       def record(priority: nil, event: nil, &blk)
         unless event || priority && blk
-          raise ArgumentError, "Expected priority and block, or event"
+          raise ArgumentError, 'Expected priority and block, or event'
         end
 
         return unless enabled?
@@ -38,7 +38,7 @@ module NewRelic
       end
 
       def record_sampling_rate(metadata) # THREAD_LOCAL_ACCESS
-        NewRelic::Agent.logger.debug("Sampled %d / %d (%.1f %%) requests this cycle, %d / %d (%.1f %%) since startup" % [
+        NewRelic::Agent.logger.debug('Sampled %d / %d (%.1f %%) requests this cycle, %d / %d (%.1f %%) since startup' % [
           metadata[:captured],
           metadata[:seen],
           (metadata[:captured].to_f / metadata[:seen] * 100.0),
@@ -48,8 +48,8 @@ module NewRelic
         ])
 
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("TransactionEventAggregator/requests", metadata[:seen])
-        engine.tl_record_supportability_metric_count("TransactionEventAggregator/samples", metadata[:captured])
+        engine.tl_record_supportability_metric_count('TransactionEventAggregator/requests', metadata[:seen])
+        engine.tl_record_supportability_metric_count('TransactionEventAggregator/samples', metadata[:captured])
       end
     end
   end

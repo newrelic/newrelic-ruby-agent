@@ -12,7 +12,7 @@ module Multiverse
 
     def initialize(file_path)
       self.file_path = file_path
-      @instrumentation_permutations = ["chain"]
+      @instrumentation_permutations = ['chain']
       @gemfiles = []
       @mode = 'fork'
       if File.exist?(file_path)
@@ -27,8 +27,7 @@ module Multiverse
       @condition = block
     end
 
-    # TODO: create_gemfiles doesn't need gem_list as arg. Refactor all callers of create_gemfiles
-    def create_gemfiles(versions, gem_list)
+    def create_gemfiles(versions)
       versions.each do |version|
         if version.is_a?(Array)
           version, first_supported_ruby_version, last_supported_ruby_version = version
@@ -38,7 +37,7 @@ module Multiverse
           )
         end
 
-        version = if version && version.start_with?('=')
+        version = if version&.start_with?('=')
           add_version(version.sub('= ', ''), false) # don't twiddle wakka
         else
           add_version(version)
@@ -63,7 +62,7 @@ module Multiverse
     end
 
     def ruby3_gem_sorted_set
-      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
+      RUBY_VERSION >= '3.0.0' ? "gem 'sorted_set'" : ''
     end
 
     def omit_collector!

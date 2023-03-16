@@ -121,13 +121,13 @@ module NewRelic::Agent::Configuration
     end
 
     def test_set_values_from_new_relic_environment_variables_warns_unknowns
-      ENV['NEWRELIC_DOESNT_USE_THIS_VALUE'] = "true"
-      expects_logging(:info, includes("NEWRELIC_DOESNT_USE_THIS_VALUE"))
+      ENV['NEWRELIC_DOESNT_USE_THIS_VALUE'] = 'true'
+      expects_logging(:info, includes('NEWRELIC_DOESNT_USE_THIS_VALUE'))
       @environment_source.set_values_from_new_relic_environment_variables
     end
 
     def test_set_values_from_new_relic_environment_variables_ignores_NEW_RELIC_LOG
-      ENV['NEW_RELIC_LOG'] = "STDOUT"
+      ENV['NEW_RELIC_LOG'] = 'STDOUT'
       expects_no_logging(:info)
       @environment_source.set_values_from_new_relic_environment_variables
     end

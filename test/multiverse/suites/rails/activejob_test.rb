@@ -9,7 +9,7 @@ require 'minitest/mock'
 
 # ActiveJob is in Rails 4.2+, so make sure we're on an allowed version before
 # we try to load.
-if Rails::VERSION::STRING >= "4.2.0"
+if Rails::VERSION::STRING >= '4.2.0'
 
   require 'active_job'
 
@@ -60,8 +60,8 @@ if Rails::VERSION::STRING >= "4.2.0"
       end
     end
 
-    ENQUEUE_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Produce/Named"
-    PERFORM_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Consume/Named"
+    ENQUEUE_PREFIX = 'ActiveJob/Inline/Queue/Produce/Named'
+    PERFORM_PREFIX = 'ActiveJob/Inline/Queue/Consume/Named'
 
     PERFORM_TRANSACTION_NAME = 'OtherTransaction/ActiveJob::Inline/MyJob/execute'
     PERFORM_TRANSACTION_ROLLUP = 'OtherTransaction/ActiveJob::Inline/all'
@@ -165,7 +165,7 @@ if Rails::VERSION::STRING >= "4.2.0"
     end
 
     def test_doesnt_interfere_with_params_on_job
-      MyJobWithParams.perform_later("1", "2")
+      MyJobWithParams.perform_later('1', '2')
 
       assert_equal(%w[1 2], MyJobWithParams.last_params)
     end
@@ -176,7 +176,7 @@ if Rails::VERSION::STRING >= "4.2.0"
         MyFailure.perform_later
       end
 
-      assert_metrics_recorded(["Errors/all"])
+      assert_metrics_recorded(['Errors/all'])
     end
   end
 

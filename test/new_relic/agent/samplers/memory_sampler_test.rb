@@ -19,7 +19,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     s.poll
     s.poll
 
-    assert_metrics_recorded "Memory/Physical" => {:call_count => 3, :total_call_time => 999}
+    assert_metrics_recorded 'Memory/Physical' => {:call_count => 3, :total_call_time => 999}
   end
 
   def test_memory__linux
@@ -32,7 +32,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     s.poll
     s.poll
 
-    assert_metrics_recorded "Memory/Physical" => {:call_count => 3, :total_call_time => 999}
+    assert_metrics_recorded 'Memory/Physical' => {:call_count => 3, :total_call_time => 999}
   end
 
   def test_memory__solaris
@@ -43,7 +43,7 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     s = NewRelic::Agent::Samplers::MemorySampler.new
     s.poll
 
-    assert_metrics_recorded "Memory/Physical" => {:call_count => 1, :total_call_time => 999}
+    assert_metrics_recorded 'Memory/Physical' => {:call_count => 1, :total_call_time => 999}
   end
 
   def test_memory__windows

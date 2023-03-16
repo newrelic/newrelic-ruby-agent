@@ -50,7 +50,7 @@ class NewRelic::MetricSpecTest < Minitest::Test
   # test to make sure the MetricSpec class can serialize to json
   if defined?(::ActiveSupport)
     def test_json
-      spec = NewRelic::MetricSpec.new("controller", "metric#find")
+      spec = NewRelic::MetricSpec.new('controller', 'metric#find')
 
       import = ::ActiveSupport::JSON.decode(spec.to_json)
 
@@ -69,16 +69,16 @@ class NewRelic::MetricSpecTest < Minitest::Test
       compare_metric_data(metric_data, import)
     end
   else
-    puts "Skipping `test_json` in #{File.basename(__FILE__)} because ActiveSupport is unavailable" if ENV["VERBOSE_TEST_OUTPUT"]
+    puts "Skipping `test_json` in #{File.basename(__FILE__)} because ActiveSupport is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
   end
 
   def test_initialize_truncates_name_and_scope
-    long_name = "a" * 300
-    long_scope = "b" * 300
+    long_name = 'a' * 300
+    long_scope = 'b' * 300
     spec = NewRelic::MetricSpec.new(long_name, long_scope)
 
-    assert_equal("a" * 255, spec.name, "should have shortened the name")
-    assert_equal("b" * 255, spec.scope, "should have shortened the scope")
+    assert_equal('a' * 255, spec.name, 'should have shortened the name')
+    assert_equal('b' * 255, spec.scope, 'should have shortened the scope')
   end
 
   # These next three tests are here only because rpm_site uses our MetricSpec
@@ -94,7 +94,7 @@ class NewRelic::MetricSpecTest < Minitest::Test
   end
 
   def test_initialize_can_take_a_non_string_name
-    name = string_wrapper_class.new("name")
+    name = string_wrapper_class.new('name')
 
     spec = NewRelic::MetricSpec.new(name)
 
@@ -103,8 +103,8 @@ class NewRelic::MetricSpecTest < Minitest::Test
   end
 
   def test_initialize_can_take_a_non_string_scope
-    name = "name"
-    scope = string_wrapper_class.new("scope")
+    name = 'name'
+    scope = string_wrapper_class.new('scope')
 
     spec = NewRelic::MetricSpec.new(name, scope)
 

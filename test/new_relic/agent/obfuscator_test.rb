@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../test_helper'
-require "new_relic/agent/obfuscator"
+require 'new_relic/agent/obfuscator'
 
 class NewRelic::Agent::ObfuscatorTest < Minitest::Test
   OBFUSCATION_KEY = (1..40).to_a.pack('c*')
@@ -37,26 +37,26 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   def test_obfuscate_utf8
     assert_encoded(RUM_KEY_LENGTH,
-      "foooooééoooo - blah",
-      "Z21sa2ppxKHKo2RjYm4iLiRnamZg")
+      'foooooééoooo - blah',
+      'Z21sa2ppxKHKo2RjYm4iLiRnamZg')
   end
 
   def test_decoding_blank
     obfuscator = NewRelic::Agent::Obfuscator.new('query')
 
-    assert_equal "", obfuscator.deobfuscate("")
+    assert_equal '', obfuscator.deobfuscate('')
   end
 
   def test_decoding_empty_key
-    obfuscator = NewRelic::Agent::Obfuscator.new("")
+    obfuscator = NewRelic::Agent::Obfuscator.new('')
 
-    assert_equal "query", obfuscator.encode('query')
+    assert_equal 'query', obfuscator.encode('query')
   end
 
   def test_encode_with_nil_uses_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new(nil)
 
-    assert_equal "query", obfuscator.encode('query')
+    assert_equal 'query', obfuscator.encode('query')
   end
 
   def test_encoding_functions_can_roundtrip_utf8_text

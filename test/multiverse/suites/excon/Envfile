@@ -5,15 +5,15 @@
 excon_versions = [
   [nil],
   ['0.56.0'],
-  ['0.19.0', 2.2, 2.6]
+  ['0.19.0', 2.4, 2.6]
 ]
 
 def gem_list(excon_version = nil)
-  <<-RB
+  <<~RB
     gem 'excon'#{excon_version}
     gem 'rack'
-    
+
   RB
 end
 
-create_gemfiles(excon_versions, gem_list)
+create_gemfiles(excon_versions)

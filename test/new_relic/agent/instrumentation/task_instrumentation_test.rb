@@ -20,11 +20,11 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def run_task_exception
     NewRelic::Agent.add_custom_attributes(:custom_one => 'one custom val')
-    raise "This is an error"
+    raise 'This is an error'
   end
 
   def run_background_job
-    "This is a background job"
+    'This is a background job'
   end
 
   add_transaction_tracer :run_task_exception
@@ -178,12 +178,12 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
     error = errors.first
 
-    assert_equal("Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception", error.path)
+    assert_equal('Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/run_task_exception', error.path)
     refute_nil(error.stack_trace)
 
     result = error.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
 
-    refute_nil(result["custom_one"])
+    refute_nil(result['custom_one'])
   end
 
   def test_instrument_background_job

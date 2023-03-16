@@ -25,9 +25,9 @@ module NewRelic::Agent
       utilization_data = UtilizationData.new
 
       expected = {
-        :instanceId => "i-08987cdeff7489fa7",
-        :instanceType => "c4.2xlarge",
-        :availabilityZone => "us-west-2c"
+        :instanceId => 'i-08987cdeff7489fa7',
+        :instanceType => 'c4.2xlarge',
+        :availabilityZone => 'us-west-2c'
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors][:aws]
@@ -48,10 +48,10 @@ module NewRelic::Agent
       utilization_data = UtilizationData.new
 
       expected = {
-        :vmId => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
-        :name => "rubytest",
-        :vmSize => "Standard_DS1_v2",
-        :location => "eastus"
+        :vmId => 'c84ffaa7-1b0a-4aa6-9f5c-0912655d9870',
+        :name => 'rubytest',
+        :vmSize => 'Standard_DS1_v2',
+        :location => 'eastus'
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors][:azure]
@@ -72,10 +72,10 @@ module NewRelic::Agent
       utilization_data = UtilizationData.new
 
       expected = {
-        :id => "4332984205593314925",
-        :machineType => "custom-1-1024",
-        :name => "aef-default-20170714t143150-1q67",
-        :zone => "us-central1-b"
+        :id => '4332984205593314925',
+        :machineType => 'custom-1-1024',
+        :name => 'aef-default-20170714t143150-1q67',
+        :zone => 'us-central1-b'
       }
 
       assert_equal expected, utilization_data.to_collector_hash[:vendors][:gcp]
@@ -94,13 +94,13 @@ module NewRelic::Agent
     def test_pcf_information_is_included_when_available
       utilization_data = UtilizationData.new
 
-      with_pcf_env("CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
-        "CF_INSTANCE_IP"   => "101.1.149.48",
-        "MEMORY_LIMIT"     => "2048m") do
+      with_pcf_env('CF_INSTANCE_GUID' => 'ab326c0e-123e-47a1-65cc-45f6',
+        'CF_INSTANCE_IP'   => '101.1.149.48',
+        'MEMORY_LIMIT'     => '2048m') do
         expected = {
-          :cf_instance_guid => "ab326c0e-123e-47a1-65cc-45f6",
-          :cf_instance_ip => "101.1.149.48",
-          :memory_limit => "2048m"
+          :cf_instance_guid => 'ab326c0e-123e-47a1-65cc-45f6',
+          :cf_instance_ip => '101.1.149.48',
+          :memory_limit => '2048m'
         }
 
         assert_equal expected, utilization_data.to_collector_hash[:vendors][:pcf]
@@ -111,22 +111,22 @@ module NewRelic::Agent
       with_config(:'utilization.detect_pcf' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
 
-        with_pcf_env("CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
-          "CF_INSTANCE_IP"   => "101.1.149.48",
-          "MEMORY_LIMIT"     => "2048m") do
+        with_pcf_env('CF_INSTANCE_GUID' => 'ab326c0e-123e-47a1-65cc-45f6',
+          'CF_INSTANCE_IP'   => '101.1.149.48',
+          'MEMORY_LIMIT'     => '2048m') do
           assert_nil utilization_data.to_collector_hash[:vendors]
         end
       end
     end
 
     def test_docker_information_is_included_when_available
-      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns('47cbd16b77c50cbf71401')
 
       utilization_data = UtilizationData.new
 
       expected = {
         :docker => {
-          :id => "47cbd16b77c50cbf71401"
+          :id => '47cbd16b77c50cbf71401'
         }
       }
 
@@ -134,7 +134,7 @@ module NewRelic::Agent
     end
 
     def test_docker_information_is_omitted_when_available_but_disabled_by_config
-      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns('47cbd16b77c50cbf71401')
       with_config(:'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
 
@@ -145,10 +145,10 @@ module NewRelic::Agent
     def test_logged_when_docker_container_id_is_unrecognized
       NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
       NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
-      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns(String.new('whatever'))
-      NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => "*****YOLO*******")
+      NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns((+'whatever'))
+      NewRelic::Agent::SystemInfo.stubs(:parse_cgroup_ids).returns('cpu' => '*****YOLO*******')
 
-      expects_logging(:debug, includes("YOLO"))
+      expects_logging(:debug, includes('YOLO'))
       utilization_data = UtilizationData.new
 
       assert_nil utilization_data.to_collector_hash[:vendors]
@@ -157,17 +157,17 @@ module NewRelic::Agent
     def test_aws_and_docker_information_is_included_when_both_available
       stub_aws_info
 
-      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
+      NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns('47cbd16b77c50cbf71401')
       utilization_data = UtilizationData.new
 
       expected = {
         :aws => {
-          :instanceId => "i-08987cdeff7489fa7",
-          :instanceType => "c4.2xlarge",
-          :availabilityZone => "us-west-2c"
+          :instanceId => 'i-08987cdeff7489fa7',
+          :instanceType => 'c4.2xlarge',
+          :availabilityZone => 'us-west-2c'
         },
         :docker => {
-          :id => "47cbd16b77c50cbf71401"
+          :id => '47cbd16b77c50cbf71401'
         }
       }
 
@@ -183,11 +183,11 @@ module NewRelic::Agent
     end
 
     def test_hostname_is_present_in_collector_hash
-      NewRelic::Agent::Hostname.stubs(:get).returns("host")
+      NewRelic::Agent::Hostname.stubs(:get).returns('host')
 
       utilization_data = UtilizationData.new
 
-      assert_equal "host", utilization_data.to_collector_hash[:hostname]
+      assert_equal 'host', utilization_data.to_collector_hash[:hostname]
     end
 
     def test_ip_is_present_in_collector_hash
@@ -199,15 +199,15 @@ module NewRelic::Agent
     end
 
     def test_full_hostname_is_present_in_collector_hash
-      NewRelic::Agent::Hostname.stubs(:get_fqdn).returns("foobar.baz.com")
+      NewRelic::Agent::Hostname.stubs(:get_fqdn).returns('foobar.baz.com')
 
       utilization_data = UtilizationData.new
 
-      assert_equal "foobar.baz.com", utilization_data.to_collector_hash[:full_hostname]
+      assert_equal 'foobar.baz.com', utilization_data.to_collector_hash[:full_hostname]
     end
 
     def test_full_hostname_omitted_if_empty_or_nil
-      [nil, ""].each do |return_value|
+      [nil, ''].each do |return_value|
         NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(return_value)
 
         utilization_data = UtilizationData.new
@@ -233,12 +233,12 @@ module NewRelic::Agent
     end
 
     def test_memory_is_nil_when_proc_meminfo_is_unreadable
-      NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+      NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
       NewRelic::Agent::SystemInfo.stubs(:proc_try_read).returns(nil)
 
       utilization_data = UtilizationData.new
 
-      assert_nil utilization_data.to_collector_hash[:total_ram_mib], "Expected total_ram_mib to be nil"
+      assert_nil utilization_data.to_collector_hash[:total_ram_mib], 'Expected total_ram_mib to be nil'
     end
 
     def test_metadata_version_is_present_in_collector_hash
@@ -272,11 +272,11 @@ module NewRelic::Agent
     end
 
     def test_boot_id_is_present_in_collector_hash
-      NewRelic::Agent::SystemInfo.stubs(:boot_id).returns("boot-id")
+      NewRelic::Agent::SystemInfo.stubs(:boot_id).returns('boot-id')
 
       utilization_data = UtilizationData.new
 
-      assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
+      assert_equal 'boot-id', utilization_data.to_collector_hash[:boot_id]
     end
 
     def test_kubernetes_information_is_present_if_available
@@ -311,7 +311,7 @@ module NewRelic::Agent
 
     def default_aws_response
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/aws', __FILE__)
-      File.read(File.join(aws_fixture_path, "valid.json"))
+      File.read(File.join(aws_fixture_path, 'valid.json'))
     end
 
     def stub_azure_info(response_code: '200', response_body: default_azure_response)
@@ -331,7 +331,7 @@ module NewRelic::Agent
 
     def default_gcp_response
       aws_fixture_path = File.expand_path('../../../fixtures/utilization/gcp', __FILE__)
-      File.read(File.join(aws_fixture_path, "valid.json"))
+      File.read(File.join(aws_fixture_path, 'valid.json'))
     end
 
     def with_pcf_env(vars, &blk)
@@ -342,10 +342,10 @@ module NewRelic::Agent
 
     # ---
 
-    load_cross_agent_test("utilization/utilization_json").each do |test_case|
+    load_cross_agent_test('utilization/utilization_json').each do |test_case|
       test_case = symbolize_keys_in_object(test_case)
 
-      define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
+      define_method("test_#{test_case[:testname]}".tr(' ', '_')) do
         setup_cross_agent_test_stubs test_case
 
         env = non_config_environment_variables(test_case)

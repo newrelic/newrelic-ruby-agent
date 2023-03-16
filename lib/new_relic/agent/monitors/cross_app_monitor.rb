@@ -12,7 +12,6 @@ module NewRelic
   module Agent
     module DistributedTracing
       class CrossAppMonitor < InboundRequestMonitor
-        NEWRELIC_ID_HEADER = 'X-NewRelic-ID'.freeze
         NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
         NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
@@ -24,7 +23,7 @@ module NewRelic
           if CrossAppTracing.cross_app_enabled?
             Deprecator.deprecate('cross_application_tracer')
             ::NewRelic::Agent.logger.warn(
-              "[DEPRECATED] Cross application tracing is enabled. Distributed tracing is replacing cross application tracing as the default means of tracing between services. To continue using cross application tracing, enable it with `cross_application_tracer.enabled: true` and `distributed_tracing.enabled: false`"
+              '[DEPRECATED] Cross application tracing is enabled. Distributed tracing is replacing cross application tracing as the default means of tracing between services. To continue using cross application tracing, enable it with `cross_application_tracer.enabled: true` and `distributed_tracing.enabled: false`'
             )
           end
 
@@ -35,7 +34,7 @@ module NewRelic
           rotated = ((seed << 1) | (seed >> 31)) & 0xffffffff
           app_name = NewRelic::Agent.config[:app_name].first
           identifier = "#{app_name};#{txn_name}"
-          sprintf("%08x", rotated ^ hash_transaction_name(identifier))
+          sprintf('%08x', rotated ^ hash_transaction_name(identifier))
         end
 
         private
@@ -45,7 +44,7 @@ module NewRelic
         #   :after_call will write our response headers/metrics and clean up the thread
         def register_event_listeners(events)
           NewRelic::Agent.logger
-            .debug("Wiring up Cross Application Tracing to events after finished configuring")
+            .debug('Wiring up Cross Application Tracing to events after finished configuring')
 
           events.subscribe(:before_call) do |env| # THREAD_LOCAL_ACCESS
             if id = decoded_id(env) and should_process_request?(id)
@@ -110,7 +109,7 @@ module NewRelic
         end
 
         def hash_transaction_name(identifier)
-          Digest::MD5.digest(identifier).unpack("@12N").first & 0xffffffff
+          Digest::MD5.digest(identifier).unpack('@12N').first & 0xffffffff
         end
       end
     end

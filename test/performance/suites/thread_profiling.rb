@@ -61,11 +61,11 @@ class ThreadProfiling < Performance::TestCase
   rescue Exception => e
     if e.message.include?('Deadlock')
       Thread.list.select(&:alive?).each do |t|
-        STDERR.puts "*" * 80
+        STDERR.puts '*' * 80
         STDERR.puts "Live thread: #{t.inspect}"
-        STDERR.puts "Backtrace:"
+        STDERR.puts 'Backtrace:'
         STDERR.puts (t.backtrace || []).join("\n")
-        STDERR.puts "*" * 80
+        STDERR.puts '*' * 80
       end
     end
 

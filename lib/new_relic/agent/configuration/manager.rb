@@ -241,8 +241,8 @@ module NewRelic
           end
         end
 
-        MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
-        PARSING_LABELS_FAILURE = "Failure during parsing labels. Ignoring and carrying on with connect."
+        MALFORMED_LABELS_WARNING = 'Skipping malformed labels configuration'
+        PARSING_LABELS_FAILURE = 'Failure during parsing labels. Ignoring and carrying on with connect.'
 
         MAX_LABEL_COUNT = 64
         MAX_LABEL_LENGTH = 255

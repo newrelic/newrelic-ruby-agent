@@ -124,8 +124,6 @@ module NewRelic
 
       def prep_capture_params_rules(config)
         build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
-        build_rule(['job.resque.args.*'], include_destinations_for_capture_params(config[:'resque.capture_params']), true)
-        build_rule(['job.sidekiq.args.*'], include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
       end
 
       def prep_datastore_rules(config)
@@ -275,8 +273,8 @@ module NewRelic
       attr_reader :attribute_name, :destinations, :is_include, :wildcard
 
       def initialize(attribute_name, destinations, is_include)
-        @attribute_name = attribute_name.sub(/\*$/, "")
-        @wildcard = attribute_name.end_with?("*")
+        @attribute_name = attribute_name.sub(/\*$/, '')
+        @wildcard = attribute_name.end_with?('*')
         @is_include = is_include
         @destinations = is_include ? destinations : ~destinations
       end

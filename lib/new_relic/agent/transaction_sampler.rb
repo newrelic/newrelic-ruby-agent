@@ -34,13 +34,13 @@ module NewRelic
             threshold = Agent.config[:'transaction_tracer.transaction_threshold']
             ::NewRelic::Agent.logger.debug("Transaction tracing threshold is #{threshold} seconds.")
           else
-            ::NewRelic::Agent.logger.debug("Transaction traces will not be sent to the New Relic service.")
+            ::NewRelic::Agent.logger.debug('Transaction traces will not be sent to the New Relic service.')
           end
         end
 
         Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
           if config == 'raw'
-            ::NewRelic::Agent.logger.warn("Agent is configured to send raw SQL to the service")
+            ::NewRelic::Agent.logger.warn('Agent is configured to send raw SQL to the service')
           end
         end
       end
@@ -81,7 +81,7 @@ module NewRelic
           begin
             sample.prepare_to_send!
           rescue => e
-            NewRelic::Agent.logger.error("Failed to prepare transaction trace. Error: ", e)
+            NewRelic::Agent.logger.error('Failed to prepare transaction trace. Error: ', e)
             false
           else
             true

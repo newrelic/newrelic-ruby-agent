@@ -44,9 +44,7 @@ module Performance
     end
 
     def fire(event, *args)
-      if @callbacks[event]
-        @callbacks[event].each { |cb| cb.arity > 0 ? cb.call(*args) : cb.call }
-      end
+      @callbacks[event]&.each { |cb| cb.arity > 0 ? cb.call(*args) : cb.call }
     end
 
     def runnable_test_methods

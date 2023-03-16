@@ -28,23 +28,23 @@ module NewRelic::Agent
     end
 
     def test_deserialize
-      payload = @monitor.obfuscator.obfuscate("[1,2,3]")
+      payload = @monitor.obfuscator.obfuscate('[1,2,3]')
 
-      assert_equal [1, 2, 3], @monitor.deserialize_header(payload, "the_key")
+      assert_equal [1, 2, 3], @monitor.deserialize_header(payload, 'the_key')
     end
 
     def test_deserialize_nonsense
-      expects_logging(:debug, includes("the_key"))
+      expects_logging(:debug, includes('the_key'))
 
-      assert_nil @monitor.deserialize_header("asdf", "the_key")
+      assert_nil @monitor.deserialize_header('asdf', 'the_key')
     end
 
     def test_deserialize_with_invalid_json
-      payload = @monitor.obfuscator.obfuscate("[1,2,3")
+      payload = @monitor.obfuscator.obfuscate('[1,2,3')
 
-      expects_logging(:debug, includes("the_key"))
+      expects_logging(:debug, includes('the_key'))
 
-      assert_nil @monitor.deserialize_header(payload, "the_key")
+      assert_nil @monitor.deserialize_header(payload, 'the_key')
     end
   end
 end

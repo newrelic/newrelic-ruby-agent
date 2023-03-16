@@ -43,7 +43,7 @@ class MultiverseTest < Test::Unit::TestCase
   def test_suite_environments_are_isolated_from_each_other
     run = run_suite('one')
 
-    assert_equal 0, run.exit_status, "Test suite should demonstrate that " <<
+    assert_equal 0, run.exit_status, 'Test suite should demonstrate that ' <<
       "gems loaded in for one suite don't " <<
       "persist in the next suite\n" # + run.output
   end
@@ -51,14 +51,14 @@ class MultiverseTest < Test::Unit::TestCase
   def test_failed_tests_mean_unsuccessful_exit_code_in_parent_with_fork_execute_mode
     run = run_suite('two')
 
-    refute_equal 0, run.exit_status, "Failed test should mean unsuccessful " <<
+    refute_equal 0, run.exit_status, 'Failed test should mean unsuccessful ' <<
       "exit status in parent \n" # + run.output
   end
 
   def test_failed_tests_mean_unsuccessful_exit_code_in_parent_with_spawn_execute_mode
     run = run_suite('three')
 
-    refute_equal 0, run.exit_status, "Failed test in spawn mode should mean unsuccessful " <<
+    refute_equal 0, run.exit_status, 'Failed test in spawn mode should mean unsuccessful ' <<
       "exit status in parent \n" # + run.output
   end
 end

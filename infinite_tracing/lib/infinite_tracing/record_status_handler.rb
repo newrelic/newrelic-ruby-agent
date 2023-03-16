@@ -21,7 +21,7 @@ module NewRelic::Agent
         return if @worker.nil?
 
         @lock.synchronize do
-          NewRelic::Agent.logger.debug("gRPC Stopping Response Handler")
+          NewRelic::Agent.logger.debug('gRPC Stopping Response Handler')
           @worker.stop
           @worker = nil
         end
@@ -43,13 +43,13 @@ module NewRelic::Agent
       def start_handler
         Worker.new(self.class.name) do
           handle_response
-          NewRelic::Agent.logger.debug("gRPC Infinite Tracer Observer closed the stream")
+          NewRelic::Agent.logger.debug('gRPC Infinite Tracer Observer closed the stream')
           @client.handle_close
         rescue => error
           @client.handle_error(error)
         end
       rescue => error
-        NewRelic::Agent.logger.error("gRPC Worker Error", error)
+        NewRelic::Agent.logger.error('gRPC Worker Error', error)
       end
     end
   end

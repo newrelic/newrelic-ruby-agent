@@ -27,7 +27,7 @@ class EncodingNormalizerTest < Minitest::Test
   end
 
   def test_normalize_string_returns_input_if_correctly_encoded_utf8
-    string = "i want a pony"
+    string = 'i want a pony'
     result = EncodingNormalizer.normalize_string(string)
 
     assert_same(string, result)
@@ -35,7 +35,7 @@ class EncodingNormalizerTest < Minitest::Test
   end
 
   def test_normalize_string_returns_munged_copy_if_ascii_8bit
-    string = (0..255).to_a.pack("C*")
+    string = (0..255).to_a.pack('C*')
     result = EncodingNormalizer.normalize_string(string)
 
     refute_same(string, result)
@@ -44,7 +44,7 @@ class EncodingNormalizerTest < Minitest::Test
   end
 
   def test_normalize_string_returns_munged_copy_if_invalid_utf8
-    string = (0..255).to_a.pack("C*").force_encoding('UTF-8')
+    string = (0..255).to_a.pack('C*').force_encoding('UTF-8')
     result = EncodingNormalizer.normalize_string(string)
 
     refute_same(result, string)
@@ -53,7 +53,7 @@ class EncodingNormalizerTest < Minitest::Test
   end
 
   def test_normalize_string_returns_munged_copy_if_other_convertible_encoding
-    string = "i want a pony".encode('UTF-16LE')
+    string = 'i want a pony'.encode('UTF-16LE')
     result = EncodingNormalizer.normalize_string(string)
 
     refute_same(result, string)
@@ -66,7 +66,7 @@ class EncodingNormalizerTest < Minitest::Test
     # Encoding::ConverterNotFoundError, which is what we're trying to
     # replicate for this test case.
     # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
-    string = String.new('Jyv+AOQ-skyl+AOQ-')
+    string = +'Jyv+AOQ-skyl+AOQ-'
     input = string.dup.force_encoding('UTF-7')
 
     assert_predicate input, :valid_encoding?

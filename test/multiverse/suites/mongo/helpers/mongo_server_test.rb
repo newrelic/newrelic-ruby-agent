@@ -102,7 +102,7 @@ class MongoServerTest < Test::Unit::TestCase
   end
 
   def test_pingable_returns_true_if_ping_is_ok
-    ok_status = {"ok" => 1.0}
+    ok_status = {'ok' => 1.0}
     @server.stubs(:ping).returns(ok_status)
 
     assert_predicate @server, :pingable?
@@ -158,7 +158,7 @@ class MongoServerTest < Test::Unit::TestCase
 
   def test_ping_returns_ok_for_started_server
     @server.start
-    ok_status = {"ok" => 1.0}
+    ok_status = {'ok' => 1.0}
 
     assert_equal ok_status, @server.ping
   end

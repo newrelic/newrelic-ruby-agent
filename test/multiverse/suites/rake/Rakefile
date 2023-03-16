@@ -3,34 +3,34 @@
 # frozen_string_literal: true
 
 Bundler.require
-require "tasks/newrelic"
+require 'tasks/newrelic'
 
 task :default => [:before, :during, :after] do
-  puts "default"
+  puts 'default'
 end
 
 task :before do
-  puts "before"
+  puts 'before'
 end
 
 task :during do
-  puts "during"
+  puts 'during'
 end
 
 task :after do
-  puts "after"
+  puts 'after'
 end
 
 task :untraced do
-  puts "untraced"
+  puts 'untraced'
 end
 
 task :argument, [:who, :where] => [] do
-  puts "argument"
+  puts 'argument'
 end
 
 task :boom do
-  raise "a legitimate issue with the proposal."
+  raise 'a legitimate issue with the proposal.'
 end
 
 task :tree => [:branch1, :branch2]
@@ -45,14 +45,20 @@ namespace :named do
   task :all => [:'named:before', :'named:during', :'named:after']
 
   task :before do
-    puts "named:before"
+    a = NewRelic::Agent::Tracer.start_segment(name: 'custom_before')
+    puts 'named:before'
+    a.finish
   end
 
   task :during do
-    puts "named:during"
+    a = NewRelic::Agent::Tracer.start_segment(name: 'custom_during')
+    puts 'named:during'
+    a.finish
   end
 
   task :after do
-    puts "named:after"
+    a = NewRelic::Agent::Tracer.start_segment(name: 'custom_after')
+    puts 'named:after'
+    a.finish
   end
 end

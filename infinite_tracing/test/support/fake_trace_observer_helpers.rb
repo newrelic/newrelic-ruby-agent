@@ -52,7 +52,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def teardown
-            @mock_thread.kill if @mock_thread
+            @mock_thread&.kill
             @mock_thread = nil
             @server_response_enum = nil
             reset_buffers_and_caches
@@ -81,8 +81,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             {
               :'distributed_tracing.enabled' => true,
               :'span_events.enabled' => true,
-              :'infinite_tracing.trace_observer.host' => "localhost:80",
-              :'license_key' => "swiss_cheese"
+              :'infinite_tracing.trace_observer.host' => 'localhost:80',
+              :'license_key' => 'swiss_cheese'
             }
           end
 
@@ -90,9 +90,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             {
               :'distributed_tracing.enabled' => true,
               :'span_events.enabled' => true,
-              :'infinite_tracing.trace_observer.host' => "localhost",
+              :'infinite_tracing.trace_observer.host' => 'localhost',
               :'infinite_tracing.trace_observer.port' => FAKE_SERVER_PORT,
-              :'license_key' => "swiss_cheese"
+              :'license_key' => 'swiss_cheese'
             }
           end
 
@@ -170,7 +170,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
           ensure
-            client.stop unless client.nil?
+            client&.stop
           end
 
           # when the server responds with an error that should stop the server
@@ -215,7 +215,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def join_grpc_mock
-            @mock_thread.join if @mock_thread
+            @mock_thread&.join
           end
 
           # Simulates a Messages seen response from the mock grpc server
@@ -265,7 +265,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             segments = emulate_streaming_with_tracer(nil, count, max_buffer_size) do |client, current_segments|
               if first
                 # raise error only first time
-                simulate_server_response_shutdown(GRPC::PermissionDenied.new(details = "denied"))
+                simulate_server_response_shutdown(GRPC::PermissionDenied.new(details = 'denied'))
                 first = false
               else
                 simulate_server_response

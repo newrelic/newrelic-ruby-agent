@@ -18,7 +18,7 @@ end
 class BadGateway < ActiveMerchant::Billing::BogusGateway
   def purchase(*args)
     super(*args)
-    raise StandardError.new("whoops!")
+    raise StandardError.new('whoops!')
   end
 end
 
@@ -56,11 +56,11 @@ class ActiveMerchantTest < Minitest::Test
   end
 
   def test_unstore
-    assert_merchant_transaction(:unstore, "1")
+    assert_merchant_transaction(:unstore, '1')
   end
 
   def test_noticed_error_at_segment_and_txn_on_error
-    expected_error_class = "StandardError"
+    expected_error_class = 'StandardError'
     txn = nil
     gateway = BadGateway.new
     begin
@@ -77,7 +77,7 @@ class ActiveMerchantTest < Minitest::Test
   end
 
   def test_noticed_error_only_at_segment_on_error
-    expected_error_class = "StandardError"
+    expected_error_class = 'StandardError'
     txn = nil
     gateway = BadGateway.new
     in_transaction do |local_txn|
@@ -106,8 +106,8 @@ class ActiveMerchantTest < Minitest::Test
     end
 
     assert_metrics_recorded([
-      ["ActiveMerchant/gateway/BogusGateway/#{operation}", "txn"],
-      "ActiveMerchant/gateway/BogusGateway",
+      ["ActiveMerchant/gateway/BogusGateway/#{operation}", 'txn'],
+      'ActiveMerchant/gateway/BogusGateway',
       "ActiveMerchant/operation/#{operation}"
     ])
   end

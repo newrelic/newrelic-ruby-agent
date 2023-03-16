@@ -14,9 +14,9 @@ module NewRelic
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key => "\0",
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "99999"
+          :account_id => '190',
+          :primary_application_id => '46954',
+          :trusted_account_key => '99999'
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config, true)
@@ -30,7 +30,7 @@ module NewRelic
       def test_accepts_trace_context
         parent_txn, carrier = build_parent_transaction_headers
 
-        child_txn = in_transaction("receiving_txn") do |txn|
+        child_txn = in_transaction('receiving_txn') do |txn|
           @events.notify(:before_call, carrier)
         end
 
@@ -41,7 +41,7 @@ module NewRelic
 
       def test_accepts_trace_context_with_trace_parent_and_no_trace_state
         carrier = {'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-01'}
-        txn = in_transaction("receiving_txn") do
+        txn = in_transaction('receiving_txn') do
           @events.notify(:before_call, carrier)
         end
 
@@ -53,7 +53,7 @@ module NewRelic
           'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-00',
           'HTTP_TRACESTATE' => ''
         }
-        txn = in_transaction("receiving_txn") do
+        txn = in_transaction('receiving_txn') do
           @events.notify(:before_call, carrier)
         end
 
@@ -65,7 +65,7 @@ module NewRelic
           'HTTP_TRACEPARENT' => '00-00000000000000000000000000000000-1234567890123456-00',
           'HTTP_TRACESTATE' => ''
         }
-        txn = in_transaction("receiving_txn") do
+        txn = in_transaction('receiving_txn') do
           @events.notify(:before_call, carrier)
         end
 

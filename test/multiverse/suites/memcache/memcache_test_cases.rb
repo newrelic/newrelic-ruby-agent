@@ -20,7 +20,7 @@ module MemcacheTestCases
     end
   end
 
-  def set_key_for_testcase(value = "value")
+  def set_key_for_testcase(value = 'value')
     randomized_key.tap do |key|
       @cache.set(key, value)
       NewRelic::Agent.drop_buffered_data
@@ -29,22 +29,22 @@ module MemcacheTestCases
 
   def expected_web_metrics(command)
     [
-      "Datastore/all",
-      "Datastore/Memcached/all",
+      'Datastore/all',
+      'Datastore/Memcached/all',
       "Datastore/operation/Memcached/#{command}",
-      "Datastore/allWeb",
-      "Datastore/Memcached/allWeb",
+      'Datastore/allWeb',
+      'Datastore/Memcached/allWeb',
       ["Datastore/operation/Memcached/#{command}", "Controller/#{self.class}/action"]
     ]
   end
 
   def expected_bg_metrics(command)
     [
-      "Datastore/all",
-      "Datastore/Memcached/all",
+      'Datastore/all',
+      'Datastore/Memcached/all',
       "Datastore/operation/Memcached/#{command}",
-      "Datastore/allOther",
-      "Datastore/Memcached/allOther",
+      'Datastore/allOther',
+      'Datastore/Memcached/allOther',
       ["Datastore/operation/Memcached/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
     ]
   end
@@ -111,7 +111,7 @@ module MemcacheTestCases
     expected_metrics = expected_web_metrics(:set)
 
     in_web_transaction("Controller/#{self.class}/action") do
-      @cache.set(randomized_key, "value")
+      @cache.set(randomized_key, 'value')
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -121,7 +121,7 @@ module MemcacheTestCases
     expected_metrics = expected_web_metrics(:add)
 
     in_web_transaction("Controller/#{self.class}/action") do
-      @cache.add(randomized_key, "value")
+      @cache.add(randomized_key, 'value')
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -143,7 +143,7 @@ module MemcacheTestCases
     expected_metrics = expected_web_metrics(:incr)
 
     in_web_transaction("Controller/#{self.class}/action") do
-      @cache.incr("incr_test", 0)
+      @cache.incr('incr_test', 0)
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -153,7 +153,7 @@ module MemcacheTestCases
     expected_metrics = expected_web_metrics(:decr)
 
     in_web_transaction("Controller/#{self.class}/action") do
-      @cache.decr("decr_test", 1)
+      @cache.decr('decr_test', 1)
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -236,7 +236,7 @@ module MemcacheTestCases
     expected_metrics = expected_bg_metrics(:set)
 
     in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-      @cache.set(randomized_key, "value")
+      @cache.set(randomized_key, 'value')
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -246,7 +246,7 @@ module MemcacheTestCases
     expected_metrics = expected_bg_metrics(:add)
 
     in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-      @cache.add(randomized_key, "value")
+      @cache.add(randomized_key, 'value')
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -268,7 +268,7 @@ module MemcacheTestCases
     expected_metrics = expected_bg_metrics(:incr)
 
     in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-      @cache.incr("incr_test", 0)
+      @cache.incr('incr_test', 0)
     end
 
     assert_memcache_metrics_recorded expected_metrics
@@ -278,7 +278,7 @@ module MemcacheTestCases
     expected_metrics = expected_bg_metrics(:decr)
 
     in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-      @cache.decr("decr_test", 0)
+      @cache.decr('decr_test', 0)
     end
 
     assert_memcache_metrics_recorded expected_metrics

@@ -220,7 +220,7 @@ module NewRelic::Agent::Configuration
       @manager.register_callback(:test) do |value|
         actual = value
       end
-      @manager.add_config_for_testing(:test => proc { "value" })
+      @manager.add_config_for_testing(:test => proc { 'value' })
 
       refute_equal actual.class, Proc, 'Callback returned Proc'
     end
@@ -240,7 +240,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_finished_configuring
-      @manager.add_config_for_testing(:layer => "yo")
+      @manager.add_config_for_testing(:layer => 'yo')
 
       refute @manager.finished_configuring?
 
@@ -261,9 +261,9 @@ module NewRelic::Agent::Configuration
       called = false
       NewRelic::Agent.instance.events.subscribe(:initial_configuration_complete) { called = true }
 
-      @manager.add_config_for_testing(:fake => "config")
+      @manager.add_config_for_testing(:fake => 'config')
       @manager.replace_or_add_config(ManualSource.new(:manual => true))
-      @manager.replace_or_add_config(YamlSource.new("", "test"))
+      @manager.replace_or_add_config(YamlSource.new('', 'test'))
 
       refute called
     end
@@ -282,7 +282,7 @@ module NewRelic::Agent::Configuration
 
     def test_should_log_when_applying
       log = with_array_logger(:debug) do
-        @manager.add_config_for_testing(:test => "asdf")
+        @manager.add_config_for_testing(:test => 'asdf')
       end
 
       log_lines = log.array
@@ -291,7 +291,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_when_removing
-      config = {:test => "asdf"}
+      config = {:test => 'asdf'}
       @manager.add_config_for_testing(config)
 
       log = with_array_logger(:debug) do
@@ -321,15 +321,15 @@ module NewRelic::Agent::Configuration
       assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
-    load_cross_agent_test("labels").each do |testcase|
+    load_cross_agent_test('labels').each do |testcase|
       define_method("test_#{testcase['name']}") do
-        @manager.add_config_for_testing(:labels => testcase["labelString"])
+        @manager.add_config_for_testing(:labels => testcase['labelString'])
 
-        assert_warning if testcase["warning"]
+        assert_warning if testcase['warning']
 
-        assert_equal(testcase["expected"].sort_by { |h| h["label_type"] },
-          @manager.parse_labels_from_string.sort_by { |h| h["label_type"] },
-          "failed on #{testcase["name"]}")
+        assert_equal(testcase['expected'].sort_by { |h| h['label_type'] },
+          @manager.parse_labels_from_string.sort_by { |h| h['label_type'] },
+          "failed on #{testcase['name']}")
       end
     end
 
@@ -342,7 +342,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_parse_labels_from_string_with_hard_failure
-      bad_string = String.new('baaaad')
+      bad_string = +'baaaad'
       bad_string.stubs(:strip).raises('Booom')
       @manager.add_config_for_testing(:labels => bad_string)
 
@@ -363,14 +363,14 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:labels => {'K' * 256 => 'V' * 256})
       expected = [{'label_type' => 'K' * 255, 'label_value' => 'V' * 255}]
 
-      expects_logging(:warn, includes("truncated"))
+      expects_logging(:warn, includes('truncated'))
 
       assert_parsed_labels(expected)
     end
 
     def test_parse_labels_from_dictionary_disallows_further_nested_hashes
       @manager.add_config_for_testing(:labels => {
-        "More Nesting" => {"Hahaha" => "Ha"}
+        'More Nesting' => {'Hahaha' => 'Ha'}
       })
 
       assert_warning
@@ -379,7 +379,7 @@ module NewRelic::Agent::Configuration
 
     def test_parse_labels_from_dictionary_allows_numerics
       @manager.add_config_for_testing(:labels => {
-        "the answer" => 42
+        'the answer' => 42
       })
 
       expected = [{'label_type' => 'the answer', 'label_value' => '42'}]
@@ -389,8 +389,8 @@ module NewRelic::Agent::Configuration
 
     def test_parse_labels_from_dictionary_allows_booleans
       @manager.add_config_for_testing(:labels => {
-        "truthy" => true,
-        "falsy" => false
+        'truthy' => true,
+        'falsy' => false
       })
 
       expected = [
@@ -433,15 +433,7 @@ module NewRelic::Agent::Configuration
       with_config({}) do
         result = @manager.fetch(:'instrumentation.net_http')
 
-        assert_equal "auto", result
-      end
-    end
-
-    def test_prepend_key_false_to_instrumentation_value_of
-      with_config({:prepend_net_instrumentation => false}) do
-        result = @manager.fetch(:'instrumentation.net_http')
-
-        assert_equal "chain", result
+        assert_equal 'auto', result
       end
     end
 
@@ -449,7 +441,7 @@ module NewRelic::Agent::Configuration
       with_config(:prepend_net_instrumentation => true) do
         result = @manager.fetch(:'instrumentation.net_http')
 
-        assert_equal "auto", result
+        assert_equal 'auto', result
       end
     end
 
@@ -483,7 +475,7 @@ module NewRelic::Agent::Configuration
       bomb = proc { raise StandardError.new }
       @manager.stubs(:transform_from_default).returns(bomb)
 
-      expects_logging(:error, includes("Error applying transformation"), any_parameters)
+      expects_logging(:error, includes('Error applying transformation'), any_parameters)
 
       assert_raises StandardError do
         @manager.apply_transformations(:test_key, 'test_value')

@@ -96,7 +96,7 @@ class LinuxProcessDataProvider < ProcessDataProvider
   end
 
   def procline
-    File.read(proc_path('cmdline')).tr("\000", " ")
+    File.read(proc_path('cmdline')).tr("\000", ' ')
   end
 
   def environment
@@ -155,7 +155,7 @@ class RubyProcess
   def gdb_script_body(backtrace_file)
     backtrace_gathering_code = 'Thread.list.each { |t| bt = t.backtrace rescue nil; ' \
       'puts \"#{t.inspect}\n#{bt && bt.join(\"\n\")}\n\n\" }'
-    <<-END
+    <<~END
       attach #{pid}
       t a a bt
       call (void)close(1)
@@ -189,7 +189,7 @@ class ProcessReport
 
   def open
     if @path
-      File.open(@path, "w") do |f|
+      File.open(@path, 'w') do |f|
         yield(f)
       end
     else
@@ -216,16 +216,16 @@ class ProcessReport
 
       section(f) do
         c_backtraces, ruby_backtraces = @target.gather_backtraces
-        if c_backtraces =~ /could not attach/i
-          fail("Failed to attach to target process. Please try again with sudo.")
+        if /could not attach/i.match?(c_backtraces)
+          fail('Failed to attach to target process. Please try again with sudo.')
         end
 
-        section(f, "C Backtraces") { c_backtraces }
-        section(f, "Ruby Backtrace(s)") { ruby_backtraces }
+        section(f, 'C Backtraces') { c_backtraces }
+        section(f, 'Ruby Backtrace(s)') { ruby_backtraces }
       end
 
-      section(f, "Open files") { @target.open_files }
-      section(f, "Log") do
+      section(f, 'Open files') { @target.open_files }
+      section(f, 'Log') do
         commands = Logger.messages.map { |(_, msg)| msg }
         commands.join("\n")
       end
@@ -235,33 +235,33 @@ class ProcessReport
   private
 
   def add_environment_sections(handle)
-    section(handle, "Time") { Time.now }
-    section(handle, "PID") { @target.pid }
-    section(handle, "Command") { @target.procline }
-    section(handle, "RSS") { @target.rss }
-    section(handle, "CPU") { @target.cpu }
-    section(handle, "Parent PID") { @target.ppid }
-    section(handle, "OS") { ShellWrapper.execute('uname -a') }
-    section(handle, "Environment") { @target.environment }
+    section(handle, 'Time') { Time.now }
+    section(handle, 'PID') { @target.pid }
+    section(handle, 'Command') { @target.procline }
+    section(handle, 'RSS') { @target.rss }
+    section(handle, 'CPU') { @target.cpu }
+    section(handle, 'Parent PID') { @target.ppid }
+    section(handle, 'OS') { ShellWrapper.execute('uname -a') }
+    section(handle, 'Environment') { @target.environment }
   end
 end
 
 def prompt_for_confirmation(target_pid, target_cmd)
-  puts <<-PROMPT
-  Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?
-  
-  ************************** !WARNING! **************************
-  Extracting debug information from this process may cause it to CRASH OR HANG.
-  
-  It is highly recommended that you only run this script against processes that
-  are already unresponsive.
-  
-  Additionally, the output may contain sensitive information from the program's
-  command line arguments, environment, or open file list. Please examine the
-  output before sharing it.
-  ************************** !WARNING! **************************
-  
-  To continue, type 'continue':
+  puts <<~PROMPT
+    Are you sure you want to attach to PID #{target_pid} ('#{target_cmd}')}?
+
+    ************************** !WARNING! **************************
+    Extracting debug information from this process may cause it to CRASH OR HANG.
+
+    It is highly recommended that you only run this script against processes that
+    are already unresponsive.
+
+    Additionally, the output may contain sensitive information from the program's
+    command line arguments, environment, or open file list. Please examine the
+    output before sharing it.
+    ************************** !WARNING! **************************
+
+    To continue, type 'continue':
   PROMPT
 
   until $stdin.gets.strip == 'continue'
@@ -270,10 +270,10 @@ def prompt_for_confirmation(target_pid, target_cmd)
 end
 
 target_pid = ARGV[0]
-fail("Please provide a PID for the target process", :usage => true) unless target_pid
+fail('Please provide a PID for the target process', :usage => true) unless target_pid
 
 gdb_path = `which gdb`
-fail("Could not find gdb, please ensure it is installed and in your PATH") if gdb_path.empty?
+fail('Could not find gdb, please ensure it is installed and in your PATH') if gdb_path.empty?
 
 target = RubyProcess.new(target_pid)
 if !target.attachable?
@@ -298,5 +298,5 @@ report.generate
 
 puts "Generated '#{report_filename}'"
 puts ''
-puts "Please examine the output file for potentially sensitive information and"
-puts "remove it before sharing this file with anyone."
+puts 'Please examine the output file for potentially sensitive information and'
+puts 'remove it before sharing this file with anyone.'

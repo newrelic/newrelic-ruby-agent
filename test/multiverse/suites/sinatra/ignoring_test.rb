@@ -45,7 +45,7 @@ class SinatraTestCase < Minitest::Test
   include ::NewRelic::Agent::Instrumentation::Sinatra
   include MultiverseHelpers
 
-  JS_AGENT_LOADER = "JS_AGENT_LOADER"
+  JS_AGENT_LOADER = 'JS_AGENT_LOADER'
 
   setup_and_teardown_agent(:application_id => 'appId',
     :beacon => 'beacon',
@@ -186,7 +186,7 @@ class SinatraIgnoreTest < SinatraTestCase
   def test_ignore_errors_in_ignored_transactions
     get('/ignored_erroring')
 
-    assert_metrics_not_recorded(["Errors/all"])
+    assert_metrics_not_recorded(['Errors/all'])
   end
 
   def name_for_route(path)

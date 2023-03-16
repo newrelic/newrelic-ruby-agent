@@ -14,9 +14,10 @@ GRPC_VERSIONS = [
 ]
 
 def gem_list(grpc_version = nil)
-  <<-RB
+  <<~RB
     gem 'grpc'#{grpc_version}
+    gem 'google-protobuf', '3.21.12' if RUBY_VERSION <= '2.5.9'
   RB
 end
 
-create_gemfiles(GRPC_VERSIONS, gem_list)
+create_gemfiles(GRPC_VERSIONS)

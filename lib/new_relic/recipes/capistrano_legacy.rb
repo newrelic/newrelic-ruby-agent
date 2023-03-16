@@ -5,9 +5,9 @@
 make_notify_task = proc do
   namespace(:newrelic) do
     # on all deployments, notify New Relic
-    desc("Record a deployment in New Relic (newrelic.com)")
+    desc('Record a deployment in New Relic (newrelic.com)')
     task(:notice_deployment, :roles => :app, :except => {:no_release => true}) do
-      rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
+      rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, 'production'))
 
       require 'new_relic/cli/command'
 
@@ -36,14 +36,14 @@ make_notify_task = proc do
           :license_key => license_key
         }
 
-        logger.debug("Uploading deployment to New Relic")
+        logger.debug('Uploading deployment to New Relic')
         deployment = NewRelic::Cli::Deployments.new(deploy_options)
         deployment.run
-        logger.info("Uploaded deployment information to New Relic")
+        logger.info('Uploaded deployment information to New Relic')
       rescue NewRelic::Cli::Command::CommandFailure => e
         logger.info(e.message)
       rescue Capistrano::CommandError
-        logger.info("Unable to notify New Relic of the deployment... skipping")
+        logger.info('Unable to notify New Relic of the deployment... skipping')
       rescue => e
         logger.info("Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}")
       end
@@ -51,7 +51,7 @@ make_notify_task = proc do
 
     def lookup_changelog(changelog)
       if !changelog
-        logger.debug("Getting log of changes for New Relic Deployment details")
+        logger.debug('Getting log of changes for New Relic Deployment details')
         from_revision = source.next_revision(current_revision)
 
         if scm == :git

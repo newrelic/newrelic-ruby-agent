@@ -10,6 +10,6 @@ require_relative '../../warning_test_helper'
 require 'rake'
 require 'tasks/all'
 
-ENV["NO_RAILS"] = "1"
+ENV['NO_RAILS'] = '1'
 
 task :default => [:'test:newrelic']

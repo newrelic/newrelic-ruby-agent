@@ -1,5 +1,4 @@
-[![Open Source, New Relic Community Plus: This code is currently maintained by New Relic engineering teams and delivered here in GitHub. See the README for troubleshooting and defect reporting instructions.](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Plus.png)](https://opensource.newrelic.com/oss-category/#community-plus)
-
+<a href="https://opensource.newrelic.com/oss-category/#community-plus"><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/dark/Community_Plus.png"><source media="(prefers-color-scheme: light)" srcset="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png"><img alt="New Relic Open Source community plus project banner." src="https://github.com/newrelic/opensource-website/raw/main/src/images/categories/Community_Plus.png"></picture></a>
 
 # New Relic Ruby Agent
 
@@ -11,6 +10,8 @@ to help you improve the customer experience and make data-driven business decisi
 
 The New Relic Ruby agent is dual-purposed as either a Gem or a Rails plugin,
 hosted on [github](https://github.com/newrelic/newrelic-ruby-agent).
+
+This code is actively maintained by New Relic engineering teams and delivered here in GitHub. See below for troubleshooting and defect reporting instructions.
 
 [![Gem Version](https://badge.fury.io/rb/newrelic_rpm.svg)](https://badge.fury.io/rb/newrelic_rpm)
 

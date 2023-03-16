@@ -101,7 +101,8 @@ module NewRelic
 
         def thread_is_alive?(thread_id)
           thread = thread_by_id(thread_id)
-          thread && thread.alive?
+          # needs else branch coverage
+          thread && thread.alive? # rubocop:disable Style/SafeNavigation
         rescue StandardError
           false
         end
@@ -144,10 +145,13 @@ module NewRelic
           elapsed
         end
 
+        # this method has no test coverage
         def log_missing_elapsed_transaction_time
-          transaction_name = Tracer.current_transaction &&
+          # rubocop:disable Style/SafeNavigation
+          transaction_name = transaction_name = Tracer.current_transaction &&
             Tracer.current_transaction.best_name ||
-            "unknown"
+            'unknown'
+          # rubocop:enable Style/SafeNavigation
           NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
       end

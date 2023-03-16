@@ -108,7 +108,7 @@ module NewRelic
             NewRelic::Agent.notice_error(e)
             raise e
           ensure
-            finishable.finish if finishable
+            finishable&.finish
           end
         end
 

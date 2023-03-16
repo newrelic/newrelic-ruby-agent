@@ -10,27 +10,27 @@ module NewRelic
         # response, but should still be merged in as config settings to the
         # main agent configuration.
         TOP_LEVEL_KEYS = [
-          "account_id",
-          "apdex_t",
-          "application_id",
-          "beacon",
-          "browser_key",
-          "browser_monitoring.debug",
-          "browser_monitoring.loader",
-          "browser_monitoring.loader_version",
-          "cross_process_id",
-          "data_report_period",
-          "encoding_key",
-          "entity_guid",
-          "error_beacon",
-          "js_agent_file",
-          "js_agent_loader",
-          "max_payload_size_in_bytes",
-          "primary_application_id",
-          "sampling_target",
-          "sampling_target_period_in_seconds",
-          "trusted_account_ids",
-          "trusted_account_key"
+          'account_id',
+          'apdex_t',
+          'application_id',
+          'beacon',
+          'browser_key',
+          'browser_monitoring.debug',
+          'browser_monitoring.loader',
+          'browser_monitoring.loader_version',
+          'cross_process_id',
+          'data_report_period',
+          'encoding_key',
+          'entity_guid',
+          'error_beacon',
+          'js_agent_file',
+          'js_agent_loader',
+          'max_payload_size_in_bytes',
+          'primary_application_id',
+          'sampling_target',
+          'sampling_target_period_in_seconds',
+          'trusted_account_ids',
+          'trusted_account_key'
         ]
 
         def initialize(connect_reply, existing_config = {})
@@ -70,7 +70,7 @@ module NewRelic
 
         def fix_transaction_threshold(merged_settings)
           # when value is "apdex_f" remove the config and defer to default
-          if merged_settings['transaction_tracer.transaction_threshold'].to_s =~ /apdex_f/i
+          if /apdex_f/i.match?(merged_settings['transaction_tracer.transaction_threshold'].to_s)
             merged_settings.delete('transaction_tracer.transaction_threshold')
           end
         end
@@ -102,8 +102,8 @@ module NewRelic
           if event_harvest_config.nil? \
               || event_harvest_config['harvest_limits'].values.min < 0 \
               || (event_harvest_config['report_period_ms'] / 1000) <= 0
-            NewRelic::Agent.logger.warn("Invalid event harvest config found " \
-                "in connect response; using default event report period.")
+            NewRelic::Agent.logger.warn('Invalid event harvest config found ' \
+                'in connect response; using default event report period.')
             false
           else
             true

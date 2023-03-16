@@ -23,16 +23,10 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@v3
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev 
-
-      - name: Install Ruby jruby-9.3.9.0
+      - name: Install Ruby jruby-9.4.2.0
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.9.0
+          ruby-version: jruby-9.4.2.0
 
       - name: Bundle
         run: bundle install
@@ -122,12 +116,6 @@ jobs:
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
     steps:
-      - name: Set the default Java version
-        run: sudo update-alternatives --set java ${JAVA_HOME_8_X64}/bin/java &&
-             sudo update-alternatives --set javac ${JAVA_HOME_8_X64}/bin/javac &&
-             java -version &&
-             javac -version
-
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
 
@@ -137,25 +125,20 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: jruby-9.3.9.0
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
+          ruby-version: jruby-9.4.2.0
 
       - name: Bundle
         run: bundle install
-        env:
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Run Multiverse Tests
         run: ./.github/workflows/scripts/retry_command 
         env: 
           TEST_CMD: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }}]"
           VERBOSE_TEST_OUTPUT: true
-          RETRY_ATTEMPS: 5
+          RETRY_ATTEMPTS: 5
           SERIALIZE: 1
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JRUBY_OPTS: --dev --debug
-          JAVA_HOME: /usr/lib/jvm/temurin-8-jdk-amd64
 
       - name: Annotate errors
         if: ${{ failure() }}

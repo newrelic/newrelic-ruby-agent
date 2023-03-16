@@ -1,4 +1,3 @@
-# -*- ruby -*-
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -28,7 +27,7 @@ module NewRelic
       end
 
       def is_cross_app_callee?
-        cross_app_payload != nil
+        !cross_app_payload.nil?
       end
 
       def is_cross_app?
@@ -36,7 +35,7 @@ module NewRelic
       end
 
       def cat_trip_id
-        cross_app_payload && cross_app_payload.referring_trip_id || transaction.guid
+        cross_app_payload&.referring_trip_id || transaction.guid
       end
 
       def cross_app_monitor
@@ -74,7 +73,7 @@ module NewRelic
       end
 
       def record_cross_app_metrics
-        if (id = cross_app_payload && cross_app_payload.id)
+        if (id = cross_app_payload&.id)
           app_time_in_seconds = [
             Process.clock_gettime(Process::CLOCK_REALTIME) - transaction.start_time,
             0.0
@@ -104,11 +103,11 @@ module NewRelic
       end
 
       def cat_referring_path_hash
-        cross_app_payload && cross_app_payload.referring_path_hash
+        cross_app_payload&.referring_path_hash
       end
 
       def append_cat_info(payload)
-        if (referring_guid = cross_app_payload && cross_app_payload.referring_guid)
+        if (referring_guid = cross_app_payload&.referring_guid)
           payload[:referring_transaction_guid] = referring_guid
         end
 
@@ -150,7 +149,7 @@ module NewRelic
         if Agent.config[:cross_process_id] && Agent.config[:cross_process_id].length > 0
           true
         else
-          NewRelic::Agent.logger.debug("No cross_process_id configured")
+          NewRelic::Agent.logger.debug('No cross_process_id configured')
           false
         end
       end
@@ -159,15 +158,14 @@ module NewRelic
         if Agent.config[:encoding_key] && Agent.config[:encoding_key].length > 0
           true
         else
-          NewRelic::Agent.logger.debug("No encoding_key set")
+          NewRelic::Agent.logger.debug('No encoding_key set')
           false
         end
       end
 
       def cross_application_tracer_enabled?
         !NewRelic::Agent.config[:"distributed_tracing.enabled"] &&
-          (NewRelic::Agent.config[:"cross_application_tracer.enabled"] ||
-           NewRelic::Agent.config[:cross_application_tracing])
+          NewRelic::Agent.config[:"cross_application_tracer.enabled"]
       end
 
       def obfuscator
