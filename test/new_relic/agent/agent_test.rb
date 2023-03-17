@@ -15,8 +15,8 @@ module NewRelic
         @agent = NewRelic::Agent::Agent.new
         NewRelic::Agent.agent = @agent
 
-        @agent.service = default_service
-        @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
+        @agent.instance_variable_set(:@service, default_service)
+        @agent.instance_variable_get(:@agent_command_router).stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
         @config = {:license_key => 'a' * 40}
@@ -48,7 +48,7 @@ module NewRelic
           @agent.stubs(:in_resque_child_process?).returns(false)
           @agent.after_fork
 
-          refute_nil @agent.environment_report
+          refute_nil @agent.instance_variable_get(:@environment_report)
         end
       end
 
@@ -115,7 +115,7 @@ module NewRelic
           @agent.disconnect
           @agent.after_fork
 
-          refute @agent.harvester.needs_restart?
+          refute @agent.instance_variable_get(:@harvester).needs_restart?
         end
       end
 
@@ -128,7 +128,7 @@ module NewRelic
 
           # This is a hack to make the race condition that we're trying to test
           # for more likely for the purposes of this test.
-          harvester = @agent.harvester
+          harvester = @agent.instance_variable_get(:@harvester)
           def harvester.mark_started
             sleep(0.01)
             super
@@ -252,7 +252,7 @@ module NewRelic
 
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.agent_command_router.stubs(:harvest!).returns({:profile_data => [Object.new]})
+        @agent.instance_variable_get(:@agent_command_router).stubs(:harvest!).returns({:profile_data => [Object.new]})
         @agent.send(:harvest_and_send_for_agent_commands)
       end
 
@@ -723,7 +723,7 @@ module NewRelic
       end
 
       def test_force_restart_logs_message
-        @agent.service = nil
+        @agent.instance_variable_set(:@service, nil)
         @agent.stubs(:sleep)
 
         log_results = with_array_logger(:debug) do
@@ -737,7 +737,7 @@ module NewRelic
       end
 
       def test_force_disconnect_logs_message
-        @agent.service = nil
+        @agent.instance_variable_set(:@service, nil)
         @agent.stubs(:sleep)
 
         log_results = with_array_logger(:debug) do
@@ -785,10 +785,10 @@ module NewRelic
         end
 
         @agent.unstub(:start_worker_thread)
-        @agent.service = NewRelic::Agent::NewRelicService.new(
+        @agent.instance_variable_set(:@service, NewRelic::Agent::NewRelicService.new(
           'license-key',
           NewRelic::Control::Server.new('localhost', server.addr[1])
-        )
+        ))
         @agent.service.stubs(:setup_connection_for_ssl)
 
         @agent.setup_and_start_agent

@@ -9,7 +9,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
   def setup
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
-    NewRelic::Agent.instance.service = @service
+    NewRelic::Agent.instance.instance_variable_set(:@service, @service)
     @local_host = nil
 
     NewRelic::Agent.reset_config

@@ -34,6 +34,7 @@ class SidekiqWithRedisTest < MiniTest::Test
   # NOTE: Because Sidekiq v7.0+ can use `redis-client` without `redis`, this
   #       test brings in the `redis` gem directly via `bundler/inline`
   def test_redis_client_pipelined_calls_work
+    skip 'The CI fails when trying to run this test because of a Bundler error' if RUBY_VERSION.match?(/^3\.1/)
     skip 'Testing conducted only using Sidekiq v7.0+ with redis not yet bundled' unless sidekiq_without_redis?
 
     gemfile do
