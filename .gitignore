@@ -40,3 +40,4 @@ vendor/
 Brewfile.lock.json
 .github/actions/simplecov-report/lib/
 test/minitest/minitest_time_report
+gem_manifest_*.json

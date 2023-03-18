@@ -4,50 +4,30 @@
 # frozen_string_literal: true
 
 require 'fileutils'
+require 'json'
 require 'tmpdir'
 
 module Multiverse
   class GemManifest
     GEMFILE_HEADER = %q(source 'https://rubygems.org')
     LOCKFILE = 'Gemfile.lock'
+    OUTPUT_FILE = "gem_manifest_#{RUBY_VERSION}.json"
     SUITES_DIR = File.expand_path('../../../suites', __FILE__)
 
-    def initialize
+    def initialize(args = [])
       @suite_paths = []
       @gems = {}
+      @opwd = Dir.pwd
       discover_suites
     end
 
     def report
-      go = Time.now.to_f
-      @suite_paths.each do |path|
-        print "Processing suite #{File.basename(path)}..."
-        suite_go = Time.now.to_f
-        Multiverse::Suite.new(path).environments.each do |environment|
-          process_environment(environment)
-        end
-        suite_stop = Time.now.to_f
-        elapsed = (suite_stop - suite_go).round(3)
-        print "(#{elapsed} secs)\n"
-      end
-      stop = Time.now.to_f
-      puts "Generating and parsing Gemfile.lock files took #{(stop - go).round(3)} secs total"
-      puts
-      puts 'Bundling the Multiverse would fetch these gems:'
-      puts '-------------------------------------------------'
-      @gems.sort.each do |gem, versions|
-        puts "#{gem} => #{versions}"
-      end
+      process_suites
+      determine_latest_versions
+      deliver_output
     end
 
     private
-
-    def clean_environment(environment)
-      environment.split("\n").each_with_object([]) do |line, arr|
-        # ignore gems sourced from local paths
-        arr << line unless line.match?(/:?path(?::| =>)/)
-      end.join("\n")
-    end
 
     def create_lockfile(dir)
       Bundler.with_unbundled_env do
@@ -55,9 +35,47 @@ module Multiverse
       end
     end
 
+    def deliver_output
+      results = @gems.each_with_object({}) do |(name, versions), hash|
+        hash[name] = versions.keys
+        puts "#{name} => #{hash[name]}"
+      end
+      FileUtils.rm_f(OUTPUT_FILE)
+      File.open(OUTPUT_FILE, 'w') { |f| f.print results.to_json }
+      puts
+      puts "Results written to #{OUTPUT_FILE}"
+    end
+
+    def determine_latest_versions
+      gems_wanting_latest = @gems.select { |_name, versions| versions.key?(nil) }.keys
+      gemfile_body = gems_wanting_latest.map { |name| "gem '#{name}'" }.join("\n")
+      dir = Dir.mktmpdir
+      File.open(File.join(dir, 'Gemfile'), 'w') do |f|
+        f.puts GEMFILE_HEADER
+        f.puts gemfile_body
+      end
+      create_lockfile(dir)
+      parse_lockfile(dir)
+    end
+
     def discover_suites
       Dir.glob(File.join(SUITES_DIR, '*')).each do |path|
         @suite_paths << path if File.directory?(path)
+      end
+    end
+
+    def gems_from_gemfile_body(body, path)
+      body.split("\n").each do |line|
+        next if line.empty? || line.match?(/(?:^\s*(?:#|if|else|end))|newrelic_(?:rpm|prepender)/)
+
+        if line =~ /.*gem\s+['"]([^'"]+)['"](?:,\s+['"]([^'"]+)['"])?/
+          gem = Regexp.last_match(1)
+          version = Regexp.last_match(2)
+          @gems[gem] ||= {}
+          @gems[gem][version] = 1
+        else
+          raise "Couldn't figure out how to parse lines from evaluating the Envfile file at #{path}!"
+        end
       end
     end
 
@@ -75,24 +93,28 @@ module Multiverse
       process_lockfile_hash(hash)
     end
 
-    def process_environment(environment)
-      cleaned = clean_environment(environment)
-      dir = Dir.mktmpdir
-      File.open(File.join(dir, 'Gemfile'), 'w') do |f|
-        f.puts GEMFILE_HEADER
-        f.puts cleaned
-      end
-      create_lockfile(dir)
-      parse_lockfile(dir)
-    ensure
-      FileUtils.rm_rf(dir) if dir
-    end
-
     def process_lockfile_hash(hash)
       hash.each do |gem, version|
-        @gems[gem] ||= []
-        @gems[gem] << version unless @gems[gem].include?(version)
+        next unless @gems.key?(gem)
+
+        @gems[gem].delete(nil)
+        @gems[gem]["latest (#{version})"] = 1
       end
+    end
+
+    def process_suites
+      @suite_paths.each do |path|
+        Dir.chdir(path) # needed for Envfile.new's instance_eval call
+        Multiverse::Envfile.new(File.join(path, 'Envfile'), ignore_ruby_version: true).map do |body|
+          gems_from_gemfile_body(body, path)
+        end
+      end
+    ensure
+      Dir.chdir(@opwd)
+    end
+
+    def verify_mode
+      raise "Invalid mode '#{@mode}' - must be one of #{MODES}" unless MODES.include?(@mode)
     end
   end
 end

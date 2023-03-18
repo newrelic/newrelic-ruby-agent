@@ -10,7 +10,7 @@ TILT_VERSIONS = [
 ]
 
 def haml_version(tilt_version)
-  if tilt_version && (Gem::Version.new(tilt_version.match(/^\d+/)) < Gem::Version.new('2.0.0'))
+  if tilt_version && (Gem::Version.new(tilt_version.match(/[0-9\.]+/)) < Gem::Version.new('2.0.0'))
     add_version('5.2.2')
   end
 end
