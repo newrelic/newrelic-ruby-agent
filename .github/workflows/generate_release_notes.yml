@@ -9,15 +9,13 @@ jobs:
       - uses: ruby/setup-ruby@v1.90.0
         with:
           ruby-version: 3.1
-      - uses: actions/checkout
-      # - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - name: Make changes to pull request
         run: ruby .github/workflows/scripts/parse_changelog.rb
 
       - name: Create Pull Request
         id: cpr
-        # uses: peter-evans/create-pull-request@v4
-        uses: peter-evans/create-pull-request
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: https://github.com/hannahramadan/docs-website
