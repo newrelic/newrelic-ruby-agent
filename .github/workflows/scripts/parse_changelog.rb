@@ -46,4 +46,4 @@ frontmatter = [
   latest_entry
 ]
 
-File.write("ruby-agent-#{NewRelic::VERSION::STRING.tr('.', '-')}.mdx", frontmatter.join("\n"))
+File.write("/src/content/docs/release-notes/agent-release-notes/ruby-release-notes/ruby-agent-#{NewRelic::VERSION::STRING.tr('.', '-')}.mdx", frontmatter.join("\n"))

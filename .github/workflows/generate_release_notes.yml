@@ -1,0 +1,34 @@
+name: Generate Release Notes
+on:
+  workflow_dispatch:
+
+jobs:
+  createPullRequest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ruby/setup-ruby@v1.90.0
+        with:
+          ruby-version: 3.1
+      - uses: actions/checkout
+      # - uses: actions/checkout@v3
+      - name: Make changes to pull request
+        run: ruby .github/workflows/scripts/parse_changelog.rb
+
+      - name: Create Pull Request
+        id: cpr
+        # uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: https://github.com/hannahramadan/docs-website
+          add-paths: /src/content/docs/release-notes/agent-release-notes/ruby-release-notes/
+          commit-message: "chore(ruby agent): Ruby release notes"
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          signoff: false
+          branch: ruby-release-notes
+          delete-branch: true
+          title: 'Ruby Release Notes'
+          body: |
+            Ruby release notes. This is an automated PR.
+          draft: true
