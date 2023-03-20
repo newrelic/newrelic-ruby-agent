@@ -28,7 +28,7 @@ jobs:
           # folder it was cloned to.
           git clone \
             --depth=1 \
-            --branch=main \
+            --branch=develop \
             https://hannahramadan:${{ secrets.RELEASE_NOTES }}@github.com/$REPOSITORY \
             $FOLDER
 
