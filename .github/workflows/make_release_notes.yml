@@ -24,6 +24,9 @@ jobs:
           FOLDER="bin/$REPOSITORY"
           BRANCH_NAME="chore-update-scripts-to-$LATEST_TAG"
 
+          # Update the script files to the latest version.
+          ruby .github/workflows/scripts/parse_changelog.rb
+
           # Clone the remote repository and change working directory to the
           # folder it was cloned to.
           git clone \
@@ -42,7 +45,7 @@ jobs:
           git checkout -b $BRANCH_NAME
 
           # Update the script files to the latest version.
-          ruby .github/workflows/scripts/parse_changelog.rb
+          # cp -R /Users/hramadan/src/content/docs/release-notes/agent-release-notes/ruby-release-notes src/content/docs/release-notes/agent-release-notes/ruby-release-notes/
 
           # Commit the changes and push the feature branch to origin
           git add .
