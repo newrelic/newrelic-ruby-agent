@@ -265,6 +265,16 @@ jobs:
           path: lib/coverage_*/.resultset.json
           retention-days: 2
 
+      - name: Generate gem manifest
+        run: rake test:multiverse:gem_manifest
+
+      - name: Save gem manifest
+        uses: actions/upload-artifact@v3
+        with:
+          name: gem_manifest_${{ matrix.ruby-version }}.json
+          path: gem_manifest_${{ matrix.ruby-version }}.json
+          retention-days: 2
+
 
   infinite_tracing:
     needs: run_rubocop

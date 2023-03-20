@@ -45,6 +45,8 @@ namespace :test do
   end
 
   namespace :multiverse do
+    # task :prerequisites
+
     task :env do
       # ENV['SUITES_DIRECTORY'] = File.expand_path('../../test/multiverse/suites', __FILE__)
       require File.expand_path('../../../test/multiverse/lib/multiverse', __FILE__)
@@ -72,6 +74,10 @@ namespace :test do
 
     task :prime, [:suite] => [:env] do |_, args|
       Multiverse::Runner.prime(args.suite, Multiverse::Runner.parse_args(args))
+    end
+
+    task :gem_manifest => :env do
+      Multiverse::GemManifest.new.report
     end
   end
 end
