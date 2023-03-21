@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 ACTIVEMERCHANT_VERSIONS = [
-  [nil, 3.0],
+  [nil, 2.5],
   ['1.65.0', 2.4, 2.4]
 ]
 
