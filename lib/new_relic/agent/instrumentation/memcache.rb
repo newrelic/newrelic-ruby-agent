@@ -11,7 +11,11 @@ DependencyDetection.defer do
   @name = :dalli
   configure_with :memcache
 
-  depends_on { defined? Dalli::Client && defined? ::Dalli::VERSION && Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.2.1') }
+  depends_on {
+    defined? Dalli::Client &&
+      defined? Dalli::VERSION &&
+        Gem::Version.new(Dalli::VERSION) >= Gem::Version.new('3.2.1')
+  }
 
   executes do
     if use_prepend?
