@@ -9,19 +9,6 @@ module NewRelic::Agent::Instrumentation
 
       module_function
 
-      def client_prepender(client_class)
-        Module.new do
-          extend Helper
-          include NewRelic::Agent::Instrumentation::Memcache::Tracer
-
-          supported_methods_for(client_class, client_methods).each do |method_name|
-            define_method method_name do |*args, &block|
-              with_newrelic_tracing(method_name, *args) { super(*args, &block) }
-            end
-          end
-        end
-      end
-
       def dalli_cas_prependers
         yield(::Dalli::Client, dalli_client_prepender(dalli_cas_methods))
         yield(::Dalli::Client, dalli_get_multi_prepender(:get_multi_cas))
@@ -84,15 +71,8 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          # TODO: Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
-          if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
-            def pipelined_get(keys)
-              send_multiget_with_newrelic_tracing(keys) { super }
-            end
-          else
-            def send_multiget(keys)
-              send_multiget_with_newrelic_tracing(keys) { super }
-            end
+          def pipelined_get(keys)
+            pipelined_get_with_newrelic_tracing(keys) { super }
           end
         end
       end

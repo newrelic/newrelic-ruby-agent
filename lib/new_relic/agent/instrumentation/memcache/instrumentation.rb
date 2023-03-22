@@ -54,7 +54,7 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def send_multiget_with_newrelic_tracing(keys)
+      def pipelined_get_with_newrelic_tracing(keys)
         segment = ::NewRelic::Agent::Tracer.start_datastore_segment( \
           product: MEMCACHED,
           operation: MULTIGET_METRIC_NAME

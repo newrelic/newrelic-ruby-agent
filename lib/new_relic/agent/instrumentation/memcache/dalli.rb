@@ -15,7 +15,7 @@ module NewRelic
             if supports_datastore_instances?
               instrument_methods(::Dalli::Client, dalli_methods)
               instrument_multi_method(:get_multi)
-              instrument_send_multiget
+              instrument_pipelined_get
               instrument_server_for_key
             else
               instrument_methods(::Dalli::Client, client_methods)
@@ -50,7 +50,7 @@ module NewRelic
             end
           end
 
-          def instrument_send_multiget
+          def instrument_pipelined_get
             if supports_binary_protocol?
               ::Dalli::Protocol::Binary
             else
@@ -58,17 +58,9 @@ module NewRelic
             end.class_eval do
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-              # TODO: Dalli - 3.1.0 renamed send_multiget to pipelined_get, but the method is otherwise the same
-              if Gem::Version.new(::Dalli::VERSION) >= Gem::Version.new('3.1.0')
-                alias_method(:pipelined_get_without_newrelic_trace, :pipelined_get)
-                def pipelined_get(keys)
-                  send_multiget_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace(keys) }
-                end
-              else
-                alias_method(:send_multiget_without_newrelic_trace, :send_multiget)
-                def send_multiget(keys)
-                  send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace(keys) }
-                end
+              alias_method(:pipelined_get_without_newrelic_trace, :pipelined_get)
+              def pipelined_get(keys)
+                pipelined_get_with_newrelic_tracing(keys) { pipelined_get_without_newrelic_trace(keys) }
               end
             end
           end

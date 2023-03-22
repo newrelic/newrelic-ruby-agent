@@ -25,6 +25,10 @@
 
   Previously, the agent would raise a non-fatal error when a segment without a parent was unfinished when the transaction completed. This error was raised while constructing a `warn`-level log message. Now that Thread instrumentatation is on by default, this log message emits more frequently and is less concerning. In cases where we see a Thread, Fiber, or concurrent-ruby segment in a transaction, the message will be degraded to a `debug`-level. Thanks to [@NielsKSchjoedt](https://github.com/NielsKSchjoedt) for creating the issue and [@boomer196](https://github.com/boomer196) for testing solutions. [PR#1876](https://github.com/newrelic/newrelic-ruby-agent/pull/1876)
 
+  **Older memcached clients instrumentation dropped**
+
+  Instrumentation for older [memcached](https://memcached.org/) clients has been dropped in order to focus on current versions of the [Dalli](https://github.com/petergoldstein/dalli) client. Instrumentation for the `memcached` and `memcache-client` gems has been dropped entirely. Instrumentation for Dalli now requires version 3.2.1 or newer of the gem.
+
 - **CI: Target JRuby 9.4.2.0**
 
   The agent is now actively being tested against JRuby 9.4.2.0. NOTE that this release does not contain any non-CI related changes for JRuby. Old agent versions are still expected to work with newer JRubies and the newest agent version is still expected to work with older JRubies.

@@ -2,54 +2,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
 
-if RUBY_VERSION >= '2.6.0'
-  gemfile <<~RB
-    gem 'dalli'
-  RB
-
-  gemfile <<~RB
-    gem 'dalli', '3.2.0'
-  RB
-
-  # 3.1.1 to 3.1.6 behave similarly
-  gemfile <<~RB
-    gem 'dalli', '3.1.6'
-  RB
-
-  # this version is a breaking change from the previous versions and also different from versions after it
-  gemfile <<~RB
-    gem 'dalli', '3.1.0'
-  RB
-end
-
-if RUBY_VERSION >= '2.5.0'
-  # TODO: MAJOR VERSION - Bump lowest version to 3.2.1 in version 9.0.0
-  gemfile <<~RB
-    gem 'dalli', '~> 3.0.2'
-  RB
-end
-
-%w(2.7.6 2.7.8 2.7.11).each do |version|
-  gemfile <<~RB
-    gem 'dalli', '~> #{version}'
-  RB
-end
-
-%w(1.8.5 1.5.0).each do |version|
-  # v 1.5.0 uses `timeout`, which does not exist in Ruby 3.1
-  next if RUBY_VERSION >= '3.1.0' && version == '1.5.0'
-  gemfile <<~RB
-    gem 'memcache-client', '~> #{version}', :require => 'memcache'
-  RB
-end
-
-unless RUBY_PLATFORM == 'java' || RUBY_VERSION >= '3.2.0'
-  gemfile <<~RB
-    gem 'memcached', '~> 1.8.0'
-  RB
-end
+# dalli v3.2.4+ requires Ruby 2.6+, older Rubies use the latest 3.x they can
+gemfile_line = "gem 'dalli'#{", '~> 3.0'" if RUBY_VERSION < '2.6.0'}"
+gemfile gemfile_line
 
 def memcache_running?
   begin
