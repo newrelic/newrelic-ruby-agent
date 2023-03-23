@@ -47,5 +47,6 @@ frontmatter = [
   latest_entry
 ]
 
-FileUtils.mkdir_p('/Users/hramadan/src/content/docs/release-notes/agent-release-notes/ruby-release-notes')
-File.write("src/content/docs/release-notes/agent-release-notes/ruby-release-notes/ruby-agent-#{NewRelic::VERSION::STRING.tr('.', '-')}.mdx", frontmatter.join("\n"))
+# FileUtils.mkdir_p('/Users/hramadan/src/content/docs/release-notes/agent-release-notes/ruby-release-notes')
+# File.write("src/content/docs/release-notes/agent-release-notes/ruby-release-notes/ruby-agent-#{NewRelic::VERSION::STRING.tr('.', '-')}.mdx", frontmatter.join("\n"))
+File.write("ruby-agent-#{NewRelic::VERSION::STRING.tr('.', '-')}.mdx", frontmatter.join("\n"))
