@@ -1,0 +1,50 @@
+name: Generate Release Notes
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  send-pull-requests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate release notes and environment variables
+        run: |
+          ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.write_output_file
+          echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
+
+      - name: Build source file
+        run: echo "source_file=$PWD/$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.file_name)" >> $GITHUB_ENV
+
+      - name: Create branch
+        uses: dmnemec/copy_file_to_another_repo_action@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+        with:
+          source_file: "${{env.source_file}}"
+          destination_repo: 'newrelic/docs-website'
+          destination_folder: 'src/content/docs/release-notes/agent-release-notes/ruby-release-notes'
+          user_email: 'ruby-agent@newrelic.com'
+          user_name: 'newrelic-ruby-agent-bot'
+          destination_branch: 'develop'
+          destination_branch_create: ${{env.branch_name}}
+          commit_message: 'chore(ruby agent): add release notes'
+
+      - name: Make pull request
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          source_branch: ${{env.branch_name}}
+          destination_branch: "develop"
+          pr_title: "Ruby Release Notes"
+          pr_body: "This is an automated PR generated when the Ruby agent is released. Please merge as soon as possible."
+          destination_repository: "newrelic/docs-website"
+
+# TODO: Add a job to delete branch on PR failure. 
