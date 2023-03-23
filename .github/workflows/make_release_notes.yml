@@ -34,7 +34,12 @@ jobs:
             --branch=develop \
             https://hannahramadan:${{ secrets.RELEASE_NOTES }}@github.com/$REPOSITORY \
             $FOLDER
-
+            
+          echo *********************
+          echo $FOLDER
+          echo pwd
+          echo ls -la
+          
           cd $FOLDER
 
           # Setup the committers identity.
