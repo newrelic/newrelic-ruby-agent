@@ -36,7 +36,7 @@ frontmatter = [
   "date: #{Date.today}",
   "version: #{NewRelic::VERSION::STRING}",
   "downloadLink: https://rubygems.org/downloads/newrelic_rpm-#{NewRelic::VERSION::STRING}.gem",
-  "features: #{metadata[:feature]}",
+  "features: #{metadata[:features]}",
   "bugs: #{metadata[:bugs]}",
   "security: #{metadata[:security]}",
   DIVIDER,
