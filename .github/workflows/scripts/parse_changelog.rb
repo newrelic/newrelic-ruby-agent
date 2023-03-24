@@ -15,18 +15,18 @@ See the New Relic Ruby agent [EOL policy](https://docs.newrelic.com/docs/apm/age
 
 changelog = File.read('CHANGELOG.md')
 latest_entry = changelog.split('##')[1].prepend('##')
-titles = latest_entry.scan(/^- \*{2}(.*?)\*{2}$/).flatten
-
+titles = latest_entry.scan(/^- \*{2}(.*?)\*{2}$/).flatten # Match strings between sets of '**'
 metadata = Hash.new { |h, k| h[k] = [] }
+
 titles.each do |t|
   category = t.split(':').first
   case category
   when 'Feature'
-    metadata[:feature] << t.delete_prefix('Feature: ')
+    metadata[:features] << t.delete_prefix('Feature: ')
   when 'Bugfix'
     metadata[:bugs] << t.delete_prefix('Bugfix: ')
   when 'Security'
-    metadata[:securtiy] << t.delete_prefix('Security: ')
+    metadata[:security] << t.delete_prefix('Security: ')
   end
 end
 
@@ -38,7 +38,7 @@ frontmatter = [
   "downloadLink: https://rubygems.org/downloads/newrelic_rpm-#{NewRelic::VERSION::STRING}.gem",
   "features: #{metadata[:feature]}",
   "bugs: #{metadata[:bugs]}",
-  "security: #{metadata[:securtiy]}",
+  "security: #{metadata[:security]}",
   DIVIDER,
   '',
   SUPPRORT_STATEMENT,
