@@ -126,11 +126,6 @@ module NewRelic
           end
         end
 
-        # apdex_f is always 4 times the apdex_t
-        def apdex_f
-          (Agent.config[:apdex_t] * 4).to_f
-        end
-
         class WaitOnConnectTimeout < StandardError
         end
 

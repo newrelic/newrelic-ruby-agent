@@ -82,18 +82,19 @@ module NewRelic
 
         def supports?(key)
           case key
-          when :gc_runs, :total_allocated_object, :heap_live, :heap_free, :thread_count
+          when :gc_runs,
+            :total_allocated_object,
+            :heap_live,
+            :heap_free,
+            :thread_count,
+            :major_gc_count,
+            :minor_gc_count,
+            :constant_cache_invalidations
             true
           when :gc_total_time
             NewRelic::LanguageSupport.gc_profiler_enabled?
-          when :major_gc_count
-            RUBY_VERSION >= '2.1.0'
-          when :minor_gc_count
-            RUBY_VERSION >= '2.1.0'
           when :method_cache_invalidations
-            RUBY_VERSION >= '2.1.0' && RUBY_VERSION < '3.0.0'
-          when :constant_cache_invalidations
-            RUBY_VERSION >= '2.1.0'
+            RUBY_VERSION < '3.0.0'
           when :constant_cache_misses
             RUBY_VERSION >= '3.2.0'
           else

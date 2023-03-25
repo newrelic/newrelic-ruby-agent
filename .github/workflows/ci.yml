@@ -206,7 +206,7 @@ jobs:
         name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
-      - if: matrix.ruby-version == '2.4.10' 
+      - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@v3.2.2
@@ -263,6 +263,16 @@ jobs:
         with:
           name: coverage-report-multiverse
           path: lib/coverage_*/.resultset.json
+          retention-days: 2
+
+      - name: Generate gem manifest
+        run: rake test:multiverse:gem_manifest
+
+      - name: Save gem manifest
+        uses: actions/upload-artifact@v3
+        with:
+          name: gem_manifest_${{ matrix.ruby-version }}.json
+          path: gem_manifest_${{ matrix.ruby-version }}.json
           retention-days: 2
 
 
@@ -336,4 +346,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 93
-          failedThresholdBranch: 84
+          failedThresholdBranch: 85

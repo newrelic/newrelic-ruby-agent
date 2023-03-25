@@ -265,6 +265,40 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     end
   end
 
+  def test_data_for_js_agent_produced_a_log_statement_for_custom_attributes
+    logger = Object.new
+    logger.instance_variable_set(:@seen, false)
+    def logger.debug(msg); @seen = true if msg.match?(/Appending the following.*\["pather_panchali"\]/); end
+    with_config(ATTRIBUTES_ENABLED => true) do
+      in_transaction do
+        NewRelic::Agent.stub :logger, logger do
+          NewRelic::Agent.add_custom_attributes(pather_panchali: :apu)
+
+          assert_attributes_are('{"u":{"pather_panchali":"apu"}}')
+        end
+      end
+
+      assert logger.instance_variable_get(:@seen), 'Expected log statement was not seen'
+    end
+  end
+
+  def test_data_for_js_agent_produced_a_log_statement_for_empty_custom_attributes
+    logger = Object.new
+    logger.instance_variable_set(:@seen, false)
+    def logger.debug(msg); @seen = true if msg.include?('No custom attributes found'); end
+    with_config(ATTRIBUTES_ENABLED => false) do
+      in_transaction do
+        NewRelic::Agent.stub :logger, logger do
+          NewRelic::Agent.add_custom_attributes(pather_panchali: :subir)
+
+          assert_attributes_missing
+        end
+      end
+
+      assert logger.instance_variable_get(:@seen), 'Expected log statement was not seen'
+    end
+  end
+
   def test_data_for_js_agent_ignores_custom_attributes_by_config
     with_config(ATTRIBUTES_ENABLED => false) do
       in_transaction do

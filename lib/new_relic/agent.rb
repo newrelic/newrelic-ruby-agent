@@ -213,6 +213,8 @@ module NewRelic
       record_metric(metric_name, value)
     end
 
+    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
+
     # Increment a simple counter metric.
     #
     # +metric_name+ should follow a slash separated path convention. Application
@@ -221,9 +223,7 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
-
-    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
-
+    #
     def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
       return unless agent
 

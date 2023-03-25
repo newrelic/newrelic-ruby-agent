@@ -6,12 +6,12 @@ require_relative '../test_helper'
 
 class DependencyDetectionTest < Minitest::Test
   def setup
-    @original_items = DependencyDetection.items
-    DependencyDetection.items = []
+    @original_items = DependencyDetection.instance_variable_get(:@items)
+    DependencyDetection.instance_variable_set(:@items, [])
   end
 
   def teardown
-    DependencyDetection.items = @original_items
+    DependencyDetection.instance_variable_set(:@items, @original_items)
   end
 
   def test_passes_dependency
@@ -336,7 +336,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert_falsy(DependencyDetection.items.first.executed)
+    assert_falsy(DependencyDetection.instance_variable_get(:@items).first.executed)
   end
 
   def test_exception_during_execution_doesnt_propagate
@@ -350,7 +350,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert_truthy(DependencyDetection.items.first.executed)
+    assert_truthy(DependencyDetection.instance_variable_get(:@items).first.executed)
     assert_falsy(ran_second_block)
   end
 

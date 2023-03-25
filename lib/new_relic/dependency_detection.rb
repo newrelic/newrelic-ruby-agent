@@ -35,20 +35,6 @@ module DependencyDetection
     @items.find { |i| i.name == name }
   end
 
-  def installed?(name)
-    item = dependency_by_name(name)
-    # needs test coverage
-    item && item.executed # rubocop:disable Style/SafeNavigation
-  end
-
-  def items
-    @items
-  end
-
-  def items=(new_items)
-    @items = new_items
-  end
-
   class Dependent
     attr_reader :executed
     attr_accessor :name

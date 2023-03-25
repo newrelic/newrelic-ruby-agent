@@ -36,14 +36,14 @@
 
 ## dev
 
-  Upcoming version identifies the Amazon Timesteam data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes a bug regarding logged request headers, and is tested against the recently released JRuby 9.4.2.0.
+  Upcoming version identifies the Amazon Timesteam data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
 
 
 - **Identify Amazon Timestream when the amazon_timestream AR adapter is used**
 
   When the agent sees the [activerecord-amazon-timestream-adapter](https://rubygems.org/gems/activerecord-amazon-timestream-adapter) gem being used, it will now identify the data store as "Timestream". Thanks very much to [@wagner](https://github.com/wagner) for contributing this enhancement! [PR#1872](https://github.com/newrelic/newrelic-ruby-agent/pull/1872)
 
-- **Bugfix: Removes Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
+- **Bugfix: Remove Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
 
   Previously, the agent would log a warning to `newrelic_agent.log` every time it attempted to accept empty Distributed Tracing headers from Sidekiq jobs which could result in an excessive number of warnings. Now the agent will no longer create these warnings when using Sidekiq. [PR#1834](https://github.com/newrelic/newrelic-ruby-agent/pull/1834)
 
@@ -51,11 +51,15 @@
 
   Previously, the agent sometimes received children of the `NewRelic::Agent::HTTPClients::AbstractRequest` class as an argument when `NewRelic::Agent::Transaction::DistributedTracers#log_request_headers` was called. This caused debug-level log messages that print the request headers to show human-readable Objects (ex. `#<NewRelic::Agent::HTTPClients::HTTPClientRequest:0x00007fd0dda983e0>`) instead of the request headers. Now, the hash of the request headers should always be logged. [PR#1839](https://github.com/newrelic/newrelic-ruby-agent/pull/1839)
 
-- **Bugfix: Undefined method `controller_path` logged in Action Controller Instrumentation**
+- **Bugfix: Fix undefined method `controller_path` logged in Action Controller Instrumentation**
 
   Previously, the agent could log an error when trying to determine the metric name in the Action Controller instrumentation if the controller class did not respond to `controller_path`. This has been resolved and the agent will no longer call this method unless the class responds to it. Thank you to [@gsar](https://github.com/gsar) for letting us know about this issue. [PR#1844](https://github.com/newrelic/newrelic-ruby-agent/pull/1844)
 
-- **CI: target JRuby 9.4.2.0**
+- **Bugfix: Fix Transaction#finish exception and decrease log level for related warning during async transactions**
+
+  Previously, the agent would raise a non-fatal error when a segment without a parent was unfinished when the transaction completed. This error was raised while constructing a `warn`-level log message. Now that Thread instrumentatation is on by default, this log message emits more frequently and is less concerning. In cases where we see a Thread, Fiber, or concurrent-ruby segment in a transaction, the message will be degraded to a `debug`-level. Thanks to [@NielsKSchjoedt](https://github.com/NielsKSchjoedt) for creating the issue and [@boomer196](https://github.com/boomer196) for testing solutions. [PR#1876](https://github.com/newrelic/newrelic-ruby-agent/pull/1876)
+
+- **CI: Target JRuby 9.4.2.0**
 
   The agent is now actively being tested against JRuby 9.4.2.0. NOTE that this release does not contain any non-CI related changes for JRuby. Old agent versions are still expected to work with newer JRubies and the newest agent version is still expected to work with older JRubies.
 

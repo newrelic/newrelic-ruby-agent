@@ -9,7 +9,7 @@ require 'newrelic_rpm'
 
 # Force all named items to re-enable
 enable_everyone = {}
-DependencyDetection.items.each do |item|
+DependencyDetection.instance_variable_get(:@items).each do |item|
   if item.name
     enable_everyone["disable_#{item.name}".to_sym] = false
   end
