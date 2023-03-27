@@ -18,7 +18,7 @@
   | `:'http.statusCode'` | The HTTP status code (200, 404, etc.) if available                           |
   | `:'http.method'`     | The HTTP method (GET, PUT, etc.) if available                                |
   | `:'error.expected'`  | Whether (true) or not (false) the error was expected                         |
-  | `:'options'`         | The options hash passed to `NewRelic::Agent.notice_error                     |
+  | `:'options'`         | The options hash passed to `NewRelic::Agent.notice_error`                     |
 
   The callback only needs to be set once per initialization of the New Relic agent.
 
