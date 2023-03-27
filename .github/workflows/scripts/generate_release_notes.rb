@@ -39,7 +39,7 @@ class GenerateReleaseNotes
 
   def build_release_content
     metadata, latest_entry = build_metadata
-    frontmatter = <<~FRONTMATTER
+    <<~FRONTMATTER
       #{DIVIDER}
       subject: Ruby agent
       date: #{Date.today}
