@@ -73,6 +73,9 @@ module NewRelic
         refute NewRelic::Agent.config[:'transaction_tracer.enabled']
         refute NewRelic::Agent.config[:'error_collector.enabled']
       end
+
+      # resets the SSC to empty
+      NewRelic::Agent.config.replace_or_add_config(NewRelic::Agent::Configuration::ServerSource.new({}))
     end
 
     def test_after_fork
@@ -526,6 +529,83 @@ module NewRelic
         end
 
         break if stack.empty?
+      end
+    end
+
+    def test_set_error_group_callback
+      lambda = -> { 'Hello, World!' }
+      NewRelic::Agent.set_error_group_callback(lambda)
+
+      assert_equal lambda,
+        NewRelic::Agent.instance_variable_get(:@error_group_callback),
+        'Supplied error group callback proc was not found to be set.'
+    end
+
+    def test_set_error_group_callback_can_be_called_multiple_times
+      procs = [proc { 'one' }, proc { 'two' }, proc { 'three' }]
+      procs.each { |proc| NewRelic::Agent.set_error_group_callback(proc) }
+
+      assert_equal procs.last,
+        NewRelic::Agent.instance_variable_get(:@error_group_callback),
+        'Supplied error group callback proc was not found to be set.'
+    end
+
+    def test_set_error_group_callback_rejects_non_proc
+      skip_unless_minitest5_or_above
+
+      NewRelic::Agent.instance_variable_set(:@error_group_callback, nil)
+
+      mock_logger = MiniTest::Mock.new
+      mock_logger.expect :error, nil, [/expected an argument of type Proc/]
+
+      NewRelic::Agent.stub(:logger, mock_logger) do
+        NewRelic::Agent.set_error_group_callback([])
+      end
+
+      mock_logger.verify
+      assert_nil NewRelic::Agent.instance_variable_get(:@error_group_callback)
+    end
+
+    def test_error_group_callback_is_exposed
+      callback = 'lucky tiger'
+      NewRelic::Agent.instance_variable_set(:@error_group_callback, callback)
+
+      assert_equal callback, NewRelic::Agent.error_group_callback
+    ensure
+      NewRelic::Agent.remove_instance_variable(:@error_group_callback)
+    end
+
+    def test_successful_set_error_group_callback_api_invocation_produces_supportability_metrics
+      called = false
+      verification_proc = proc { |name| called = true if name == :set_error_group_callback }
+      NewRelic::Agent.stub :record_api_supportability_metric, verification_proc do
+        NewRelic::Agent.set_error_group_callback(proc {})
+      end
+      assert called
+    end
+
+    def test_set_user_id_attribute
+      test_user = 'test_user_id'
+
+      in_transaction do |txn|
+        NewRelic::Agent.set_user_id(test_user)
+        NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
+      end
+
+      assert_equal test_user, harvest_transaction_events![1][0][2][:'enduser.id']
+      assert_equal test_user, harvest_error_events![1][0][2][:'enduser.id']
+    end
+
+    def test_set_user_id_nil_or_empty_error
+      [nil, ''].each do |test_user_id|
+        in_transaction do |txn|
+          NewRelic::Agent.set_user_id(test_user_id)
+          NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
+        end
+
+        [harvest_transaction_events!, harvest_error_events!].each do |events|
+          refute events[1][0][2].key?(:'enduser.id')
+        end
       end
     end
 

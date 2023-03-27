@@ -105,7 +105,10 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
+    attr_reader :error_group_callback
+
     @agent = nil
+    @error_group_callback = nil
     @logger = nil
     @tracer_lock = Mutex.new
     @tracer_queue = []
@@ -291,6 +294,47 @@ module NewRelic
 
       Transaction.notice_error(exception, options)
       nil # don't return a noticed error data structure. it can only hurt.
+    end
+
+    # Set a callback proc for determining an error's error group name
+    #
+    # @param [Proc] the callback proc
+    #
+    # Typically this method should be called only once to set a callback for
+    # use with all noticed errors. If it is called multiple times, each new
+    # callback given will replace the old one.
+    #
+    # The proc will be called with a single hash as its input argument and is
+    # expected to return a string representing the desired error group.
+    #
+    # see https://docs.newrelic.com/docs/errors-inbox/errors-inbox/#groups
+    #
+    # The hash passed to the customer defined callback proc has the following
+    # keys:
+    #
+    # :error => The Ruby error class instance, likely inheriting from
+    #           StandardError. Call `#class`, `#message`, and `#backtrace` on
+    #           the error object to retrieve the error's class, message, and
+    #           backtrace.
+    # :customAttributes => Any customer defined custom attributes that have been
+    #                      associated with the current transaction.
+    # :'request.uri' => The current request URI if available
+    # :'http.statusCode' => The HTTP status code (200, 404, etc.) if available
+    # :'http.method' => The HTTP method (GET, PUT, etc.) if available
+    # :'error.expected' => Whether (true) or not (false) the error was expected
+    # :options => The options hash passed to `NewRelic::Agent.notice_error`
+    #
+    # @api public
+    #
+    def set_error_group_callback(callback_proc)
+      unless callback_proc.is_a?(Proc)
+        NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
+                                     "got #{callback_proc.class}")
+        return
+      end
+
+      record_api_supportability_metric(:set_error_group_callback)
+      @error_group_callback = callback_proc
     end
 
     # @!endgroup
@@ -603,6 +647,26 @@ module NewRelic
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}")
       end
+    end
+
+    # Set the user id for the current transaction. When present, this value will be included in the agent attributes for transaction and error events as 'enduser.id'.
+    #
+    # @param [String] user_id    The user id to add to the current transaction attributes
+    #
+    # @api public
+    def set_user_id(user_id)
+      record_api_supportability_metric(:set_user_id)
+
+      if user_id.nil? || user_id.empty?
+        ::NewRelic::Agent.logger.warn('NewRelic::Agent.set_user_id called with a nil or empty user id.')
+        return
+      end
+
+      default_destinations = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+        NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+        NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+      NewRelic::Agent::Transaction.add_agent_attribute(:'enduser.id', user_id, default_destinations)
     end
 
     # @!endgroup

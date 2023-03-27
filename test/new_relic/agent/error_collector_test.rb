@@ -600,6 +600,83 @@ module NewRelic::Agent
         assert_nothing_harvested_for_segment_errors
       end
 
+      def test_build_customer_callback_hash
+        custom_attributes = {billie_eilish: :bored}
+        agent_attributes = {'http.statusCode': :bleachers__dont_take_the_money}
+        intrinsic_attributes = {'http.method': :walk_the_moon__anna_sun}
+        request_uri = :alternative_music
+        options = {taylor_swift: :maroon}
+        expected = true
+        error = StandardError.new
+
+        noticed_error = NewRelic::NoticedError.new(:watermelon, error)
+        noticed_error.instance_variable_set(:@processed_attributes,
+          {NewRelic::NoticedError::USER_ATTRIBUTES => custom_attributes,
+           NewRelic::NoticedError::AGENT_ATTRIBUTES => agent_attributes,
+           NewRelic::NoticedError::INTRINSIC_ATTRIBUTES => intrinsic_attributes})
+        noticed_error.request_uri = request_uri
+        noticed_error.expected = expected
+        hash = @error_collector.send(:build_customer_callback_hash, noticed_error, error, options)
+
+        assert_equal hash[:error], error
+        assert_equal hash[:customAttributes], custom_attributes
+        assert_equal hash[:'request.uri'], request_uri
+        assert_equal hash[:'http.statusCode'], agent_attributes[:'http.statusCode']
+        assert_equal hash[:'http.method'], intrinsic_attributes[:'http.method']
+        assert_equal hash[:'error.expected'], expected
+        assert_equal hash[:options], options
+      end
+
+      def test_update_error_group_name_returns_nil_unless_a_callback_has_been_registered
+        # because the build_customer_callback_hash method will call
+        # #custom_attributes on the noticed error object, and we're passing in
+        # nil for it, it would error out if the early return we're testing for
+        # did not return
+        @error_collector.stub(:error_group_callback, nil) do
+          assert_nil @error_collector.send(:update_error_group_name, nil, nil, nil)
+        end
+      end
+
+      def test_update_error_group_name_updates_the_error_group_name
+        error = ArgumentError.new
+        error_group = 'lucky tiger'
+        noticed_error = NewRelic::NoticedError.new(:watermelon, error)
+        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if hash[:error].is_a?(ArgumentError) })
+        @error_collector.send(:update_error_group_name, noticed_error, error, {})
+
+        assert_equal error_group, noticed_error.error_group
+      ensure
+        NewRelic::Agent.remove_instance_variable(:@error_group_callback)
+      end
+
+      def test_update_error_group_logs_if_an_error_is_rescued
+        skip_unless_minitest5_or_above
+
+        logger = MiniTest::Mock.new
+        # have #error return a phony value just for the purpose of being able
+        # to supply this test with at least 1 assertion. really, the #verify
+        # call to the mock should suffice, but it's nice to have assertions
+        phony_return = :yep_i_was_indeed_called
+        logger.expect :error, phony_return, [/Failed to obtain/]
+        @error_collector.stub(:error_group_callback, -> { raise 'kaboom' }) do
+          NewRelic::Agent.stub :logger, logger do
+            assert_equal phony_return, @error_collector.send(:update_error_group_name, nil, nil, nil)
+          end
+        end
+        logger.verify
+      end
+
+      def test_noticed_errors_have_the_error_group_present_in_their_agent_attributes
+        error_group = 'blackcurrant tea'
+        exception = RuntimeError.new
+        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if hash[:error].is_a?(RuntimeError) })
+        noticed_error = @error_collector.create_noticed_error(exception, {})
+
+        assert_equal error_group, noticed_error.agent_attributes[::NewRelic::NoticedError::AGENT_ATTRIBUTE_ERROR_GROUP]
+      ensure
+        NewRelic::Agent.remove_instance_variable(:@error_group_callback)
+      end
+
       private
 
       # Segment errors utilize the error_collector's filtering for LASP
