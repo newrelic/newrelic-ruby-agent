@@ -1,10 +1,10 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.1.0
 
-  Upcoming version delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timesteam data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
+  Version 9.1.0 of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timestream data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
 
-- **Feature: Error fingerprinting**
+- **Feature: Error fingerprinting - supply your own errors inbox group names**
 
   Are your error occurrences grouped poorly? Set your own error fingerprint via a callback function. A new `set_error_group_callback` public API method has been added that will accept a user defined proc. The proc will be invoked for each noticed error and whenever it returns a string, that string will be used as the error group name for the error and will take precedence over any server-side grouping that takes place with the New Relic errors inbox. This gives users much greater control over the grouping of their errors.
 
@@ -13,12 +13,12 @@
   |  Key                 | Value                                                                        |
   | ---------------------| ---------------------------------------------------------------------------- |
   | `:error`             | The Ruby error class instance. Offers `#class`, `#message`, and `#backtrace` |
-  | `:customAttributes`  | Any customer defined custom attributes for the current transaction         |
-  | `:'request.uri'`     | The current request URI if available                                        |
+  | `:customAttributes`  | Any customer defined custom attributes for the current transaction           |
+  | `:'request.uri'`     | The current request URI if available                                         |
   | `:'http.statusCode'` | The HTTP status code (200, 404, etc.) if available                           |
   | `:'http.method'`     | The HTTP method (GET, PUT, etc.) if available                                |
   | `:'error.expected'`  | Whether (true) or not (false) the error was expected                         |
-  | `:'options'`         | The options hash passed to `NewRelic::Agent.notice_error`                     |
+  | `:'options'`         | The options hash passed to `NewRelic::Agent.notice_error`                    |
 
   The callback only needs to be set once per initialization of the New Relic agent.
 
@@ -29,7 +29,7 @@
   NewRelic::Agent.set_error_group_callback(proc)
   ```
 
-- **Feature: User tracking**
+- **Feature: User tracking - associate errors with a user id**
 
   You can now see the number of users impacted by an error group. Identify the end user with a new `set_user_id` public API method that will accept a string representation of a user id and associate that user id with the current transaction. Transactions and errors will then have a new `enduser.id` agent attribute associated with them. This will allow agent users to tag transactions and errors as belonging to given user ids in support of greater filtering and alerting capabilities.
 
@@ -51,7 +51,7 @@
 
 - **Bugfix: Fix Transaction#finish exception and decrease log level for related warning during async transactions**
 
-  Previously, the agent would raise a non-fatal error when a segment without a parent was unfinished when the transaction completed. This error was raised while constructing a `warn`-level log message. Now that Thread instrumentatation is on by default, this log message emits more frequently and is less concerning. In cases where we see a Thread, Fiber, or concurrent-ruby segment in a transaction, the message will be degraded to a `debug`-level. Thanks to [@NielsKSchjoedt](https://github.com/NielsKSchjoedt) for creating the issue and [@boomer196](https://github.com/boomer196) for testing solutions. [PR#1876](https://github.com/newrelic/newrelic-ruby-agent/pull/1876)
+  Previously, the agent would raise a non-fatal error when a segment without a parent was unfinished when the transaction completed. This error was raised while constructing a `warn`-level log message. Now that Thread instrumentation is on by default, this log message emits more frequently and is less concerning. In cases where we see a Thread, Fiber, or concurrent-ruby segment in a transaction, the message will be degraded to a `debug`-level. Thanks to [@NielsKSchjoedt](https://github.com/NielsKSchjoedt) for creating the issue and [@boomer196](https://github.com/boomer196) for testing solutions. [PR#1876](https://github.com/newrelic/newrelic-ruby-agent/pull/1876)
 
 - **CI: Target JRuby 9.4.2.0**
 
