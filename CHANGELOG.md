@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Deprecate memcached and memcache-client instrumentation**
+
+  Instrumentation for the memcached and memcache-client libraries is deprecated and will be removed during the next major release.
+
 ## v9.1.0
 
   Version 9.1.0 of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timestream data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
