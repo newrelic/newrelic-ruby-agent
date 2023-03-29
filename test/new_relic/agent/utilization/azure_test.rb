@@ -20,16 +20,16 @@ module NewRelic
         # ---
 
         def test_generates_expected_collector_hash_for_valid_response
-          fixture = File.read(File.join(azure_fixture_path, "valid.json"))
+          fixture = File.read(File.join(azure_fixture_path, 'valid.json'))
 
           stubbed_response = stub(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           expected = {
-            :vmId => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
-            :name => "rubytest",
-            :vmSize => "Standard_DS1_v2",
-            :location => "eastus"
+            :vmId => 'c84ffaa7-1b0a-4aa6-9f5c-0912655d9870',
+            :name => 'rubytest',
+            :vmSize => 'Standard_DS1_v2',
+            :location => 'eastus'
           }
 
           assert @vendor.detect
@@ -37,33 +37,33 @@ module NewRelic
         end
 
         def test_fails_when_response_contains_invalid_chars
-          fixture = File.read(File.join(azure_fixture_path, "invalid_chars.json"))
+          fixture = File.read(File.join(azure_fixture_path, 'invalid_chars.json'))
 
           stubbed_response = stub(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
-          assert_metrics_recorded "Supportability/utilization/azure/error" => {:call_count => 1}
+          assert_metrics_recorded 'Supportability/utilization/azure/error' => {:call_count => 1}
         end
 
         def test_fails_when_response_is_missing_required_value
-          fixture = File.read(File.join(azure_fixture_path, "missing_value.json"))
+          fixture = File.read(File.join(azure_fixture_path, 'missing_value.json'))
 
           stubbed_response = stub(code: '200', body: fixture)
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
-          assert_metrics_recorded "Supportability/utilization/azure/error" => {:call_count => 1}
+          assert_metrics_recorded 'Supportability/utilization/azure/error' => {:call_count => 1}
         end
 
         def test_fails_based_on_response_code
-          fixture = File.read(File.join(azure_fixture_path, "valid.json"))
+          fixture = File.read(File.join(azure_fixture_path, 'valid.json'))
 
           stubbed_response = stub(code: '404', body: fixture)
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           refute @vendor.detect
-          refute_metrics_recorded "Supportability/utilization/azure/error"
+          refute_metrics_recorded 'Supportability/utilization/azure/error'
         end
 
         # ---
@@ -74,10 +74,10 @@ module NewRelic
 
         # ---
 
-        load_cross_agent_test("utilization_vendor_specific/azure").each do |test_case|
+        load_cross_agent_test('utilization_vendor_specific/azure').each do |test_case|
           test_case = symbolize_keys_in_object(test_case)
 
-          define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
+          define_method("test_#{test_case[:testname]}".tr(' ', '_')) do
             uri_obj = test_case[:uri][:'http://169.254.169.254/metadata/instance/compute?api-version=2017-03-01']
             if uri_obj[:timeout]
               @vendor.stubs(:request_metadata).returns(nil)
@@ -95,20 +95,18 @@ module NewRelic
 
               assert_equal expected, {azure: @vendor.metadata}
 
-              if test_case[:expected_metrics]
-                test_case[:expected_metrics].each do |metric, v|
-                  if v[:call_count] == 0
-                    if uri_obj[:timeout]
-                      refute detection, '@vendor.detect should have returned false'
-                    else
-                      assert detection, '@vendor.detect should have returned truthy'
-                    end
-
-                    assert_metrics_not_recorded [metric.to_s]
-                  else
+              test_case[:expected_metrics]&.each do |metric, v|
+                if v[:call_count] == 0
+                  if uri_obj[:timeout]
                     refute detection, '@vendor.detect should have returned false'
-                    assert_metrics_recorded [metric.to_s]
+                  else
+                    assert detection, '@vendor.detect should have returned truthy'
                   end
+
+                  assert_metrics_not_recorded [metric.to_s]
+                else
+                  refute detection, '@vendor.detect should have returned false'
+                  assert_metrics_recorded [metric.to_s]
                 end
               end
             end

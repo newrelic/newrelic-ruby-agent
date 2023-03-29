@@ -71,14 +71,14 @@ module NewRelic
         messages_to_escape = {
           'quote' => 'message with a quote "',
           'escaped_quote' => 'message with an escaped quote \"',
-          'backslash' => "message with a backslash \ ",
-          'forward_slash' => "message with a forward slash / ",
+          'backslash' => "message with a backslash \ ", # rubocop:disable Style/RedundantStringEscape
+          'forward_slash' => 'message with a forward slash / ',
           'backspace' => 'message with a backspace \b ',
           'form_feed' => "message with a form feed \f ",
           'newline' => "message with a newline \n ",
           'carriage_return' => "message with a carriage return \r",
           'tab' => "message with a tab \t ",
-          'unicode' => "message with a unicode snowman ☃ ",
+          'unicode' => 'message with a unicode snowman ☃ ',
           'unicode_hex' => "message with a unicode snowman \u2603  "
         }
         messages_to_escape.each do |name, message|
@@ -103,7 +103,7 @@ module NewRelic
 
         def test_to_replace_ascii_8bit_chars
           message = 'message with an ASCII-8BIT character'
-          char = String.new('č')
+          char = +'č'
           input = "#{message} #{char.force_encoding(Encoding::ASCII_8BIT)}"
           expectation = "#{message} #{DecoratingFormatter::REPLACEMENT_CHAR}#{DecoratingFormatter::REPLACEMENT_CHAR}"
           logger = DecoratingLogger.new(@output)

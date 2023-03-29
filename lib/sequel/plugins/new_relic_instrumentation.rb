@@ -54,7 +54,7 @@ module Sequel
       module ClassMethods
         extend Sequel::Plugins::NewRelicInstrumentation::MethodWrapping
 
-        wrap_sequel_method :[], "get"
+        wrap_sequel_method :[], 'get'
         wrap_sequel_method :all
         wrap_sequel_method :first
         wrap_sequel_method :create

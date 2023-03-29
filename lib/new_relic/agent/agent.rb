@@ -142,20 +142,16 @@ module NewRelic
         # the transaction sampler that handles recording transactions
         attr_reader :transaction_sampler
         attr_reader :sql_sampler
-        # manages agent commands we receive from the collector, and the handlers
-        attr_reader :agent_command_router
         # error collector is a simple collection of recorded errors
         attr_reader :error_collector
-        attr_reader :harvest_samplers
         # whether we should record raw, obfuscated, or no sql
         attr_reader :record_sql
         # builder for JS agent scripts to inject
         attr_reader :javascript_instrumentor
         # cross application tracing ids and encoding
         attr_reader :cross_process_id
-        attr_reader :cross_app_encoding_bytes
         # service for communicating with collector
-        attr_accessor :service
+        attr_reader :service
         # Global events dispatcher. This will provides our primary mechanism
         # for agent-wide events, such as finishing configuration, error notification
         # and request before/after from Rack.
@@ -168,8 +164,6 @@ module NewRelic
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
         attr_accessor :transaction_rules
-        # Responsible for restarting the harvest thread
-        attr_reader :harvester
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
@@ -178,7 +172,6 @@ module NewRelic
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
-        attr_reader :environment_report
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
@@ -262,8 +255,8 @@ module NewRelic
           # if litespeed, then ignore all future SIGUSR1 - it's
           # litespeed trying to shut us down
           if Agent.config[:dispatcher] == :litespeed
-            Signal.trap("SIGUSR1", "IGNORE")
-            Signal.trap("SIGTERM", "IGNORE")
+            Signal.trap('SIGUSR1', 'IGNORE')
+            Signal.trap('SIGTERM', 'IGNORE')
           end
         end
 
@@ -355,12 +348,6 @@ module NewRelic
         end
 
         public :merge_data_for_endpoint
-
-        # Delegates to the control class to determine the root
-        # directory of this project
-        def determine_home_directory
-          control.root
-        end
       end
 
       extend ClassMethods

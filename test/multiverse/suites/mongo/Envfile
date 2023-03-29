@@ -19,20 +19,11 @@ end
 MONGO_VERSIONS_RUBY26 = ['2.17.0']
 
 # Mongo versions to test with Ruby 2.5+
-MONGO_VERSIONS_RUBY25 = ['2.15.1',
-                         '2.14.0',
-                         '2.12.0']
+MONGO_VERSIONS_RUBY25 = ['2.15.1', '2.12.0']
 
 # TODO: MAJOR VERSION - Stop testing mongo versions below 2.5.0
 # Mongo versions to test with CRubies below 2.5.0
-MONGO_VERSIONS_OLDER_RUBIES = ['2.9.0',
-                               '2.7.0',
-                               '2.5.0',
-                               '2.4.0',
-                               '2.1.0',
-                               '2.0.0',
-                               '1.9.2',
-                               '1.8.6']
+MONGO_VERSIONS_OLDER_RUBIES = ['2.9.0', '2.4.0']
 
 # The highest Mongo server version to test 1.x gems against
 MAX_SERVER_VERSION_FOR_1X_GEMS = 2.6

@@ -28,7 +28,7 @@ module NewRelic
           !in_denylisted_rake_task?
       end
 
-      COMMA = ",".freeze
+      COMMA = ','.freeze
 
       def denylisted_constants?
         denylisted?(NewRelic::Agent.config[:'autostart.denylisted_constants']) do |name|

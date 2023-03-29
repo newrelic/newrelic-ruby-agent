@@ -16,7 +16,7 @@ module NewRelic
 
         module BaseExtensions4x
           # https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L371
-          def log(sql, name = "SQL", binds = [], statement_name = nil)
+          def log(sql, name = 'SQL', binds = [], statement_name = nil)
             @instrumenter.instrument(
               SQL_ACTIVE_RECORD,
               :sql => sql,
@@ -38,7 +38,7 @@ module NewRelic
 
         module BaseExtensions50
           # https://github.com/rails/rails/blob/5-0-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L582
-          def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
+          def log(sql, name = 'SQL', binds = [], type_casted_binds = [], statement_name = nil)
             @instrumenter.instrument(
               SQL_ACTIVE_RECORD,
               sql: sql,
@@ -56,7 +56,7 @@ module NewRelic
 
         module BaseExtensions51
           # https://github.com/rails/rails/blob/5-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L603
-          def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+          def log(sql, name = 'SQL', binds = [], type_casted_binds = [], statement_name = nil) # :doc:
             @instrumenter.instrument(
               SQL_ACTIVE_RECORD,
               sql: sql,

@@ -13,7 +13,7 @@ module NewRelic
         attr_accessor :distributed_trace_payload
         attr_writer :distributed_trace_payload_created
 
-        SUPPORTABILITY_DISTRIBUTED_TRACE = "Supportability/DistributedTrace"
+        SUPPORTABILITY_DISTRIBUTED_TRACE = 'Supportability/DistributedTrace'
         CREATE_PREFIX = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/CreatePayload"
         ACCEPT_PREFIX = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/AcceptPayload"
         IGNORE_PREFIX = "#{ACCEPT_PREFIX}/Ignored"
@@ -30,10 +30,10 @@ module NewRelic
         IGNORE_ACCEPT_MAJOR_VERSION_METRIC = "#{IGNORE_PREFIX}/MajorVersion"
         IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC = "#{IGNORE_PREFIX}/UntrustedAccount"
 
-        LBRACE = "{"
+        LBRACE = '{'
         NULL_PAYLOAD = 'null'
 
-        NEWRELIC_TRACE_KEY = "HTTP_NEWRELIC"
+        NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'
 
         def accept_distributed_tracing_incoming_request(request)
           return unless Agent.config[:'distributed_tracing.enabled']
@@ -55,7 +55,7 @@ module NewRelic
           payload
         rescue => e
           NewRelic::Agent.increment_metric(CREATE_EXCEPTION_METRIC)
-          NewRelic::Agent.logger.warn("Failed to create distributed trace payload", e)
+          NewRelic::Agent.logger.warn('Failed to create distributed trace payload', e)
           nil
         end
 
@@ -75,7 +75,7 @@ module NewRelic
           true
         rescue => e
           NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
-          NewRelic::Agent.logger.warn("Failed to accept distributed trace payload", e)
+          NewRelic::Agent.logger.warn('Failed to accept distributed trace payload', e)
           false
         end
 
@@ -114,7 +114,7 @@ module NewRelic
           decoded
         rescue => e
           NewRelic::Agent.increment_metric(ACCEPT_PARSE_EXCEPTION_METRIC)
-          NewRelic::Agent.logger.warn("Error parsing distributed trace payload", e)
+          NewRelic::Agent.logger.warn('Error parsing distributed trace payload', e)
           nil
         end
 

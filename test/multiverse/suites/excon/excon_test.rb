@@ -2,15 +2,15 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "excon"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'excon'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 class ExconTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
-    "Excon"
+    'Excon'
   end
 
   def new_timeout_error_class
@@ -47,11 +47,11 @@ class ExconTest < Minitest::Test
   end
 
   def post_response
-    Excon.post(default_url, body: String.new)
+    Excon.post(default_url, body: +'')
   end
 
   def put_response
-    Excon.put(default_url, body: String.new)
+    Excon.put(default_url, body: +'')
   end
 
   def delete_response
@@ -60,11 +60,11 @@ class ExconTest < Minitest::Test
 
   def request_instance
     params = {
-      :method => "get",
-      :scheme => "http",
-      :host => "localhost",
+      :method => 'get',
+      :scheme => 'http',
+      :host => 'localhost',
       :port => 80,
-      :path => "",
+      :path => '',
       :headers => {}
     }
     NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(params)
@@ -87,7 +87,7 @@ class ExconTest < Minitest::Test
     tt = last_transaction_trace
     node = tt.root_node.children.first.children.first
 
-    assert_equal("External/localhost/Excon/GET", node.metric_name)
+    assert_equal('External/localhost/Excon/GET', node.metric_name)
     assert_equal(target_url, node.params[:uri])
   end
 
@@ -103,6 +103,6 @@ class ExconTest < Minitest::Test
 
     last_node = find_last_transaction_node()
 
-    assert_equal("External/localhost/Excon/GET", last_node.metric_name)
+    assert_equal('External/localhost/Excon/GET', last_node.metric_name)
   end
 end

@@ -35,8 +35,8 @@ module NewRelic
 
       # nb this does not 'load test' the framework, it loads the 'test framework'
       def load_test_framework
-        config = File.expand_path(File.join('..', '..', '..', '..', "test", "config", "newrelic.yml"), __FILE__)
-        require "config/test_control"
+        config = File.expand_path(File.join('..', '..', '..', '..', 'test', 'config', 'newrelic.yml'), __FILE__)
+        require 'config/test_control'
         NewRelic::Control::Frameworks::Test.new(local_env, config)
       end
 
@@ -54,7 +54,7 @@ module NewRelic
 
       # The root directory for the plugin or gem
       def newrelic_root
-        File.expand_path(File.join("..", "..", "..", ".."), __FILE__)
+        File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
       end
 
       def camelize(snake_case_name)

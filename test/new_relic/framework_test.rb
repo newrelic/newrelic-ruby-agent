@@ -35,7 +35,7 @@ class FrameworkTest < Minitest::Test
     end
 
     # does the path match "rails\d" (ex: rails7) or "railsedge"?
-    if ENV['BUNDLE_GEMFILE'] =~ /rails(?:\d|edge)/
+    if /rails(?:\d|edge)/.match?(ENV['BUNDLE_GEMFILE'])
       # rubocop:disable Performance/StringInclude
       assert_truthy NewRelic::Agent.config[:framework].match(/rails/)
       # rubocop:enable Performance/StringInclude
@@ -47,7 +47,7 @@ class FrameworkTest < Minitest::Test
   end
 
   def test_detects_framework_via_ENV_NEW_RELIC_FRAMEWORK
-    ENV['NEW_RELIC_FRAMEWORK'] = "foobared"
+    ENV['NEW_RELIC_FRAMEWORK'] = 'foobared'
     NewRelic::Agent.reset_config
 
     assert_equal :foobared, NewRelic::Agent.config[:framework]
@@ -56,7 +56,7 @@ class FrameworkTest < Minitest::Test
   end
 
   def test_detects_framework_via_ENV_NEWRELIC_FRAMEWORK
-    ENV['NEWRELIC_FRAMEWORK'] = "bazbang"
+    ENV['NEWRELIC_FRAMEWORK'] = 'bazbang'
     NewRelic::Agent.reset_config
 
     assert_equal :bazbang, NewRelic::Agent.config[:framework]

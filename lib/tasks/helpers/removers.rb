@@ -11,21 +11,21 @@ module Removers
       `echo "drop database #{database}" | mysql -u root`
     end
   rescue => error
-    puts "ERROR: Cannot get MySQL databases..."
+    puts 'ERROR: Cannot get MySQL databases...'
     puts error.message
   end
 
   def remove_generated_gemfiles
-    file_path = File.expand_path("test/multiverse/suites")
-    Dir.glob(File.join(file_path, "**", "Gemfile*")).each do |fn|
+    file_path = File.expand_path('test/multiverse/suites')
+    Dir.glob(File.join(file_path, '**', 'Gemfile*')).each do |fn|
       puts "Removing #{fn.gsub(file_path, '.../suites')}"
       FileUtils.rm(fn)
     end
   end
 
   def remove_generated_gemfile_lockfiles
-    file_path = File.expand_path("test/environments")
-    Dir.glob(File.join(file_path, "**", "Gemfile.lock")).each do |fn|
+    file_path = File.expand_path('test/environments')
+    Dir.glob(File.join(file_path, '**', 'Gemfile.lock')).each do |fn|
       puts "Removing #{fn.gsub(file_path, '.../environments')}"
       FileUtils.rm(fn)
     end

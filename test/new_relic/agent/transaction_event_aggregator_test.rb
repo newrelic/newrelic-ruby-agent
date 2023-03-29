@@ -50,7 +50,7 @@ module NewRelic
       end
 
       def name_for(event)
-        event[0]["name"]
+        event[0]['name']
       end
 
       include NewRelic::CommonAggregatorTests
@@ -76,7 +76,7 @@ module NewRelic
           end
         end
 
-        assert_nil event, "Did not expect block to be executed"
+        assert_nil event, 'Did not expect block to be executed'
         refute_includes last_transaction_events, event
       end
 

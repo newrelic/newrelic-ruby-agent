@@ -44,26 +44,38 @@ module NewRelic
         # find a config and use that.
         def init_config(options = {})
           @config = options[:config]
-          # Install the dependency detection,
-          if rails_config && ::Rails.configuration.respond_to?(:after_initialize)
-            rails_config.after_initialize do
-              # This will insure we load all the instrumentation as late as possible.  If the agent
-              # is not enabled, it will load a limited amount of instrumentation.
-              DependencyDetection.detect!
-            end
+          install_dependency_detection
+          install_browser_monitoring_and_agent_hooks
+        rescue => e
+          ::NewRelic::Agent.logger.error('Failure during init_config for Rails. Is Rails required in a non-Rails ' \
+                                         'app? Set NEW_RELIC_FRAMEWORK=ruby to avoid this message. The Ruby agent ' \
+                                         'will continue running, but Rails-specific features may be missing. ' \
+                                         "#{e.class} - #{e.message}")
+        end
+
+        def install_dependency_detection
+          return unless rails_config && ::Rails.configuration.respond_to?(:after_initialize)
+
+          rails_config.after_initialize do
+            # This will insure we load all the instrumentation as late as
+            # possible. If the agent is not enabled, it will load a limited
+            # amount of instrumentation.
+            DependencyDetection.detect!
           end
+        end
+
+        def install_browser_monitoring_and_agent_hooks
+          return unless rails_config
+
           if !Agent.config[:agent_enabled]
-            # Might not be running if it does not think mongrel, thin, passenger, etc
-            # is running, if it thinks it's a rake task, or if the agent_enabled is false.
-            ::NewRelic::Agent.logger.info("New Relic Agent not running.")
+            # Might not be running if it does not think mongrel, thin,
+            # passenger, etc. is running, if it thinks it's a rake task, or
+            # if the agent_enabled is false.
+            ::NewRelic::Agent.logger.info('New Relic Agent not running. Skipping browser monitoring and agent hooks.')
           else
             install_browser_monitoring(rails_config)
             install_agent_hooks(rails_config)
           end
-        rescue => e
-          ::NewRelic::Agent.logger.error("Failure during init_config for Rails. Is Rails required in a non-Rails app? Set NEW_RELIC_FRAMEWORK=ruby to avoid this message.",
-            "The Ruby agent will continue running, but Rails-specific features may be missing.",
-            e)
         end
 
         def install_agent_hooks(config)
@@ -77,9 +89,9 @@ module NewRelic
             return unless NewRelic::Rack::AgentHooks.needed?
 
             config.middleware.use(NewRelic::Rack::AgentHooks)
-            ::NewRelic::Agent.logger.debug("Installed New Relic Agent Hooks middleware")
+            ::NewRelic::Agent.logger.debug('Installed New Relic Agent Hooks middleware')
           rescue => e
-            ::NewRelic::Agent.logger.warn("Error installing New Relic Agent Hooks middleware", e)
+            ::NewRelic::Agent.logger.warn('Error installing New Relic Agent Hooks middleware', e)
           end
         end
 
@@ -93,9 +105,9 @@ module NewRelic
             begin
               require 'new_relic/rack/browser_monitoring'
               config.middleware.use(NewRelic::Rack::BrowserMonitoring)
-              ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
+              ::NewRelic::Agent.logger.debug('Installed New Relic Browser Monitoring middleware')
             rescue => e
-              ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware", e)
+              ::NewRelic::Agent.logger.warn('Error installing New Relic Browser Monitoring middleware', e)
             end
           end
         end

@@ -21,10 +21,10 @@ module NewRelic
 
         assert_equal 'TransactionError', intrinsics['type']
         assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
-        assert_equal "RuntimeError", intrinsics['error.class']
-        assert_equal "Big Controller!", intrinsics['error.message']
+        assert_equal 'RuntimeError', intrinsics['error.class']
+        assert_equal 'Big Controller!', intrinsics['error.message']
         refute intrinsics['error.expected']
-        assert_equal "Controller/blogs/index", intrinsics['transactionName']
+        assert_equal 'Controller/blogs/index', intrinsics['transactionName']
         assert_in_delta(0.1, intrinsics['duration'])
         assert_equal 80, intrinsics['port']
         assert_equal @span_id, intrinsics['spanId']
@@ -59,23 +59,23 @@ module NewRelic
 
         intrinsics, *_ = create_event(:payload_options => {:metrics => metrics})
 
-        assert_in_delta(10.0, intrinsics["databaseDuration"])
-        assert_equal 1, intrinsics["databaseCallCount"]
-        assert_in_delta(11.0, intrinsics["gcCumulative"])
-        assert_in_delta(12.0, intrinsics["queueDuration"])
-        assert_in_delta(13.0, intrinsics["externalDuration"])
-        assert_equal 1, intrinsics["externalCallCount"]
+        assert_in_delta(10.0, intrinsics['databaseDuration'])
+        assert_equal 1, intrinsics['databaseCallCount']
+        assert_in_delta(11.0, intrinsics['gcCumulative'])
+        assert_in_delta(12.0, intrinsics['queueDuration'])
+        assert_in_delta(13.0, intrinsics['externalDuration'])
+        assert_equal 1, intrinsics['externalCallCount']
       end
 
       def test_includes_cat_attributes
-        intrinsics, *_ = create_event(:payload_options => {:guid => "GUID", :referring_transaction_guid => "REFERRING_GUID"})
+        intrinsics, *_ = create_event(:payload_options => {:guid => 'GUID', :referring_transaction_guid => 'REFERRING_GUID'})
 
-        assert_equal "GUID", intrinsics["nr.transactionGuid"]
-        assert_equal "REFERRING_GUID", intrinsics["nr.referringTransactionGuid"]
+        assert_equal 'GUID', intrinsics['nr.transactionGuid']
+        assert_equal 'REFERRING_GUID', intrinsics['nr.referringTransactionGuid']
       end
 
       def test_includes_custom_attributes
-        attrs = {"user" => "Wes Mantooth", "channel" => 9}
+        attrs = {'user' => 'Wes Mantooth', 'channel' => 9}
 
         attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         attributes.merge_custom_attributes(attrs)
@@ -87,12 +87,12 @@ module NewRelic
 
       def test_includes_agent_attributes
         attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
-        attributes.add_agent_attribute(:'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR)
+        attributes.add_agent_attribute(:'request.headers.referer', 'http://blog.site/home', AttributeFilter::DST_ERROR_COLLECTOR)
         attributes.add_agent_attribute(:'http.statusCode', 200, AttributeFilter::DST_ERROR_COLLECTOR)
 
         _, _, agent_attrs = create_event(:error_options => {:attributes => attributes})
 
-        expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
+        expected = {:"request.headers.referer" => 'http://blog.site/home', :'http.statusCode' => 200}
 
         assert_equal expected, agent_attrs
       end
@@ -105,7 +105,7 @@ module NewRelic
 
       def generate_payload(options = {})
         {
-          :name => "Controller/blogs/index",
+          :name => 'Controller/blogs/index',
           :type => :controller,
           :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
           :duration => 0.1
@@ -113,11 +113,11 @@ module NewRelic
       end
 
       def create_noticed_error(options = {})
-        exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
+        exception = options.delete(:exception) || RuntimeError.new('Big Controller!')
         expected = options.fetch(:expected, false)
-        txn_name = "Controller/blogs/index"
+        txn_name = 'Controller/blogs/index'
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
-        noticed_error.request_uri = "http://site.com/blogs"
+        noticed_error.request_uri = 'http://site.com/blogs'
         noticed_error.request_port = 80
         noticed_error.expected = expected
         noticed_error.attributes = options.delete(:attributes)

@@ -25,21 +25,21 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   end
 
   def test_adapter_from_config_uri_jdbc_postgresql
-    config = {:uri => "jdbc:postgresql://host/database?user=postgres"}
+    config = {:uri => 'jdbc:postgresql://host/database?user=postgres'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
 
     assert_equal(:postgres, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_mysql
-    config = {:uri => "jdbc:mysql://host/database"}
+    config = {:uri => 'jdbc:mysql://host/database'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
 
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_sqlite
-    config = {:uri => "jdbc:sqlite::memory"}
+    config = {:uri => 'jdbc:sqlite::memory'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
 
     assert_equal(:sqlite, statement.adapter)
@@ -62,7 +62,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT * FROM spells where id=1'
 
     columns = %w[id select_type table type possible_keys key key_len ref rows Extra]
-    rows = [["1", "SIMPLE", "spells", "const", "PRIMARY", "PRIMARY", "4", "const", "1", ""]]
+    rows = [['1', 'SIMPLE', 'spells', 'const', 'PRIMARY', 'PRIMARY', '4', 'const', '1', '']]
     activerecord_result = ::ActiveRecord::Result.new(columns, rows)
     explainer = lambda { |statement| activerecord_result }
 
@@ -78,18 +78,18 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgres'}
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
 
-    columns = ["stuffs"]
-    rows = [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-      ["   Index Cond: (id = 1234)"],
+    columns = ['stuffs']
+    rows = [[' Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)'],
+      ['   Index Cond: (id = 1234)'],
       ["   Filter: ((title)::text = 'sensitive text'::text)"]]
     activerecord_result = ::ActiveRecord::Result.new(columns, rows)
     explainer = lambda { |statement| activerecord_result }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     expected_result = [['QUERY PLAN'],
-      [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-        ["   Index Cond: ?"],
-        ["   Filter: ?"]]]
+      [[' Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)'],
+        ['   Index Cond: ?'],
+        ['   Filter: ?']]]
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -107,9 +107,9 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT foo'
 
     plan = {
-      "select_type" => "SIMPLE", "key_len" => nil, "table" => "blogs", "id" => "1",
-      "possible_keys" => nil, "type" => "ALL", "Extra" => "", "rows" => "2",
-      "ref" => nil, "key" => nil
+      'select_type' => 'SIMPLE', 'key_len' => nil, 'table' => 'blogs', 'id' => '1',
+      'possible_keys' => nil, 'type' => 'ALL', 'Extra' => '', 'rows' => '2',
+      'ref' => nil, 'key' => nil
     }
     explainer_result = mock('explain plan')
     explainer_result.expects(:each_hash).yields(plan)
@@ -119,7 +119,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [%w[select_type key_len table id possible_keys type
       Extra rows ref key],
-      [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
+      [['SIMPLE', nil, 'blogs', '1', nil, 'ALL', '', '2', nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")
     assert_equal(expected_result[1][0].compact.sort, result[1][0].compact.sort, "Values don't match")
@@ -132,11 +132,11 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     # Sequel returns explain plans to us as one giant preformatted string rather
     # than individual rows.
     plan_string = [
-      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+",
-      "|id|select_type|table|type|possible_keys|key|key_len|ref|rows|Extra|",
-      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+",
-      "| 1|SIMPLE     |items|ALL |             |   |       |   |   3|     |",
-      "+--+-----------+-----+----+-------------+---+-------+---+----+-----+"
+      '+--+-----------+-----+----+-------------+---+-------+---+----+-----+',
+      '|id|select_type|table|type|possible_keys|key|key_len|ref|rows|Extra|',
+      '+--+-----------+-----+----+-------------+---+-------+---+----+-----+',
+      '| 1|SIMPLE     |items|ALL |             |   |       |   |   3|     |',
+      '+--+-----------+-----+----+-------------+---+-------+---+----+-----+'
     ].join("\n")
     explainer = lambda { |statement| plan_string }
 
@@ -152,7 +152,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT foo'
 
     plan_fields = %w[select_type key_len table id possible_keys type Extra rows ref key]
-    plan_row = ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]
+    plan_row = ['SIMPLE', nil, 'blogs', '1', nil, 'ALL', '', '2', nil, nil]
     explainer_result = mock('explain plan')
     explainer_result.expects(:fields).returns(plan_fields)
     explainer_result.expects(:each).yields(plan_row)
@@ -162,7 +162,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [%w[select_type key_len table id possible_keys type
       Extra rows ref key],
-      [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
+      [['SIMPLE', nil, 'blogs', '1', nil, 'ALL', '', '2', nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")
     assert_equal(expected_result[1][0].compact.sort, result[1][0].compact.sort, "Values don't match")
@@ -172,17 +172,17 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     sql = 'select count(id) from blogs limit 1'
 
-    plan = [{"QUERY PLAN" => "Limit  (cost=11.75..11.76 rows=1 width=4)"},
-      {"QUERY PLAN" => "  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
-      {"QUERY PLAN" => "        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
+    plan = [{'QUERY PLAN' => 'Limit  (cost=11.75..11.76 rows=1 width=4)'},
+      {'QUERY PLAN' => '  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)'},
+      {'QUERY PLAN' => '        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)'}]
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [['QUERY PLAN'],
-      [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
-        ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
+      [['Limit  (cost=11.75..11.76 rows=1 width=4)'],
+        ['  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)'],
+        ['        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)']]]
 
     assert_equal expected_result, result
   end
@@ -191,17 +191,17 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     sql = 'select count(id) from blogs limit 1'
 
-    plan = String.new("Limit  (cost=11.75..11.76 rows=1 width=4)
+    plan = +"Limit  (cost=11.75..11.76 rows=1 width=4)
   ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)
-        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)")
+        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [['QUERY PLAN'],
-      [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
-        ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
+      [['Limit  (cost=11.75..11.76 rows=1 width=4)'],
+        ['  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)'],
+        ['        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)']]]
 
     assert_equal expected_result, result
   end
@@ -210,16 +210,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
 
-    plan = [{"QUERY PLAN" => " Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
-      {"QUERY PLAN" => "   Index Cond: (id = 1234)"},
-      {"QUERY PLAN" => "   Filter: ((title)::text = 'sensitive text'::text)"}]
+    plan = [{'QUERY PLAN' => ' Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)'},
+      {'QUERY PLAN' => '   Index Cond: (id = 1234)'},
+      {'QUERY PLAN' => "   Filter: ((title)::text = 'sensitive text'::text)"}]
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     expected_result = [['QUERY PLAN'],
-      [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-        ["   Index Cond: ?"],
-        ["   Filter: ?"]]]
+      [[' Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)'],
+        ['   Index Cond: ?'],
+        ['   Filter: ?']]]
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -232,15 +232,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
 
-    plan = [{"QUERY PLAN" => " Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
-      {"QUERY PLAN" => "   Index Cond: (id = 1234)"},
-      {"QUERY PLAN" => "   Filter: ((title)::text = 'sensitive text'::text)"}]
+    plan = [{'QUERY PLAN' => ' Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)'},
+      {'QUERY PLAN' => '   Index Cond: (id = 1234)'},
+      {'QUERY PLAN' => "   Filter: ((title)::text = 'sensitive text'::text)"}]
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     expected_result = [['QUERY PLAN'],
-      [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-        ["   Index Cond: (id = 1234)"],
+      [[' Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)'],
+        ['   Index Cond: (id = 1234)'],
         ["   Filter: ((title)::text = 'sensitive text'::text)"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'raw') do
@@ -255,12 +255,12 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT foo'
 
     plan = [
-      {"addr" => 0, "opcode" => "Trace", "p1" => 0, "p2" => 0, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 0, 1 => "Trace", 2 => 0, 3 => 0, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 1, "opcode" => "Goto", "p1" => 0, "p2" => 5, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 1, 1 => "Goto", 2 => 0, 3 => 5, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 2, "opcode" => "String8", "p1" => 0, "p2" => 1, "p3" => 0, "p4" => "foo", "p5" => "00", "comment" => nil, 0 => 2, 1 => "String8", 2 => 0, 3 => 1, 4 => 0, 5 => "foo", 6 => "00", 7 => nil},
-      {"addr" => 3, "opcode" => "ResultRow", "p1" => 1, "p2" => 1, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 3, 1 => "ResultRow", 2 => 1, 3 => 1, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 4, "opcode" => "Halt", "p1" => 0, "p2" => 0, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 4, 1 => "Halt", 2 => 0, 3 => 0, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 5, "opcode" => "Goto", "p1" => 0, "p2" => 2, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 5, 1 => "Goto", 2 => 0, 3 => 2, 4 => 0, 5 => "", 6 => "00", 7 => nil}
+      {'addr' => 0, 'opcode' => 'Trace', 'p1' => 0, 'p2' => 0, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 0, 1 => 'Trace', 2 => 0, 3 => 0, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 1, 'opcode' => 'Goto', 'p1' => 0, 'p2' => 5, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 1, 1 => 'Goto', 2 => 0, 3 => 5, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 2, 'opcode' => 'String8', 'p1' => 0, 'p2' => 1, 'p3' => 0, 'p4' => 'foo', 'p5' => '00', 'comment' => nil, 0 => 2, 1 => 'String8', 2 => 0, 3 => 1, 4 => 0, 5 => 'foo', 6 => '00', 7 => nil},
+      {'addr' => 3, 'opcode' => 'ResultRow', 'p1' => 1, 'p2' => 1, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 3, 1 => 'ResultRow', 2 => 1, 3 => 1, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 4, 'opcode' => 'Halt', 'p1' => 0, 'p2' => 0, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 4, 1 => 'Halt', 2 => 0, 3 => 0, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 5, 'opcode' => 'Goto', 'p1' => 0, 'p2' => 2, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 5, 1 => 'Goto', 2 => 0, 3 => 2, 4 => 0, 5 => '', 6 => '00', 7 => nil}
     ]
     explainer = lambda { |statement| plan }
 
@@ -281,12 +281,12 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT foo'
 
     plan = [
-      {"addr" => 0, "opcode" => "Trace", "p1" => 0, "p2" => 0, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 0, 1 => "Trace", 2 => 0, 3 => 0, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 1, "opcode" => "Goto", "p1" => 0, "p2" => 5, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 1, 1 => "Goto", 2 => 0, 3 => 5, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 2, "opcode" => "String8", "p1" => 0, "p2" => 1, "p3" => 0, "p4" => "foo", "p5" => "00", "comment" => nil, 0 => 2, 1 => "String8", 2 => 0, 3 => 1, 4 => 0, 5 => "foo", 6 => "00", 7 => nil},
-      {"addr" => 3, "opcode" => "ResultRow", "p1" => 1, "p2" => 1, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 3, 1 => "ResultRow", 2 => 1, 3 => 1, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 4, "opcode" => "Halt", "p1" => 0, "p2" => 0, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 4, 1 => "Halt", 2 => 0, 3 => 0, 4 => 0, 5 => "", 6 => "00", 7 => nil},
-      {"addr" => 5, "opcode" => "Goto", "p1" => 0, "p2" => 2, "p3" => 0, "p4" => "", "p5" => "00", "comment" => nil, 0 => 5, 1 => "Goto", 2 => 0, 3 => 2, 4 => 0, 5 => "", 6 => "00", 7 => nil}
+      {'addr' => 0, 'opcode' => 'Trace', 'p1' => 0, 'p2' => 0, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 0, 1 => 'Trace', 2 => 0, 3 => 0, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 1, 'opcode' => 'Goto', 'p1' => 0, 'p2' => 5, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 1, 1 => 'Goto', 2 => 0, 3 => 5, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 2, 'opcode' => 'String8', 'p1' => 0, 'p2' => 1, 'p3' => 0, 'p4' => 'foo', 'p5' => '00', 'comment' => nil, 0 => 2, 1 => 'String8', 2 => 0, 3 => 1, 4 => 0, 5 => 'foo', 6 => '00', 7 => nil},
+      {'addr' => 3, 'opcode' => 'ResultRow', 'p1' => 1, 'p2' => 1, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 3, 1 => 'ResultRow', 2 => 1, 3 => 1, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 4, 'opcode' => 'Halt', 'p1' => 0, 'p2' => 0, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 4, 1 => 'Halt', 2 => 0, 3 => 0, 4 => 0, 5 => '', 6 => '00', 7 => nil},
+      {'addr' => 5, 'opcode' => 'Goto', 'p1' => 0, 'p2' => 2, 'p3' => 0, 'p4' => '', 'p5' => '00', 'comment' => nil, 0 => 5, 1 => 'Goto', 2 => 0, 3 => 2, 4 => 0, 5 => '', 6 => '00', 7 => nil}
     ]
     explainer = lambda { |statement| plan }
 
@@ -337,11 +337,11 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   def test_do_collect_explain_for_parameter_looking_literal
     config = {:adapter => 'postgresql'}
     sql = "SELECT * FROM table WHERE id = 'noise $11'"
-    plan = [{"QUERY PLAN" => "Some Jazz"}]
+    plan = [{'QUERY PLAN' => 'Some Jazz'}]
     explainer = lambda { |statement| plan }
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
 
-    assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
+    assert_equal([['QUERY PLAN'], [['Some Jazz']]],
       NewRelic::Agent::Database.explain_sql(statement))
   end
 
@@ -349,12 +349,12 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     config = {:adapter => 'postgresql'}
     sql = 'SELECT * FROM table WHERE id = $1'
     # binds objects don't actually look like this, just need non-blank for test
-    binds = "values for the parameters"
-    plan = [{"QUERY PLAN" => "Some Jazz"}]
+    binds = 'values for the parameters'
+    plan = [{'QUERY PLAN' => 'Some Jazz'}]
     explainer = lambda { |statement| plan }
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer, binds)
 
-    assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
+    assert_equal([['QUERY PLAN'], [['Some Jazz']]],
       NewRelic::Agent::Database.explain_sql(statement))
   end
 
@@ -405,30 +405,30 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   def test_obfuscation_of_truncated_query
     insert = "INSERT INTO data (blah) VALUES ('abcdefg..."
 
-    assert_equal("Query too large (over 16k characters) to safely obfuscate",
+    assert_equal('Query too large (over 16k characters) to safely obfuscate',
       NewRelic::Agent::Database.obfuscate_sql(insert))
   end
 
   def test_sql_obfuscation_filters
     NewRelic::Agent::Database.set_sql_obfuscator(:replace) do |string|
-      "1" + string
+      '1' + string
     end
 
     sql = "SELECT * FROM TABLE 123 'jim'"
 
-    assert_equal "1" + sql, NewRelic::Agent::Database.obfuscate_sql(sql)
+    assert_equal '1' + sql, NewRelic::Agent::Database.obfuscate_sql(sql)
 
     NewRelic::Agent::Database.set_sql_obfuscator(:before) do |string|
-      "2" + string
+      '2' + string
     end
 
-    assert_equal "12" + sql, NewRelic::Agent::Database.obfuscate_sql(sql)
+    assert_equal '12' + sql, NewRelic::Agent::Database.obfuscate_sql(sql)
 
     NewRelic::Agent::Database.set_sql_obfuscator(:after) do |string|
-      string + "3"
+      string + '3'
     end
 
-    assert_equal "12" + sql + "3", NewRelic::Agent::Database.obfuscate_sql(sql)
+    assert_equal '12' + sql + '3', NewRelic::Agent::Database.obfuscate_sql(sql)
 
     NewRelic::Agent::Database::Obfuscator.instance.reset
   end
@@ -446,7 +446,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   end
 
   def test_manager_get_connection_does_not_log_configuration_details_on_error
-    config = "VOLDEMORT"
+    config = 'VOLDEMORT'
     connector = proc { raise }
     error_log = with_array_logger(:error) do
       NewRelic::Agent::Database::ConnectionManager.instance.get_connection(config, &connector)
@@ -456,7 +456,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   end
 
   def test_default_sql_obfuscator_obfuscates_double_quoted_literals_with_unknown_adapter
-    expected = "SELECT * FROM ? WHERE ? = ?"
+    expected = 'SELECT * FROM ? WHERE ? = ?'
     result = NewRelic::Agent::Database.obfuscate_sql("SELECT * FROM \"table\" WHERE \"col\" = 'value'")
 
     assert_equal expected, result
@@ -481,7 +481,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
-  INVALID_UTF8_STRING = String.new("select \x80").force_encoding('UTF-8')
+  INVALID_UTF8_STRING = (+"select \x80").force_encoding('UTF-8')
 
   def test_capture_query_mis_encoded
     query = INVALID_UTF8_STRING
@@ -496,7 +496,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_parse_operation_from_query_mis_encoded
     query = INVALID_UTF8_STRING
-    expected = "select"
+    expected = 'select'
     parsed = NewRelic::Agent::Database.parse_operation_from_query(query)
 
     assert_equal(expected, parsed)
@@ -536,15 +536,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     NewRelic::Agent::Database.stubs(:record_sql_method).returns(:obfuscated)
     statement = NewRelic::Agent::Database::Statement.new("select * from mytable where name = '1337807';")
 
-    assert_equal "select * from mytable where name = ?;", statement.safe_sql
+    assert_equal 'select * from mytable where name = ?;', statement.safe_sql
   end
 
   def test_safe_sql_does_not_over_obfuscate_for_postgres
     NewRelic::Agent::Database.stubs(:record_sql_method).returns(:obfuscated)
 
-    conf = {:adapter => "postgresql", :encoding => "utf8", :pool => 10, :port => 5432, :prepared_statements => false, :ssl_mode => "require"}
-    sql = "SELECT  \"users\".* FROM \"users\" WHERE \"users\".\"deleted_at\" IS NULL AND \"users\".\"id\" = 1602 LIMIT 1"
-    expected_sql = "SELECT  \"users\".* FROM \"users\" WHERE \"users\".\"deleted_at\" IS ? AND \"users\".\"id\" = ? LIMIT ?"
+    conf = {:adapter => 'postgresql', :encoding => 'utf8', :pool => 10, :port => 5432, :prepared_statements => false, :ssl_mode => 'require'}
+    sql = 'SELECT  "users".* FROM "users" WHERE "users"."deleted_at" IS NULL AND "users"."id" = 1602 LIMIT 1'
+    expected_sql = 'SELECT  "users".* FROM "users" WHERE "users"."deleted_at" IS ? AND "users"."id" = ? LIMIT ?'
 
     stmt = NewRelic::Agent::Database::Statement.new(sql, conf)
 

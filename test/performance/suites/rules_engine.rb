@@ -7,11 +7,11 @@ class RulesEngineTests < Performance::TestCase
     @basic_rule_specs = {
       "transaction_segment_terms": [
         {
-          "prefix": "WebTransaction/Custom",
+          "prefix": 'WebTransaction/Custom',
           "terms": %w[one two three]
         },
         {
-          "prefix": "WebTransaction/Uri",
+          "prefix": 'WebTransaction/Uri',
           "terms": %w[seven eight nine]
         }
       ]
@@ -27,9 +27,9 @@ class RulesEngineTests < Performance::TestCase
   def test_rules_engine_rename_transaction_rules
     measure do
       rules_engine = NewRelic::Agent::RulesEngine.create_transaction_rules(@basic_rule_specs)
-      rules_engine.rename("WebTransaction/Uri/one/two/seven/user/nine/account")
-      rules_engine.rename("WebTransaction/Custom/one/two/seven/user/nine/account")
-      rules_engine.rename("WebTransaction/Other/one/two/foo/bar")
+      rules_engine.rename('WebTransaction/Uri/one/two/seven/user/nine/account')
+      rules_engine.rename('WebTransaction/Custom/one/two/seven/user/nine/account')
+      rules_engine.rename('WebTransaction/Other/one/two/foo/bar')
     end
   end
 end

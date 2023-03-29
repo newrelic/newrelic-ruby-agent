@@ -9,9 +9,9 @@ require 'pp'
 
 module NewRelic::Agent
   class AttributeFilterTest < Minitest::Test
-    test_cases = load_cross_agent_test("attribute_configuration")
+    test_cases = load_cross_agent_test('attribute_configuration')
     test_cases.each do |test_case|
-      define_method("test_#{test_case['testname'].gsub(/\W/, "_")}") do
+      define_method("test_#{test_case['testname'].gsub(/\W/, '_')}") do
         with_config(test_case['config']) do
           filter = AttributeFilter.new(NewRelic::Agent.config)
 
@@ -23,7 +23,7 @@ module NewRelic::Agent
           expected_destinations = to_bitfield(test_case['expected_destinations'])
 
           assert_equal(to_names(expected_destinations), to_names(actual_destinations),
-            PP.pp(test_case, String.new('')) + PP.pp(filter.rules, String.new('')))
+            PP.pp(test_case, (+'')) + PP.pp(filter.rules, (+'')))
         end
       end
     end

@@ -79,7 +79,8 @@ module NewRelic::Agent::Instrumentation
           self
         # redis-client gem v0.11+ (self is a RedisClient::Middlewares)
         elsif respond_to?(:client)
-          client && client.config
+          # The following line needs else branch coverage
+          client && client.config # rubocop:disable Style/SafeNavigation
         # redis-client gem <0.11 (self is a RedisClient::Middlewares)
         elsif defined?(::RedisClient)
           ::RedisClient.config if ::RedisClient.respond_to?(:config)

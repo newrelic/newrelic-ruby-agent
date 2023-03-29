@@ -10,11 +10,12 @@ module Multiverse
     attr_reader :before, :after, :mode, :skip_message, :omit_collector
     attr_reader :instrumentation_permutations
 
-    def initialize(file_path)
+    def initialize(file_path, options = {})
       self.file_path = file_path
-      @instrumentation_permutations = ["chain"]
+      @instrumentation_permutations = ['chain']
       @gemfiles = []
       @mode = 'fork'
+      @ignore_ruby_version = options[:ignore_ruby_version] if options.key?(:ignore_ruby_version)
       if File.exist?(file_path)
         @text = File.read(self.file_path)
         instance_eval(@text)
@@ -37,7 +38,7 @@ module Multiverse
           )
         end
 
-        version = if version && version.start_with?('=')
+        version = if version&.start_with?('=')
           add_version(version.sub('= ', ''), false) # don't twiddle wakka
         else
           add_version(version)
@@ -48,6 +49,8 @@ module Multiverse
     end
 
     def unsupported_ruby_version?(last_supported_ruby_version, first_supported_ruby_version)
+      return false if @ignore_ruby_version
+
       last_supported_ruby_version?(last_supported_ruby_version) ||
         first_supported_ruby_version?(first_supported_ruby_version)
     end
@@ -62,7 +65,7 @@ module Multiverse
     end
 
     def ruby3_gem_sorted_set
-      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
+      RUBY_VERSION >= '3.0.0' ? "gem 'sorted_set'" : ''
     end
 
     def omit_collector!
@@ -97,6 +100,10 @@ module Multiverse
 
     def [](key)
       @gemfiles[key]
+    end
+
+    def to_ary
+      @gemfiles
     end
 
     def permutations

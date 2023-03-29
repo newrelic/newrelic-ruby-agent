@@ -25,7 +25,7 @@ module NewRelic
       class HTTPClientRequest < AbstractRequest
         attr_reader :request
 
-        HTTP_CLIENT = "HTTPClient".freeze
+        HTTP_CLIENT = 'HTTPClient'.freeze
         LHOST = 'host'.freeze
         UHOST = 'Host'.freeze
         COLON = ':'.freeze
@@ -57,11 +57,15 @@ module NewRelic
         end
 
         def [](key)
-          request.headers[key]
+          headers[key]
         end
 
         def []=(key, value)
           request.http_header[key] = value
+        end
+
+        def headers
+          request.headers
         end
       end
     end

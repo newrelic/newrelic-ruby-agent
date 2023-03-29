@@ -63,7 +63,7 @@ module NewRelic
         #
         # This value will be forcibly capped by the max_capacity
         def capacity
-          raise NotImplementedError.new("TransactionSampleBuffer subclasses must provide a capacity override")
+          raise NotImplementedError.new('TransactionSampleBuffer subclasses must provide a capacity override')
         end
 
         # Apply hard upper limit to the capacity to prevent users from

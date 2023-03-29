@@ -26,9 +26,9 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_not_resque
-    combinations = [["notrake", "resque:work", {"QUEUE" => "*"}],
-      ["rake", "notresque:work", {"QUEUE" => "*"}],
-      ["rake", "resque:work", {"BBQ" => "*"}]]
+    combinations = [['notrake', 'resque:work', {'QUEUE' => '*'}],
+      ['rake', 'notresque:work', {'QUEUE' => '*'}],
+      ['rake', 'resque:work', {'BBQ' => '*'}]]
 
     combinations.each do |settings|
       with_resque(*settings) do
@@ -38,8 +38,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_resque
-    combinations = [["rake", "resque:work", {"QUEUE" => "*"}],
-      ["rake", "resque:work", {"QUEUES" => "*"}]]
+    combinations = [['rake', 'resque:work', {'QUEUE' => '*'}],
+      ['rake', 'resque:work', {'QUEUES' => '*'}]]
 
     combinations.each do |settings|
       with_resque(*settings) do
@@ -49,8 +49,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_not_resque_pool
-    combinations = [["notresque-pool", nil],
-      ["rake", "notresque:pool"]]
+    combinations = [['notresque-pool', nil],
+      ['rake', 'notresque:pool']]
 
     combinations.each do |settings|
       with_resque_pool(*settings) do
@@ -60,8 +60,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_resque_pool
-    combinations = [["resque-pool", nil],
-      ["rake", "resque:pool"]]
+    combinations = [['resque-pool', nil],
+      ['rake', 'resque:pool']]
 
     combinations.each do |settings|
       with_resque_pool(*settings) do

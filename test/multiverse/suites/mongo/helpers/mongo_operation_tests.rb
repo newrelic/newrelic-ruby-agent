@@ -117,9 +117,9 @@ module MongoOperationTests
   def test_records_metrics_for_group
     begin
       in_transaction do
-        @collection.group({:key => "name",
+        @collection.group({:key => 'name',
                            :initial => {:count => 0},
-                           :reduce => "function(k,v) { v.count += 1; }"})
+                           :reduce => 'function(k,v) { v.count += 1; }'})
       end
     rescue Mongo::OperationFailure
       # We get occasional group failures, but should still record metrics
@@ -338,23 +338,23 @@ module MongoOperationTests
   end
 
   def test_web_scoped_metrics
-    in_web_transaction("webby") do
+    in_web_transaction('webby') do
       @collection.insert(@tribble)
     end
 
     metric = statement_metric(:insert)
 
-    assert_metrics_recorded([[metric, "webby"]])
+    assert_metrics_recorded([[metric, 'webby']])
   end
 
   def test_background_scoped_metrics
-    in_background_transaction("backed-up") do
+    in_background_transaction('backed-up') do
       @collection.insert(@tribble)
     end
 
     metric = statement_metric(:insert)
 
-    assert_metrics_recorded([[metric, "backed-up"]])
+    assert_metrics_recorded([[metric, 'backed-up']])
   end
 
   def test_notices_nosql
@@ -539,7 +539,7 @@ module MongoOperationTests
   end
 
   def ensure_collection_exists
-    @collection.insert(:junk => "data")
+    @collection.insert(:junk => 'data')
     NewRelic::Agent.drop_buffered_data
   end
 
@@ -552,6 +552,6 @@ module MongoOperationTests
 
   def statement_metric(action)
     metrics = build_test_metrics(action)
-    metrics.find { |m| m.start_with?("Datastore/statement") }
+    metrics.find { |m| m.start_with?('Datastore/statement') }
   end
 end

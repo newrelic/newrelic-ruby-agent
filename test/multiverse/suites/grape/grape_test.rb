@@ -2,8 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "grape"
-require "newrelic_rpm"
+require 'grape'
+require 'newrelic_rpm'
 require './grape_test_api'
 
 class GrapeTest < Minitest::Test
@@ -93,7 +93,7 @@ class GrapeTest < Minitest::Test
         get('/grape_ape/10')
 
         expected = {
-          "request.parameters.id" => "10"
+          'request.parameters.id' => '10'
         }
 
         assert_equal expected, last_transaction_trace_request_params
@@ -115,7 +115,7 @@ class GrapeTest < Minitest::Test
 
     def test_post_body_params_are_captured
       with_config(:capture_params => true) do
-        post('/grape_ape', {'q' => '1234', 'foo' => 'bar'}.to_json, "CONTENT_TYPE" => "application/json")
+        post('/grape_ape', {'q' => '1234', 'foo' => 'bar'}.to_json, 'CONTENT_TYPE' => 'application/json')
 
         expected = {
           'request.parameters.q' => '1234',
@@ -129,7 +129,7 @@ class GrapeTest < Minitest::Test
     def test_post_body_params_are_captured_with_error
       with_config(:capture_params => true) do
         assert_raises(GrapeTestApiError) do
-          post('/grape_ape_fail', {'q' => '1234', 'foo' => 'fail'}.to_json, "CONTENT_TYPE" => "application/json")
+          post('/grape_ape_fail', {'q' => '1234', 'foo' => 'fail'}.to_json, 'CONTENT_TYPE' => 'application/json')
         end
 
         agent_attributes = attributes_for(last_traced_error, :agent)
@@ -141,7 +141,7 @@ class GrapeTest < Minitest::Test
 
     def test_post_body_params_are_captured_with_rescue_from
       with_config(:capture_params => true) do
-        post('/grape_ape_fail_rescue', {'q' => '1234', 'foo' => 'fail'}.to_json, "CONTENT_TYPE" => "application/json")
+        post('/grape_ape_fail_rescue', {'q' => '1234', 'foo' => 'fail'}.to_json, 'CONTENT_TYPE' => 'application/json')
 
         agent_attributes = attributes_for(last_traced_error, :agent)
 
@@ -152,12 +152,12 @@ class GrapeTest < Minitest::Test
 
     def test_post_body_with_nested_params_are_captured
       with_config(:capture_params => true) do
-        params = {"ape" => {"first_name" => "koko", "last_name" => "gorilla"}}
-        post('/grape_ape', params.to_json, "CONTENT_TYPE" => "application/json")
+        params = {'ape' => {'first_name' => 'koko', 'last_name' => 'gorilla'}}
+        post('/grape_ape', params.to_json, 'CONTENT_TYPE' => 'application/json')
 
         expected = {
-          "request.parameters.ape.first_name" => "koko",
-          "request.parameters.ape.last_name" => "gorilla"
+          'request.parameters.ape.first_name' => 'koko',
+          'request.parameters.ape.last_name' => 'gorilla'
         }
 
         assert_equal expected, last_transaction_trace_request_params
@@ -167,14 +167,14 @@ class GrapeTest < Minitest::Test
     def test_file_upload_params_are_filtered
       with_config(:capture_params => true) do
         params = {
-          :title => "blah",
+          :title => 'blah',
           :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
         }
         post('/grape_ape', params)
 
         expected = {
-          "request.parameters.title" => "blah",
-          "request.parameters.file" => "[FILE]"
+          'request.parameters.title' => 'blah',
+          'request.parameters.file' => '[FILE]'
         }
 
         assert_equal expected, last_transaction_trace_request_params
@@ -183,7 +183,7 @@ class GrapeTest < Minitest::Test
 
     def test_404_with_params_does_not_capture_them
       with_config(:capture_params => true) do
-        post('/grape_catfish', {"foo" => "bar"})
+        post('/grape_catfish', {'foo' => 'bar'})
         expected = {}
 
         assert_equal expected, last_transaction_trace_request_params
@@ -194,13 +194,13 @@ class GrapeTest < Minitest::Test
       with_config(:'attributes.include' => 'request.parameters.*',
         :'attributes.exclude' => ['request.*', 'response.*']) do
         json = {
-          :foo => "bar",
-          :bar => "baz"
+          :foo => 'bar',
+          :bar => 'baz'
         }.to_json
 
-        post('/grape_ape', json, {"CONTENT_TYPE" => "application/json"})
+        post('/grape_ape', json, {'CONTENT_TYPE' => 'application/json'})
 
-        expected = {"request.parameters.foo" => "bar", "request.parameters.bar" => "baz"}
+        expected = {'request.parameters.foo' => 'bar', 'request.parameters.bar' => 'baz'}
         actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
         assert_equal(expected, actual)
@@ -211,20 +211,20 @@ class GrapeTest < Minitest::Test
       post('/grape_ape')
 
       expected = {
-        "response.headers.contentLength" => last_response.content_length.to_i,
-        "response.headers.contentType" => last_response.content_type,
-        "request.headers.contentLength" => last_request.content_length.to_i,
-        "request.headers.contentType" => last_request.content_type,
-        "request.headers.host" => last_request.host,
-        "request.method" => last_request.request_method
+        'response.headers.contentLength' => last_response.content_length.to_i,
+        'response.headers.contentType' => last_response.content_type,
+        'request.headers.contentLength' => last_request.content_length.to_i,
+        'request.headers.contentType' => last_request.content_type,
+        'request.headers.host' => last_request.host,
+        'request.method' => last_request.request_method
       }
 
       # Rack >= 2.1 changes how/when contentLength is computed and Grape >= 1.3 also changes to deal with this.
       # interactions with Rack < 2.1 and >= 2.1 differ on response.headers.contentLength calculations
       # so we remove it when it is zero since its not present in such cases.
-      if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("1.3.0")
-        if expected["response.headers.contentLength"] == 0
-          expected.delete("response.headers.contentLength")
+      if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('1.3.0')
+        if expected['response.headers.contentLength'] == 0
+          expected.delete('response.headers.contentLength')
         end
       end
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes

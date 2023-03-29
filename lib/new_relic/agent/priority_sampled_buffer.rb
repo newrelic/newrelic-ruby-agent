@@ -8,7 +8,7 @@ require 'new_relic/agent/event_buffer'
 module NewRelic
   module Agent
     class PrioritySampledBuffer < EventBuffer
-      PRIORITY_KEY = "priority".freeze
+      PRIORITY_KEY = 'priority'.freeze
 
       attr_reader :seen_lifetime, :captured_lifetime
 

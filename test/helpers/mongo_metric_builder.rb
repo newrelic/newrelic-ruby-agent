@@ -17,7 +17,7 @@ module NewRelic
         end
 
         NewRelic::Agent::Datastores::MetricHelper.metrics_for(
-          "MongoDB", name, @collection_name, host, port
+          'MongoDB', name, @collection_name, host, port
         )
       end
 

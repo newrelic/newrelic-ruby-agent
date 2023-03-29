@@ -21,7 +21,7 @@ module NewRelic
 
               only_actions.include?(action_name) || (!except_actions.empty? && !except_actions.include?(action_name))
             else
-              !!ignore_actions
+              !ignore_actions.nil?
             end
 
             return true if should_filter

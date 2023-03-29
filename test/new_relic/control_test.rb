@@ -26,13 +26,13 @@ class NewRelic::ControlTest < Minitest::Test
     assert File.directory?(NewRelic::Control.newrelic_root)
     return unless defined?(Rails::VERSION)
 
-    assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib"))
+    assert File.directory?(File.join(NewRelic::Control.newrelic_root, 'lib'))
   end
 
   def test_info
     NewRelic::Agent.manual_start
     if defined?(Rails::VERSION)
-      assert_match(/jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new["Database adapter"])
+      assert_match(/jdbc|postgres|mysql|sqlite/, NewRelic::EnvironmentReport.new['Database adapter'])
     end
   end
 
@@ -96,7 +96,7 @@ class NewRelic::ControlTest < Minitest::Test
       :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
 
-      assert_predicate NewRelic::Agent.instance.harvest_samplers, :any?
+      assert_predicate NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers), :any?
     end
   end
 
@@ -110,7 +110,7 @@ class NewRelic::ControlTest < Minitest::Test
       :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
 
-      refute NewRelic::Agent.instance.harvest_samplers.any?
+      refute NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers).any?
     end
   end
 
@@ -127,7 +127,7 @@ class NewRelic::ControlTest < Minitest::Test
       NewRelic::Control.instance.init_plugin
 
       refute NewRelic::Agent.instance.already_started?
-      refute NewRelic::Agent.instance.harvest_samplers.any?
+      refute NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers).any?
     end
   end
 
@@ -146,15 +146,15 @@ class NewRelic::ControlTest < Minitest::Test
       NewRelic::Agent.after_fork
 
       assert_predicate NewRelic::Agent.instance, :already_started?
-      assert_predicate NewRelic::Agent.instance.harvest_samplers, :any?
+      assert_predicate NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers), :any?
     end
   end
 
   def reset_agent
     NewRelic::Agent.shutdown
-    NewRelic::Agent.instance.harvest_samplers.clear
+    NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers).clear
     NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
     NewRelic::Agent.instance.instance_variable_set(:@worker_thread, nil)
-    NewRelic::Agent.instance.harvester.instance_variable_set(:@starting_pid, nil)
+    NewRelic::Agent.instance.instance_variable_get(:@harvester).instance_variable_set(:@starting_pid, nil)
   end
 end

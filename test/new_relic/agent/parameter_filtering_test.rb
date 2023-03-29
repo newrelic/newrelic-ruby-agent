@@ -11,7 +11,7 @@ module NewRelic
       def test_apply_filters_returns_params_when_rails_is_not_present
         undefine_constant(:"ActionDispatch::Http::ParameterFilter") do
           undefine_constant(:"ActiveSupport::ParameterFilter") do
-            params = {"password" => "mypass"}
+            params = {'password' => 'mypass'}
             result = ParameterFiltering.apply_filters({}, params)
 
             assert_equal params, result
@@ -20,22 +20,22 @@ module NewRelic
       end
 
       def test_apply_filters_replaces_file_uploads_with_placeholder
-        env = {"CONTENT_TYPE" => "multipart/form-data"}
+        env = {'CONTENT_TYPE' => 'multipart/form-data'}
         params = {
-          :name => "name",
+          :name => 'name',
           :file => {
-            :filename => "data.jpg",
-            :tempfile => "file_data"
+            :filename => 'data.jpg',
+            :tempfile => 'file_data'
           }
         }
 
-        expected = {:name => "name", :file => "[FILE]"}
+        expected = {:name => 'name', :file => '[FILE]'}
         result = ParameterFiltering.apply_filters(env, params)
 
         assert_equal expected, result
 
         # argument should not be mutated
-        assert_equal({:filename => "data.jpg", :tempfile => "file_data"}, params[:file])
+        assert_equal({:filename => 'data.jpg', :tempfile => 'file_data'}, params[:file])
       end
 
       def test_app_works_constant_not_set

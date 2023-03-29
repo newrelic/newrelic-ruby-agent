@@ -20,14 +20,14 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     def test_file_upload_params_are_filtered
       with_config(:capture_params => true) do
         params = {
-          :title => "blah",
+          :title => 'blah',
           :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
         }
         post('/', params)
 
         expected = {
-          "request.parameters.title" => "blah",
-          "request.parameters.file" => "[FILE]"
+          'request.parameters.title' => 'blah',
+          'request.parameters.file' => '[FILE]'
         }
 
         assert_equal expected, last_transaction_trace_request_params
@@ -36,12 +36,12 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
     def test_apply_filters_returns_params_when_rails_is_not_present
       with_config(:capture_params => true) do
-        params = {"name" => "name", "password" => "mypass"}
+        params = {'name' => 'name', 'password' => 'mypass'}
         post('/', params)
 
         expected = {
-          "request.parameters.name" => "name",
-          "request.parameters.password" => "mypass"
+          'request.parameters.name' => 'name',
+          'request.parameters.password' => 'mypass'
         }
 
         assert_equal expected, last_transaction_trace_request_params

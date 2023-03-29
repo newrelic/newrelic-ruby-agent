@@ -16,7 +16,7 @@ class EnvironmentReportTest < Minitest::Test
   end
 
   def test_converts_to_array
-    ::NewRelic::EnvironmentReport.report_on("something") { "awesome" }
+    ::NewRelic::EnvironmentReport.report_on('something') { 'awesome' }
     data = Array(::NewRelic::EnvironmentReport.new)
     expected = %w[something awesome]
 
@@ -24,33 +24,33 @@ class EnvironmentReportTest < Minitest::Test
   end
 
   def test_register_a_value_to_report_on
-    ::NewRelic::EnvironmentReport.report_on("What time is it?") do
-      "beer-o-clock"
+    ::NewRelic::EnvironmentReport.report_on('What time is it?') do
+      'beer-o-clock'
     end
 
-    assert_equal 'beer-o-clock', ::NewRelic::EnvironmentReport.new["What time is it?"]
+    assert_equal 'beer-o-clock', ::NewRelic::EnvironmentReport.new['What time is it?']
   end
 
   def test_report_on_handles_errors_gracefully
-    ::NewRelic::EnvironmentReport.report_on("What time is it?") do
-      raise ArgumentError, "woah! something blew up"
+    ::NewRelic::EnvironmentReport.report_on('What time is it?') do
+      raise ArgumentError, 'woah! something blew up'
     end
 
-    assert_nil ::NewRelic::EnvironmentReport.new["What time is it?"]
+    assert_nil ::NewRelic::EnvironmentReport.new['What time is it?']
   end
 
   def test_it_does_not_set_keys_for_nil_values
-    ::NewRelic::EnvironmentReport.report_on("What time is it?") do
+    ::NewRelic::EnvironmentReport.report_on('What time is it?') do
       nil
     end
 
-    refute NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
+    refute NewRelic::EnvironmentReport.new.data.has_key?('What time is it?')
   end
 
   def test_can_set_an_environment_value_directly
-    @report['My Value'] = "so awesome!!"
+    @report['My Value'] = 'so awesome!!'
 
-    assert_equal "so awesome!!", @report['My Value']
+    assert_equal 'so awesome!!', @report['My Value']
   end
 
   def test_it_knows_what_gems_are_in_the_environment
@@ -85,12 +85,12 @@ class EnvironmentReportTest < Minitest::Test
 
   def test_has_logic_for_keys
     [
-      "Gems",
-      "Plugin List",
-      "Ruby version",
-      "Ruby description",
-      "Ruby platform",
-      "Ruby patchlevel",
+      'Gems',
+      'Plugin List',
+      'Ruby version',
+      'Ruby description',
+      'Ruby platform',
+      'Ruby patchlevel',
       'JRuby version',
       'Java VM version',
       'Logical Processors',

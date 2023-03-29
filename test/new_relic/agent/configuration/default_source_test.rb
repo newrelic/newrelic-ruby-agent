@@ -101,7 +101,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_convert_to_list
-      result = DefaultSource.convert_to_list("Foo,Bar,Baz")
+      result = DefaultSource.convert_to_list('Foo,Bar,Baz')
 
       assert_equal %w[Foo Bar Baz], result
     end
@@ -125,17 +125,17 @@ module NewRelic::Agent::Configuration
     end
 
     def test_config_search_paths_with_home
-      with_environment("HOME" => "/home") do
+      with_environment('HOME' => '/home') do
         paths = DefaultSource.config_search_paths.call()
 
-        assert_includes paths, "/home/.newrelic/newrelic.yml"
-        assert_includes paths, "/home/newrelic.yml"
+        assert_includes paths, '/home/.newrelic/newrelic.yml'
+        assert_includes paths, '/home/newrelic.yml'
       end
     end
 
     def test_config_search_path_in_warbler
-      with_environment("GEM_HOME" => "/some/path.jar!") do
-        assert_includes DefaultSource.config_search_paths.call(), "/some/path.jar!/path/config/newrelic.yml"
+      with_environment('GEM_HOME' => '/some/path.jar!') do
+        assert_includes DefaultSource.config_search_paths.call(), '/some/path.jar!/path/config/newrelic.yml'
       end
     end
 
@@ -214,28 +214,28 @@ module NewRelic::Agent::Configuration
     end
 
     def test_host_correct_when_license_key_matches_identifier
-      with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
-        assert_equal "collector.eu01.nr-data.net", DefaultSource.host.call
+      with_config(license_key: 'eu01xx65c637a29c3982469a3fe8d1982d002c4b') do
+        assert_equal 'collector.eu01.nr-data.net', DefaultSource.host.call
       end
-      with_config(license_key: "gov01x69c637a29c3982469a3fe8d1982d002c4c") do
-        assert_equal "collector.gov01.nr-data.net", DefaultSource.host.call
+      with_config(license_key: 'gov01x69c637a29c3982469a3fe8d1982d002c4c') do
+        assert_equal 'collector.gov01.nr-data.net', DefaultSource.host.call
       end
     end
 
     def test_host_correct_with_license_key_not_matching_identifer
-      with_config(license_key: "08a2ad66c637a29c3982469a3fe8d1982d002c4a") do
-        assert_equal "collector.newrelic.com", DefaultSource.host.call
+      with_config(license_key: '08a2ad66c637a29c3982469a3fe8d1982d002c4a') do
+        assert_equal 'collector.newrelic.com', DefaultSource.host.call
       end
     end
 
     def test_api_host_us
-      with_config(license_key: "08a2ad66c637a29c3982469a3fe8d1982d002c4a") do
+      with_config(license_key: '08a2ad66c637a29c3982469a3fe8d1982d002c4a') do
         assert_equal 'rpm.newrelic.com', DefaultSource.api_host.call
       end
     end
 
     def test_api_host_eu
-      with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
+      with_config(license_key: 'eu01xx65c637a29c3982469a3fe8d1982d002c4b') do
         assert_equal 'rpm.eu.newrelic.com', DefaultSource.api_host.call
       end
     end

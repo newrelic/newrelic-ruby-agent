@@ -46,7 +46,8 @@ module ::Excon
       end
 
       def finish_trace(datum) # THREAD_LOCAL_ACCESS
-        segment = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
+        # The following line needs else branch coverage
+        segment = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR) # rubocop:disable Style/SafeNavigation
         if segment
           begin
             segment.notice_error(datum[:error]) if datum[:error]

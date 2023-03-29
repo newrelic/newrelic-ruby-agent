@@ -15,11 +15,11 @@ module NewRelic
         @agent = NewRelic::Agent::Agent.new
         NewRelic::Agent.agent = @agent
 
-        @agent.service = default_service
-        @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
+        @agent.instance_variable_set(:@service, default_service)
+        @agent.instance_variable_get(:@agent_command_router).stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
-        @config = {:license_key => "a" * 40}
+        @config = {:license_key => 'a' * 40}
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
@@ -48,7 +48,7 @@ module NewRelic
           @agent.stubs(:in_resque_child_process?).returns(false)
           @agent.after_fork
 
-          refute_nil @agent.environment_report
+          refute_nil @agent.instance_variable_get(:@environment_report)
         end
       end
 
@@ -81,7 +81,7 @@ module NewRelic
 
           @agent.after_fork(:report_to_channel => 123)
 
-          refute_equal old_engine, @agent.stats_engine, "Still got our old engine around!"
+          refute_equal old_engine, @agent.stats_engine, 'Still got our old engine around!'
         end
       end
 
@@ -90,13 +90,13 @@ module NewRelic
           @agent.stubs(:connected?).returns(true)
 
           errors = []
-          errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
+          errors << NewRelic::NoticedError.new('', {}, Exception.new('boo'))
           @agent.merge_data_for_endpoint(:error_data, errors)
 
           @agent.after_fork(:report_to_channel => 123)
           errors = @agent.error_collector.error_trace_aggregator.harvest!
 
-          assert_equal 0, errors.length, "Still got errors collected in parent"
+          assert_equal 0, errors.length, 'Still got errors collected in parent'
         end
       end
 
@@ -115,7 +115,7 @@ module NewRelic
           @agent.disconnect
           @agent.after_fork
 
-          refute @agent.harvester.needs_restart?
+          refute @agent.instance_variable_get(:@harvester).needs_restart?
         end
       end
 
@@ -128,7 +128,7 @@ module NewRelic
 
           # This is a hack to make the race condition that we're trying to test
           # for more likely for the purposes of this test.
-          harvester = @agent.harvester
+          harvester = @agent.instance_variable_get(:@harvester)
           def harvester.mark_started
             sleep(0.01)
             super
@@ -190,7 +190,7 @@ module NewRelic
         traces = [mock('tt1'), mock('tt2')]
 
         @agent.transaction_sampler.expects(:harvest!).returns(traces)
-        @agent.service.stubs(:transaction_sample_data).raises("wat")
+        @agent.service.stubs(:transaction_sample_data).raises('wat')
         @agent.transaction_sampler.expects(:merge!).with(traces)
 
         @agent.send(:harvest_and_send_transaction_traces)
@@ -252,7 +252,7 @@ module NewRelic
 
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.agent_command_router.stubs(:harvest!).returns({:profile_data => [Object.new]})
+        @agent.instance_variable_get(:@agent_command_router).stubs(:harvest!).returns({:profile_data => [Object.new]})
         @agent.send(:harvest_and_send_for_agent_commands)
       end
 
@@ -282,7 +282,7 @@ module NewRelic
 
       def test_merge_data_for_endpoint_abides_by_error_queue_limit
         errors = []
-        40.times { |i| errors << NewRelic::NoticedError.new("", {}, Exception.new("boo #{i}")) }
+        40.times { |i| errors << NewRelic::NoticedError.new('', {}, Exception.new("boo #{i}")) }
 
         @agent.merge_data_for_endpoint(:error_data, errors)
 
@@ -292,7 +292,7 @@ module NewRelic
 
         # This method should NOT increment error counts, since that has already
         # been counted in the child
-        assert_metrics_not_recorded "Errors/all"
+        assert_metrics_not_recorded 'Errors/all'
       end
 
       def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
@@ -558,7 +558,7 @@ module NewRelic
         end
         logmsg = logdev.array.first.delete("\n")
 
-        refute @agent.started?, "agent was started"
+        refute @agent.started?, 'agent was started'
         assert_match(/No application name configured/i, logmsg)
       end
 
@@ -696,7 +696,7 @@ module NewRelic
       end
 
       def test_revert_to_default_configuration_removes_manual_and_server_source
-        manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => "source")
+        manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => 'source')
         Agent.config.replace_or_add_config(manual_source)
 
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
@@ -717,13 +717,13 @@ module NewRelic
 
       def test_log_ignore_url_regexes
         with_config(:rules => {:ignore_url_regexes => %w[foo bar baz]}) do
-          expects_logging(:info, includes("/foo/, /bar/, /baz/"))
+          expects_logging(:info, includes('/foo/, /bar/, /baz/'))
           @agent.log_ignore_url_regexes
         end
       end
 
       def test_force_restart_logs_message
-        @agent.service = nil
+        @agent.instance_variable_set(:@service, nil)
         @agent.stubs(:sleep)
 
         log_results = with_array_logger(:debug) do
@@ -737,7 +737,7 @@ module NewRelic
       end
 
       def test_force_disconnect_logs_message
-        @agent.service = nil
+        @agent.instance_variable_set(:@service, nil)
         @agent.stubs(:sleep)
 
         log_results = with_array_logger(:debug) do
@@ -775,8 +775,8 @@ module NewRelic
           # Write HTTP response with partial gzip content, leaving connection open.
           gzip = Zlib.gzip('Hello World!')
           headers = [
-            "HTTP/1.1 200",
-            "Content-Encoding: gzip",
+            'HTTP/1.1 200',
+            'Content-Encoding: gzip',
             "Content-Length: #{gzip.length}",
             gzip.byteslice(0..-2)
           ].join("\r\n")
@@ -785,10 +785,10 @@ module NewRelic
         end
 
         @agent.unstub(:start_worker_thread)
-        @agent.service = NewRelic::Agent::NewRelicService.new(
+        @agent.instance_variable_set(:@service, NewRelic::Agent::NewRelicService.new(
           'license-key',
           NewRelic::Control::Server.new('localhost', server.addr[1])
-        )
+        ))
         @agent.service.stubs(:setup_connection_for_ssl)
 
         @agent.setup_and_start_agent

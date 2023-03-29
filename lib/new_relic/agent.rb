@@ -105,7 +105,10 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
 
+    attr_reader :error_group_callback
+
     @agent = nil
+    @error_group_callback = nil
     @logger = nil
     @tracer_lock = Mutex.new
     @tracer_queue = []
@@ -210,6 +213,8 @@ module NewRelic
       record_metric(metric_name, value)
     end
 
+    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
+
     # Increment a simple counter metric.
     #
     # +metric_name+ should follow a slash separated path convention. Application
@@ -218,9 +223,7 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
-
-    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
-
+    #
     def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
       return unless agent
 
@@ -293,6 +296,47 @@ module NewRelic
       nil # don't return a noticed error data structure. it can only hurt.
     end
 
+    # Set a callback proc for determining an error's error group name
+    #
+    # @param [Proc] the callback proc
+    #
+    # Typically this method should be called only once to set a callback for
+    # use with all noticed errors. If it is called multiple times, each new
+    # callback given will replace the old one.
+    #
+    # The proc will be called with a single hash as its input argument and is
+    # expected to return a string representing the desired error group.
+    #
+    # see https://docs.newrelic.com/docs/errors-inbox/errors-inbox/#groups
+    #
+    # The hash passed to the customer defined callback proc has the following
+    # keys:
+    #
+    # :error => The Ruby error class instance, likely inheriting from
+    #           StandardError. Call `#class`, `#message`, and `#backtrace` on
+    #           the error object to retrieve the error's class, message, and
+    #           backtrace.
+    # :customAttributes => Any customer defined custom attributes that have been
+    #                      associated with the current transaction.
+    # :'request.uri' => The current request URI if available
+    # :'http.statusCode' => The HTTP status code (200, 404, etc.) if available
+    # :'http.method' => The HTTP method (GET, PUT, etc.) if available
+    # :'error.expected' => Whether (true) or not (false) the error was expected
+    # :options => The options hash passed to `NewRelic::Agent.notice_error`
+    #
+    # @api public
+    #
+    def set_error_group_callback(callback_proc)
+      unless callback_proc.is_a?(Proc)
+        NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
+                                     "got #{callback_proc.class}")
+        return
+      end
+
+      record_api_supportability_metric(:set_error_group_callback)
+      @error_group_callback = callback_proc
+    end
+
     # @!endgroup
 
     # @!group Recording custom Insights events
@@ -353,7 +397,7 @@ module NewRelic
     # @api public
     #
     def manual_start(options = {})
-      raise "Options must be a hash" unless Hash === options
+      raise 'Options must be a hash' unless Hash === options
 
       NewRelic::Control.instance.init_plugin({:agent_enabled => true, :sync_startup => true}.merge(options))
       record_api_supportability_metric(:manual_start)
@@ -386,7 +430,8 @@ module NewRelic
     #
     def after_fork(options = {})
       record_api_supportability_metric(:after_fork)
-      agent.after_fork(options) if agent
+      # the following line needs else branch coverage
+      agent.after_fork(options) if agent # rubocop:disable Style/SafeNavigation
     end
 
     # Shutdown the agent.  Call this before exiting.  Sends any queued data
@@ -398,7 +443,7 @@ module NewRelic
     #
     def shutdown(options = {})
       record_api_supportability_metric(:shutdown)
-      agent.shutdown if agent
+      agent&.shutdown
     end
 
     # Clear out any data the agent has buffered but has not yet transmitted
@@ -406,7 +451,8 @@ module NewRelic
     #
     # @api public
     def drop_buffered_data
-      agent.drop_buffered_data if agent
+      # the following line needs else branch coverage
+      agent.drop_buffered_data if agent # rubocop:disable Style/SafeNavigation
       record_api_supportability_metric(:drop_buffered_data)
     end
 
@@ -465,8 +511,7 @@ module NewRelic
     #
     def ignore_transaction
       record_api_supportability_metric(:ignore_transaction)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore!
     end
 
     # This method disables the recording of Apdex metrics in the current
@@ -476,8 +521,7 @@ module NewRelic
     #
     def ignore_apdex
       record_api_supportability_metric(:ignore_apdex)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore_apdex! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore_apdex!
     end
 
     # This method disables browser monitoring javascript injection in the
@@ -487,8 +531,7 @@ module NewRelic
     #
     def ignore_enduser
       record_api_supportability_metric(:ignore_enduser)
-      txn = NewRelic::Agent::Transaction.tl_current
-      txn.ignore_enduser! if txn
+      NewRelic::Agent::Transaction.tl_current&.ignore_enduser!
     end
 
     # Yield to the block without collecting any metrics or traces in
@@ -564,8 +607,7 @@ module NewRelic
       record_api_supportability_metric(:add_custom_attributes)
 
       if params.is_a?(Hash)
-        txn = Transaction.tl_current
-        txn.add_custom_attributes(params) if txn
+        Transaction.tl_current&.add_custom_attributes(params)
 
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment
@@ -605,6 +647,26 @@ module NewRelic
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}")
       end
+    end
+
+    # Set the user id for the current transaction. When present, this value will be included in the agent attributes for transaction and error events as 'enduser.id'.
+    #
+    # @param [String] user_id    The user id to add to the current transaction attributes
+    #
+    # @api public
+    def set_user_id(user_id)
+      record_api_supportability_metric(:set_user_id)
+
+      if user_id.nil? || user_id.empty?
+        ::NewRelic::Agent.logger.warn('NewRelic::Agent.set_user_id called with a nil or empty user id.')
+        return
+      end
+
+      default_destinations = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+        NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+        NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+      NewRelic::Agent::Transaction.add_agent_attribute(:'enduser.id', user_id, default_destinations)
     end
 
     # @!endgroup
@@ -686,7 +748,7 @@ module NewRelic
     def notify(event_type, *args)
       agent.events.notify(event_type, *args)
     rescue
-      NewRelic::Agent.logger.debug("Ignoring exception during %p event notification" % [event_type])
+      NewRelic::Agent.logger.debug('Ignoring exception during %p event notification' % [event_type])
     end
 
     # @!group Trace and Entity metadata

@@ -23,7 +23,7 @@ module NewRelic
           "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
 
         if !NewRelic::Agent.config[:'rum.enabled']
-          NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
+          NewRelic::Agent.logger.debug('Real User Monitoring is disabled for this agent. Edit your configuration to change this.')
         end
       end
 
@@ -38,19 +38,19 @@ module NewRelic
       def js_enabled_and_ready?
         if !enabled?
           ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
-            "JS agent instrumentation is disabled.")
+            'JS agent instrumentation is disabled.')
           false
         elsif missing_config?(:js_agent_loader)
           ::NewRelic::Agent.logger.log_once(:debug, :missing_js_agent_loader,
-            "Missing :js_agent_loader. Skipping browser instrumentation.")
+            'Missing :js_agent_loader. Skipping browser instrumentation.')
           false
         elsif missing_config?(:beacon)
           ::NewRelic::Agent.logger.log_once(:debug, :missing_beacon,
-            "Beacon configuration not received (yet?). Skipping browser instrumentation.")
+            'Beacon configuration not received (yet?). Skipping browser instrumentation.')
           false
         elsif missing_config?(:browser_key)
           ::NewRelic::Agent.logger.log_once(:debug, :missing_browser_key,
-            "Browser key is not set. Skipping browser instrumentation.")
+            'Browser key is not set. Skipping browser instrumentation.')
           false
         else
           true
@@ -62,19 +62,19 @@ module NewRelic
 
       def insert_js?(state)
         if !state.current_transaction
-          ::NewRelic::Agent.logger.debug("Not in transaction. Skipping browser instrumentation.")
+          ::NewRelic::Agent.logger.debug('Not in transaction. Skipping browser instrumentation.')
           false
         elsif !state.is_execution_traced?
-          ::NewRelic::Agent.logger.debug("Execution is not traced. Skipping browser instrumentation.")
+          ::NewRelic::Agent.logger.debug('Execution is not traced. Skipping browser instrumentation.')
           false
         elsif state.current_transaction.ignore_enduser?
-          ::NewRelic::Agent.logger.debug("Ignore end user for this transaction is set. Skipping browser instrumentation.")
+          ::NewRelic::Agent.logger.debug('Ignore end user for this transaction is set. Skipping browser instrumentation.')
           false
         else
           true
         end
       rescue => e
-        ::NewRelic::Agent.logger.debug("Failure during insert_js", e)
+        ::NewRelic::Agent.logger.debug('Failure during insert_js', e)
         false
       end
 
@@ -95,7 +95,7 @@ module NewRelic
 
         bt_config + browser_timing_loader(nonce)
       rescue => e
-        ::NewRelic::Agent.logger.debug("Failure during RUM browser_timing_header construction", e)
+        ::NewRelic::Agent.logger.debug('Failure during RUM browser_timing_header construction', e)
         ''
       end
 
@@ -122,18 +122,18 @@ module NewRelic
         " nonce=\"#{nonce.to_s}\""
       end
 
-      BEACON_KEY = "beacon".freeze
-      ERROR_BEACON_KEY = "errorBeacon".freeze
-      LICENSE_KEY_KEY = "licenseKey".freeze
-      APPLICATIONID_KEY = "applicationID".freeze
-      TRANSACTION_NAME_KEY = "transactionName".freeze
-      QUEUE_TIME_KEY = "queueTime".freeze
-      APPLICATION_TIME_KEY = "applicationTime".freeze
-      AGENT_KEY = "agent".freeze
-      SSL_FOR_HTTP_KEY = "sslForHttp".freeze
-      ATTS_KEY = "atts".freeze
-      ATTS_USER_SUBKEY = "u".freeze
-      ATTS_AGENT_SUBKEY = "a".freeze
+      BEACON_KEY = 'beacon'.freeze
+      ERROR_BEACON_KEY = 'errorBeacon'.freeze
+      LICENSE_KEY_KEY = 'licenseKey'.freeze
+      APPLICATIONID_KEY = 'applicationID'.freeze
+      TRANSACTION_NAME_KEY = 'transactionName'.freeze
+      QUEUE_TIME_KEY = 'queueTime'.freeze
+      APPLICATION_TIME_KEY = 'applicationTime'.freeze
+      AGENT_KEY = 'agent'.freeze
+      SSL_FOR_HTTP_KEY = 'sslForHttp'.freeze
+      ATTS_KEY = 'atts'.freeze
+      ATTS_USER_SUBKEY = 'u'.freeze
+      ATTS_AGENT_SUBKEY = 'a'.freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(transaction)
@@ -185,9 +185,14 @@ module NewRelic
 
       def append_custom_attributes!(txn, atts)
         custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
-        unless custom_attributes.empty?
-          atts[ATTS_USER_SUBKEY] = custom_attributes
+        if custom_attributes.empty?
+          NewRelic::Agent.logger.debug("#{self.class}: No custom attributes found to append.")
+          return
         end
+
+        NewRelic::Agent.logger.debug("#{self.class}: Appending the following custom attribute keys for browser " \
+          "monitoring: #{custom_attributes.keys}")
+        atts[ATTS_USER_SUBKEY] = custom_attributes
       end
 
       def append_agent_attributes!(txn, atts)

@@ -11,7 +11,7 @@ module NewRelic
         attr_reader :request_path, :referer, :accept, :content_length, :content_type,
           :host, :port, :user_agent, :request_method
 
-        HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
+        HTTP_ACCEPT_HEADER_KEY = 'HTTP_ACCEPT'.freeze
 
         def initialize(request)
           @request_path = path_from_request(request)
@@ -85,7 +85,7 @@ module NewRelic
         # rails construct the PATH_INFO enviroment variable improperly and we're generally
         # being defensive.
 
-        ROOT_PATH = "/".freeze
+        ROOT_PATH = '/'.freeze
 
         def path_from_request(request)
           path = attribute_from_request(request, :path) || ''

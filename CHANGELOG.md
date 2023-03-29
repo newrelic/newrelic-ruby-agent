@@ -1,5 +1,63 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.1.0
+
+  Version 9.1.0 of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timestream data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
+
+- **Feature: Error fingerprinting - supply your own errors inbox group names**
+
+  Are your error occurrences grouped poorly? Set your own error fingerprint via a callback function. A new `set_error_group_callback` public API method has been added that will accept a user defined proc. The proc will be invoked for each noticed error and whenever it returns a string, that string will be used as the error group name for the error and will take precedence over any server-side grouping that takes place with the New Relic errors inbox. This gives users much greater control over the grouping of their errors.
+
+  The customer defined proc will be expected to receive exactly one input argument, a hash. The hash contains the following:
+
+  |  Key                 | Value                                                                        |
+  | ---------------------| ---------------------------------------------------------------------------- |
+  | `:error`             | The Ruby error class instance. Offers `#class`, `#message`, and `#backtrace` |
+  | `:customAttributes`  | Any customer defined custom attributes for the current transaction           |
+  | `:'request.uri'`     | The current request URI if available                                         |
+  | `:'http.statusCode'` | The HTTP status code (200, 404, etc.) if available                           |
+  | `:'http.method'`     | The HTTP method (GET, PUT, etc.) if available                                |
+  | `:'error.expected'`  | Whether (true) or not (false) the error was expected                         |
+  | `:'options'`         | The options hash passed to `NewRelic::Agent.notice_error`                    |
+
+  The callback only needs to be set once per initialization of the New Relic agent.
+
+  Example usage:
+
+  ```
+  proc = proc { |hash| "Access" if hash[:'http.statusCode'] == 401 }
+  NewRelic::Agent.set_error_group_callback(proc)
+  ```
+
+- **Feature: User tracking - associate errors with a user id**
+
+  You can now see the number of users impacted by an error group. Identify the end user with a new `set_user_id` public API method that will accept a string representation of a user id and associate that user id with the current transaction. Transactions and errors will then have a new `enduser.id` agent attribute associated with them. This will allow agent users to tag transactions and errors as belonging to given user ids in support of greater filtering and alerting capabilities.
+
+- **Identify Amazon Timestream when the amazon_timestream AR adapter is used**
+
+  When the agent sees the [activerecord-amazon-timestream-adapter](https://rubygems.org/gems/activerecord-amazon-timestream-adapter) gem being used, it will now identify the data store as "Timestream". Thanks very much to [@wagner](https://github.com/wagner) for contributing this enhancement! [PR#1872](https://github.com/newrelic/newrelic-ruby-agent/pull/1872)
+
+- **Bugfix: Remove Distributed Tracing related warnings from agent logs when headers are not present in Sidekiq**
+
+  Previously, the agent would log a warning to `newrelic_agent.log` every time it attempted to accept empty Distributed Tracing headers from Sidekiq jobs which could result in an excessive number of warnings. Now the agent will no longer create these warnings when using Sidekiq. [PR#1834](https://github.com/newrelic/newrelic-ruby-agent/pull/1834)
+
+- **Bugfix: Log request headers in debug-level logs instead of human-readable Objects**
+
+  Previously, the agent sometimes received children of the `NewRelic::Agent::HTTPClients::AbstractRequest` class as an argument when `NewRelic::Agent::Transaction::DistributedTracers#log_request_headers` was called. This caused debug-level log messages that print the request headers to show human-readable Objects (ex. `#<NewRelic::Agent::HTTPClients::HTTPClientRequest:0x00007fd0dda983e0>`) instead of the request headers. Now, the hash of the request headers should always be logged. [PR#1839](https://github.com/newrelic/newrelic-ruby-agent/pull/1839)
+
+- **Bugfix: Fix undefined method `controller_path` logged in Action Controller Instrumentation**
+
+  Previously, the agent could log an error when trying to determine the metric name in the Action Controller instrumentation if the controller class did not respond to `controller_path`. This has been resolved and the agent will no longer call this method unless the class responds to it. Thank you to [@gsar](https://github.com/gsar) for letting us know about this issue. [PR#1844](https://github.com/newrelic/newrelic-ruby-agent/pull/1844)
+
+- **Bugfix: Fix Transaction#finish exception and decrease log level for related warning during async transactions**
+
+  Previously, the agent would raise a non-fatal error when a segment without a parent was unfinished when the transaction completed. This error was raised while constructing a `warn`-level log message. Now that Thread instrumentation is on by default, this log message emits more frequently and is less concerning. In cases where we see a Thread, Fiber, or concurrent-ruby segment in a transaction, the message will be degraded to a `debug`-level. Thanks to [@NielsKSchjoedt](https://github.com/NielsKSchjoedt) for creating the issue and [@boomer196](https://github.com/boomer196) for testing solutions. [PR#1876](https://github.com/newrelic/newrelic-ruby-agent/pull/1876)
+
+- **CI: Target JRuby 9.4.2.0**
+
+  The agent is now actively being tested against JRuby 9.4.2.0. NOTE that this release does not contain any non-CI related changes for JRuby. Old agent versions are still expected to work with newer JRubies and the newest agent version is still expected to work with older JRubies.
+
+
 ## v9.0.0
 
   Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables Thread tracing by default, adds Fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
@@ -92,8 +150,8 @@
     - HttpClient: 2.2.0 - 2.8.0
     - HttpRb: 0.9.9 - 2.2.1
     - Typhoeus: 0.5.3 - 1.2.x
-    - Bunny: 2.0.x - 2.6.x 
-    - ActiveMerchant: 1.25.0 - 1.64.x 
+    - Bunny: 2.0.x - 2.6.x
+    - ActiveMerchant: 1.25.0 - 1.64.x
 
 
 - **Updated API method `set_transaction_name`**

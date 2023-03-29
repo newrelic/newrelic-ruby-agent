@@ -16,7 +16,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info("Installing Rails 3+ middleware instrumentation")
+    NewRelic::Agent.logger.info('Installing Rails 3+ middleware instrumentation')
     module ActionDispatch
       class MiddlewareStack
         class Middleware

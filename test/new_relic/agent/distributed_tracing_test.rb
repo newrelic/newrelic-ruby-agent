@@ -15,9 +15,9 @@ module NewRelic::Agent
       def setup
         @config = {
           :'distributed_tracing.enabled' => true,
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "190",
+          :account_id => '190',
+          :primary_application_id => '46954',
+          :trusted_account_key => '190',
           :disable_harvest_thread => true
         }
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
@@ -33,23 +33,23 @@ module NewRelic::Agent
 
       def test_accept_distributed_trace_headers_api
         carrier = {'HTTP_TRACEPARENT' => 'pretend_this_is_valid'}
-        in_transaction("test_txn") do |txn|
+        in_transaction('test_txn') do |txn|
           txn.distributed_tracer.expects(:accept_incoming_request)
-          DistributedTracing.accept_distributed_trace_headers(carrier, "HTTP")
+          DistributedTracing.accept_distributed_trace_headers(carrier, 'HTTP')
         end
       end
 
       def test_accept_distributed_trace_headers_api_with_non_rack
         carrier = {'tRaCePaReNt' => 'pretend_this_is_valid'}
-        in_transaction("test_txn") do |txn|
+        in_transaction('test_txn') do |txn|
           txn.distributed_tracer.expects(:accept_trace_context_incoming_request)
-          DistributedTracing.accept_distributed_trace_headers(carrier, "Kafka")
+          DistributedTracing.accept_distributed_trace_headers(carrier, 'Kafka')
         end
       end
 
       def test_insert_distributed_trace_headers_api
         carrier = {}
-        in_transaction("test_txn") do |txn|
+        in_transaction('test_txn') do |txn|
           txn.distributed_tracer.expects(:insert_headers)
           DistributedTracing.insert_distributed_trace_headers(carrier)
         end
@@ -58,11 +58,11 @@ module NewRelic::Agent
       def test_accept_distributed_trace_headers_api_case_insensitive
         carrier = {
           'tRacEpArEnT' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'trAceSTatE' => "190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
+          'trAceSTatE' => '190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035'
         }
         trace_context_header_data = nil
-        in_transaction("test_txn") do |txn|
-          DistributedTracing.accept_distributed_trace_headers(carrier, "Kafka")
+        in_transaction('test_txn') do |txn|
+          DistributedTracing.accept_distributed_trace_headers(carrier, 'Kafka')
           trace_context_header_data = txn.distributed_tracer.trace_context_header_data
         end
 

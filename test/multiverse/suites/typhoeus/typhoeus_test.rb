@@ -2,20 +2,20 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "typhoeus"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'typhoeus'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
   class TyphoeusTest < Minitest::Test
     include HttpClientTestCases
 
-    USE_SSL_VERIFYPEER_VERSION = Gem::Version.new("0.5.0")
+    USE_SSL_VERIFYPEER_VERSION = Gem::Version.new('0.5.0')
 
     # Starting in version 0.6.4, Typhoeus supports passing URI instances instead
     # of String URLs. Make sure we don't break that.
-    SUPPORTS_URI_OBJECT_VERSION = Gem::Version.new("0.6.4")
+    SUPPORTS_URI_OBJECT_VERSION = Gem::Version.new('0.6.4')
 
     CURRENT_TYPHOEUS_VERSION = Gem::Version.new(Typhoeus::VERSION)
 
@@ -28,7 +28,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def client_name
-      "Typhoeus"
+      'Typhoeus'
     end
 
     def timeout_error_class
@@ -36,7 +36,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def simulate_error_response
-      get_response("http://localhost:666/evil")
+      get_response('http://localhost:666/evil')
     end
 
     # We use the Typhoeus::Request rather than right on Typhoeus to support
@@ -55,11 +55,11 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def post_response
-      Typhoeus::Request.post(default_url, ssl_option.merge(:body => ""))
+      Typhoeus::Request.post(default_url, ssl_option.merge(:body => ''))
     end
 
     def put_response
-      Typhoeus::Request.put(default_url, ssl_option.merge(:body => ""))
+      Typhoeus::Request.put(default_url, ssl_option.merge(:body => ''))
     end
 
     def delete_response
@@ -67,7 +67,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def request_instance
-      NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(Typhoeus::Request.new("http://newrelic.com"))
+      NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(Typhoeus::Request.new('http://newrelic.com'))
     end
 
     def response_instance(headers = {})
@@ -110,7 +110,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     def test_tracing_succeeds_if_user_set_on_complete_callback_raises
       caught_exception = nil
-      in_transaction("test") do
+      in_transaction('test') do
         req = Typhoeus::Request.new(default_url, ssl_option)
         req.on_complete { |rsp| raise 'noodle' }
 
@@ -130,21 +130,21 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       last_node = find_last_transaction_node
 
-      assert_equal "External/localhost/Typhoeus/GET", last_node.metric_name
+      assert_equal 'External/localhost/Typhoeus/GET', last_node.metric_name
     end
 
     def test_request_succeeds_even_if_tracing_doesnt
-      in_transaction("test") do
-        ::NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
+      in_transaction('test') do
+        ::NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises('Booom')
         res = get_response
 
         assert_match %r{<head>}i, body(res)
-        assert_metrics_not_recorded(["External/all"])
+        assert_metrics_not_recorded(['External/all'])
       end
     end
 
     def test_hydra
-      in_transaction("test") do
+      in_transaction('test') do
         hydra = Typhoeus::Hydra.new
         5.times { hydra.queue(Typhoeus::Request.new(default_url, ssl_option)) }
         hydra.run
@@ -152,21 +152,21 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       trace = last_transaction_trace
 
-      hydra = find_node_with_name(trace, "External/Multiple/Typhoeus::Hydra/run")
+      hydra = find_node_with_name(trace, 'External/Multiple/Typhoeus::Hydra/run')
 
       assert_equal 5, hydra.children.size
 
       hydra.children.each do |child|
-        assert_equal "External/localhost/Typhoeus/GET", child.metric_name
+        assert_equal 'External/localhost/Typhoeus/GET', child.metric_name
       end
 
       trace.each_node do |node|
-        next if node.metric_name == "ROOT"
+        next if node.metric_name == 'ROOT'
 
-        assert node.params.key?(:exclusive_duration_millis), "Expected all nodes (except ROOT) to have :exclusive_duration_millis"
+        assert node.params.key?(:exclusive_duration_millis), 'Expected all nodes (except ROOT) to have :exclusive_duration_millis'
       end
 
-      assert hydra.params[:exclusive_duration_millis] > 0, "Expected a positive exclusive duration"
+      assert hydra.params[:exclusive_duration_millis] > 0, 'Expected a positive exclusive duration'
     end
 
     def test_noticed_error_at_segment_and_txn_on_error_for_hydra
@@ -175,7 +175,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         in_transaction do |ext_txn|
           txn = ext_txn
           hydra = Typhoeus::Hydra.new
-          5.times { hydra.queue(Typhoeus::Request.new("http://localhost:666/evil", ssl_option)) }
+          5.times { hydra.queue(Typhoeus::Request.new('http://localhost:666/evil', ssl_option)) }
           hydra.run
         end
       rescue StandardError => e
@@ -187,7 +187,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
 
       assert_equal 5, get_segments.size
-      assert get_segments.all? { |s| s.noticed_error }, "Expected every GET to notice an error"
+      assert get_segments.all? { |s| s.noticed_error }, 'Expected every GET to notice an error'
 
       # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
@@ -200,7 +200,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         in_transaction { res = get_response(default_uri) }
 
         assert_match %r{<head>}i, body(res)
-        assert_externals_recorded_for("localhost", "GET")
+        assert_externals_recorded_for('localhost', 'GET')
       end
     end
   end
@@ -210,9 +210,9 @@ else
   class TyphoeusNotInstrumented < Minitest::Test
     def test_works_without_instrumentation
       # Typhoeus.get wasn't supported back before 0.5.x
-      Typhoeus::Request.get("http://localhost/not/there")
+      Typhoeus::Request.get('http://localhost/not/there')
 
-      assert_metrics_not_recorded(["External/all"])
+      assert_metrics_not_recorded(['External/all'])
     end
   end
 

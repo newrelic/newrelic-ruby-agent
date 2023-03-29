@@ -16,7 +16,7 @@ module Performance
         rsp = client.submit(result)
         case rsp
         when Net::HTTPSuccess
-          Performance.logger.debug("Successfully posted result to Hako")
+          Performance.logger.debug('Successfully posted result to Hako')
         else
           Performance.logger.error("Failed to post results to Hako: #{rsp.inspect}")
         end

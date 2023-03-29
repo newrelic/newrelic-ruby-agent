@@ -107,7 +107,7 @@ module NewRelic
             current_transaction.notice_error(exception)
             raise
           ensure
-            finishable.finish if finishable
+            finishable&.finish
           end
         end
 
@@ -246,8 +246,8 @@ module NewRelic
           log_error('start_segment', exception)
         end
 
-        UNKNOWN = "Unknown".freeze
-        OTHER = "other".freeze
+        UNKNOWN = 'Unknown'.freeze
+        OTHER = 'other'.freeze
 
         # Creates and starts a datastore segment used to time
         # datastore operations.
@@ -355,7 +355,8 @@ module NewRelic
 
           yield
         rescue => exception
-          if segment && segment.is_a?(Transaction::AbstractSegment)
+          # needs else branch coverage
+          if segment && segment.is_a?(Transaction::AbstractSegment) # rubocop:disable Style/SafeNavigation
             segment.notice_error(exception)
           end
           raise
@@ -425,6 +426,7 @@ module NewRelic
             begin
               if current_txn
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
+                current_txn.async = true
                 segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
                 segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent)
               end
@@ -487,7 +489,8 @@ module NewRelic
         end
 
         def pop_traced
-          @untraced.pop if @untraced
+          # needs else branch coverage
+          @untraced.pop if @untraced # rubocop:disable Style/SafeNavigation
         end
 
         def is_execution_traced?
@@ -507,7 +510,5 @@ module NewRelic
         attr_accessor :sql_sampler_transaction_data
       end
     end
-
-    TransactionState = Tracer
   end
 end

@@ -21,13 +21,13 @@ module NewRelic
               assert_equal total_spans, segments.size
               spans.each_with_index do |span, index|
                 assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-                assert_equal segments[index].transaction.trace_id, span["trace_id"]
+                assert_equal segments[index].transaction.trace_id, span['trace_id']
               end
 
-              refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+              refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
-                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 5},
+                'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 5}
               })
             end
           end
@@ -49,15 +49,15 @@ module NewRelic
               assert_equal total_spans, segments.size
               assert_equal total_spans, spans.size
 
-              span_ids = spans.map { |s| s["trace_id"] }.sort
+              span_ids = spans.map { |s| s['trace_id'] }.sort
               segment_ids = segments.map { |s| s.transaction.trace_id }.sort
 
               assert_equal segment_ids, span_ids
 
-              refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+              refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
-                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 5},
+                'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 5}
               })
             end
           end
@@ -89,15 +89,15 @@ module NewRelic
               assert_equal total_spans, segments.size
               assert_equal total_spans, spans.size
 
-              span_ids = spans.map { |s| s["trace_id"] }.sort
+              span_ids = spans.map { |s| s['trace_id'] }.sort
               segment_ids = segments.map { |s| s.transaction.trace_id }.sort
 
               assert_equal segment_ids, span_ids
 
-              refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+              refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
-                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 5},
+                'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 5}
               })
             end
           end
@@ -113,11 +113,11 @@ module NewRelic
               total_spans = 2
               emulate_streaming_with_initial_error(total_spans)
 
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Sent'
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Response/Error'
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/gRPC/PERMISSION_DENIED" => {:call_count => 1}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+                'Supportability/InfiniteTracing/Span/gRPC/PERMISSION_DENIED' => {:call_count => 1}
               })
             end
           end
@@ -133,19 +133,19 @@ module NewRelic
               total_spans = 5
               emulate_streaming_segments(total_spans) do |client, segments|
                 if segments.size == 3
-                  simulate_server_response_shutdown(GRPC::Unimplemented.new("i dont exist"))
+                  simulate_server_response_shutdown(GRPC::Unimplemented.new('i dont exist'))
                 else
                   simulate_server_response
                 end
               end
 
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED'
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Sent'
+              assert_metrics_recorded 'Supportability/InfiniteTracing/Span/Response/Error'
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 3},
-                "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => total_spans},
+                'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 3},
+                'Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED' => {:call_count => 1}
               })
             end
           end
@@ -214,10 +214,10 @@ module NewRelic
                 end
               end
 
-              refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+              refute_metrics_recorded(['Supportability/InfiniteTracing/Span/AgentQueueDumped'])
               assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
-                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+                'Supportability/InfiniteTracing/Span/Seen' => {:call_count => 5},
+                'Supportability/InfiniteTracing/Span/Sent' => {:call_count => 5}
               })
             end
           end

@@ -12,7 +12,7 @@ class RumAutoTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
 
-  JS_AGENT_LOADER = "JS_AGENT_LOADER"
+  JS_AGENT_LOADER = 'JS_AGENT_LOADER'
 
   LOADER_REGEX = "\n<script.*>JS_AGENT_LOADER</script>"
   CONFIG_REGEX = "\n<script.*>.*NREUM.info=.*</script>"
@@ -22,8 +22,8 @@ class RumAutoTest < Minitest::Test
     :browser_key => 'browserKey',
     :js_agent_loader => JS_AGENT_LOADER) do |collector|
     collector.stub('connect', {
-      'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
-                                    "ignore" => true}],
+      'transaction_name_rules' => [{'match_expression' => 'ignored_transaction',
+                                    'ignore' => true}],
       'agent_run_id' => 1
     })
   end
@@ -34,21 +34,21 @@ class RumAutoTest < Minitest::Test
   end
 
   def test_autoinstrumentation_is_active
-    @inner_app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
+    @inner_app.response = '<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>'
     get('/')
 
-    assert_response_includes("<script", JS_AGENT_LOADER, "NREUM")
+    assert_response_includes('<script', JS_AGENT_LOADER, 'NREUM')
   end
 
   def test_autoinstrumentation_with_basic_page_puts_header_at_beginning_of_head
-    @inner_app.response = "<html><head><title>foo</title></head><body><p>Hello World</p></body></html>"
+    @inner_app.response = '<html><head><title>foo</title></head><body><p>Hello World</p></body></html>'
     get('/')
 
     assert_response_includes(%Q(<html><head>#{CONFIG_REGEX}#{LOADER_REGEX}<title>foo</title></head>))
   end
 
   def test_autoinstrumentation_with_body_only_puts_header_before_body
-    @inner_app.response = "<html><body><p>Hello World</p></body></html>"
+    @inner_app.response = '<html><body><p>Hello World</p></body></html>'
     get('/')
 
     assert_response_includes %Q(<html>#{CONFIG_REGEX}#{LOADER_REGEX}<body>)
@@ -69,9 +69,9 @@ class RumAutoTest < Minitest::Test
   end
 
   def test_content_length_is_correctly_set_if_present
-    @inner_app.response = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
+    @inner_app.response = '<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>'
     content_length = @inner_app.response.length
-    @inner_app.headers["Content-Length"] = content_length
+    @inner_app.headers['Content-Length'] = content_length
     get('/')
 
     assert(last_response.headers['Content-Length'].to_i > content_length)
@@ -79,16 +79,16 @@ class RumAutoTest < Minitest::Test
   end
 
   def test_xml_responses_arent_instrumented
-    body = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
+    body = '<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>'
     @inner_app.response = body
-    @inner_app.headers["Content-Type"] = "text/xml"
+    @inner_app.headers['Content-Type'] = 'text/xml'
     get('/')
 
     assert_equal(last_response.body, body)
   end
 
   def test_rum_headers_are_not_injected_in_ignored_txn
-    body = "<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>"
+    body = '<html><head><title>W00t!</title></head><body><p>Hello World</p></body></html>'
     @inner_app.response = body
     get('/', 'transaction_name' => 'ignored_transaction')
 

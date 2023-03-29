@@ -27,7 +27,7 @@ module Performance
           puts "#{e['class']}: #{e['message']}"
           puts failure.exception['backtrace'].map { |l| "    #{l}" }.join("\n")
         else
-          puts "<No exception recorded>"
+          puts '<No exception recorded>'
         end
       end
       puts ''

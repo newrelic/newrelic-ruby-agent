@@ -33,7 +33,7 @@ module NewRelic::Agent::InfiniteTracing
     end
 
     def test_processes_error_on_queue
-      error_object = RuntimeError.new("oops")
+      error_object = RuntimeError.new('oops')
       queue = EnumeratorQueue.new.preload(error_object)
 
       handler = build_handler(queue)
@@ -55,7 +55,7 @@ module NewRelic::Agent::InfiniteTracing
 
     class TestClient
       def handle_error(error)
-        NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
+        NewRelic::Agent.record_metric('Supportability/InfiniteTracing/Span/Response/Error', 0.0)
       end
     end
 

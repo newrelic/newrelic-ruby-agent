@@ -16,15 +16,15 @@ if Sequel.const_defined?(:MAJOR) &&
 
     def expected_metrics_for_operation(operation)
       [
-        ["Datastore/statement/#{product_name}/Post/#{operation}", "dummy"],
+        ["Datastore/statement/#{product_name}/Post/#{operation}", 'dummy'],
         "Datastore/statement/#{product_name}/Post/#{operation}",
         "Datastore/operation/#{product_name}/#{operation}",
         "Datastore/#{product_name}/allWeb",
-        "Datastore/allWeb",
+        'Datastore/allWeb',
         "Datastore/#{product_name}/all",
-        "Datastore/all",
-        "dummy",
-        "Apdex"
+        'Datastore/all',
+        'dummy',
+        'Apdex'
       ]
     end
 
@@ -195,7 +195,7 @@ if Sequel.const_defined?(:MAJOR) &&
         end
 
         assert_match %r{select \* from `posts` where `id` = 11}i, node.params[:sql]
-        assert_empty(node.params[:explain_plan], "Should not capture explain plan with single-threaded connection pool")
+        assert_empty(node.params[:explain_plan], 'Should not capture explain plan with single-threaded connection pool')
       end
     end
 
@@ -230,5 +230,5 @@ if Sequel.const_defined?(:MAJOR) &&
   end
 
 else
-  puts "Skipping tests in #{File.basename(__FILE__)} because unsupported Sequel version" if ENV["VERBOSE_TEST_OUTPUT"]
+  puts "Skipping tests in #{File.basename(__FILE__)} because unsupported Sequel version" if ENV['VERBOSE_TEST_OUTPUT']
 end

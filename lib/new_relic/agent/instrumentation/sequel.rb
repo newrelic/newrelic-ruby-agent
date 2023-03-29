@@ -28,9 +28,9 @@ DependencyDetection.defer do
       if Sequel::Database.respond_to?(:extension)
         Sequel::Database.extension(:new_relic_instrumentation)
       else
-        NewRelic::Agent.logger.info("Detected Sequel version %s." % [Sequel::VERSION])
-        NewRelic::Agent.logger.info("Please see additional documentation: " +
-          "https://newrelic.com/docs/ruby/sequel-instrumentation")
+        NewRelic::Agent.logger.info('Detected Sequel version %s.' % [Sequel::VERSION])
+        NewRelic::Agent.logger.info('Please see additional documentation: ' +
+          'https://newrelic.com/docs/ruby/sequel-instrumentation')
       end
 
       Sequel.synchronize { Sequel::DATABASES.dup }.each do |db|
@@ -40,7 +40,7 @@ DependencyDetection.defer do
       Sequel::Model.plugin(:new_relic_instrumentation) if defined?(Sequel::Model)
     else
 
-      NewRelic::Agent.logger.info("Sequel instrumentation requires at least version 3.37.0.")
+      NewRelic::Agent.logger.info('Sequel instrumentation requires at least version 3.37.0.')
 
     end
   end

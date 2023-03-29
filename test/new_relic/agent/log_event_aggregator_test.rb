@@ -40,7 +40,7 @@ module NewRelic::Agent
 
     def populate_container(container, n)
       n.times do |i|
-        container.record("A log message", ::Logger::Severity.constants.sample.to_s)
+        container.record('A log message', ::Logger::Severity.constants.sample.to_s)
       end
     end
 
@@ -56,10 +56,10 @@ module NewRelic::Agent
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
-          "Supportability/Logging/Ruby/Logger/enabled" => {:call_count => 1},
-          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
-          "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
-          "Supportability/Logging/LocalDecorating/Ruby/enabled" => {:call_count => 1}
+          'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
+          'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
+          'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -75,10 +75,10 @@ module NewRelic::Agent
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
-          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
-          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
-          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
+          'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -86,13 +86,13 @@ module NewRelic::Agent
 
     def test_records_customer_metrics_when_enabled
       with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
-        2.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        2.times { @aggregator.record('Are you counting this?', 'DEBUG') }
         @aggregator.harvest!
       end
 
       assert_metrics_recorded({
-        "Logging/lines" => {:call_count => 2},
-        "Logging/lines/DEBUG" => {:call_count => 2}
+        'Logging/lines' => {:call_count => 2},
+        'Logging/lines/DEBUG' => {:call_count => 2}
       })
     end
 
@@ -103,25 +103,25 @@ module NewRelic::Agent
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
-        @aggregator.record("Are you counting this?", "DEBUG")
+        @aggregator.record('Are you counting this?', 'DEBUG')
         @aggregator.harvest!
       end
 
       assert_metrics_not_recorded([
-        "Logging/lines",
-        "Logging/lines/DEBUG"
+        'Logging/lines',
+        'Logging/lines/DEBUG'
       ])
     end
 
     def test_doesnt_record_customer_metrics_when_disabled
       with_config(LogEventAggregator::METRICS_ENABLED_KEY => false) do
-        @aggregator.record("Are you counting this?", "DEBUG")
+        @aggregator.record('Are you counting this?', 'DEBUG')
         @aggregator.harvest!
       end
 
       assert_metrics_not_recorded([
-        "Logging/lines",
-        "Logging/lines/DEBUG"
+        'Logging/lines',
+        'Logging/lines/DEBUG'
       ])
     end
 
@@ -129,9 +129,9 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', nil)
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["level"]
+      assert_equal 'UNKNOWN', events[0][1]['level']
       assert_metrics_recorded([
-        "Logging/lines/UNKNOWN"
+        'Logging/lines/UNKNOWN'
       ])
     end
 
@@ -139,9 +139,9 @@ module NewRelic::Agent
       @aggregator.record('Chocolate chips are great', '')
       _, events = @aggregator.harvest!
 
-      assert_equal 'UNKNOWN', events[0][1]["level"]
+      assert_equal 'UNKNOWN', events[0][1]['level']
       assert_metrics_recorded([
-        "Logging/lines/UNKNOWN"
+        'Logging/lines/UNKNOWN'
       ])
     end
 
@@ -152,14 +152,14 @@ module NewRelic::Agent
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
-        @aggregator.record('Hello world!', "DEBUG")
+        @aggregator.record('Hello world!', 'DEBUG')
         _, events = @aggregator.harvest!
 
         assert_empty events
 
         assert_metrics_recorded({
-          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
-          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1}
+          'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1}
         })
       end
     end
@@ -169,7 +169,7 @@ module NewRelic::Agent
       with_config(CAPACITY_KEY => max_samples) do
         n = max_samples + 1
         n.times do |i|
-          @aggregator.record("Take it to the limit", "FATAL")
+          @aggregator.record('Take it to the limit', 'FATAL')
         end
 
         metadata, results = @aggregator.harvest!
@@ -186,7 +186,7 @@ module NewRelic::Agent
         n = max_samples + 1
         n.times do |i|
           in_transaction do
-            @aggregator.record("Take it to the limit", "FATAL")
+            @aggregator.record('Take it to the limit', 'FATAL')
           end
         end
 
@@ -203,12 +203,12 @@ module NewRelic::Agent
       with_config(CAPACITY_KEY => 1) do
         in_transaction do |txn|
           txn.sampled = false
-          @aggregator.record("Deadly", "FATAL")
+          @aggregator.record('Deadly', 'FATAL')
         end
 
         in_transaction do |txn|
           txn.sampled = true
-          @aggregator.record("Buggy", "DEBUG")
+          @aggregator.record('Buggy', 'DEBUG')
         end
 
         metadata, results = @aggregator.harvest!
@@ -216,7 +216,7 @@ module NewRelic::Agent
         assert_equal(2, metadata[:events_seen])
         assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
-        assert_equal("Buggy", results.first.last["message"], "Favor sampled")
+        assert_equal('Buggy', results.first.last['message'], 'Favor sampled')
       end
     end
 
@@ -225,12 +225,12 @@ module NewRelic::Agent
       with_config(CAPACITY_KEY => 1) do
         in_transaction do |txn|
           txn.priority = 0.5
-          @aggregator.record("Deadly", "FATAL")
+          @aggregator.record('Deadly', 'FATAL')
         end
 
         in_transaction do |txn|
           txn.priority = 0.9
-          @aggregator.record("Buggy", "DEBUG")
+          @aggregator.record('Buggy', 'DEBUG')
         end
 
         metadata, results = @aggregator.harvest!
@@ -238,7 +238,7 @@ module NewRelic::Agent
         assert_equal(2, metadata[:events_seen])
         assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
-        assert_equal("Buggy", results.first.last["message"])
+        assert_equal('Buggy', results.first.last['message'])
       end
     end
 
@@ -246,17 +246,17 @@ module NewRelic::Agent
       # There can be only one
       with_config(CAPACITY_KEY => 1) do
         LogPriority.stubs(:rand).returns(0.9)
-        @aggregator.record("Buggy", "DEBUG")
+        @aggregator.record('Buggy', 'DEBUG')
 
         LogPriority.stubs(:rand).returns(0.1)
-        @aggregator.record("Deadly", "FATAL")
+        @aggregator.record('Deadly', 'FATAL')
 
         metadata, results = @aggregator.harvest!
 
         assert_equal(2, metadata[:events_seen])
         assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
-        assert_equal("Buggy", results.first.last["message"])
+        assert_equal('Buggy', results.first.last['message'])
       end
     end
 
@@ -264,7 +264,7 @@ module NewRelic::Agent
       original_count = 100
       with_config(CAPACITY_KEY => original_count) do
         original_count.times do |i|
-          @aggregator.record("Truncation happens", "WARN")
+          @aggregator.record('Truncation happens', 'WARN')
         end
       end
 
@@ -281,7 +281,7 @@ module NewRelic::Agent
     def test_record_adds_timestamp
       t0 = Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
       message = "Time keeps slippin' away"
-      @aggregator.record(message, "INFO")
+      @aggregator.record(message, 'INFO')
 
       _, events = @aggregator.harvest!
 
@@ -289,7 +289,7 @@ module NewRelic::Agent
       event = events.first
 
       assert_equal({
-        'level' => "INFO",
+        'level' => 'INFO',
         'message' => message,
         'timestamp' => t0
       },
@@ -298,15 +298,15 @@ module NewRelic::Agent
 
     def test_records_metrics_on_harvest
       with_config(CAPACITY_KEY => 5) do
-        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        9.times { @aggregator.record('Are you counting this?', 'DEBUG') }
         @aggregator.harvest!
 
         assert_metrics_recorded_exclusive({
-          "Logging/lines" => {:call_count => 9},
-          "Logging/lines/DEBUG" => {:call_count => 9},
-          "Logging/Forwarding/Dropped" => {:call_count => 4},
-          "Supportability/Logging/Forwarding/Seen" => {:call_count => 9},
-          "Supportability/Logging/Forwarding/Sent" => {:call_count => 5}
+          'Logging/lines' => {:call_count => 9},
+          'Logging/lines/DEBUG' => {:call_count => 9},
+          'Logging/Forwarding/Dropped' => {:call_count => 4},
+          'Supportability/Logging/Forwarding/Seen' => {:call_count => 9},
+          'Supportability/Logging/Forwarding/Sent' => {:call_count => 5}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -317,7 +317,7 @@ module NewRelic::Agent
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 
-        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        9.times { @aggregator.record('Are you counting this?', 'DEBUG') }
         _, items = @aggregator.harvest!
 
         # Never aggregate logs
@@ -325,12 +325,12 @@ module NewRelic::Agent
 
         # We are fine to count them, though....
         assert_metrics_recorded_exclusive({
-          "Logging/lines" => {:call_count => 9},
-          "Logging/lines/DEBUG" => {:call_count => 9},
-          "Supportability/Logging/Ruby/Logger/enabled" => {:call_count => 1},
-          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
-          "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
+          'Logging/lines' => {:call_count => 9},
+          'Logging/lines/DEBUG' => {:call_count => 9},
+          'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
+          'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -341,7 +341,7 @@ module NewRelic::Agent
         # Refresh the value of @enabled on the LogEventAggregator
         NewRelic::Agent.config.notify_server_source_added
 
-        @aggregator.record('', "DEBUG")
+        @aggregator.record('', 'DEBUG')
         _, events = @aggregator.harvest!
 
         # Record no events
@@ -349,10 +349,10 @@ module NewRelic::Agent
 
         # All settings should report as disabled regardless of config option
         assert_metrics_recorded_exclusive({
-          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
-          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
-          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
+          'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -367,17 +367,17 @@ module NewRelic::Agent
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 
-        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        9.times { @aggregator.record('Are you counting this?', 'DEBUG') }
         _, items = @aggregator.harvest!
 
         # Never aggregate logs
         assert_empty items
 
         assert_metrics_recorded_exclusive({
-          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
-          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
-          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
+          'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -385,8 +385,8 @@ module NewRelic::Agent
 
     def test_basic_conversion_to_melt_format
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
-        "entity.guid" => "GUID",
-        "entity.name" => "Hola"
+        'entity.guid' => 'GUID',
+        'entity.name' => 'Hola'
       })
 
       log_data = [
@@ -395,14 +395,14 @@ module NewRelic::Agent
           reservoir_size: 0
         },
         [
-          [{"priority": 1}, {"message": "This is a mess"}]
+          [{"priority": 1}, {"message": 'This is a mess'}]
         ]
       ]
 
       payload, size = LogEventAggregator.payload_to_melt_format(log_data)
       expected = [{
-        common: {attributes: {"entity.guid" => "GUID", "entity.name" => "Hola"}},
-        logs: [{"message": "This is a mess"}]
+        common: {attributes: {'entity.guid' => 'GUID', 'entity.name' => 'Hola'}},
+        logs: [{"message": 'This is a mess'}]
       }]
 
       assert_equal 1, size
@@ -410,36 +410,36 @@ module NewRelic::Agent
     end
 
     def test_create_event_truncates_message_when_exceeding_max_bytes
-      right_size_message = String.new("a" * LogEventAggregator::MAX_BYTES)
+      right_size_message = String.new('a' * LogEventAggregator::MAX_BYTES)
       message = right_size_message + 'b'
       event = @aggregator.create_event(1, message, 'INFO')
 
-      assert_equal(right_size_message, event[1]["message"])
+      assert_equal(right_size_message, event[1]['message'])
     end
 
     def test_create_event_doesnt_truncate_message_when_at_max_bytes
-      message = String.new("a" * LogEventAggregator::MAX_BYTES)
+      message = String.new('a' * LogEventAggregator::MAX_BYTES)
       event = @aggregator.create_event(1, message, 'INFO')
 
-      assert_equal(message, event[1]["message"])
+      assert_equal(message, event[1]['message'])
     end
 
     def test_create_event_doesnt_truncate_message_when_below_max_bytes
-      message = String.new("a" * (LogEventAggregator::MAX_BYTES - 1))
+      message = String.new('a' * (LogEventAggregator::MAX_BYTES - 1))
       event = @aggregator.create_event(1, message, 'INFO')
 
-      assert_equal(message, event[1]["message"])
+      assert_equal(message, event[1]['message'])
     end
 
     def test_does_not_record_if_message_is_nil
-      @aggregator.record(nil, "DEBUG")
+      @aggregator.record(nil, 'DEBUG')
       _, events = @aggregator.harvest!
 
       assert_empty events
     end
 
     def test_does_not_record_if_message_empty_string
-      @aggregator.record('', "DEBUG")
+      @aggregator.record('', 'DEBUG')
       _, events = @aggregator.harvest!
 
       assert_empty events

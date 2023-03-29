@@ -55,7 +55,7 @@ module NewRelic
       # 4 GB - much larger than we'd ever need or want for this application.
       #
       class Pipe
-        READY_MARKER = "READY"
+        READY_MARKER = 'READY'
         NUM_LENGTH_BYTES = 4
 
         attr_accessor :in, :out
@@ -76,11 +76,11 @@ module NewRelic
         end
 
         def serialize_message_length(data)
-          [data.bytesize].pack("L>")
+          [data.bytesize].pack('L>')
         end
 
         def deserialize_message_length(data)
-          data.unpack("L>").first
+          data.unpack('L>').first
         end
 
         def write(data)
@@ -103,7 +103,7 @@ module NewRelic
               nil
             end
           else
-            NewRelic::Agent.logger.error("Failed to read bytes for length from pipe.")
+            NewRelic::Agent.logger.error('Failed to read bytes for length from pipe.')
             nil
           end
         end
@@ -218,7 +218,8 @@ module NewRelic
         def close_all_pipes
           @pipes_lock.synchronize do
             @pipes.each do |id, pipe|
-              pipe.close if pipe
+              # Needs else branch coverage
+              pipe.close if pipe # rubocop:disable Style/SafeNavigation
             end
             @pipes = {}
           end
@@ -255,7 +256,7 @@ module NewRelic
         def unmarshal(data)
           Marshal.load(data)
         rescue StandardError => e
-          ::NewRelic::Agent.logger.error("Failure unmarshalling message from Resque child process", e)
+          ::NewRelic::Agent.logger.error('Failure unmarshalling message from Resque child process', e)
           ::NewRelic::Agent.logger.debug(Base64.encode64(data))
           nil
         end

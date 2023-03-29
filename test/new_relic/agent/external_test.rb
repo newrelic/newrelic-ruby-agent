@@ -13,7 +13,7 @@ module NewRelic
       def setup
         NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
 
-        @obfuscator = NewRelic::Agent::Obfuscator.new("jotorotoes")
+        @obfuscator = NewRelic::Agent::Obfuscator.new('jotorotoes')
         NewRelic::Agent::CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
         NewRelic::Agent::CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
       end
@@ -72,7 +72,7 @@ module NewRelic
 
           l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
 
-          assert_empty l.array, "process_request_metadata should not log errors without a current transaction"
+          assert_empty l.array, 'process_request_metadata should not log errors without a current transaction'
 
           refute Tracer.current_transaction
         end
@@ -89,7 +89,7 @@ module NewRelic
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
 
-            refute_empty l.array, "process_request_metadata should log error on invalid ID"
+            refute_empty l.array, 'process_request_metadata should log error on invalid ID'
             assert_includes l.array.first, 'invalid/non-trusted ID'
 
             refute txn.distributed_tracer.cross_app_payload
@@ -108,7 +108,7 @@ module NewRelic
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
 
-            refute_empty l.array, "process_request_metadata should log error on invalid ID"
+            refute_empty l.array, 'process_request_metadata should log error on invalid ID'
             assert_includes l.array.first, 'invalid/non-trusted ID'
 
             refute txn.distributed_tracer.cross_app_payload
@@ -126,7 +126,7 @@ module NewRelic
           in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata(rmd) }
 
-            assert_empty l.array, "process_request_metadata should not log errors when cross app tracing is disabled"
+            assert_empty l.array, 'process_request_metadata should not log errors when cross app tracing is disabled'
 
             refute txn.distributed_tracer.cross_app_payload
           end
@@ -185,7 +185,7 @@ module NewRelic
         {
           :'cross_application_tracer.enabled' => true,
           :'distributed_tracing.enabled' => false,
-          :cross_process_id => "269975#22824",
+          :cross_process_id => '269975#22824',
           :trusted_account_ids => [1, 269975]
         }
       end

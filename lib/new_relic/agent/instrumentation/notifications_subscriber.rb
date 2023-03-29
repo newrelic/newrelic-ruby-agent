@@ -118,7 +118,7 @@ module NewRelic
           return if defined?(exception_object)
           return unless defined?(::ActiveSupport::VERSION)
 
-          if ::ActiveSupport::VERSION::STRING < "5.0.0"
+          if ::ActiveSupport::VERSION::STRING < '5.0.0'
             # Earlier versions of Rails did not add the exception itself to the
             # payload accessible via :exception_object, so we create a stand-in
             # error object from the given class name and message.

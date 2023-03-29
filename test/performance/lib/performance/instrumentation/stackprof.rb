@@ -23,14 +23,14 @@ module Performance
       def after(test, test_name)
         StackProf.stop
 
-        output_dump_path = artifact_path(test, test_name, "dump")
+        output_dump_path = artifact_path(test, test_name, 'dump')
         StackProf.results(output_dump_path)
         @artifacts << output_dump_path
 
         results = Marshal.load(File.read(output_dump_path))
-        output_dot_path = artifact_path(test, test_name, "dot")
+        output_dot_path = artifact_path(test, test_name, 'dot')
         report = StackProf::Report.new(results)
-        File.open(output_dot_path, "w") do |f|
+        File.open(output_dot_path, 'w') do |f|
           report.print_graphviz({}, f)
         end
         @artifacts << output_dot_path

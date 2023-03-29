@@ -18,9 +18,9 @@ module NewRelic::Agent
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key => "\0",
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "trust_this!"
+          :account_id => '190',
+          :primary_application_id => '46954',
+          :trusted_account_key => 'trust_this!'
         }
         DistributedTracePayload.stubs(:connected?).returns(true)
 
@@ -35,14 +35,14 @@ module NewRelic::Agent
       def after_notify_event(rack_scheme = nil)
         payload = nil
 
-        in_transaction("referring_txn") do |txn|
+        in_transaction('referring_txn') do |txn|
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = {NEWRELIC_TRACE_KEY => payload.http_safe}
         env['rack.url_scheme'] = rack_scheme if rack_scheme
 
-        in_transaction("receiving_txn") do |txn|
+        in_transaction('receiving_txn') do |txn|
           @events.notify(:before_call, env)
           yield(txn)
         end

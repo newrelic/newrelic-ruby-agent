@@ -9,7 +9,7 @@ require 'json'
 
 module NewRelic
   class FakeExternalServer < FakeServer
-    STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head>" +
+    STATUS_MESSAGE = '<html><head><title>FakeExternalServer status</title></head>' +
       "<body>The FakeExternalServer is rockin'</body></html>"
 
     attr_reader :overridden_response_headers
@@ -26,7 +26,7 @@ module NewRelic
 
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
-      res.status = req.params["status"].to_i if req.params["status"]
+      res.status = req.params['status'].to_i if req.params['status']
 
       in_transaction('test') do
         res.write(STATUS_MESSAGE)

@@ -103,7 +103,7 @@ module NewRelic
         module AddMethodTracer
           ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_information, :code_footer].freeze
 
-          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => ""}.freeze
+          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => '', :code_footer => ''}.freeze
 
           # Checks the provided options to make sure that they make
           # sense. Raises an error if the options are incorrect to
@@ -170,14 +170,14 @@ module NewRelic
 
           def _nr_derived_class_name
             return self.name if self.name && !self.name.empty?
-            return "AnonymousModule" if self.to_s.start_with?("#<Module:")
+            return 'AnonymousModule' if self.to_s.start_with?('#<Module:')
 
             # trying to get the "MyClass" portion of "#<Class:MyClass>"
             name = self.to_s[/^#<Class:(.+)>$/, 1]
-            if name.start_with?("0x")
-              "AnonymousClass"
-            elsif name.start_with?("#<Class:")
-              "AnonymousClass/Class"
+            if name.start_with?('0x')
+              'AnonymousClass'
+            elsif name.start_with?('#<Class:')
+              'AnonymousClass/Class'
             else
               "#{name}/Class"
             end

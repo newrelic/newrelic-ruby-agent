@@ -25,7 +25,7 @@ module NewRelic
           end
 
           module Gzip
-            BINARY = "BINARY".freeze
+            BINARY = 'BINARY'.freeze
 
             def self.encode(data, opts = nil)
               output = StringIO.new

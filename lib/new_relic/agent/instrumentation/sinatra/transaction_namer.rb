@@ -47,7 +47,7 @@ module NewRelic
           # For bare Sinatra, our override on process_route captures the last
           # route into the environment for us to use later on
           def route_for_sinatra(env)
-            env["newrelic.last_route"]
+            env['newrelic.last_route']
           end
 
           # For Padrino, the request object has a copy of the matched route

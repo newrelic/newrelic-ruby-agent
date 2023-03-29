@@ -13,7 +13,7 @@ module NewRelic::Agent::Database
     end
 
     def build_failure_message(statement, acceptable_outputs, actual_output)
-      msg = String.new("Failed to obfuscate #{statement.adapter} query correctly.\n")
+      msg = +"Failed to obfuscate #{statement.adapter} query correctly.\n"
       msg << "Input:    #{statement.inspect}\n"
       if acceptable_outputs.size == 1
         msg << "Expected: #{acceptable_outputs.first}\n"

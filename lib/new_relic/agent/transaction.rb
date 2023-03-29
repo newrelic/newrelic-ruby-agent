@@ -23,10 +23,10 @@ module NewRelic
       include Tracing
 
       # for nested transactions
-      NESTED_TRANSACTION_PREFIX = "Nested/"
-      CONTROLLER_PREFIX = "Controller/"
-      MIDDLEWARE_PREFIX = "Middleware/Rack/"
-      OTHER_TRANSACTION_PREFIX = "OtherTransaction/"
+      NESTED_TRANSACTION_PREFIX = 'Nested/'
+      CONTROLLER_PREFIX = 'Controller/'
+      MIDDLEWARE_PREFIX = 'Middleware/Rack/'
+      OTHER_TRANSACTION_PREFIX = 'OtherTransaction/'
       TASK_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Background/"
       RAKE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Rake/"
       MESSAGE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Message/"
@@ -37,21 +37,21 @@ module NewRelic
 
       WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
 
-      MIDDLEWARE_SUMMARY_METRICS = ["Middleware/all"].freeze
-      WEB_SUMMARY_METRIC = "HttpDispatcher"
+      MIDDLEWARE_SUMMARY_METRICS = ['Middleware/all'].freeze
+      WEB_SUMMARY_METRIC = 'HttpDispatcher'
       OTHER_SUMMARY_METRIC = "#{OTHER_TRANSACTION_PREFIX}all"
-      QUEUE_TIME_METRIC = "WebFrontend/QueueTime"
+      QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'
 
-      APDEX_S = "S"
-      APDEX_T = "T"
-      APDEX_F = "F"
-      APDEX_ALL_METRIC = "ApdexAll"
-      APDEX_METRIC = "Apdex"
-      APDEX_OTHER_METRIC = "ApdexOther"
-      APDEX_TXN_METRIC_PREFIX = "Apdex/"
-      APDEX_OTHER_TXN_METRIC_PREFIX = "ApdexOther/Transaction/"
+      APDEX_S = 'S'
+      APDEX_T = 'T'
+      APDEX_F = 'F'
+      APDEX_ALL_METRIC = 'ApdexAll'
+      APDEX_METRIC = 'Apdex'
+      APDEX_OTHER_METRIC = 'ApdexOther'
+      APDEX_TXN_METRIC_PREFIX = 'Apdex/'
+      APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'
 
-      JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
+      JRUBY_CPU_TIME_ERROR = 'Error calculating JRuby CPU Time'
 
       # A Time instance for the start time, never nil
       attr_accessor :start_time
@@ -155,7 +155,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:recording_web_transaction?)
 
         txn = tl_current
-        txn && txn.recording_web_transaction?
+        txn&.recording_web_transaction?
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)
@@ -181,20 +181,21 @@ module NewRelic
 
       def add_agent_attribute(key, value, default_destinations)
         @attributes.add_agent_attribute(key, value, default_destinations)
-        current_segment.add_agent_attribute(key, value) if current_segment
+        # the following line needs else branch coverage
+        current_segment.add_agent_attribute(key, value) if current_segment # rubocop:disable Style/SafeNavigation
       end
 
       def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         if txn = tl_current
           txn.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         else
-          NewRelic::Agent.logger.debug("Attempted to merge untrusted attributes without transaction")
+          NewRelic::Agent.logger.debug('Attempted to merge untrusted attributes without transaction')
         end
       end
 
       def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
-        current_segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations) if current_segment
+        current_segment&.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
       end
 
       @@java_classes_loaded = false
@@ -209,7 +210,7 @@ module NewRelic
         end
       end
 
-      def initialize(category, options)
+      def initialize(category, options) # rubocop:disable Metrics/AbcSize
         @nesting_max_depth = 0
         @current_segment_by_thread = {}
         @current_segment_lock = Mutex.new
@@ -309,15 +310,15 @@ module NewRelic
       end
 
       def referer
-        @request_attributes && @request_attributes.referer
+        @request_attributes&.referer
       end
 
       def request_path
-        @request_attributes && @request_attributes.request_path
+        @request_attributes&.request_path
       end
 
       def request_port
-        @request_attributes && @request_attributes.port
+        @request_attributes&.port
       end
 
       # This transaction-local hash may be used as temporary storage by
@@ -533,7 +534,7 @@ module NewRelic
 
         commit!(initial_segment.name) unless @ignore_this_transaction
       rescue => e
-        NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
+        NewRelic::Agent.logger.error('Exception during Transaction#finish', e)
         nil
       ensure
         state.reset
@@ -594,9 +595,7 @@ module NewRelic
           add_agent_attribute(:'response.headers.contentType', response_content_type, default_destinations)
         end
 
-        if @request_attributes
-          @request_attributes.assign_agent_attributes(self)
-        end
+        @request_attributes&.assign_agent_attributes(self)
 
         display_host = Agent.config[:'process_host.display_name']
         unless display_host == NewRelic::Agent::Hostname.get
@@ -735,15 +734,19 @@ module NewRelic
       def record_exceptions
         error_recorded = false
         @exceptions.each do |exception, options|
-          options[:uri] ||= request_path if request_path
-          options[:port] = request_port if request_port
-          options[:metric] = best_name
-          options[:attributes] = @attributes
-
-          span_id = options.delete(:span_id)
-          error_recorded = !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
+          error_recorded = record_exception(exception, options, error_recorded)
         end
-        payload[:error] = error_recorded if payload
+        payload&.[]=(:error, error_recorded)
+      end
+
+      def record_exception(exception, options, error_recorded)
+        options[:uri] ||= request_path if request_path
+        options[:port] = request_port if request_port
+        options[:metric] = best_name
+        options[:attributes] = @attributes
+
+        span_id = options.delete(:span_id)
+        !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
       end
 
       # Do not call this.  Invoke the class method instead.

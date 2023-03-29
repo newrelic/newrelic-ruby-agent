@@ -61,7 +61,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
     @worker_loop.run(0) do
       @worker_loop.stop
       done = true
-      raise "Standard Error Test"
+      raise 'Standard Error Test'
     end
 
     assert done
@@ -71,7 +71,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
     expects_logging(:error, any_parameters)
     @worker_loop.run(0) do
       @worker_loop.stop
-      raise NewRelic::TestHelper::Exception::TestError, "oops"
+      raise NewRelic::TestHelper::Exception::TestError, 'oops'
     end
   end
 

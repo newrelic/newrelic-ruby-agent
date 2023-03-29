@@ -26,7 +26,7 @@ module Multiverse
       key = [suite, env]
       @buffer_lock.synchronize do
         @buffers ||= {}
-        @buffers[key] ||= String.new('')
+        @buffers[key] ||= +''
         @buffers[key]
       end
     end
@@ -50,7 +50,7 @@ module Multiverse
     def self.overall_report
       output('', '')
       if failing_output.empty?
-        output(green("There were no test failures"))
+        output(green('There were no test failures'))
       else
         to_output = failing_output_header + failing_output + failing_output_footer
         output(*to_output)
@@ -60,27 +60,27 @@ module Multiverse
     end
 
     def self.failing_output_header
-      [red("*" * 80),
-        red("Repeating failed test output"),
-        red("*" * 80),
-        ""]
+      [red('*' * 80),
+        red('Repeating failed test output'),
+        red('*' * 80),
+        '']
     end
 
     def self.failing_output_footer
-      ["",
-        red("*" * 80),
+      ['',
+        red('*' * 80),
         red("There were failures in #{failing_output.size} test suites"),
-        "",
+        '',
         @failing_suites.map { |suite, env| red("#{suite} failed in env #{env}") },
-        red("*" * 80)]
+        red('*' * 80)]
     end
 
     # Saves the failing out put to the working directory of the container
     # where it is later read and output as annotations of the github workflow
     def self.save_output_to_error_file(lines)
       @output_lock.synchronize do
-        filepath = ENV["GITHUB_WORKSPACE"] || File.expand_path(File.dirname(__FILE__))
-        output_file = File.join(filepath, "errors.txt")
+        filepath = ENV['GITHUB_WORKSPACE'] || File.expand_path(File.dirname(__FILE__))
+        output_file = File.join(filepath, 'errors.txt')
 
         existing_lines = []
         if File.exist?(output_file)
@@ -90,7 +90,7 @@ module Multiverse
         lines = lines.split("\n") if lines.is_a?(String)
         File.open(output_file, 'w') do |f|
           f.puts existing_lines
-          f.puts "*" * 80
+          f.puts '*' * 80
           f.puts lines
         end
       end

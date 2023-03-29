@@ -158,7 +158,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_exists
     in_web_transaction do
-      Order.exists?(["name=?", "jeff"])
+      Order.exists?(['name=?', 'jeff'])
     end
 
     if active_record_major_version >= 6
@@ -195,7 +195,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_relation_delete
     in_web_transaction do
-      order = Order.create(:name => "lava")
+      order = Order.create(:name => 'lava')
       Order.delete(order.id)
     end
 
@@ -204,7 +204,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_delete
     in_web_transaction do
-      order = Order.create("name" => "burt")
+      order = Order.create('name' => 'burt')
       order.delete
     end
 
@@ -217,7 +217,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_touch
     in_web_transaction do
-      order = Order.create("name" => "wendy")
+      order = Order.create('name' => 'wendy')
       order.touch
     end
 
@@ -333,7 +333,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   if active_record_version >= Gem::Version.new('4.0.0')
     def test_metrics_for_update
       in_web_transaction do
-        order = Order.create(:name => "wendy")
+        order = Order.create(:name => 'wendy')
         order.update(:name => 'walter')
       end
 
@@ -342,7 +342,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     def test_metrics_for_update_bang
       in_web_transaction do
-        order = Order.create(:name => "wendy")
+        order = Order.create(:name => 'wendy')
         order.update!(:name => 'walter')
       end
 
@@ -352,7 +352,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_update_attribute
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(:name => 'wendy')
       order.update_attribute(:name, 'walter')
     end
 
@@ -361,7 +361,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_save
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(:name => 'wendy')
       order.name = 'walter'
       order.save
     end
@@ -371,7 +371,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_save_bang
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(:name => 'wendy')
       order.name = 'walter'
       order.save!
     end
@@ -381,18 +381,18 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_nested_metrics_dont_get_model_name
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(:name => 'wendy')
       order.name = 'walter'
       order.save!
     end
 
-    assert_metrics_recorded(["Datastore/operation/Memcached/get"])
+    assert_metrics_recorded(['Datastore/operation/Memcached/get'])
     refute_metrics_match(/Memcached.*Order/)
   end
 
   def test_metrics_for_destroy
     in_web_transaction do
-      order = Order.create("name" => "burt")
+      order = Order.create('name' => 'burt')
       order.destroy
     end
 
@@ -415,8 +415,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   def test_metrics_for_direct_sql_other
     in_web_transaction do
       conn = Order.connection
-      conn.execute("begin")
-      conn.execute("commit")
+      conn.execute('begin')
+      conn.execute('commit')
     end
 
     assert_generic_rollup_metrics('other')
@@ -426,7 +426,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     if supports_show_tables?
       in_web_transaction do
         conn = Order.connection
-        conn.execute("show tables")
+        conn.execute('show tables')
       end
 
       assert_generic_rollup_metrics('show')
@@ -437,7 +437,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     # Let's trigger an active record SQL StatementInvalid error
     assert_raises ::ActiveRecord::StatementInvalid do
       in_web_transaction do
-        Order.connection.select_rows("select * from askdjfhkajsdhflkjh")
+        Order.connection.select_rows('select * from askdjfhkajsdhflkjh')
       end
     end
 
@@ -464,8 +464,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     refute last_transaction_trace
     assert_metrics_recorded_exclusive([
-      "Supportability/API/disable_all_tracing",
-      "Supportability/API/drop_buffered_data"
+      'Supportability/API/disable_all_tracing',
+      'Supportability/API/drop_buffered_data'
     ])
   end
 
@@ -569,7 +569,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_with_database_metric_name
     in_web_transaction do
-      Order.create(:name => "eely")
+      Order.create(:name => 'eely')
       NewRelic::Agent.with_database_metric_name('Eel', 'squirm') do
         Order.connection.select_rows("SELECT id FROM #{Order.table_name}")
       end
@@ -626,16 +626,16 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_metrics_recorded({
       "Datastore/statement/#{current_product}/#{model}/#{operation}" => stats,
       "Datastore/operation/#{current_product}/#{operation}" => {},
-      "Datastore/allWeb" => {},
-      "Datastore/all" => {}
+      'Datastore/allWeb' => {},
+      'Datastore/all' => {}
     })
   end
 
   def assert_generic_rollup_metrics(operation)
     assert_metrics_recorded([
       "Datastore/operation/#{current_product}/#{operation}",
-      "Datastore/allWeb",
-      "Datastore/all"
+      'Datastore/allWeb',
+      'Datastore/all'
     ])
   end
 end

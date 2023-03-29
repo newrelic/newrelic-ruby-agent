@@ -54,9 +54,9 @@ module NewRelic::Agent
       end
 
       def test_exclude
-        @error_collector.ignore(["IOError"])
+        @error_collector.ignore(['IOError'])
 
-        @error_collector.notice_error(IOError.new("message"), :metric => 'path')
+        @error_collector.notice_error(IOError.new('message'), :metric => 'path')
 
         traces = harvest_error_traces
         events = harvest_error_events
@@ -67,13 +67,13 @@ module NewRelic::Agent
 
       def test_exclude_later_config_changes
         in_transaction do
-          @error_collector.notice_error(IOError.new("message"))
+          @error_collector.notice_error(IOError.new('message'))
         end
 
-        NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_classes' => ["IOError"])
+        NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_classes' => ['IOError'])
 
         in_transaction do
-          @error_collector.notice_error(IOError.new("message"))
+          @error_collector.notice_error(IOError.new('message'))
         end
 
         traces = harvest_error_traces
@@ -87,8 +87,8 @@ module NewRelic::Agent
         @error_collector.class.ignore_error_filter = wrapped_filter_proc
 
         in_transaction do
-          @error_collector.notice_error(IOError.new("message"), :metric => 'path')
-          @error_collector.notice_error(StandardError.new("message"), :metric => 'path')
+          @error_collector.notice_error(IOError.new('message'), :metric => 'path')
+          @error_collector.notice_error(StandardError.new('message'), :metric => 'path')
         end
 
         traces = harvest_error_traces
@@ -100,11 +100,11 @@ module NewRelic::Agent
 
       def test_failure_in_exclude_block
         @error_collector.class.ignore_error_filter = proc do
-          raise "HAHAHAHAH, error in the filter for ignoring errors!"
+          raise 'HAHAHAHAH, error in the filter for ignoring errors!'
         end
 
         in_transaction do
-          @error_collector.notice_error(StandardError.new("message"))
+          @error_collector.notice_error(StandardError.new('message'))
         end
 
         traces = harvest_error_traces
@@ -121,19 +121,19 @@ module NewRelic::Agent
         end
 
         new_error_collector = NewRelic::Agent::ErrorCollector.new(NewRelic::Agent.instance.events)
-        new_error_collector.notice_error(StandardError.new("message"))
+        new_error_collector.notice_error(StandardError.new('message'))
 
         assert_empty new_error_collector.error_trace_aggregator.harvest!
       end
 
       def test_increments_count_on_errors
-        @error_collector.notice_error(StandardError.new("Boo"))
+        @error_collector.notice_error(StandardError.new('Boo'))
 
         assert_metrics_recorded(
           'Errors/all' => {:call_count => 1}
         )
 
-        @error_collector.notice_error(StandardError.new("Boo"))
+        @error_collector.notice_error(StandardError.new('Boo'))
 
         assert_metrics_recorded(
           'Errors/all' => {:call_count => 2}
@@ -311,7 +311,7 @@ module NewRelic::Agent
 
       if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
         def test_extract_stack_trace_from_original_exception
-          orig = mock('original', :backtrace => "STACK STACK STACK")
+          orig = mock('original', :backtrace => 'STACK STACK STACK')
           exception = mock('exception', :original_exception => orig)
 
           assert_equal('STACK STACK STACK', @error_collector.extract_stack_trace(exception))
@@ -492,18 +492,18 @@ module NewRelic::Agent
 
         event_attrs = events[0][1]
 
-        refute event_attrs.key?("expected"), "Unexpected attribute expected found in custom attributes"
+        refute event_attrs.key?('expected'), 'Unexpected attribute expected found in custom attributes'
 
         trace_attrs = traces[0].attributes_from_notice_error
 
-        refute trace_attrs.key?(:expected), "Unexpected attribute expected found in custom attributes"
+        refute trace_attrs.key?(:expected), 'Unexpected attribute expected found in custom attributes'
       end
 
       def test_segment_error_attributes
         with_segment do |segment|
-          @error_collector.notice_segment_error(segment, StandardError.new("Oops!"))
+          @error_collector.notice_segment_error(segment, StandardError.new('Oops!'))
 
-          assert segment.noticed_error, "expected segment.noticed_error to not be nil"
+          assert segment.noticed_error, 'expected segment.noticed_error to not be nil'
 
           # we defer building the error attributes until segments are turned into spans!
           assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
@@ -513,8 +513,8 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes(segment)
 
           expected_error_attributes = {
-            "error.message" => "Oops!",
-            "error.class" => "StandardError"
+            'error.message' => 'Oops!',
+            'error.class' => 'StandardError'
           }
 
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
@@ -526,9 +526,9 @@ module NewRelic::Agent
 
       def test_segment_error_attributes_for_expected_error
         with_segment do |segment|
-          @error_collector.notice_segment_error(segment, StandardError.new("Oops!"), {expected: true})
+          @error_collector.notice_segment_error(segment, StandardError.new('Oops!'), {expected: true})
 
-          assert segment.noticed_error, "expected segment.noticed_error to not be nil"
+          assert segment.noticed_error, 'expected segment.noticed_error to not be nil'
 
           # we defer building the error attributes until segments are turned into spans!
           assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
@@ -538,9 +538,9 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes(segment)
 
           expected_error_attributes = {
-            "error.message" => "Oops!",
-            "error.class" => "StandardError",
-            "error.expected" => true
+            'error.message' => 'Oops!',
+            'error.class' => 'StandardError',
+            'error.expected' => true
           }
 
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
@@ -552,9 +552,9 @@ module NewRelic::Agent
 
       def test_segment_error_attributes_for_tx_notice_error_api_call
         with_segment do |segment|
-          NewRelic::Agent::Transaction.notice_error(StandardError.new("Oops!"), {expected: true})
+          NewRelic::Agent::Transaction.notice_error(StandardError.new('Oops!'), {expected: true})
 
-          assert segment.noticed_error, "expected segment.noticed_error to not be nil"
+          assert segment.noticed_error, 'expected segment.noticed_error to not be nil'
 
           # we defer building the error attributes until segments are turned into spans!
           assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
@@ -564,9 +564,9 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes(segment)
 
           expected_error_attributes = {
-            "error.message" => "Oops!",
-            "error.class" => "StandardError",
-            "error.expected" => true
+            'error.message' => 'Oops!',
+            'error.class' => 'StandardError',
+            'error.expected' => true
           }
 
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
@@ -579,9 +579,9 @@ module NewRelic::Agent
       def test_segment_error_filtered
         with_config(:'error_collector.ignore_classes' => ['StandardError']) do
           with_segment do |segment|
-            @error_collector.notice_segment_error(segment, StandardError.new("Oops!"))
+            @error_collector.notice_segment_error(segment, StandardError.new('Oops!'))
 
-            refute segment.noticed_error, "expected segment.noticed_error to be nil"
+            refute segment.noticed_error, 'expected segment.noticed_error to be nil'
           end
         end
 
@@ -592,12 +592,89 @@ module NewRelic::Agent
         @error_collector.class.ignore_error_filter = wrapped_filter_proc
 
         with_segment do |segment|
-          @error_collector.notice_segment_error(segment, IOError.new("message"))
+          @error_collector.notice_segment_error(segment, IOError.new('message'))
 
-          refute segment.noticed_error, "expected segment.noticed_error to be nil"
+          refute segment.noticed_error, 'expected segment.noticed_error to be nil'
         end
 
         assert_nothing_harvested_for_segment_errors
+      end
+
+      def test_build_customer_callback_hash
+        custom_attributes = {billie_eilish: :bored}
+        agent_attributes = {'http.statusCode': :bleachers__dont_take_the_money}
+        intrinsic_attributes = {'http.method': :walk_the_moon__anna_sun}
+        request_uri = :alternative_music
+        options = {taylor_swift: :maroon}
+        expected = true
+        error = StandardError.new
+
+        noticed_error = NewRelic::NoticedError.new(:watermelon, error)
+        noticed_error.instance_variable_set(:@processed_attributes,
+          {NewRelic::NoticedError::USER_ATTRIBUTES => custom_attributes,
+           NewRelic::NoticedError::AGENT_ATTRIBUTES => agent_attributes,
+           NewRelic::NoticedError::INTRINSIC_ATTRIBUTES => intrinsic_attributes})
+        noticed_error.request_uri = request_uri
+        noticed_error.expected = expected
+        hash = @error_collector.send(:build_customer_callback_hash, noticed_error, error, options)
+
+        assert_equal hash[:error], error
+        assert_equal hash[:customAttributes], custom_attributes
+        assert_equal hash[:'request.uri'], request_uri
+        assert_equal hash[:'http.statusCode'], agent_attributes[:'http.statusCode']
+        assert_equal hash[:'http.method'], intrinsic_attributes[:'http.method']
+        assert_equal hash[:'error.expected'], expected
+        assert_equal hash[:options], options
+      end
+
+      def test_update_error_group_name_returns_nil_unless_a_callback_has_been_registered
+        # because the build_customer_callback_hash method will call
+        # #custom_attributes on the noticed error object, and we're passing in
+        # nil for it, it would error out if the early return we're testing for
+        # did not return
+        @error_collector.stub(:error_group_callback, nil) do
+          assert_nil @error_collector.send(:update_error_group_name, nil, nil, nil)
+        end
+      end
+
+      def test_update_error_group_name_updates_the_error_group_name
+        error = ArgumentError.new
+        error_group = 'lucky tiger'
+        noticed_error = NewRelic::NoticedError.new(:watermelon, error)
+        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if hash[:error].is_a?(ArgumentError) })
+        @error_collector.send(:update_error_group_name, noticed_error, error, {})
+
+        assert_equal error_group, noticed_error.error_group
+      ensure
+        NewRelic::Agent.remove_instance_variable(:@error_group_callback)
+      end
+
+      def test_update_error_group_logs_if_an_error_is_rescued
+        skip_unless_minitest5_or_above
+
+        logger = MiniTest::Mock.new
+        # have #error return a phony value just for the purpose of being able
+        # to supply this test with at least 1 assertion. really, the #verify
+        # call to the mock should suffice, but it's nice to have assertions
+        phony_return = :yep_i_was_indeed_called
+        logger.expect :error, phony_return, [/Failed to obtain/]
+        @error_collector.stub(:error_group_callback, -> { raise 'kaboom' }) do
+          NewRelic::Agent.stub :logger, logger do
+            assert_equal phony_return, @error_collector.send(:update_error_group_name, nil, nil, nil)
+          end
+        end
+        logger.verify
+      end
+
+      def test_noticed_errors_have_the_error_group_present_in_their_agent_attributes
+        error_group = 'blackcurrant tea'
+        exception = RuntimeError.new
+        NewRelic::Agent.set_error_group_callback(proc { |hash| error_group if hash[:error].is_a?(RuntimeError) })
+        noticed_error = @error_collector.create_noticed_error(exception, {})
+
+        assert_equal error_group, noticed_error.agent_attributes[::NewRelic::NoticedError::AGENT_ATTRIBUTE_ERROR_GROUP]
+      ensure
+        NewRelic::Agent.remove_instance_variable(:@error_group_callback)
       end
 
       private

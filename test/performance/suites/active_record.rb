@@ -5,9 +5,9 @@
 require 'new_relic/agent/instrumentation/active_record_helper'
 
 class ActiveRecordTest < Performance::TestCase
-  NAME = "Model Load"
-  SQL = "SELECT * FROM star"
-  ADAPTER = "mysql2"
+  NAME = 'Model Load'
+  SQL = 'SELECT * FROM star'
+  ADAPTER = 'mysql2'
 
   def test_helper_by_name
     measure do
@@ -15,7 +15,7 @@ class ActiveRecordTest < Performance::TestCase
     end
   end
 
-  UNKNOWN_NAME = "Blah"
+  UNKNOWN_NAME = 'Blah'
 
   def test_helper_by_sql
     measure do

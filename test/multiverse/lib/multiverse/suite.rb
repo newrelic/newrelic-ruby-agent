@@ -29,7 +29,7 @@ module Multiverse
     def initialize(directory, opts = {})
       self.directory = File.expand_path(directory)
       self.opts = opts
-      ENV["VERBOSE"] = '1' if opts[:verbose]
+      ENV['VERBOSE'] = '1' if opts[:verbose]
     end
 
     def self.encode_options(decoded_opts)
@@ -45,7 +45,7 @@ module Multiverse
     end
 
     def seed
-      opts.fetch(:seed, "")
+      opts.fetch(:seed, '')
     end
 
     def debug
@@ -100,7 +100,7 @@ module Multiverse
 
     # load the environment for this suite after we've forked
     def load_dependencies(gemfile_text, env_index, should_print = true)
-      ENV["BUNDLE_GEMFILE"] = "Gemfile.#{env_index}"
+      ENV['BUNDLE_GEMFILE'] = "Gemfile.#{env_index}"
       clean_gemfiles(env_index)
       begin
         generate_gemfile(gemfile_text, env_index)
@@ -109,7 +109,7 @@ module Multiverse
         if verbose?
           puts "#{e.class}: #{e}"
           puts e.backtrace
-          puts "Fast local bundle failed.  Attempting to install from rubygems.org"
+          puts 'Fast local bundle failed.  Attempting to install from rubygems.org'
         end
         clean_gemfiles(env_index)
         generate_gemfile(gemfile_text, env_index, false)
@@ -127,7 +127,7 @@ module Multiverse
         puts "Encountered Bundler error: #{error.message}"
         puts "Currently Active Bundler Version: #{::Bundler::VERSION}"
       end
-      change_lock_version(`pwd`, ENV["BUNDLE_GEMFILE"])
+      change_lock_version(`pwd`, ENV['BUNDLE_GEMFILE'])
       @retried = true
       retry
     end
@@ -146,20 +146,20 @@ module Multiverse
 
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
-      return version if version.to_s == ""
+      return version if version.to_s == ''
 
       test_version = `bundle #{version} --version`.include?('Could not find command')
-      test_version ? "" : version
+      test_version ? '' : version
     end
 
     def explicit_bundler_version(dir)
-      fn = File.join(dir, ".bundler-version")
+      fn = File.join(dir, '.bundler-version')
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
-      safe_explicit(version.to_s == "" ? nil : "_#{version}_")
+      safe_explicit(version.to_s == '' ? nil : "_#{version}_")
     end
 
     def bundle_show_env(bundle_cmd)
-      return unless ENV["BUNDLE_SHOW_ENV"]
+      return unless ENV['BUNDLE_SHOW_ENV']
 
       puts `#{bundle_cmd} env`
     end
@@ -176,13 +176,13 @@ module Multiverse
       full_bundle_cmd = "#{bundle_cmd} install"
       result = ShellUtils.try_command_n_times(full_bundle_cmd, 3)
       unless $?.success?
-        puts "Failed local bundle, trying again without the version lock..."
-        change_lock_version(dir, ENV["BUNDLE_GEMFILE"])
+        puts 'Failed local bundle, trying again without the version lock...'
+        change_lock_version(dir, ENV['BUNDLE_GEMFILE'])
         result = ShellUtils.try_command_n_times(full_bundle_cmd, 3)
       end
 
       result = red(result) unless $?.success?
-      puts result if ENV["VERBOSE_TEST_OUTPUT"]
+      puts result if ENV['VERBOSE_TEST_OUTPUT']
       $?
     end
 
@@ -267,7 +267,7 @@ module Multiverse
     end
 
     def ruby3_gem_webrick
-      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
+      RUBY_VERSION >= '3.0.0' ? "gem 'webrick'" : ''
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
@@ -275,8 +275,8 @@ module Multiverse
       File.open(gemfile, 'w') do |f|
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
-        f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
-        f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
+        f.puts newrelic_gemfile_line unless /^\s*gem .newrelic_rpm./.match?(gemfile_text)
+        f.puts minitest_line unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
         f.puts "gem 'rackup'" if need_rackup?(gemfile_text)
@@ -348,7 +348,7 @@ module Multiverse
     end
 
     def print_environment
-      puts yellow("Environment loaded with:") if verbose?
+      puts yellow('Environment loaded with:') if verbose?
       gems = with_potentially_mismatched_bundler do
         ::Bundler.definition.specs.inject([]) do |m, s|
           next m if s.name == 'bundler'
@@ -383,17 +383,17 @@ module Multiverse
     # continuous integration server. We do this by passing -Xverify:none to
     # the JVM.
     def optimize_jruby_startups
-      return unless RUBY_PLATFORM == "java"
+      return unless RUBY_PLATFORM == 'java'
 
-      ENV["JRUBY_OPTS"] = "--dev"
+      ENV['JRUBY_OPTS'] = '--dev'
     end
 
     def execute_child_environment(env_index, instrumentation_method)
       with_unbundled_env do
         configure_instrumentation_method(instrumentation_method)
         optimize_jruby_startups
-        ENV["MULTIVERSE_ENV"] = env_index.to_s
-        ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = instrumentation_method
+        ENV['MULTIVERSE_ENV'] = env_index.to_s
+        ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] = instrumentation_method
         log_test_running_process
         configure_before_bundling
 
@@ -427,7 +427,7 @@ module Multiverse
     end
 
     def prime
-      ENV["VERBOSE"] = "1"
+      ENV['VERBOSE'] = '1'
       return unless check_environment_condition
 
       puts yellow("\nPriming #{directory.inspect}")
@@ -462,17 +462,17 @@ module Multiverse
 
       configure_instrumentation_method(instrumentation_method)
 
-      environments.before.call if environments.before
+      environments.before&.call
       if should_serialize?
         execute_serial(instrumentation_method)
       else
         execute_parallel(instrumentation_method)
       end
-      environments.after.call if environments.after
+      environments.after&.call
     rescue => e
       puts e.backtrace
       puts red("Failure during execution of suite #{directory.inspect}.")
-      puts red("This typically is a result of a Ruby failure in your Envfile.")
+      puts red('This typically is a result of a Ruby failure in your Envfile.')
       puts
       puts red(e.class)
       puts red(e.message)
@@ -567,17 +567,17 @@ module Multiverse
       # Autorun behaves differently across the different Ruby version we have
       # to support, so this is simplest for making our test running consistent
       options = []
-      options << "-v" if verbose?
-      options << "--seed=#{seed}" unless seed == ""
-      options << "--name=/#{names.map { |n| n + ".*" }.join("|")}/" unless names == []
+      options << '-v' if verbose?
+      options << "--seed=#{seed}" unless seed == ''
+      options << "--name=/#{names.map { |n| n + '.*' }.join('|')}/" unless names == []
 
       original_options = options.dup
 
       # MiniTest 5.0 moved things around, so choose which way to run it
       if ::MiniTest.respond_to?(:run)
-        test_run = ::MiniTest.run(options)
+        passed = ::MiniTest.run(options)
       else
-        test_run = ::MiniTest::Unit.new.run(options)
+        passed = ::MiniTest::Unit.new.run(options)
       end
 
       load(@after_file) if @after_file
@@ -593,13 +593,9 @@ module Multiverse
         end
       end
 
-      if test_run
-        exit(test_run)
-      else
-        puts "No tests found with those options."
-        puts "options: #{original_options}"
-        exit(1)
-      end
+      puts 'One or more failures or errors were seen!' unless passed
+      puts "Options used: #{original_options}"
+      exit(passed) # `exit true` returns 0, `exit false` returns 1
     end
 
     def configure_before_bundling
@@ -652,15 +648,15 @@ module Multiverse
       # destabilizing if it's running. Also, multiple restarts result in lots of
       # threads running in some test suites.
 
-      ENV["NEWRELIC_DISABLE_HARVEST_THREAD"] = "true"
+      ENV['NEWRELIC_DISABLE_HARVEST_THREAD'] = 'true'
     end
 
     def configure_fake_collector
-      ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] = "true" if environments.omit_collector
+      ENV['NEWRELIC_OMIT_FAKE_COLLECTOR'] = 'true' if environments.omit_collector
     end
 
     def configure_instrumentation_method(method)
-      ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = $instrumentation_method = method
+      ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] = $instrumentation_method = method
     end
 
     def require_helpers
@@ -677,15 +673,15 @@ module Multiverse
         next if exclude?(file)
 
         ENV['FILTER_FILE'] = filter_file if filter_file && infinite_tracing_suite?
-        require "./" + File.basename(file, ".rb")
+        require './' + File.basename(file, '.rb')
       end
     end
 
     def ordered_ruby_files(directory)
       files = Dir[File.join(directory, '*.rb')]
 
-      @before_file = files.find { |file| File.basename(file) == "before_suite.rb" }
-      @after_file = files.find { |file| File.basename(file) == "after_suite.rb" }
+      @before_file = files.find { |file| File.basename(file) == 'before_suite.rb' }
+      @after_file = files.find { |file| File.basename(file) == 'after_suite.rb' }
 
       files.delete(@before_file)
       files.delete(@after_file)
@@ -702,7 +698,7 @@ module Multiverse
     end
 
     def verbose?
-      ENV['VERBOSE'] == "1" || ENV['VERBOSE'] == "true"
+      ENV['VERBOSE'] == '1' || ENV['VERBOSE'] == 'true'
     end
 
     # Sidekiq v4.2.0 and later will bail out at startup if we try to

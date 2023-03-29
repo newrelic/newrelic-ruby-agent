@@ -29,11 +29,11 @@ module NewRelic
       def self.instrumentation_value_of(disable_key, prepend_key = nil)
         proc do
           if NewRelic::Agent.config[disable_key]
-            "disabled"
+            'disabled'
           elsif prepend_key && !NewRelic::Agent.config[prepend_key]
-            "chain"
+            'chain'
           else
-            "auto"
+            'auto'
           end
         end
       end
@@ -47,7 +47,7 @@ module NewRelic
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
       def self.deprecated_description(new_setting, description)
-        link_ref = new_setting.to_s.tr(".", "-")
+        link_ref = new_setting.to_s.tr('.', '-')
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
 
@@ -80,34 +80,35 @@ module NewRelic
           default_settings[:transform] if default_settings
         end
 
-        def self.config_search_paths
+        def self.config_search_paths # rubocop:disable Metrics/AbcSize
           proc {
-            paths = [
-              File.join("config", "newrelic.yml"),
-              File.join("newrelic.yml"),
-              File.join("config", "newrelic.yml.erb"),
-              File.join("newrelic.yml.erb")
-            ]
+            yaml = 'newrelic.yml'
+            config_yaml = File.join('config', yaml)
+            erb = 'newrelic.yml.erb'
+            config_erb = File.join('config', erb)
+
+            paths = [config_yaml, yaml, config_erb, erb]
 
             if NewRelic::Control.instance.root
-              paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml")
-              paths << File.join(NewRelic::Control.instance.root, "newrelic.yml")
-              paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml.erb")
-              paths << File.join(NewRelic::Control.instance.root, "newrelic.yml.erb")
+              paths << File.join(NewRelic::Control.instance.root, config_yaml)
+              paths << File.join(NewRelic::Control.instance.root, yaml)
+              paths << File.join(NewRelic::Control.instance.root, config_erb)
+              paths << File.join(NewRelic::Control.instance.root, erb)
             end
 
             if ENV['HOME']
-              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml")
-              paths << File.join(ENV['HOME'], "newrelic.yml")
-              paths << File.join(ENV['HOME'], ".newrelic", "newrelic.yml.erb")
-              paths << File.join(ENV['HOME'], "newrelic.yml.erb")
+              paths << File.join(ENV['HOME'], '.newrelic', yaml)
+              paths << File.join(ENV['HOME'], yaml)
+              paths << File.join(ENV['HOME'], '.newrelic', erb)
+              paths << File.join(ENV['HOME'], erb)
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
-            if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
-              app_name = File.basename(ENV["GEM_HOME"], ".jar!")
-              paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml")
-              paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml.erb")
+            # the following line needs else branch coverage
+            if ENV['GEM_HOME'] && ENV['GEM_HOME'].end_with?('.jar!') # rubocop:disable Style/SafeNavigation
+              app_name = File.basename(ENV['GEM_HOME'], '.jar!')
+              paths << File.join(ENV['GEM_HOME'], app_name, config_yaml)
+              paths << File.join(ENV['GEM_HOME'], app_name, config_erb)
             end
 
             paths
@@ -206,11 +207,11 @@ module NewRelic
           # only used for deployment task
           proc do
             api_version = if NewRelic::Agent.config[:api_key].nil? || NewRelic::Agent.config[:api_key].empty?
-              "rpm"
+              'rpm'
             else
-              "api"
+              'api'
             end
-            api_region = "eu." if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
+            api_region = 'eu.' if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
 
             "#{api_version}.#{api_region}newrelic.com"
           end
@@ -432,7 +433,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => "Allows newrelic distributed tracing headers to be suppressed on outbound requests."
+          :description => 'Allows newrelic distributed tracing headers to be suppressed on outbound requests.'
         },
         :force_install_exit_handler => {
           :default => false,
@@ -959,7 +960,7 @@ module NewRelic
           :description => 'If `true`, enables an audit log which logs communications with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
         },
         :'audit_log.endpoints' => {
-          :default => [".*"],
+          :default => ['.*'],
           :public => true,
           :type => Array,
           :allowed_from_server => false,
@@ -1281,10 +1282,10 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the hostname for the trace observer Host. " \
-            "When configured, enables tail-based sampling by sending all recorded spans " \
-            "to a trace observer for further sampling decisions, irrespective of any usual " \
-            "agent sampling decision."
+          :description => 'Configures the hostname for the trace observer Host. ' \
+            'When configured, enables tail-based sampling by sending all recorded spans ' \
+            'to a trace observer for further sampling decisions, irrespective of any usual ' \
+            'agent sampling decision.'
         },
         :'infinite_tracing.trace_observer.port' => {
           :default => 443,
@@ -1292,7 +1293,7 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Configures the TCP/IP port for the trace observer Host"
+          :description => 'Configures the TCP/IP port for the trace observer Host'
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
@@ -1361,7 +1362,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
+          :description => 'Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled].'
         },
         :'instrumentation.grape' => {
           :default => 'auto',
@@ -1369,7 +1370,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.grpc_client' => {
           :default => instrumentation_value_of(:disable_grpc_client),
@@ -1404,7 +1405,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.httprb' => {
           :default => 'auto',
@@ -1457,7 +1458,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
+          :description => 'Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled].'
         },
         :'instrumentation.net_http' => {
           :default => 'auto',
@@ -1466,7 +1467,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),
@@ -1475,9 +1476,9 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the " \
-                           "`to_app` method in Puma::Rack::Builder to find gems to instrument during " \
-                           "application startup.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the ' \
+                           '`to_app` method in Puma::Rack::Builder to find gems to instrument during ' \
+                           'application startup.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.puma_rack_urlmap' => {
           :default => value_of(:'instrumentation.rack_urlmap'),
@@ -1495,9 +1496,9 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the " \
-                           "`to_app` method in Rack::Builder to find gems to instrument during " \
-                           "application startup.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Rack. When enabled, the agent hooks into the ' \
+                           '`to_app` method in Rack::Builder to find gems to instrument during ' \
+                           'application startup.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.rack_urlmap' => {
           :default => 'auto',
@@ -1514,7 +1515,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of rake at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of rake at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.redis' => {
           :default => 'auto',
@@ -1522,7 +1523,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.resque' => {
           :default => 'auto',
@@ -1531,7 +1532,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',
@@ -1539,7 +1540,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Sinatra at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Sinatra at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.thread' => {
           :default => 'auto',
@@ -1547,24 +1548,24 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.thread.tracing' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application."
+          :description => 'Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application.'
         },
         :'thread_ids_enabled' => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "If enabled, will append the current Thread and Fiber object ids onto the segment names of segments created in Threads and concurrent-ruby"
+          :description => 'If enabled, will append the current Thread and Fiber object ids onto the segment names of segments created in Threads and concurrent-ruby'
         },
         :'instrumentation.tilt' => {
-          :default => "auto",
+          :default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1578,7 +1579,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => 'Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         # Message tracer
         :'message_tracer.segment_parameters.enabled' => {
@@ -1709,7 +1710,7 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => "Sets the maximum number of span events to buffer when streaming to the trace observer."
+          :description => 'Sets the maximum number of span events to buffer when streaming to the trace observer.'
         },
         :'span_events.max_samples_stored' => {
           :default => 2000,
@@ -2016,7 +2017,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => false,
-          :description => "URI for the New Relic data collection service."
+          :description => 'URI for the New Relic data collection service.'
         },
         :'infinite_tracing.batching' => {
           :default => true,
@@ -2025,7 +2026,7 @@ module NewRelic
           :allowed_from_server => false,
           :external => :infinite_tracing,
           :description => "If `true` (the default), data sent to the trace observer is batched\ninstead of sending " \
-                          "each span individually."
+                          'each span individually.'
         },
         :'infinite_tracing.compression_level' => {
           :default => :high,

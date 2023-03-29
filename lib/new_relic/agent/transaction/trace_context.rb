@@ -20,7 +20,7 @@ module NewRelic
           end
         end
 
-        SUPPORTABILITY_PREFIX = "Supportability/TraceContext"
+        SUPPORTABILITY_PREFIX = 'Supportability/TraceContext'
         CREATE_PREFIX = "#{SUPPORTABILITY_PREFIX}/Create"
         ACCEPT_PREFIX = "#{SUPPORTABILITY_PREFIX}/Accept"
         TRACESTATE_PREFIX = "#{SUPPORTABILITY_PREFIX}/TraceState"
@@ -73,7 +73,7 @@ module NewRelic
           true
         rescue Exception => e
           NewRelic::Agent.increment_metric(CREATE_EXCEPTION_METRIC)
-          NewRelic::Agent.logger.warn("Failed to create trace context payload", e)
+          NewRelic::Agent.logger.warn('Failed to create trace context payload', e)
           false
         end
 
@@ -95,7 +95,7 @@ module NewRelic
 
         def create_trace_state_payload
           unless Agent.config[:'distributed_tracing.enabled']
-            NewRelic::Agent.logger.warn("Not configured to create WC3 trace context payload")
+            NewRelic::Agent.logger.warn('Not configured to create WC3 trace context payload')
             return
           end
 
@@ -144,7 +144,7 @@ module NewRelic
           true
         rescue => e
           NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
-          NewRelic::Agent.logger.warn("Failed to accept trace context payload", e)
+          NewRelic::Agent.logger.warn('Failed to accept trace context payload', e)
           false
         end
 

@@ -33,7 +33,7 @@ module NewRelic
           # defensive.
           return if defined?(cached?)
 
-          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= "5.1.0"
+          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= '5.1.0'
             def cached?(payload)
               payload.fetch(:cached, false)
             end
@@ -74,7 +74,8 @@ module NewRelic
             ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
               statement.config)
           end
-          if connection && connection.respond_to?(:exec_query)
+          # the following line needs else branch coverage
+          if connection && connection.respond_to?(:exec_query) # rubocop:disable Style/SafeNavigation
             return connection.exec_query("EXPLAIN #{statement.sql}",
               "Explain #{statement.name}",
               statement.binds)

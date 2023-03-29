@@ -7,8 +7,8 @@ module NewRelic
     module AttributeProcessing
       module_function
 
-      EMPTY_HASH_STRING_LITERAL = "{}".freeze
-      EMPTY_ARRAY_STRING_LITERAL = "[]".freeze
+      EMPTY_HASH_STRING_LITERAL = '{}'.freeze
+      EMPTY_ARRAY_STRING_LITERAL = '[]'.freeze
 
       def flatten_and_coerce(object, prefix = nil, result = {}, &blk)
         if object.is_a?(Hash)

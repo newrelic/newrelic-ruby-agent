@@ -154,12 +154,12 @@ module NewRelic
         end
       end
 
-      PRIORITY = "priority".freeze
+      PRIORITY = 'priority'.freeze
 
       def distributed_trace_attributes(state)
         transaction = state.current_transaction
         params = nil
-        if transaction && transaction.distributed_tracer.distributed_trace_payload
+        if transaction&.distributed_tracer&.distributed_trace_payload
           params = {}
           payload = transaction.distributed_tracer.distributed_trace_payload
           DistributedTraceAttributes.copy_from_transaction(transaction, payload, params)

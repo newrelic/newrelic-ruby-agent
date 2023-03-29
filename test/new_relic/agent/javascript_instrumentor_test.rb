@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 require_relative '../../test_helper'
-require "new_relic/agent/javascript_instrumentor"
-require "base64"
+require 'new_relic/agent/javascript_instrumentor'
+require 'base64'
 
 class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   attr_reader :instrumentor
@@ -35,7 +35,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   end
 
   def test_default_loader
-    assert_equal "rum", NewRelic::Agent.config[:'browser_monitoring.loader']
+    assert_equal 'rum', NewRelic::Agent.config[:'browser_monitoring.loader']
   end
 
   def test_auto_instrumentation_config_defaults_to_enabled
@@ -43,13 +43,13 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   end
 
   def test_browser_timing_header_outside_transaction
-    assert_equal "", instrumentor.browser_timing_header
+    assert_equal '', instrumentor.browser_timing_header
   end
 
   def test_browser_timing_scripts_with_rum_enabled_false
     with_config(:'rum.enabled' => false) do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header
+        assert_equal '', instrumentor.browser_timing_header
       end
     end
   end
@@ -57,7 +57,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_disable_all_tracing
     in_transaction do
       NewRelic::Agent.disable_all_tracing do
-        assert_equal "", instrumentor.browser_timing_header
+        assert_equal '', instrumentor.browser_timing_header
       end
     end
   end
@@ -65,7 +65,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_without_loader
     with_config(:js_agent_loader => '') do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header
+        assert_equal '', instrumentor.browser_timing_header
       end
     end
   end
@@ -73,7 +73,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_without_beacon
     with_config(:beacon => '') do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header
+        assert_equal '', instrumentor.browser_timing_header
       end
     end
   end
@@ -81,7 +81,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_without_browser_key
     with_config(:browser_key => '') do
       in_transaction do
-        assert_equal "", instrumentor.browser_timing_header
+        assert_equal '', instrumentor.browser_timing_header
       end
     end
   end
@@ -90,7 +90,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     in_transaction do |txn|
       txn.ignore_enduser!
 
-      assert_equal "", instrumentor.browser_timing_header
+      assert_equal '', instrumentor.browser_timing_header
     end
   end
 
@@ -106,7 +106,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
 
   def test_browser_timing_header_with_nonce
     in_transaction do
-      header = instrumentor.browser_timing_header("NONCE_TEST")
+      header = instrumentor.browser_timing_header('NONCE_TEST')
 
       assert_has_js_agent_loader_with_nonce(header)
       assert_has_text(BEGINNING_OF_FOOTER_WITH_NONCE, header)
@@ -117,9 +117,9 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_browser_timing_header_safe_when_insert_js_fails
     in_transaction do
       begin
-        NewRelic::Agent.stubs(:config).raises("Hahahaha")
+        NewRelic::Agent.stubs(:config).raises('Hahahaha')
 
-        assert_equal "", instrumentor.browser_timing_header
+        assert_equal '', instrumentor.browser_timing_header
       ensure
         # stopping the transaction touches config, so we need to ensure we
         # clean up after ourselves here.
@@ -130,17 +130,17 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
 
   def test_browser_timing_header_safe_when_loader_generation_fails
     in_transaction do
-      instrumentor.stubs(:html_safe_if_needed).raises("Hahahaha")
+      instrumentor.stubs(:html_safe_if_needed).raises('Hahahaha')
 
-      assert_equal "", instrumentor.browser_timing_header
+      assert_equal '', instrumentor.browser_timing_header
     end
   end
 
   def test_browser_timing_header_safe_when_json_dump_fails
     in_transaction do
-      ::JSON.stubs(:dump).raises("Serialize? Hahahaha")
+      ::JSON.stubs(:dump).raises('Serialize? Hahahaha')
 
-      assert_equal "", instrumentor.browser_timing_header
+      assert_equal '', instrumentor.browser_timing_header
     end
   end
 
@@ -157,14 +157,14 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
 
         data = instrumentor.data_for_js_agent(txn)
         expected = {
-          "beacon" => "beacon",
-          "errorBeacon" => "",
-          "licenseKey" => "browserKey",
-          "applicationID" => "5, 6",
-          "transactionName" => pack("most recent transaction"),
-          "queueTime" => 0,
-          "applicationTime" => 10000,
-          "agent" => ""
+          'beacon' => 'beacon',
+          'errorBeacon' => '',
+          'licenseKey' => 'browserKey',
+          'applicationID' => '5, 6',
+          'transactionName' => pack('most recent transaction'),
+          'queueTime' => 0,
+          'applicationTime' => 10000,
+          'agent' => ''
         }
 
         js = instrumentor.browser_timing_config(state)
@@ -180,16 +180,16 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     nr_freeze_process_time
     with_config(ATTRIBUTES_ENABLED => true) do
       in_transaction('most recent transaction') do |txn|
-        NewRelic::Agent.add_custom_attributes(:user => "user")
-        NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
+        NewRelic::Agent.add_custom_attributes(:user => 'user')
+        NewRelic::Agent::Transaction.add_agent_attribute(:agent, 'attribute', NewRelic::Agent::AttributeFilter::DST_ALL)
 
         data = instrumentor.data_for_js_agent(txn)
 
         # Handle packed atts key specially since it's obfuscated
-        actual = unpack_to_object(data["atts"])
+        actual = unpack_to_object(data['atts'])
         expected = {
-          "u" => {"user" => "user"},
-          "a" => {"agent" => "attribute"}
+          'u' => {'user' => 'user'},
+          'a' => {'agent' => 'attribute'}
         }
 
         assert_equal expected, actual
@@ -201,7 +201,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     in_transaction do |txn|
       data = instrumentor.data_for_js_agent(txn)
 
-      assert_not_includes data, "sslForHttp"
+      assert_not_includes data, 'sslForHttp'
     end
   end
 
@@ -210,7 +210,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
       in_transaction do |txn|
         data = instrumentor.data_for_js_agent(txn)
 
-        assert data["sslForHttp"]
+        assert data['sslForHttp']
       end
     end
   end
@@ -220,7 +220,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
       in_transaction do |txn|
         data = instrumentor.data_for_js_agent(txn)
 
-        assert_false data["sslForHttp"]
+        assert_false data['sslForHttp']
       end
     end
   end
@@ -230,7 +230,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_data_for_js_agent_doesnt_get_custom_attributes_by_default
     with_config({}) do
       in_transaction do
-        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+        NewRelic::Agent.add_custom_attributes({:boo => 'hoo'})
 
         assert_attributes_missing
       end
@@ -239,7 +239,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
 
   def test_data_for_js_agent_doesnt_get_custom_attributes_outside_transaction
     with_config(ATTRIBUTES_ENABLED => true) do
-      NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+      NewRelic::Agent.add_custom_attributes({:boo => 'hoo'})
 
       assert_attributes_missing
     end
@@ -248,7 +248,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_data_for_js_agent_gets_custom_attributes_with_old_config
     with_config(ATTRIBUTES_ENABLED => true) do
       in_transaction do
-        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+        NewRelic::Agent.add_custom_attributes({:boo => 'hoo'})
 
         assert_attributes_are('{"u":{"boo":"hoo"}}')
       end
@@ -258,17 +258,51 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   def test_data_for_js_agent_gets_custom_attributes_when_configured
     with_config(ATTRIBUTES_ENABLED => true) do
       in_transaction do
-        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+        NewRelic::Agent.add_custom_attributes({:boo => 'hoo'})
 
         assert_attributes_are('{"u":{"boo":"hoo"}}')
       end
     end
   end
 
+  def test_data_for_js_agent_produced_a_log_statement_for_custom_attributes
+    logger = Object.new
+    logger.instance_variable_set(:@seen, false)
+    def logger.debug(msg); @seen = true if msg.match?(/Appending the following.*\["pather_panchali"\]/); end
+    with_config(ATTRIBUTES_ENABLED => true) do
+      in_transaction do
+        NewRelic::Agent.stub :logger, logger do
+          NewRelic::Agent.add_custom_attributes(pather_panchali: :apu)
+
+          assert_attributes_are('{"u":{"pather_panchali":"apu"}}')
+        end
+      end
+
+      assert logger.instance_variable_get(:@seen), 'Expected log statement was not seen'
+    end
+  end
+
+  def test_data_for_js_agent_produced_a_log_statement_for_empty_custom_attributes
+    logger = Object.new
+    logger.instance_variable_set(:@seen, false)
+    def logger.debug(msg); @seen = true if msg.include?('No custom attributes found'); end
+    with_config(ATTRIBUTES_ENABLED => false) do
+      in_transaction do
+        NewRelic::Agent.stub :logger, logger do
+          NewRelic::Agent.add_custom_attributes(pather_panchali: :subir)
+
+          assert_attributes_missing
+        end
+      end
+
+      assert logger.instance_variable_get(:@seen), 'Expected log statement was not seen'
+    end
+  end
+
   def test_data_for_js_agent_ignores_custom_attributes_by_config
     with_config(ATTRIBUTES_ENABLED => false) do
       in_transaction do
-        NewRelic::Agent.add_custom_attributes({:boo => "hoo"})
+        NewRelic::Agent.add_custom_attributes({:boo => 'hoo'})
 
         assert_attributes_missing
       end
@@ -322,7 +356,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     in_transaction do |txn|
       data = instrumentor.data_for_js_agent(txn)
 
-      assert_equal pack(expected), data["atts"]
+      assert_equal pack(expected), data['atts']
     end
   end
 
@@ -330,12 +364,12 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     in_transaction do |txn|
       data = instrumentor.data_for_js_agent(txn)
 
-      assert_not_includes data, "atts"
+      assert_not_includes data, 'atts'
     end
   end
 
   def pack(text)
-    [text].pack("m0").delete("\n")
+    [text].pack('m0').delete("\n")
   end
 
   def unpack_to_object(text)
@@ -348,7 +382,7 @@ class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
     when String
       %Q("#{value}")
     when NilClass
-      "null"
+      'null'
     else
       value
     end

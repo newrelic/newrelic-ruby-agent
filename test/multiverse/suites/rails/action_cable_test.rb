@@ -40,13 +40,13 @@ if defined?(ActionCable::Channel)
       end
 
       def boom(data)
-        raise StandardError.new("Boom!")
+        raise StandardError.new('Boom!')
       end
     end
 
     setup_and_teardown_agent do
       @connection = TestConnection.new
-      @channel = TestChannel.new(@connection, "{id: 1}")
+      @channel = TestChannel.new(@connection, '{id: 1}')
     end
 
     def test_creates_trace
@@ -73,9 +73,9 @@ if defined?(ActionCable::Channel)
 
       error_trace = last_traced_error
 
-      assert_equal "StandardError", error_trace.exception_class_name
-      assert_equal "Boom!", error_trace.message
-      assert_equal "Controller/ActionCable/ActionCableTest::TestChannel/boom", error_trace.path
+      assert_equal 'StandardError', error_trace.exception_class_name
+      assert_equal 'Boom!', error_trace.message
+      assert_equal 'Controller/ActionCable/ActionCableTest::TestChannel/boom', error_trace.path
     end
   end
 

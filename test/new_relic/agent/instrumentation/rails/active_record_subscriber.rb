@@ -47,7 +47,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_datastore_instance_metric_for_supported_adapter
-    config = {:adapter => "mysql", :host => "jonan.gummy_planet", :port => 3306}
+    config = {:adapter => 'mysql', :host => 'jonan.gummy_planet', :port => 3306}
     @subscriber.stubs(:active_record_config).returns(config)
 
     in_transaction('test_txn') { simulate_query(2) }
@@ -56,14 +56,14 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_datastore_instance_metric_with_one_datum_missing
-    config = {:adapter => "mysql", :host => "jonan.gummy_planet", :port => ""}
+    config = {:adapter => 'mysql', :host => 'jonan.gummy_planet', :port => ''}
     @subscriber.stubs(:active_record_config).returns(config)
 
     in_transaction('test_txn') { simulate_query(2) }
 
     assert_metrics_recorded('Datastore/instance/MySQL/jonan.gummy_planet/unknown')
 
-    config = {:adapter => "mysql", :host => "", :port => 3306}
+    config = {:adapter => 'mysql', :host => '', :port => 3306}
     @subscriber.stubs(:active_record_config).returns(config)
 
     in_transaction('test_txn') { simulate_query(2) }
@@ -72,7 +72,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_does_not_record_datastore_instance_metric_for_unsupported_adapter
-    config = {:adapter => "JonanDB", :host => "jonan.gummy_planet"}
+    config = {:adapter => 'JonanDB', :host => 'jonan.gummy_planet'}
     @subscriber.stubs(:active_record_config).returns(config)
 
     in_transaction('test_txn') { simulate_query(2) }
@@ -82,7 +82,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
   def test_does_not_record_datastore_instance_metric_if_disabled
     with_config('datastore_tracer.instance_reporting.enabled' => false) do
-      config = {:host => "jonan.gummy_planet"}
+      config = {:host => 'jonan.gummy_planet'}
       @subscriber.stubs(:active_record_config).returns(config)
 
       in_transaction('test_txn') { simulate_query(2) }
@@ -92,7 +92,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_does_not_record_datastore_instance_metric_if_both_are_empty
-    config = {:adapter => "", :host => ""}
+    config = {:adapter => '', :host => ''}
     @subscriber.stubs(:active_record_config).returns(config)
 
     in_transaction('test_txn') { simulate_query(2) }
@@ -101,7 +101,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_does_not_record_database_name_if_disabled
-    config = {:host => "jonan.gummy_planet", :database => "pizza_cube"}
+    config = {:host => 'jonan.gummy_planet', :database => 'pizza_cube'}
     @subscriber.stubs(:active_record_config).returns(config)
     with_config('datastore_tracer.database_name_reporting.enabled' => false) do
       in_transaction { simulate_query(2) }
@@ -116,12 +116,12 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:postgres_unix_domain_socket_case?).raises(StandardError.new)
     NewRelic::Agent::Instrumentation::ActiveRecordHelper::InstanceIdentification.stubs(:mysql_default_case?).raises(StandardError.new)
 
-    config = {:adapter => 'mysql', :host => "127.0.0.1"}
+    config = {:adapter => 'mysql', :host => '127.0.0.1'}
     @subscriber.stubs(:active_record_config).returns(config)
 
     in_transaction('test_txn') { simulate_query(2) }
 
-    assert_metrics_recorded("Datastore/instance/MySQL/unknown/unknown")
+    assert_metrics_recorded('Datastore/instance/MySQL/unknown/unknown')
   end
 
   def test_records_nothing_if_tracing_disabled

@@ -15,14 +15,14 @@ if !NewRelic::LanguageSupport.jruby?
 
         Timeout.timeout(5) do
           until ::GC.count > initial_gc_count
-            long_string = "01234567" * 100_000
+            long_string = '01234567' * 100_000
             long_string = nil
-            another_long_string = "01234567" * 100_000
+            another_long_string = '01234567' * 100_000
             another_long_string = nil
           end
         end
       rescue Timeout::Error
-        puts "Timed out waiting for GC..."
+        puts 'Timed out waiting for GC...'
       end
 
       render(body: 'ha')

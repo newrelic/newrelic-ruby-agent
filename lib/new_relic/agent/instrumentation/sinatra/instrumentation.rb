@@ -45,7 +45,8 @@ module NewRelic::Agent::Instrumentation
 
       def try_to_use(app, clazz)
         install_lock.synchronize do
-          has_middleware = app.middleware && app.middleware.any? { |info| info && info[0] == clazz }
+          # The following line needs else branch coverage
+          has_middleware = app.middleware && app.middleware.any? { |info| info && info[0] == clazz } # rubocop:disable Style/SafeNavigation
           app.use(clazz) unless has_middleware
         end
       end
@@ -53,9 +54,9 @@ module NewRelic::Agent::Instrumentation
       # Capture last route we've seen. Will set for transaction on route_eval
       def process_route_with_tracing(*args)
         begin
-          env["newrelic.last_route"] = args[0]
+          env['newrelic.last_route'] = args[0]
         rescue => e
-          ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
+          ::NewRelic::Agent.logger.debug('Failed determining last route in Sinatra', e)
         end
         yield
       end
@@ -74,7 +75,7 @@ module NewRelic::Agent::Instrumentation
             )
           end
         rescue => e
-          ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
+          ::NewRelic::Agent.logger.debug('Failed during route_eval to set transaction name', e)
         end
         yield
       end
@@ -83,7 +84,7 @@ module NewRelic::Agent::Instrumentation
         begin
           @request.params
         rescue => e
-          NewRelic::Agent.logger.debug("Failed to get params from Rack request.", e)
+          NewRelic::Agent.logger.debug('Failed to get params from Rack request.', e)
           nil
         end
       end

@@ -23,17 +23,17 @@ end
 # required on others.
 Delayed::Worker.guess_backend
 
-if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
-  $db_connection = ActiveRecord::Base.establish_connection(:adapter => "sqlite3",
-    :database => ":memory:")
+if Delayed::Worker.backend.to_s == 'Delayed::Backend::ActiveRecord::Job'
+  $db_connection = ActiveRecord::Base.establish_connection(:adapter => 'sqlite3',
+    :database => ':memory:')
 
   # Evaluate the delayed_job_active_record ERB template for database migration
   # This handles the case where ActiveRecord versions greater than or equal to 5.0
   # have versioned migration classes (e.g. ActiveRecord::Migration[5.0]) and those
   # less than 5.0 do not.
 
-  dj_gem_spec = Bundler.rubygems.loaded_specs("delayed_job_active_record") ||
-    Bundler.rubygems.loaded_specs("delayed_job")
+  dj_gem_spec = Bundler.rubygems.loaded_specs('delayed_job_active_record') ||
+    Bundler.rubygems.loaded_specs('delayed_job')
 
   dj_gem_path = dj_gem_spec.full_gem_path
 

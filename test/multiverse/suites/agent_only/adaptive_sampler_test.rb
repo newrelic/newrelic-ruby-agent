@@ -31,7 +31,7 @@ module NewRelic
 
         advance_process_time(60)
 
-        in_transaction("test_txn_20") {}
+        in_transaction('test_txn_20') {}
 
         stats = NewRelic::Agent.instance.adaptive_sampler.stats
 

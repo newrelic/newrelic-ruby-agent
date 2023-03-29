@@ -3,13 +3,13 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-ENV["NEW_RELIC_LOG_FILE_PATH"] = "STDOUT"
+ENV['NEW_RELIC_LOG_FILE_PATH'] = 'STDOUT'
 
 require 'newrelic_rpm'
 
 # Force all named items to re-enable
 enable_everyone = {}
-DependencyDetection.items.each do |item|
+DependencyDetection.instance_variable_get(:@items).each do |item|
   if item.name
     enable_everyone["disable_#{item.name}".to_sym] = false
   end

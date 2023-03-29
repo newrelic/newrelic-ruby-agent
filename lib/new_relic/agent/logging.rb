@@ -22,16 +22,21 @@ module NewRelic
       #
       # @api public
       class DecoratingFormatter < ::Logger::Formatter
-        TIMESTAMP_KEY = 'timestamp'.freeze
-        MESSAGE_KEY = 'message'.freeze
-        LOG_LEVEL_KEY = 'log.level'.freeze
-        LOG_NAME_KEY = 'logger.name'.freeze
-        NEWLINE = "\n".freeze
+        MESSAGE_ELEMENT = 'message'
+        LOG_LEVEL_ELEMENT = 'log_level'
+        PROG_NAME_ELEMENT = 'prog_name'
+        ELEMENTS = ['app_name', 'entity_type', 'hostname', 'entity_guid', 'trace_id', 'span_id', MESSAGE_ELEMENT,
+          LOG_LEVEL_ELEMENT, PROG_NAME_ELEMENT].freeze
+        TIMESTAMP_KEY = 'timestamp'
+        MESSAGE_KEY = 'message'
+        LOG_LEVEL_KEY = 'log.level'
+        LOG_NAME_KEY = 'logger.name'
+        NEWLINE = "\n"
 
-        QUOTE = '"'.freeze
-        COLON = ':'.freeze
-        COMMA = ','.freeze
-        CLOSING_BRACE = '}'.freeze
+        QUOTE = '"'
+        COLON = ':'
+        COMMA = ','
+        CLOSING_BRACE = '}'
         REPLACEMENT_CHAR = '�'
 
         def initialize
@@ -41,41 +46,76 @@ module NewRelic
         end
 
         def call(severity, time, progname, msg)
-          message = String.new('{')
-          if app_name
-            add_key_value(message, ENTITY_NAME_KEY, app_name)
-            message << COMMA
-          end
-          add_key_value(message, ENTITY_TYPE_KEY, ENTITY_TYPE)
-          message << COMMA
-          add_key_value(message, HOSTNAME_KEY, Hostname.get)
+          message = +'{'
+          ELEMENTS.each do |element|
+            args = case element
+                   when MESSAGE_ELEMENT then [message, msg]
+                   when LOG_LEVEL_ELEMENT then [message, severity]
+                   when PROG_NAME_ELEMENT then [message, progname]
+                   else [message]
+            end
 
-          if entity_guid = Agent.config[:entity_guid]
-            message << COMMA
-            add_key_value(message, ENTITY_GUID_KEY, entity_guid)
+            send("add_#{element}", *args)
           end
-
-          if trace_id = Tracer.trace_id
-            message << COMMA
-            add_key_value(message, TRACE_ID_KEY, trace_id)
-          end
-          if span_id = Tracer.span_id
-            message << COMMA
-            add_key_value(message, SPAN_ID_KEY, span_id)
-          end
-
-          message << COMMA
-          message << QUOTE << MESSAGE_KEY << QUOTE << COLON << escape(msg)
-          message << COMMA
-          add_key_value(message, LOG_LEVEL_KEY, severity)
-          if progname
-            message << COMMA
-            add_key_value(message, LOG_NAME_KEY, progname)
-          end
-
           message << COMMA
           message << QUOTE << TIMESTAMP_KEY << QUOTE << COLON << (time.to_f * 1000).round.to_s
           message << CLOSING_BRACE << NEWLINE
+        end
+
+        private
+
+        def add_app_name(message)
+          return unless app_name
+
+          add_key_value(message, ENTITY_NAME_KEY, app_name)
+          message << COMMA
+        end
+
+        def add_entity_type(message)
+          add_key_value(message, ENTITY_TYPE_KEY, ENTITY_TYPE)
+          message << COMMA
+        end
+
+        def add_hostname(message)
+          add_key_value(message, HOSTNAME_KEY, Hostname.get)
+        end
+
+        def add_entity_guid(message)
+          return unless entity_guid = Agent.config[:entity_guid]
+
+          message << COMMA
+          add_key_value(message, ENTITY_GUID_KEY, entity_guid)
+        end
+
+        def add_trace_id(message)
+          return unless trace_id = Tracer.trace_id
+
+          message << COMMA
+          add_key_value(message, TRACE_ID_KEY, trace_id)
+        end
+
+        def add_span_id(message)
+          return unless span_id = Tracer.span_id
+
+          message << COMMA
+          add_key_value(message, SPAN_ID_KEY, span_id)
+        end
+
+        def add_message(message, msg)
+          message << COMMA
+          message << QUOTE << MESSAGE_KEY << QUOTE << COLON << escape(msg)
+          message << COMMA
+        end
+
+        def add_log_level(message, severity)
+          add_key_value(message, LOG_LEVEL_KEY, severity)
+        end
+
+        def add_prog_name(message, progname)
+          return unless progname
+
+          message << COMMA
+          add_key_value(message, LOG_NAME_KEY, progname)
         end
 
         def app_name
@@ -125,7 +165,7 @@ module NewRelic
         # Positional and Keyword arguments are separated beginning with Ruby 2.7
         # Signature of ::Logger constructor changes in Ruby 2.4 to have both positional and keyword args
         # We pivot on Ruby 2.7 for widest supportability with least amount of hassle.
-        if RUBY_VERSION < "2.7.0"
+        if RUBY_VERSION < '2.7.0'
           def initialize(*args)
             super(*args)
             self.formatter = DecoratingFormatter.new
