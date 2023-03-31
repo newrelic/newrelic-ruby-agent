@@ -605,11 +605,6 @@ Lint/EmptyClass:
 Lint/EmptyConditionalBody:
   Enabled: false
 
-# Disabling for now
-# Lint/EmptyEnsure:
-#   Enabled: false
-#   # AutoCorrect: true
-
 Lint/EmptyExpression:
   Enabled: true
 
