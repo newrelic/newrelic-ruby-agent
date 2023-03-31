@@ -352,7 +352,7 @@ module NewRelic
         def test_should_not_collect_nodes_beyond_limit
           with_config(:'transaction_tracer.limit_segments' => 3) do
             in_transaction do
-              %w[ wheat challah semolina ].each do |bread|
+              %w[wheat challah semolina].each do |bread|
                 s = NewRelic::Agent::Tracer.start_datastore_segment
                 s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
                 s.finish

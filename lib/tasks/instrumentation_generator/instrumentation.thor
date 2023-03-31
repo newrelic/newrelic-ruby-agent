@@ -97,14 +97,14 @@ class Instrumentation < Thor
 
   def config_block(name)
     <<~CONFIG
-        :'instrumentation.#{name.downcase}' => {
-          :default => 'auto',
-          :public => true,
-          :type => String,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the #{name} library at start up. May be one of [auto|prepend|chain|disabled].'
-        },
+      :'instrumentation.#{name.downcase}' => {
+        :default => 'auto',
+        :public => true,
+        :type => String,
+        :dynamic_name => true,
+        :allowed_from_server => false,
+        :description => 'Controls auto-instrumentation of the #{name} library at start up. May be one of [auto|prepend|chain|disabled].'
+      },
     CONFIG
   end
 

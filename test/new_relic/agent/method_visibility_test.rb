@@ -72,7 +72,7 @@ class MethodVisibilityTest < Minitest::Test
     @instance = InstrumentedClass.new
   end
 
-  %w[ public private protected ].each do |visibility|
+  %w[public private protected].each do |visibility|
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_method" do
       assert_includes(@instance.send("#{visibility}_methods").map { |s| s.to_sym }, :"#{visibility}_method!", "Method #{visibility}_method should be #{visibility}")
     end

@@ -344,7 +344,6 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       redis = Redis.new
       redis.send(client).stubs('connect').raises(simulated_error_class, 'Error connecting to Redis')
       redis.get('foo')
-    ensure
     end
 
     def test_noticed_error_at_segment_and_txn_on_error

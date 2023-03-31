@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
+
 # executes one of the commands in the new_relic/commands directory
 # pass the name of the command as an argument
 
