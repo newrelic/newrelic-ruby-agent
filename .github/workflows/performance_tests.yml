@@ -35,7 +35,7 @@ jobs:
           ref: 'main'
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.2'
       - run: bundle
       - run: script/runner -B
       - uses: actions/checkout@v3
