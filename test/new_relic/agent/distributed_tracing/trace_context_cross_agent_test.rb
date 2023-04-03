@@ -203,7 +203,7 @@ module NewRelic
           merged
         end
 
-        ALLOWED_EVENT_TYPES = %w[ Transaction TransactionError Span ]
+        ALLOWED_EVENT_TYPES = %w[Transaction TransactionError Span]
 
         def intrinsics_for_event(test_case, event_type)
           unless ALLOWED_EVENT_TYPES.include?(event_type)

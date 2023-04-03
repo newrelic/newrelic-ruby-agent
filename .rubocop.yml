@@ -6,7 +6,7 @@ require:
   # Default performance configurations: https://github.com/rubocop/rubocop-performance/blob/master/config/default.yml
   - rubocop-performance
   # Default rake configurations: https://github.com/rubocop/rubocop-rake/blob/master/config/default.yml
-  <%= '- rubocop-rake' if RUBY_VERSION >= '2.4.0' %>
+  - rubocop-rake
 
 AllCops:
   TargetRubyVersion: 2.7
@@ -239,10 +239,6 @@ Layout/ClosingParenthesisIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
-# Disabling for now
-Layout/ConditionPosition:
-  Enabled: false
-
 Layout/DefEndAlignment:
   Enabled: true
   EnforcedStyleAlignWith: start_of_line
@@ -261,18 +257,8 @@ Layout/EmptyComment:
   AllowBorderComment: true
   AllowMarginComment: true
 
-# Disabling for now
-Layout/EmptyLineAfterMagicComment:
-  Enabled: false
-
 Layout/EmptyLineAfterMultilineCondition:
   Enabled: false
-
-# Disabling for now
-Layout/EmptyLineBetweenDefs:
-  Enabled: false
-  # AllowAdjacentOneLineDefs: false
-  # NumberOfEmptyLines: 1
 
 Layout/EmptyLines:
   Enabled: true
@@ -360,10 +346,6 @@ Layout/HashAlignment:
   EnforcedLastArgumentHashStyle: always_inspect
 
 Layout/HeredocArgumentClosingParenthesis:
-  Enabled: false
-
-# Disabling for now
-Layout/HeredocIndentation:
   Enabled: false
 
 Layout/IndentationConsistency:
@@ -505,11 +487,6 @@ Layout/SpaceBeforeFirstArg:
 Layout/SpaceBeforeSemicolon:
   Enabled: true
 
-# Disabling for now
-Layout/SpaceInLambdaLiteral:
-  Enabled: false
-  # EnforcedStyle: require_no_space
-
 Layout/SpaceInsideArrayLiteralBrackets:
   Enabled: true
   EnforcedStyle: no_space
@@ -532,10 +509,6 @@ Layout/SpaceInsideHashLiteralBraces:
 Layout/SpaceInsideParens:
   Enabled: true
   EnforcedStyle: no_space
-
-# Disabling for now
-Layout/SpaceInsidePercentLiteralDelimiters:
-  Enabled: false
 
 Layout/SpaceInsideRangeLiteral:
   Enabled: true
@@ -563,40 +536,24 @@ Lint/AmbiguousAssignment:
 Lint/AmbiguousBlockAssociation:
   Enabled: false
 
-# Disabling for now
-Lint/AmbiguousOperator:
-  Enabled: false
-
 Lint/AmbiguousOperatorPrecedence:
   Enabled: false
 
 Lint/AmbiguousRange:
   Enabled: false
 
-# Disabling for now
-Lint/AmbiguousRegexpLiteral:
-  Enabled: false
-
-# Disabling for now
 Lint/AssignmentInCondition:
   Enabled: false
-  # AllowSafeAssignment: true
 
 Lint/BigDecimalNew:
   Enabled: true
 
-# Disabling for now
 Lint/BinaryOperatorWithIdenticalOperands:
-  Enabled: false
-
-# Disabling for now
-Lint/BooleanSymbol:
   Enabled: false
 
 Lint/CircularArgumentReference:
   Enabled: true
 
-# Disabling for now
 Lint/ConstantDefinitionInBlock:
   Enabled: false
 
@@ -605,10 +562,6 @@ Lint/ConstantResolution:
 
 Lint/Debugger:
   Enabled: true
-
-# Disabling for now
-Lint/DeprecatedClassMethods:
-  Enabled: false
 
 Lint/DeprecatedConstants:
   Enabled: true
@@ -622,19 +575,11 @@ Lint/DisjunctiveAssignmentInConstructor:
 Lint/DuplicateBranch:
   Enabled: false
 
-# Disabling for now
-Lint/DuplicateCaseCondition:
-  Enabled: false
-
 Lint/DuplicateElsifCondition:
   Enabled: true
 
 Lint/DuplicateHashKey:
   Enabled: true
-
-# Disabling for now
-Lint/DuplicateMethods:
-  Enabled: false
 
 Lint/DuplicateRegexpCharacterClassElement:
   Enabled: true
@@ -660,11 +605,6 @@ Lint/EmptyClass:
 Lint/EmptyConditionalBody:
   Enabled: false
 
-# Disabling for now
-Lint/EmptyEnsure:
-  Enabled: false
-  # AutoCorrect: true
-
 Lint/EmptyExpression:
   Enabled: true
 
@@ -680,10 +620,6 @@ Lint/EmptyInterpolation:
 Lint/EmptyWhen:
   Enabled: true
   AllowComments: true
-
-# Disabling for now
-Lint/EnsureReturn:
-  Enabled: false
 
 Lint/ErbNewArguments:
   Enabled: true

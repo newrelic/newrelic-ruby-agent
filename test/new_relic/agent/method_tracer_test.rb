@@ -349,7 +349,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_add_tracer_with_dynamic_metric
-    metric_code = -> (*args) { "#{args[0]}.#{args[1]}" }
+    metric_code = ->(*args) { "#{args[0]}.#{args[1]}" }
     @metric_name = metric_code
     expected_metric = '1.2'
     self.class.add_method_tracer(:method_to_be_traced, metric_code)
@@ -448,7 +448,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def test_add_multiple_metrics
     in_transaction('test_txn') do
-      self.class.add_method_tracer(:method_to_be_traced, ['XX', 'YY', -> (*) { 'ZZ' }])
+      self.class.add_method_tracer(:method_to_be_traced, ['XX', 'YY', ->(*) { 'ZZ' }])
       method_to_be_traced(1, 2, 3, true, nil)
     end
 

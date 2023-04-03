@@ -1,6 +1,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+
 #
 # Rake task for running Ruby agent multiverse tests. This file may be required
 # from third party gems. It is also used by the agent itself to run multiverse.

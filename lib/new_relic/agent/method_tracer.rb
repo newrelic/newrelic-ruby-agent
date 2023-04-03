@@ -134,7 +134,7 @@ module NewRelic
           #  Foo._nr_default_metric_name_code('bar') #=> "Custom/#{Foo.name}/bar"
           def _nr_default_metric_name(method_name)
             class_name = _nr_derived_class_name
-            -> (*) { "Custom/#{class_name}/#{method_name}" }
+            ->(*) { "Custom/#{class_name}/#{method_name}" }
           end
 
           # Checks to see if the method we are attempting to trace

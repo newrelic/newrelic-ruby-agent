@@ -37,7 +37,7 @@ module NewRelic::Agent::Configuration
       assert_applied_symbol 'NEWRELIC_FRAMEWORK', 'framework'
     end
 
-    %w[ NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED ].each do |var|
+    %w[NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED].each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
 
@@ -65,7 +65,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    %w[ NEWRELIC_DISABLE_HARVEST_THREAD NEW_RELIC_DISABLE_HARVEST_THREAD ].each do |var|
+    %w[NEWRELIC_DISABLE_HARVEST_THREAD NEW_RELIC_DISABLE_HARVEST_THREAD].each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
 

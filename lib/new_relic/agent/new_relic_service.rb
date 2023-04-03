@@ -462,7 +462,6 @@ module NewRelic
              Net::HTTPRequestURITooLong,
              Net::HTTPUnsupportedMediaType,
              Net::HTTPExpectationFailed,
-             Net::HTTPUnsupportedMediaType,
              Net::HTTPRequestHeaderFieldsTooLarge
           handle_unrecoverable_server_exception(response, endpoint)
         when Net::HTTPConflict,

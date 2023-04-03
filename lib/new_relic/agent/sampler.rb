@@ -1,6 +1,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
+
 #
 # A Sampler is used to capture meaningful metrics in a background thread
 # periodically.  They will be invoked about once a minute, each time the agent

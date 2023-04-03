@@ -110,6 +110,7 @@ if defined?(ActionController::Live)
     end
 
     class TestClassActionController; end
+
     def test_no_metric_naming_error
       payloads = [
         {request: 'Not gonna respond to controller_class'},
