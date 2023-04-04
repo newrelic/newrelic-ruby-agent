@@ -58,7 +58,7 @@ DependencyDetection.defer do
         prepend_instrument client_class, instrumenting_module, 'MemcachedDalli'
       end
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Memcache::Dalli
+      chain_instrument NewRelic::Agent::Instrumentation::Memcache::Dalli, 'MemcachedDalli'
     end
   end
 end
@@ -81,7 +81,7 @@ DependencyDetection.defer do
         prepend_instrument client_class, instrumenting_module, 'MemcachedDalliCAS'
       end
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Memcache::DalliCAS
+      chain_instrument NewRelic::Agent::Instrumentation::Memcache::DalliCAS, 'MemcachedDalliCAS'
     end
   end
 end
