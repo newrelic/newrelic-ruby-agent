@@ -14,30 +14,6 @@ module NewRelic
         end
       end
 
-      # Combines potentially two properties into one.
-      # Given the example:
-      #    :disable_net_http and :prepend_net_instrumentation
-      #    if :disable_net_http is true, then returned value is "disabled"
-      #    if :prepend_net_instrumentation is false, then returned value is "chain"
-      #    otherwise, "auto" is returned.
-      #
-      # Intent is:
-      #     - if user sets disable_xxx property, then don't instrument
-      #     - if user set prepend to `false` then we use method_alias chaining
-      #     - auto, when returned means, try to use prepend unless conflicting gems discovered
-      #
-      def self.instrumentation_value_of(disable_key, prepend_key = nil)
-        proc do
-          if NewRelic::Agent.config[disable_key]
-            'disabled'
-          elsif prepend_key && !NewRelic::Agent.config[prepend_key]
-            'chain'
-          else
-            'auto'
-          end
-        end
-      end
-
       def self.instrumentation_value_from_boolean(key)
         proc do
           NewRelic::Agent.config[key] ? 'auto' : 'disabled'
@@ -1373,7 +1349,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.grpc_client' => {
-          :default => instrumentation_value_of(:disable_grpc_client),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1390,7 +1366,7 @@ module NewRelic
           :description => %Q(Specifies a list of hostname patterns separated by commas that will match gRPC hostnames that traffic is to be ignored by New Relic for. New Relic's gRPC client instrumentation will ignore traffic streamed to a host matching any of these patterns, and New Relic's gRPC server instrumentation will ignore traffic for a server running on a host whose hostname matches any of these patterns. By default, no traffic is ignored when gRPC instrumentation is itself enabled. For example, "private.com$,exception.*")
         },
         :'instrumentation.grpc_server' => {
-          :default => instrumentation_value_of(:disable_grpc_server),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
@@ -1443,7 +1419,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache_client' => {
-          :default => instrumentation_value_of(:disable_memcache_client),
+          :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
