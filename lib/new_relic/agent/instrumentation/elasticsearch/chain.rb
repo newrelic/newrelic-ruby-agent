@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module Elasticsearch
+  module Elasticsearch::Chain
     def self.instrument!
       to_instrument = if ::Gem::Version.create(::Elasticsearch::VERSION) <
           ::Gem::Version.create('8.0.0')
