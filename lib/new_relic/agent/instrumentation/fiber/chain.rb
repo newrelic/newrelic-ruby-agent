@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module MonitoredFiber
+  module MonitoredFiber::Chain
     def self.instrument!
       ::Fiber.class_eval do
         include NewRelic::Agent::Instrumentation::MonitoredFiber

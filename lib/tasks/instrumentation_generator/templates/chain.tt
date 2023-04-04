@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module <%= @class_name %>
+  module <%= @class_name %>::Chain
     def self.instrument!
       ::<%= @class_name %>.class_eval do
         include NewRelic::Agent::Instrumentation::<%= @class_name %>
