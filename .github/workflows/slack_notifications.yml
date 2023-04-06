@@ -8,7 +8,7 @@ jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@v1.90.0
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2
       - uses: actions/checkout@v2
@@ -40,7 +40,7 @@ jobs:
   cve_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@v1.90.0
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2
       - uses: actions/checkout@v2
