@@ -9,8 +9,8 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: '3.2'
       - run: bundle
@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -44,12 +44,12 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
       - name: Set up mini-envs for ruby version
-        uses: kanga333/variable-mapper@master
+        uses: kanga333/variable-mapper@3681b75f5c6c00162721168fb91ab74925eaebcb # tag v0.3.0
         with:
           key: ${{ matrix.ruby-version }}
           map: |
@@ -69,7 +69,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@v3.2.2
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # tag v3.3.1
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -85,7 +85,7 @@ jobs:
           RAILS_VERSION: ${{ env.rails }}
 
       - name: Run Unit Tests
-        uses: nick-fields/retry@v2.8.2
+        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
         with:
           timeout_minutes: 30
           max_attempts: 2
@@ -96,7 +96,7 @@ jobs:
           COVERAGE: true
 
       - name: Save coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
         with:
           name: coverage-report-unit-tests
           path: lib/coverage_*/.resultset.json
@@ -188,7 +188,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -197,7 +197,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -209,7 +209,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@v3.2.2
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # tag v3.3.1
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -225,7 +225,7 @@ jobs:
 
 
       - name: Wait for/Check Mysql
-        uses: nick-fields/retry@v2.8.2
+        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
         with:
           timeout_minutes: 1
           max_attempts: 20
@@ -237,7 +237,7 @@ jobs:
 
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@v2.8.2
+        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -259,7 +259,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
         with:
           name: coverage-report-multiverse
           path: lib/coverage_*/.resultset.json
@@ -269,7 +269,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}.json
           path: gem_manifest_${{ matrix.ruby-version }}.json
@@ -286,10 +286,10 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -297,7 +297,7 @@ jobs:
         run: bundle install
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@v2.8.2
+        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
         with:
           timeout_minutes: 15
           max_attempts: 2
@@ -312,7 +312,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
         with:
           name: coverage-report-infinite-tracing
           path: lib/coverage_*/.resultset.json
@@ -325,17 +325,17 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: '3.1'
       - run: bundle
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # tag v3.0.2
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
         with:
           name: coverage-report-combined
           path: lib/coverage_results
