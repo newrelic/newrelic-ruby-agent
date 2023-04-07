@@ -14,7 +14,7 @@ jobs:
     name: Assign to One Project
     steps:
     - name: Assign NEW issues and NEW pull requests to project 2
-      uses: srggrs/assign-one-project-github-action@1.2.0
+      uses: srggrs/assign-one-project-github-action@65a8ddab497df42ef268001e67bbf976f8fd39e1 # tag v1.3.1
       if: github.event.action == 'opened'
       with:
         project: 'https://github.com/orgs/newrelic/projects/17'

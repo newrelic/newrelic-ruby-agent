@@ -8,10 +8,10 @@ jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@v1.90.0
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: 3.2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - run: gem install httparty
       - name: Check for outdated gems 
         run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb ${{ env.gems }}
@@ -40,10 +40,10 @@ jobs:
   cve_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@v1.90.0
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: 3.2
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - run: gem install httparty
       - run: gem install feedjira
       - name: Check for CVEs

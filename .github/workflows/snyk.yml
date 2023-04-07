@@ -12,15 +12,15 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.90.0
+        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
           ruby-version: 3.2
       - name: Bundle
         run: bundle install
       - name: Run Snyk
-        uses: snyk/actions/ruby@master
+        uses: snyk/actions/ruby@7fad562681122205233d1242c3bb39598c5393da # tag v.3.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
