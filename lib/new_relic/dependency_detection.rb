@@ -179,6 +179,15 @@ module DependencyDetection
       return valid_value
     end
 
+    # update any :auto config value to be either :prepend or :chain after auto
+    # determination has selected one of those to use
+    def update_config_value(use_prepend)
+      if config_key && auto_configured?
+        NewRelic::Agent.config.instance_variable_get(:@cache)[config_key] = use_prepend ? :prepend : :chain
+      end
+      use_prepend
+    end
+
     def config_value
       return AUTO_CONFIG_VALUE unless config_key
 
@@ -202,7 +211,7 @@ module DependencyDetection
     end
 
     def use_prepend?
-      prepend_configured? || (auto_configured? && !prepend_conflicts?)
+      update_config_value(prepend_configured? || (auto_configured? && !prepend_conflicts?))
     end
 
     def prepend_conflicts?

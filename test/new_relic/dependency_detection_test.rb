@@ -380,4 +380,40 @@ class DependencyDetectionTest < Minitest::Test
     assert_log_contains(log, /#{supportability_name}/)
     assert_log_contains(log, /#{method}/)
   end
+
+  # when an instrumentation value of :auto (the default) is present, the agent
+  # automatically determines whether to use :prepend or :chain. after the
+  # determination is made, the config value should be updated to be either
+  # :prepend or :chain so that the determined value can be introspected.
+  def test_prepend_or_chain_based_values_have_auto_converted_into_one_of_those
+    name = :bandu_gumbo
+
+    dd = DependencyDetection.defer do
+      named(name)
+      executes { use_prepend? }
+    end
+
+    with_config(:"instrumentation.#{name}" => 'auto') do
+      DependencyDetection.detect!
+
+      assert_equal :prepend, dd.config_value
+    end
+  end
+
+  # confirm that :auto becames :chain when :chain is automatically determined
+  def test_auto_is_replaced_by_chain_when_chain_is_used
+    name = :blank_and_jones
+
+    dd = DependencyDetection.defer do
+      named(name)
+      conflicts_with_prepend { true }
+      executes { use_prepend? }
+    end
+
+    with_config(:"instrumentation.#{name}" => 'auto') do
+      DependencyDetection.detect!
+
+      assert_equal :chain, dd.config_value
+    end
+  end
 end
