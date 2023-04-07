@@ -307,7 +307,7 @@ module NewRelic
           segment.instance_variable_set(:@start_time, 1.0)
           segment.instance_variable_set(:@end_time, 3.0)
 
-          assert_equal 1.0, segment.send(:range_overlap, 2.0..4.0)
+          assert_in_delta(1.0, segment.send(:range_overlap, 2.0..4.0))
         end
 
         # 1..3 and 4..5 don't overlap at all, so the overlap amount is zero
@@ -316,7 +316,7 @@ module NewRelic
           segment.instance_variable_set(:@start_time, 1.0)
           segment.instance_variable_set(:@end_time, 3.0)
 
-          assert_equal 0.0, segment.send(:range_overlap, 4.0..5.0)
+          assert_in_delta(0.0, segment.send(:range_overlap, 4.0..5.0))
         end
       end
     end
