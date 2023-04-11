@@ -545,7 +545,7 @@ common: &default_settings
   # slow_sql.enabled: false
 
   # If true, the agent collects explain plans in slow SQL queries. If this setting
-  # is omitted, the transaction_tracer.explain.enabled setting will be applied as
+  # is omitted, the transaction_tracer.explain_enabled setting will be applied as
   # the default setting for explain plans in slow SQL as well.
   # slow_sql.explain_enabled: false
 
@@ -639,13 +639,13 @@ common: &default_settings
   # transaction_tracer.enabled: true
 
   # Threshold (in seconds) above which the agent will collect explain plans.
-  # Relevant only when explain.enabled is true.
+  # Relevant only when explain_enabled is true.
   # transaction_tracer.explain_threshold: 0.5
 
   # If true, enables the collection of explain plans in transaction traces.
   # This setting will also apply to explain plans in slow SQL traces if
   # slow_sql.explain enabled is not set separately.
-  # transaction_tracer.explain.enabled:  true
+  # transaction_tracer.explain_enabled:  true
 
   # Maximum number of transaction trace nodes to record in a single transaction
   # trace.
