@@ -322,6 +322,8 @@ jobs:
     needs: [unit_tests, multiverse, infinite_tracing]
     runs-on: ubuntu-22.04
     if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      pull-requests: write
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
