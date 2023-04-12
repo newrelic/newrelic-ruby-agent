@@ -343,7 +343,7 @@ jobs:
       - name: Simplecov Report
         uses: ./.github/actions/simplecov-report
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RUBY_GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 93
           failedThresholdBranch: 85

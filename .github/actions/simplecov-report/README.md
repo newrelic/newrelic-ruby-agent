@@ -10,7 +10,7 @@ The action works only with `pull_request` event.
 
 ### Inputs
 
-- `token` - The GITHUB_TOKEN secret.
+- `token` - The RUBY_GITHUB_TOKEN secret.
 - `failedThreshold` - Failed threshold. (default: `93`)
 - `resultPath` - Path to last_run json file. (default: `coverage/.last_run.json`)
 
@@ -30,5 +30,5 @@ jobs:
       - name: SimpleCov Report
         uses: aki77/simplecov-report-action@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RUBY_GITHUB_TOKEN }}
 ```
