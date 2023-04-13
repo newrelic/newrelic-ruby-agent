@@ -183,7 +183,7 @@
     "input_hostname": "myotherhost",
     "input_full_hostname": "myotherhost.com",
     "input_ip_address": ["1.2.3.4"],
-    "input_gcp_id": "3161347020215157000",
+    "input_gcp_id": "3161347020215157123",
     "input_gcp_type": "projects/492690098729/machineTypes/custom-1-1024",
     "input_gcp_name": "aef-default-20170501t160547-7gh8",
     "input_gcp_zone": "projects/492690098729/zones/us-central1-c",
@@ -196,7 +196,7 @@
       "ip_address": ["1.2.3.4"],
       "vendors": {
         "gcp": {
-          "id": "3161347020215157000",
+          "id": "3161347020215157123",
           "machineType": "custom-1-1024",
           "name": "aef-default-20170501t160547-7gh8",
           "zone": "us-central1-c"
@@ -211,7 +211,7 @@
     "input_hostname": "myotherhost",
     "input_full_hostname": "myotherhost.com",
     "input_ip_address": ["1.2.3.4"],
-    "input_gcp_id": "3161347020215157000",
+    "input_gcp_id": "3161347020215157123",
     "input_gcp_type": "projects/492690098729/machineTypes/custom-1-1024",
     "input_gcp_name": null,
     "input_gcp_zone": "projects/492690098729/zones/us-central1-c",
