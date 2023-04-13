@@ -2,7 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'new_relic/agent/range_extensions'
 require 'new_relic/agent/guid_generator'
 
 module NewRelic
@@ -103,38 +102,6 @@ module NewRelic
 
         def time_range
           @start_time.to_f..@end_time.to_f
-        end
-
-        def timings_overlap?(timing1, timing2)
-          (timing1.first >= timing2.first && timing1.first <= timing2.last) ||
-            (timing2.first >= timing1.first && timing2.first <= timing1.last)
-        end
-
-        def merge_timings(timing1, timing2)
-          [([timing1.first, timing2.first].min),
-            ([timing1.last, timing2.last].max)]
-        end
-
-        # @children_timings is an array of array, with each inner array
-        # holding exactly 2 values, a child segment's start time and finish
-        # time (in that order). When it's time to record, these timings are
-        # converted into an array of range objects (using the same start and
-        # end values as the original array). Any two range objects that
-        # intersect and merged into a larger range. This checking for a
-        # intersections and merging of ranges is expensive, so the operation
-        # is only done at recording time.
-        def children_time_ranges
-          @children_time_ranges ||= begin
-            overlapped = @children_timings.each_with_object([]) do |timing, timings|
-              i = timings.index { |t| timings_overlap?(t, timing) }
-              if i
-                timings[i] = merge_timings(timing, timings[i])
-              else
-                timings << timing
-              end
-            end
-            overlapped.map { |t| Range.new(t.first, t.last) }
-          end
         end
 
         def children_time_ranges?
@@ -299,12 +266,6 @@ module NewRelic
         end
 
         def record_exclusive_duration
-          overlapping_duration = if children_time_ranges?
-            RangeExtensions.compute_overlap(time_range, children_time_ranges)
-          else
-            0.0
-          end
-
           @exclusive_duration = duration - children_time - overlapping_duration
           transaction.total_time += @exclusive_duration
           params[:exclusive_duration_millis] = @exclusive_duration * 1000 if transaction.async?
@@ -312,6 +273,51 @@ module NewRelic
 
         def metric_cache
           transaction.metrics
+        end
+
+        def ranges_intersect?(r1, r2)
+          r1.begin > r2.begin ? r2.cover?(r1.begin) : r1.cover?(r2.begin)
+        end
+
+        def range_overlap(range)
+          return 0.0 unless ranges_intersect?(range, time_range)
+
+          [range.end, time_range.end].min - [range.begin, time_range.begin].max
+        end
+
+        # Child segments operating concurrently with this segment may have
+        # start and end times that overlap with this segment's own times. The
+        # amount of overlap needs to be removed from the `children_time` total
+        # when calculating an `@exclusive_duration` value to be added to the
+        # transaction's total time.
+        #
+        # If there aren't any child segments, return 0.0. Otherwise, take the
+        # `@children_timings` array of arrays (each array holds a child
+        # segment's start time and end time), sort it by the first elements
+        # (start times), and use the start and finish times to create Range
+        # objects. Combine all of the child segment ranges that overlap with
+        # one another into new bigger ranges. Then take those bigger ranges
+        # and calculate how much overlap there is between them and this
+        # segment's own time range. Keep a running sum of all of the overlap
+        # amounts and then return it.
+        def overlapping_duration
+          sum = 0.0
+          return sum unless children_time_ranges?
+
+          @children_timings.sort_by!(&:first)
+          range = Range.new(*@children_timings.first)
+          (1..(@children_timings.size - 1)).each do |i|
+            possible = Range.new(*@children_timings[i])
+
+            if ranges_intersect?(range, possible)
+              range = range.begin..possible.end
+            else
+              sum += range_overlap(range)
+              range = possible
+            end
+          end
+
+          sum += range_overlap(range)
         end
 
         def transaction_state
