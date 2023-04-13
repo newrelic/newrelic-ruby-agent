@@ -43,6 +43,7 @@ jobs:
       if: $(git tag -l ${{ env.VERSION }}) == false
       permissions:
         contents: write
+        repository-projects: write
       with:
         tag_name: ${{ env.VERSION }}
       env:
