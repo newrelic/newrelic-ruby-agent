@@ -6,6 +6,9 @@ on:
   pull_request_target:
     types: [opened]
 
+permissions:
+  issues: write
+
 jobs:
   Check_contributor_handle:
     runs-on: ubuntu-latest
