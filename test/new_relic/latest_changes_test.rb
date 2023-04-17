@@ -21,13 +21,13 @@ module NewRelic
 
     def test_patch_latest_changes_from_fakechangelog
       result = NewRelic::LatestChanges.read_patch('3.7.2.4242', File.join(File.dirname(__FILE__), 'FAKECHANGELOG'))
-      expected = <<END
-## v3.7.2.4242
-
-* Patch (3.7.2.4242)
-
-  Patch for something
-END
+      expected = <<~END
+        ## v3.7.2.4242
+        
+        * Patch (3.7.2.4242)
+        
+          Patch for something
+      END
       assert_equal expected, result
     end
   end

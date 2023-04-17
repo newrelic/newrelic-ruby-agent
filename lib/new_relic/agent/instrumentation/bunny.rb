@@ -26,7 +26,7 @@ DependencyDetection.defer do
       prepend_instrument Bunny::Queue, NewRelic::Agent::Instrumentation::Bunny::Prepend::Queue
       prepend_instrument Bunny::Consumer, NewRelic::Agent::Instrumentation::Bunny::Prepend::Consumer
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Bunny
+      chain_instrument NewRelic::Agent::Instrumentation::Bunny::Chain
     end
   end
 end

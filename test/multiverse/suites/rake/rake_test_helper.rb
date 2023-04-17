@@ -56,8 +56,8 @@ module RakeTestHelper
 
   def refute_any_rake_metrics
     all_metric_names_posted.each do |metric_name|
-      refute_match /^OtherTransaction.*/, metric_name
-      refute_match /^Rake.*/, metric_name
+      refute_match(/^OtherTransaction.*/, metric_name)
+      refute_match(/^Rake.*/, metric_name)
     end
   end
 

@@ -73,18 +73,18 @@ class StartUpTest < Minitest::Test
   end
 
   def test_agent_does_not_start_if_hsm_and_lasp_both_enabled
-    ruby = <<RUBY
-require "new_relic/agent"
-NewRelic::Agent.manual_start(security_policies_token: "ffff-ffff-ffff-ffff",
-                             high_security: true,
-                             log_file_path: "STDOUT")
-RUBY
+    ruby = <<~RUBY
+      require "new_relic/agent"
+      NewRelic::Agent.manual_start(security_policies_token: "ffff-ffff-ffff-ffff",
+                                   high_security: true,
+                                   log_file_path: "STDOUT")
+    RUBY
     cmd = "bundle exec ruby -e '#{ruby}'"
 
     _, sout, serr = Open3.popen3(cmd)
     output = sout.read + serr.read
 
-    assert_match /ERROR.*Security Policies and High Security Mode cannot both be present/, output, output
+    assert_match(/ERROR.*Security Policies and High Security Mode cannot both be present/, output, output)
   end
 
   if RUBY_PLATFORM != 'java'

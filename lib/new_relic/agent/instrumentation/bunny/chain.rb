@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module Bunny
+  module Bunny::Chain
     def self.instrument!
       ::Bunny::Exchange.class_eval do
         include NewRelic::Agent::Instrumentation::Bunny::Exchange

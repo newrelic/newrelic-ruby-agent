@@ -92,7 +92,7 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_mysql_socket
-            %w[ mysql mysql2 jdbcmysql ].each do |adapter|
+            %w[mysql mysql2 jdbcmysql].each do |adapter|
               config = {
                 :adapter => adapter,
                 :socket => '/var/run/mysqld.sock'

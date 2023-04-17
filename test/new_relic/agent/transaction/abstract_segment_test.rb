@@ -282,7 +282,6 @@ module NewRelic
           end
         end
 
-        # BEGIN children time ranges
         def test_children_time_ranges_do_not_exist
           refute basic_segment.children_time_ranges?
         end
@@ -294,47 +293,31 @@ module NewRelic
           assert_predicate segment, :children_time_ranges?
         end
 
-        def test_during_recording_timings_become_ranges
-          # this is an array of [start_time, finish_time] arrays
-          input = [[1, 3], [2, 5], [6, 10], [11, 15], [12, 13], [20, 30], [25, 35], [40, 50]]
-          # after the input arrays are merged when overlapping and converted to
-          # ranges, the following result is expected.
-          # NOTE: [1,3] and [2,5] overlap to become 1..5
-          #       [11,15] and [12,13] overlap and [12,13] is effectively discarded
-          #       [20,30] and [25,35] overlap and become 20..35
-          #       [6,10] and [40,50] don't overlap with any other pair
-          expected = [1..5, 6..10, 11..15, 20..35, 40..50]
+        def test_ranges_intersect_they_do
+          assert basic_segment.send(:ranges_intersect?, 1..3, 2..4)
+        end
+
+        def test_ranges_intersect_they_do_not
+          refute basic_segment.send(:ranges_intersect?, 1..3, 4..5)
+        end
+
+        # 1..3 and 2..4 overlap for a value of 1 (the distance between 2 and 3)
+        def test_range_overlap_for_intersecting_ranges
           segment = basic_segment
-          segment.instance_variable_set(:@children_timings, input)
-          result = segment.send(:children_time_ranges)
+          segment.instance_variable_set(:@start_time, 1.0)
+          segment.instance_variable_set(:@end_time, 3.0)
 
-          assert_equal expected, result
+          assert_in_delta(1.0, segment.send(:range_overlap, 2.0..4.0))
         end
 
-        def overlapping_pairs
-          [[11, 30], [24, 38]]
-        end
+        # 1..3 and 4..5 don't overlap at all, so the overlap amount is zero
+        def test_range_overlap_for_non_intersecting_ranges
+          segment = basic_segment
+          segment.instance_variable_set(:@start_time, 1.0)
+          segment.instance_variable_set(:@end_time, 3.0)
 
-        def non_overlapping_pairs
-          [[1, 3], [5, 8]]
+          assert_in_delta(0.0, segment.send(:range_overlap, 4.0..5.0))
         end
-
-        def test_merging_of_timings
-          assert_equal [11, 38], basic_segment.send(:merge_timings, overlapping_pairs.first, overlapping_pairs.last)
-        end
-
-        def test_merging_of_timings_with_params_in_reverse
-          assert_equal [11, 38], basic_segment.send(:merge_timings, overlapping_pairs.last, overlapping_pairs.first)
-        end
-
-        def test_pairs_are_seen_as_overlapping
-          assert basic_segment.send(:timings_overlap?, overlapping_pairs.first, overlapping_pairs.last)
-        end
-
-        def test_pairs_are_seen_as_non_overlapping
-          refute basic_segment.send(:timings_overlap?, non_overlapping_pairs.first, non_overlapping_pairs.last)
-        end
-        # END children time ranges
       end
     end
   end

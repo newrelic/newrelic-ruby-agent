@@ -84,7 +84,7 @@ unless Grape::VERSION == '0.1.5'
 
     def test_shared_version_declaration_in_transaction_names
       @app_class = GrapeVersioning::SharedApi
-      %w[ v1 v2 v3 v4 ].each do |v|
+      %w[v1 v2 v3 v4].each do |v|
         get("/#{v}/fish")
 
         assert_metrics_recorded("Controller/Grape/GrapeVersioning::SharedApi-#{v}/fish (GET)")
@@ -93,7 +93,7 @@ unless Grape::VERSION == '0.1.5'
 
     def test_shared_version_block_in_transaction_names
       @app_class = GrapeVersioning::SharedBlockApi
-      %w[ v1 v2 v3 v4 ].each do |v|
+      %w[v1 v2 v3 v4].each do |v|
         get("/#{v}/fish")
 
         assert_metrics_recorded("Controller/Grape/GrapeVersioning::SharedBlockApi-#{v}/fish (GET)")

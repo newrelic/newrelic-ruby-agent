@@ -14,10 +14,10 @@ jobs:
     outputs:
       changed: ${{ steps.branch_change_output.outputs.has-new-commits }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - name: check branch changes
         id: branch_change_output
-        uses: adriangl/check-new-commits-action@v1
+        uses: adriangl/check-new-commits-action@6556947ca20c2047ed733894258186619b84d282 # tag v1.0.6
         with:
           seconds: 604800
           branch: 'dev'
@@ -30,24 +30,24 @@ jobs:
       run:
         working-directory: ./test/performance
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
         with:
           ref: 'main'
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
-          ruby-version: '3.1'
+          ruby-version: '3.2'
       - run: bundle
       - run: script/runner -B
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - run: bundle
       - run: script/runner -C -M > performance_results.md
       - name: Save performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
         with:
           name: performance-test-results
           path: ./test/performance/performance_results.md
       - name: Slack results
-        uses: adrey/slack-file-upload-action@1.0.5
+        uses: adrey/slack-file-upload-action@903be3678c88966c762193f06530c39178b44d68 # tag v1.0.5
         with:
           token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
           path: ./test/performance/performance_results.md

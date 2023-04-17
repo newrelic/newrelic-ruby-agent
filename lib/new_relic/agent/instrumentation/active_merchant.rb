@@ -27,9 +27,9 @@ DependencyDetection.defer do
         actions = [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update]
         actions.each do |operation|
           if implemented_methods.include?(operation)
-            add_method_tracer operation, [-> (*) { "ActiveMerchant/gateway/#{gateway_name}/#{operation}" },
-              -> (*) { "ActiveMerchant/gateway/#{gateway_name}" },
-              -> (*) { "ActiveMerchant/operation/#{operation}" }]
+            add_method_tracer operation, [->(*) { "ActiveMerchant/gateway/#{gateway_name}/#{operation}" },
+              ->(*) { "ActiveMerchant/gateway/#{gateway_name}" },
+              ->(*) { "ActiveMerchant/operation/#{operation}" }]
           end
         end
       end

@@ -1,5 +1,19 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.2.0
+
+  Version 9.2.0 of the agent introduces some performance improvements for working with high numbers of nested actions, and deprecates instrumentation for the `memcached` and `memcache-client` gems (with `dalli` still being supported).
+
+- **Feature: Enhance performance for handling high numbers of nested actions**
+
+  With [Issue#1910](https://github.com/newrelic/newrelic-ruby-agent/issues/1910) community members [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell) informed us of some CPU spikes and process hangs seen only when using the agent's thread instrumentation, which was enabled by default with v9.0. When thread instrumentation is enabled, instrumented actions taking place within threads are seen and reported on by the agent whereas they would have previously gone unnoticed. This is a great improvement to the agent's usefulness in an async context, and also makes it easier for higher numbers of nested actions to be observed. 
+  For example, if an instrumented background job framework (Sidekiq, Resque) kicks off a job that the agent notices and then that job in turn performs actions such as database queries that the agent also instruments, nested actions are seen. However, with very high (10,000+) numbers of actions nested within a single instrumented outer action, the agent would struggle to efficiently crunch through all of the collected data at the time when the outer action finished. 
+  The agent should now be much more efficient when any observed action with lots of nested actions is finished. Our performance testing was conducted with hundreds of thousands of nested actions taking place, and we hope that the benefits of thread tracing can now be enjoyed without any drawbacks. Thanks very much [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell)! [PR#1927](https://github.com/newrelic/newrelic-ruby-agent/pull/1927)
+
+- **Feature: Deprecate memcached and memcache-client instrumentation**
+
+  Instrumentation for the memcached and memcache-client libraries is deprecated and will be removed during the next major release.
+
 ## v9.1.0
 
   Version 9.1.0 of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timestream data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.

@@ -40,13 +40,4 @@ gemfile <<~RB
   gem 'curb', '#{curb_gem_version}'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
-
-  
-RB
-
-gemfile <<~RB
-  gem 'curb', '#{curb_gem_version}'
-  gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
-  
 RB

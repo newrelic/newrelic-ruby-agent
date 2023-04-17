@@ -6,8 +6,8 @@ require 'time'
 
 module Performance
   class Result
-    attr_reader :test_name, :measurements, :tags, :timer, :artifacts
-    attr_accessor :exception, :iterations
+    attr_reader :test_name, :measurements, :tags, :timer, :artifacts, :exception
+    attr_accessor :iterations
 
     def initialize(test_case, test_name)
       @test_case = test_case

@@ -42,7 +42,7 @@ class GenerateReleaseNotes
     <<~FRONTMATTER
       #{DIVIDER}
       subject: Ruby agent
-      date: #{Date.today}
+      releaseDate: #{Date.today}
       version: #{NewRelic::VERSION::STRING}
       downloadLink: https://rubygems.org/downloads/newrelic_rpm-#{NewRelic::VERSION::STRING}.gem
       features: #{metadata[:features]}
@@ -55,13 +55,24 @@ class GenerateReleaseNotes
     FRONTMATTER
   end
 
-  def write_filename
-    "ruby-agent-#{NewRelic::VERSION::STRING.tr('.', '-')}.mdx"
+  def hyphenated_version_string
+    NewRelic::VERSION::STRING.tr('.', '-')
+  end
+
+  def write_file_name
+    "ruby-agent-#{hyphenated_version_string}.mdx"
   end
 
   def write_output_file
-    File.write(write_filename, build_release_content)
+    File.write(write_file_name, build_release_content)
+  end
+
+  # The following 2 methods are used for dynamic naming in release_notes.yml
+  def file_name
+    puts write_file_name
+  end
+
+  def branch_name
+    puts "ruby_release_notes_#{hyphenated_version_string}"
   end
 end
-
-GenerateReleaseNotes.new.write_output_file

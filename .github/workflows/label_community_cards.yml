@@ -6,12 +6,15 @@ on:
   pull_request_target:
     types: [opened]
 
+permissions:
+  issues: write
+
 jobs:
   Check_contributor_handle:
     runs-on: ubuntu-latest
     steps:
       - name: Label community issue
-        uses: actions/github-script@v5
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # tag v6.4.1
         with:
          script: |
            github.rest.issues.addLabels({

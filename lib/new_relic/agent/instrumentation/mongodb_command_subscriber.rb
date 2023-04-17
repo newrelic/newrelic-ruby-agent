@@ -21,7 +21,7 @@ module NewRelic
           end
         end
 
-        ERROR_KEYS = %w[ writeErrors writeConcernError writeConcernErrors ].freeze
+        ERROR_KEYS = %w[writeErrors writeConcernError writeConcernErrors].freeze
 
         def error_key_present?(event)
           if reply = event.reply

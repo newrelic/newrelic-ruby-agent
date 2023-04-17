@@ -25,7 +25,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_instrument to_instrument, NewRelic::Agent::Instrumentation::Elasticsearch::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Elasticsearch
+      chain_instrument NewRelic::Agent::Instrumentation::Elasticsearch::Chain
     end
   end
 end
