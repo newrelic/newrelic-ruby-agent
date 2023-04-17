@@ -42,7 +42,7 @@ class GenerateReleaseNotes
     <<~FRONTMATTER
       #{DIVIDER}
       subject: Ruby agent
-      releaseDate: #{Date.today}
+      releaseDate: '#{Date.today}'
       version: #{NewRelic::VERSION::STRING}
       downloadLink: https://rubygems.org/downloads/newrelic_rpm-#{NewRelic::VERSION::STRING}.gem
       features: #{metadata[:features]}
