@@ -13,6 +13,11 @@ jobs:
     name: Run Repolinter
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@03bee3930647ebbf994244c21ddbc0d4933aab4f # v2.3.0
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
       - name: Test Default Branch
         id: default-branch
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # tag v6.4.1
