@@ -8,6 +8,7 @@ on:
 
 permissions:
   issues: write
+  pull-requests: write
 
 jobs:
   Check_contributor_handle:

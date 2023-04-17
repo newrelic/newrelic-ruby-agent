@@ -8,6 +8,9 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      repository-projects: write
     steps:
     - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       with:
@@ -41,9 +44,6 @@ jobs:
     - name: Create github release
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # tag v0.1.15
       if: $(git tag -l ${{ env.VERSION }}) == false
-      permissions:
-        contents: write
-        repository-projects: write
       with:
         tag_name: ${{ env.VERSION }}
       env:
