@@ -119,6 +119,7 @@ module NewRelic
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.start(options)
+        # NewRelic::Agent.logger.debug("waluigi start txn - id: #{txn.guid} | name: #{txn.best_name}")
         txn
       end
 
@@ -277,10 +278,12 @@ module NewRelic
       end
 
       def set_current_segment(new_segment)
+        # NewRelic::Agent.logger.debug("waluigi set_current_segment - size: #{current_segment_by_thread.size}")
         @current_segment_lock.synchronize { current_segment_by_thread[current_segment_key] = new_segment }
       end
 
       def remove_current_segment_by_thread_id(id)
+        # NewRelic::Agent.logger.debug("waluigi remove_current_segment - size: #{current_segment_by_thread.size}")
         @current_segment_lock.synchronize { current_segment_by_thread.delete(id) }
       end
 
@@ -516,6 +519,7 @@ module NewRelic
 
       def finish
         return unless state.is_execution_traced?
+        # NewRelic::Agent.logger.debug("waluigi finish txn 1 - id: #{guid} | name: #{best_name}")
 
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @duration = @end_time - @start_time
@@ -533,6 +537,7 @@ module NewRelic
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
         commit!(initial_segment.name) unless @ignore_this_transaction
+        # NewRelic::Agent.logger.debug("waluigi finish txn 2 - id: #{guid} | name: #{best_name}")
       rescue => e
         NewRelic::Agent.logger.error('Exception during Transaction#finish', e)
         nil

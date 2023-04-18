@@ -49,10 +49,12 @@ module NewRelic
           @code_function = nil
           @code_lineno = nil
           @code_namespace = nil
+          # NewRelic::Agent.logger.debug("waluigi initialize segment - id: #{guid} | name: #{name}")
         end
 
         def start
           @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
+          # NewRelic::Agent.logger.debug("waluigi start segment - id: #{guid} | name: #{name} | txn_id: #{transaction&.guid} | best_name: #{transaction&.best_name} | txn_segments: #{transaction&.segments&.size}")
           return unless transaction
 
           parent&.child_start(self)
@@ -61,6 +63,7 @@ module NewRelic
         def finish
           @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = end_time - start_time
+          # NewRelic::Agent.logger.debug("waluigi finish segment - id: #{guid} | name: #{name} | txn_id: #{transaction&.guid} | best_name: #{transaction&.best_name}")
 
           return unless transaction
 
