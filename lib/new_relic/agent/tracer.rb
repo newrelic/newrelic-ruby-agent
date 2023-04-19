@@ -423,19 +423,18 @@ module NewRelic
           parent ||= current_segment
           current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
           proc do
-            begin
-              # NewRelic::Agent.logger.debug("waluigi start thread - thread_id: #{Thread.current.object_id} | current_txn_id: #{current_txn&.guid} | finished?: #{current_txn&.initial_segment&.finished?}")
-              if current_txn && !current_txn.initial_segment.finished?
-                NewRelic::Agent::Tracer.state.current_transaction = current_txn
-                current_txn.async = true
-                segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
-                segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent)
+            # NewRelic::Agent.logger.debug("waluigi start thread - thread_id: #{Thread.current.object_id} | current_txn_id: #{current_txn&.guid} | finished?: #{current_txn&.initial_segment&.finished?}")
+            if current_txn && !current_txn.initial_segment.finished?
+              NewRelic::Agent::Tracer.state.current_transaction = current_txn
+              current_txn.async = true
+              segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
+              segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent)
+              NewRelic::Agent::Tracer.capture_segment_error(segment) do
+                yield(*args)
               end
-              # NewRelic::Agent::Tracer.capture_segment_error(segment) do
-              yield(*args)
-              # end
-            ensure
               ::NewRelic::Agent::Transaction::Segment.finish(segment)
+            else
+              NewRelic::Agent.disable_all_tracing { yield(*args) }
             end
           end
         end
