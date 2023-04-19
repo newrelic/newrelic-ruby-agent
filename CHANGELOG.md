@@ -2,7 +2,7 @@
 
 ## dev
 
-- **Feature: The agent configuration will now reflect whether method prepending or chaining was used per instrumentation
+- **Feature: The agent configuration will now reflect whether method prepending or chaining was used per instrumentation**
 
   For `:'instrumentation.*'` configuration parameters that are set to :auto (the default), the agent will automatically determine whether to use method prepending or chaining. The agent will now update its in-memory configuration to give each relevant parameter a value of either :prepend or :chain so that the result of the determination can be introspected. This is intended to help 3rd party libraries that wish to further enhance the agent's instrumentation capabilities by prepending or chaining additional logic. Environment variable, YAML file, and server-side configuration based values are not impacted. [PR#1930](https://github.com/newrelic/newrelic-ruby-agent/pull/1930)
 
