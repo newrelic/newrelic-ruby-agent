@@ -238,6 +238,8 @@ module NewRelic
           start_time: nil,
           parent: nil)
 
+          return if !current_transaction || current_transaction.finished?
+
           segment = Transaction::Segment.new(name, unscoped_metrics, start_time)
           start_and_add_segment(segment, parent)
         rescue ArgumentError
@@ -336,6 +338,7 @@ module NewRelic
           procedure:,
           start_time: nil,
           parent: nil)
+          return if !current_transaction || current_transaction.finished?
 
           segment = Transaction::ExternalRequestSegment.new(library, uri, procedure, start_time)
           start_and_add_segment(segment, parent)
@@ -434,7 +437,7 @@ module NewRelic
               end
               ::NewRelic::Agent::Transaction::Segment.finish(segment)
             else
-              NewRelic::Agent.disable_all_tracing { yield(*args) }
+              yield(*args)
             end
           end
         end
