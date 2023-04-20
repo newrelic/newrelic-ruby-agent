@@ -1,7 +1,7 @@
 # New Relic Ruby Agent Release Notes
 
 ## dev
-
+  Version ___ fixes a bug preventing errors from being expected.
 
 - **Bugfix: Expected Errors passed to notice_error are expected again**
 
