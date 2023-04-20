@@ -238,7 +238,7 @@ module NewRelic
           start_time: nil,
           parent: nil)
 
-          return if !current_transaction || current_transaction.initial_segment.finished?
+          return if !current_transaction || current_transaction&.initial_segment&.finished?
 
           segment = Transaction::Segment.new(name, unscoped_metrics, start_time)
           start_and_add_segment(segment, parent)
