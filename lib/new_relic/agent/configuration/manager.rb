@@ -15,6 +15,8 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
+        DEPENDENCY_DETECTION_VALUES = %i[prepend chain].freeze
+
         # Defining these explicitly saves object allocations that we incur
         # if we use Forwardable and def_delegators.
         def [](key)
@@ -357,7 +359,18 @@ module NewRelic
           reset_cache
         end
 
+        # reset the configuration hash, but do not replace previously auto
+        # determined dependency detection values with nil or 'auto'
         def reset_cache
+          return new_cache unless @cache
+
+          preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+          new_cache
+          preserved.each { |k, v| @cache[k] = v unless @cache[k] && @cache[k] != 'auto' }
+          @cache
+        end
+
+        def new_cache
           @cache = Hash.new { |hash, key| hash[key] = self.fetch(key) }
         end
 
