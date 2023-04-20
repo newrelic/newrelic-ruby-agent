@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+  Version ___ fixes a bug preventing errors from being expected.
+
+- **Bugfix: Expected Errors passed to notice_error are expected again**
+
+  A bug was introduced in 9.1.0 that caused to agent not to mark errors as expected if the error was passed in to `notice_error` using the `expected: true` parameter. This has been fixed and errors will now be marked as expected, as expected. Thank you very much to [@eiskrenkov](https://github.com/eiskrenkov) for finding this bug and contributing a fix for it! [PR#1954](https://github.com/newrelic/newrelic-ruby-agent/pull/1954)
+
+
+
 ## v9.2.0
 
   Version 9.2.0 of the agent introduces some performance improvements for working with high numbers of nested actions, and deprecates instrumentation for the `memcached` and `memcache-client` gems (with `dalli` still being supported).
