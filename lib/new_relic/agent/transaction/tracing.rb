@@ -29,6 +29,10 @@ module NewRelic
           else
             segment.record_on_finish = true
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
+            unless !NewRelic::Agent::Tracer.current_transaction&.initial_segment&.finished?
+              ::NewRelic::Agent.logger.debug("Transaction #{NewRelic::Agent::Tracer.current_transaction&.best_name} has finished, ceasing segment collection.")
+              NewRelic::Agent::Tracer.state.reset
+            end
           end
           segment.transaction_assigned
         end
