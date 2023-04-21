@@ -186,11 +186,11 @@ module NewRelic
       def append_custom_attributes!(txn, atts)
         custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
         if custom_attributes.empty?
-          NewRelic::Agent.logger.debug("#{self.class}: No custom attributes found to append.")
+          NewRelic::Agent.logger.debug("#{self.class}: wario - No custom attributes found to append.")
           return
         end
 
-        NewRelic::Agent.logger.debug("#{self.class}: Appending the following custom attribute keys for browser " \
+        NewRelic::Agent.logger.debug("#{self.class}: waluigi - Appending the following custom attribute keys for browser " \
           "monitoring: #{custom_attributes.keys}")
         atts[ATTS_USER_SUBKEY] = custom_attributes
       end
@@ -198,7 +198,12 @@ module NewRelic
       def append_agent_attributes!(txn, atts)
         agent_attributes = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_BROWSER_MONITORING)
         unless agent_attributes.empty?
+          NewRelic::Agent.logger.debug("#{self.class}: waluigi - Appending the following agent attribute keys for browser " \
+            "monitoring: #{agent_attributes.keys}")
           atts[ATTS_AGENT_SUBKEY] = agent_attributes
+          else
+            NewRelic::Agent.logger.debug("#{self.class}: wario - No agent attributes found to append.")
+          end
         end
       end
 
