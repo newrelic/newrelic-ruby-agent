@@ -192,6 +192,7 @@ module NewRelic
 
         NewRelic::Agent.logger.debug("#{self.class}: waluigi - Appending the following custom attribute keys for browser " \
           "monitoring: #{custom_attributes.keys}")
+          NewRelic::Agent.logger.debug("Should be excluded: #{NewRelic::Agent.config[:'browser_monitoring.attributes.exclude']}")
         atts[ATTS_USER_SUBKEY] = custom_attributes
       end
 
@@ -200,6 +201,7 @@ module NewRelic
         unless agent_attributes.empty?
           NewRelic::Agent.logger.debug("#{self.class}: waluigi - Appending the following agent attribute keys for browser " \
             "monitoring: #{agent_attributes.keys}")
+            NewRelic::Agent.logger.debug("Should be excluded: #{NewRelic::Agent.config[:'browser_monitoring.attributes.exclude']}")
           atts[ATTS_AGENT_SUBKEY] = agent_attributes
           else
             NewRelic::Agent.logger.debug("#{self.class}: wario - No agent attributes found to append.")
