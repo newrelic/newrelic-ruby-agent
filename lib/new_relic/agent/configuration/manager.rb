@@ -362,7 +362,7 @@ module NewRelic
         # reset the configuration hash, but do not replace previously auto
         # determined dependency detection values with nil or 'auto'
         def reset_cache
-          return new_cache unless @cache
+          return new_cache unless defined?(@cache) && @cache
 
           preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
           new_cache
