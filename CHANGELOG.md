@@ -19,6 +19,10 @@
   For example, if an instrumented background job framework (Sidekiq, Resque) kicks off a job that the agent notices and then that job in turn performs actions such as database queries that the agent also instruments, nested actions are seen. However, with very high (10,000+) numbers of actions nested within a single instrumented outer action, the agent would struggle to efficiently crunch through all of the collected data at the time when the outer action finished. 
   The agent should now be much more efficient when any observed action with lots of nested actions is finished. Our performance testing was conducted with hundreds of thousands of nested actions taking place, and we hope that the benefits of thread tracing can now be enjoyed without any drawbacks. Thanks very much [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell)! [PR#1927](https://github.com/newrelic/newrelic-ruby-agent/pull/1927)
 
+- **Feature: The agent configuration will now reflect whether module prepending or method chaining was used for instrumentation**
+
+  For `:'instrumentation.*'` configuration parameters that are set to :auto (the default), the agent will automatically determine whether to use module prepending or method chaining. The agent will now update its in-memory configuration to give each relevant parameter a value of either :prepend or :chain so that the result of the determination can be introspected. This is intended to help 3rd party libraries that wish to further enhance the agent's instrumentation capabilities by prepending or chaining additional logic. Environment variable, YAML file, and server-side configuration based values are not impacted. [PR#1930](https://github.com/newrelic/newrelic-ruby-agent/pull/1930)
+
 - **Feature: Deprecate memcached and memcache-client instrumentation**
 
   Instrumentation for the memcached and memcache-client libraries is deprecated and will be removed during the next major release.

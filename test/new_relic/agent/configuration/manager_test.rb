@@ -491,6 +491,26 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_auto_determined_values_stay_cached
+      name = :knockbreck_manse
+
+      dd = DependencyDetection.defer do
+        named(name)
+        executes { use_prepend? }
+      end
+
+      key = :"instrumentation.#{name}"
+      with_config(key => 'auto') do
+        DependencyDetection.detect!
+
+        @manager.replace_or_add_config(ServerSource.new({}))
+
+        assert_equal :prepend, @manager.instance_variable_get(:@cache)[key]
+      end
+    end
+
+    private
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
 
