@@ -352,7 +352,7 @@ common: &default_settings
 
   # Controls auto-instrumentation of Excon at start up.
   # May be one of [enabled|disabled].
-  # instrumentation.excon: auto
+  # instrumentation.excon: enabled
 
   # Controls auto-instrumentation of Grape at start up.
   # May be one of [auto|prepend|chain|disabled].
@@ -388,7 +388,7 @@ common: &default_settings
 
   # Controls auto-instrumentation of Mongo at start up.
   # May be one of [enabled|disabled].
-  # instrumentation.mongo: auto
+  # instrumentation.mongo: enabled
 
   # Controls auto-instrumentation of Net::HTTP at start up.
   # May be one of [auto|prepend|chain|disabled].
