@@ -400,7 +400,7 @@ class DependencyDetectionTest < Minitest::Test
     end
   end
 
-  # confirm that :auto becames :chain when :chain is automatically determined
+  # confirm that :auto becomes :chain when :chain is automatically determined
   def test_auto_is_replaced_by_chain_when_chain_is_used
     name = :blank_and_jones
 
