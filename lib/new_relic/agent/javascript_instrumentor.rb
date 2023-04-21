@@ -203,9 +203,8 @@ module NewRelic
             "monitoring: #{agent_attributes.keys}")
             NewRelic::Agent.logger.debug("Should be excluded: #{NewRelic::Agent.config[:'browser_monitoring.attributes.exclude']}")
           atts[ATTS_AGENT_SUBKEY] = agent_attributes
-          else
+         else
             NewRelic::Agent.logger.debug("#{self.class}: wario - No agent attributes found to append.")
-          end
         end
       end
 
