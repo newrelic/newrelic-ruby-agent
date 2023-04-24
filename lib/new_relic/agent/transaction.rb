@@ -439,6 +439,10 @@ module NewRelic
         segments.first
       end
 
+      def finished?
+        initial_segment.finished?
+      end
+
       def create_initial_segment(options = {})
         segment = create_segment(@default_name, options)
         segment.record_scoped_metric = false
