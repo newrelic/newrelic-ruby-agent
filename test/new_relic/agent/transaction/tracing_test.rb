@@ -447,6 +447,32 @@ module NewRelic
           end
         end
 
+        def test_trace_should_reset_state_if_segment_limit_reached_and_transaction_finished
+          with_config(:'transaction_tracer.limit_segments' => 3) do
+            txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
+            threads = []
+            threads << Thread.new do
+              segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation')
+              segment.finish
+
+              assert NewRelic::Agent::Tracer.current_transaction
+              sleep(0.01) until txn.finished?
+              segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation2')
+              segment.finish
+              segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation3')
+              segment.finish
+              segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation4')
+              segment.finish
+
+              assert_metrics_recorded('Supportability/Transaction/SegmentLimitReachedAfterFinished/ResetState')
+              assert_nil Tracer.current_transaction
+            end
+            sleep(0.01) until txn.segments.size >= 2
+            txn.finish
+            threads.each(&:join)
+          end
+        end
+
         def test_threshold_recorded_for_trace
           with_config(:'transaction_tracer.transaction_threshold' => 2.0) do
             in_transaction {}

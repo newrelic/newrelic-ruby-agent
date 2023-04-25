@@ -312,6 +312,7 @@ module NewRelic
             assert_nil Tracer.current_transaction
           end
         end
+        sleep(0.01) until txn.segments.size >= 2
         txn.finish
         threads.each(&:join)
       end
