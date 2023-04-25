@@ -6,6 +6,7 @@ on:
 
 permissions:
   issues: write
+  repository-projects: write
 
 env:
   MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
