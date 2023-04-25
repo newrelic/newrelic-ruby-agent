@@ -1,7 +1,12 @@
 # New Relic Ruby Agent Release Notes
 
 ## dev
-  Version ___ fixes a bug preventing errors from being expected.
+  Version ___ fixes a bug causing the agent to continue storing data on finished transaction, and a bug preventing errors from being expected.
+
+- **Bugfix: Finished transactions continue to store data on different threads**
+
+  Previously, when a new thread was spawned the agent would continue using the current transaction to record data on, even if this transaction had finished already in a different thread. Now the agent will only use the current transaction in the new thread if it is not yet finished. Thank you to [@fcheung](https://github.com/fcheung) for reporting this bug and providing us with an extremely helpful reproduction to debug. [PR#1969](https://github.com/newrelic/newrelic-ruby-agent/pull/1969)
+
 
 - **Bugfix: Expected Errors passed to notice_error are expected again**
 
