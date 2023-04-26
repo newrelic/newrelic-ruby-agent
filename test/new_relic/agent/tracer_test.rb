@@ -301,6 +301,22 @@ module NewRelic
         assert_nil Tracer.current_segment
       end
 
+      def test_traced_threads_dont_keep_using_finished_transaction
+        txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
+        threads = []
+        threads << Thread.new do
+          segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation')
+          sleep(0.01) until txn.finished?
+
+          threads << Thread.new do
+            assert_nil Tracer.current_transaction
+          end
+        end
+        sleep(0.01) until txn.segments.size >= 2
+        txn.finish
+        threads.each(&:join)
+      end
+
       def test_current_segment_in_nested_threads_with_traced_thread
         assert_nil Tracer.current_segment
 
