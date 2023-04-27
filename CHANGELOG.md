@@ -2,7 +2,7 @@
 
 ## v9.2.1
 
-  Version 9.2.1 fixes a bug causing the agent to continue storing data on finished transaction, and a bug preventing errors from being expected.
+  Version 9.2.1 fixes a bug causing the agent to continue storing data on finished transactions, and a bug preventing errors from being expected.
 
 - **Bugfix: Finished transactions continue to store data on different threads**
 
