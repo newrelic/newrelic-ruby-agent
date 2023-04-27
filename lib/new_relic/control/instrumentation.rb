@@ -62,7 +62,6 @@ module NewRelic
           File.join(instrumentation_path, app.to_s, '*.rb')
         @instrumentation_files.each { |pattern| load_instrumentation_files(pattern) }
         DependencyDetection.detect!
-        ruby_deprecation
         rails_32_deprecation
         ::NewRelic::Agent.logger.info('Finished instrumentation')
       end
@@ -77,19 +76,6 @@ module NewRelic
       Agent.logger.log_once(
         :warn,
         :deprecated_rails_version,
-        deprecation_msg
-      )
-    end
-
-    def ruby_deprecation
-      return unless RUBY_VERSION < '2.4.0'
-
-      deprecation_msg = 'The Ruby Agent is dropping support for Rubies below 2.4 ' \
-        'in version 9.0.0. Please upgrade your Ruby version to continue receiving support. ' \
-
-      ::NewRelic::Agent.logger.log_once(
-        :warn,
-        :deprecated_ruby_version,
         deprecation_msg
       )
     end

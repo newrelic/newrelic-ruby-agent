@@ -26,9 +26,6 @@ module NewRelic::Agent
         Integer => :int_value,
         Float => :double_value
       }
-      if RUBY_VERSION < '2.4.0'
-        KLASS_TO_ARG[Fixnum] = :int_value
-      end
       if defined? BigDecimal
         KLASS_TO_ARG[BigDecimal] = :double_value
       end
