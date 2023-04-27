@@ -102,7 +102,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
 
-      assert_equal(2, errors.size)
+      assert_equal(2, errors.size, "Expected 2 errors, got #{errors.inspect}")
     end
 
     def test_listener_merges_analytics_events
@@ -151,7 +151,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       _, errors = error_event_aggregator.harvest!
 
-      assert_equal(2, errors.size)
+      assert_equal(2, errors.size, "Expected 2 errors, got #{errors.inspect}")
       assert_lifetime_counts(error_event_aggregator, 2)
     end
 
