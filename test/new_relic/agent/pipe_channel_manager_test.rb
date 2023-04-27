@@ -102,11 +102,11 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
 
-      # Fails on CI on 2.5.9, Rails 6.1.0, but not locally
-      sleep(0.1) if RUBY_VERSION == '2.5.9' && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 1
+      # Fails on CI on 2.5.9, Rails 6.1.0, but not locally. 
+      # sleep(0.1) if RUBY_VERSION == '2.5.9' && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 1
 
-
-      assert_equal(2, errors.size)
+      # assert_equal(2, errors.size)
+      assert(2 == errors.size, "These are the errors: #{errors.inspect}")
     end
 
     def test_listener_merges_analytics_events
@@ -156,9 +156,10 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       _, errors = error_event_aggregator.harvest!
 
       # Fails on CI on 2.5.9, Rails 6.1.0, but not locally
-      sleep(0.1) if RUBY_VERSION == '2.5.9' && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 1
+      # sleep(0.1) if RUBY_VERSION == '2.5.9' && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 1
 
-      assert_equal(2, errors.size)
+      # assert_equal(2, errors.size)
+      assert(2 == errors.size, "These are the errors: #{errors.inspect}")
       assert_lifetime_counts(error_event_aggregator, 2)
     end
 
