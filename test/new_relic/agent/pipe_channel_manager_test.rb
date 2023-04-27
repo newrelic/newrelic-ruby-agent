@@ -102,7 +102,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
 
-      puts errors.inspect
+      # Fails on CI on 2.5.9, Rails 6.1.0, but not locally
+      sleep(0.1) if RUBY_VERSION == '2.5.9' && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 1
+
 
       assert_equal(2, errors.size)
     end
@@ -153,7 +155,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       end
       _, errors = error_event_aggregator.harvest!
 
-      puts errors.inspect
+      # Fails on CI on 2.5.9, Rails 6.1.0, but not locally
+      sleep(0.1) if RUBY_VERSION == '2.5.9' && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 6 && Rails::VERSION::MINOR == 1
 
       assert_equal(2, errors.size)
       assert_lifetime_counts(error_event_aggregator, 2)
