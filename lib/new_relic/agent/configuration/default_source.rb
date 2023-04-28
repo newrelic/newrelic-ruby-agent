@@ -2213,7 +2213,7 @@ module NewRelic
         },
         # security agent
         :'security.agent.enabled' => {
-          :default => false,
+          :default => true,
           :external => true,
           :public => true,
           :type => Boolean,
@@ -2221,7 +2221,7 @@ module NewRelic
           :description => 'If `true`, the security agent is loaded'
         },
         :'security.enabled' => {
-          :default => false,
+          :default => true,
           :external => true,
           :public => true,
           :type => Boolean,
