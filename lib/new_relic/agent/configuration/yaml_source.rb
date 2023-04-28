@@ -33,6 +33,7 @@ module NewRelic
 
             ::NewRelic::Agent.logger.info("Reading configuration from #{path} (#{Dir.pwd})")
             raw_file = File.read(@file_path)
+            ::NewRelic::Agent.logger.debug("waluigi: raw_file: #{raw_file}}")
             erb_file = process_erb(raw_file)
             config = process_yaml(erb_file, env, config, @file_path)
           rescue ScriptError, StandardError => e
