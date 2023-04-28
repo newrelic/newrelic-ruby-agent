@@ -116,6 +116,7 @@ module NewRelic
       def start_agent
         @started_in_env = self.env
         NewRelic::Agent.agent.start
+        init_security_agent
       end
 
       def app

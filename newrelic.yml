@@ -692,6 +692,31 @@ common: &default_settings
   # If true, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.
   # utilization.detect_pcf: true
 
+  # BEGIN security agent
+
+  # If true, the security agent is loaded
+  # security.agent.enabled: false
+
+  # If true, the security agent is activated
+  # security.enabled: false
+
+  # The mode for the security agent to operate in. Currently only 'IAST' is supported
+  # security.mode: IAST
+
+  # Defines the end point URL for posting security related data
+  # security.validator_service_url: wss://csec.nr-data.net
+
+  # If `true`, enables rci detection
+  # security.detection.rci.enabled: true
+
+  # If `true`, enables rxss detection
+  # security.detection.rxss.enabled: true
+
+  # If `true`, enables deserialization detection
+  # security.detection.deserialization.enabled: true
+
+  # END security agent
+
 # Environment-specific settings are in this section.
 # RAILS_ENV or RACK_ENV (as appropriate) is used to determine the environment.
 # If your application has other named environments, configure them here.

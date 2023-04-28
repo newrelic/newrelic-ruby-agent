@@ -46,6 +46,9 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/newrelic/rpm'
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
+
+#  s.add_dependency 'newrelic_security', '1.0.0-limited-preview'
+
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby

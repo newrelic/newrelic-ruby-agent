@@ -43,6 +43,19 @@ module NewRelic
           DependencyDetection.detect!
         end
       end
+
+      def init_security_agent
+        if Agent.config[:'security.agent.enabled']
+          Agent.logger.info('Invoking K2 security module')
+          require 'newrelic_security'
+        else
+          Agent.logger.info('K2 security module is disabled.')
+        end
+      rescue LoadError
+        Agent.logger.info('K2 security agent not found - skipping')
+      rescue StandardError => exception
+        Agent.logger.error("Exception in K2 Agent module loading: #{exception} #{exception.backtrace}")
+      end
     end
   end
 end

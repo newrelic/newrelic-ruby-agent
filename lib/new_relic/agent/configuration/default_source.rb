@@ -2210,6 +2210,65 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
+        },
+        # security agent
+        :'security.agent.enabled' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the security agent is loaded'
+        },
+        :'security.enabled' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the security agent is activated'
+        },
+        :'security.mode' => {
+          :default => 'IAST',
+          :external => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported',
+          :dynamic_name => true
+        },
+        :'security.validator_service_url' => {
+          :default => 'wss://csec.nr-data.net',
+          :external => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'Defines the end point URL for posting security related data',
+          :dynamic_name => true
+        },
+        :'security.detection.rci.enabled' => {
+          :default => true,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables rci detection'
+        },
+        :'security.detection.rxss.enabled' => {
+          :default => true,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables rxss detection'
+        },
+        :'security.detection.deserialization.enabled' => {
+          :default => true,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables deserialization detection'
         }
       }.freeze
     end
