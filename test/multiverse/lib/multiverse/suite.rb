@@ -276,6 +276,7 @@ module Multiverse
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless /^\s*gem .newrelic_rpm./.match?(gemfile_text)
+        f.puts newrelic_security_gemfile_line unless /^\s*gem .newrelic_security./.match?(gemfile_text)
         f.puts minitest_line unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
@@ -308,6 +309,10 @@ module Multiverse
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
       line ||= "gem 'newrelic_rpm', :path => '#{path}'"
       line
+    end
+
+    def newrelic_security_gemfile_line
+      "gem 'newrelic_security', path: '../../../../../newrelic_security', require: false"
     end
 
     def minitest_line
