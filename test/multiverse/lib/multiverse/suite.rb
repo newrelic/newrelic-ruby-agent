@@ -414,7 +414,7 @@ module Multiverse
     end
 
     def should_serialize?
-      ENV['SERIALIZE'] || debug
+      ENV['SERIALIZE'] || debug || environments.file_path.include?('active_record_pg')
     end
 
     def check_environment_condition
