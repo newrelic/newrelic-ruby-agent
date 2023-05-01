@@ -415,6 +415,7 @@ module Multiverse
 
     # active_record_pg test suite runs in serial to prevent database conflicts
     def should_serialize?
+      # TODO: Devise a way for an individual suite to express that it doesn't support parallel
       ENV['SERIALIZE'] || debug || self.directory.include?('active_record_pg')
     end
 
