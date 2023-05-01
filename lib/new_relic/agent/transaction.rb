@@ -440,7 +440,7 @@ module NewRelic
       end
 
       def finished?
-        initial_segment.finished?
+        initial_segment&.finished?
       end
 
       def create_initial_segment(options = {})
