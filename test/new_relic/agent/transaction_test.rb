@@ -1732,5 +1732,13 @@ module NewRelic::Agent
         end
       end
     end
+
+    def test_transaction_finished_works_when_inital_segment_nil
+      txn = Transaction.new(:web, {})
+
+      assert_empty txn.segments
+      assert_nil txn.initial_segment
+      refute txn.finished?
+    end
   end
 end

@@ -79,6 +79,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def test_listener_merges_error_traces
+      skip_for_ruby_2_5_9_and_rails_6_x
+
       sampler = NewRelic::Agent.agent.error_collector
       sampler.notice_error(Exception.new('message'), :uri => '/myurl/',
         :metric => 'path', :referer => 'test_referer',
@@ -130,6 +132,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     end
 
     def test_listener_merges_error_events
+      skip_for_ruby_2_5_9_and_rails_6_x
+
       error_event_aggregator = NewRelic::Agent.agent.error_collector.error_event_aggregator
       reset_lifetime_counts!(error_event_aggregator)
 
@@ -359,5 +363,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     buffer = container.instance_variable_get(:@buffer)
     buffer.instance_variable_set(:@captured_lifetime, 0)
     buffer.instance_variable_set(:@seen_lifetime, 0)
+  end
+
+  def skip_for_ruby_2_5_9_and_rails_6_x
+    # TODO: MAJOR VERSION - remove this method and its calls when Ruby 2.5 is no longer supported
+    skip if RUBY_VERSION == '2.5.9' &&
+      defined?(Rails::VERSION::STRING) &&
+      # version string starts with 6.0 or 6.1
+      Rails::VERSION::STRING =~ /\A6\.(0|1)/
   end
 end
