@@ -1,5 +1,20 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.2.1
+
+  Version 9.2.1 fixes a bug causing the agent to continue storing data on finished transactions, and a bug preventing errors from being expected.
+
+- **Bugfix: Finished transactions continue to store data on different threads**
+
+  Previously, when a new thread was spawned the agent would continue using the current transaction to record data on, even if this transaction had finished already in a different thread. Now the agent will only use the current transaction in the new thread if it is not yet finished. Thank you to [@fcheung](https://github.com/fcheung) for reporting this bug and providing us with an extremely helpful reproduction to debug. [PR#1969](https://github.com/newrelic/newrelic-ruby-agent/pull/1969)
+
+
+- **Bugfix: Expected Errors passed to notice_error are expected again**
+
+  A bug was introduced in 9.1.0 that caused to agent not to mark errors as expected if the error was passed in to `notice_error` using the `expected: true` parameter. This has been fixed and errors will now be marked as expected, as expected. Thank you very much to [@eiskrenkov](https://github.com/eiskrenkov) for finding this bug and contributing a fix for it! [PR#1954](https://github.com/newrelic/newrelic-ruby-agent/pull/1954)
+
+
+
 ## v9.2.0
 
   Version 9.2.0 of the agent introduces some performance improvements for working with high numbers of nested actions, and deprecates instrumentation for the `memcached` and `memcache-client` gems (with `dalli` still being supported).
@@ -9,6 +24,10 @@
   With [Issue#1910](https://github.com/newrelic/newrelic-ruby-agent/issues/1910) community members [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell) informed us of some CPU spikes and process hangs seen only when using the agent's thread instrumentation, which was enabled by default with v9.0. When thread instrumentation is enabled, instrumented actions taking place within threads are seen and reported on by the agent whereas they would have previously gone unnoticed. This is a great improvement to the agent's usefulness in an async context, and also makes it easier for higher numbers of nested actions to be observed. 
   For example, if an instrumented background job framework (Sidekiq, Resque) kicks off a job that the agent notices and then that job in turn performs actions such as database queries that the agent also instruments, nested actions are seen. However, with very high (10,000+) numbers of actions nested within a single instrumented outer action, the agent would struggle to efficiently crunch through all of the collected data at the time when the outer action finished. 
   The agent should now be much more efficient when any observed action with lots of nested actions is finished. Our performance testing was conducted with hundreds of thousands of nested actions taking place, and we hope that the benefits of thread tracing can now be enjoyed without any drawbacks. Thanks very much [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell)! [PR#1927](https://github.com/newrelic/newrelic-ruby-agent/pull/1927)
+
+- **Feature: The agent configuration will now reflect whether module prepending or method chaining was used for instrumentation**
+
+  For `:'instrumentation.*'` configuration parameters that are set to :auto (the default), the agent will automatically determine whether to use module prepending or method chaining. The agent will now update its in-memory configuration to give each relevant parameter a value of either :prepend or :chain so that the result of the determination can be introspected. This is intended to help 3rd party libraries that wish to further enhance the agent's instrumentation capabilities by prepending or chaining additional logic. Environment variable, YAML file, and server-side configuration based values are not impacted. [PR#1930](https://github.com/newrelic/newrelic-ruby-agent/pull/1930)
 
 - **Feature: Deprecate memcached and memcache-client instrumentation**
 

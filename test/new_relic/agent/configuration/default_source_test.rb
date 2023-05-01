@@ -10,6 +10,7 @@ module NewRelic::Agent::Configuration
     def setup
       @default_source = DefaultSource.new
       @defaults = ::NewRelic::Agent::Configuration::DEFAULTS
+      NewRelic::Agent.config.send(:new_cache)
     end
 
     def test_default_values_have_a_public_setting

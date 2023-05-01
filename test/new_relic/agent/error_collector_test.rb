@@ -453,7 +453,22 @@ module NewRelic::Agent
         assert trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to true"
       end
 
-      def test_unexpected_error_sets_expected_attribute_to_false
+      def test_explicitly_unexpected_error_sets_expected_attribute_to_false
+        in_transaction do
+          @error_collector.notice_error(StandardError.new, :expected => false)
+        end
+        traces = harvest_error_traces
+        events = harvest_error_events
+        event_attrs = events[0][0]
+        trace_attrs = traces[0].to_collector_array[4]
+
+        refute event_attrs['error.expected'],
+          "Intrinsic attributes should have 'error.expected' set to false when it's explicitly passed as false"
+        refute trace_attrs[:'error.expected'],
+          "Trace attributes should have 'error.expected' set to false when it's explicitly passed as false"
+      end
+
+      def test_implicitly_unexpected_error_sets_expected_attribute_to_false
         in_transaction do
           @error_collector.notice_error(StandardError.new)
         end

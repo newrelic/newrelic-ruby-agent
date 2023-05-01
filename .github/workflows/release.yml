@@ -21,7 +21,7 @@ jobs:
         ruby-version: 3.2
 
     - name: Install onetimepass
-      run: pip install onetimepass
+      run: pip install onetimepass==1.0.1
 
     - name: Configure gem credentials
       run: |

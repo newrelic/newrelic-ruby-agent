@@ -424,7 +424,7 @@ module NewRelic
           current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
           proc do
             begin
-              if current_txn
+              if current_txn && !current_txn.finished?
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
                 current_txn.async = true
                 segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
