@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.2.2
+
+  Version 9.2.2 of the agent fixes a bug with the `Transaction#finished?` method.
+
+- **Bugfix: Transaction#finished? no longer throws a NoMethodError when initial_segment is nil**
+
+  This change adds a safe navigation operator to `Transaction#finished?` to prevent `NoMethodErrors` when a transaction does not have any segments. Our thanks goes to [@JulienDefrance](https://github.com/JulienDefrance) for reporting this issue. [PR#1983](https://github.com/newrelic/newrelic-ruby-agent/pull/1983)
+
 ## v9.2.1
 
   Version 9.2.1 fixes a bug causing the agent to continue storing data on finished transactions, and a bug preventing errors from being expected.
@@ -21,8 +29,8 @@
 
 - **Feature: Enhance performance for handling high numbers of nested actions**
 
-  With [Issue#1910](https://github.com/newrelic/newrelic-ruby-agent/issues/1910) community members [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell) informed us of some CPU spikes and process hangs seen only when using the agent's thread instrumentation, which was enabled by default with v9.0. When thread instrumentation is enabled, instrumented actions taking place within threads are seen and reported on by the agent whereas they would have previously gone unnoticed. This is a great improvement to the agent's usefulness in an async context, and also makes it easier for higher numbers of nested actions to be observed. 
-  For example, if an instrumented background job framework (Sidekiq, Resque) kicks off a job that the agent notices and then that job in turn performs actions such as database queries that the agent also instruments, nested actions are seen. However, with very high (10,000+) numbers of actions nested within a single instrumented outer action, the agent would struggle to efficiently crunch through all of the collected data at the time when the outer action finished. 
+  With [Issue#1910](https://github.com/newrelic/newrelic-ruby-agent/issues/1910) community members [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell) informed us of some CPU spikes and process hangs seen only when using the agent's thread instrumentation, which was enabled by default with v9.0. When thread instrumentation is enabled, instrumented actions taking place within threads are seen and reported on by the agent whereas they would have previously gone unnoticed. This is a great improvement to the agent's usefulness in an async context, and also makes it easier for higher numbers of nested actions to be observed.
+  For example, if an instrumented background job framework (Sidekiq, Resque) kicks off a job that the agent notices and then that job in turn performs actions such as database queries that the agent also instruments, nested actions are seen. However, with very high (10,000+) numbers of actions nested within a single instrumented outer action, the agent would struggle to efficiently crunch through all of the collected data at the time when the outer action finished.
   The agent should now be much more efficient when any observed action with lots of nested actions is finished. Our performance testing was conducted with hundreds of thousands of nested actions taking place, and we hope that the benefits of thread tracing can now be enjoyed without any drawbacks. Thanks very much [@parkerfinch](https://github.com/parkerfinch) and [@travisbell](https://github.com/travisbell)! [PR#1927](https://github.com/newrelic/newrelic-ruby-agent/pull/1927)
 
 - **Feature: The agent configuration will now reflect whether module prepending or method chaining was used for instrumentation**
