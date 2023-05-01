@@ -412,9 +412,10 @@ module Multiverse
     def log_test_running_process
       puts yellow("Starting tests in child PID #{Process.pid} at #{Time.now}\n")
     end
-
+    
+    # active_record_pg test suite runs in serialize to prevent database conflicts
     def should_serialize?
-      ENV['SERIALIZE'] || debug || environments.file_path.include?('active_record_pg')
+      ENV['SERIALIZE'] || debug || self.directory.include?('active_record_pg')
     end
 
     def check_environment_condition
