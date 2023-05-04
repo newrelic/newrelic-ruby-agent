@@ -29,7 +29,7 @@ platforms :ruby, :rbx do
 end
 
 gem 'newrelic_rpm', path: '../../..'
-gem 'newrelic_security', path: '../../../vendor/newrelic_security'
+gem 'newrelic_security', path: '../../../vendor/newrelic_security', require: false
 
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
