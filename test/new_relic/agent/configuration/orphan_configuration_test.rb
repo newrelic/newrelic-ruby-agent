@@ -15,7 +15,7 @@ class OrphanedConfigTest < Minitest::Test
   def test_all_agent_config_keys_are_declared_in_default_source
     non_test_files.each do |file|
       lines_in(file).each_with_index do |line, index|
-        config_match = line.match(/Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
+        config_match = line.match(/(?<!Security::)Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
         next unless config_match
 
         config_keys = config_match.captures.map do |key|
