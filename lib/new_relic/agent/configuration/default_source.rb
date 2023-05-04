@@ -2213,7 +2213,7 @@ module NewRelic
         },
         # security agent
         :'security.agent.enabled' => {
-          :default => true,
+          :default => false,
           :external => true,
           :public => true,
           :type => Boolean,
