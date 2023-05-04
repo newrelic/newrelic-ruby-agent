@@ -312,7 +312,7 @@ module Multiverse
     end
 
     def newrelic_security_gemfile_line
-      "gem 'newrelic_security', path: '../../../../../newrelic_security', require: false"
+      "gem 'newrelic_security', path: '../../../../vendor/newrelic_security', require: false"
     end
 
     def minitest_line
