@@ -9,7 +9,7 @@ You can also extend the agent's performance monitoring to
 to help you improve the customer experience and make data-driven business decisions.
 
 The New Relic Ruby agent is dual-purposed as either a Gem or a Rails plugin,
-hosted on [github](https://github.com/newrelic/newrelic-ruby-agent).
+hosted on [GitHub](https://github.com/newrelic/newrelic-ruby-agent).
 
 This code is actively maintained by New Relic engineering teams and delivered here in GitHub. See below for troubleshooting and defect reporting instructions.
 
@@ -25,7 +25,7 @@ Environments" section below.
 
 ## Installing and Using
 
-The latest released gem for the Ruby agent can be found at [Rubygems.org](https://rubygems.org/gems/newrelic_rpm)
+The latest released gem for the Ruby agent can be found at [RubyGems.org](https://rubygems.org/gems/newrelic_rpm)
 
 ### Quick Start
 
