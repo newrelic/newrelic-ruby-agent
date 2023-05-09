@@ -2,6 +2,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+begin
+  require 'fiber'
+rescue LoadError => e
+  NewRelic::Logger.warn("Failed to require 'fiber' - #{e.class}: #{e.message}")
+end
+
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction/datastore_segment'
@@ -411,7 +417,7 @@ module NewRelic
         alias_method :tl_clear, :clear_state
 
         def current_segment_key
-          ::Fiber.current.object_id
+          ::Fiber.current.object_id if defined?(Fiber)
         end
 
         def thread_tracing_enabled?
