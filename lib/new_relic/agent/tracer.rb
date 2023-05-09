@@ -417,7 +417,7 @@ module NewRelic
         alias_method :tl_clear, :clear_state
 
         def current_segment_key
-          ::Fiber.current.object_id if defined?(Fiber)
+          ::Fiber.current.object_id
         end
 
         def thread_tracing_enabled?
