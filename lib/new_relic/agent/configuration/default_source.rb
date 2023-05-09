@@ -2269,6 +2269,14 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, enables deserialization detection'
+        },
+        :'security.applicationinfo.port' => {
+          :default => -1,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => false,
+          :description => 'The port the application listens on (guessed by default, may be needed for Passenger)'
         }
       }.freeze
     end
