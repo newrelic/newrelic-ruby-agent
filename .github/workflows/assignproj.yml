@@ -10,11 +10,9 @@ env:
 jobs:
   assign_one_project:
     runs-on: ubuntu-latest
+    permissions: write-all
     continue-on-error: true
     name: Assign to One Project
-    permissions:
-      repository-projects: write
-    steps:
     - name: Assign NEW issues and NEW pull requests to project 2
       uses: srggrs/assign-one-project-github-action@65a8ddab497df42ef268001e67bbf976f8fd39e1 # tag v1.3.1
       if: github.event.action == 'opened'
