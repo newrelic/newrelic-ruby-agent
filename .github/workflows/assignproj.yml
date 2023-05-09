@@ -4,10 +4,6 @@ on:
   issues:
     types: [opened]
 
-permissions:
-  issues: write
-  repository-projects: write
-
 env:
   MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -16,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     name: Assign to One Project
+    permissions:
+      repository-projects: write
     steps:
     - name: Assign NEW issues and NEW pull requests to project 2
       uses: srggrs/assign-one-project-github-action@65a8ddab497df42ef268001e67bbf976f8fd39e1 # tag v1.3.1
