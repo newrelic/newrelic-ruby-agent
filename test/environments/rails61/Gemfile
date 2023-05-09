@@ -34,3 +34,7 @@ gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
 gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
 gem 'warning' if RUBY_VERSION >= '2.4.0'
+
+if RUBY_VERSION == '2.6.10'
+  gem 'nokogiri', '~> 1.13', '>= 1.13.10'
+end
