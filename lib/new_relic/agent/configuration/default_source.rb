@@ -2276,7 +2276,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => false,
-          :description => 'The port the application listens on (guessed by default, may be needed for Passenger)'
+          :description => 'The port the application listens on (Mandatory for Passenger, for other servers detected by default)'
         }
       }.freeze
     end
