@@ -12,11 +12,11 @@ module NewRelic
       attr_accessor :wait
 
       def agent_started?
-        @agent_started == true
+        (@agent_started ||= false) == true
       end
 
       def waiting?
-        @wait == true
+        (@wait ||= false) == true
       end
 
       def init_agent
