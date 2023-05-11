@@ -73,6 +73,7 @@ module NewRelic
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
         init_instrumentation
+        init_security_agent
       end
 
       def determine_env(options)
@@ -116,7 +117,6 @@ module NewRelic
       def start_agent
         @started_in_env = self.env
         NewRelic::Agent.agent.start
-        init_security_agent
       end
 
       def app
