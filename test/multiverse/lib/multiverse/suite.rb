@@ -288,7 +288,7 @@ module Multiverse
         f.puts "gem 'webrick', '< 1.8.0'"
         # f.puts ruby3_gem_webrick
 
-        f.puts "gem 'warning'" if RUBY_VERSION >= '2.4.0'
+        f.puts "gem 'warning'"
 
         if debug
           f.puts "gem 'pry', '~> 0.14'"
