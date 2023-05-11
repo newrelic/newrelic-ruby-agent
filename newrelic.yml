@@ -715,6 +715,9 @@ common: &default_settings
   # If `true`, enables deserialization detection
   # security.detection.deserialization.enabled: true
 
+  # The port the application listens on (Mandatory for Passenger, for other servers detected by default)
+  # security.applicationinfo.port: -1
+
   # END security agent
 
 # Environment-specific settings are in this section.

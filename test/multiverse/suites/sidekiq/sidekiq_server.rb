@@ -4,6 +4,7 @@
 
 require 'sidekiq'
 require 'sidekiq/cli'
+require 'singleton'
 require_relative '../../../helpers/docker'
 
 class SidekiqServer
