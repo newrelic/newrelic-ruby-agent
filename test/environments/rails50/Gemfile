@@ -27,4 +27,5 @@ gem 'newrelic_rpm', :path => '../../..'
 
 gem 'pry', '~> 0.12.2'
 gem 'pry-nav'
-gem 'warning' if RUBY_VERSION >= '2.4.0'
+gem 'warning'
+gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'

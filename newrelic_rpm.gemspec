@@ -63,6 +63,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'simplecov' if RUBY_VERSION >= '2.7.0'
   s.add_development_dependency 'thor' unless ENV['CI']
-  s.add_development_dependency 'warning' if RUBY_VERSION >= '2.4.0'
+  s.add_development_dependency 'warning'
   s.add_development_dependency 'yard'
 end
