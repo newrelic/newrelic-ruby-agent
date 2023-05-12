@@ -18,30 +18,28 @@ def gem_list(puma_version = nil)
     gem 'puma'#{puma_version}
     gem 'rack'
     gem 'rack-test'
-    
+
   RB
 end
 
 create_gemfiles(PUMA_VERSIONS)
 
-if RUBY_VERSION >= '2.4.0'
-  gemfile <<~RB
-    gem 'rack'
-    gem 'rack-test'
-    
-  RB
+gemfile <<~RB
+  gem 'rack'
+  gem 'rack-test'
 
-  gemfile <<~RB
-    gem 'rack', '2.2.4'
-    gem 'rack-test'
-    
-  RB
-end
+RB
+
+gemfile <<~RB
+  gem 'rack', '2.2.4'
+  gem 'rack-test'
+
+RB
 
 if RUBY_VERSION < '3.2.0'
   gemfile <<~RB
     gem 'rack', '1.6.13'
     gem 'rack-test'
-    
+
   RB
 end
