@@ -25,7 +25,7 @@ DependencyDetection.defer do
 
   executes do
     # enumerate the specific events we want so that we do not get unexpected additions in the future
-    ActiveSupport::Notifications.subscribe(/\A(?:perform_action|transmit|broadcast)\.action_cable\z/,
+    ActiveSupport::Notifications.subscribe(/\A(?:perform_action|transmit.*|broadcast)\.action_cable\z/,
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
 
     ActiveSupport.on_load(:action_cable) do
