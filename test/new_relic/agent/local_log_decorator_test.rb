@@ -20,6 +20,7 @@ module NewRelic::Agent
           :'instrumentation.logger' => 'auto'
         }
         NewRelic::Agent.config.add_config_for_testing(@enabled_config)
+        NewRelic::Agent.config.send(:new_cache)
       end
 
       def teardown

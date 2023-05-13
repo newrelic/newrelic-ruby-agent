@@ -509,6 +509,27 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_unsatisfied_values_stay_cached
+      name = :tears_of_the_kingdom
+
+      dd = DependencyDetection.defer do
+        named(name)
+
+        # guarantee the instrumentation's dependencies are unsatisfied
+        depends_on { return false }
+        executes { use_prepend? }
+      end
+
+      key = :"instrumentation.#{name}"
+      with_config(key => 'prepend') do
+        DependencyDetection.detect!
+
+        @manager.replace_or_add_config(ServerSource.new({}))
+
+        assert_equal :unsatisfied, @manager.instance_variable_get(:@cache)[key]
+      end
+    end
+
     private
 
     def assert_parsed_labels(expected)
