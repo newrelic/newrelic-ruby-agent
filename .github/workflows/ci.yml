@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.1'
       - run: bundle
       - run: rubocop
 
@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.2.2]
+        ruby-version: [2.4.10, 3.1.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -57,7 +57,7 @@ jobs:
               "2.4.10": {
                 "rails": "norails,rails42,rails52"
               },
-              "3.2.2": {
+              "3.1.4": {
                 "rails": "norails,rails61,rails70"
               }
             }
@@ -183,7 +183,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 3.2.2]
+        ruby-version: [2.4.10, 3.1.4]
 
     steps:
       - name: Configure git
@@ -282,7 +282,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 3.2.2]
+        ruby-version: [2.5.9, 3.1.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
