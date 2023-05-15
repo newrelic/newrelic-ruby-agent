@@ -231,6 +231,13 @@ module Multiverse
       else
         ensure_bundle_uncached(env_index)
       end
+
+      ruby_31_path = '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems'
+      if File.exist?(ruby_31_path)
+        require 'fileutils'
+        FileUtils.chmod_R(775, ruby_31_path)
+      end
+
       with_potentially_mismatched_bundler do
         ::Bundler.require
       end
