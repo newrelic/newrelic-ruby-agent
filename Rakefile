@@ -14,6 +14,12 @@ YARD::Rake::YardocTask.new
 task :default => :test
 task :test => ['test:newrelic']
 
+# WIP
+desc 'Update newrelic.yml with latest config options from default_source.rb'
+task :update_newrelic_configs do
+  p 'hi'
+end
+
 namespace :test do
   desc 'Run all tests'
   task :all => %w[newrelic multiverse all_compatible_envs]
