@@ -5,9 +5,9 @@
 instrumentation_methods :chain, :prepend
 
 GRAPE_VERSIONS = [
-  ['1.7.0', 2.5],
+  [nil, 2.5],
   ['1.6', 2.5],
-  ['1.5.3', 2.4, 3.0],
+  ['1.5.3', 2.4, 3.0]
 ]
 
 def gem_list(grape_version = nil)
