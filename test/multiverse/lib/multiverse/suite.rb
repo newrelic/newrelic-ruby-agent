@@ -232,6 +232,7 @@ module Multiverse
         ensure_bundle_uncached(env_index)
       end
 
+      # WIP
       ruby_31_path = '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems'
       if File.exist?(ruby_31_path)
         require 'fileutils'
