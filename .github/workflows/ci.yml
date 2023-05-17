@@ -63,7 +63,7 @@ jobs:
             }
 
       - if: matrix.ruby-version == '2.4.10'
-        name: Prepare mysql dirextory
+        name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
       - if: matrix.ruby-version == '2.4.10'
