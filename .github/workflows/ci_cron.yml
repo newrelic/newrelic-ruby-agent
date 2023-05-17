@@ -218,6 +218,10 @@ jobs:
         run: sudo chown -R $USER /usr/local
 
       - if: matrix.ruby-version == '2.4.10'
+        name: Install mysql-client
+        run: sudo apt-get install mysql-client libmysqlclient-dev
+
+      - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
         uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # tag v3.3.1
@@ -228,10 +232,6 @@ jobs:
       - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.4.10')
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
-
-      - if: matrix.ruby-version == '2.4.10'
-        name: Install mysql-client
-        run: sudo apt-get install mysql-client libmysqlclient-dev
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
