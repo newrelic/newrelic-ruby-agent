@@ -222,7 +222,7 @@ jobs:
         run: sudo chown -R $USER /usr/local
 
       - if: matrix.ruby-version == '2.4.10'
-        name: Install mysql-client
+        name: Install mysql-client TEST
         run: sudo apt-get install mysql-client libmysqlclient-dev
 
       - if: matrix.ruby-version == '2.4.10'
