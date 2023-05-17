@@ -229,6 +229,10 @@ jobs:
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
+      - if: matrix.ruby-version == '2.4.10'
+        name: Install mysql-client
+        run: sudo apt-get install mysql-client libmysqlclient-dev
+
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
         env:
