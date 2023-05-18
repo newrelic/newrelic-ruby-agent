@@ -7,11 +7,11 @@ branding:
 inputs:
   failedThreshold:
     description: Failed threshold (line)
-    default: "94"
+    default: "94.08"
     required: false
   failedThresholdBranch:
     description: Failed threshold (branch)
-    default: "84"
+    default: "85.5"
     required: false
   resultPath:
     description: "json path"
