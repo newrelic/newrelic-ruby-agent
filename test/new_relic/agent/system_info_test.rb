@@ -271,7 +271,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
 
-    refute NewRelic::Agent::SystemInfo.darwin?, 'Did not expect OS to match darwin'
+    refute_predicate NewRelic::Agent::SystemInfo, :darwin?, 'Did not expect OS to match darwin'
   end
 
   def test_system_info_linux_predicate
@@ -281,7 +281,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('darwin13')
 
-    refute NewRelic::Agent::SystemInfo.linux?, 'Did not expect OS to match linux'
+    refute_predicate NewRelic::Agent::SystemInfo, :linux?, 'Did not expect OS to match linux'
   end
 
   def test_system_info_bsd_predicate
@@ -291,7 +291,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('darwin13')
 
-    refute NewRelic::Agent::SystemInfo.bsd?, 'Did not expect OS to match bsd'
+    refute_predicate NewRelic::Agent::SystemInfo, :bsd?, 'Did not expect OS to match bsd'
   end
 
   def test_supportability_metric_recorded_when_docker_id_unavailable

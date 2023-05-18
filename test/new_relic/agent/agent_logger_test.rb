@@ -101,7 +101,7 @@ class AgentLoggerTest < Minitest::Test
   def test_consider_any_other_logger_not_a_startup_logger
     logger = NewRelic::Agent::AgentLogger.new
 
-    refute logger.is_startup_logger?
+    refute_predicate logger, :is_startup_logger?
   end
 
   def test_does_not_touch_dev_null
