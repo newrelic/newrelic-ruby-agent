@@ -232,13 +232,14 @@ module Multiverse
         ensure_bundle_uncached(env_index)
       end
 
-      # # WIP
-      # if RUBY_VERSION == '3.1.4'
-      #   if File.exist?('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-      #     require 'fileutils'
-      #     FileUtils.chmod_R(775, '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-      #   end
-      # end
+      # WIP
+      if RUBY_VERSION == '3.1.4'
+        if File.exist?('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          require 'fileutils'
+          FileUtils.remove_entry_secure('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          # FileUtils.chmod_R(775, '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+        end
+      end
 
       with_potentially_mismatched_bundler do
         ::Bundler.require
