@@ -64,7 +64,7 @@ module NewRelic
           in_transaction do |txn|
             txn.sampled = false
 
-            refute Tracer.sampled?
+            refute_predicate Tracer, :sampled?
           end
         end
 
@@ -83,10 +83,10 @@ module NewRelic
         NewRelic::Agent.disable_all_tracing do
           in_transaction do
             NewRelic::Agent.disable_all_tracing do
-              refute Tracer.tracing_enabled?
+              refute_predicate Tracer, :tracing_enabled?
             end
 
-            refute Tracer.tracing_enabled?
+            refute_predicate Tracer, :tracing_enabled?
           end
         end
 

@@ -454,7 +454,7 @@ module NewRelic::Agent
         }
         segment, _http_response = with_external_segment(headers, cat_config, segment_params)
 
-        refute segment.cross_app_request?
+        refute_predicate segment, :cross_app_request?
         assert_equal 200, segment.http_status_code
         assert_nil segment.cross_process_id
         assert_nil segment.cross_process_transaction_name
@@ -491,7 +491,7 @@ module NewRelic::Agent
             segment.process_response_headers(response)
             segment.finish
 
-            refute segment.cross_app_request?
+            refute_predicate segment, :cross_app_request?
             refute segment.http_status_code, 'No http_status_code expected!'
           end
         end
@@ -536,7 +536,7 @@ module NewRelic::Agent
             segment.process_response_headers(response)
             segment.finish
 
-            refute segment.cross_app_request?
+            refute_predicate segment, :cross_app_request?
             assert_nil segment.cross_process_id
             assert_nil segment.cross_process_transaction_name
             assert_nil segment.transaction_guid
@@ -928,7 +928,7 @@ module NewRelic::Agent
       def test_record_agent_attributes_defaults_to_false
         segment = NewRelic::Agent::Transaction::ExternalRequestSegment.new('Shoes', 'http://shoesrb.com/', 'GET')
 
-        refute segment.record_agent_attributes?
+        refute_predicate segment, :record_agent_attributes?
       end
 
       def test_record_agent_attributes_can_be_enabled

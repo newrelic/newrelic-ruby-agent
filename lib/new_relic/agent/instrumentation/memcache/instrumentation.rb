@@ -12,7 +12,7 @@ module NewRelic::Agent::Instrumentation
       MEMCACHED = 'Memcached'
 
       def with_newrelic_tracing(operation, *args)
-        segment = NewRelic::Agent::Tracer.start_datastore_segment( \
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: MEMCACHED,
           operation: operation
         )
@@ -43,7 +43,7 @@ module NewRelic::Agent::Instrumentation
       end
 
       def get_multi_with_newrelic_tracing(method_name)
-        segment = NewRelic::Agent::Tracer.start_segment( \
+        segment = NewRelic::Agent::Tracer.start_segment(
           name: "Ruby/Memcached/Dalli/#{method_name}"
         )
 
@@ -55,7 +55,7 @@ module NewRelic::Agent::Instrumentation
       end
 
       def send_multiget_with_newrelic_tracing(keys)
-        segment = ::NewRelic::Agent::Tracer.start_datastore_segment( \
+        segment = ::NewRelic::Agent::Tracer.start_datastore_segment(
           product: MEMCACHED,
           operation: MULTIGET_METRIC_NAME
         )

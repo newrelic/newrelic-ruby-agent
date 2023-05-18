@@ -242,7 +242,7 @@ module NewRelic::Agent::Configuration
     def test_finished_configuring
       @manager.add_config_for_testing(:layer => 'yo')
 
-      refute @manager.finished_configuring?
+      refute_predicate @manager, :finished_configuring?
 
       @manager.replace_or_add_config(ServerSource.new({}))
 

@@ -153,10 +153,10 @@ module NewRelic::Agent::Configuration
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
 
-        refute source.failed?
+        refute_predicate source, :failed?
         source.send(:booleanify_values, config, 'key')
 
-        refute source.failed?
+        refute_predicate source, :failed?
         assert_empty source.failures
       end
     end

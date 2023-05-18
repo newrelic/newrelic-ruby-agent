@@ -157,7 +157,7 @@ module NewRelic
     def test_is_sql_recorded_false
       NewRelic::Agent::Tracer.state.record_sql = false
 
-      refute(NewRelic::Agent::Tracer.state.is_sql_recorded?, 'should be false since the thread local is false')
+      refute_predicate(NewRelic::Agent::Tracer.state, :is_sql_recorded?, 'should be false since the thread local is false')
     end
 
     def test_is_execution_traced_true
@@ -182,7 +182,7 @@ module NewRelic
     def test_is_execution_traced_false
       NewRelic::Agent::Tracer.state.untraced = [true, false]
 
-      refute(NewRelic::Agent.tl_is_execution_traced?,
+      refute_predicate(NewRelic::Agent, :tl_is_execution_traced?,
         'should be false since the thread local stack has the last element false')
     end
 
@@ -300,6 +300,7 @@ module NewRelic
     def test_get_transaction_name_returns_the_default_txn_name
       engine = NewRelic::Agent.instance.stats_engine
       engine.reset!
+
       Transactor.new.txn do
         assert_equal 'NewRelic::MainAgentTest::Transactor/txn', NewRelic::Agent.get_transaction_name
       end
@@ -563,6 +564,7 @@ module NewRelic
       end
 
       mock_logger.verify
+
       assert_nil NewRelic::Agent.instance_variable_get(:@error_group_callback)
     end
 
@@ -581,6 +583,7 @@ module NewRelic
       NewRelic::Agent.stub :record_api_supportability_metric, verification_proc do
         NewRelic::Agent.set_error_group_callback(proc {})
       end
+
       assert called
     end
 

@@ -146,8 +146,8 @@ class DependencyDetectionTest < Minitest::Test
       DependencyDetection.detect!
 
       assert_predicate dd, :disabled_configured?
-      refute dd.deprecated_disabled_configured?
-      refute dd.allowed_by_config?
+      refute_predicate dd, :deprecated_disabled_configured?
+      refute_predicate dd, :allowed_by_config?
       refute executed
     end
   end
@@ -164,8 +164,8 @@ class DependencyDetectionTest < Minitest::Test
       executed = false
       DependencyDetection.detect!
 
-      refute dd.disabled_configured?
-      refute dd.deprecated_disabled_configured?
+      refute_predicate dd, :disabled_configured?
+      refute_predicate dd, :deprecated_disabled_configured?
       assert_predicate dd, :allowed_by_config?
       assert executed
     end
@@ -184,9 +184,9 @@ class DependencyDetectionTest < Minitest::Test
       executed = false
       DependencyDetection.detect!
 
-      refute dd.disabled_configured?
+      refute_predicate dd, :disabled_configured?
       assert_predicate dd, :deprecated_disabled_configured?
-      refute dd.allowed_by_config?
+      refute_predicate dd, :allowed_by_config?
       refute executed
     end
   end
@@ -203,8 +203,8 @@ class DependencyDetectionTest < Minitest::Test
       executed = false
       DependencyDetection.detect!
 
-      refute dd.disabled_configured?
-      refute dd.deprecated_disabled_configured?
+      refute_predicate dd, :disabled_configured?
+      refute_predicate dd, :deprecated_disabled_configured?
       assert executed
       assert_predicate dd, :use_prepend?
     end
@@ -221,8 +221,8 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => 'auto') do
       DependencyDetection.detect!
 
-      refute dd.disabled_configured?
-      refute dd.deprecated_disabled_configured?
+      refute_predicate dd, :disabled_configured?
+      refute_predicate dd, :deprecated_disabled_configured?
       assert_predicate dd, :use_prepend?
     end
   end
@@ -238,8 +238,8 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => 'prepend') do
       DependencyDetection.detect!
 
-      refute dd.disabled_configured?
-      refute dd.deprecated_disabled_configured?
+      refute_predicate dd, :disabled_configured?
+      refute_predicate dd, :deprecated_disabled_configured?
       assert_predicate dd, :use_prepend?
     end
   end
@@ -255,9 +255,9 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => 'chain') do
       DependencyDetection.detect!
 
-      refute dd.disabled_configured?
-      refute dd.deprecated_disabled_configured?
-      refute dd.use_prepend?
+      refute_predicate dd, :disabled_configured?
+      refute_predicate dd, :deprecated_disabled_configured?
+      refute_predicate dd, :use_prepend?
     end
   end
 
@@ -298,7 +298,7 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => 'disabled') do
       DependencyDetection.detect!
 
-      refute dd.use_prepend?
+      refute_predicate dd, :use_prepend?
     end
   end
 
@@ -313,7 +313,7 @@ class DependencyDetectionTest < Minitest::Test
     with_config(:'instrumentation.testing' => 'chain') do
       DependencyDetection.detect!
 
-      refute dd.use_prepend?
+      refute_predicate dd, :use_prepend?
       assert_equal :chain, dd.config_value
       assert executed
     end
@@ -370,7 +370,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.detect!
 
     assert conflicted, 'should be truthy!'
-    refute dd.use_prepend?, 'should not use prepend when conflicts exist'
+    refute_predicate dd, :use_prepend?, 'should not use prepend when conflicts exist'
   end
 
   def test_conflicts_multiples_truthy
@@ -385,7 +385,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.detect!
 
     assert conflicted, 'should be truthy!'
-    refute dd.use_prepend?, 'should not use prepend when conflicts exist'
+    refute_predicate dd, :use_prepend?, 'should not use prepend when conflicts exist'
   end
 
   def test_exception_during_depends_on_check_doesnt_propagate

@@ -109,7 +109,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     }) do
       @response_handler.configure_agent('collect_traces' => false)
 
-      refute @agent.sql_sampler.enabled?, 'sql enabled when tracing disabled by server'
+      refute_predicate @agent.sql_sampler, :enabled?, 'sql enabled when tracing disabled by server'
     end
   end
 end
