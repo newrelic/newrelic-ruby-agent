@@ -8,6 +8,7 @@ class DependencyDetectionTest < Minitest::Test
   def setup
     @original_items = DependencyDetection.instance_variable_get(:@items)
     DependencyDetection.instance_variable_set(:@items, [])
+    NewRelic::Agent.config.send(:new_cache)
   end
 
   def teardown
@@ -132,7 +133,7 @@ class DependencyDetectionTest < Minitest::Test
     assert_equal :auto, setting
   end
 
-  def test_config_disabling
+  def test_config_disabling_with_disabled
     executed = false
 
     dd = DependencyDetection.defer do
@@ -149,6 +150,15 @@ class DependencyDetectionTest < Minitest::Test
       refute dd.allowed_by_config?
       refute executed
     end
+  end
+
+  def test_config_disabling_with_enabled
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { executed = true }
+    end
 
     with_config(:'instrumentation.testing' => 'enabled') do
       executed = false
@@ -159,8 +169,17 @@ class DependencyDetectionTest < Minitest::Test
       assert_predicate dd, :allowed_by_config?
       assert executed
     end
+  end
 
-    # TODO: MAJOR VERSION - Deprecated!
+  # TODO: MAJOR VERSION - Deprecated!
+  def test_config_disabling_with_disable_testing
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { executed = true }
+    end
+
     with_config(:disable_testing => true) do
       executed = false
       DependencyDetection.detect!
@@ -172,7 +191,7 @@ class DependencyDetectionTest < Minitest::Test
     end
   end
 
-  def test_config_enabling
+  def test_config_enabling_with_enabled
     executed = false
 
     dd = DependencyDetection.defer do
@@ -189,6 +208,15 @@ class DependencyDetectionTest < Minitest::Test
       assert executed
       assert_predicate dd, :use_prepend?
     end
+  end
+
+  def test_config_enabling_with_auto
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { executed = true }
+    end
 
     with_config(:'instrumentation.testing' => 'auto') do
       DependencyDetection.detect!
@@ -197,6 +225,15 @@ class DependencyDetectionTest < Minitest::Test
       refute dd.deprecated_disabled_configured?
       assert_predicate dd, :use_prepend?
     end
+  end
+
+  def test_config_enabling_with_prepend
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { executed = true }
+    end
 
     with_config(:'instrumentation.testing' => 'prepend') do
       DependencyDetection.detect!
@@ -204,6 +241,15 @@ class DependencyDetectionTest < Minitest::Test
       refute dd.disabled_configured?
       refute dd.deprecated_disabled_configured?
       assert_predicate dd, :use_prepend?
+    end
+  end
+
+  def test_config_enabling_with_chain
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { executed = true }
     end
 
     with_config(:'instrumentation.testing' => 'chain') do
@@ -215,7 +261,7 @@ class DependencyDetectionTest < Minitest::Test
     end
   end
 
-  def test_config_prepend
+  def test_config_prepend_with_default_config
     dd = DependencyDetection.defer do
       named(:testing)
       executes { true }
@@ -227,12 +273,26 @@ class DependencyDetectionTest < Minitest::Test
       assert_equal :auto, dd.config_value
       assert_predicate dd, :use_prepend?
     end
+  end
+
+  def test_config_prepend_with_prepend
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { true }
+    end
 
     with_config(:'instrumentation.testing' => 'prepend') do
       DependencyDetection.detect!
 
       assert_equal :prepend, dd.config_value
       assert_predicate dd, :use_prepend?
+    end
+  end
+
+  def test_config_prepend_with_disabled
+    dd = DependencyDetection.defer do
+      named(:testing)
+      executes { true }
     end
 
     with_config(:'instrumentation.testing' => 'disabled') do
@@ -414,6 +474,24 @@ class DependencyDetectionTest < Minitest::Test
       DependencyDetection.detect!
 
       assert_equal :chain, dd.config_value
+    end
+  end
+
+  # confirm that :auto/:chain/:prepend becomes :unsatisfied when the detection
+  # logic finds that the library is either missing or known to not be supported
+  def test_prepend_is_replaced_by_unsatisfied_when_appropriate
+    name = :calm_calm_belong
+
+    dd = DependencyDetection.defer do
+      named(name)
+      depends_on { return false } # unsatisfied
+      executes { use_prepend? }
+    end
+
+    with_config(:"instrumentation.#{name}" => 'prepend') do
+      DependencyDetection.detect!
+
+      assert_equal :unsatisfied, dd.config_value
     end
   end
 end
