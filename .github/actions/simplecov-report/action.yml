@@ -7,7 +7,7 @@ branding:
 inputs:
   failedThreshold:
     description: Failed threshold (line)
-    default: "93"
+    default: "94"
     required: false
   failedThresholdBranch:
     description: Failed threshold (branch)
