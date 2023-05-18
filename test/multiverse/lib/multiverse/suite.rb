@@ -239,7 +239,6 @@ module Multiverse
           FileUtils.chmod_R(775, '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
         end
       end
-      /opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6
 
       with_potentially_mismatched_bundler do
         ::Bundler.require
