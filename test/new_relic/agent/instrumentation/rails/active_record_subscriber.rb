@@ -238,6 +238,21 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
   end
 
+  def test_instrumentation_can_be_disabled
+    parameter = :disable_active_record_instrumentation
+
+    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == :active_record_notifications }
+
+    assert item, 'Could not locate the dependency detection item for Active Record notifications'
+    dependency_check = item.dependencies.detect { |d| d.source.match?(/#{parameter}/) }
+
+    assert dependency_check, "Could not locate the dependency check related to the #{parameter} configuration parameter"
+
+    with_config(parameter => false) do
+      refute dependency_check.call
+    end
+  end
+
   private
 
   def simulate_query(duration = nil)
