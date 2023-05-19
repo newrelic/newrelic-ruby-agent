@@ -237,8 +237,11 @@ module Multiverse
         if File.exist?('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
           require 'fileutils'
           change = system('sudo chmod o-w /opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-          puts '***************', change, '***************'
+          puts '********waluigi*******', change, '***************'
           # FileUtils.chmod_R(775, '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          s = File.stat('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          mode = sprintf("%o", s.mode)
+          puts '--------waluigi---------', mode, '-----------------'
         end
       end
 
