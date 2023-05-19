@@ -47,7 +47,8 @@ class SidekiqWithRedisTest < MiniTest::Test
         mode = sprintf('%o', s.mode)
         puts '--------waluigi---------', mode, '-----------------'
       end
-      
+    end
+
     gemfile do
       source 'https://rubygems.org'
 
