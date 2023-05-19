@@ -232,7 +232,10 @@ module Multiverse
         ensure_bundle_uncached(env_index)
       end
 
-      # WIP
+      with_potentially_mismatched_bundler do
+        ::Bundler.require
+      end
+    ensure   # WIP
       if RUBY_VERSION == '3.1.4'
         if File.exist?('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
           require 'fileutils'
@@ -243,10 +246,6 @@ module Multiverse
           mode = sprintf('%o', s.mode)
           puts '--------waluigi---------', mode, '-----------------'
         end
-      end
-
-      with_potentially_mismatched_bundler do
-        ::Bundler.require
       end
     end
 
