@@ -236,7 +236,7 @@ module Multiverse
       #     mode = sprintf('%o', s.mode)
       #     puts '--------waluigi---------', mode, '-----------------'
       #   end
-      end
+      # end
       if use_cache?
         ensure_bundle_cached(env_index) || ensure_bundle_uncached(env_index)
       else
