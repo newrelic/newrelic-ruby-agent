@@ -37,22 +37,21 @@ class SidekiqWithRedisTest < MiniTest::Test
     # skip 'The CI fails when trying to run this test because of a Bundler error' if RUBY_VERSION.match?(/^3\.1/)
     skip 'Testing conducted only using Sidekiq v7.0+ with redis not yet bundled' unless sidekiq_without_redis?
 
-    # if RUBY_VERSION == '3.1.4'
-    #   if File.exist?('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-    #     require 'fileutils'
-    #     change = system('sudo chmod o-w /opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-    #     puts '********waluigi*******', change, '***************'
-    #     # FileUtils.chmod_R(775, '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-    #     s = File.stat('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
-    #     mode = sprintf('%o', s.mode)
-    #     puts '--------waluigi---------', mode, '-----------------'
-    #   end
-    # end
-
     gemfile do
       source 'https://rubygems.org'
 
-      gem 'redis', '5.0.5'
+      gem 'redis'
+      if RUBY_VERSION == '3.1.4'
+        if File.exist?('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          require 'fileutils'
+          change = system('sudo chmod o-w /opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          puts '********waluigi*******', change, '***************'
+          # FileUtils.chmod_R(775, '/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          s = File.stat('/opt/hostedtoolcache/Ruby/3.1.4/x64/lib/ruby/gems/3.1.0/gems/redis-5.0.6')
+          mode = sprintf('%o', s.mode)
+          puts '--------waluigi---------', mode, '-----------------'
+        end
+      end
     end
 
     require 'newrelic_rpm'
