@@ -238,19 +238,20 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
   end
 
-  def test_instrumentation_can_be_disabled
-    parameter = :disable_active_record_instrumentation
+  def test_instrumentation_can_be_disabled_with_disable_active_record_instrumentation
+    common_test_for_disabling(:disable_active_record_instrumentation)
+  end
 
-    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == :active_record_notifications }
+  def test_instrumentation_can_be_disabled_with_disable_activerecord_instrumentation
+    common_test_for_disabling(:disable_activerecord_instrumentation)
+  end
 
-    assert item, 'Could not locate the dependency detection item for Active Record notifications'
-    dependency_check = item.dependencies.detect { |d| d.source.match?(/#{parameter}/) }
+  def test_instrumentation_can_be_disabled_with_disable_active_record_notifications
+    common_test_for_disabling(:disable_active_record_notifications)
+  end
 
-    assert dependency_check, "Could not locate the dependency check related to the #{parameter} configuration parameter"
-
-    with_config(parameter => false) do
-      refute dependency_check.call
-    end
+  def test_instrumentation_can_be_disabled_with_disable_activerecord_notifications
+    common_test_for_disabling(:disable_activerecord_notifications)
   end
 
   private
@@ -259,5 +260,20 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     @subscriber.start('sql.active_record', :id, @params)
     advance_process_time(duration) if duration
     @subscriber.finish('sql.active_record', :id, @params)
+  end
+
+  def common_test_for_disabling(parameter)
+    source_parameter = :active_record_notifications
+
+    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == source_parameter }
+
+    assert item, 'Could not locate the dependency detection item for Active Record notifications'
+    dependency_check = item.dependencies.detect { |d| d.source.match?(/#{source_parameter}/) }
+
+    assert dependency_check, "Could not locate the dependency check related to the #{source_parameter} configuration parameter"
+
+    with_config(parameter => false) do
+      refute dependency_check.call
+    end
   end
 end
