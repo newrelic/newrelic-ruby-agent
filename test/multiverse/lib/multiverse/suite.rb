@@ -285,8 +285,8 @@ module Multiverse
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
 
         # pin webrick until we investigate why 1.8.1 breaks things
-        f.puts "gem 'webrick'"
-        # f.puts ruby3_gem_webrick
+        # f.puts "gem 'webrick', '< 1.8.0'"
+        f.puts ruby3_gem_webrick
 
         f.puts "gem 'warning'"
 
