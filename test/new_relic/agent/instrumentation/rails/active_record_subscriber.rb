@@ -239,19 +239,52 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_instrumentation_can_be_disabled_with_disable_active_record_instrumentation
-    common_test_for_disabling(:disable_active_record_instrumentation)
+    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      common_test_for_disabling(:disable_active_record_instrumentation)
+    end
   end
 
   def test_instrumentation_can_be_disabled_with_disable_activerecord_instrumentation
-    common_test_for_disabling(:disable_activerecord_instrumentation)
+    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      common_test_for_disabling(:disable_activerecord_instrumentation)
+    end
   end
 
   def test_instrumentation_can_be_disabled_with_disable_active_record_notifications
-    common_test_for_disabling(:disable_active_record_notifications)
+    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      common_test_for_disabling(:disable_active_record_notifications)
+    end
   end
 
   def test_instrumentation_can_be_disabled_with_disable_activerecord_notifications
-    common_test_for_disabling(:disable_activerecord_notifications)
+    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      common_test_for_disabling(:disable_activerecord_notifications)
+    end
+  end
+
+  def test_instrumentation_is_enabled_by_default
+    # When performing "env" tests, the initial loading of the agent via Rails
+    # initialization will trigger the dependency check with default config
+    # options and then subscribe to AR notifications. We have to stub out the
+    # "have we already subscribed?" check to ensure that the agent doesn't
+    # short-circuit based on an existing subscription while we're really focused
+    # on configuration based behavior, not subscription existence.
+    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      instrumentation_name = :active_record_notifications
+
+      item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == instrumentation_name }
+
+      assert item, "Could not locate the '#{instrumentation_name}' dependency detection item for AR notifications"
+      dependency_check = item.dependencies.detect { |d| d.source.match?(/disable_#{instrumentation_name}/) }
+
+      assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
+        'configuration parameter'
+
+      with_config(enabled_config) do
+        assert dependency_check.call, 'Expected the AR notifications dependency check to be made when given ' \
+          'the default agent configuration.'
+      end
+    end
   end
 
   private
@@ -263,17 +296,26 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def common_test_for_disabling(parameter)
-    source_parameter = :active_record_notifications
+    instrumentation_name = :active_record_notifications
 
-    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == source_parameter }
+    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == instrumentation_name }
 
-    assert item, 'Could not locate the dependency detection item for Active Record notifications'
-    dependency_check = item.dependencies.detect { |d| d.source.match?(/#{source_parameter}/) }
+    assert item, "Could not locate the '#{instrumentation_name}' dependency detection item for AR notifications"
+    dependency_check = item.dependencies.detect { |d| d.source.match?(/disable_#{instrumentation_name}/) }
 
-    assert dependency_check, "Could not locate the dependency check related to the #{source_parameter} configuration parameter"
+    assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
+      'configuration parameter'
 
-    with_config(parameter => false) do
-      refute dependency_check.call
+    with_config(enabled_config.merge(parameter => false)) do
+      refute dependency_check.call, 'Expected the AR notifications dependency check to NOT be made when given ' \
+        "a #{parameter} value of false."
     end
+  end
+
+  def enabled_config
+    {disable_active_record_instrumentation: false,
+     disable_activerecord_instrumentation: false,
+     disable_active_record_notifications: false,
+     disable_activerecord_notifications: false}
   end
 end
