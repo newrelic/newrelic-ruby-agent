@@ -238,11 +238,42 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
   end
 
+  def test_instrumentation_can_be_disabled_with_disable_active_record_instrumentation
+    common_test_for_disabling(:disable_active_record_instrumentation)
+  end
+
+  def test_instrumentation_can_be_disabled_with_disable_activerecord_instrumentation
+    common_test_for_disabling(:disable_activerecord_instrumentation)
+  end
+
+  def test_instrumentation_can_be_disabled_with_disable_active_record_notifications
+    common_test_for_disabling(:disable_active_record_notifications)
+  end
+
+  def test_instrumentation_can_be_disabled_with_disable_activerecord_notifications
+    common_test_for_disabling(:disable_activerecord_notifications)
+  end
+
   private
 
   def simulate_query(duration = nil)
     @subscriber.start('sql.active_record', :id, @params)
     advance_process_time(duration) if duration
     @subscriber.finish('sql.active_record', :id, @params)
+  end
+
+  def common_test_for_disabling(parameter)
+    source_parameter = :active_record_notifications
+
+    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == source_parameter }
+
+    assert item, 'Could not locate the dependency detection item for Active Record notifications'
+    dependency_check = item.dependencies.detect { |d| d.source.match?(/#{source_parameter}/) }
+
+    assert dependency_check, "Could not locate the dependency check related to the #{source_parameter} configuration parameter"
+
+    with_config(parameter => false) do
+      refute dependency_check.call
+    end
   end
 end
