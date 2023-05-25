@@ -244,21 +244,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
   end
 
-  def test_instrumentation_can_be_disabled_with_disable_activerecord_instrumentation
-    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
-      common_test_for_disabling(:disable_activerecord_instrumentation)
-    end
-  end
-
   def test_instrumentation_can_be_disabled_with_disable_active_record_notifications
     NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
       common_test_for_disabling(:disable_active_record_notifications)
-    end
-  end
-
-  def test_instrumentation_can_be_disabled_with_disable_activerecord_notifications
-    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
-      common_test_for_disabling(:disable_activerecord_notifications)
     end
   end
 
@@ -270,6 +258,8 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     # short-circuit based on an existing subscription while we're really focused
     # on configuration based behavior, not subscription existence.
     NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      enabled_config = {disable_active_record_instrumentation: false,
+                        disable_active_record_notifications: false}
       instrumentation_name = :active_record_notifications
 
       item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == instrumentation_name }
@@ -306,16 +296,9 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
       'configuration parameter'
 
-    with_config(enabled_config.merge(parameter => false)) do
+    with_config(unaliased_parameter(parameter) => true) do
       refute dependency_check.call, 'Expected the AR notifications dependency check to NOT be made when given ' \
-        "a #{parameter} value of false."
+        "a #{parameter} value of true."
     end
-  end
-
-  def enabled_config
-    {disable_active_record_instrumentation: false,
-     disable_activerecord_instrumentation: false,
-     disable_active_record_notifications: false,
-     disable_activerecord_notifications: false}
   end
 end
