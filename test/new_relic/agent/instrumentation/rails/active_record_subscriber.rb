@@ -296,7 +296,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
       'configuration parameter'
 
-    with_config(unaliased_parameter(parameter) => true) do
+    with_config(parameter => true) do
       refute dependency_check.call, 'Expected the AR notifications dependency check to NOT be made when given ' \
         "a #{parameter} value of true."
     end
