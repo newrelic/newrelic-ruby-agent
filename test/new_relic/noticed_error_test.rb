@@ -325,6 +325,21 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal error_group, noticed_error.agent_attributes[::NewRelic::NoticedError::AGENT_ATTRIBUTE_ERROR_GROUP]
   end
 
+  def test_transaction_guid_present_in_json_array
+    in_transaction do |txn|
+      array = NewRelic::NoticedError.new(@path, StandardError.new).to_collector_array
+
+      assert_equal 6, array.size
+      assert_equal txn.guid, array.last, 'Expected the last error array item to be a correction transaction GUID'
+    end
+  end
+
+  def test_transaction_guid_absent_from_json_array_when_a_transaction_is_not_in_scope
+    array = NewRelic::NoticedError.new(@path, StandardError.new).to_collector_array
+
+    assert_equal 5, array.size
+  end
+
   private
 
   def create_error(exception = StandardError.new)
