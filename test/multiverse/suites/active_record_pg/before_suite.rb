@@ -8,6 +8,11 @@ def redefine_mysql_primary_key(const_str)
 end
 
 begin
+  # disable the environment check that would otherwise raise
+  # ActiveRecord::EnvironmentMismatchError when switching between the
+  # default_env and test environments
+  ENV['DISABLE_DATABASE_ENVIRONMENT_CHECK'] = 'true'
+
   load('Rakefile')
   Rake::Task['db:drop'].invoke
   Rake::Task['db:create'].invoke
