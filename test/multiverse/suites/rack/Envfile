@@ -9,7 +9,7 @@ instrumentation_methods :chain, :prepend
 #
 #       Remove this condition and allow Ruby 3.3 to be used with any updated
 #       Puma versions once they become available.
-suite_condition('Puma tests are temporarily skipped for Ruby v3.3') { !RUBY_VERSION == '3.3.0' }
+suite_condition('Puma tests are temporarily skipped for Ruby v3.3') { RUBY_VERSION != '3.3.0' }
 
 # The Rack suite also tests Puma::Rack::Builder
 # Which is why we also control Puma tested versions here
