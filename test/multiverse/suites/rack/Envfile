@@ -30,7 +30,7 @@ gemfile <<~RB
 
 RB
 
-gemfile <<~RB
+gemfile <<~RB if RUBY_VERSION < '3.3.0'
   gem 'rack', '2.2.4'
   gem 'rack-test'
 
