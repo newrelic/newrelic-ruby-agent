@@ -13,7 +13,7 @@ PUMA_VERSIONS = [
 ]
 
 # Puma 3.12.6's Regexp.new calls are incompatible with Ruby 3.3
-PUMA_VERSION.push('3.12.6') unless RUBY_VERSION >= '3.3.0'
+PUMA_VERSIONS.push('3.12.6') unless RUBY_VERSION >= '3.3.0'
 
 def gem_list(puma_version = nil)
   <<~RB
