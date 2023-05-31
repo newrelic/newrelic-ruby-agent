@@ -16,7 +16,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
-      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+      - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: '3.2'
       - run: bundle
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0-preview1]
 
     steps:
       - name: Configure git
@@ -50,7 +50,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -61,13 +61,13 @@ jobs:
           map: |
             {
               "2.4.10": {
-                "rails": "norails,rails52,rails51,rails42"
+                "rails": "norails,rails52,rails51,rails50,rails42,rails41,rails40"
               },
               "2.5.9": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               },
               "2.6.10": {
-                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               },
               "2.7.8": {
                 "rails": "norails,rails61,rails60,rails70,railsedge"
@@ -80,11 +80,14 @@ jobs:
               },
               "3.2.2": {
                 "rails": "norails,rails61,rails70,railsedge"
+              },
+              "3.3.0-preview1": {
+                "rails": "norails,rails61,rails70,railsedge"
               }
             }
 
       - if: matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
-        name: Prepare mysql dirextory
+        name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
       - if: matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
@@ -196,7 +199,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -209,7 +212,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -274,14 +277,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2]
+        ruby-version: [2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 

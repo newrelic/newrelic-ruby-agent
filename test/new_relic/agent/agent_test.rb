@@ -102,7 +102,7 @@ module NewRelic
 
       def test_after_fork_should_mark_as_started
         with_config(:monitor_mode => true) do
-          refute @agent.started?
+          refute_predicate @agent, :started?
           @agent.after_fork
 
           assert_predicate @agent, :started?
@@ -115,7 +115,7 @@ module NewRelic
           @agent.disconnect
           @agent.after_fork
 
-          refute @agent.instance_variable_get(:@harvester).needs_restart?
+          refute_predicate @agent.instance_variable_get(:@harvester), :needs_restart?
         end
       end
 
@@ -513,7 +513,7 @@ module NewRelic
         @agent.stubs(:connected?).returns(true)
         @agent.wait_on_connect(2)
 
-        refute @agent.waited_on_connect?
+        refute_predicate @agent, :waited_on_connect?
       end
 
       def test_defer_start_if_resque_dispatcher_and_channel_manager_isnt_started_and_forkable
@@ -525,7 +525,7 @@ module NewRelic
           @agent.start
         end
 
-        refute @agent.started?
+        refute_predicate @agent, :started?
       end
 
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
@@ -558,7 +558,7 @@ module NewRelic
         end
         logmsg = logdev.array.first.delete("\n")
 
-        refute @agent.started?, 'agent was started'
+        refute_predicate @agent, :started?, 'agent was started'
         assert_match(/No application name configured/i, logmsg)
       end
 

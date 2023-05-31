@@ -10,7 +10,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
-      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+      - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: '3.2'
       - run: bundle
@@ -44,7 +44,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -63,7 +63,7 @@ jobs:
             }
 
       - if: matrix.ruby-version == '2.4.10'
-        name: Prepare mysql dirextory
+        name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
       - if: matrix.ruby-version == '2.4.10'
@@ -197,7 +197,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -289,7 +289,7 @@ jobs:
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+        uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -328,7 +328,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
-      - uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # tag v1.146.0
+      - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
           ruby-version: '3.1'
       - run: bundle
@@ -347,5 +347,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
-          failedThreshold: 93
-          failedThresholdBranch: 85
+          failedThreshold: 94.08
+          failedThresholdBranch: 85.5

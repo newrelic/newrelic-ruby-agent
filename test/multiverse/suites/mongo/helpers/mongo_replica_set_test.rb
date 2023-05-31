@@ -43,7 +43,7 @@ class MongoReplicaSetTest < Test::Unit::TestCase
     @replica.start
     @replica.stop
 
-    refute @replica.running?
+    refute_predicate @replica, :running?
   end
 
   def test_status_does_not_raise_an_error_for_uninitiated_replica_set

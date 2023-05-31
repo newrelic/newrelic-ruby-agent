@@ -43,7 +43,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
   end
 
   def refute_supported_on_platform
-    refute NewRelic::Agent::Samplers::CpuSampler.supported_on_this_platform?, 'should not be supported on this platform'
+    refute_predicate NewRelic::Agent::Samplers::CpuSampler, :supported_on_this_platform?, 'should not be supported on this platform'
   end
 
   def set_jruby_version_constant(string)
