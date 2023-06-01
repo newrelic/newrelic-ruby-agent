@@ -158,7 +158,7 @@ module NewRelic
         def test_params_are_checkable_and_lazy_initializable
           segment = basic_segment
 
-          refute segment.params?
+          refute_predicate segment, :params?
           assert_nil segment.instance_variable_get(:@params)
 
           segment.params[:foo] = 'bar'
@@ -210,8 +210,8 @@ module NewRelic
             segment_a.finish
 
             assert_predicate segment_a, :concurrent_children?
-            refute segment_b.concurrent_children?
-            refute segment_c.concurrent_children?
+            refute_predicate segment_b, :concurrent_children?
+            refute_predicate segment_c, :concurrent_children?
           end
         end
 
@@ -283,7 +283,7 @@ module NewRelic
         end
 
         def test_children_time_ranges_do_not_exist
-          refute basic_segment.children_time_ranges?
+          refute_predicate basic_segment, :children_time_ranges?
         end
 
         def test_children_time_ranges_do_exist

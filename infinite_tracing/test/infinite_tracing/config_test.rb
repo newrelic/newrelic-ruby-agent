@@ -120,7 +120,7 @@ module NewRelic
           reset_compression_level
 
           with_config({'infinite_tracing.compression_level': :none}) do
-            refute Config.compression_enabled?
+            refute_predicate Config, :compression_enabled?
           end
         end
 

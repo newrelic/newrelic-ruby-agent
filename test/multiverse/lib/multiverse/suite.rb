@@ -279,7 +279,7 @@ module Multiverse
         f.puts minitest_line unless /^\s*gem .minitest[^_]./.match?(gemfile_text)
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
-        f.puts "gem 'rackup'" if need_rackup?(gemfile_text)
+        f.puts "gem 'rackup', '>=2.0.0'" if need_rackup?(gemfile_text)
 
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
@@ -288,7 +288,7 @@ module Multiverse
         f.puts "gem 'webrick', '< 1.8.0'"
         # f.puts ruby3_gem_webrick
 
-        f.puts "gem 'warning'" if RUBY_VERSION >= '2.4.0'
+        f.puts "gem 'warning'"
 
         if debug
           f.puts "gem 'pry', '~> 0.14'"
