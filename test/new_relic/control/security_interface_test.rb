@@ -52,6 +52,8 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   end
 
   def test_initialization_requires_the_security_agent
+    skip_unless_minitest5_or_above
+
     required = false
     logger = MiniTest::Mock.new
     with_config('security.agent.enabled' => true) do
@@ -70,6 +72,8 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   end
 
   def test_initialization_anticipates_a_load_error
+    skip_unless_minitest5_or_above
+
     logger = MiniTest::Mock.new
     with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :logger, logger do
@@ -88,6 +92,8 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   end
 
   def test_initialization_handles_errors
+    skip_unless_minitest5_or_above
+
     logger = MiniTest::Mock.new
     with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :logger, logger do
