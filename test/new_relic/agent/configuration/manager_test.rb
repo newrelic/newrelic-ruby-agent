@@ -242,7 +242,7 @@ module NewRelic::Agent::Configuration
     def test_finished_configuring
       @manager.add_config_for_testing(:layer => 'yo')
 
-      refute @manager.finished_configuring?
+      refute_predicate @manager, :finished_configuring?
 
       @manager.replace_or_add_config(ServerSource.new({}))
 
@@ -506,6 +506,27 @@ module NewRelic::Agent::Configuration
         @manager.replace_or_add_config(ServerSource.new({}))
 
         assert_equal :prepend, @manager.instance_variable_get(:@cache)[key]
+      end
+    end
+
+    def test_unsatisfied_values_stay_cached
+      name = :tears_of_the_kingdom
+
+      dd = DependencyDetection.defer do
+        named(name)
+
+        # guarantee the instrumentation's dependencies are unsatisfied
+        depends_on { return false }
+        executes { use_prepend? }
+      end
+
+      key = :"instrumentation.#{name}"
+      with_config(key => 'prepend') do
+        DependencyDetection.detect!
+
+        @manager.replace_or_add_config(ServerSource.new({}))
+
+        assert_equal :unsatisfied, @manager.instance_variable_get(:@cache)[key]
       end
     end
 

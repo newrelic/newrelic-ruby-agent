@@ -41,7 +41,7 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
       assert_predicate agent, :started?
       agent.shutdown
 
-      refute agent.started?
+      refute_predicate agent, :started?
     end
   end
 
@@ -78,17 +78,17 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def test_set_record_sql
     @agent.set_record_sql(false)
 
-    refute NewRelic::Agent::Tracer.state.is_sql_recorded?
+    refute_predicate NewRelic::Agent::Tracer.state, :is_sql_recorded?
     NewRelic::Agent.disable_sql_recording do
-      refute NewRelic::Agent::Tracer.state.is_sql_recorded?
+      refute_predicate NewRelic::Agent::Tracer.state, :is_sql_recorded?
       NewRelic::Agent.disable_sql_recording do
-        refute NewRelic::Agent::Tracer.state.is_sql_recorded?
+        refute_predicate NewRelic::Agent::Tracer.state, :is_sql_recorded?
       end
 
-      refute NewRelic::Agent::Tracer.state.is_sql_recorded?
+      refute_predicate NewRelic::Agent::Tracer.state, :is_sql_recorded?
     end
 
-    refute NewRelic::Agent::Tracer.state.is_sql_recorded?
+    refute_predicate NewRelic::Agent::Tracer.state, :is_sql_recorded?
     @agent.set_record_sql(nil)
   end
 

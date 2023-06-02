@@ -25,19 +25,19 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
   def test_gc_profiler_unavailable_without_constant
     undefine_constant(:'GC::Profiler') do
-      refute NewRelic::LanguageSupport.gc_profiler_usable?
+      refute_predicate NewRelic::LanguageSupport, :gc_profiler_usable?
     end
   end
 
   def test_gc_profiler_unavailable_on_jruby
     return unless NewRelic::LanguageSupport.jruby?
 
-    refute NewRelic::LanguageSupport.gc_profiler_usable?
+    refute_predicate NewRelic::LanguageSupport, :gc_profiler_usable?
   end
 
   def test_gc_profiler_disabled_without_constant
     undefine_constant(:'GC::Profiler') do
-      refute NewRelic::LanguageSupport.gc_profiler_enabled?
+      refute_predicate NewRelic::LanguageSupport, :gc_profiler_enabled?
     end
   end
 
@@ -45,7 +45,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
     def test_gc_profiler_disabled_when_enabled_is_falsy
       ::GC::Profiler.stubs(:enabled?).returns(false)
 
-      refute NewRelic::LanguageSupport.gc_profiler_enabled?
+      refute_predicate NewRelic::LanguageSupport, :gc_profiler_enabled?
     end
 
     def test_gc_profiler_enabled
@@ -64,7 +64,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
       ::GC::Profiler.stubs(:enabled?).returns(true)
 
       with_config(:disable_gc_profiler => true) do
-        refute NewRelic::LanguageSupport.gc_profiler_enabled?
+        refute_predicate NewRelic::LanguageSupport, :gc_profiler_enabled?
       end
     end
   end
@@ -74,7 +74,7 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
     ::GC::Profiler.stubs(:enabled?).returns(true)
 
-    refute NewRelic::LanguageSupport.gc_profiler_enabled?
+    refute_predicate NewRelic::LanguageSupport, :gc_profiler_enabled?
   end
 
   module ::Outer

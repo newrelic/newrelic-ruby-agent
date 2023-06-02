@@ -201,7 +201,7 @@ module NewRelic
 
         def assert_watched_threads_finished(buffer)
           @threads.each do |thread_name, thread|
-            refute thread.alive?, "Thread #{thread_name} is still alive #{buffer.num_waiting}!"
+            refute_predicate thread, :alive?, "Thread #{thread_name} is still alive #{buffer.num_waiting}!"
           end
         end
 

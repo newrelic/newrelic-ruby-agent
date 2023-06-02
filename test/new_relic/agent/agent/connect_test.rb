@@ -46,7 +46,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   def test_should_not_connect_if_disconnected
     @connect_state = :disconnected
 
-    refute should_connect?, 'should not attempt to connect if force disconnected'
+    refute_predicate self, :should_connect?, 'should not attempt to connect if force disconnected'
   end
 
   def test_should_connect_if_forced
@@ -97,7 +97,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
 
   def test_configure_transaction_tracer_negative
     with_config(:'transaction_tracer.enabled' => false) do
-      refute @transaction_sampler.enabled?
+      refute_predicate @transaction_sampler, :enabled?
     end
   end
 
@@ -105,7 +105,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     config = NewRelic::Agent::Configuration::ServerSource.new('collect_traces' => false)
 
     with_config(config) do
-      refute @transaction_sampler.enabled?
+      refute_predicate @transaction_sampler, :enabled?
     end
   end
 

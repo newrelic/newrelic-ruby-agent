@@ -53,7 +53,7 @@ class AuditLoggerTest < Minitest::Test
       logger = NewRelic::Agent::AuditLogger.new
       logger.log_request(@uri, 'hi there', @marshaller)
 
-      refute logger.setup?, 'Expected logger to not have been setup'
+      refute_predicate logger, :setup?, 'Expected logger to not have been setup'
     end
   end
 
