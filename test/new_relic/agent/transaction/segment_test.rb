@@ -361,7 +361,7 @@ module NewRelic
         def test_self_finishes_a_real_segment
           segment = Segment.new('snake plant')
 
-          refute segment.finished?
+          refute_predicate segment, :finished?
           NewRelic::Agent::Transaction::Segment.finish(segment)
 
           assert_predicate segment, :finished?

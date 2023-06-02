@@ -15,7 +15,7 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-        DEPENDENCY_DETECTION_VALUES = %i[prepend chain].freeze
+        DEPENDENCY_DETECTION_VALUES = %i[prepend chain unsatisfied].freeze
 
         # Defining these explicitly saves object allocations that we incur
         # if we use Forwardable and def_delegators.
@@ -366,7 +366,8 @@ module NewRelic
 
           preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
           new_cache
-          preserved.each { |k, v| @cache[k] = v unless @cache[k] && @cache[k] != 'auto' }
+          preserved.each { |k, v| @cache[k] = v }
+
           @cache
         end
 

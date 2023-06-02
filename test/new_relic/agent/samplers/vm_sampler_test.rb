@@ -35,7 +35,7 @@ module NewRelic
 
         def test_enabled_should_return_false_if_disabled_via_config_setting
           with_config(:disable_vm_sampler => true) do
-            refute VMSampler.enabled?
+            refute_predicate VMSampler, :enabled?
           end
         end
 

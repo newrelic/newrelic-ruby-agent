@@ -166,7 +166,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def test_enabled_returns_false_when_disabled
     with_config(:'instrumentation.logger' => 'disabled') do
-      refute NewRelic::Agent::Instrumentation::Logger.enabled?
+      refute_predicate NewRelic::Agent::Instrumentation::Logger, :enabled?
     end
   end
 
