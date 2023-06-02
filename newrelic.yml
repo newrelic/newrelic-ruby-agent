@@ -692,12 +692,33 @@ common: &default_settings
   # If true, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.
   # utilization.detect_pcf: true
 
+  #
   # BEGIN security agent
+  #
+  #   NOTE: At this time, the security agent is intended for use only within
+  #         a dedicated security testing environment with data that can tolerate
+  #         modification or deletion. The security agent is available as a
+  #         separate Ruby gem, newrelic_security. It is recommended that this
+  #         separate gem only be introduced to a security testing environment
+  #         by leveraging Bundler grouping like so:
+  #
+  #         # Gemfile
+  #         gem 'newrelic_rpm'               # New Relic APM observability agent
+  #         gem 'newrelic-infinite_tracing'  # New Relic Infinite Tracing
+  #
+  #         group :security do
+  #           gem 'newrelic_security'        # New Relic security agent
+  #         end
+  #
+  #   NOTE: All "security.*" configuration parameters are related only to the
+  #         security agent, and all other configuration parameters that may
+  #         have "security" in the name some where are related to the APM agent.
+  #
 
-  # If true, the security agent is loaded
+  # If true, the security agent is loaded (a Ruby 'require' is performed)
   # security.agent.enabled: false
 
-  # If true, the security agent is activated
+  # If true, the security agent is started (the agent runs in its event loop)
   # security.enabled: false
 
   # The mode for the security agent to operate in. Currently only 'IAST' is supported
@@ -706,16 +727,16 @@ common: &default_settings
   # Defines the end point URL for posting security related data
   # security.validator_service_url: wss://csec.nr-data.net
 
-  # If `true`, enables rci detection
+  # If `true`, enables RCI detection
   # security.detection.rci.enabled: true
 
-  # If `true`, enables rxss detection
+  # If `true`, enables RXSS detection
   # security.detection.rxss.enabled: true
 
   # If `true`, enables deserialization detection
   # security.detection.deserialization.enabled: true
 
-  # The port the application listens on (Mandatory for Passenger, for other servers detected by default)
+  # The port the application listens on (mandatory for Passenger, for other servers detected by default)
   # security.applicationinfo.port: -1
 
   # END security agent

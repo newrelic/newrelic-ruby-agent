@@ -2220,7 +2220,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the security agent is loaded'
+          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
         },
         :'security.enabled' => {
           :default => false,
@@ -2228,7 +2228,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the security agent is started'
+          :description => 'If `true`, the security agent is started (the agent runs in its event loop)'
         },
         :'security.mode' => {
           :default => 'IAST',
@@ -2254,7 +2254,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables rci detection'
+          :description => 'If `true`, enables RCI detection'
         },
         :'security.detection.rxss.enabled' => {
           :default => true,
@@ -2278,7 +2278,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => false,
-          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
+          :description => 'The port the application listens on (mandatory for Passenger, for other servers detected by default)'
         }
       }.freeze
     end
