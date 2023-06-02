@@ -2278,7 +2278,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => false,
-          :description => 'The port the application listens on (mandatory for Passenger, for other servers detected by default)'
+          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
         }
       }.freeze
     end

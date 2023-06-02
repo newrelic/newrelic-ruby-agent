@@ -721,10 +721,10 @@ common: &default_settings
   # If true, the security agent is started (the agent runs in its event loop)
   # security.enabled: false
 
-  # The mode for the security agent to operate in. Currently only 'IAST' is supported
+  # Defines the The mode for the security agent to operate in. Currently only 'IAST' is supported
   # security.mode: IAST
 
-  # Defines the end point URL for posting security related data
+  # Defines the endpoint URL for posting security related data
   # security.validator_service_url: wss://csec.nr-data.net
 
   # If `true`, enables RCI detection
@@ -736,7 +736,7 @@ common: &default_settings
   # If `true`, enables deserialization detection
   # security.detection.deserialization.enabled: true
 
-  # The port the application listens on (mandatory for Passenger, for other servers detected by default)
+  # The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.
   # security.applicationinfo.port: -1
 
   # END security agent
