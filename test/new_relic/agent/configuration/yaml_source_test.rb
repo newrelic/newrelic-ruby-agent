@@ -4,6 +4,7 @@
 
 require_relative '../../../test_helper'
 require 'new_relic/agent/configuration/yaml_source'
+require 'minitest/stub_const'
 
 module NewRelic::Agent::Configuration
   class YamlSourceTest < Minitest::Test
@@ -153,12 +154,74 @@ module NewRelic::Agent::Configuration
         config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
 
-        refute source.failed?
+        refute_predicate source, :failed?
         source.send(:booleanify_values, config, 'key')
 
-        refute source.failed?
+        refute_predicate source, :failed?
         assert_empty source.failures
       end
+    end
+
+    def test_applying_aliases_has_no_impact_when_aliases_are_absent
+      NewRelic::Agent::Configuration::DefaultSource.stub_const(:DEFAULTS, phony_defaults) do
+        config = phony_defaults.keys.each_with_object({}) { |k, h| h[k] = true }
+        original_config = config.dup.freeze
+        phony_source.send(:apply_aliases, config)
+
+        assert_equal original_config, config
+      end
+    end
+
+    def test_alias_values_will_not_overwrite_original_values
+      NewRelic::Agent::Configuration::DefaultSource.stub_const(:DEFAULTS, phony_defaults) do
+        config = phony_defaults.keys.each_with_object({}) { |k, h| h[k] = false }
+        config[:aluminum] = true
+        original_config = config.dup.freeze
+        phony_source.send(:apply_aliases, config)
+
+        assert_equal original_config, config
+      end
+    end
+
+    def test_alias_values_are_ignored_if_nil
+      NewRelic::Agent::Configuration::DefaultSource.stub_const(:DEFAULTS, phony_defaults) do
+        config = {aluminium: nil, leisure: true}
+        config[:aluminum] = nil
+        original_config = config.dup.freeze
+        phony_source.send(:apply_aliases, config)
+
+        assert_equal original_config, config
+      end
+    end
+
+    def test_applying_aliases_works_as_desired
+      NewRelic::Agent::Configuration::DefaultSource.stub_const(:DEFAULTS, phony_defaults) do
+        config = {aluminium: nil, leisure: true}
+        config[:aluminum] = false
+        phony_source.send(:apply_aliases, config)
+
+        refute config[:aluminium]
+      end
+    end
+
+    def phony_source
+      YamlSource.new(nil, nil)
+    end
+
+    def phony_defaults
+      {aluminium: {default: true,
+                   documentation_default: true,
+                   public: true,
+                   type: Boolean,
+                   allowed_from_server: false,
+                   description: 'Al',
+                   aliases: %i[aluminum]},
+       leisure: {default: false,
+                 documentation_default: false,
+                 public: true,
+                 type: Boolean,
+                 allowed_from_server: false,
+                 description: 'Pleasure'}}
     end
   end
 end

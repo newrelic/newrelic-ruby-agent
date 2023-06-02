@@ -26,7 +26,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_already_started_negative
     self.expects(:started?).returns(false)
 
-    refute already_started?
+    refute_predicate self, :already_started?
   end
 
   def test_disabled_positive
@@ -37,7 +37,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_disabled_negative
     with_config(:agent_enabled => true) do
-      refute disabled?
+      refute_predicate self, :disabled?
     end
   end
 
@@ -146,7 +146,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_monitoring_negative
     with_config(:monitor_mode => false) do
-      refute monitoring?
+      refute_predicate self, :monitoring?
     end
   end
 
@@ -158,7 +158,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_has_license_key_negative
     with_config(:license_key => false) do
-      refute has_license_key?
+      refute_predicate self, :has_license_key?
     end
   end
 
@@ -172,7 +172,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_has_correct_license_key_negative
     self.expects(:has_license_key?).returns(false)
 
-    refute has_correct_license_key?
+    refute_predicate self, :has_correct_license_key?
   end
 
   def test_correct_license_length_positive
@@ -195,7 +195,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_using_forking_dispatcher_negative
     with_config(:dispatcher => :frobnitz) do
-      refute using_forking_dispatcher?
+      refute_predicate self, :using_forking_dispatcher?
     end
   end
 

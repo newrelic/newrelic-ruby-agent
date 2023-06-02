@@ -27,6 +27,8 @@ module DependencyDetection
     @items.each do |item|
       if item.dependencies_satisfied?
         item.execute
+      else
+        item.configure_as_unsatisfied unless item.disabled_configured?
       end
     end
   end
@@ -60,6 +62,10 @@ module DependencyDetection
 
     def dependencies_satisfied?
       !executed and check_dependencies
+    end
+
+    def configure_as_unsatisfied
+      NewRelic::Agent.config.instance_variable_get(:@cache)[config_key] = :unsatisfied
     end
 
     def source_location_for(klass, method_name)

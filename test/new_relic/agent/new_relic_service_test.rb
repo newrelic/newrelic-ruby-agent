@@ -978,7 +978,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.establish_shared_connection
     @service.force_restart
 
-    refute @service.has_shared_connection?
+    refute_predicate @service, :has_shared_connection?
   end
 
   def test_marshal_with_json_only

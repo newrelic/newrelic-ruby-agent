@@ -50,7 +50,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_accepts_trace_context_header
+      def test_accepts_trace_context_header
         env = build_trace_context_header
 
         refute env['HTTP_NEWRELIC']
@@ -66,7 +66,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_accepts_distributed_trace_header
+      def test_accepts_distributed_trace_header
         env = build_distributed_trace_header
 
         assert env['HTTP_NEWRELIC']
@@ -82,7 +82,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_ignores_distributed_trace_header_when_context_trace_header_present
+      def test_ignores_distributed_trace_header_when_context_trace_header_present
         env = build_distributed_trace_header(build_trace_context_header)
 
         assert env['HTTP_NEWRELIC']
@@ -127,7 +127,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_does_not_insert_distributed_tracing_headers_when_agent_not_connected
+      def test_does_not_insert_distributed_tracing_headers_when_agent_not_connected
         env = build_distributed_trace_header(build_trace_context_header)
 
         assert env['HTTP_NEWRELIC']
@@ -147,7 +147,7 @@ module NewRelic::Agent
         end
       end
 
-      def tests_outbound_distributed_trace_headers_omitted_when_exclude_is_true
+      def test_outbound_distributed_trace_headers_omitted_when_exclude_is_true
         env = build_distributed_trace_header(build_trace_context_header)
 
         assert env['HTTP_NEWRELIC']
