@@ -34,7 +34,7 @@ module NewRelic
         # Agent.logger.info('New Relic security agent not found - skipping')
       # rescue StandardError => exception
         # Agent.logger.error("Exception in New Relic security module loading: #{exception} #{exception.backtrace}")
-      # end
+      end
     end
   end
 end
