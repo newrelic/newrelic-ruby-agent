@@ -27,7 +27,7 @@ module Sequel
   # If you don't want your models or database connections to be instrumented,
   # you can disable them by setting `disable_database_instrumentation` in
   # your `newrelic.yml` to `true`. It will also honor the
-  # `disable_activerecord_instrumentation` setting.
+  # `disable_active_record_instrumentation` setting.
   #
   module NewRelicInstrumentation
     module Naming

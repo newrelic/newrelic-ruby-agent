@@ -78,7 +78,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       assert_equal '3838', @deployment.revision
       @deployment.run
 
-      refute @deployment.api_v1?, 'Using v1 when v2 should be used'
+      refute_predicate @deployment, :api_v1?, 'Using v1 when v2 should be used'
       @deployment = nil
     end
   end
@@ -110,7 +110,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
       assert_equal '3838', @deployment.revision
       @deployment.run
 
-      refute @deployment.api_v1?, 'Using v1 when v2 should be used'
+      refute_predicate @deployment, :api_v1?, 'Using v1 when v2 should be used'
       @deployment = nil
     end
   end

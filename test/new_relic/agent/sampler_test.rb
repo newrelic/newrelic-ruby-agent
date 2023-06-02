@@ -59,7 +59,7 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
 
   def test_enabled_should_return_false_if_disabled_via_config_setting
     with_config(:disable_dummy_sampler => true) do
-      refute DummySampler.enabled?
+      refute_predicate DummySampler, :enabled?
     end
   end
 

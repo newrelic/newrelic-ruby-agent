@@ -131,7 +131,7 @@ module NewRelic
               spans, segments, active_client = emulate_streaming_to_failed_precondition(total_spans)
 
               refute_kind_of SuspendedStreamingBuffer, active_client.buffer
-              refute active_client.suspended?, 'expected client to not be suspended.'
+              refute_predicate active_client, :suspended?, 'expected client to not be suspended.'
 
               assert_equal total_spans, segments.size
               assert_equal 0, spans.size

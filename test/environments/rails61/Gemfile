@@ -34,4 +34,4 @@ gem 'newrelic_security', path: '../../../vendor/newrelic_security', require: fal
 gem 'pry', '~> 0.14.1'
 gem 'pry-nav'
 gem 'simplecov' if ENV['VERBOSE_TEST_OUTPUT']
-gem 'warning' if RUBY_VERSION >= '2.4.0'
+gem 'warning'

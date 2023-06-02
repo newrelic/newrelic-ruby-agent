@@ -124,7 +124,7 @@ module NewRelic
         invalid_payloads.each do |payload_str|
           payload = TraceContextPayload.from_s(payload_str)
 
-          refute payload.valid?, "Payload should be invalid: '#{payload_str}'"
+          refute_predicate payload, :valid?, "Payload should be invalid: '#{payload_str}'"
         end
       end
 

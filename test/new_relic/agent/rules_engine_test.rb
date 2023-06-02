@@ -22,7 +22,7 @@ class RulesEngineTest < Minitest::Test
 
     input = 'foo/1/bar/22'
 
-    refute(rule.terminal?)
+    refute_predicate(rule, :terminal?)
     assert(rule.matches?(input))
     assert_equal('foo/*/bar/22', rule.apply(input))
   end
@@ -33,7 +33,7 @@ class RulesEngineTest < Minitest::Test
 
     input = 'foo/1/bar/22'.freeze
 
-    refute(rule.terminal?)
+    refute_predicate(rule, :terminal?)
     assert(rule.matches?(input))
     assert_equal('foo/*/bar/22', rule.apply('foo/1/bar/22'.freeze))
   end
@@ -44,7 +44,7 @@ class RulesEngineTest < Minitest::Test
 
     input = 'foo/1/bar/22'
 
-    refute(rule.terminal?)
+    refute_predicate(rule, :terminal?)
     assert(rule.matches?(input))
     assert_equal('foo/11/bar/22', rule.apply('foo/1/bar/22'))
   end
@@ -54,7 +54,7 @@ class RulesEngineTest < Minitest::Test
       'replacement'      => '*',
       'replace_all'      => true)
 
-    refute(rule.terminal?)
+    refute_predicate(rule, :terminal?)
     assert(rule.matches?('foo/1/bar/22'))
     assert_equal('foo/*/bar/*', rule.apply('foo/1/bar/22'))
   end
@@ -63,7 +63,7 @@ class RulesEngineTest < Minitest::Test
     rule = create_rule('match_expression' => 'QQ',
       'replacement'      => 'qq')
 
-    refute(rule.terminal?)
+    refute_predicate(rule, :terminal?)
     refute(rule.matches?('foo/1/bar/22'))
     assert_equal('foo/1/bar/22', rule.apply('foo/1/bar/22'))
   end

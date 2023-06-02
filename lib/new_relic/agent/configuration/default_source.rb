@@ -1104,11 +1104,12 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Support instrumentation.'
         },
-        :disable_activerecord_instrumentation => {
+        :disable_active_record_instrumentation => {
           :default => value_of(:skip_ar_instrumentation),
           :documentation_default => false,
           :public => true,
           :type => Boolean,
+          :aliases => %i[disable_activerecord_instrumentation],
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Record instrumentation.'
         },
@@ -1117,6 +1118,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :dynamic_name => true,
+          :aliases => %i[disable_activerecord_notifications],
           :allowed_from_server => false,
           :description => 'If `true`, disables instrumentation for Active Record 4+'
         },

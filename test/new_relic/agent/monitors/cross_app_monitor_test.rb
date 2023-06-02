@@ -119,14 +119,14 @@ module NewRelic::Agent
 
     def test_old_cat_disabled
       with_config(:"cross_application_tracer.enabled" => false) do
-        refute CrossAppTracing.cross_application_tracer_enabled?
+        refute_predicate CrossAppTracing, :cross_application_tracer_enabled?
       end
     end
 
     def test_old_cat_disabled_when_better_cat_enabled
       with_config(:"cross_application_tracer.enabled" => true,
         :"distributed_tracing.enabled" => true) do
-        refute CrossAppTracing.cross_application_tracer_enabled?
+        refute_predicate CrossAppTracing, :cross_application_tracer_enabled?
       end
     end
 
@@ -181,7 +181,7 @@ module NewRelic::Agent
         request = for_id(REQUEST_CROSS_APP_ID)
         @events.notify(:before_call, request)
 
-        refute Transaction.tl_current.name_frozen?
+        refute_predicate Transaction.tl_current, :name_frozen?
         @events.notify(:after_call, request, [200, @response, ''])
 
         assert_predicate Transaction.tl_current, :name_frozen?
