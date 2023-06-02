@@ -2262,7 +2262,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables rxss detection'
+          :description => 'If `true`, enables RXSS detection'
         },
         :'security.detection.deserialization.enabled' => {
           :default => true,
