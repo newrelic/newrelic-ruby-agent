@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> of the agent expands instrumentation for Action Cable. 
+
+**Feature: Instrument transmit_subscription_* Action Cable actions**
+
+  This change subscribes the agent to the Active Support notifications for:
+    * `transmit_subscription_confirmation.action_cable`
+    * `transmit_subscription_rejection.action_cable`
+
 ## v9.2.2
 
   Version 9.2.2 of the agent fixes a bug with the `Transaction#finished?` method.
