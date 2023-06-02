@@ -2228,7 +2228,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the security agent is activated'
+          :description => 'If `true`, the security agent is started'
         },
         :'security.mode' => {
           :default => 'IAST',
