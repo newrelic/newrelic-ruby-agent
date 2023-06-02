@@ -2245,7 +2245,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Defines the end point URL for posting security related data',
+          :description => 'Defines the endpoint URL for posting security-related data',
           :dynamic_name => true
         },
         :'security.detection.rci.enabled' => {
