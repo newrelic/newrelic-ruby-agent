@@ -721,7 +721,7 @@ common: &default_settings
   # If true, the security agent is started (the agent runs in its event loop)
   # security.enabled: false
 
-  # Defines the The mode for the security agent to operate in. Currently only 'IAST' is supported
+  # Defines the mode for the security agent to operate in. Currently only 'IAST' is supported
   # security.mode: IAST
 
   # Defines the endpoint URL for posting security related data
