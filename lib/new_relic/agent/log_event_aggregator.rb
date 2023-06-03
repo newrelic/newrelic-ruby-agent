@@ -36,6 +36,7 @@ module NewRelic
       METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
       FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
+      LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
 
       def initialize(events)
         super(events)
@@ -63,8 +64,9 @@ module NewRelic
           end
         end
 
+        return if severity_too_low?(severity)
         return if formatted_message.nil? || formatted_message.empty?
-        return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
+        return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
         return if @high_security
 
         txn = NewRelic::Agent::Transaction.tl_current
@@ -191,7 +193,7 @@ module NewRelic
       # these until harvest before recording them
       def record_customer_metrics
         return unless enabled?
-        return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
+        return unless NewRelic::Agent.config[METRICS_ENABLED_KEY]
 
         @counter_lock.synchronize do
           return unless @seen > 0
@@ -229,6 +231,32 @@ module NewRelic
         return message if message.bytesize <= MAX_BYTES
 
         message.byteslice(0...MAX_BYTES)
+      end
+
+      def minimum_log_level
+        if Logger::Severity.constants.include?(configured_log_level_constant)
+          configured_log_level_constant
+        else
+          :DEBUG
+        end
+      end
+
+      def configured_log_level_constant
+        format_log_level_constant(NewRelic::Agent.config[LOG_LEVEL_KEY])
+      end
+
+      def format_log_level_constant(log_level)
+        log_level.upcase.to_sym
+      end
+
+      def severity_too_low?(severity)
+        severity_constant = format_log_level_constant(severity)
+        # always record custom log levels
+        return false unless Logger::Severity.constants.include?(severity_constant)
+
+        Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(minimum_log_level)
+      rescue NameError => e
+        NewRelic::Agent.logger.error('Log severity constant not found', e)
       end
     end
   end

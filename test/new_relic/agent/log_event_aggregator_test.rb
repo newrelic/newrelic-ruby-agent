@@ -444,5 +444,70 @@ module NewRelic::Agent
 
       assert_empty events
     end
+
+    def test_sets_minimum_log_level_to_debug_when_not_within_default_severities
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'milkshake') do
+        assert_equal :DEBUG, @aggregator.send(:minimum_log_level)
+      end
+    end
+
+    def test_sets_log_level_constant_to_symbolized_capitalized_level
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
+        assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
+      end
+    end
+
+    def test_sets_minimum_log_level_when_config_capitalized
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'INFO') do
+        assert_equal(:INFO, @aggregator.send(:minimum_log_level))
+      end
+    end
+
+    def test_does_not_record_log_events_with_a_severity_below_config
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
+        assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
+
+        @aggregator.record('Debug log', 'debug')
+        _, events = @aggregator.harvest!
+
+        assert_empty events
+      end
+    end
+
+    def test_records_log_events_with_severity_matching_config
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
+        assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
+
+        log_message = 'Info log'
+        @aggregator.record(log_message, 'info')
+        _, events = @aggregator.harvest!
+
+        assert_equal(log_message, events.first.last['message'])
+      end
+    end
+
+    def test_records_log_events_with_severity_higher_than_config
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
+        assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
+
+        log_message = 'Warn log'
+        @aggregator.record(log_message, 'warn')
+        _, events = @aggregator.harvest!
+
+        assert_equal(log_message, events.first.last['message'])
+      end
+    end
+
+    def test_records_log_events_not_within_default_severities
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
+        assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
+
+        log_message = 'Vanilla'
+        @aggregator.record(log_message, 'milkshake')
+        _, events = @aggregator.harvest!
+
+        assert_equal(log_message, events.first.last['message'])
+      end
+    end
   end
 end

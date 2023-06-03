@@ -749,6 +749,29 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures log records emitted by your application.'
         },
+        :'application_logging.forwarding.log_level' => {
+          :default => 'debug',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+            Sets the minimum level a log event must have to be forwarded to New Relic.
+
+            This is based on the integer values of Ruby's `Logger::Severity` constants: https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
+
+            The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
+
+            For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
+
+            Valid values (ordered lowest to highest):
+              * "debug"
+              * "info"
+              * "warn"
+              * "error"
+              * "fatal"
+              * "unknown"
+          DESCRIPTION
+        },
         :'application_logging.forwarding.max_samples_stored' => {
           :default => 10000,
           :public => true,

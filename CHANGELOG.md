@@ -2,9 +2,19 @@
 
 ## dev
 
-Version <dev> of the agent expands instrumentation for Action Cable. 
+Version <dev> of the agent adds the ability to filter logs by level and expands instrumentation for Action Cable.
 
-**Feature: Instrument transmit_subscription_* Action Cable actions**
+- **Feature: Filter forwarded logs based on level**
+
+  Previously, all log events, regardless of their level, were forwarded to New Relic when log forwarding was enabled. Now, you may specify the lowest log level you'd like forwarded to New Relic.
+
+  | Configuration name          | Default | Behavior                                               | Valid values |
+  | --------------------------- | ------- | ------------------------------------------------------ | ------ |
+  | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
+
+  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
+
+- **Feature: Instrument transmit_subscription_* Action Cable actions**
 
   This change subscribes the agent to the Active Support notifications for:
     * `transmit_subscription_confirmation.action_cable`
