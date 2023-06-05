@@ -2272,8 +2272,8 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, enables deserialization detection'
         },
-        :'security.applicationinfo.port' => {
-          :default => -1,
+        :'security.application_info.port' => {
+          :default => nil,
           :public => true,
           :type => Integer,
           :external => true,
