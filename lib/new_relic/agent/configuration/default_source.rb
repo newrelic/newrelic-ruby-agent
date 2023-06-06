@@ -2274,6 +2274,7 @@ module NewRelic
         },
         :'security.application_info.port' => {
           :default => nil,
+          :allow_nil => true,
           :public => true,
           :type => Integer,
           :external => true,
