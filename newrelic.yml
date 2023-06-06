@@ -737,7 +737,7 @@ common: &default_settings
   # security.detection.deserialization.enabled: true
 
   # The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.
-  # security.applicationinfo.port: -1
+  # security.application_info.port: nil
 
   # END security agent
 
