@@ -255,8 +255,6 @@ module NewRelic
         return false unless Logger::Severity.constants.include?(severity_constant)
 
         Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(minimum_log_level)
-      rescue NameError => e
-        NewRelic::Agent.logger.error('Log severity constant not found', e)
       end
     end
   end
