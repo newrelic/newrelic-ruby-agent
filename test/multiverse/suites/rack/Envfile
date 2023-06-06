@@ -4,17 +4,12 @@
 
 instrumentation_methods :chain, :prepend
 
-# TODO: Puma versions 3.12.6 through 6.2.2 all invoke Regexp.new with 3
-#       arguments, which worked for Ruby 3.2 but not for Ruby 3.3.
-#
-#       Remove this condition and allow Ruby 3.3 to be used with any updated
-#       Puma versions once they become available.
-suite_condition('Puma tests are temporarily skipped for Ruby v3.3') { RUBY_VERSION != '3.3.0' }
-
 # The Rack suite also tests Puma::Rack::Builder
 # Which is why we also control Puma tested versions here
-PUMA_VERSIONS = [
-  nil,
+# Puma <= v6.3.0's URLMap class won't work with Ruby v3.3+, see:
+#   https://github.com/puma/puma/pull/3165
+PUMA_VERSIONS = RUBY_VERSION >= '3.3.0' ? ['> 6.3.0'] : [
+  'nil',
   '5.6.4',
   '4.3.12',
   '3.12.6'

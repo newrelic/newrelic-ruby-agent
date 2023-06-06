@@ -38,13 +38,7 @@ module Multiverse
           )
         end
 
-        version = if version&.start_with?('=')
-          add_version(version.sub('= ', ''), false) # don't twiddle wakka
-        else
-          add_version(version)
-        end
-
-        gemfile(gem_list(version))
+        gemfile(gem_list(add_version(version)))
       end
     end
 
@@ -114,8 +108,13 @@ module Multiverse
       @gemfiles.size
     end
 
-    def add_version(version, twiddle_wakka = true)
+    def add_version(version)
       return unless version
+
+      # If the Envfile based version starts with '>', '<', '=', '>=', or '<=',
+      # then preserve that prefix when creating a Gemfile. Otherwise, twiddle
+      # wakka the version (prefix the version with '~>')
+      twiddle_wakka = !version.start_with?('=', '>', '<')
 
       ", '#{'~> ' if twiddle_wakka}#{version}'"
     end
