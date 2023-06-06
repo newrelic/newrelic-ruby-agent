@@ -13,6 +13,7 @@ module NewRelic
       REGISTER_CALLBACK_PATTERN = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
       NAMED_DEPENDENCY_PATTERN = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/
       EVENT_BUFFER_MACRO_PATTERN = /(capacity_key|enabled_key)\s+:['"]?([a-z\._]+)['"]?/
+      ASSIGNED_CONSTANT_PATTERN = /[A-Z]+\s*=\s*:['"]?([a-z\._]+)['"]?\s*/
 
       def scan_and_remove_used_entries(default_keys, non_test_files)
         non_test_files.each do |file|
@@ -23,6 +24,7 @@ module NewRelic
             captures << line.scan(DEFAULT_INST_VALUE_OF_PATTERN)
             captures << line.scan(REGISTER_CALLBACK_PATTERN)
             captures << line.scan(EVENT_BUFFER_MACRO_PATTERN)
+            captures << line.scan(ASSIGNED_CONSTANT_PATTERN)
             captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
             captures.flatten.compact.each do |key|
