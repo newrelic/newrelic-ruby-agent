@@ -248,10 +248,6 @@ module NewRelic
         end
       end
 
-      def log_level
-        NewRelic::Agent.config[LOG_LEVEL_KEY]
-      end
-
       def configured_log_level_constant
         format_log_level_constant(NewRelic::Agent.config[LOG_LEVEL_KEY])
       end
