@@ -237,8 +237,19 @@ module NewRelic
         if Logger::Severity.constants.include?(configured_log_level_constant)
           configured_log_level_constant
         else
+          NewRelic::Agent.logger.log_once(
+            :error,
+            'Invalid application_logging.forwarding.log_level ' \
+            "'#{NewRelic::Agent.config[LOG_LEVEL_KEY]}' specified! " \
+            "Must be one of #{Logger::Severity.constants.join('|')}. " \
+            "Using default level of 'debug'"
+          )
           :DEBUG
         end
+      end
+
+      def log_level
+        NewRelic::Agent.config[LOG_LEVEL_KEY]
       end
 
       def configured_log_level_constant

@@ -451,6 +451,18 @@ module NewRelic::Agent
       end
     end
 
+    def test_logs_error_when_log_level_not_within_default_severities
+      logger = MiniTest::Mock.new
+      logger.expect :log_once, nil, [:error, /Invalid application_logging.forwarding.log_level/]
+
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'milkshake') do
+        NewRelic::Agent.stub :logger, logger do
+          @aggregator.send(:minimum_log_level)
+          logger.verify
+        end
+      end
+    end
+
     def test_sets_log_level_constant_to_symbolized_capitalized_level
       with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
         assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
