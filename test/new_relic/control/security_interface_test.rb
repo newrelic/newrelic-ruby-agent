@@ -15,7 +15,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
   def test_initialization_short_circuits_when_the_security_agent_is_disabled
     logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => false) do
+    with_config('security.agent.enabled' => false, 'security.enabled' => true, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
 
@@ -29,7 +29,21 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
   def test_initialization_short_circuits_when_the_security_is_disabled
     logger = MiniTest::Mock.new
-    with_config('security.enabled' => false) do
+    with_config('security.agent.enabled' => true, 'security.enabled' => false, 'high_security' => false) do
+      NewRelic::Agent.stub :logger, logger do
+        logger.expect :info, nil, [/Security is completely disabled/]
+
+        NewRelic::Control::SecurityInterface.instance.init_agent
+      end
+
+      refute_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
+    end
+    logger.verify
+  end
+
+  def test_initialization_short_circuits_when_high_security_mode_is_enabled
+    logger = MiniTest::Mock.new
+    with_config('security.agent.enabled' => true, 'security.enabled' => true, 'high_security' => true) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
 
