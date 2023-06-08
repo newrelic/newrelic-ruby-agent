@@ -588,8 +588,7 @@ module NewRelic
 
   - If you do not want the agent to capture query information, set this to `none`.
   - If you want the agent to capture all query information in its original form, set this to `raw`.
-  - When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
-  '
+  - When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.'
         },
 
         :'transaction_tracer.stack_trace_threshold' => {
@@ -1617,7 +1616,9 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
+          :description => 'Specify a custom host name for ' \
+            '[display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name). ' \
+            'Be aware that you cannot rename a hostname, so please rename carefully.'
         },
         # Rails
         :'defer_rails_initialization' => {
