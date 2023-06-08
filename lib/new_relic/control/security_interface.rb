@@ -22,13 +22,13 @@ module NewRelic
       def init_agent
         return if agent_started? || waiting?
 
-        if Agent.config[:'security.agent.enabled']
+        if Agent.config[:'security.agent.enabled'] && Agent.config[:'security.enabled'] && !Agent.config[:high_security]
           Agent.logger.info('Invoking New Relic security module')
           require 'newrelic_security'
 
           @agent_started = true
         else
-          Agent.logger.info('New Relic security module is disabled.')
+          Agent.logger.info('New Relic Security is completely disabled by one of the user provided config `security.agent.enabled`, `security.enabled`, or `high_security`. Not loading security capabilities.')
         end
       rescue LoadError
         Agent.logger.info('New Relic security agent not found - skipping')
