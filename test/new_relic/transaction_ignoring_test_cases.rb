@@ -21,9 +21,6 @@ module TransactionIgnoringTestCases
   #   trigger_transaction_with_slow_sql(txn_name)
 
   def test_does_not_record_metrics_for_ignored_transaction
-    # TODO: stop the flapping/flaking
-    skip 'Flaps too often with JRuby' if defined?(JRuby)
-
     trigger_transaction('accepted_transaction')
     trigger_transaction('ignored_transaction')
 
@@ -46,12 +43,7 @@ module TransactionIgnoringTestCases
 
     posts = $collector.calls_for('error_data')
 
-    # TODO: why does JRuby produce 2 posts?
-    if defined?(JRuby)
-      assert_operator posts.size, :>=, 1
-    else
-      assert_equal(1, posts.size)
-    end
+    assert_equal(1, posts.size)
 
     errors = posts.first.errors
 
@@ -64,22 +56,12 @@ module TransactionIgnoringTestCases
       trigger_transaction('accepted_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
-      # TODO: why does JRuby produce 2 calls?
-      if defined?(JRuby)
-        assert_operator $collector.calls_for('transaction_sample_data').size, :>=, 1
-      else
-        assert_equal(1, $collector.calls_for('transaction_sample_data').size)
-      end
+      assert_equal(1, $collector.calls_for('transaction_sample_data').size)
 
       trigger_transaction('ignored_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
-      # TODO: why does JRuby produce 2 calls?
-      if defined?(JRuby)
-        assert_operator $collector.calls_for('transaction_sample_data').size, :>=, 1
-      else
-        assert_equal(1, $collector.calls_for('transaction_sample_data').size)
-      end
+      assert_equal(1, $collector.calls_for('transaction_sample_data').size)
     end
   end
 
@@ -107,12 +89,7 @@ module TransactionIgnoringTestCases
 
     posts = $collector.calls_for('sql_trace_data')
 
-    # TODO: why does JRuby produce 2 posts?
-    if defined?(JRuby)
-      assert_operator posts.size, :>=, 1
-    else
-      assert_equal(1, posts.size)
-    end
+    assert_equal(1, posts.size)
 
     traces = posts.first.traces
 
