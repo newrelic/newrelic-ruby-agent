@@ -13,6 +13,7 @@ module NewRelic
       :insert_distributed_trace_headers,
       :accept_distributed_trace_headers,
       :add_custom_attributes,
+      :add_custom_log_attributes,
       :add_custom_span_attributes,
       :add_instrumentation,
       :add_method_tracer,

@@ -649,6 +649,40 @@ module NewRelic
       end
     end
 
+    # Add custom attributes to log events for the current agent instance.
+    #
+    # @param [Hash] params    A Hash of attributes to attach to log
+    #                         events. The agent accepts up to 240 custom
+    #                         log event attributes.
+    #
+    #                         Keys will be coerced into Strings and must
+    #                         be less than 256 characters. Keys longer
+    #                         than 255 characters will be truncated.
+    #
+    #                         Values may be Strings, Symbols, numeric
+    #                         values or Booleans and must be less than
+    #                         4095 characters. If the value is a String
+    #                         or a Symbol, values longer than 4094
+    #                         characters will be truncated.
+    #
+    #                         This API can be called multiple times.
+    #                         If the same key is passed more than once,
+    #                         the value associated with the last call
+    #                         will be preserved.
+    #
+    #                         Key/value pairs with empty or nil values
+    #                         will be dropped.
+    # @api public
+    def add_custom_log_attributes(params)
+      record_api_supportability_metric(:add_custom_log_attributes)
+
+      if params.is_a?(Hash)
+        NewRelic::Agent.agent.log_event_aggregator.add_custom_attributes(params)
+      else
+        NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_log_attributes. Expected Hash but got #{params.class}.")
+      end
+    end
+
     # Set the user id for the current transaction. When present, this value will be included in the agent attributes for transaction and error events as 'enduser.id'.
     #
     # @param [String] user_id    The user id to add to the current transaction attributes
