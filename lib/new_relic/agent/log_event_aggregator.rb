@@ -24,6 +24,9 @@ module NewRelic
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
+      MAX_ATTRIBUTE_COUNT = 240 # limit is 255, assume we send 15 attributes by default
+      ATTRIBUTE_KEY_CHARACTER_LIMIT = 255
+      ATTRIBUTE_VALUE_CHARACTER_LIMIT = 4094
 
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
@@ -38,6 +41,8 @@ module NewRelic
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
       LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
 
+      attr_reader :custom_attributes, :already_warned_custom_attribute_count_limit
+
       def initialize(events)
         super(events)
         @counter_lock = Mutex.new
@@ -45,6 +50,8 @@ module NewRelic
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
+        @custom_attributes = {}
+        @already_warned_custom_attribute_count_limit = false
         register_for_done_configuring(events)
       end
 
@@ -116,6 +123,20 @@ module NewRelic
         ]
       end
 
+      def add_custom_attributes(attributes)
+        return if already_warned_custom_attribute_count_limit
+
+        attributes.each do |key, value|
+          next if absent?(key) || absent?(value)
+
+          add_custom_attribute(key, value)
+        end
+      end
+
+      def absent?(value)
+        value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      end
+
       # Because our transmission format (MELT) is different than historical
       # agent payloads, extract the munging here to keep the service focused
       # on the general harvest + transmit instead of the format.
@@ -131,6 +152,8 @@ module NewRelic
         # To save on unnecessary data transmission, trim the entity.type
         # sent by classic logs-in-context
         common_attributes.delete(ENTITY_TYPE_KEY)
+
+        common_attributes.merge!(NewRelic::Agent.agent.log_event_aggregator.custom_attributes)
 
         _, items = data
         payload = [{
@@ -151,6 +174,9 @@ module NewRelic
           @seen = 0
           @seen_by_severity.clear
         end
+
+        @custom_attributes = {}
+        @already_warned_custom_attribute_count_limit = false
         super
       end
 
@@ -159,6 +185,64 @@ module NewRelic
       end
 
       private
+
+      def add_custom_attribute(key, value)
+        if custom_attributes.size >= MAX_ATTRIBUTE_COUNT
+          NewRelic::Agent.logger.warn(
+            'Too many custom log attributes defined. ' \
+            "Only taking the first #{MAX_ATTRIBUTE_COUNT}."
+          )
+          @already_warned_custom_attribute_count_limit = true
+          return
+        end
+
+        @custom_attributes.merge!(truncate_attributes(key_to_string(key), value))
+      end
+
+      def key_to_string(key)
+        key.is_a?(String) ? key : key.to_s
+      end
+
+      class TruncationError < StandardError
+        attr_reader :attribute, :limit
+
+        def initialize(attribute, limit, msg = "Can't truncate")
+          @attribute = attribute
+          @limit = limit
+          super(msg)
+        end
+      end
+
+      def truncate_attributes(key, value)
+        key = truncate_attribute(key, ATTRIBUTE_KEY_CHARACTER_LIMIT)
+        value = truncate_attribute(value, ATTRIBUTE_VALUE_CHARACTER_LIMIT)
+        {key => value}
+      rescue TruncationError => e
+        NewRelic::Agent.logger.warn(
+          "Dropping custom log attribute #{key} => #{value} \n" \
+          "Length exceeds character limit of #{e.limit}. Can't truncate: #{e.attribute}"
+        )
+        {}
+      end
+
+      def truncate_attribute(attribute, limit)
+        case attribute
+        when Integer
+          if attribute.digits.length > limit
+            raise TruncationError.new(attribute, limit)
+          end
+        when Float
+          if attribute.to_s.length > limit
+            raise TruncationError.new(attribute, limit)
+          end
+        when String, Symbol
+          if attribute.length > limit
+            attribute = attribute.slice(0..(limit - 1))
+          end
+        end
+
+        attribute
+      end
 
       # We record once-per-connect metrics for enabled/disabled state at the
       # point we consider the configuration stable (i.e. once we've gotten SSC)
