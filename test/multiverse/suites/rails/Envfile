@@ -13,15 +13,6 @@ RAILS_VERSIONS = [
   ['4.2.11', 2.4, 2.4]
 ]
 
-# TODO: address Rails 7 / JRuby 9.4.0.0 issues for this suite, and then remove
-#       this reject! line
-#
-# ErrorsWithSSCTest#test_captured_errors_should_not_include_custom_params_if_config_says_no
-# [/home/runner/work/newrelic-ruby-agent/newrelic-ruby-agent/test/new_relic/multiverse_helpers.rb:208]:
-# Expected: 1
-#   Actual: 2
-RAILS_VERSIONS.reject! { |pair| pair.first.nil? || pair.first >= '7' } if defined?(JRuby)
-
 def haml_rails(rails_version = nil)
   if rails_version && (
     rails_version.include?('4.0.13') ||
