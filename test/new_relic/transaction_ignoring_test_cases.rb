@@ -42,6 +42,7 @@ module TransactionIgnoringTestCases
     NewRelic::Agent.instance.send(:harvest_and_send_errors)
 
     posts = $collector.calls_for('error_data')
+
     assert_equal(1, posts.size)
 
     errors = posts.first.errors
@@ -54,10 +55,12 @@ module TransactionIgnoringTestCases
     with_config(:'transaction_tracer.transaction_threshold' => 0) do
       trigger_transaction('accepted_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
+
       assert_equal(1, $collector.calls_for('transaction_sample_data').size)
 
       trigger_transaction('ignored_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
+
       assert_equal(1, $collector.calls_for('transaction_sample_data').size)
     end
   end
@@ -85,6 +88,7 @@ module TransactionIgnoringTestCases
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
 
     posts = $collector.calls_for('sql_trace_data')
+
     assert_equal(1, posts.size)
 
     traces = posts.first.traces
