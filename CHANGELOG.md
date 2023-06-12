@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds the ability to filter logs by level and expands instrumentation for Action Cable.
+Version <dev> of the agent adds the ability to filter logs by level, expands instrumentation for Action Cable, and provides a bugfix for Code-Level Metrics.
 
 - **Feature: Filter forwarded logs based on level**
 
