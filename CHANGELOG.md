@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds the ability to filter logs by level and expands instrumentation for Action Cable.
+Version <dev> of the agent adds the ability to filter logs by level, expands instrumentation for Action Cable, and provides a bugfix for Code-Level Metrics.
 
 - **Feature: Filter forwarded logs based on level**
 
@@ -19,6 +19,10 @@ Version <dev> of the agent adds the ability to filter logs by level and expands 
   This change subscribes the agent to the Active Support notifications for:
     * `transmit_subscription_confirmation.action_cable`
     * `transmit_subscription_rejection.action_cable`
+
+- **Bugfix: Report Code-Level Metrics for Rails controller methods**
+
+  Controllers in Rails automatically render views with names that correspond to valid routes. This means that a controller method may not have a corresponding method in the controller class. Code-Level Metrics now report on these methods and don't log false warnings. Thanks to [@jcrisp](https://github.com/jcrisp) for reporting this issue. [PR#2061](https://github.com/newrelic/newrelic-ruby-agent/pull/2061)
 
 ## v9.2.2
 
