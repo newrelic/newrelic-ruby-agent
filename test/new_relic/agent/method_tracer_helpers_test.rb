@@ -149,22 +149,22 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   end
 
   if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR >= 7
+    require_relative '../../environments/rails70/app/controllers/no_method_controller'
+
     def test_provides_info_for_no_method_on_controller
       skip_unless_minitest5_or_above
 
       with_config(:'code_level_metrics.enabled' => true) do
-        info = NewRelic::Agent::MethodTracerHelpers.code_information(TestController, :a_method)
+        info = NewRelic::Agent::MethodTracerHelpers.code_information(NoMethodController, :a_method)
 
-        assert_equal({filepath: Rails.root.join('app/controllers/test_controller.rb').to_s,
+        assert_equal({filepath: Rails.root.join('app/controllers/no_method_controller.rb').to_s,
           lineno: 1,
           function: 'a_method',
-          namespace: 'TestController'},
+          namespace: 'NoMethodController'},
           info)
       end
     end
-  end
 
-  if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR >= 7
     def test_controller_info_no_filepath
       skip_unless_minitest5_or_above
 
@@ -174,9 +174,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
         assert_equal NewRelic::EMPTY_ARRAY, info
       end
     end
-  end
 
-  if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR >= 7
     def test_code_information_returns_empty_hash_when_no_info_is_available
       with_config(:'code_level_metrics.enabled' => true) do
         object = String

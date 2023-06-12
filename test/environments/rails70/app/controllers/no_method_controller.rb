@@ -4,4 +4,4 @@
 
 require_relative 'application_controller'
 
-class TestController < ApplicationController; end
+class NoMethodController < ApplicationController; end
