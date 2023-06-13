@@ -1,6 +1,5 @@
-name: Create Prerelease
+name: Create Release PR
 
-name: Build and push site
 on:
   pull_request:
     types:
