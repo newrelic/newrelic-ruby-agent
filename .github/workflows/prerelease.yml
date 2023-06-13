@@ -26,15 +26,17 @@ jobs:
       run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
 
     - name: Create pull request
-      uses: peter-evans/create-pull-request@284f54f989303d2699d373481a0cfa13ad5a6666 # v5.0.1
-      with:
-        title: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
-        branch: prerelease_updates_${{ env.prerelease_tag }}
-        commit-message: 'Bump version'
-        body: "Updates the version number, changelog, and newrelic.yml(if it needs updating). This is an automated PR"
-        labels: prerelease
-        delete_branch: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git checkout -b "prerelease_updates_${{ env.prerelease_tag }}"
+        git add --all
+        git commit -m "bump version"
+        git push
+        gh pr create --label $LABEL --title $TITLE --body $BODY --head
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TITLE: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
+        BODY: "Updates the version number, changelog, and newrelic.yml(if it needs updating). This is an automated PR"
+        LABEL: prerelease
        
     - name: Create pre release tag
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # tag v0.1.15
