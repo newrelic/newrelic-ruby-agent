@@ -80,7 +80,7 @@ module NewRelic
     private
 
     def version_code(major, minor, tiny)
-      <<~VERSION
+      +<<~VERSION
         #!/usr/bin/ruby
         # This file is distributed under New Relic's license terms.
         # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
@@ -105,7 +105,7 @@ module NewRelic
         'Bugfix:'
       end
 
-      <<~CHANGELOG
+      +<<~CHANGELOG
         # New Relic Ruby Agent Release Notes
 
         ## dev
