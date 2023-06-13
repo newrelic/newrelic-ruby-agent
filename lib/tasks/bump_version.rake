@@ -7,12 +7,6 @@ include VersionBump
 
 namespace :newrelic do
   namespace :version do
-    MAJOR = 0
-    MINOR = 1
-    TINY = 2
-    VERSION = {major: MAJOR, minor: MINOR, tiny: TINY}
-    @new_version = {}
-
     desc 'Returns the current version'
     task :current do
       puts "#{NewRelic::VERSION::STRING}"
@@ -20,12 +14,9 @@ namespace :newrelic do
 
     desc 'Update version file and changelog to neext version'
     task :bump, [:format] => [] do |t, args|
-      type = determine_bump_type
-      update_version(type)
-
-      version_string = "#{@new_version[:major]}.#{@new_version[:minor]}.#{@new_version[:tiny]}"
-      update_changelog(version_string)
-      puts "New version: #{version_string}"
+      new_version = update_version
+      update_changelog(new_version)
+      puts "New version: #{new_version}"
     end
   end
 end

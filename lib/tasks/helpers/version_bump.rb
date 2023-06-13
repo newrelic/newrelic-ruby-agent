@@ -3,14 +3,22 @@
 # frozen_string_literal: true
 
 module VersionBump
+  MAJOR = 0
+  MINOR = 1
+  TINY = 2
+  VERSION = {major: MAJOR, minor: MINOR, tiny: TINY}
+
   # Updates version.rb with new version number
-  def update_version(bump_type)
+  def update_version
+    bump_type = determine_bump_type
     file = File.read(File.expand_path('lib/new_relic/version.rb'))
+    new_version = {}
+
     VERSION.each do |key, current|
       file.gsub!(/(#{key.to_s.upcase} = )(\d+)/) do
         match = Regexp.last_match
 
-        @new_version[key] = if bump_type == current # bump type, increase by 1
+        new_version[key] = if bump_type == current # bump type, increase by 1
           match[2].to_i + 1
         elsif bump_type < current # right of bump type, goes to 0
           0
@@ -18,11 +26,12 @@ module VersionBump
           match[2].to_i
         end
 
-        match[1] + @new_version[key].to_s
+        match[1] + new_version[key].to_s
       end
     end
 
     File.write(File.expand_path('lib/new_relic/version.rb'), file)
+    new_version.values.join('.')
   end
 
   # Determind version based on if changelog has a feature or not for version
