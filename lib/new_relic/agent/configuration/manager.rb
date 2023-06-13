@@ -33,6 +33,7 @@ module NewRelic
 
         def initialize
           reset_to_defaults
+          @cache_mutex = Mutex.new
           @callbacks = Hash.new { |hash, key| hash[key] = [] }
         end
 
@@ -364,9 +365,11 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
-          preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
-          new_cache
-          preserved.each { |k, v| @cache[k] = v }
+          @cache_mutex.synchronize do
+            preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+            new_cache
+            preserved.each { |k, v| @cache[k] = v }
+          end
 
           @cache
         end
