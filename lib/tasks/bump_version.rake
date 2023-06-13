@@ -48,6 +48,8 @@ namespace :newrelic do
     def determine_bump_type
       file = File.read(File.expand_path('CHANGELOG.md'))
       lines = file.split("## ")[1].split("- **")
+      binding.irb
+      return MAJOR if lines.first.include?('Major version')
       return MINOR if lines.any?{ |line| line.include?("Feature:") }
       TINY
     end
