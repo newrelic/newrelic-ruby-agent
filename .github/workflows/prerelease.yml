@@ -2,9 +2,6 @@ name: Create Prerelease
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - create_prerelease_automation_job
 
 jobs: 
   create_prerelease:
@@ -13,17 +10,21 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-    - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
+    - name: Install Ruby 3.2
+      uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
       with:
         ruby-version: 3.2
 
     - name: Checkout code
       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
-    # Update files for release
     - run: bundle
-    - run: bundle exec rake newrelic:version:bump
-    # - run: bundle exec rake newrelic:config:whateverhannahismaking
+
+    - name: Update files with new version
+      run: bundle exec rake newrelic:version:bump
+
+    - name: Update newrelic.yml (TODO)
+      run: echo "after hannahs work is merged"
 
     - name: Set tag name
       run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
