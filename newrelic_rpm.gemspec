@@ -48,6 +48,8 @@ Gem::Specification.new do |s|
   s.summary = 'New Relic Ruby Agent'
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
+  s.add_development_dependency 'git' unless ENV['CI'] && RUBY_VERSION < '3.2'
+  s.add_development_dependency 'octokit' unless ENV['CI'] && RUBY_VERSION < '3.2'
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   s.add_development_dependency 'minitest-stub-const', '0.6'

@@ -1,0 +1,35 @@
+name: Create Prerelease
+
+on:
+  workflow_dispatch:
+
+
+job: 
+  create_prerelease:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
+        with:
+          ruby-version: 3.2
+      - name: Checkout code
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+
+      # Update files for release
+      - run: bundle
+      - run: bundle exec rake newrelic:version:bump
+      - run: bundle exec rake newrelic:config:whateverhannahismaking
+
+      - run: gem install octokit
+      - run: gem install git
+      
+      - run: .github/workflows/scripts/prerelease_pr.rb
+        env:
+          GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+
+     # New branch
+     # change version in changelog
+     # create PR
+     # create tag on the new branch for the prerelease
+
+    # - run: 
+
