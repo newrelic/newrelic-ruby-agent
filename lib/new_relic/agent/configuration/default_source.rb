@@ -1646,7 +1646,7 @@ module NewRelic
           'This configuration option converts the Array to a RegEx list. If you\'d like ' \
           'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
           'instrumented unless they\'re added to this list. For more information, ' \
-          'visit the (New Relic Rake Instrumentation docs)[/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation].'
+          'visit the [New Relic Rake Instrumentation docs](/docs/apm/agents/ruby-agent/background-jobs/rake-instrumentation).'
         },
         :'rake.connect_timeout' => {
           :default => 10,
