@@ -36,7 +36,7 @@ jobs:
         git config --global user.name "Github bot"
         git commit -m "bump version"
         git push --set-upstream origin prerelease_updates_9.3.0-pre
-        gh pr create --label $LABEL --title $TITLE --body $BODY
+        gh pr create --label $LABEL --title "$TITLE" --body "$BODY"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TITLE: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
