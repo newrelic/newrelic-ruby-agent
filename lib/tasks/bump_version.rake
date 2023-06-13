@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require_relative './helpers/version_bump'
-include VersionBump
 
 namespace :newrelic do
   namespace :version do
@@ -14,8 +13,8 @@ namespace :newrelic do
 
     desc 'Update version file and changelog to neext version'
     task :bump, [:format] => [] do |t, args|
-      new_version = update_version
-      update_changelog(new_version)
+      new_version = VersionBump.update_version
+      VersionBump.update_changelog(new_version)
       puts "New version: #{new_version}"
     end
   end

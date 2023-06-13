@@ -9,9 +9,9 @@ module VersionBump
   VERSION = {major: MAJOR, minor: MINOR, tiny: TINY}
 
   # Updates version.rb with new version number
-  def update_version
+  def self.update_version
     bump_type = determine_bump_type
-    file = File.read(File.expand_path('lib/new_relic/version.rb'))
+    file = read_file('lib/new_relic/version.rb')
     new_version = {}
 
     VERSION.each do |key, current|
@@ -30,13 +30,21 @@ module VersionBump
       end
     end
 
-    File.write(File.expand_path('lib/new_relic/version.rb'), file)
+    write_file('lib/new_relic/version.rb', file)
     new_version.values.join('.')
   end
 
+  def self.read_file(path)
+    File.read(File.expand_path(path))
+  end
+
+  def self.write_file(path, file)
+    File.write(File.expand_path(path), file)
+  end
+
   # Determind version based on if changelog has a feature or not for version
-  def determine_bump_type
-    file = File.read(File.expand_path('CHANGELOG.md'))
+  def self.determine_bump_type
+    file = read_file('CHANGELOG.md')
     lines = file.split('## ')[1].split('- **')
     return MAJOR if lines.first.include?('Major version')
     return MINOR if lines.any? { |line| line.include?('Feature:') }
@@ -45,10 +53,10 @@ module VersionBump
   end
 
   # Replace dev with version number in changelog
-  def update_changelog(version)
-    file = File.read(File.expand_path('CHANGELOG.md'))
+  def self.update_changelog(version)
+    file = read_file('CHANGELOG.md')
     file.gsub!(/## dev/, "## v#{version}")
     file.gsub!(/Version <dev>/, "Version #{version}")
-    File.write(File.expand_path('CHANGELOG.md'), file)
+    write_file('CHANGELOG.md', file)
   end
 end
