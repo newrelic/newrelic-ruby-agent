@@ -1616,9 +1616,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specify a custom host name for ' \
-            '[display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name). ' \
-            'Be aware that you cannot rename a hostname, so please rename carefully.'
+          :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name). Be aware that you cannot rename a hostname, so please rename carefully.'
         },
         # Rails
         :'defer_rails_initialization' => {
