@@ -4,14 +4,10 @@ on:
   pull_request:
     types:
       - closed
-  push:
-    branches:
-      - create_prerelease_automation_job
-
 
 jobs: 
   create_prerelease:
-    # if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
