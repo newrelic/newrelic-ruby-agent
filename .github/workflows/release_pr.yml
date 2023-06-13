@@ -1,0 +1,39 @@
+name: Create Prerelease
+
+name: Build and push site
+on:
+  pull_request:
+    types:
+      - closed
+  push:
+    branches:
+      - create_prerelease_automation_job
+
+
+jobs: 
+  create_prerelease:
+    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - name: Install Ruby 3.2
+      uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
+      with:
+        ruby-version: 3.2
+
+    - name: Checkout code
+      uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+
+    - run: bundle
+
+    - name: Set agent version
+      run: echo "agent_version=$(bundle exec rake newrelic:version:current)" >> $GITHUB_ENV
+
+    - name: Create pull request
+      run: gh pr create --draft --base "main" --title "$TITLE" --body "$BODY"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TITLE: "TEST PLS IGNORE: Release ${{ env.agent_version }}"
+        BODY: "Automated PR for ${{ env.agent_version}} release"
