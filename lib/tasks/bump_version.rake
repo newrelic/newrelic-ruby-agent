@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'helpers/version_bump'
+require_relative './helpers/version_bump'
 include VersionBump
 
 namespace :newrelic do
