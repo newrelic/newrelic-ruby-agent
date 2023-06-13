@@ -118,7 +118,7 @@ module NewRelicYML
     yml_string = ''
 
     configs.each do |key, value|
-      yml_string += "#{value[:description]} \n  # #{key}: #{value[:default]}\n\n"
+      yml_string += "#{value[:description]}\n  # #{key}: #{value[:default]}\n\n"
     end
 
     yml_string
