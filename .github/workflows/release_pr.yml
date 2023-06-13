@@ -12,7 +12,7 @@ on:
 
 jobs: 
   create_prerelease:
-    if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
+    # if: ${{ (github.event.pull_request.merged == true) && (contains(github.event.pull_request.labels.*.name, 'prerelease')) }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
