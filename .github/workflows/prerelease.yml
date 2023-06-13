@@ -40,15 +40,15 @@ jobs:
         gh pr create --label $LABEL --title "$TITLE" --body "$BODY"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TITLE: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
+        TITLE: "Prerelease #{{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml(if it needs updating). This is an automated PR"
         LABEL: prerelease
        
     - name: Create pre release tag
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # tag v0.1.15
       with:
-        tag_name: ${{ env.prerelease_tag }}-test
-        name: ${{ env.prerelease_tag }}-test
+        tag_name: ${{ env.prerelease_tag }}
+        name: ${{ env.prerelease_tag }}
         target_commitish: prerelease_updates_${{ env.prerelease_tag }}
         prerelease: true
       env:
