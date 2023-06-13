@@ -32,7 +32,8 @@ jobs:
         git config --global user.email "ruby-agent@newrelic.com"
         git config --global user.name "Github bot"
         git commit -m "bump version"
-        gh pr create --label $LABEL --title $TITLE --body $BODY --head
+        git push --set-upstream origin prerelease_updates_9.3.0-pre
+        gh pr create --label $LABEL --title $TITLE --body $BODY
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TITLE: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
