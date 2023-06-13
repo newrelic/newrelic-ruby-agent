@@ -125,6 +125,6 @@ module NewRelicYML
   end
 
   def write_file
-    File.write('newrelic.yml', HEADER + build_string + FOOTER) # rubocop:disable Style/YodaExpression
+    File.write('newrelic.yml', HEADER + build_string + FOOTER)
   end
 end
