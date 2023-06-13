@@ -9,6 +9,9 @@ on:
 jobs: 
   create_prerelease:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
     - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
       with:
@@ -35,7 +38,7 @@ jobs:
         git push --set-upstream origin prerelease_updates_9.3.0-pre
         gh pr create --label $LABEL --title $TITLE --body $BODY
       env:
-        GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TITLE: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml(if it needs updating). This is an automated PR"
         LABEL: prerelease
