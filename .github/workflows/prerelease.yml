@@ -32,7 +32,6 @@ jobs:
         git config --global user.email "ruby-agent@newrelic.com"
         git config --global user.name "Github bot"
         git commit -m "bump version"
-        git push
         gh pr create --label $LABEL --title $TITLE --body $BODY --head
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
