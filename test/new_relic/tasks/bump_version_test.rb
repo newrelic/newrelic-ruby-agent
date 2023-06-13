@@ -62,16 +62,15 @@ module NewRelic
       expected_changelog = <<~CHANGELOG
         # New Relic Ruby Agent Release Notes
 
-          ## v#{expected_version}
-          
-          Version #{expected_version} of the agent does a bunch of stuff
-          
-          - **Feature: feature or bugfix?**
-          
-            what a description
-
-          ## v4.5.6
+        ## v#{expected_version}
         
+        Version #{expected_version} of the agent does a bunch of stuff
+        
+        - **Feature: feature or bugfix?**
+        
+          what a description
+
+        ## v4.5.6
       CHANGELOG
 
       ::VersionBump.expects(:write_file).with('CHANGELOG.md', expected_changelog)
@@ -118,7 +117,6 @@ module NewRelic
           what a description
 
         ## v4.5.6
-        
       CHANGELOG
     end
   end
