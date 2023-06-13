@@ -6,7 +6,7 @@ on:
     branches:
       - create_prerelease_automation_job
 
-job: 
+jobs: 
   create_prerelease:
     runs-on: ubuntu-22.04
     steps:
