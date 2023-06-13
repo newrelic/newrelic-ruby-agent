@@ -2,34 +2,49 @@ name: Create Prerelease
 
 on:
   workflow_dispatch:
-
+  push:
+    branches:
+      - create_prerelease_automation_job
 
 job: 
   create_prerelease:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
-        with:
-          ruby-version: 3.2
-      - name: Checkout code
-        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+    - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
+      with:
+        ruby-version: 3.2
 
-      # Update files for release
-      - run: bundle
-      - run: bundle exec rake newrelic:version:bump
-      - run: bundle exec rake newrelic:config:whateverhannahismaking
+    - name: Checkout code
+      uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      with:
+        fetch-depth: 0
 
-      - run: gem install octokit
-      - run: gem install git
-      
-      - run: .github/workflows/scripts/prerelease_pr.rb
-        env:
-          GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+    # Update files for release
+    - run: bundle
+    - run: bundle exec rake newrelic:version:bump
+    # - run: bundle exec rake newrelic:config:whateverhannahismaking
 
-     # New branch
-     # change version in changelog
-     # create PR
-     # create tag on the new branch for the prerelease
+    - name: Set tag name
+      run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
 
-    # - run: 
+    - name: Create pull request
+      uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        source_branch: prerelease_updates_${{ env.prerelease_tag }}
+        destination_branch: dev
+        pr_title: "TEST: IGNORE PLS: Prerelease #{{env.prerelease_tag}}"
+        pr_body: "Updates the version number, changelog, and newrelic.yml(if it needs updating). This is an automated PR"
+        destination_repository: "newrelic/newrelic-ruby-agent"
+        delete_branch: true
+        labels: prerelease
 
+    - name: Create pre release tag
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # tag v0.1.15
+      with:
+        tag_name: ${{ env.prerelease_tag }}-test
+        name: ${{ env.prerelease_tag }}-test
+        target_commitish: prerelease_updates_${{ env.prerelease_tag }}
+        prerelease: true
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

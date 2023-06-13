@@ -8,6 +8,10 @@ namespace :newrelic do
     VERSION = {major: MAJOR, minor: MINOR, tiny: TINY}
     @new_version = {}
 
+    task :current do
+      puts "#{NewRelic::VERSION::STRING}"
+    end
+
     desc 'Update version file and changelog to neext version'
     task :bump, [:format] => [] do |t, args|
       type = determine_bump_type
