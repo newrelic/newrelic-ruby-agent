@@ -67,20 +67,16 @@ module NewRelicYML
   FOOTER
 
   def self.get_configs(defaults)
-    final_configs = {}
-
-    defaults.sort.each do |key, value|
+    defaults.sort.each_with_object({}) do |(key, value), final_configs|
       next if CRITICAL.include?(key) || SKIP.include?(key)
 
-      if public_config?(value)
-        sanitized_description = sanitize_description(value[:description])
-        description = format_description(sanitized_description)
-        default = default_value(key, value)
-        final_configs[key] = {description: description, default: default}
-      end
-    end
+      next unless public_config?(value)
 
-    final_configs
+      sanitized_description = sanitize_description(value[:description])
+      description = format_description(sanitized_description)
+      default = default_value(key, value)
+      final_configs[key] = {description: description, default: default}
+    end
   end
 
   def self.public_config?(value)
@@ -96,7 +92,7 @@ module NewRelicYML
     description.gsub!(/\[([^\]]+)\]\([^\)]+\)/, '\1')
     # remove single pairs of backticks
     description.gsub!(/`([^`]+)`/, '\1')
-    # removed hrefs links
+    # removed href links
     description.gsub!(/<a href="(.*)">(.*)<\/a>/, '\2')
 
     description
