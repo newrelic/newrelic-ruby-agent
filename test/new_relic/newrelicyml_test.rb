@@ -6,54 +6,6 @@ require_relative '../test_helper'
 require_relative '../../lib/tasks/helpers/newrelicyml'
 
 class NewRelicYMLTest < Minitest::Test
-  FAKE_CONFIGS = {
-    :begonia => {
-      :default => nil,
-      :documentation_default => nil,
-      :public => true,
-      :description => 'If `true`, green with white polka dots.'
-    },
-    :lily => {
-      :default => 1,
-      :documentation_default => 2,
-      :public => true,
-      :description => <<~DESCRIPTION
-        <Callout variant="caution">
-          White flowers.
-        </Callout>
-      DESCRIPTION
-    },
-    :monstera => {
-      :default => '',
-      :public => true,
-      :description => 'Leafy and [pretty](/pretty/plants).'
-    },
-    :pothos => {
-      :default => '',
-      :public => false,
-      :description => 'Low <InlinePopover type="maintenance" />.'
-    }
-  }
-
-  def final_config_hash
-    config_hash = {
-      :begonia => {
-        :description => '  # If true, green with white polka dots.',
-        :default => 'nil'
-      },
-      :lily => {
-        :description => '  # White flowers.',
-        :default => 2
-      },
-      :monstera => {
-        :description => '  # Leafy and pretty.',
-        :default => '""'
-      }
-    }
-
-    config_hash
-  end
-
   def test_public_config_true
     assert NewRelicYML.public_config?(FAKE_CONFIGS[:begonia])
   end
@@ -97,4 +49,83 @@ class NewRelicYMLTest < Minitest::Test
   def test_get_configs
     assert_equal final_config_hash, NewRelicYML.get_configs(FAKE_CONFIGS)
   end
+
+  def test_build_string
+    assert_equal final_string, NewRelicYML.build_string(FAKE_CONFIGS)
+  end
+
+  private
+
+  FAKE_CONFIGS = {
+    :begonia => {
+      :default => nil,
+      :documentation_default => nil,
+      :public => true,
+      :description => 'If `true`, green with white polka dots.'
+    },
+    :lily => {
+      :default => 1,
+      :documentation_default => 2,
+      :public => true,
+      :description => <<~DESCRIPTION
+        <Callout variant="caution">
+          White flowers.
+        </Callout>
+      DESCRIPTION
+    },
+    :monstera => {
+      :default => '',
+      :public => true,
+      :description => 'Leafy and [pretty](/pretty/plants).'
+    },
+    :pothos => {
+      :default => '',
+      :public => false,
+      :description => 'Low <InlinePopover type="maintenance" />.'
+    },
+    :app_name => {
+      default: 'My Application'
+    },
+    :defer_rails_initialization => {
+      :default => 'this should never be included'
+    },
+    :config_path => {
+      :default => 'newrelic.yml'
+    }
+  }
+
+  def final_config_hash
+    config_hash = {
+      :begonia => {
+        :description => '  # If true, green with white polka dots.',
+        :default => 'nil'
+      },
+      :lily => {
+        :description => '  # White flowers.',
+        :default => 2
+      },
+      :monstera => {
+        :description => '  # Leafy and pretty.',
+        :default => '""'
+      }
+    }
+
+    config_hash
+  end
+
+  # rubocop:disable Style/RedundantStringEscape
+  def final_string
+    <<~YML
+      \ \ # If true, green with white polka dots.
+      \ \ # begonia: nil
+
+      \ \ # White flowers.
+      \ \ # lily: 2
+
+      \ \ # Leafy and pretty.
+      \ \ # monstera: ""
+
+    YML
+  end
+  # rubocop:enable Style/RedundantStringEscape
 end
