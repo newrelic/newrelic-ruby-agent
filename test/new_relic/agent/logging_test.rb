@@ -18,6 +18,11 @@ module NewRelic
           JSON.load(@output.string.split("\n")[-1])
         end
 
+        def test_clear_tags_is_called_without_error
+          logger = DecoratingLogger.new(@output)
+          logger.formatter.clear_tags!
+        end
+
         def test_log_to_json
           logger = DecoratingLogger.new(@output)
           logger.info('this is a test')
