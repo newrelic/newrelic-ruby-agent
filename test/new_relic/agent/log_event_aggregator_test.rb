@@ -44,12 +44,6 @@ module NewRelic::Agent
       end
     end
 
-    def common_attributes_from_melt
-      @aggregator.record('Test', 'DEBUG')
-      data = LogEventAggregator.payload_to_melt_format(@aggregator.harvest!)
-      data[0][0][:common][:attributes]
-    end
-
     include NewRelic::DataContainerTests
 
     def test_records_enabled_metrics_on_startup

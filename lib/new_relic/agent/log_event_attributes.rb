@@ -5,11 +5,11 @@
 module NewRelic
   module Agent
     class LogEventAttributes
-      MAX_ATTRIBUTE_COUNT = 240 # limit is 255, assume we send 15 attributes by default
+      MAX_ATTRIBUTE_COUNT = 240 # limit is 255, assume we send 15
       ATTRIBUTE_KEY_CHARACTER_LIMIT = 255
       ATTRIBUTE_VALUE_CHARACTER_LIMIT = 4094
 
-      attr_accessor :custom_attributes, :already_warned_custom_attribute_count_limit
+      attr_reader :custom_attributes, :already_warned_custom_attribute_count_limit
 
       def initialize
         @custom_attributes = {}
@@ -39,6 +39,15 @@ module NewRelic
         def initialize(attribute, limit, msg = "Can't truncate")
           @attribute = attribute
           @limit = limit
+          super(msg)
+        end
+      end
+
+      class InvalidTypeError < StandardError
+        attr_reader :attribute
+
+        def initialize(attribute, msg = 'Invalid attribute type')
+          @attribute = attribute
           super(msg)
         end
       end
@@ -78,6 +87,10 @@ module NewRelic
           if attribute.length > limit
             attribute = attribute.slice(0..(limit - 1))
           end
+        when TrueClass, FalseClass
+          attribute
+        else
+          raise InvalidTypeError.new(attribute)
         end
 
         attribute
@@ -93,6 +106,14 @@ module NewRelic
           "Dropping custom log attribute #{key} => #{value} \n" \
           "Length exceeds character limit of #{e.limit}. " \
           "Can't truncate: #{e.attribute}"
+        )
+
+        {}
+      rescue InvalidTypeError => e
+        NewRelic::Agent.logger.warn(
+          "Dropping custom log attribute #{key} => #{value} \n" \
+          "Invalid type of #{e.attribute.class} given. " \
+          "Can't send #{e.attribute}."
         )
 
         {}

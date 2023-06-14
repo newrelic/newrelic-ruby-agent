@@ -663,14 +663,17 @@ module NewRelic
     #                         values or Booleans and must be less than
     #                         4095 characters. If the value is a String
     #                         or a Symbol, values longer than 4094
-    #                         characters will be truncated.
+    #                         characters will be truncated. If the value
+    #                         exceeds 4094 characters and is of a
+    #                         different class, the attribute pair will
+    #                         be dropped.
     #
     #                         This API can be called multiple times.
     #                         If the same key is passed more than once,
     #                         the value associated with the last call
     #                         will be preserved.
     #
-    #                         Key/value pairs with empty or nil contents
+    #                         Attribute pairs with empty or nil contents
     #                         will be dropped.
     # @api public
     def add_custom_log_attributes(params)
