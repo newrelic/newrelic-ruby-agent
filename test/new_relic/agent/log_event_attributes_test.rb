@@ -50,7 +50,7 @@ module NewRelic::Agent
 
           logger.verify
 
-          assert(@aggregator.attributes.already_warned_custom_attribute_count_limit)
+          assert(@aggregator.attributes.custom_attribute_limit_reached)
           assert_equal(1, @aggregator.attributes.custom_attributes.size)
         end
       end
@@ -58,7 +58,7 @@ module NewRelic::Agent
 
     def test_log_attrs_returns_early_if_already_warned
       @aggregator.attributes.stub(
-        :already_warned_custom_attribute_count_limit, true
+        :custom_attribute_limit_reached, true
       ) do
         NewRelic::Agent.add_custom_log_attributes('dinner' => 'Lasagna')
 
@@ -73,7 +73,7 @@ module NewRelic::Agent
       NewRelic::Agent.stub :logger, logger do
         LogEventAttributes.stub_const(:MAX_ATTRIBUTE_COUNT, 1) do
           @aggregator.attributes.stub(
-            :already_warned_custom_attribute_count_limit, true
+            :custom_attribute_limit_reached, true
           ) do
             NewRelic::Agent.add_custom_log_attributes(dinner: 'Lasagna')
             assert_raises(MockExpectationError) { logger.verify }
