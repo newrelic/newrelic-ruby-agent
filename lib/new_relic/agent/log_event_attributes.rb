@@ -9,15 +9,8 @@ module NewRelic
       ATTRIBUTE_KEY_CHARACTER_LIMIT = 255
       ATTRIBUTE_VALUE_CHARACTER_LIMIT = 4094
 
-      attr_reader :custom_attributes, :custom_attribute_limit_reached
-
-      def initialize
-        @custom_attributes = {}
-        @custom_attribute_limit_reached = false
-      end
-
       def add_custom_attributes(attributes)
-        return if custom_attribute_limit_reached
+        return if @custom_attribute_limit_reached
 
         attributes.each do |key, value|
           next if absent?(key) || absent?(value)
@@ -27,8 +20,13 @@ module NewRelic
       end
 
       def reset!
-        @custom_attributes = {}
-        @custom_attribute_limit_reached = false
+        %i[@custom_attributes @custom_attribute_limit_reached].each do |attr|
+          remove_instance_variable(attr) if instance_variable_defined?(attr)
+        end
+      end
+
+      def custom_attributes
+        @custom_attributes ||= {}
       end
 
       private
