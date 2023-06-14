@@ -62,6 +62,10 @@ module NewRelic
           message << CLOSING_BRACE << NEWLINE
         end
 
+        def clear_tags!
+          # No-op; just avoiding issues with act-fluent-logger-rails
+        end
+
         private
 
         def add_app_name(message)
@@ -137,10 +141,6 @@ module NewRelic
             )
           end
           message.to_json
-        end
-
-        def clear_tags!
-          # No-op; just avoiding issues with act-fluent-logger-rails
         end
       end
 
