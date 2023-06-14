@@ -14,16 +14,16 @@ class NewRelicYMLTest < Minitest::Test
     refute NewRelicYML.public_config?(FAKE_CONFIGS[:pothos])
   end
 
-  def test_sanitize_default_use_documentation_default
-    assert_equal 2, NewRelicYML.sanitize_default(FAKE_CONFIGS[:lily])
+  def test_default_value_use_documentation_default
+    assert_equal 2, NewRelicYML.default_value(:lily, FAKE_CONFIGS[:lily])
   end
 
-  def test_sanitize_default_string
-    assert_equal '""', NewRelicYML.sanitize_default(FAKE_CONFIGS[:monstera])
+  def test_default_value_string
+    assert_equal '""', NewRelicYML.default_value(:monstera, FAKE_CONFIGS[:monstera])
   end
 
-  def test_sanitize_default_nil
-    assert_equal 'nil', NewRelicYML.sanitize_default(FAKE_CONFIGS[:begonia])
+  def test_default_value_nil
+    assert_equal 'nil', NewRelicYML.default_value(:begonia, FAKE_CONFIGS[:begonia])
   end
 
   def test_sanitize_description_from_callouts
