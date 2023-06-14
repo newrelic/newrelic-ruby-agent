@@ -73,24 +73,30 @@ class NewRelicYMLTest < Minitest::Test
         </Callout>
       DESCRIPTION
     },
-    :monstera => {
+    :'monstera' => {
       :default => '',
       :public => true,
       :description => 'Leafy and [pretty](/pretty/plants).'
     },
-    :pothos => {
+    :'pothos' => {
       :default => '',
       :public => false,
       :description => 'Low <InlinePopover type="maintenance" />.'
     },
-    :app_name => {
-      default: 'My Application'
+    :'app_name' => {
+      default: 'My Application',
+      :public => true,
+      :description => 'An app'
     },
-    :defer_rails_initialization => {
-      :default => 'this should never be included'
+    :'defer_rails_initialization' => {
+      :default => false,
+      :public => true,
+      :description => 'This should never be included'
     },
-    :config_path => {
-      :default => 'newrelic.yml'
+    :'config_path' => {
+      :default => 'newrelic.yml',
+      :public => true,
+      :description => 'Config path'
     }
   }
 
@@ -99,6 +105,10 @@ class NewRelicYMLTest < Minitest::Test
       :begonia => {
         :description => '  # If true, green with white polka dots.',
         :default => 'nil'
+      },
+      :config_path => {
+        :description => '  # Config path',
+        :default => 'newrelic.yml'
       },
       :lily => {
         :description => '  # White flowers.',
@@ -118,6 +128,9 @@ class NewRelicYMLTest < Minitest::Test
     <<~YML
       \ \ # If true, green with white polka dots.
       \ \ # begonia: nil
+
+      \ \ # Config path
+      \ \ # config_path: newrelic.yml
 
       \ \ # White flowers.
       \ \ # lily: 2
