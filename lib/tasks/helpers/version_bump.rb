@@ -42,7 +42,7 @@ module VersionBump
     File.write(File.expand_path(path), file)
   end
 
-  # Determind version based on if changelog has a feature or not for version
+  # Determined version based on if changelog has a feature or not for version
   def self.determine_bump_type
     file = read_file('CHANGELOG.md')
     lines = file.split('## ')[1].split('- **')
