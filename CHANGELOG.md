@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds the ability to filter logs by level, expands instrumentation for Action Cable, and provides a bugfix for Code-Level Metrics.
+Version <dev> of the agent adds the ability to filter logs by level, expands instrumentation for Action Cable,provides bugfix for Code-Level Metrics, and a bugfix for `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
