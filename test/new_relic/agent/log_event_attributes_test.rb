@@ -10,6 +10,12 @@ module NewRelic::Agent
     def setup
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
       @aggregator.reset!
+
+     %i[@custom_attributes @custom_attribute_limit_reached].each do |attr|
+        if @aggregator.attributes.instance_variable_defined?(attr)
+          @aggregator.attributes.remove_instance_variable(attr)
+        end
+      end
     end
 
     def common_attributes_from_melt

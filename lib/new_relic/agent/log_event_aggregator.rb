@@ -162,7 +162,6 @@ module NewRelic
           @seen_by_severity.clear
         end
 
-        attributes.reset!
         super
       end
 
