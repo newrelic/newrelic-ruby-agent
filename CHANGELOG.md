@@ -26,7 +26,7 @@ Version <dev> of the agent adds the ability to filter logs by level, expands ins
 
 - **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
 
-  As part of a refactor included in a previous release of the agent, the method `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` was incorrectly made private. This method is now public again. Thanks to [@dark-panda](https://github.com/dark-panda) for reporting this issue. [PR#]()
+  As part of a refactor included in a previous release of the agent, the method `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` was incorrectly made private. This method is now public again. Thanks to [@dark-panda](https://github.com/dark-panda) for reporting this issue. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/2078)
 
 ## v9.2.2
 
