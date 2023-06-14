@@ -38,15 +38,15 @@ class NewRelicYMLTest < Minitest::Test
   def final_config_hash
     config_hash = {
       :begonia => {
-        :description => "  # If true, green with white polka dots.",
-        :default => "nil"
+        :description => '  # If true, green with white polka dots.',
+        :default => 'nil'
       },
       :lily => {
-        :description => "  # White flowers.",
+        :description => '  # White flowers.',
         :default => 2
       },
       :monstera => {
-        :description => "  # Leafy and pretty.",
+        :description => '  # Leafy and pretty.',
         :default => '""'
       }
     }
