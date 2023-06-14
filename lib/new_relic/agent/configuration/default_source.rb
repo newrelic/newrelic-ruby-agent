@@ -1263,9 +1263,9 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => 'Configures the hostname for the Trace Observer Host. ' \
+          :description => 'Configures the hostname for the trace observer Host. ' \
             'When configured, enables tail-based sampling by sending all recorded spans ' \
-            'to a Trace Observer for further sampling decisions, irrespective of any usual ' \
+            'to a trace observer for further sampling decisions, irrespective of any usual ' \
             'agent sampling decision.'
         },
         :'infinite_tracing.trace_observer.port' => {
@@ -1274,7 +1274,7 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => 'Configures the TCP/IP port for the Trace Observer Host'
+          :description => 'Configures the TCP/IP port for the trace observer Host'
         },
         # Instrumentation
         :'instrumentation.active_support_logger' => {
@@ -1591,7 +1591,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name). Be aware that you cannot rename a hostname, so please rename carefully.'
+          :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
         # Rails
         :'defer_rails_initialization' => {
@@ -1691,7 +1691,7 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => 'Sets the maximum number of span events to buffer when streaming to the Trace Observer.'
+          :description => 'Sets the maximum number of span events to buffer when streaming to the trace observer.'
         },
         :'span_events.max_samples_stored' => {
           :default => 2000,
@@ -2006,7 +2006,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :external => :infinite_tracing,
-          :description => 'If `true` (the default), data sent to the Trace Observer is batched instead of ' \
+          :description => 'If `true` (the default), data sent to the trace observer is batched instead of ' \
           'sending each span individually.'
         },
         :'infinite_tracing.compression_level' => {
@@ -2016,7 +2016,7 @@ module NewRelic
           :allowed_from_server => false,
           :external => :infinite_tracing,
           :description => <<~DESC
-            Configure the compression level for data sent to the Trace Observer.
+            Configure the compression level for data sent to the trace observer.
 
               May be one of: `:none`, `:low`, `:medium`, `:high`.
 
