@@ -32,6 +32,10 @@ Version <dev> of the agent adds the ability to filter logs by level, an API to a
 
   Controllers in Rails automatically render views with names that correspond to valid routes. This means that a controller method may not have a corresponding method in the controller class. Code-Level Metrics now report on these methods and don't log false warnings. Thanks to [@jcrisp](https://github.com/jcrisp) for reporting this issue. [PR#2061](https://github.com/newrelic/newrelic-ruby-agent/pull/2061)
 
+- **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
+
+  As part of a refactor included in a previous release of the agent, the method `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` was incorrectly made private. This method is now public again. Thanks to [@dark-panda](https://github.com/dark-panda) for reporting this issue. [PR#]()
+
 ## v9.2.2
 
   Version 9.2.2 of the agent fixes a bug with the `Transaction#finished?` method.
