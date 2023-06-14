@@ -70,7 +70,7 @@ module NewRelicYML
     defaults.sort.each_with_object({}) do |(key, value), final_configs|
       next if CRITICAL.include?(key) || SKIP.include?(key)
 
-      next unless public_config?(value)
+      next unless public_config?(value) && !deprecated?(value)
 
       sanitized_description = sanitize_description(value[:description])
       description = format_description(sanitized_description)
@@ -81,6 +81,10 @@ module NewRelicYML
 
   def self.public_config?(value)
     value[:public] == true
+  end
+
+  def self.deprecated?(value)
+    value[:deprecated] == true
   end
 
   def self.sanitize_description(description)
@@ -100,7 +104,7 @@ module NewRelicYML
 
   def self.format_description(description)
     # remove leading and trailing whitespace
-    description = description.strip
+    description.strip!
     # wrap text after 80 characters
     description.gsub!(/(.{1,80})(\s+|\Z)/, "\\1\n")
     # add hashtags to lines
@@ -132,7 +136,9 @@ module NewRelicYML
     yml_string
   end
 
+  # :nocov:
   def self.write_file(defaults = DEFAULTS)
     File.write('newrelic.yml', HEADER + build_string(defaults) + FOOTER)
   end
+  # :nocov:
 end
