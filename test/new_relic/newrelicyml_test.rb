@@ -43,7 +43,7 @@ class NewRelicYMLTest < Minitest::Test
   end
 
   def test_format_description
-    assert_equal '  # White flowers.', NewRelicYML.format_description('White flowers.')
+    assert_equal '  # White flowers.', NewRelicYML.format_description(+'White flowers.')
   end
 
   def test_get_configs
@@ -82,6 +82,12 @@ class NewRelicYMLTest < Minitest::Test
       :default => '',
       :public => false,
       :description => 'Low <InlinePopover type="maintenance" />.'
+    },
+    :'ivy' => {
+      :default => '',
+      :public => true,
+      :deprecated => true,
+      :description => 'This is deprecated'
     },
     :'app_name' => {
       default: 'My Application',
