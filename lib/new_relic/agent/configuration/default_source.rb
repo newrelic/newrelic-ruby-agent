@@ -1698,7 +1698,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid. Increasing this value may impact memory usage'
+          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
         },
         # Strip exception messages
         :'strip_exception_messages.enabled' => {
