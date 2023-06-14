@@ -670,7 +670,7 @@ module NewRelic
     #                         the value associated with the last call
     #                         will be preserved.
     #
-    #                         Key/value pairs with empty or nil values
+    #                         Key/value pairs with empty or nil contents
     #                         will be dropped.
     # @api public
     def add_custom_log_attributes(params)
