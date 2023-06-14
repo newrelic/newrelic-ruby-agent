@@ -9,15 +9,15 @@ module NewRelic
       ATTRIBUTE_KEY_CHARACTER_LIMIT = 255
       ATTRIBUTE_VALUE_CHARACTER_LIMIT = 4094
 
-      attr_reader :custom_attributes, :already_warned_custom_attribute_count_limit
+      attr_reader :custom_attributes, :custom_attribute_limit_reached
 
       def initialize
         @custom_attributes = {}
-        @already_warned_custom_attribute_count_limit = false
+        @custom_attribute_limit_reached = false
       end
 
       def add_custom_attributes(attributes)
-        return if already_warned_custom_attribute_count_limit
+        return if custom_attribute_limit_reached
 
         attributes.each do |key, value|
           next if absent?(key) || absent?(value)
@@ -28,7 +28,7 @@ module NewRelic
 
       def reset!
         @custom_attributes = {}
-        @already_warned_custom_attribute_count_limit = false
+        @custom_attribute_limit_reached = false
       end
 
       private
@@ -62,7 +62,7 @@ module NewRelic
             'Too many custom log attributes defined. ' \
             "Only taking the first #{MAX_ATTRIBUTE_COUNT}."
           )
-          @already_warned_custom_attribute_count_limit = true
+          @custom_attribute_limit_reached = true
           return
         end
 
