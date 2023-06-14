@@ -8,7 +8,8 @@ include NewRelicYML
 namespace :newrelic do
   desc 'Update newrelic.yml with latest config options from default_source.rb'
   task :update_newrelicyml do
-    write_file
+    DEFAULTS = NewRelicYML::DEFAULTS
+    NewRelicYML.write_file(DEFAULTS)
     puts 'newrelic.yml updated'
   end
 end
