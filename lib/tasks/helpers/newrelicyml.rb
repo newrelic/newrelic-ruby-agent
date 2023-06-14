@@ -66,14 +66,15 @@ module NewRelicYML
       <<: *default_settings
   FOOTER
 
-  def get_configs
+  def self.get_configs(defaults)
     final_configs = {}
 
-    DEFAULTS.sort.each do |key, value|
+    defaults.sort.each do |key, value|
       next if CRITICAL.include?(key) || SKIP.include?(key)
 
-      if value[:public] == true
-        description = sanitize_description(value[:description])
+      if public_config?(value)
+        sanitized_description = sanitize_description(value[:description])
+        description = format_description(sanitized_description)
         default = sanitize_default(value)
         default = PROCS[key] if PROCS.include?(key)
 
@@ -84,7 +85,11 @@ module NewRelicYML
     final_configs
   end
 
-  def sanitize_description(description)
+  def self.public_config?(value)
+    value[:public] == true
+  end
+
+  def self.sanitize_description(description)
     # remove callouts
     description = description.split("\n").reject { |line| line.match?('</?Callout') }.join("\n")
     # remove InlinePopover, keep the text inside type
@@ -95,6 +100,11 @@ module NewRelicYML
     description = description.gsub(/`([^`]+)`/, '\1')
     # removed hrefs links
     description = description.gsub(/<a href="(.*)">(.*)<\/a>/, '\2')
+
+    description
+  end
+
+  def self.format_description(description)
     # remove leading and trailing whitespace
     description = description.strip
     # wrap text after 80 characters
@@ -105,7 +115,7 @@ module NewRelicYML
     description
   end
 
-  def sanitize_default(config_hash)
+  def self.sanitize_default(config_hash)
     default = config_hash[:documentation_default].nil? ? config_hash[:default] : config_hash[:documentation_default]
     default = 'nil' if default.nil?
     default = '""' if default == ''
@@ -113,8 +123,8 @@ module NewRelicYML
     default
   end
 
-  def build_string
-    configs = get_configs
+  def self.build_string(defaults)
+    configs = get_configs(defaults)
     yml_string = ''
 
     configs.each do |key, value|
@@ -124,7 +134,7 @@ module NewRelicYML
     yml_string
   end
 
-  def write_file
-    File.write('newrelic.yml', HEADER + build_string + FOOTER)
+  def self.write_file(defaults)
+    File.write('newrelic.yml', HEADER + build_string(defaults) + FOOTER)
   end
 end
