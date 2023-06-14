@@ -41,7 +41,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TITLE: "Prerelease #{{env.prerelease_tag}}"
-        BODY: "Updates the version number, changelog, and newrelic.yml(if it needs updating). This is an automated PR"
+        BODY: "Updates the version number, changelog, and newrelic.yml (if it needs updating). This is an automated PR"
         LABEL: prerelease
        
     - name: Create pre release tag
