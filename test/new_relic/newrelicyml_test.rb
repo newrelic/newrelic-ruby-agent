@@ -123,7 +123,6 @@ class NewRelicYMLTest < Minitest::Test
     config_hash
   end
 
-  # rubocop:disable Style/RedundantStringEscape
   def final_string
     <<-YML
   # If true, green with white polka dots.
@@ -140,5 +139,4 @@ class NewRelicYMLTest < Minitest::Test
 
     YML
   end
-  # rubocop:enable Style/RedundantStringEscape
 end
