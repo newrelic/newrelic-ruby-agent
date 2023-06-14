@@ -165,7 +165,7 @@ module NewRelic::Agent
       key = 'key'
       NewRelic::Agent.add_custom_log_attributes(key => nil)
 
-      refute_includes(common_attributes_from_melt, [key])
+      refute_includes(common_attributes_from_melt, key)
     end
 
     def test_log_attr_empty_string_drops_attribute
