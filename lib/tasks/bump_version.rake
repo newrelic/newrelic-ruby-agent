@@ -11,7 +11,7 @@ namespace :newrelic do
       puts "#{NewRelic::VERSION::STRING}"
     end
 
-    desc 'Update version file and changelog to neext version'
+    desc 'Update version file and changelog to next version'
     task :bump, [:format] => [] do |t, args|
       new_version = VersionBump.update_version
       VersionBump.update_changelog(new_version)
