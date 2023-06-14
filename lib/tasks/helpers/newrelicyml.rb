@@ -75,9 +75,7 @@ module NewRelicYML
       if public_config?(value)
         sanitized_description = sanitize_description(value[:description])
         description = format_description(sanitized_description)
-        default = sanitize_default(value)
-        default = PROCS[key] if PROCS.include?(key)
-
+        default = default_value(key, value)
         final_configs[key] = {description: description, default: default}
       end
     end
@@ -93,13 +91,13 @@ module NewRelicYML
     # remove callouts
     description = description.split("\n").reject { |line| line.match?('</?Callout') }.join("\n")
     # remove InlinePopover, keep the text inside type
-    description = description.gsub(/<InlinePopover type="(.*)" \/>/, '\1')
+    description.gsub!(/<InlinePopover type="(.*)" \/>/, '\1')
     # remove hyperlinks
-    description = description.gsub(/\[([^\]]+)\]\([^\)]+\)/, '\1')
+    description.gsub!(/\[([^\]]+)\]\([^\)]+\)/, '\1')
     # remove single pairs of backticks
-    description = description.gsub(/`([^`]+)`/, '\1')
+    description.gsub!(/`([^`]+)`/, '\1')
     # removed hrefs links
-    description = description.gsub(/<a href="(.*)">(.*)<\/a>/, '\2')
+    description.gsub!(/<a href="(.*)">(.*)<\/a>/, '\2')
 
     description
   end
@@ -108,19 +106,23 @@ module NewRelicYML
     # remove leading and trailing whitespace
     description = description.strip
     # wrap text after 80 characters
-    description = description.gsub(/(.{1,80})(\s+|\Z)/, "\\1\n")
+    description.gsub!(/(.{1,80})(\s+|\Z)/, "\\1\n")
     # add hashtags to lines
     description = description.split("\n").map { |line| "  # #{line}" }.join("\n")
 
     description
   end
 
-  def self.sanitize_default(config_hash)
-    default = config_hash[:documentation_default].nil? ? config_hash[:default] : config_hash[:documentation_default]
-    default = 'nil' if default.nil?
-    default = '""' if default == ''
+  def self.default_value(key, config_hash)
+    if PROCS.include?(key)
+      PROCS[key]
+    else
+      default = config_hash[:documentation_default].nil? ? config_hash[:default] : config_hash[:documentation_default]
+      default = 'nil' if default.nil?
+      default = '""' if default == ''
 
-    default
+      default
+    end
   end
 
   def self.build_string(defaults)
@@ -134,7 +136,7 @@ module NewRelicYML
     yml_string
   end
 
-  def self.write_file(defaults)
+  def self.write_file(defaults = DEFAULTS)
     File.write('newrelic.yml', HEADER + build_string(defaults) + FOOTER)
   end
 end
