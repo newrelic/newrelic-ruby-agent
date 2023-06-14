@@ -19,12 +19,6 @@ module NewRelic
         end
       end
 
-      def reset!
-        %i[@custom_attributes @custom_attribute_limit_reached].each do |attr|
-          remove_instance_variable(attr) if instance_variable_defined?(attr)
-        end
-      end
-
       def custom_attributes
         @custom_attributes ||= {}
       end
