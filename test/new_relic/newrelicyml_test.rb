@@ -125,18 +125,18 @@ class NewRelicYMLTest < Minitest::Test
 
   # rubocop:disable Style/RedundantStringEscape
   def final_string
-    <<~YML
-      \ \ # If true, green with white polka dots.
-      \ \ # begonia: nil
+    <<-YML
+  # If true, green with white polka dots.
+  # begonia: nil
 
-      \ \ # Config path
-      \ \ # config_path: newrelic.yml
+  # Config path
+  # config_path: newrelic.yml
 
-      \ \ # White flowers.
-      \ \ # lily: 2
+  # White flowers.
+  # lily: 2
 
-      \ \ # Leafy and pretty.
-      \ \ # monstera: ""
+  # Leafy and pretty.
+  # monstera: ""
 
     YML
   end
