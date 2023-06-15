@@ -419,10 +419,10 @@ module NewRelic
           NewRelic::Agent.config[:'instrumentation.thread.tracing']
         end
 
-        def thread_block_with_current_transaction(*args, segment_name:, parent: nil, &block)
+        def thread_block_with_current_transaction(segment_name:, parent: nil, &block)
           parent ||= current_segment
           current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
-          proc do
+          proc do |*args|
             begin
               if current_txn && !current_txn.finished?
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
