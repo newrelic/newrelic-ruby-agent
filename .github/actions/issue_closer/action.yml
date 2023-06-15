@@ -1,0 +1,7 @@
+name: 'Issue Closer'
+description: 'Close GitHub Issues on PR merges to non-default branches',
+inputs:
+outputs:
+runs:
+  using: 'node16'
+  main: 'index.js'

@@ -1,0 +1,16 @@
+{
+  "name": "issue_closer",
+  "version": "1.0.0",
+  "description": "Close GitHub Issues on PR merges to non-default branches",
+  "main": "index.js",
+  "scripts": {}
+    "test": "echo \"TODO: add tests\" && exit 1"
+  },
+  "keywords": [],
+  "author": "New Relic Ruby agent team",
+  "license": "Apache 2",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  }
+}
