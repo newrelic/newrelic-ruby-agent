@@ -11,7 +11,7 @@ module NewRelic::Agent::Instrumentation
         alias_method(:initialize_without_new_relic, :initialize)
 
         if RUBY_VERSION < '2.7.0'
-          def initialize(*args, &block)
+          def initialize(*_args, &block)
             traced_block = add_thread_tracing(&block)
             initialize_with_newrelic_tracing { initialize_without_new_relic(&traced_block) }
           end

@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
       include NewRelic::Agent::Instrumentation::MonitoredFiber
 
       if RUBY_VERSION < '2.7.0'
-        def initialize(*args, &block)
+        def initialize(*_args, &block)
           traced_block = add_thread_tracing(&block)
           initialize_with_newrelic_tracing { super(&traced_block) }
         end
