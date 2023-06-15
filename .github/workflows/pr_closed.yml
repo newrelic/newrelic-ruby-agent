@@ -15,5 +15,7 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+      - name: Clone the repo
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       - name: issue_closer Action
         uses: ./actions/issue_closer # no tag - locally sourced
