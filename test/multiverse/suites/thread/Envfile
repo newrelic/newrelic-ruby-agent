@@ -5,5 +5,5 @@
 instrumentation_methods :chain, :prepend
 
 gemfile <<~RB
-  # this can't be empty or the tests wont run
+  # this can't be empty or the tests won't run
 RB
