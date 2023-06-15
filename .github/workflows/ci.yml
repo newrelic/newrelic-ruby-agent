@@ -11,6 +11,7 @@ jobs:
 
   issue_closer:
     if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
     steps:
       - name: issue_closer Action
         uses: ./actions/issue_closer # no tag - locally sourced
