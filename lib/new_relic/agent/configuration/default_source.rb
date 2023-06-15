@@ -771,6 +771,13 @@ module NewRelic
               * "unknown"
           DESCRIPTION
         },
+        :'application_logging.forwarding.custom_attributes' => {
+          :default => {},
+          :public => true,
+          :type => Hash,
+          :allowed_from_server => false,
+          :description => 'An array of key/value pairs to add as custom attributes to all log events forwarded to New Relic.'
+        },
         :'application_logging.forwarding.max_samples_stored' => {
           :default => 10000,
           :public => true,
