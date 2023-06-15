@@ -1,0 +1,19 @@
+name: PR Continuous Integration
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello World
+        run: echo "Hello, World!"
+
+  issue_closer:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: issue_closer Action
+        uses: ./actions/issue_closer # no tag - locally sourced
