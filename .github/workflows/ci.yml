@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Hello World
-        run: echo "Hello, World!"
+        run: echo "Hello, World - test!"
 
   issue_closer:
     if: github.event.pull_request.merged
