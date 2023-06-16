@@ -1,9 +1,10 @@
 name: Generate Release Notes
-
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+# on:
+#   push:
+#     branches:
+#       - main
 
 jobs:
   send-pull-requests:
@@ -29,13 +30,17 @@ jobs:
       - name: Create branch
         uses: dmnemec/copy_file_to_another_repo_action@c93037aa10fa8893de271f19978c980d0c1a9b37 # tag v1.1.1
         env:
-          API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.RELEASE_NOTES }}
+          # API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
         with:
           source_file: "${{env.source_file}}"
-          destination_repo: 'newrelic/docs-website'
+          # destination_repo: 'newrelic/docs-website'
+          destination_repo: 'hannahramadan/docs-website'
           destination_folder: 'src/content/docs/release-notes/agent-release-notes/ruby-release-notes'
-          user_email: '${{ secrets.EMAIL }}'
-          user_name: 'newrelic-ruby-agent-bot'
+          # user_email: '${{ secrets.EMAIL }}'
+          user_email: 'hannahr315@gmail.com'
+          # user_name: 'newrelic-ruby-agent-bot'
+          user_name: 'hannahramadan'
           destination_branch: 'develop'
           destination_branch_create: ${{env.branch_name}}
           commit_message: 'chore(ruby agent): add release notes'
@@ -43,11 +48,14 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          # github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          github_token: ${{ secrets.RELEASE_NOTES }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
           pr_body: "This is an automated PR generated when the Ruby agent is released. Please merge as soon as possible."
-          destination_repository: "newrelic/docs-website"
+          # destination_repository: "newrelic/docs-website"
+          destination_repository: "hannahramadan/docs-website"
+
 
 # TODO: Add a job to delete branch on PR failure. 
