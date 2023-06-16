@@ -23,8 +23,8 @@ jobs:
     - name: Update files with new version
       run: bundle exec rake newrelic:version:bump
 
-    - name: Update newrelic.yml (TODO)
-      run: echo "after hannahs work is merged"
+    - name: Update newrelic.yml
+      run: bundle exec rake newrelic:update_newrelicyml
 
     - name: Set tag name
       run: echo "prerelease_tag=$(bundle exec rake newrelic:version:current)-pre" >> $GITHUB_ENV
