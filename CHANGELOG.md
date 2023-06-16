@@ -20,7 +20,7 @@ Version <dev> of the agent adds the ability to filter logs by level, an API to a
 
   For example: `NewRelic::Agent.add_custom_log_attributes(dyno: ENV['DYNO'], pod_name: ENV['POD_NAME'])`, will add the attributes `dyno` and `pod_name` to your log events. Attributes passed to this API will be added to all log events.
 
-  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2069](https://github.com/newrelic/newrelic-ruby-agent/pull/2069)
+  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084)
 
 - **Feature: Instrument transmit_subscription_* Action Cable actions**
 
