@@ -47,7 +47,7 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          github_token: ${{ secrets.HANNAH_RELEASE_NOTES_ERROR }}
+          github_token: ${{ secrets.HANNAH_RELEASE_NOTES }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
