@@ -1,11 +1,9 @@
 name: Generate Release Notes
+
 on:
-  pull_request:
-  workflow_dispatch:
-# on:
-#   push:
-#     branches:
-#       - main
+  push:
+    branches:
+      - main
 
 jobs:
   send-pull-requests:
