@@ -59,7 +59,7 @@ jobs:
     name: Delete branch on fail
     needs: [send-pull-requests]
     runs-on: ubuntu-22.04
-    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event_name != 'workflow_dispatch' }}
+    if: always()
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
