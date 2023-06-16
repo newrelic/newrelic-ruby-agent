@@ -75,7 +75,7 @@ jobs:
           repository: hannahramadan/docs-website # newrelic/docs-website
           token: ${{ secrets.HANNAH_RELEASE_NOTES }} # Need new token from NR open bot!
 
-      - name: Build delete command
+      - name: Build delete command test2
         run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV
 
       - name: Delete branch
