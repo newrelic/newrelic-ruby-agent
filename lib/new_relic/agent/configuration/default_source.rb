@@ -211,6 +211,22 @@ module NewRelic
           end
         end
 
+        def self.convert_to_hash(value)
+          return value if value.is_a?(Hash)
+
+          if value.is_a?(String)
+            return value.split(',').each_with_object({}) do |item, hash|
+              key, value = item.split('=')
+              hash[key] = value
+            end
+          end
+
+          raise ArgumentError.new(
+            "Config value '#{value}' of " \
+            "class #{value.class} couldn't be turned into a Hash."
+          )
+        end
+
         SEMICOLON = ';'.freeze
         def self.convert_to_list_on_semicolon(value)
           case value
@@ -775,8 +791,9 @@ module NewRelic
           :default => {},
           :public => true,
           :type => Hash,
+          :transform => DefaultSource.method(:convert_to_hash),
           :allowed_from_server => false,
-          :description => 'An array of key/value pairs to add as custom attributes to all log events forwarded to New Relic.'
+          :description => 'A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2"'
         },
         :'application_logging.forwarding.max_samples_stored' => {
           :default => 10000,
