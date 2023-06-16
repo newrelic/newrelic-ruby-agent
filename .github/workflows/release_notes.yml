@@ -10,9 +10,9 @@ on:
 jobs:
   send-pull-requests:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    # permissions:
+    #   contents: write
+    #   pull-requests: write
     steps:
       - uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
         with:
