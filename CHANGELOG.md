@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds the ability to filter logs by level, an API to add custom attributes to logs, expands instrumentation for Action Cable, provides a bugfix for Code-Level Metrics, and fixes `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+Version <dev> of the agent adds log-level filtering, an API to add custom attributes to logs, and updated instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
@@ -35,6 +35,10 @@ Version <dev> of the agent adds the ability to filter logs by level, an API to a
 - **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
 
   As part of a refactor included in a previous release of the agent, the method `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` was incorrectly made private. This method is now public again. Thanks to [@dark-panda](https://github.com/dark-panda) for reporting this issue. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/2078)
+
+- **Bugfix: Fix the way args are handled for Fibers**
+
+  Previously, the agent treated Fiber args the same as it was treating Thread args, which is not correct. Args are passed to `Fiber#resume`, and not `Fiber.new`. This has been fixed, and the agent will properly preserve args for both Fiber and Thread classes. This also caused an error to occur when using Async 2.6.2, due to mismatching initalize definitions for Fiber prepended modules. This has been fixed as well. Thanks to [@travisbell](https://github.com/travisbell) for bringing this to our attention. [PR#2083](https://github.com/newrelic/newrelic-ruby-agent/pull/2083)
 
 ## v9.2.2
 

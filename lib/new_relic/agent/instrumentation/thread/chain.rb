@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
           alias_method(:initialize_without_new_relic, :initialize)
 
           def initialize(*args, &block)
-            traced_block = add_thread_tracing(*args, &block)
+            traced_block = add_thread_tracing(&block)
             initialize_with_newrelic_tracing { initialize_without_new_relic(*args, &traced_block) }
           end
         end
