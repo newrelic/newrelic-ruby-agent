@@ -55,24 +55,28 @@ jobs:
           # destination_repository: "newrelic/docs-website"
           destination_repository: "hannahramadan/docs-website"
 
-
   delete_branch_on_fail:
     name: Delete branch on fail
     needs: [send-pull-requests]
     runs-on: ubuntu-22.04
     if: always()
     steps:
+      - name: Checkout code
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+
+      - name: Get branch name
+        run: |
+          ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.write_output_file
+          echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
+
       - name: Checkout repository
         uses: actions/checkout@v3
         with: 
           repository: hannahramadan/docs-website # newrelic/docs-website
           token: ${{ secrets.HANNAH_RELEASE_NOTES }} # Need new token from NR open bot!
 
-      - name: Get file name
-        run: echo "file_name=$(ruby -r /home/runner/work/newrelic-ruby-agent/newrelic-ruby-agent/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.file_name)" >> $GITHUB_ENV
-      
       - name: Build delete command
-        run: echo "delete_file=git push origin --delete --force ${{env.file_name}}" >> $GITHUB_ENV
+        run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV
 
       - name: Delete branch
         uses: technote-space/workflow-conclusion-action@v3
