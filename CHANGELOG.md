@@ -27,7 +27,7 @@ Version <dev> of the agent adds log-level filtering, adds custom attributes for 
 
   Attributes passed to the API or the configuration will be added to all log events.
 
-  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084)
+  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084), [PR#2087](https://github.com/newrelic/newrelic-ruby-agent/pull/2087)
 
 - **Feature: Instrument transmit_subscription-related Action Cable actions**
 
