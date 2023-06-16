@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds the ability to filter logs by level, expands instrumentation for Action Cable,provides bugfix for Code-Level Metrics, a bugfix for how `Fiber` args are treated, and a bugfix for `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+Version <dev> of the agent adds log-level filtering, an API to add custom attributes to logs, and updated instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
@@ -13,6 +13,14 @@ Version <dev> of the agent adds the ability to filter logs by level, expands ins
   | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
 
   This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
+
+- **Feature: Custom attributes for logs API**
+
+  You can now add custom attributes to your log events using `NewRelic::Agent.add_custom_log_attributes`.
+
+  For example: `NewRelic::Agent.add_custom_log_attributes(dyno: ENV['DYNO'], pod_name: ENV['POD_NAME'])`, will add the attributes `dyno` and `pod_name` to your log events. Attributes passed to this API will be added to all log events.
+
+  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084)
 
 - **Feature: Instrument transmit_subscription_* Action Cable actions**
 

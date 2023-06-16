@@ -180,6 +180,15 @@ module NewRelic::Agent
       end
     end
 
+    def test_record_exits_if_forwarding_disabled
+      with_config(LogEventAggregator::FORWARDING_ENABLED_KEY => false) do
+        @aggregator.record('Speak friend and enter', 'DEBUG')
+        _, results = @aggregator.harvest!
+
+        assert_empty(results)
+      end
+    end
+
     def test_record_in_transaction
       max_samples = 100
       with_config(CAPACITY_KEY => max_samples) do
