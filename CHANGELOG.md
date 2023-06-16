@@ -16,7 +16,7 @@ Version <dev> of the agent adds log-level filtering, adds custom attributes for 
 
 - **Feature: Custom attributes for logs**
 
-  You can now add custom attributes to log events forwarded to New Relic! You can pass these attributes using an API or a configuration option.
+  You can now add custom attributes to log events forwarded to New Relic! You can pass these attributes using an API and/or a configuration option.
 
   | Configuration name          | Default | Behavior                                               |
   | --------------------------- | ------- | ------------------------------------------------------ |
