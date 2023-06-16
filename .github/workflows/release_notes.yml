@@ -48,7 +48,7 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN_ERROR }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
