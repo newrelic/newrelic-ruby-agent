@@ -34,6 +34,7 @@ jobs:
           source_file: "${{env.source_file}}"
           destination_repo: 'newrelic/docs-website'
           destination_folder: 'src/content/docs/release-notes/agent-release-notes/ruby-release-notes'
+          user_email: '${{ secrets.EMAIL }}'
           user_name: 'newrelic-ruby-agent-bot'
           destination_branch: 'develop'
           destination_branch_create: ${{env.branch_name}}
