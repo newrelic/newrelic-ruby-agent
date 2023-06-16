@@ -17,7 +17,6 @@ module NewRelic
           return block if !NewRelic::Agent::Tracer.thread_tracing_enabled?
 
           NewRelic::Agent::Tracer.thread_block_with_current_transaction(
-            *args,
             segment_name: 'Ruby/Thread',
             &block
           )
