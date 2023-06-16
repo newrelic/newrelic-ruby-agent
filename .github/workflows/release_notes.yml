@@ -61,6 +61,9 @@ jobs:
     runs-on: ubuntu-22.04
     if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event_name != 'workflow_dispatch' }}
     steps:
+      - uses: technote-space/workflow-conclusion-action@v3
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
+
       - name: Checkout code
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
