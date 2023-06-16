@@ -37,7 +37,6 @@ jobs:
           # destination_repo: 'newrelic/docs-website'
           destination_repo: 'hannahramadan/docs-website'
           destination_folder: 'src/content/docs/release-notes/agent-release-notes/ruby-release-notes'
-          # user_email: '${{ secrets.EMAIL }}'
           user_email: 'hramadan@newrelic.com'
           # user_name: 'newrelic-ruby-agent-bot'
           user_name: 'hannahramadan'
