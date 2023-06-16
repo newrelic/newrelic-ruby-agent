@@ -31,15 +31,12 @@ jobs:
       - name: Create branch
         uses: dmnemec/copy_file_to_another_repo_action@c93037aa10fa8893de271f19978c980d0c1a9b37 # tag v1.1.1
         env:
-          API_TOKEN_GITHUB: ${{ secrets.HANNAH_RELEASE_NOTES }}
+          API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
         with:
           source_file: "${{env.source_file}}"
-          # destination_repo: 'newrelic/docs-website'
-          destination_repo: 'hannahramadan/docs-website'
+          destination_repo: 'newrelic/docs-website'
           destination_folder: 'src/content/docs/release-notes/agent-release-notes/ruby-release-notes'
-          user_email: 'hannahr315@gmail.com'
-          # user_name: 'newrelic-ruby-agent-bot'
-          user_name: 'hannahramadan'
+          user_name: 'newrelic-ruby-agent-bot'
           destination_branch: 'develop'
           destination_branch_create: ${{env.branch_name}}
           commit_message: 'chore(ruby agent): add release notes'
@@ -47,13 +44,12 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          github_token: ${{ secrets.HANNAH_RELEASE_NOTES }}
+          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
           pr_body: "This is an automated PR generated when the Ruby agent is released. Please merge as soon as possible."
-          # destination_repository: "newrelic/docs-website"
-          destination_repository: "hannahramadan/docs-website"
+          destination_repository: "newrelic/docs-website"
 
   delete_branch_on_fail:
     name: Delete branch on fail
@@ -61,17 +57,17 @@ jobs:
     runs-on: ubuntu-22.04
     if: failure()
     steps:
-      - name: Checkout code
+      - name: Checkout agent repository
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Get branch name
         run: echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
 
-      - name: Checkout repository
+      - name: Checkout docs website repository
         uses: actions/checkout@v3
         with: 
-          repository: hannahramadan/docs-website # newrelic/docs-website
-          token: ${{ secrets.HANNAH_RELEASE_NOTES }} # Need new token from NR open bot!
+          repository: newrelic/docs-website
+          token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
 
       - name: Build delete command
         run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV
