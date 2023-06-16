@@ -9,9 +9,16 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::MonitoredFiber
 
-      def initialize(*args, &block)
-        traced_block = add_thread_tracing(*args, &block)
-        initialize_with_newrelic_tracing { super(*args, &traced_block) }
+      if RUBY_VERSION < '2.7.0'
+        def initialize(*_args, &block)
+          traced_block = add_thread_tracing(&block)
+          initialize_with_newrelic_tracing { super(&traced_block) }
+        end
+      else
+        def initialize(**kawrgs, &block)
+          traced_block = add_thread_tracing(&block)
+          initialize_with_newrelic_tracing { super(**kawrgs, &traced_block) }
+        end
       end
     end
   end
