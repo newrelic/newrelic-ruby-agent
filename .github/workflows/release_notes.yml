@@ -47,7 +47,7 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          github_token: ${{ secrets.HANNAH_RELEASE_NOTES }}
+          github_token: ${{ secrets.HANNAH_RELEASE_NOTES_ERROR }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
@@ -59,11 +59,8 @@ jobs:
     name: Delete branch on fail
     needs: [send-pull-requests]
     runs-on: ubuntu-22.04
-    if: always()
+    if: failure()
     steps:
-      - uses: technote-space/workflow-conclusion-action@v3
-        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' }}
-
       - name: Checkout code
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
