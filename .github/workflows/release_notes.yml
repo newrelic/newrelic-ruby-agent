@@ -50,4 +50,26 @@ jobs:
           pr_body: "This is an automated PR generated when the Ruby agent is released. Please merge as soon as possible."
           destination_repository: "newrelic/docs-website"
 
-# TODO: Add a job to delete branch on PR failure. 
+  delete_branch_on_fail:
+    name: Delete branch on fail
+    needs: [send-pull-requests]
+    runs-on: ubuntu-22.04
+    if: failure()
+    steps:
+      - name: Checkout agent repository
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+
+      - name: Get branch name
+        run: echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
+
+      - name: Checkout docs website repository
+        uses: actions/checkout@v3
+        with: 
+          repository: newrelic/docs-website
+          token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+
+      - name: Build delete command
+        run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV
+
+      - name: Delete branch
+        run: ${{env.delete_file}}
