@@ -1,6 +1,7 @@
 name: Generate Release Notes
 on:
   pull_request:
+  workflow_dispatch:
 # on:
 #   push:
 #     branches:
