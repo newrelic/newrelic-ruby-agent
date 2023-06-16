@@ -59,15 +59,13 @@ jobs:
     name: Delete branch on fail
     needs: [send-pull-requests]
     runs-on: ubuntu-22.04
-    if: always()
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event_name != 'workflow_dispatch' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Get branch name
-        run: |
-          ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.write_output_file
-          echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
+        run: echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -79,6 +77,4 @@ jobs:
         run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV
 
       - name: Delete branch
-        uses: technote-space/workflow-conclusion-action@v3
-      - run: ${{env.delete_file}}
-        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
+        run: ${{env.delete_file}}
