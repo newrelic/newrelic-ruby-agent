@@ -31,8 +31,7 @@ jobs:
       - name: Create branch
         uses: dmnemec/copy_file_to_another_repo_action@c93037aa10fa8893de271f19978c980d0c1a9b37 # tag v1.1.1
         env:
-          API_TOKEN_GITHUB: ${{ secrets.RELEASE_NOTES }}
-          # API_TOKEN_GITHUB: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.RUBY_RELEASE_NOTES }}
         with:
           source_file: "${{env.source_file}}"
           # destination_repo: 'newrelic/docs-website'
@@ -41,7 +40,7 @@ jobs:
           # user_email: '${{ secrets.EMAIL }}'
           user_email: 'hramadan@newrelic.com'
           # user_name: 'newrelic-ruby-agent-bot'
-          user_name: 'hramadan'
+          user_name: 'hannahramadan'
           destination_branch: 'develop'
           destination_branch_create: ${{env.branch_name}}
           commit_message: 'chore(ruby agent): add release notes'
@@ -49,8 +48,7 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          # github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
-          github_token: ${{ secrets.RELEASE_NOTES }}
+          github_token: ${{ secrets.RUBY_RELEASE_NOTES }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
