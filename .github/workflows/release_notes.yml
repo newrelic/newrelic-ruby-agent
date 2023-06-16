@@ -41,7 +41,7 @@ jobs:
           # user_email: '${{ secrets.EMAIL }}'
           user_email: 'hramadan@newrelic.com'
           # user_name: 'newrelic-ruby-agent-bot'
-          user_name: 'hannahramadan'
+          user_name: 'hramadan'
           destination_branch: 'develop'
           destination_branch_create: ${{env.branch_name}}
           commit_message: 'chore(ruby agent): add release notes'
