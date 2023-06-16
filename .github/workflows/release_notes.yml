@@ -47,7 +47,7 @@ jobs:
       - name: Make pull request
         uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
         with:
-          github_token: ${{ secrets.HANNAH_RELEASE_NOTES }}
+          github_token: ${{ secrets.HANNAH_BROKEN_RELEASE_NOTES }}
           source_branch: ${{env.branch_name}}
           destination_branch: "develop"
           pr_title: "Ruby Release Notes"
@@ -56,4 +56,25 @@ jobs:
           destination_repository: "hannahramadan/docs-website"
 
 
-# TODO: Add a job to delete branch on PR failure.
+  delete_branch_on_fail:
+    name: Delete branch on fail
+    needs: [send-pull-requests]
+    runs-on: ubuntu-22.04
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with: 
+          repository: hannahramadan/docs-website # newrelic/docs-website
+          token: ${{ secrets.HANNAH_RELEASE_NOTES }} # Need new token from NR open bot!
+
+      - name: Get file name
+        run: echo "file_name=$(ruby -r /home/runner/work/newrelic-ruby-agent/newrelic-ruby-agent/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.file_name)" >> $GITHUB_ENV
+      
+      - name: Build delete command
+        run: echo "delete_file=git push origin --delete --force ${{env.file_name}}" >> $GITHUB_ENV
+
+      - name: Delete branch
+        uses: technote-space/workflow-conclusion-action@v3
+      - run: ${{env.delete_file}}
+        if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
