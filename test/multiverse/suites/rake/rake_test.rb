@@ -4,6 +4,13 @@
 
 require_relative 'rake_test_helper'
 
+# NOTE: The JRuby skips below are because of a concurrency issue that is easy
+#       to reproduce with GitHub Actions but cannot be reproduced locally.
+#
+# ConcurrencyError: Detected invalid hash contents due to unsynchronized modifications with concurrent users
+#    org/jruby/RubyHash.java:1961:in `select'
+#    lib/new_relic/agent/configuration/manager.rb:367:in `reset_cache'
+
 if NewRelic::Agent::Instrumentation::Rake.should_install? &&
     class RakeTest < Minitest::Test
       include MultiverseHelpers
@@ -48,8 +55,7 @@ if NewRelic::Agent::Instrumentation::Rake.should_install? &&
       end
 
       def test_records_transaction_metrics
-        # TODO: JRuby 9.4.0.0 fails this test only via GHA
-        skip if defined?(JRuby)
+        skip 'JRuby concurrency issue' if defined?(JRuby)
 
         run_rake
 
@@ -62,8 +68,7 @@ if NewRelic::Agent::Instrumentation::Rake.should_install? &&
       end
 
       def test_records_transaction_trace
-        # TODO: JRuby 9.4.0.0 fails this test only via GHA
-        skip if defined?(JRuby)
+        skip 'JRuby concurrency issue' if defined?(JRuby)
 
         run_rake
 
@@ -81,8 +86,7 @@ if NewRelic::Agent::Instrumentation::Rake.should_install? &&
       end
 
       def test_records_transaction_events
-        # TODO: stop the flapping/flaking
-        skip 'Flaps too often with JRuby' if defined?(JRuby)
+        skip 'JRuby concurrency issue' if defined?(JRuby)
 
         run_rake
 

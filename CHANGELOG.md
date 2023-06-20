@@ -1,5 +1,45 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> of the agent adds log-level filtering, an API to add custom attributes to logs, and updated instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+
+- **Feature: Filter forwarded logs based on level**
+
+  Previously, all log events, regardless of their level, were forwarded to New Relic when log forwarding was enabled. Now, you may specify the lowest log level you'd like forwarded to New Relic.
+
+  | Configuration name          | Default | Behavior                                               | Valid values |
+  | --------------------------- | ------- | ------------------------------------------------------ | ------ |
+  | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
+
+  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
+
+- **Feature: Custom attributes for logs API**
+
+  You can now add custom attributes to your log events using `NewRelic::Agent.add_custom_log_attributes`.
+
+  For example: `NewRelic::Agent.add_custom_log_attributes(dyno: ENV['DYNO'], pod_name: ENV['POD_NAME'])`, will add the attributes `dyno` and `pod_name` to your log events. Attributes passed to this API will be added to all log events.
+
+  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084)
+
+- **Feature: Instrument transmit_subscription_* Action Cable actions**
+
+  This change subscribes the agent to the Active Support notifications for:
+    * `transmit_subscription_confirmation.action_cable`
+    * `transmit_subscription_rejection.action_cable`
+
+- **Bugfix: Report Code-Level Metrics for Rails controller methods**
+
+  Controllers in Rails automatically render views with names that correspond to valid routes. This means that a controller method may not have a corresponding method in the controller class. Code-Level Metrics now report on these methods and don't log false warnings. Thanks to [@jcrisp](https://github.com/jcrisp) for reporting this issue. [PR#2061](https://github.com/newrelic/newrelic-ruby-agent/pull/2061)
+
+- **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
+
+  As part of a refactor included in a previous release of the agent, the method `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` was incorrectly made private. This method is now public again. Thanks to [@dark-panda](https://github.com/dark-panda) for reporting this issue. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/2078)
+
+- **Bugfix: Fix the way args are handled for Fibers**
+
+  Previously, the agent treated Fiber args the same as it was treating Thread args, which is not correct. Args are passed to `Fiber#resume`, and not `Fiber.new`. This has been fixed, and the agent will properly preserve args for both Fiber and Thread classes. This also caused an error to occur when using Async 2.6.2, due to mismatching initalize definitions for Fiber prepended modules. This has been fixed as well. Thanks to [@travisbell](https://github.com/travisbell) for bringing this to our attention. [PR#2083](https://github.com/newrelic/newrelic-ruby-agent/pull/2083)
+
 ## v9.2.2
 
   Version 9.2.2 of the agent fixes a bug with the `Transaction#finished?` method.

@@ -26,4 +26,14 @@ class NewRelic::SupportabilityHelperTest < Minitest::Test
     assert_log_contains(log, /Bad argument passed to #block/)
     assert_log_contains(log, /Expected Hash for `headers` but got String/)
   end
+
+  def test_record_api_supportability_metric_not_found
+    logger = MiniTest::Mock.new
+    logger.expect :debug, [], [/not found/]
+
+    NewRelic::Agent.stub :logger, logger do
+      record_api_supportability_metric(:start_over_rover)
+      logger.verify
+    end
+  end
 end

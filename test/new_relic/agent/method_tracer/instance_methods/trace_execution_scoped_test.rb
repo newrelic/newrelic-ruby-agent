@@ -2,8 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# TODO: Address intermittent failure where "after_fork" Supportability Metric appears
-
 require_relative '../../../../test_helper'
 
 class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test

@@ -2,8 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-instrumentation_methods :chain, :prepend
+require_relative 'application_controller'
 
-gemfile <<~RB
-  # this can't be empty or the tests won't run
-RB
+class NoMethodController < ApplicationController; end

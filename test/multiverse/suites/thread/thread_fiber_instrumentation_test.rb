@@ -73,4 +73,16 @@ class ThreadFiberInstrumentationTest < Minitest::Test
   def test_parents_fiber_thread
     run_nested_parent_test(Fiber, Thread)
   end
+
+  def test_thread_instrumentation_args_preserved
+    Thread.new('arg 1', 2) do |arg1, arg2|
+      assert_equal ['arg 1', 2], [arg1, arg2]
+    end.join
+  end
+
+  def test_fiber_instrumentation_args_preserved
+    Fiber.new do |arg1, arg2|
+      assert_equal ['arg 1', 2], [arg1, arg2]
+    end.resume('arg 1', 2)
+  end
 end
