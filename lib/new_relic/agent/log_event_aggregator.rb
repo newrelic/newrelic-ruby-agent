@@ -38,6 +38,7 @@ module NewRelic
       FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
       LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
+      CUSTOM_ATTRIBUTES_KEY = :'application_logging.forwarding.custom_attributes'
 
       attr_reader :attributes
 
@@ -181,6 +182,8 @@ module NewRelic
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
+
+          add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
         end
       end
 
