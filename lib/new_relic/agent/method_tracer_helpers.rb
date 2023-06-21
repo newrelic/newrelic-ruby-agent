@@ -71,7 +71,7 @@ module NewRelic
       # '#<Class:MyModule::MyClass>', or '#<Class:MyModule::MyClass(id: integer, attrbiute: string)>'
       # Return the 'MyModule::MyClass' part of that string
       def klass_name(object)
-        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:([\w|:{2}]*).*>$/
+        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:([\w:]*).*>$/
         return name if name
 
         raise "Unable to glean a class name from string '#{object}'"
