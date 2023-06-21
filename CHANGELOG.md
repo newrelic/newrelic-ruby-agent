@@ -32,6 +32,10 @@ Version <dev> of the agent adds log-level filtering, an API to add custom attrib
 
   Controllers in Rails automatically render views with names that correspond to valid routes. This means that a controller method may not have a corresponding method in the controller class. Code-Level Metrics now report on these methods and don't log false warnings. Thanks to [@jcrisp](https://github.com/jcrisp) for reporting this issue. [PR#2061](https://github.com/newrelic/newrelic-ruby-agent/pull/2061)
 
+- **Bugfix: Code-Level Metrics for ActiveRecord models**
+
+  Classes that inherit from ActiveRecord were not reporting Code-Level Metrics due to an error in the agent when identifying the class name. This has been fixed and Code-Level Metrics will now report for ActiveRecord models. Thanks to [@abigail-rolling](https://github.com/abigail-rolling) for reporting this issue. [PR#20]().
+
 - **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
 
   As part of a refactor included in a previous release of the agent, the method `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` was incorrectly made private. This method is now public again. Thanks to [@dark-panda](https://github.com/dark-panda) for reporting this issue. [PR#](https://github.com/newrelic/newrelic-ruby-agent/pull/2078)
