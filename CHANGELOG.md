@@ -34,7 +34,7 @@ Version <dev> of the agent adds log-level filtering, an API to add custom attrib
 
 - **Bugfix: Code-Level Metrics for ActiveRecord models**
 
-  Classes that inherit from ActiveRecord were not reporting Code-Level Metrics due to an error in the agent when identifying the class name. This has been fixed and Code-Level Metrics will now report for ActiveRecord models. Thanks to [@abigail-rolling](https://github.com/abigail-rolling) for reporting this issue. [PR#20]().
+  Classes that inherit from ActiveRecord were not reporting Code-Level Metrics due to an error in the agent when identifying the class name. This has been fixed and Code-Level Metrics will now report for ActiveRecord models. Thanks to [@abigail-rolling](https://github.com/abigail-rolling) for reporting this issue. [PR#2092](https://github.com/newrelic/newrelic-ruby-agent/pull/2092).
 
 - **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
 
