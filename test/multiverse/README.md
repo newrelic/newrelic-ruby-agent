@@ -160,7 +160,7 @@ The default gemfile line is
 ### Test files
 
 All files in a test suite directory (`test/multiverse/suites/*`) that end with
-`_test.rb` will be executed as test files. These should use MiniTest.
+`_test.rb` will be executed as test files. These should use Minitest.
 
 For example:
 
