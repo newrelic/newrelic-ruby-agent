@@ -65,14 +65,6 @@ namespace :test do
       File.delete(*Dir[glob])
     end
 
-    desc 'Test the multiverse testing framework by executing tests in test/multiverse/test. Get meta with it.'
-    task :self, [:suite, :mode] do |_, args|
-      args.with_defaults(:suite => '', :mode => '')
-      puts ('Testing the multiverse testing framework...')
-      test_files = FileList['test/multiverse/test/*_test.rb']
-      ruby test_files.join(' ')
-    end
-
     task :prime, [:suite] => [:env] do |_, args|
       Multiverse::Runner.prime(args.suite, Multiverse::Runner.parse_args(args))
     end
