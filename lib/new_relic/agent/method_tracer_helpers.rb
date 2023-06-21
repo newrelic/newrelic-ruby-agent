@@ -68,7 +68,7 @@ module NewRelic
       end
 
       # The string representation of a singleton class looks like
-      # '#<Class:MyModule::MyClass>', or '#<Class:MyModule::MyClass(id: integer, attrbiute: string)>'
+      # '#<Class:MyModule::MyClass>', or '#<Class:MyModule::MyClass(id: integer, attribute: string)>'
       # Return the 'MyModule::MyClass' part of that string
       def klass_name(object)
         name = Regexp.last_match(1) if object.to_s =~ /^#<Class:([\w:]*).*>$/
