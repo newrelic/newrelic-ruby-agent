@@ -1,0 +1,19 @@
+name: PR Closed
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  issue_closer:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Clone the repo
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - name: issue_closer Action
+        uses: ./.github/actions/issue_closer # no tag - locally sourced
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} # permission needed to read PR comments and close issues

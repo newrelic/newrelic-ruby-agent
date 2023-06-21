@@ -211,5 +211,18 @@ module NewRelic::Agent
         logger.verify
       end
     end
+
+    def test_log_attributes_from_config
+      key = 'configured'
+      value = 'value'
+
+      with_config(
+        :'application_logging.forwarding.custom_attributes' => {key => value}
+      ) do
+        NewRelic::Agent.config.notify_server_source_added
+
+        assert_includes(common_attributes_from_melt, key)
+      end
+    end
   end
 end

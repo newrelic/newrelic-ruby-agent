@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds log-level filtering, an API to add custom attributes to logs, and updated instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+Version <dev> of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
@@ -14,15 +14,22 @@ Version <dev> of the agent adds log-level filtering, an API to add custom attrib
 
   This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
 
-- **Feature: Custom attributes for logs API**
+- **Feature: Custom attributes for logs**
 
-  You can now add custom attributes to your log events using `NewRelic::Agent.add_custom_log_attributes`.
+  You can now add custom attributes to log events forwarded to New Relic! You can pass these attributes using an API and/or a configuration option.
 
-  For example: `NewRelic::Agent.add_custom_log_attributes(dyno: ENV['DYNO'], pod_name: ENV['POD_NAME'])`, will add the attributes `dyno` and `pod_name` to your log events. Attributes passed to this API will be added to all log events.
+  | Configuration name          | Default | Behavior                                               |
+  | --------------------------- | ------- | ------------------------------------------------------ |
+  | `application_logging.forwarding.custom_attributes` | `{}` | A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2" |
 
-  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084)
 
-- **Feature: Instrument transmit_subscription_* Action Cable actions**
+  Call the API using `NewRelic::Agent.add_custom_log_attributes` and passing your attributes as a hash. For example, you could call: `NewRelic::Agent.add_custom_log_attributes(dyno: ENV['DYNO'], pod_name: ENV['POD_NAME'])`, to add the attributes `dyno` and `pod_name` to your log events.
+
+  Attributes passed to the API or the configuration will be added to all log events.
+
+  Thanks to [@rajpawar02](https://github.com/rajpawar02) for raising this issue and [@askreet](https://github.com/askreet) for helping us with the solution. [Issue#1141](https://github.com/newrelic/newrelic-ruby-agent/issues/1141), [PR#2084](https://github.com/newrelic/newrelic-ruby-agent/pull/2084), [PR#2087](https://github.com/newrelic/newrelic-ruby-agent/pull/2087)
+
+- **Feature: Instrument transmit_subscription-related Action Cable actions**
 
   This change subscribes the agent to the Active Support notifications for:
     * `transmit_subscription_confirmation.action_cable`
