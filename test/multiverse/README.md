@@ -159,13 +159,12 @@ The default gemfile line is
 
 ### Test files
 
-All files in a test suite directory that end with .rb will be executed as test
-files.  These should use test unit.
+All files in a test suite directory (`test/multiverse/suites/*`) that end with
+`_test.rb` will be executed as test files. These should use Minitest.
 
 For example:
 
-    require 'test/unit'
-    class ATest < Test::Unit::TestCase
+    class ATest < Minitest::Test
       def test_json_is_loaded
         assert JSON
       end
@@ -174,13 +173,6 @@ For example:
         assert !defined?(Haml)
       end
     end
-
-
-## Testing Multiverse
-
-You can run tests of multiverse itself with
-
-    rake test:multiverse:self
 
 
 ## Troubleshooting
