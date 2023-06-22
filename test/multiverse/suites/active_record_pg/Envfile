@@ -6,6 +6,11 @@ suite_condition('Skip AR for JRuby, initialization fails on GitHub Actions') do
   RUBY_PLATFORM != 'java'
 end
 
+# the after_teardown method defined in before_suite.rb performs database
+# cleanup that can be problematic when running in parallel, so force the
+# tests to be serialized
+serialize!
+
 ACTIVERECORD_VERSIONS = [
   [nil, 2.7],
   ['7.0.0', 2.7],

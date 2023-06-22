@@ -133,13 +133,15 @@ contain at least two files.
 The Envfile is a meta gem file.  It allows you to specify one or more gemset
 that the tests in this directory should be run against.  For example:
 
-    gemfile <<~GEMFILE
-      gem "rails", "~>6.1.0"
-    GEMFILE
+```ruby
+gemfile <<~GEMFILE
+  gem "rails", "~>6.1.0"
+GEMFILE
 
-    gemfile <<~GEMFILE
-      gem "rails", "~>6.0.0"
-    GEMFILE
+gemfile <<~GEMFILE
+  gem "rails", "~>6.0.0"
+GEMFILE
+```
 
 This will run these tests against 2 environments, one running rails 6.1, the
 other running rails 6.0.
@@ -150,11 +152,43 @@ using two environment variables.
 
 The default gemfile line is
 
-    gem 'newrelic_rpm', :path => '../../../ruby_agent'
+```ruby
+gem 'newrelic_rpm', path: '../../../ruby_agent'
+```
 
 `ENV['NEWRELIC_GEMFILE_LINE']` will specify the full line for the gemfile
 
 `ENV['NEWRELIC_GEM_PATH']` will override the `:path` option in the default line.
+
+To force a suite to serialize its tests instead of running them in parallel,
+place this line somewhere within `Envfile`:
+
+```ruby
+serialize!
+```
+
+Each `Minitest::Test` class defined by a suite in a `*_test.rb` file will
+perform prep work before each and every individual test if the class specifies
+a `setup` instance method. To perform a "before all" or "setup once" type of
+operation that is only executed once before all unit tests are invoked, there
+are 2 options:
+
+- Option 1 for smaller prep: In `Envfile`, declare a `before_suite` block:
+
+```ruby
+# Envfile
+before_suite do
+  complex_prep_operation_to_be_ran_once
+end
+```
+
+- Option 2 for larger prep: In the suite directory, create a `before_suite.rb`
+file:
+
+```ruby
+# before_suite.rb
+complex_prep_operation_to_be_ran_once
+```
 
 
 ### Test files

@@ -120,6 +120,14 @@ module Multiverse
       ", '#{'~> ' if twiddle_wakka}#{version}'"
     end
 
+    def serialize!
+      @serialize = true
+    end
+
+    def serialize?
+      @serialize
+    end
+
     private
 
     def last_supported_ruby_version?(last_supported_ruby_version)
