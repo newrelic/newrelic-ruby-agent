@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+Version <dev> of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, unnecessary files being included in the gem, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
@@ -34,6 +34,10 @@ Version <dev> of the agent adds log-level filtering, adds custom attributes for 
   This change subscribes the agent to the Active Support notifications for:
     * `transmit_subscription_confirmation.action_cable`
     * `transmit_subscription_rejection.action_cable`
+
+- **Bugfix: Removed unwanted files from being included in file_list in gemspec**
+
+  Previously, the agent was including some files in the gem that were not needed but added to the size of the gem. These files will no longer be included. Thanks to [@manuraj17](https://github.com/manuraj17) for the contribution! [PR#2089](https://github.com/newrelic/newrelic-ruby-agent/pull/2089)
 
 - **Bugfix: Report Code-Level Metrics for Rails controller methods**
 
