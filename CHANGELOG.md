@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.3.0
 
-Version <dev> of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, unnecessary files being included in the gem, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, unnecessary files being included in the gem, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
