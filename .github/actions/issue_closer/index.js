@@ -7,7 +7,7 @@ const COMMENT_COUNT = 100;
 const RESPONSE_SUCCESS = 200;
 
 async function prComments(owner, repo, number, token) {
-  query = `query { 
+  const query = `query { 
     repository(owner: "${owner}", name: "${repo}") {
       pullRequest(number: ${number}) {
         comments(last: ${COMMENT_COUNT}) {
@@ -20,7 +20,7 @@ async function prComments(owner, repo, number, token) {
         body
       }
     }
-  }`
+  }`;
 
   const results = await octokit_graphql.graphql({
     query: query,
@@ -47,7 +47,7 @@ async function issueNumbersFromComment(comment) {
 
   if (matches) {
     matches.shift(); // $0 holds the entire match
-    return matches.filter(ele => { return ele !== undefined; })
+    return matches.filter(ele => { return ele !== undefined; });
   } else {
     return;
   }
@@ -57,7 +57,7 @@ async function issueNumbersFromPRComments(comments) {
   let issueNumbers = [];
   let i = 0;
   while (i < comments.length) {
-    numbers = await issueNumbersFromComment(comments[i]);
+    const numbers = await issueNumbersFromComment(comments[i]);
     if (numbers) {
       issueNumbers = issueNumbers.concat(numbers);
     }
@@ -79,7 +79,7 @@ async function closeIssues(issueNumbers, owner, repo, token) {
       state: 'closed'
     });
     if (response.status != RESPONSE_SUCCESS) {
-      throw `REST call to update issue ${issueNumbers[0]} failed - ${JSON.stringify(response)}`
+      throw `REST call to update issue ${issueNumbers[0]} failed - ${JSON.stringify(response)}`;
     }
     i++;
   }
@@ -89,13 +89,13 @@ async function run() {
   try {
     const token = core.getInput('token');
     if (!token) {
-      throw "Action input 'token' is not set!";
+      throw 'Action input \'token\' is not set!';
     }
 
     const payload = github.context.payload;
 
     const action = payload.action;
-    if (action != "closed") {
+    if (action != 'closed') {
       throw `Received invalid action of '${action}'. Expected 'closed'. Is a Workflow condition missing?`;
     }
 
@@ -108,7 +108,7 @@ async function run() {
     console.log(`The PR ref is ${ref}`);
     if (ref == DEFAULT_BRANCH) {
       console.log(`PR ${number} targeted branch ${ref}. Exiting.`);
-      return
+      return;
     }
 
     const fullName = base.repo.full_name;
