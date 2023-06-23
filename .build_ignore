@@ -1,3 +1,4 @@
+.github
 .gitignore
 .project
 .rubocop.yml
@@ -12,7 +13,9 @@ DOCKER.md
 docker-compose.yml
 config/
 config.dot
+infinite_tracing/
 Guardfile
 lefthook.yml
+log/
 README.md
 test/
