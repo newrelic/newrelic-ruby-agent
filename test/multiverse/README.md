@@ -97,11 +97,19 @@ The first time you run this command on a new Ruby installation, it will take qui
 
 ## Running Specific Tests and Environments
 
-Multiverse tests live in the test/multiverse directory and are organized into 'suites'. Generally speaking, a suite is a group of tests that share a common 3rd-party dependency (or set of dependencies). You can run one or more specific suites by providing a comma delimited list of suite names as parameters to the rake task:
+Multiverse tests live in the `test/multiverse` directory, with each subdirectory beneath `test/multiverse/suites` representing a suite. Generally speaking, a suite is a collection of tests that share a common 3rd-party dependency (or set of dependencies). You can run all tests belonging to a suite like so:
 
-    rake 'test:multiverse[agent_only]'
-    # or
-    rake 'test:multiverse[rails,net_http]'
+```shell
+# agent_only = suite name
+rake 'test:multiverse[agent_only]'
+```
+
+Multiverse groups collect multiple suites together within a shared broad topic. To run all tests for an entire group, use `group=<GROUP NAME>` as the first rake task argument in lieu of a suite name. For a complete list of group names, see the `GROUPS` constant defined in `test/multiverse/lib/multiverse/runner.rb`.
+
+```shell
+# database = group name
+rake 'test:multiverse[group=database]'
+``
 
 You can pass these additional parameters to the test:multiverse rake task to control how tests are run:
 
