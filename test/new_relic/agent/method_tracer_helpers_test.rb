@@ -151,6 +151,23 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
   if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR >= 7
     require_relative '../../environments/rails70/app/controllers/no_method_controller'
 
+    module ::The
+      class ActiveRecordExample < ActiveRecord::Base
+        def self.class_method; end
+        def instance_method; end
+        private # rubocop:disable Layout/EmptyLinesAroundAccessModifier
+        def private_method; end
+      end
+    end
+
+    def test_provides_accurate_name_for_active_record_class
+      with_config(:'code_level_metrics.enabled' => true) do
+        klass = NewRelic::Agent::MethodTracerHelpers.send(:klassify_singleton, The::ActiveRecordExample.singleton_class)
+
+        assert_equal klass, The::ActiveRecordExample
+      end
+    end
+
     def test_provides_info_for_no_method_on_controller
       skip_unless_minitest5_or_above
 
