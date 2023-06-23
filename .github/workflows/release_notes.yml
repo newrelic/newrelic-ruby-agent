@@ -45,7 +45,7 @@ jobs:
       - name: Create pull request
         run: gh pr create --base "develop" --repo "$REPO" --head "$HEAD" --title "$TITLE" --body "$BODY"
         env:
-          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
           REPO: https://github.com/newrelic/docs-website/
           HEAD: ${{env.branch_name}}
           TITLE: "Ruby Release Notes"
