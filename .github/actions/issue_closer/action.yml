@@ -5,5 +5,5 @@ inputs:
     description: 'A GitHub token with PR read and Issue close permissions'
     required: true
 runs:
-  using: 'node16'
-  main: 'index.js'
+  using: 'node18'
+  main: 'dist/index.js'
