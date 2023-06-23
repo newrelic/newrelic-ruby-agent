@@ -97,7 +97,7 @@ The first time you run this command on a new Ruby installation, it will take qui
 
 ## Running Specific Tests and Environments
 
-Multiverse tests live in the `test/multiverse` directory, with each subdirectory beneath that directory representing a suite. Generally speaking, a suite is a collection of tests that share a common 3rd-party dependency (or set of dependencies). You can run all tests belonging to a suite like so:
+Multiverse tests live in the `test/multiverse` directory, with each subdirectory beneath `test/multiverse/suites` representing a suite. Generally speaking, a suite is a collection of tests that share a common 3rd-party dependency (or set of dependencies). You can run all tests belonging to a suite like so:
 
 ```shell
 # agent_only = suite name
