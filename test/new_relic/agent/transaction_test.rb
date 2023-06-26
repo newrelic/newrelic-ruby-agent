@@ -632,7 +632,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.raw_synthetics_header = ''
 
-        refute txn.is_synthetics_request?
+        refute_predicate txn, :is_synthetics_request?
       end
     end
 
@@ -640,7 +640,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.synthetics_payload = [1, 2, 3, 4, 5]
 
-        refute txn.is_synthetics_request?
+        refute_predicate txn, :is_synthetics_request?
       end
     end
 
@@ -1044,7 +1044,7 @@ module NewRelic::Agent
 
     def test_ignored_returns_false_if_a_transaction_is_not_ignored
       in_transaction('Controller/test', :category => :sinatra) do |txn|
-        refute txn.ignore?
+        refute_predicate txn, :ignore?
       end
     end
 
@@ -1066,7 +1066,7 @@ module NewRelic::Agent
 
     def test_ignore_apdex_returns_false_if_apdex_is_not_ignored
       in_transaction('Controller/test', :category => :sinatra) do |txn|
-        refute txn.ignore_apdex?
+        refute_predicate txn, :ignore_apdex?
       end
     end
 
@@ -1080,7 +1080,7 @@ module NewRelic::Agent
 
     def test_ignore_enduser_returns_false_if_enduser_is_not_ignored
       in_transaction('Controller/test', :category => :sinatra) do |txn|
-        refute txn.ignore_enduser?
+        refute_predicate txn, :ignore_enduser?
       end
     end
 
@@ -1210,7 +1210,7 @@ module NewRelic::Agent
         in_transaction do |txn|
           txn.stubs(:uri).returns('http://foo bar.com')
 
-          refute txn.user_defined_rules_ignore?
+          refute_predicate txn, :user_defined_rules_ignore?
         end
       end
     end
@@ -1731,6 +1731,14 @@ module NewRelic::Agent
           assert_equal limit, Transaction.tl_current.logs.size
         end
       end
+    end
+
+    def test_transaction_finished_works_when_inital_segment_nil
+      txn = Transaction.new(:web, {})
+
+      assert_empty txn.segments
+      assert_nil txn.initial_segment
+      refute_predicate txn, :finished?
     end
   end
 end

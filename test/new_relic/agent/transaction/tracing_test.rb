@@ -605,12 +605,12 @@ module NewRelic
             segment_f.finish
             segment_e.finish
 
-            refute segment_a.concurrent_children?
-            refute segment_b.concurrent_children?
-            refute segment_c.concurrent_children?
+            refute_predicate segment_a, :concurrent_children?
+            refute_predicate segment_b, :concurrent_children?
+            refute_predicate segment_c, :concurrent_children?
             assert_predicate segment_d, :concurrent_children?
-            refute segment_e.concurrent_children?
-            refute segment_f.concurrent_children?
+            refute_predicate segment_e, :concurrent_children?
+            refute_predicate segment_f, :concurrent_children?
           end
         end
 
@@ -774,7 +774,7 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment(name: 'metric b')
             advance_process_time(1)
 
-            refute txn.async?
+            refute_predicate txn, :async?
 
             segment_c = NewRelic::Agent::Tracer.start_segment(
               name: 'metric c',
@@ -806,7 +806,7 @@ module NewRelic
 
             segment_b.finish
 
-            refute txn.async?, 'Expected transaction not to be asynchronous'
+            refute_predicate txn, :async?, 'Expected transaction not to be asynchronous'
 
             segment_c = NewRelic::Agent::Tracer.start_segment(name: 'metric c')
 

@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
       def post(*args, &task)
         return super(*args, &task) unless NewRelic::Agent::Tracer.tracing_enabled?
 
-        traced_task = add_task_tracing(*args, &task)
+        traced_task = add_task_tracing(&task)
         super(*args, &traced_task)
       end
     end

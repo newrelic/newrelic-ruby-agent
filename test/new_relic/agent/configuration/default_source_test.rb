@@ -254,6 +254,25 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_convert_to_hash_returns_hash
+      result = {'key1' => 'value1', 'key2' => 'value2'}
+
+      assert_equal(DefaultSource.convert_to_hash(result), result)
+    end
+
+    def test_convert_to_hash_with_string
+      value = 'key1=value1,key2=value2'
+      result = {'key1' => 'value1', 'key2' => 'value2'}
+
+      assert_equal(DefaultSource.convert_to_hash(value), result)
+    end
+
+    def test_convert_to_hash_raises_error_with_wrong_data_type
+      value = [1, 2, 3]
+
+      assert_raises(ArgumentError) { DefaultSource.convert_to_hash(value) }
+    end
+
     def get_config_value_class(value)
       type = value.class
 

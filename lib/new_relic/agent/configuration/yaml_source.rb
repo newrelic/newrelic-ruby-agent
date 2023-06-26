@@ -41,6 +41,7 @@ module NewRelic
 
           substitute_transaction_threshold(config)
           booleanify_values(config, 'agent_enabled', 'enabled')
+          apply_aliases(config)
 
           super(config, true)
         end
@@ -164,6 +165,18 @@ module NewRelic
             end
           end
           result
+        end
+
+        def apply_aliases(config)
+          DEFAULTS.each do |config_setting, value|
+            next unless value[:aliases]
+
+            value[:aliases].each do |config_alias|
+              next unless config[config_setting].nil? && !config[config_alias.to_s].nil?
+
+              config[config_setting] = config[config_alias.to_s]
+            end
+          end
         end
       end
     end

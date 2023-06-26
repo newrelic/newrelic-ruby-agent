@@ -8,7 +8,7 @@ module NewRelic
       File.join(File.dirname(__FILE__), '..', '..', 'CHANGELOG.md')
     end
 
-    FOOTER = <<'EOS'
+    FOOTER = <<EOS
     See https://github.com/newrelic/newrelic-ruby-agent/blob/main/CHANGELOG.md for a full list of
     changes.
 EOS

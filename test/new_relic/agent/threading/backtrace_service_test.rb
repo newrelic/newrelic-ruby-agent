@@ -40,7 +40,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
           @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
 
-          refute @service.running?
+          refute_predicate @service, :running?
         end
       end
 
@@ -53,7 +53,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
 
-        refute @service.running?
+        refute_predicate @service, :running?
       end
 
       def test_stops_only_once_all_subscriptions_are_removed
@@ -70,7 +70,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.unsubscribe('foo')
 
-        refute @service.running?
+        refute_predicate @service, :running?
       end
 
       def test_stop_clears_buffered_backtraces

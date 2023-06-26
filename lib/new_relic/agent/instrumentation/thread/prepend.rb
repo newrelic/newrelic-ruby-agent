@@ -12,7 +12,7 @@ module NewRelic
           include NewRelic::Agent::Instrumentation::MonitoredThread
 
           def initialize(*args, &block)
-            traced_block = add_thread_tracing(*args, &block)
+            traced_block = add_thread_tracing(&block)
             initialize_with_newrelic_tracing { super(*args, &traced_block) }
           end
         end

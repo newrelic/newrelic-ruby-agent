@@ -4,16 +4,13 @@ on:
   issues:
     types: [opened]
 
-permissions:
-  issues: write
-  repository-projects: write
-
 env:
   MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   assign_one_project:
     runs-on: ubuntu-latest
+    permissions: write-all
     continue-on-error: true
     name: Assign to One Project
     steps:

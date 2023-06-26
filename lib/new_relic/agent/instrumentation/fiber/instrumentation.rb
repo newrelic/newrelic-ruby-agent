@@ -11,11 +11,10 @@ module NewRelic::Agent::Instrumentation
       yield
     end
 
-    def add_thread_tracing(*args, &block)
+    def add_thread_tracing(&block)
       return block if !NewRelic::Agent::Tracer.thread_tracing_enabled?
 
       NewRelic::Agent::Tracer.thread_block_with_current_transaction(
-        *args,
         segment_name: 'Ruby/Fiber',
         &block
       )

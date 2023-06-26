@@ -7,11 +7,10 @@ module NewRelic::Agent::Instrumentation
     SEGMENT_NAME = 'Concurrent/Task'
     SUPPORTABILITY_METRIC = 'Supportability/ConcurrentRuby/Invoked'
 
-    def add_task_tracing(*args, &task)
+    def add_task_tracing(&task)
       NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC)
 
       NewRelic::Agent::Tracer.thread_block_with_current_transaction(
-        *args,
         segment_name: SEGMENT_NAME,
         parent: NewRelic::Agent::Tracer.current_segment,
         &task
