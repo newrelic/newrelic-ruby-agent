@@ -60,7 +60,7 @@ module Multiverse
 
     def databases_list(db_type)
       puts "Obtaining a list of #{db_type} databases..."
-      `#{LIST_COMMANDS[db_type]}`.chomp!.split("\n").select { |s| s.include?(PARTIALDATABASE_NAME) }
+      `#{LIST_COMMANDS[db_type]}`.chomp!.split("\n").select { |s| s.include?(PARTIAL_DATABASE_NAME) }
     rescue => e
       puts "ERROR: Cannot get #{db_type} databasesi - #{e.class}: #{e.message}"
       []
