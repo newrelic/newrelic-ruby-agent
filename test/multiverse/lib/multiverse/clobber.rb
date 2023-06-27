@@ -8,7 +8,7 @@ module Multiverse
                    postgresql: %w[awk dropdb psql]}
     LIST_COMMANDS = {mysql: %(echo "show databases" | mysql -u root),
                      postgresql: %(echo '\\l' |psql -d postgres|awk '{print $1}')}
-    PARTIALDATABASE_NAME = 'multiverse'
+    PARTIAL_DATABASE_NAME = 'multiverse'
     DB_NAME_PLACEHOLDER = 'DATABASE_NAME'
     DROP_COMMANDS = {mysql: %Q(echo "drop database #{DB_NAME_PLACEHOLDER} | mysql -u root),
                      postgresql: %Q(dropdb #{DB_NAME_PLACEHOLDER})}
