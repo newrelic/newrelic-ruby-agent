@@ -21,6 +21,6 @@ README.md
 test/
 lib/tasks/bump_version.rb
 lib/tasks/coverage_report.rb
-lib/tasks/mutliverse.rake
-lib/tasks/mutliverse.rb
+lib/tasks/multiverse.rake
+lib/tasks/multiverse.rb
 lib/tasks/tests.rb
