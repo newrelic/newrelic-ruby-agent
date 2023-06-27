@@ -19,3 +19,8 @@ lefthook.yml
 log/
 README.md
 test/
+lib/tasks/bump_version.rb
+lib/tasks/coverage_report.rb
+lib/tasks/multiverse.rake
+lib/tasks/multiverse.rb
+lib/tasks/tests.rb
