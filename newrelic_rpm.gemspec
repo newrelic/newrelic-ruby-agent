@@ -44,7 +44,7 @@ Gem::Specification.new do |s|
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
 
-  s.homepage = 'https://github.com/newrelic/rpm'
+  s.homepage = 'https://github.com/newrelic/newrelic-ruby-agent'
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
   s.add_development_dependency 'bundler'
