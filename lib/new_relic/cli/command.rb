@@ -60,6 +60,7 @@ module NewRelic
         extra = []
         options = ARGV.options do |opts|
           script_name = File.basename($0)
+          # TODO: MAJOR VERSION - remove newrelic_cmd, deprecated since version 2.13
           if /newrelic_cmd$/.match?(script_name)
             $stdout.puts "warning: the 'newrelic_cmd' script has been renamed 'newrelic'"
             script_name = 'newrelic'
