@@ -3,11 +3,14 @@
 # frozen_string_literal: true
 
 module Format
+  DEFAULT_CONFIG_PATH = 'ruby-agent-configuration.mdx'
+
   def output(format)
     config_hash = build_config_hash
     sections = flatten_config_hash(config_hash)
 
-    puts build_erb(format).result(binding).split("\n").map(&:rstrip).join("\n").gsub('.  ', '. ')
+    result = build_erb(format).result(binding).split("\n").map(&:rstrip).join("\n").gsub('.  ', '. ')
+    File.write(DEFAULT_CONFIG_PATH, result)
     sections # silences unused warning to return this
   end
 
@@ -81,9 +84,10 @@ module Format
     name = NAME_OVERRIDES[key]
     return name if name
 
-    key.split('_')
+    title = key.split('_')
       .each { |fragment| fragment[0] = fragment[0].upcase }
       .join(' ')
+    "#{title} [##{key.tr('_', '-')}]"
   end
 
   def format_sections(key, value)
