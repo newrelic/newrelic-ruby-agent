@@ -40,8 +40,9 @@ Gem::Specification.new do |s|
 
   reject_list = File.read('./.build_ignore').split("\n")
   file_list = `git ls-files -z`.split("\x0").reject { |f| reject_list.any? { |rf| f.start_with?(rf) } }
-  build_file_path = 'lib/new_relic/build.rb'
-  file_list << build_file_path if File.exist?(build_file_path)
+  # test/agent_helper.rb is a requirement for the NewRelic::Agent.require_test_helper public API
+  test_helper_path = 'test/agent_helper.rb'
+  file_list << test_helper_path
   s.files = file_list
 
   s.homepage = 'https://github.com/newrelic/rpm'

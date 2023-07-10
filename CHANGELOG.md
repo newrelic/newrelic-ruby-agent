@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> of the agent fixes `NewRelic::Agent.require_test_helper`.
+
+- **Bugfix: Fix NewRelic::Agent.require_test_helper**
+
+  Version 9.3.0 of the agent made a change to the files distributed with the gem. This change unintentionally broke the `NewRelic::Agent.require_test_helper` API by removing the `test/agent_helper.rb` file. The file has been added back to the gem. This change also removes the `lib/new_relic/build.rb` file from the list because it is no longer created with our current release process.
+
+  Our thanks go to [@ajesler](https://github.com/ajesler) for reporting this issue and writing a test for the bug. [Issue#2113](https://github.com/newrelic/newrelic-ruby-agent/issues/2113), [PR#2115](https://github.com/newrelic/newrelic-ruby-agent/pull/2115), [Issue#2117](https://github.com/newrelic/newrelic-ruby-agent/issues/2117), [PR#2118](https://github.com/newrelic/newrelic-ruby-agent/pull/2118)
+
 ## v9.3.0
 
 Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, unnecessary files being included in the gem, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
