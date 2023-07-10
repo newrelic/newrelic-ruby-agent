@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
     https://github.com/newrelic/newrelic-ruby-agent/
   EOS
   s.email = 'support@newrelic.com'
+  # TODO: MAJOR VERSION - remove newrelic_cmd, deprecated since version 2.13
   s.executables = %w[newrelic_cmd newrelic nrdebug]
   s.extra_rdoc_files = [
     'CHANGELOG.md',
@@ -45,7 +46,7 @@ Gem::Specification.new do |s|
   file_list << test_helper_path
   s.files = file_list
 
-  s.homepage = 'https://github.com/newrelic/rpm'
+  s.homepage = 'https://github.com/newrelic/newrelic-ruby-agent'
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
   s.add_development_dependency 'bundler'
