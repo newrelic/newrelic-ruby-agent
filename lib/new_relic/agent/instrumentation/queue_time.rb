@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Instrumentation
-      # https://newrelic.com/docs/features/tracking-front-end-time
+      # https://docs.newrelic.com/docs/features/tracking-front-end-time
       # Record queue time metrics based on any of three headers
       # which can be set on the request.
       module QueueTime

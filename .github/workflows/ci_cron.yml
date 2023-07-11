@@ -117,6 +117,7 @@ jobs:
         env:
           VERBOSE_TEST_OUTPUT: true
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          CI_CRON: true
 
 
   multiverse:

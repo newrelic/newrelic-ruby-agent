@@ -6,7 +6,7 @@
 # each with slightly different APIs and semantics.
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)
-#     http://seattlerb.rubyforge.org/memcache-client/ (Gem: memcache-client)
+#     https://github.com/mperham/memcache-client (Gem: memcache-client)
 #     https://github.com/mperham/dalli (Gem: dalli)
 
 require_relative 'memcache/helper'
