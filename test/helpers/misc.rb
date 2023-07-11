@@ -138,9 +138,10 @@ end
 def newest_ruby
   @newest_ruby ||= begin
     hash = YAML.load_file(File.join(agent_root, '.github/workflows/ci_cron.yml'))
-    hash['jobs']['unit_tests']['strategy']['matrix']['ruby-version'].sort do |a, b|
+    version_string = hash['jobs']['unit_tests']['strategy']['matrix']['ruby-version'].sort do |a, b|
       Gem::Version.new(a) <=> Gem::Version.new(b)
     end.last
+    Gem::Version.new(version_string)
   end
 end
 
