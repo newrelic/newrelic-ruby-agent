@@ -7,6 +7,7 @@ require 'minitest/autorun'
 class GemspecFilesTest < Minitest::Test
   def test_the_test_agent_helper_is_shipped_in_the_gem_files
     skip if defined?(Rails::VERSION)
+    skip 'Gemspec test requires a newer version of Rubygems' unless Gem.respond_to?(:open_file)
 
     gem_spec_file_path = File.expand_path('../../../newrelic_rpm.gemspec', __FILE__)
 
