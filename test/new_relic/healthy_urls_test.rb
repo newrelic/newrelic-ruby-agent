@@ -20,7 +20,6 @@
 #
 # Enable DEBUG for additional verbosity
 
-require 'httparty'
 require_relative '../test_helper'
 
 class HealthyUrlsTest < Minitest::Test
@@ -73,6 +72,7 @@ class HealthyUrlsTest < Minitest::Test
   def test_all_urls
     skip_unless_ci_cron
     skip_unless_newest_ruby
+    load_httparty
 
     urls = gather_urls
     errors = urls.each_with_object({}) do |(url, _files), hash|
@@ -87,6 +87,12 @@ class HealthyUrlsTest < Minitest::Test
   end
 
   private
+
+  def load_httparty
+    require 'httparty'
+  rescue
+    skip 'Skipping URL health tests in this context, as HTTParty is not available'
+  end
 
   def real_url?(url)
     return false if url.match?(IGNORED_URL_PATTERN)
