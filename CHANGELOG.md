@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.3.1
 
-Version <dev> of the agent fixes `NewRelic::Agent.require_test_helper`.
+Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
 
 - **Bugfix: Fix NewRelic::Agent.require_test_helper**
 
