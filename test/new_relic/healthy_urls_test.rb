@@ -104,18 +104,16 @@ class HealthyUrlsTest < Minitest::Test
     Dir.glob(File.join(ROOT, '**', '*')).each_with_object({}) do |file, urls|
       next unless File.file?(file) && File.basename(file).match?(FILE_PATTERN) && !file.match?(IGNORED_FILE_PATTERN)
 
-      catch :done_with_file do
-        changelog_entries_seen = 0
-        File.open(file).each do |line|
-          changelog_entries_seen += 1 if File.basename(file).eql?('CHANGELOG.md') && line.start_with?('##')
-          throw :done_with_file if changelog_entries_seen > 2
-          next unless line =~ URL_PATTERN
+      changelog_entries_seen = 0
+      File.open(file).each do |line|
+        changelog_entries_seen += 1 if File.basename(file).eql?('CHANGELOG.md') && line.start_with?('##')
+        break if changelog_entries_seen > 2
+        next unless line =~ URL_PATTERN
 
-          url = Regexp.last_match(1).sub(%r{(?:/|\.)$}, '')
-          if real_url?(url)
-            urls[url] ||= []
-            urls[url] << file
-          end
+        url = Regexp.last_match(1).sub(%r{(?:/|\.)$}, '')
+        if real_url?(url)
+          urls[url] ||= []
+          urls[url] << file
         end
       end
     end
