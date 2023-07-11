@@ -30,7 +30,7 @@ DependencyDetection.defer do
       else
         NewRelic::Agent.logger.info('Detected Sequel version %s.' % [Sequel::VERSION])
         NewRelic::Agent.logger.info('Please see additional documentation: ' +
-          'https://newrelic.com/docs/ruby/sequel-instrumentation')
+          'https://docs.newrelic.com/docs/apm/agents/ruby-agent/frameworks/sequel-instrumentation/')
       end
 
       Sequel.synchronize { Sequel::DATABASES.dup }.each do |db|

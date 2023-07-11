@@ -124,3 +124,29 @@ def skip_unless_minitest5_or_above
 
   skip 'This test requires MiniTest v5+'
 end
+
+def skip_unless_ci_cron
+  return if ENV['CI_CRON']
+
+  skip 'This test only runs as part of the CI cron workflow'
+end
+
+def agent_root
+  @agent_root ||= File.expand_path('../../..', __FILE__).freeze
+end
+
+def newest_ruby
+  @newest_ruby ||= begin
+    hash = YAML.load_file(File.join(agent_root, '.github/workflows/ci_cron.yml'))
+    version_string = hash['jobs']['unit_tests']['strategy']['matrix']['ruby-version'].sort do |a, b|
+      Gem::Version.new(a) <=> Gem::Version.new(b)
+    end.last
+    Gem::Version.new(version_string)
+  end
+end
+
+def skip_unless_newest_ruby
+  return if Gem::Version.new(RUBY_VERSION) >= newest_ruby
+
+  skip 'This test only runs on the latest CI cron Ruby version'
+end
