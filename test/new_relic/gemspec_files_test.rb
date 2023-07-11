@@ -7,14 +7,16 @@ require 'minitest/autorun'
 class GemspecFilesTest < Minitest::Test
   def test_the_test_agent_helper_is_shipped_in_the_gem_files
     skip if defined?(Rails::VERSION)
-
-    agent_helper_file = 'test/agent_helper.rb'
+    skip 'Gemspec test requires a newer version of Rubygems' unless Gem.respond_to?(:open_file)
 
     gem_spec_file_path = File.expand_path('../../../newrelic_rpm.gemspec', __FILE__)
 
-    gem_spec = Gem::Specification.load(gem_spec_file_path)
+    Dir.chdir(File.dirname(gem_spec_file_path)) do
+      gem_spec = eval(Gem.open_file(gem_spec_file_path, 'r:UTF-8:-', &:read))
 
-    assert_equal('newrelic_rpm', gem_spec.name)
-    assert_includes(gem_spec.files, agent_helper_file)
+      assert gem_spec, "Failed to parse '#{gem_spec_file_path}'"
+      assert_equal('newrelic_rpm', gem_spec.name)
+      assert_includes(gem_spec.files, 'test/agent_helper.rb')
+    end
   end
 end
