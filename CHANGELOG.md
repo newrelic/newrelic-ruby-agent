@@ -5361,3 +5361,7 @@ Agent improvements to support future RPM enhancements
 ## v2.1.0.
 
 - release for private beta
+
+## v-9.3.1
+
+- bizarro world version introduced
