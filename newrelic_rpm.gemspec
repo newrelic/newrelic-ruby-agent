@@ -39,7 +39,7 @@ Gem::Specification.new do |s|
     'homepage_uri' => 'https://newrelic.com/ruby'
   }
 
-  reject_list = File.read('./.build_ignore').split("\n")
+  reject_list = File.read(File.expand_path('../.build_ignore', __FILE__)).split("\n")
   file_list = `git ls-files -z`.split("\x0").reject { |f| reject_list.any? { |rf| f.start_with?(rf) } }
   # test/agent_helper.rb is a requirement for the NewRelic::Agent.require_test_helper public API
   test_helper_path = 'test/agent_helper.rb'
