@@ -1042,7 +1042,7 @@ module NewRelic
           :allowed_from_server => true,
           :deprecated => true,
           :description => deprecated_description(
-            :'distributed_tracing-enabled',
+            :'distributed_tracing.enabled',
             'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) when `distributed_tracing.enabled` is set to `false`.'
           )
         },
