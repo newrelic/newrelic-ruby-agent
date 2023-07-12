@@ -6,15 +6,15 @@ module Format
   DEFAULT_CONFIG_PATH = 'ruby-agent-configuration.mdx'
 
   def output(format)
-    config_hash = build_config_hash
-    sections = flatten_config_hash(config_hash)
-
     result = build_erb(format).result(binding).split("\n").map(&:rstrip).join("\n").gsub('.  ', '. ')
     File.write(DEFAULT_CONFIG_PATH, result)
-    sections # silences unused warning to return this
   end
 
   private
+
+  def sections
+    @sections ||= flatten_config_hash(build_config_hash)
+  end
 
   def add_data_to_sections(sections)
     sections.each do |section|
