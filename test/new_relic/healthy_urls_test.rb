@@ -72,7 +72,6 @@ class HealthyUrlsTest < Minitest::Test
   def test_all_urls
     skip_unless_ci_cron
     skip_unless_newest_ruby
-    load_httparty
 
     urls = gather_urls
     errors = urls.each_with_object({}) do |(url, _files), hash|
@@ -87,12 +86,6 @@ class HealthyUrlsTest < Minitest::Test
   end
 
   private
-
-  def load_httparty
-    require 'httparty'
-  rescue
-    skip 'Skipping URL health tests in this context, as HTTParty is not available'
-  end
 
   def real_url?(url)
     return false if url.match?(IGNORED_URL_PATTERN)
@@ -119,10 +112,32 @@ class HealthyUrlsTest < Minitest::Test
     end
   end
 
+  def get_request(url)
+    uri = URI.parse(url)
+    uri.path = '/' if uri.path.eql?('')
+    nethttp = Net::HTTP.new(uri.hostname, uri.port)
+    nethttp.open_timeout = TIMEOUT
+    nethttp.read_timeout = TIMEOUT
+    nethttp.use_ssl = uri.scheme.eql?('https')
+    response = nethttp.get(uri.path)
+
+    return get_request(redirect_url(uri, response['location'])) if response.is_a?(Net::HTTPRedirection)
+
+    response
+  end
+
+  def redirect_url(previous_uri, path)
+    uri = URI.parse(path)
+    redirect = uri.relative? ? "#{previous_uri.scheme}://#{previous_uri.hostname}#{path}" : uri.to_s
+    puts "  Redirecting '#{previous_uri}' to '#{redirect}'..." if DEBUG
+
+    redirect
+  end
+
   def verify_url(url)
     puts "Testing '#{url}'..." if DEBUG
-    res = HTTParty.get(url, timeout: TIMEOUT)
-    if res.success?
+    res = get_request(url)
+    if res.code.eql?('200')
       puts '  OK.' if DEBUG
       return
     end
