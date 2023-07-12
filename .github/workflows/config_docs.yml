@@ -37,7 +37,7 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.KAYLA_CONFIG_DOCS }}
       with:
         source_file: "ruby-agent-configuration.mdx"
-        destination_repo: ${{ $DESTINATION_REPO }}
+        destination_repo: "$DESTINATION_REPO"
         destination_folder: 'src/content/docs/apm/agents/ruby-agent/configuration'
         user_email: '${{ secrets.EMAIL }}'
         user_name: 'newrelic-ruby-agent-bot'
