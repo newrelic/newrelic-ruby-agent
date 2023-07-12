@@ -44,6 +44,9 @@ jobs:
         destination_branch: 'develop'
         destination_branch_create: ${{ env.BRANCH_NAME }}
         commit_message: 'chore(ruby agent): Update config docs'
+
+    # - name: Check diff
+    #   run: git diff --quiet src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx
   # echoes "no changes detected"
 
   check_diff_for_changes:
@@ -58,9 +61,9 @@ jobs:
         token: ${{ secrets.KAYLA_CONFIG_DOCS }}
         fetch-depth: 0
 
-    - name: Check diff
-      run: |
-        git diff --quiet src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx && exit 0
+    # - name: Check diff
+    #   run: |
+    #     git diff --quiet src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx && exit 0
 
   create_pull_request:
     runs-on: ubuntu-22.04
