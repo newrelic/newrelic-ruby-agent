@@ -37,13 +37,14 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.KAYLA_CONFIG_DOCS }}
       with:
         source_file: "ruby-agent-configuration.mdx"
-        destination_repo: ${{ env.DESTINATION_REPO }}
+        destination_repo: $DESTINATION_REPO
         destination_folder: 'src/content/docs/apm/agents/ruby-agent/configuration'
-        user_email: '${{ secrets.EMAIL }}'
+        user_email: ${{ secrets.EMAIL }}
         user_name: 'newrelic-ruby-agent-bot'
         destination_branch: 'develop'
         destination_branch_create: ${{ env.BRANCH_NAME }}
         commit_message: 'chore(ruby agent): Update config docs'
+  # echoes "no changes detected"
 
   check_diff_for_changes:
     runs-on: ubuntu-22.04
@@ -53,8 +54,9 @@ jobs:
       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       with:
         repository: ${{ env.DESTINATION_REPO }}
-        ref: ${{ env.BRANCH_NAME }}
+        ref: ${{ env.BRANCH_NAME }} # couldn't checkout the branch
         token: ${{ secrets.KAYLA_CONFIG_DOCS }}
+        fetch_depth: 0
 
     - name: Check diff
       run: |
