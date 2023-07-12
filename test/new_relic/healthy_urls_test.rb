@@ -94,7 +94,7 @@ class HealthyUrlsTest < Minitest::Test
   end
 
   def gather_urls
-    Dir.glob(File.join(ROOT, '**', '*')).each_with_object({}) do |file, urls|
+    Dir.glob(File.join(ROOT, '**', '*')).each_with_object(Hash.new { |hash, key| hash[key] = [] }) do |file, urls|
       next unless File.file?(file) && File.basename(file).match?(FILE_PATTERN) && !file.match?(IGNORED_FILE_PATTERN)
 
       changelog_entries_seen = 0
@@ -104,10 +104,7 @@ class HealthyUrlsTest < Minitest::Test
         next unless line =~ URL_PATTERN
 
         url = Regexp.last_match(1).sub(%r{(?:/|\.)$}, '')
-        if real_url?(url)
-          urls[url] ||= []
-          urls[url] << file
-        end
+        urls[url] << file if real_url?(url)
       end
     end
   end

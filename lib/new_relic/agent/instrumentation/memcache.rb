@@ -5,7 +5,7 @@
 # NOTE: there are multiple implementations of the Memcached client in Ruby,
 # each with slightly different APIs and semantics.
 # See:
-#     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)
+#     https://rubygems.org/gems/Ruby-MemCache (Gem: Ruby-MemCache)
 #     https://github.com/mperham/memcache-client (Gem: memcache-client)
 #     https://github.com/mperham/dalli (Gem: dalli)
 
