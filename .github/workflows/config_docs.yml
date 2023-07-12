@@ -49,8 +49,14 @@ jobs:
       uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
       with:
         repository: ${{ env.DESTINATION_REPO }}
-        ref: ${{ env.BRANCH_NAME }}
         token: ${{ secrets.KAYLA_CONFIG_DOCS }}
+        fetch-depth: 0
+
+    - name: Does branch exist?
+      run: |
+        git branch --list $BRANCH_NAME
+      env:
+        BRANCH_NAME: "${{ env.BRANCH_NAME }}"
 
     - name: Test output
       run: |
