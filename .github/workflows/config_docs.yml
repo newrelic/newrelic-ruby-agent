@@ -56,7 +56,7 @@ jobs:
         repository: ${{ env.DESTINATION_REPO }}
         ref: ${{ env.BRANCH_NAME }} # couldn't checkout the branch
         token: ${{ secrets.KAYLA_CONFIG_DOCS }}
-        fetch_depth: 0
+        fetch-depth: 0
 
     - name: Check diff
       run: |
