@@ -54,13 +54,18 @@ jobs:
 
     - name: Does branch exist?
       run: |
-        git branch --list $BRANCH_NAME
+        BRANCH_EXISTS=$(git branch --list ${$BRANCH_NAME})
+        if [[ -z $BRANCH_EXISTS ]]; then
+            echo "::set-output name=BRANCH_EXISTS::0"
+        else
+            echo "::set-output name=BRANCH_EXISTS::1"
+        fi
       env:
         BRANCH_NAME: "${{ env.BRANCH_NAME }}"
 
-    - name: Test output
-      run: |
-        git diff --quiet src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx
+    # - name: Test output
+    #   run: |
+    #     git diff --quiet src/content/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration.mdx
 
     - name: Create PR
       run: gh pr create --base "develop" --repo "$REPO" --head "$HEAD" --title "$TITLE" --body "$BODY"
