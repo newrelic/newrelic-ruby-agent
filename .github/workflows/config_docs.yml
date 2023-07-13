@@ -54,7 +54,7 @@ jobs:
 
     - name: Does branch exist?
       run: |
-        BRANCH_EXISTS=$(git branch --list ${$BRANCH_NAME})
+        BRANCH_EXISTS=$(git branch --list ${{ env.BRANCH_NAME }})
         if [[ -z $BRANCH_EXISTS ]]; then
             echo "::set-output name=BRANCH_EXISTS::0"
         else
