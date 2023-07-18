@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'simplecov'
 require 'socket'
 
 module Performance
@@ -10,7 +11,7 @@ module Performance
 
     DEFAULTS = {
       :instrumentors => [],
-      :inline => false,
+      :inline => true,
       :iterations => nil,
       :reporter_classes => ['ConsoleReporter'],
       :brief => false,
@@ -176,12 +177,16 @@ module Performance
     end
 
     def run_test_case(test_case)
+      puts test_case.class
       methods_for_test_case(test_case).map do |method|
-        if @options[:inline]
+        puts "  #{method}"
+        result = if @options[:inline]
           run_test_inline(test_case, method)
         else
           run_test_subprocess(test_case, method)
         end
+        puts "    #{result.iterations} iterations completed in #{sprintf('%.5f', result.timer.elapsed)} seconds."
+        result
       end
     end
 

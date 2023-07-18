@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'newrelic_rpm', :path => '../../..'
+gem 'newrelic_rpm', path: File.expand_path('../../..', __FILE__)
 
 gem 'mocha'
 gem 'pry'
@@ -10,5 +10,6 @@ gem 'pry-nav'
 gem 'rack'
 gem 'rackup'
 gem 'redis'
+gem 'simplecov'
 gem 'stackprof'
 gem 'webrick' if RUBY_VERSION >= '3.0'
