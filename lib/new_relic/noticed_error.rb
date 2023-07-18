@@ -79,11 +79,13 @@ class NewRelic::NoticedError
   include NewRelic::Coerce
 
   def to_collector_array(encoder = nil)
-    [NewRelic::Helper.time_to_millis(timestamp),
+    arr = [NewRelic::Helper.time_to_millis(timestamp),
       string(path),
       string(message),
       string(exception_class_name),
       processed_attributes]
+    add_transaction_id(arr)
+    arr
   end
 
   # Note that we process attributes lazily and store the result. This is because
@@ -198,5 +200,14 @@ class NewRelic::NoticedError
     end
 
     @error_group = name
+  end
+
+  private
+
+  def add_transaction_id(array)
+    txn = NewRelic::Agent::Tracer.current_transaction
+    return unless txn
+
+    array.push(txn.guid)
   end
 end

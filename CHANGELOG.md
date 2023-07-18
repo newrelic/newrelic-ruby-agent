@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error.
+
+- **Feature: Improved error tracking transaction linking**
+
+  Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035) 
+
+
 ## v9.3.1
 
 Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
