@@ -97,11 +97,19 @@ The first time you run this command on a new Ruby installation, it will take qui
 
 ## Running Specific Tests and Environments
 
-Multiverse tests live in the test/multiverse directory and are organized into 'suites'. Generally speaking, a suite is a group of tests that share a common 3rd-party dependency (or set of dependencies). You can run one or more specific suites by providing a comma delimited list of suite names as parameters to the rake task:
+Multiverse tests live in the `test/multiverse` directory, with each subdirectory beneath `test/multiverse/suites` representing a suite. Generally speaking, a suite is a collection of tests that share a common 3rd-party dependency (or set of dependencies). You can run all tests belonging to a suite like so:
 
-    rake 'test:multiverse[agent_only]'
-    # or
-    rake 'test:multiverse[rails,net_http]'
+```shell
+# agent_only = suite name
+rake 'test:multiverse[agent_only]'
+```
+
+Multiverse groups collect multiple suites together within a shared broad topic. To run all tests for an entire group, use `group=<GROUP NAME>` as the first rake task argument in lieu of a suite name. For a complete list of group names, see the `GROUPS` constant defined in `test/multiverse/lib/multiverse/runner.rb`.
+
+```shell
+# database = group name
+rake 'test:multiverse[group=database]'
+``
 
 You can pass these additional parameters to the test:multiverse rake task to control how tests are run:
 
@@ -133,13 +141,15 @@ contain at least two files.
 The Envfile is a meta gem file.  It allows you to specify one or more gemset
 that the tests in this directory should be run against.  For example:
 
-    gemfile <<~GEMFILE
-      gem "rails", "~>6.1.0"
-    GEMFILE
+```ruby
+gemfile <<~GEMFILE
+  gem "rails", "~>6.1.0"
+GEMFILE
 
-    gemfile <<~GEMFILE
-      gem "rails", "~>6.0.0"
-    GEMFILE
+gemfile <<~GEMFILE
+  gem "rails", "~>6.0.0"
+GEMFILE
+```
 
 This will run these tests against 2 environments, one running rails 6.1, the
 other running rails 6.0.
@@ -150,22 +160,53 @@ using two environment variables.
 
 The default gemfile line is
 
-    gem 'newrelic_rpm', :path => '../../../ruby_agent'
+```ruby
+gem 'newrelic_rpm', path: '../../../ruby_agent'
+```
 
 `ENV['NEWRELIC_GEMFILE_LINE']` will specify the full line for the gemfile
 
 `ENV['NEWRELIC_GEM_PATH']` will override the `:path` option in the default line.
 
+To force a suite to serialize its tests instead of running them in parallel,
+place this line somewhere within `Envfile`:
+
+```ruby
+serialize!
+```
+
+Each `Minitest::Test` class defined by a suite in a `*_test.rb` file will
+perform prep work before each and every individual test if the class specifies
+a `setup` instance method. To perform a "before all" or "setup once" type of
+operation that is only executed once before all unit tests are invoked, there
+are 2 options:
+
+- Option 1 for smaller prep: In `Envfile`, declare a `before_suite` block:
+
+```ruby
+# Envfile
+before_suite do
+  complex_prep_operation_to_be_ran_once
+end
+```
+
+- Option 2 for larger prep: In the suite directory, create a `before_suite.rb`
+file:
+
+```ruby
+# before_suite.rb
+complex_prep_operation_to_be_ran_once
+```
+
 
 ### Test files
 
-All files in a test suite directory that end with .rb will be executed as test
-files.  These should use test unit.
+All files in a test suite directory (`test/multiverse/suites/*`) that end with
+`_test.rb` will be executed as test files. These should use Minitest.
 
 For example:
 
-    require 'test/unit'
-    class ATest < Test::Unit::TestCase
+    class ATest < Minitest::Test
       def test_json_is_loaded
         assert JSON
       end
@@ -174,13 +215,6 @@ For example:
         assert !defined?(Haml)
       end
     end
-
-
-## Testing Multiverse
-
-You can run tests of multiverse itself with
-
-    rake test:multiverse:self
 
 
 ## Troubleshooting

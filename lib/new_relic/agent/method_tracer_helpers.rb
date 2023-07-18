@@ -46,13 +46,15 @@ module NewRelic
         cache_key = "#{object.object_id}#{method_name}".freeze
         return @code_information[cache_key] if @code_information.key?(cache_key)
 
-        namespace, location, is_class_method = namespace_and_location(object, method_name.to_sym)
+        info = namespace_and_location(object, method_name.to_sym)
+        return ::NewRelic::EMPTY_HASH if info.empty?
 
+        namespace, location, is_class_method = info
         @code_information[cache_key] = {filepath: location.first,
                                         lineno: location.last,
                                         function: "#{'self.' if is_class_method}#{method_name}",
                                         namespace: namespace}.freeze
-      rescue => e
+      rescue StandardError => e
         ::NewRelic::Agent.logger.warn("Unable to determine source code info for '#{object}', " \
                                         "method '#{method_name}' - #{e.class}: #{e.message}")
         ::NewRelic::Agent.increment_metric(SOURCE_CODE_INFORMATION_FAILURE_METRIC, 1)
@@ -66,10 +68,10 @@ module NewRelic
       end
 
       # The string representation of a singleton class looks like
-      # '#<Class:MyModule::MyClass>'. Return the 'MyModule::MyClass' part of
-      # that string
+      # '#<Class:MyModule::MyClass>', or '#<Class:MyModule::MyClass(id: integer, attribute: string)>'
+      # Return the 'MyModule::MyClass' part of that string
       def klass_name(object)
-        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:(.*)>$/
+        name = Regexp.last_match(1) if object.to_s =~ /^#<Class:([\w:]+).*>$/
         return name if name
 
         raise "Unable to glean a class name from string '#{object}'"
@@ -101,6 +103,9 @@ module NewRelic
         klass = object.singleton_class? ? klassify_singleton(object) : object
         name = klass.name || '(Anonymous)'
         is_class_method = false
+
+        return controller_info(klass, name, is_class_method) if controller_without_method?(klass, method_name)
+
         method = if (klass.instance_methods + klass.private_instance_methods).include?(method_name)
           klass.instance_method(method_name)
         else
@@ -108,6 +113,22 @@ module NewRelic
           klass.method(method_name)
         end
         [name, method.source_location, is_class_method]
+      end
+
+      # Rails controllers can be a special case because by default, controllers in Rails
+      # automatically render views with names that correspond to valid routes. This means
+      # that a controller method may not have a corresponding method in the controller class.
+      def controller_without_method?(klass, method_name)
+        defined?(Rails) &&
+          defined?(ApplicationController) &&
+          klass < ApplicationController &&
+          !klass.method_defined?(method_name)
+      end
+
+      def controller_info(klass, name, is_class_method)
+        path = Rails.root.join("app/controllers/#{klass.name.underscore}.rb")
+
+        File.exist?(path) ? [name, [path.to_s, 1], is_class_method] : []
       end
     end
   end

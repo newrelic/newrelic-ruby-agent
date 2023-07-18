@@ -413,10 +413,10 @@ module Multiverse
       puts yellow("Starting tests in child PID #{Process.pid} at #{Time.now}\n")
     end
 
-    # active_record_pg test suite runs in serial to prevent database conflicts
+    # to force a suite to run serialized, place `serialized!` somewhere in the
+    # suite's `Envfile` file
     def should_serialize?
-      # TODO: Devise a way for an individual suite to express that it doesn't support parallel
-      ENV['SERIALIZE'] || debug || self.directory.include?('active_record_pg')
+      ENV['SERIALIZE'] || debug || environments.serialize?
     end
 
     def check_environment_condition

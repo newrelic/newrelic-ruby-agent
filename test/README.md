@@ -33,7 +33,7 @@ Also, if you set it to the full path instead of relative, then you can run it fr
 Then you'll be able to run the tests super easy like
 
     bert # run all unit tests
-    bere 61 # run env tests for rails 6.1    
+    bere 61 # run env tests for rails 6.1
     berm rake # run all rake multiverse suites
     bermq rake # run multiverse rake env=0 method=prepend
     ber -h # explains all the args for each option

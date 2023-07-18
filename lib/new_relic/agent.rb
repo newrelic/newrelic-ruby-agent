@@ -298,7 +298,7 @@ module NewRelic
 
     # Set a callback proc for determining an error's error group name
     #
-    # @param [Proc] the callback proc
+    # @param callback_proc [Proc] the callback proc
     #
     # Typically this method should be called only once to set a callback for
     # use with all noticed errors. If it is called multiple times, each new
@@ -646,6 +646,43 @@ module NewRelic
         end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}")
+      end
+    end
+
+    # Add custom attributes to log events for the current agent instance.
+    #
+    # @param [Hash] params    A Hash of attributes to attach to log
+    #                         events. The agent accepts up to 240 custom
+    #                         log event attributes.
+    #
+    #                         Keys will be coerced into Strings and must
+    #                         be less than 256 characters. Keys longer
+    #                         than 255 characters will be truncated.
+    #
+    #                         Values may be Strings, Symbols, numeric
+    #                         values or Booleans and must be less than
+    #                         4095 characters. If the value is a String
+    #                         or a Symbol, values longer than 4094
+    #                         characters will be truncated. If the value
+    #                         exceeds 4094 characters and is of a
+    #                         different class, the attribute pair will
+    #                         be dropped.
+    #
+    #                         This API can be called multiple times.
+    #                         If the same key is passed more than once,
+    #                         the value associated with the last call
+    #                         will be preserved.
+    #
+    #                         Attribute pairs with empty or nil contents
+    #                         will be dropped.
+    # @api public
+    def add_custom_log_attributes(params)
+      record_api_supportability_metric(:add_custom_log_attributes)
+
+      if params.is_a?(Hash)
+        NewRelic::Agent.agent.log_event_aggregator.add_custom_attributes(params)
+      else
+        NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_log_attributes. Expected Hash but got #{params.class}.")
       end
     end
 

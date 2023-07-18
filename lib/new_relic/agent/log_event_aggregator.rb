@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/log_priority'
+require 'new_relic/agent/log_event_attributes'
 
 module NewRelic
   module Agent
@@ -36,6 +37,10 @@ module NewRelic
       METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
       FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
+      LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
+      CUSTOM_ATTRIBUTES_KEY = :'application_logging.forwarding.custom_attributes'
+
+      attr_reader :attributes
 
       def initialize(events)
         super(events)
@@ -44,6 +49,7 @@ module NewRelic
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
+        @attributes = NewRelic::Agent::LogEventAttributes.new
         register_for_done_configuring(events)
       end
 
@@ -63,8 +69,9 @@ module NewRelic
           end
         end
 
+        return if severity_too_low?(severity)
         return if formatted_message.nil? || formatted_message.empty?
-        return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
+        return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
         return if @high_security
 
         txn = NewRelic::Agent::Transaction.tl_current
@@ -114,6 +121,10 @@ module NewRelic
         ]
       end
 
+      def add_custom_attributes(custom_attributes)
+        attributes.add_custom_attributes(custom_attributes)
+      end
+
       # Because our transmission format (MELT) is different than historical
       # agent payloads, extract the munging here to keep the service focused
       # on the general harvest + transmit instead of the format.
@@ -129,6 +140,8 @@ module NewRelic
         # To save on unnecessary data transmission, trim the entity.type
         # sent by classic logs-in-context
         common_attributes.delete(ENTITY_TYPE_KEY)
+
+        common_attributes.merge!(NewRelic::Agent.agent.log_event_aggregator.attributes.custom_attributes)
 
         _, items = data
         payload = [{
@@ -149,6 +162,7 @@ module NewRelic
           @seen = 0
           @seen_by_severity.clear
         end
+
         super
       end
 
@@ -168,6 +182,8 @@ module NewRelic
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
+
+          add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
         end
       end
 
@@ -191,7 +207,7 @@ module NewRelic
       # these until harvest before recording them
       def record_customer_metrics
         return unless enabled?
-        return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
+        return unless NewRelic::Agent.config[METRICS_ENABLED_KEY]
 
         @counter_lock.synchronize do
           return unless @seen > 0
@@ -229,6 +245,37 @@ module NewRelic
         return message if message.bytesize <= MAX_BYTES
 
         message.byteslice(0...MAX_BYTES)
+      end
+
+      def minimum_log_level
+        if Logger::Severity.constants.include?(configured_log_level_constant)
+          configured_log_level_constant
+        else
+          NewRelic::Agent.logger.log_once(
+            :error,
+            'Invalid application_logging.forwarding.log_level ' \
+            "'#{NewRelic::Agent.config[LOG_LEVEL_KEY]}' specified! " \
+            "Must be one of #{Logger::Severity.constants.join('|')}. " \
+            "Using default level of 'debug'"
+          )
+          :DEBUG
+        end
+      end
+
+      def configured_log_level_constant
+        format_log_level_constant(NewRelic::Agent.config[LOG_LEVEL_KEY])
+      end
+
+      def format_log_level_constant(log_level)
+        log_level.upcase.to_sym
+      end
+
+      def severity_too_low?(severity)
+        severity_constant = format_log_level_constant(severity)
+        # always record custom log levels
+        return false unless Logger::Severity.constants.include?(severity_constant)
+
+        Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(minimum_log_level)
       end
     end
   end

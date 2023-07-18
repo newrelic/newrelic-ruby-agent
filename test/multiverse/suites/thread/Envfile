@@ -4,4 +4,6 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile nil
+gemfile <<~RB
+  # this can't be empty or the tests won't run
+RB

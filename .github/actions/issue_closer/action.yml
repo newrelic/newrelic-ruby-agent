@@ -1,0 +1,9 @@
+name: 'Issue Closer'
+description: 'Close GitHub Issues on PR merges to non-default branches'
+inputs:
+  token:
+    description: 'A GitHub token with PR read and Issue close permissions'
+    required: true
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

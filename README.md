@@ -88,7 +88,7 @@ for more information.
 
 Should you need assistance with New Relic products, you are in good hands with several support diagnostic tools and support channels.
 
-This [troubleshooting framework](https://discuss.newrelic.com/t/ruby-troubleshooting-framework-install/108685) steps you through common troubleshooting questions.
+This [troubleshooting framework](https://forum.newrelic.com/s/hubtopic/aAX8W0000008bSgWAI/ruby-troubleshooting-framework-install) steps you through common troubleshooting questions.
 
 New Relic offers NRDiag, [a client-side diagnostic utility](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) that automatically detects common problems with New Relic agents. If NRDiag detects a problem, it suggests troubleshooting steps. NRDiag can also automatically attach troubleshooting data to a New Relic Support ticket.
 
@@ -97,7 +97,7 @@ If the issue has been confirmed as a bug or is a Feature request, please file a 
 **Support Channels**
 
 * [New Relic Documentation](https://docs.newrelic.com/docs/agents/ruby-agent): Comprehensive guidance for using our platform
-* [New Relic Community](https://discuss.newrelic.com/tags/rubyagent): The best place to engage in troubleshooting questions
+* [New Relic Community](https://forum.newrelic.com): The best place to engage in troubleshooting questions
 * [New Relic Developer](https://developer.newrelic.com/): Resources for building a custom observability applications
 * [New Relic University](https://learn.newrelic.com/): A range of online training for New Relic users of every level
 * [New Relic Technical Support](https://support.newrelic.com/) 24/7/365 ticketed support. Read more about our [Technical Support Offerings](https://docs.newrelic.com/docs/licenses/license-information/general-usage-licenses/support-plan).

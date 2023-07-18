@@ -612,6 +612,16 @@ module NewRelic
       end
     end
 
+    def test_add_custom_log_attributes_logs_warning_if_argument_class_not_hash
+      logger = MiniTest::Mock.new
+      logger.expect :warn, nil, [/Bad argument/]
+
+      NewRelic::Agent.stub :logger, logger do
+        NewRelic::Agent.add_custom_log_attributes('hi!')
+        logger.verify
+      end
+    end
+
     private
 
     def with_unstarted_agent

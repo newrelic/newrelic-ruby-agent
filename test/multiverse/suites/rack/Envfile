@@ -4,6 +4,13 @@
 
 instrumentation_methods :chain, :prepend
 
+# TODO: Puma versions 3.12.6 through 6.2.2 all invoke Regexp.new with 3
+#       arguments, which worked for Ruby 3.2 but not for Ruby 3.3.
+#
+#       Remove this condition and allow Ruby 3.3 to be used with any updated
+#       Puma versions once they become available.
+suite_condition('Puma tests are temporarily skipped for Ruby v3.3') { RUBY_VERSION != '3.3.0' }
+
 # The Rack suite also tests Puma::Rack::Builder
 # Which is why we also control Puma tested versions here
 PUMA_VERSIONS = [
@@ -16,7 +23,7 @@ PUMA_VERSIONS = [
 def gem_list(puma_version = nil)
   <<~RB
     gem 'puma'#{puma_version}
-    gem 'rack'
+    gem 'rack'#{puma_version&.include?('5.6.4') ? ', "~> 2.2.4"' : ''}
     gem 'rack-test'
 
   RB
@@ -27,19 +34,14 @@ create_gemfiles(PUMA_VERSIONS)
 gemfile <<~RB
   gem 'rack'
   gem 'rack-test'
-
 RB
 
 gemfile <<~RB
   gem 'rack', '2.2.4'
   gem 'rack-test'
-
 RB
 
-if RUBY_VERSION < '3.2.0'
-  gemfile <<~RB
-    gem 'rack', '1.6.13'
-    gem 'rack-test'
-
-  RB
-end
+gemfile <<~RB if RUBY_VERSION < '3.2.0'
+  gem 'rack', '1.6.13'
+  gem 'rack-test'
+RB
