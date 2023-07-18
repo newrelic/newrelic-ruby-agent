@@ -330,7 +330,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       array = NewRelic::NoticedError.new(@path, StandardError.new).to_collector_array
 
       assert_equal 6, array.size
-      assert_equal txn.guid, array.last, 'Expected the last error array item to be a correction transaction GUID'
+      assert_equal txn.guid, array.last, 'Expected the last error array item to be the correct transaction GUID'
     end
   end
 
