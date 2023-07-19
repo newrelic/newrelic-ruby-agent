@@ -134,6 +134,10 @@ The New Relic Ruby agent may use source code from third-party libraries. When us
 
 ## Thank You
 
+We always look forward to connecting with the community. We welcome [contributions](https://github.com/newrelic/newrelic-ruby-agent#contributing) to our source code and suggestions for improvements, and would love to hear about what you like and want to see in the future. 
+
+Visit our [project board](https://github.com/orgs/newrelic/projects/84/) to see what's upcoming in a future release, what we're currently working on, and what we're planning next.
+
 Thank you,
 
 New Relic Ruby agent team
