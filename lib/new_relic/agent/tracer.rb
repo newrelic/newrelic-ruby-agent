@@ -66,9 +66,10 @@ module NewRelic
         #
         # @api public
         def transaction_sampled?
-          if txn = current_transaction
-            txn.sampled?
-          end
+          txn = current_transaction
+          return false unless txn
+
+          txn.sampled?
         end
         alias_method :sampled?, :transaction_sampled?
 

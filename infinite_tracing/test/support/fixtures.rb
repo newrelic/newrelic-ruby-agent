@@ -15,6 +15,6 @@ def span_event_fixture(fixture_name)
   if YAML.respond_to?(:unsafe_load)
     YAML::unsafe_load(File.read(fixture_filename))
   else
-    YAML::load(File.read(fixture_filename))
+    YAML::load_file(fixture_filename)
   end
 end
