@@ -52,7 +52,7 @@ module NewRelic
       def test_sampled?
         with_config(:'distributed_tracing.enabled' => true) do
           in_transaction do |txn|
-            refute_nil Tracer.sampled?
+            assert_predicate Tracer, :sampled?
           end
           # with sampled explicity set true, assert that it's true
           in_transaction do |txn|
@@ -70,7 +70,7 @@ module NewRelic
 
         with_config(:'distributed_tracing.enabled' => false) do
           in_transaction do |txn|
-            assert_nil Tracer.sampled?
+            refute Tracer.sampled?
           end
         end
       end
