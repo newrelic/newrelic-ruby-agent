@@ -4,11 +4,13 @@ source 'https://rubygems.org'
 
 gem 'newrelic_rpm', path: File.expand_path('../../..', __FILE__)
 
+gem 'puma', '~> 5.0'
+gem 'rails', '~> 7.0.6'
+gem 'sqlite3', '~> 1.4'
+
 gem 'mocha'
-gem 'pry'
-gem 'pry-nav'
-gem 'rack'
-gem 'rackup'
+# gem 'rack'
+# gem 'rackup'
 gem 'redis'
 gem 'simplecov'
 gem 'stackprof'
