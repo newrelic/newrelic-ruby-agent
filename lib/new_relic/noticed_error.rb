@@ -13,7 +13,7 @@ class NewRelic::NoticedError
   attr_accessor :path, :timestamp, :message, :exception_class_name,
     :request_uri, :request_port, :file_name, :line_number,
     :stack_trace, :attributes_from_notice_error, :attributes,
-    :expected
+    :expected, :transaction_id
 
   attr_reader :error_group, :exception_id, :is_internal
 
@@ -45,6 +45,7 @@ class NewRelic::NoticedError
     @is_internal = (exception.class < NewRelic::Agent::InternalAgentError)
 
     extract_class_name_and_message_from(exception)
+    @transaction_id = NewRelic::Agent::Tracer&.current_transaction&.guid
 
     # clamp long messages to 4k so that we don't send a lot of
     # overhead across the wire
@@ -79,11 +80,13 @@ class NewRelic::NoticedError
   include NewRelic::Coerce
 
   def to_collector_array(encoder = nil)
-    [NewRelic::Helper.time_to_millis(timestamp),
+    arr = [NewRelic::Helper.time_to_millis(timestamp),
       string(path),
       string(message),
       string(exception_class_name),
       processed_attributes]
+    arr << @transaction_id if @transaction_id
+    arr
   end
 
   # Note that we process attributes lazily and store the result. This is because

@@ -50,17 +50,19 @@ module NewRelic
       end
 
       def test_sampled?
+        # If DT is enabled, the Tracer yields the #sampled? result for the
+        # underlying current transaction
         with_config(:'distributed_tracing.enabled' => true) do
           in_transaction do |txn|
-            assert_predicate Tracer, :sampled?
+            assert_equal txn.sampled?,
+              Tracer.sampled?,
+              'Tracer.sampled should match the #sampled? result for the current transaction'
           end
-          # with sampled explicity set true, assert that it's true
           in_transaction do |txn|
             txn.sampled = true
 
             assert_predicate Tracer, :sampled?
           end
-          # with sampled explicity set false, assert that it's false
           in_transaction do |txn|
             txn.sampled = false
 
@@ -68,15 +70,16 @@ module NewRelic
           end
         end
 
+        # If DT is disabled, Tracer.sampled? is always false
         with_config(:'distributed_tracing.enabled' => false) do
           in_transaction do |txn|
-            refute Tracer.sampled?
+            refute_predicate Tracer, :sampled?
           end
         end
       end
 
       def test_sampled_not_in_transaction
-        assert_nil Tracer.sampled?
+        refute_predicate Tracer, :sampled?
       end
 
       def test_tracing_enabled

@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative './helpers/newrelicyml'
+require_relative 'helpers/newrelicyml'
 
 namespace :newrelic do
   desc 'Update newrelic.yml with latest config options from default_source.rb'
