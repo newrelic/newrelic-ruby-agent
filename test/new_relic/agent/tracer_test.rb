@@ -70,7 +70,7 @@ module NewRelic
 
         with_config(:'distributed_tracing.enabled' => false) do
           in_transaction do |txn|
-            refute Tracer.sampled?
+            refute_predicate Tracer, :sampled?
           end
         end
       end
