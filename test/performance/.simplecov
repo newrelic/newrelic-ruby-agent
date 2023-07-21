@@ -6,5 +6,6 @@ SimpleCov.start do
   SimpleCov.command_name 'Performance Tests'
   SimpleCov.coverage_dir(File.join(File.expand_path('../coverage', __FILE__)))
   track_files('**/*.rb')
+  add_filter('chain.rb')
   formatter(SimpleCov::Formatter::SimpleFormatter) if ENV['CI']
 end

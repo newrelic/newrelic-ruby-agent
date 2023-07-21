@@ -7,6 +7,8 @@ require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'
 
 class TraceContext < Performance::TestCase
+  ITERATIONS = 200_000
+
   CONFIG = {
     :'distributed_tracing.enabled' => true,
     :account_id => '190',
@@ -20,7 +22,7 @@ class TraceContext < Performance::TestCase
       'tracestate' => '33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035'
     }
 
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::DistributedTracing::TraceContext.parse( \
         carrier: carrier,
         trace_state_entry_key: '33@nr'
@@ -35,7 +37,7 @@ class TraceContext < Performance::TestCase
     trace_flags = 0x1
     trace_state = 'k1=asdf,k2=qwerty'
 
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::DistributedTracing::TraceContext.insert( \
         carrier: carrier,
         trace_id: trace_id,
@@ -49,7 +51,7 @@ class TraceContext < Performance::TestCase
   def test_insert_trace_context
     with_config(CONFIG) do
       in_transaction do |txn|
-        measure do
+        measure(ITERATIONS) do
           txn.distributed_tracer.insert_trace_context_header(carrier: {})
         end
       end
