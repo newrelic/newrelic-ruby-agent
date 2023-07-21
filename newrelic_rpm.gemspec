@@ -58,7 +58,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'pry' unless ENV['CI']
   s.add_development_dependency 'rake', '12.3.3'
 
-  s.add_development_dependency 'rubocop', '1.51' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
+  s.add_development_dependency 'rubocop', '1.54' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'rubocop-ast', '1.28.1' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'rubocop-minitest', '0.27.0' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'rubocop-performance', '1.16.0' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
