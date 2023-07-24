@@ -4,6 +4,7 @@
 
 require 'simplecov'
 require 'socket'
+require_relative 'options'
 
 module Performance
   class Runner
@@ -21,7 +22,7 @@ module Performance
       :markdown => false
     }
 
-    def initialize(options = {})
+    def initialize(options = Options.parse)
       @options = DEFAULTS.merge(options)
       create_instrumentors(options[:instrumentors] || [])
       load_test_files(@options[:dir])
