@@ -3,13 +3,15 @@
 # frozen_string_literal: true
 
 class StatsHashPerfTest < Performance::TestCase
+  ITERATIONS = 10_000
+
   def setup
     @hash = NewRelic::Agent::StatsHash.new
     @specs = (1..100).map { |i| NewRelic::MetricSpec.new("foo#{i}") }
   end
 
   def test_record
-    measure do
+    measure(ITERATIONS) do
       hash = NewRelic::Agent::StatsHash.new
       @specs.each do |spec|
         hash.record(spec, 1)
@@ -18,7 +20,7 @@ class StatsHashPerfTest < Performance::TestCase
   end
 
   def test_merge
-    measure do
+    measure(ITERATIONS) do
       incoming = NewRelic::Agent::StatsHash.new
       @specs.each do |i|
         incoming.record(NewRelic::MetricSpec.new("foo#{i}"), 1)

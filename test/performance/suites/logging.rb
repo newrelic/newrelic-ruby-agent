@@ -5,12 +5,13 @@
 require 'new_relic/agent/logging'
 
 class LoggingTest < Performance::TestCase
+  ITERATIONS = 10_000
   EXAMPLE_MESSAGE = 'This is an example message'.freeze
 
   def test_decorating_logger
     io = StringIO.new
     logger = NewRelic::Agent::Logging::DecoratingLogger.new(io)
-    measure do
+    measure(ITERATIONS) do
       logger.info(EXAMPLE_MESSAGE)
     end
   end
@@ -18,7 +19,7 @@ class LoggingTest < Performance::TestCase
   def test_logger_instrumentation
     io = StringIO.new
     logger = ::Logger.new(io)
-    measure do
+    measure(ITERATIONS) do
       logger.info(EXAMPLE_MESSAGE)
     end
   end
@@ -26,7 +27,7 @@ class LoggingTest < Performance::TestCase
   def test_local_log_decoration
     io = StringIO.new
     logger = ::Logger.new(io)
-    measure do
+    measure(ITERATIONS) do
       with_config(:'application_logging.local_decorating.enabled' => true) do
         logger.info(EXAMPLE_MESSAGE)
       end
@@ -36,7 +37,7 @@ class LoggingTest < Performance::TestCase
   def test_local_log_decoration_in_transaction
     io = StringIO.new
     logger = ::Logger.new(io)
-    measure do
+    measure(ITERATIONS) do
       with_config(:'application_logging.local_decorating.enabled' => true) do
         in_transaction do
           logger.info(EXAMPLE_MESSAGE)
@@ -48,7 +49,7 @@ class LoggingTest < Performance::TestCase
   def test_logger_instrumentation_in_transaction
     io = StringIO.new
     logger = ::Logger.new(io)
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         logger.info(EXAMPLE_MESSAGE)
       end

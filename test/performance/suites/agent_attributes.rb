@@ -7,13 +7,14 @@ class AgentAttributesTests < Performance::TestCase
     require 'new_relic/agent/attribute_filter'
   end
 
-  ALPHA = 'alpha'.freeze
-  BETA = 'beta'.freeze
+  ALPHA = 'alpha'
+  BETA = 'beta'
+  ITERATIONS = 50_000
 
   def test_empty_agent_attributes
     @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-    measure do
+    measure(ITERATIONS) do
       @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
       @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
     end
@@ -24,7 +25,7 @@ class AgentAttributesTests < Performance::TestCase
       :'attributes.exclude' => ['beta']) do
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-      measure do
+      measure(ITERATIONS) do
         @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
         @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
       end
@@ -36,7 +37,7 @@ class AgentAttributesTests < Performance::TestCase
       :'attributes.exclude' => ['beta*']) do
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-      measure do
+      measure(ITERATIONS) do
         @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
         @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
       end
@@ -48,7 +49,7 @@ class AgentAttributesTests < Performance::TestCase
       :'attributes.exclude' => Array.new(100) { fake_guid(32) }) do
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
-      measure do
+      measure(ITERATIONS) do
         @filter.apply(ALPHA, NewRelic::Agent::AttributeFilter::DST_ALL)
         @filter.apply(BETA, NewRelic::Agent::AttributeFilter::DST_ALL)
       end

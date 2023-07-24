@@ -12,6 +12,8 @@ end
 
 class MethodTracerTest < Performance::TestCase
   include NewRelic::Agent::MethodTracer
+
+  ITERATIONS = 10_000
   METHOD_TRACERS = [:tracer, :with_metric, :with_proc, :push_scope_false, :metric_false]
 
   # Helper Methods
@@ -54,7 +56,7 @@ class MethodTracerTest < Performance::TestCase
   # Tests
   METHOD_TRACERS.each do |method_tracer|
     define_method("test_#{method_tracer}_code_level_metrics_enabled") do
-      measure do
+      measure(ITERATIONS) do
         with_config(:'code_level_metrics.enabled' => true) do
           KnockKnock.whos_there('Guess')
         end
@@ -62,7 +64,7 @@ class MethodTracerTest < Performance::TestCase
     end
 
     define_method("test_#{method_tracer}_code_level_metrics_disabled") do
-      measure do
+      measure(ITERATIONS) do
         with_config(:'code_level_metrics.enabled' => false) do
           KnockKnock.whos_there('Guess')
         end

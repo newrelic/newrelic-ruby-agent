@@ -8,9 +8,10 @@ class ActiveRecordTest < Performance::TestCase
   NAME = 'Model Load'
   SQL = 'SELECT * FROM star'
   ADAPTER = 'mysql2'
+  ITERATIONS = 100_000
 
   def test_helper_by_name
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for(NAME, SQL, ADAPTER)
     end
   end
@@ -18,7 +19,7 @@ class ActiveRecordTest < Performance::TestCase
   UNKNOWN_NAME = 'Blah'
 
   def test_helper_by_sql
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::Instrumentation::ActiveRecordHelper.product_operation_collection_for(UNKNOWN_NAME, SQL, ADAPTER)
     end
   end
