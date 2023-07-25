@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+# rubocop:disable Lint/DuplicateMethods
 module NewRelic::Agent::Instrumentation
   module Roda
     module Chain
@@ -43,3 +44,4 @@ module NewRelic::Agent::Instrumentation
     end
   end
 end
+# rubocop:enable Lint/DuplicateMethods
