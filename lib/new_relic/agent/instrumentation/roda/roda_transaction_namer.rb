@@ -14,11 +14,12 @@ module NewRelic
           end
 
           ROOT = '/'.freeze
+          REGEX_MUTIPLE_SLASHES = %r{^[/^\\A]*(.*?)[/\$\?\\z]*$}.freeze
 
           def transaction_name(path, request)
             verb = http_verb(request)
             path = request.path if request.path
-            name = path.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1') # remove any rouge slashes
+            name = path.gsub(REGEX_MUTIPLE_SLASHES, '\1') # remove any rogue slashes
             name = ROOT if name.empty?
             name = "#{verb} #{name}" unless verb.nil?
 

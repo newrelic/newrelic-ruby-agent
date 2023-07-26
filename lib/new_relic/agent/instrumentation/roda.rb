@@ -11,7 +11,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Roda) &&
-      Roda::RodaVersion >= '3.19.0' &&
+      Gem::Version.new(Roda::RodaVersion) >= '3.19.0' &&
       Roda::RodaPlugins::Base::ClassMethods.private_method_defined?(:build_rack_app) &&
       Roda::RodaPlugins::Base::InstanceMethods.method_defined?(:_roda_handle_main_route)
   end
