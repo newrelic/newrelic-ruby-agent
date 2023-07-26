@@ -283,9 +283,7 @@ module Multiverse
 
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
-
         f.puts "gem 'webrick'"
-
         f.puts "gem 'warning'"
 
         if debug
