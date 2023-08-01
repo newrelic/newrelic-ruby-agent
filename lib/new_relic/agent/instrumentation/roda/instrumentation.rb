@@ -42,7 +42,7 @@ module NewRelic::Agent::Instrumentation
         request_params = rack_request_params
         filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params ||
           NewRelic::EMPTY_HASH)
-        name = TransactionNamer.initial_transaction_name(request)
+        name = TransactionNamer.transaction_name(request)
 
         perform_action_with_newrelic_trace(:category => :roda,
           :name => name,

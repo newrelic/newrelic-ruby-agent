@@ -9,16 +9,12 @@ module NewRelic
         module TransactionNamer
           extend self
 
-          def initial_transaction_name(request)
-            transaction_name(::NewRelic::Agent::UNKNOWN_METRIC, request)
-          end
-
           ROOT = '/'.freeze
           REGEX_MUTIPLE_SLASHES = %r{^[/^\\A]*(.*?)[/\$\?\\z]*$}.freeze
 
-          def transaction_name(path, request)
+          def transaction_name(request)
             verb = http_verb(request)
-            path = request.path if request.path
+            path = request.path || ::NewRelic::Agent::UNKNOWN_METRIC
             name = path.gsub(REGEX_MUTIPLE_SLASHES, '\1') # remove any rogue slashes
             name = ROOT if name.empty?
             name = "#{verb} #{name}" unless verb.nil?
