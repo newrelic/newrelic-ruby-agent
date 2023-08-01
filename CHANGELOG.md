@@ -2,12 +2,15 @@
 
 ## dev
 
-Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error.
+Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
 
 - **Feature: Improved error tracking transaction linking**
 
   Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035) 
 
+- **Feature: Use Net::HTTP native timeout logic**
+
+  In line with current Ruby best practices, make use of Net::HTTP's own timeout logic and avoid the use of `Timeout.timeout()` when possible. The agent's data transmissions and cloud provider detection routines have been updated accordingly. [PR#2147](https://github.com/newrelic/newrelic-ruby-agent/pull/2147)
 
 ## v9.3.1
 
@@ -22,7 +25,6 @@ Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
 - **Source Documentation: update the Rack spec URL**
 
   Community member [@olleolleolle](https://github.com/olleolleolle) noticed that our source code was referencing a now defunct URL for the Rack specification and submitted [PR#2121](https://github.com/newrelic/newrelic-ruby-agent/pull/2121) to update it. He also provided a terrific recommendation that we automate the checking of links to proactively catch defunct ones in future. Thanks, @olleolleolle!
-
 
 ## v9.3.0
 
