@@ -103,7 +103,7 @@ module Multiverse
       'background_2' => ['rake'],
       'database' => %w[elasticsearch mongo redis sequel],
       'rails' => %w[active_record active_record_pg rails rails_prepend activemerchant],
-      'frameworks' => %w[sinatra padrino grape],
+      'frameworks' => %w[sinatra padrino grape roda],
       'httpclients' => %w[curb excon httpclient],
       'httpclients_2' => %w[typhoeus net_http httprb],
       'infinite_tracing' => ['infinite_tracing'],
