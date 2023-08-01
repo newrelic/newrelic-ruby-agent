@@ -19,7 +19,10 @@ module NewRelic
       # These include Errno connection errors, and all indicate that the
       # underlying TCP connection may be in a bad state.
       CONNECTION_ERRORS = [Net::OpenTimeout, Net::ReadTimeout, EOFError, SystemCallError, SocketError]
-      # Net::WriteTimeout is Ruby 2.6+
+      # TODO: MAJOR VERSION - Net::WriteTimeout wasn't defined until Ruby 2.6.
+      #       Once support for Ruby 2.5 is dropped, we should simply include
+      #       Net::WriteTimeout in the connection errors array directly instead
+      #       of with a conditional
       CONNECTION_ERRORS << Net::WriteTimeout if defined?(Net::WriteTimeout)
       CONNECTION_ERRORS.freeze
 
@@ -327,8 +330,8 @@ module NewRelic
       def setup_connection_timeouts(conn)
         conn.open_timeout = @request_timeout
         conn.read_timeout = @request_timeout
-        conn.ssl_timeout = @request_timeout
-        # #write_timeout= requires Ruby 2.6+
+        # TODO: MAJOR VERSION - #write_timeout= requires Ruby 2.6+, so remove
+        #       the conditional check once support for Ruby 2.5 is dropped
         conn.write_timeout = @request_timeout if conn.respond_to?(:write_timeout=)
 
         if conn.respond_to?(:keep_alive_timeout) && NewRelic::Agent.config[:aggressive_keepalive]
@@ -473,7 +476,13 @@ module NewRelic
         when Net::HTTPGone
           handle_gone_response(response, endpoint)
         else
-          # Net::WriteTimeout requires Ruby 2.6+
+          # TODO: MAJOR VERSION - Net::WriteTimeout wasn't defined until
+          #       Ruby 2.6, so it can't be included in the case statement
+          #       as a constant and instead needs to be found here. Once
+          #       support for Ruby 2.5 is dropped, we should have
+          #       Net::WriteTimeout sit in the 'when' clause above alongside
+          #       Net::OpenTimeout and Net::ReadTimeout and this entire if/else
+          #       conditional can be removed.
           if response.respond_to?(:name) && response.name == 'Net::WriteTimeout'
             handle_server_connection_exception(response, endpoint)
           else
