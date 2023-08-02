@@ -2,96 +2,96 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'minitest/autorun'
 require_relative '../../../../lib/new_relic/agent/instrumentation/roda/instrumentation'
+require_relative '../../../../lib/new_relic/agent/instrumentation/roda/roda_transaction_namer'
 
-# require 'lib/new_relic/agent/instrumentation/roda/roda_transaction_namer'
-# require 'roda'
+class RodaTestApp < Roda
+  plugin :error_handler do |e|
+    'Oh No!'
+  end
 
-# class RodaTestApp < Roda
-#   post '/test' do
-#     'test'
-#   end
-# end
+  route do |r|
+    # GET / request
+    r.root do
+      r.redirect('home')
+    end
+
+    r.on('home') do
+      'home page'
+    end
+
+    # /hello branch
+    r.on('hello') do
+      # Set variable for all routes in /hello branch
+      @greeting = 'Hello'
+
+      # GET /hello/world request
+      r.get('world') do
+        "#{@greeting} world!"
+      end
+    end
+
+    r.on('error') do
+      raise 'boom'
+    end
+
+    r.on('slow') do
+      sleep(3)
+      'I slept for 3 seconds!'
+    end
+  end
+end
 
 class RodaInstrumentationTest < Minitest::Test
-  # include MultiverseHelpers
+  include Rack::Test::Methods
+  include MultiverseHelpers
 
-  def test_roda_defined
-    assert_equal 1, 1
+  def app
+    RodaTestApp
   end
 
-  def test_roda_undefined
+  def test_request_is_recorded
+    get('/home')
+    txn = harvest_transaction_events![1][0]
+
+    assert_equal 'Controller/Roda/RodaTestApp/GET home', txn[0]['name']
+    assert_equal 200, txn[2][:'http.statusCode']
   end
 
-  def test_roda_version_supported
+  def test_500_response_status
+    get('/error')
+    errors = harvest_error_traces!
+    txn = harvest_transaction_events!
+
+    assert_equal 500, txn[1][0][2][:"http.statusCode"]
+    assert_equal 'Oh No!', last_response.body
+    assert_equal 1, errors.size
   end
 
-  def test_roda_version_unspoorted
+  def test_404_response_status
+    get('/nothing')
+    errors = harvest_error_traces!
+    txn = harvest_transaction_events!
+
+    assert_equal 404, txn[1][0][2][:"http.statusCode"]
+    assert_equal 0, errors.size
   end
 
-  def test_build_rack_app_defined
+  def test_empty_route_name_and_response_status
+    get('')
+    errors = harvest_error_traces!
+    txn = harvest_transaction_events![1][0]
+
+    assert_equal 'Controller/Roda/RodaTestApp/GET /', txn[0]['name']
+    assert_equal 302, txn[2][:'http.statusCode']
   end
 
-  def test_build_rack_app_undefined
-  end
+  def test_roda_middleware_disabled
+    with_config(:disable_roda_auto_middleware => true) do
+      get('/home')
+    end
+    txn = harvest_transaction_events![1][0]
 
-  def test_roda_handle_main_route_defined
-  end
-
-  def test_roda_handle_main_route_undefined
-  end
-
-  # patched methods
-  def test_roda_handle_main_route
-  end
-
-  def test_build_rack_app
-  end
-
-  # instrumentation file
-  def test_newrelic_middlewares_agenthook_inserted
-  end
-
-  def test_newrelic_middlewares_agenthook_not_inserted
-  end
-
-  def test_newrelic_middlewares_all_inserted
-    # should have a helper method out there - last_transaction_trace // event? last_response
-    # get last t
-  end
-
-  def test_build_rack_app_with_tracing_unless_middleware_disabled
-  end
-
-  def test_rack_request_params_returns_rack_params
-  end
-
-  def test_rack_request_params_fails
-  end
-
-  def test_roda_handle_main_route_with_tracing
-    # should have a helper method out there - last_transaction_trace // event? last_response
-    # get last txn, is the name correct? are other things correct about that txn
-  end
-
-  # Transaction File
-
-  def test_transaction_name_standard_request
-  end
-
-  def test_transaction_no_request_path
-  end
-
-  def test_transaction_name_regex_clears_extra_backslashes
-  end
-
-  def test_transaction_name_path_name_empty
-  end
-
-  def test_transaction_name_verb_nil
-  end
-
-  def test_http_verb_does_not_respond_to_request_method
+    assert_equal 200, txn[2][:"http.statusCode"]
   end
 end
