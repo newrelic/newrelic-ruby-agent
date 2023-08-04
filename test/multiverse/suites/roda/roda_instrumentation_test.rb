@@ -52,6 +52,13 @@ class RodaInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_http_verb_request_no_request_method
+    fake_request = Struct.new('FakeRequest', :path).new
+    name = NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name(fake_request)
+
+    assert_equal ::NewRelic::Agent::UNKNOWN_METRIC, name
+  end
+
   def test_request_is_recorded
     get('/home')
     txn = harvest_transaction_events![1][0]
