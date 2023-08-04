@@ -14,7 +14,6 @@ def gem_list(roda_version = nil)
     gem 'roda'#{roda_version}
     gem 'rack', '~> 2.2'
     gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
-    gem 'minitest', '~> 5.18.0'
   RB
 end
 
