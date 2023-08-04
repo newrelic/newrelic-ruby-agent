@@ -64,6 +64,7 @@ class RodaInstrumentationTest < Minitest::Test
     get('/error')
     errors = harvest_error_traces!
     txn = harvest_transaction_events!
+    puts "Here is the transaction <<<<<<<<< #{txn} <<<<<<<<<<<<"
 
     assert_equal 500, txn[1][0][2][:"http.statusCode"]
     assert_equal 'Oh No!', last_response.body
