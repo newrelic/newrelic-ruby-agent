@@ -22,22 +22,14 @@ class RodaTestApp < Roda
 
     # /hello branch
     r.on('hello') do
-      # Set variable for all routes in /hello branch
-      @greeting = 'Hello'
-
-      # GET /hello/world request
-      r.get('world') do
-        "#{@greeting} world!"
+      # GET /hello/:name request
+      r.get(':name') do |name|
+        "Hello #{name}!"
       end
     end
 
     r.on('error') do
       raise 'boom'
-    end
-
-    r.on('slow') do
-      sleep(3)
-      'I slept for 3 seconds!'
     end
   end
 end
@@ -48,6 +40,16 @@ class RodaInstrumentationTest < Minitest::Test
 
   def app
     RodaTestApp
+  end
+
+  def test_nil_verb
+    NewRelic::Agent::Instrumentation::Roda::TransactionNamer.stub(:http_verb, nil) do
+      get('/home')
+      txn = harvest_transaction_events![1][0]
+
+      assert_equal 'Controller/Roda/RodaTestApp/home', txn[0]['name']
+      assert_equal 200, txn[2][:'http.statusCode']
+    end
   end
 
   def test_request_is_recorded
