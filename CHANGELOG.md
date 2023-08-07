@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, uses more reliable network timeout logic, and adds Roda instrumentation.
 
 - **Feature: Improved error tracking transaction linking**
 
@@ -11,6 +11,10 @@ Version <dev> of the agent introduces improved error tracking functionality by a
 - **Feature: Use Net::HTTP native timeout logic**
 
   In line with current Ruby best practices, make use of Net::HTTP's own timeout logic and avoid the use of `Timeout.timeout()` when possible. The agent's data transmissions and cloud provider detection routines have been updated accordingly. [PR#2147](https://github.com/newrelic/newrelic-ruby-agent/pull/2147)
+
+- **Feature: Add Roda instrumentation**
+
+  Roda is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
 
 ## v9.3.1
 
