@@ -34,6 +34,8 @@ class RodaTestApp < Roda
   end
 end
 
+class RodaNoMiddleware < Roda; end
+
 class RodaInstrumentationTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
@@ -42,6 +44,10 @@ class RodaInstrumentationTest < Minitest::Test
 
   def app
     RodaTestApp
+  end
+
+  def app2
+    RodaNoMiddleware
   end
 
   def test_nil_verb
@@ -99,10 +105,9 @@ class RodaInstrumentationTest < Minitest::Test
 
   def test_roda_auto_middleware_disabled
     with_config(:disable_roda_auto_middleware => true) do
-      get('/home')
-      txn = harvest_transaction_events![1][0]
+      RodaNoMiddleware.build_rack_app_with_tracing {}
 
-      assert_equal 'Controller/Roda/RodaTestApp/GET home', txn[0]['name']
+      assert_truthy NewRelic::Agent::Agent::config[:disable_roda_auto_middleware]
     end
   end
 
