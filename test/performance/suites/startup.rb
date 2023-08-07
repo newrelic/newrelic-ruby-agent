@@ -4,7 +4,7 @@
 
 class StartupShutdown < Performance::TestCase
   def test_startup_shutdown
-    measure do
+    measure(1) do
       NewRelic::Agent.manual_start
       NewRelic::Agent.shutdown
     end

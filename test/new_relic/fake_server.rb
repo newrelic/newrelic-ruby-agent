@@ -14,10 +14,13 @@ module NewRelic
     # Use ephemeral ports by default
     DEFAULT_PORT = 0
 
+    # Ignore all WEBrick output by default. Set ENV['DEBUG'] to enable it
+    WEBRICK_OUTPUT_DEVICE = ENV['DEBUG'] ? STDOUT : '/dev/null'
+
     # Default server options
     DEFAULT_OPTIONS = {
-      :Logger => ::WEBrick::Log.new((+'/dev/null')),
-      :AccessLog => [[+'/dev/null', '']]
+      :Logger => ::WEBrick::Log.new((WEBRICK_OUTPUT_DEVICE)),
+      :AccessLog => [[WEBRICK_OUTPUT_DEVICE, '']]
     }
 
     CONFIG_PATH = String.new(File.join(File.dirname(__FILE__), '..', 'config'))

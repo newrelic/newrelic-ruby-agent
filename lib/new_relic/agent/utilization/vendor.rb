@@ -75,14 +75,12 @@ module NewRelic
           processed_headers = headers
           raise if processed_headers.value?(:error)
 
-          Timeout.timeout(1) do
-            response = nil
-            Net::HTTP.start(endpoint.host, endpoint.port) do |http|
-              req = Net::HTTP::Get.new(endpoint, processed_headers)
-              response = http.request(req)
-            end
-            response
+          response = nil
+          Net::HTTP.start(endpoint.host, endpoint.port, open_timeout: 1, read_timeout: 1) do |http|
+            req = Net::HTTP::Get.new(endpoint, processed_headers)
+            response = http.request(req)
           end
+          response
         rescue
           NewRelic::Agent.logger.debug("#{vendor_name} environment not detected")
         end

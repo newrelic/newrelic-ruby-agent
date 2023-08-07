@@ -290,7 +290,7 @@ module NewRelic
       end
 
       def sampled?
-        return unless Agent.config[:'distributed_tracing.enabled']
+        return false unless Agent.config[:'distributed_tracing.enabled']
 
         if @sampled.nil?
           @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
@@ -546,8 +546,8 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
-        return unless request_path
-        return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
+        return false unless request_path
+        return false if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
         rules.any? do |rule|
           request_path.match(rule)

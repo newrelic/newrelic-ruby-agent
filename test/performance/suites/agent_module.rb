@@ -6,6 +6,7 @@
 
 class AgentModuleTest < Performance::TestCase
   METRIC = 'Some/Custom/Metric'.freeze
+  ITERATIONS = 50_000
 
   def test_increment_metric_by_1
     measure do
@@ -14,14 +15,14 @@ class AgentModuleTest < Performance::TestCase
   end
 
   def test_increment_metric
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent.record_metric_once(METRIC)
       NewRelic::Agent.record_metric_once(METRIC)
     end
   end
 
   def test_increment_metric_by_more_than_1
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent.increment_metric(METRIC, 2)
     end
   end

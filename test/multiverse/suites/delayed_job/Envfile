@@ -56,6 +56,8 @@ gemfile <<~RB
   if RUBY_VERSION <= '2.6.0'
     gem 'minitest', '~> 4.7.5' # required for Rails < 4.1
     gem 'activesupport', '~> 3.2.22'
+  else
+    gem 'minitest', '5.18.1'
   end
   gem 'activesupport', '~> 6.0.0' if RUBY_VERSION > '2.6.0'
   #{boilerplate_gems}
@@ -68,7 +70,6 @@ if RUBY_VERSION < '2.5.0' && RUBY_PLATFORM != 'java'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 5.0.0'
     gem 'i18n', '~> 0.7.0'
-    gem 'minitest', '~> 5.1.0'
     #{boilerplate_gems}
   RB
 end
@@ -79,7 +80,6 @@ if RUBY_VERSION < '2.5.0'
     gem 'delayed_job_active_record', '~> 4.1.2'
     gem 'activerecord', '~> 4.2.0'
     gem 'i18n', '~> 0.7.0'
-    gem 'minitest', '~> 5.1.0'
     #{boilerplate_gems}
   RB
 end

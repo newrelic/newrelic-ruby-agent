@@ -3,15 +3,18 @@
 # frozen_string_literal: true
 
 module Format
-  def output(format)
-    config_hash = build_config_hash
-    sections = flatten_config_hash(config_hash)
+  DEFAULT_CONFIG_PATH = 'ruby-agent-configuration.mdx'
 
-    puts build_erb(format).result(binding).split("\n").map(&:rstrip).join("\n").gsub('.  ', '. ')
-    sections # silences unused warning to return this
+  def output(format)
+    result = build_erb(format).result(binding).split("\n").map(&:rstrip).join("\n").gsub('.  ', '. ')
+    File.write(DEFAULT_CONFIG_PATH, result)
   end
 
   private
+
+  def sections
+    @sections ||= flatten_config_hash(build_config_hash)
+  end
 
   def add_data_to_sections(sections)
     sections.each do |section|
@@ -66,7 +69,7 @@ module Format
 
   def format_description(value)
     description = ''
-    description += '<b>DEPRECATED</b> ' if value[:deprecated]
+    description += '**DEPRECATED** ' if value[:deprecated]
     description += value[:description]
     description
   end
@@ -81,9 +84,10 @@ module Format
     name = NAME_OVERRIDES[key]
     return name if name
 
-    key.split('_')
+    title = key.split('_')
       .each { |fragment| fragment[0] = fragment[0].upcase }
       .join(' ')
+    "#{title} [##{key.tr('_', '-')}]"
   end
 
   def format_sections(key, value)

@@ -298,7 +298,7 @@ module NewRelic
 
     # Set a callback proc for determining an error's error group name
     #
-    # @param [Proc] the callback proc
+    # @param callback_proc [Proc] the callback proc
     #
     # Typically this method should be called only once to set a callback for
     # use with all noticed errors. If it is called multiple times, each new

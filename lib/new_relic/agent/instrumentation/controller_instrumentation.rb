@@ -41,8 +41,6 @@ module NewRelic
             clazz.extend(ClassMethodsShim)
           end
 
-          def new_relic_trace_controller_action(*args); yield; end
-
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 

@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 class DatastoresPerfTest < Performance::TestCase
+  ITERATIONS = 20_000
+
   class FauxDB
     def self.query
       'foo'
@@ -19,7 +21,7 @@ class DatastoresPerfTest < Performance::TestCase
     NewRelic::Agent::Datastores.trace(db_class, 'query', 'FakeDB')
     db = db_class.new
 
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         db.query
       end
@@ -31,7 +33,7 @@ class DatastoresPerfTest < Performance::TestCase
     operation = 'query'.freeze
     collection = 'collection'.freeze
 
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         NewRelic::Agent::Datastores.wrap(product, operation, collection) do
           FauxDB.query
@@ -44,7 +46,7 @@ class DatastoresPerfTest < Performance::TestCase
   METRIC_NAME = 'Datastore/statement/MySQL/users/select'.freeze
 
   def test_notice_sql
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::Datastores.notice_sql(SQL, METRIC_NAME, 3.0)
     end
   end
@@ -52,7 +54,7 @@ class DatastoresPerfTest < Performance::TestCase
   def test_segment_notice_sql
     segment = NewRelic::Agent::Transaction::DatastoreSegment.new('MySQL', 'select', 'users')
     conf = {:adapter => :mysql}
-    measure do
+    measure(ITERATIONS) do
       segment._notice_sql(SQL, conf)
     end
   end

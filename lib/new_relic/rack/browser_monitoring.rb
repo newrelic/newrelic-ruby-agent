@@ -143,7 +143,7 @@ module NewRelic
       end
 
       # Per "The Response > The Body" section of Rack spec, we should close
-      # if our response is able. http://rack.rubyforge.org/doc/SPEC.html
+      # if our response is able. https://github.com/rack/rack/blob/main/SPEC.rdoc
       def close_old_response(response)
         response.close if response.respond_to?(:close)
       end

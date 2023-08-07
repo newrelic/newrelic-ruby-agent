@@ -87,7 +87,7 @@ module NewRelic
       #                                   header-friendly string returned from
       #                                   {DistributedTracePayload#http_safe}
       #
-      # @param transport_Type  [String]   May be one of:  +HTTP+, +HTTPS+, +Kafka+, +JMS+,
+      # @param transport_type  [String]   May be one of:  +HTTP+, +HTTPS+, +Kafka+, +JMS+,
       #                                   +IronMQ+, +AMQP+, +Queue+, +Other+.  Values are
       #                                   case sensitive.  All other values result in +Unknown+
       #

@@ -1,5 +1,31 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+
+- **Feature: Improved error tracking transaction linking**
+
+  Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035) 
+
+- **Feature: Use Net::HTTP native timeout logic**
+
+  In line with current Ruby best practices, make use of Net::HTTP's own timeout logic and avoid the use of `Timeout.timeout()` when possible. The agent's data transmissions and cloud provider detection routines have been updated accordingly. [PR#2147](https://github.com/newrelic/newrelic-ruby-agent/pull/2147)
+
+## v9.3.1
+
+Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
+
+- **Bugfix: Fix NewRelic::Agent.require_test_helper**
+
+  Version 9.3.0 of the agent made a change to the files distributed with the gem. This change unintentionally broke the `NewRelic::Agent.require_test_helper` API by removing the `test/agent_helper.rb` file. The file has been added back to the gem. This change also removes the `lib/new_relic/build.rb` file from the list because it is no longer created with our current release process.
+
+  Our thanks go to [@ajesler](https://github.com/ajesler) for reporting this issue and writing a test for the bug. [Issue#2113](https://github.com/newrelic/newrelic-ruby-agent/issues/2113), [PR#2115](https://github.com/newrelic/newrelic-ruby-agent/pull/2115), [Issue#2117](https://github.com/newrelic/newrelic-ruby-agent/issues/2117), [PR#2118](https://github.com/newrelic/newrelic-ruby-agent/pull/2118)
+
+- **Source Documentation: update the Rack spec URL**
+
+  Community member [@olleolleolle](https://github.com/olleolleolle) noticed that our source code was referencing a now defunct URL for the Rack specification and submitted [PR#2121](https://github.com/newrelic/newrelic-ruby-agent/pull/2121) to update it. He also provided a terrific recommendation that we automate the checking of links to proactively catch defunct ones in future. Thanks, @olleolleolle!
+
 ## v9.3.0
 
 Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, unnecessary files being included in the gem, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.

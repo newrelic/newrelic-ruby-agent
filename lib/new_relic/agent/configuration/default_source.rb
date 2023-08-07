@@ -24,7 +24,7 @@ module NewRelic
       # Does not appear in logs.
       def self.deprecated_description(new_setting, description)
         link_ref = new_setting.to_s.tr('.', '-')
-        %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
+        %{Please see: [#{new_setting}](##{link_ref}). \n\n#{description}}
       end
 
       class Boolean
@@ -1043,7 +1043,7 @@ module NewRelic
           :allowed_from_server => true,
           :deprecated => true,
           :description => deprecated_description(
-            :'distributed_tracing-enabled',
+            :'distributed_tracing.enabled',
             'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) when `distributed_tracing.enabled` is set to `false`.'
           )
         },

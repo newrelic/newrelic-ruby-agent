@@ -1,4 +1,4 @@
-.github
+.github/
 .gitignore
 .project
 .rubocop.yml

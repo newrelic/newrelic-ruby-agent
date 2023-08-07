@@ -6,6 +6,8 @@ begin
   require 'rack'
 
   class RackMiddleware < Performance::TestCase
+    ITERATIONS = 5_000
+
     class TestMiddleware
       def initialize(app)
         @app = app
@@ -123,13 +125,13 @@ begin
     end
 
     def test_basic_middleware_stack
-      measure do
+      measure(ITERATIONS) do
         @stack.call(@env.dup)
       end
     end
 
     def test_request_with_params_capture_params_off
-      measure do
+      measure(ITERATIONS) do
         @stack_with_params.call(@env.dup)
       end
     end
@@ -137,7 +139,7 @@ begin
     def test_request_with_params_capture_params_on
       NewRelic::Agent.config.add_config_for_testing(:capture_params => true)
       NewRelic::Agent.agent.events.notify(:initial_configuration_complete)
-      measure do
+      measure(ITERATIONS) do
         @stack_with_params.call(@env.dup)
       end
     end
