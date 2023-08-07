@@ -38,6 +38,8 @@ class RodaInstrumentationTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
 
+  setup_and_teardown_agent
+
   def app
     RodaTestApp
   end
@@ -95,12 +97,21 @@ class RodaInstrumentationTest < Minitest::Test
     assert_equal 302, txn[2][:'http.statusCode']
   end
 
-  def test_roda_middleware_disabled
+  def test_roda_auto_middleware_disabled
     with_config(:disable_roda_auto_middleware => true) do
       get('/home')
-    end
-    txn = harvest_transaction_events![1][0]
+      txn = harvest_transaction_events![1][0]
 
-    assert_equal 200, txn[2][:"http.statusCode"]
+      assert_equal 'Controller/Roda/RodaTestApp/GET home', txn[0]['name']
+    end
+  end
+
+  def test_roda_instrumentation_works_if_middleware_disabled
+    with_config(:disable_middleware_instrumentation => true) do
+      get('/home')
+      txn = harvest_transaction_events![1][0]
+
+      assert_equal 'Controller/Roda/RodaTestApp/GET home', txn[0]['name']
+    end
   end
 end
