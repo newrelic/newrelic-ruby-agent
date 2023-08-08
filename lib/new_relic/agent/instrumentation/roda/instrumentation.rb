@@ -34,14 +34,13 @@ module NewRelic::Agent::Instrumentation
           @_request.params
         rescue => e
           NewRelic::Agent.logger.debug('Failed to get params from Rack request.', e)
-          nil
+          NewRelic::EMPTY_HASH
         end
       end
 
       def _roda_handle_main_route_with_tracing(*args)
         request_params = rack_request_params
-        filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params ||
-          NewRelic::EMPTY_HASH)
+        filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params)
         name = TransactionNamer.transaction_name(request)
 
         perform_action_with_newrelic_trace(:category => :roda,
