@@ -133,15 +133,12 @@ class RodaInstrumentationTest < Minitest::Test
 
   def test_rack_request_params_error
     NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
-      begin
-        RodaTestApp::RodaRequest.any_instance
-          .stubs(:params).raises(StandardError.new)
-        get('/home?')
-      rescue
-        # NOOP - Allow error to be raised
-      ensure
-        assert_logged(/Failed to get params from Rack request./)
-      end
+      # Have the #params call made on the request raise an exception to test
+      # the error handling
+      RodaTestApp::RodaRequest.any_instance.stubs(:params).raises(StandardError.new)
+      get('/home?')
+
+      assert_logged(/Failed to get params from Rack request./)
     end
   end
 
