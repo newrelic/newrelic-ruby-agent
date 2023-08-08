@@ -29,7 +29,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing roda instrumentation')
+    NewRelic::Agent.logger.info('Installing Roda instrumentation')
 
     if use_prepend?
       prepend_instrument Roda, NewRelic::Agent::Instrumentation::Roda::Prepend

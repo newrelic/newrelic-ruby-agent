@@ -122,13 +122,12 @@ class RodaInstrumentationTest < Minitest::Test
 
   def test_transaction_name_error
     NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
-      begin
-        NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name({})
-      rescue
-        # NOOP - Allow error to be raised
-      ensure
-        assert_logged(/Error encountered trying to identify Roda transaction name/)
-      end
+      # pass in {} to produce an error, because {} doesn't support #path and
+      # confirm that the desired error handling took place
+      result = NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name({})
+
+      assert_equal NewRelic::Agent::UNKNOWN_METRIC, result
+      assert_logged(/NoMethodError.*Error encountered trying to identify Roda transaction name/)
     end
   end
 

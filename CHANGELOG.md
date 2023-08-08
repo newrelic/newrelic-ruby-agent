@@ -14,7 +14,7 @@ Version <dev> of the agent introduces improved error tracking functionality by a
 
 - **Feature: Add Roda instrumentation**
 
-  Roda is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
+  [Roda](https://roda.jeremyevans.net/) is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
 
 ## v9.3.1
 
