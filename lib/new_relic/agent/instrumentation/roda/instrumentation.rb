@@ -43,9 +43,11 @@ module NewRelic::Agent::Instrumentation
         filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params)
         name = TransactionNamer.transaction_name(request)
 
-        perform_action_with_newrelic_trace(:category => :roda,
+        perform_action_with_newrelic_trace(
+          :category => :roda,
           :name => name,
-          :params => filtered_params) do
+          :params => filtered_params
+        ) do
           yield
         end
       end

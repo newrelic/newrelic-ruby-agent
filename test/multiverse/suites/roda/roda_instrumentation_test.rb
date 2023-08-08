@@ -46,10 +46,6 @@ class RodaInstrumentationTest < Minitest::Test
     RodaTestApp
   end
 
-  def app2
-    RodaNoMiddleware
-  end
-
   def test_nil_verb
     NewRelic::Agent::Instrumentation::Roda::TransactionNamer.stub(:http_verb, nil) do
       get('/home')
