@@ -39,14 +39,13 @@ module NewRelic::Agent::Instrumentation
       end
 
       def _roda_handle_main_route_with_tracing(*args)
-        request_params = rack_request_params
-        filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params)
+        filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, rack_request_params)
         name = TransactionNamer.transaction_name(request)
 
         perform_action_with_newrelic_trace(
-          :category => :roda,
-          :name => name,
-          :params => filtered_params
+          category: :roda,
+          name: name,
+          params: filtered_params
         ) do
           yield
         end

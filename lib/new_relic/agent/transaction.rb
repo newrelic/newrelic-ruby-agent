@@ -36,7 +36,7 @@ module NewRelic
       GRAPE_PREFIX = "#{CONTROLLER_PREFIX}Grape/"
       ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
-      WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable, :roda].freeze
+      WEB_TRANSACTION_CATEGORIES = %i[action_cable controller grape middleware rack roda sinatra web uri].freeze
 
       MIDDLEWARE_SUMMARY_METRICS = ['Middleware/all'].freeze
       WEB_SUMMARY_METRIC = 'HttpDispatcher'

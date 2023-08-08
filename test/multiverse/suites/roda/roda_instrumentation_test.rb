@@ -139,10 +139,8 @@ class RodaInstrumentationTest < Minitest::Test
   end
 
   def assert_logged(expected)
-    logger = NewRelic::Agent.logger
-    flattened = logger.messages.flatten
-    found = flattened.any? { |msg| msg.to_s.match?(expected) }
+    found = NewRelic::Agent.logger.messages.flatten.any? { |m| m.match?(expected) }
 
-    assert(found, "Didn't see message '#{expected}'")
+    assert(found, "Didn't see log message: '#{expected}'")
   end
 end
