@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, uses more reliable network timeout logic, and adds Roda instrumentation.
+Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, uses more reliable network timeout logic, and adds [Roda](https://roda.jeremyevans.net/) instrumentation.
 
 - **Feature: Improved error tracking transaction linking**
 
