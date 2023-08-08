@@ -119,4 +119,38 @@ class RodaInstrumentationTest < Minitest::Test
       assert_equal 'Controller/Roda/RodaTestApp/GET home', txn[0]['name']
     end
   end
+
+  def test_transaction_name_error
+    NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
+      begin
+        NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name({})
+      rescue
+        # NOOP - Allow error to be raised
+      ensure
+        assert_logged(/Error encountered trying to identify Roda transaction name/)
+      end
+    end
+  end
+
+  def test_rack_request_params_error
+    NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
+      begin
+        RodaTestApp::RodaRequest.any_instance
+          .stubs(:params).raises(StandardError.new)
+        get('/home?')
+      rescue
+        # NOOP - Allow error to be raised
+      ensure
+        assert_logged(/Failed to get params from Rack request./)
+      end
+    end
+  end
+
+  def assert_logged(expected)
+    logger = NewRelic::Agent.logger
+    flattened = logger.messages.flatten
+    found = flattened.any? { |msg| msg.to_s.match?(expected) }
+
+    assert(found, "Didn't see message '#{expected}'")
+  end
 end
