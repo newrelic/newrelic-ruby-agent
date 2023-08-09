@@ -13,11 +13,10 @@ module NewRelic
           REGEX_MULTIPLE_SLASHES = %r{^[/^\A]*(.*?)[/$?\z]*$}.freeze
 
           def transaction_name(request)
-            verb = request.request_method if request.respond_to?(:request_method)
             path = request.path || ::NewRelic::Agent::UNKNOWN_METRIC
             name = path.gsub(REGEX_MULTIPLE_SLASHES, '\1') # remove any rogue slashes
             name = ROOT if name.empty?
-            name = "#{verb} #{name}" unless verb.nil?
+            name = "#{request.request_method} #{name}" if request.respond_to?(:request_method)
 
             name
           rescue => e
