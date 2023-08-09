@@ -244,8 +244,6 @@ module NewRelic
                 expected[header] = value
               end
 
-              # binding.irb
-
               assert_equal expected.keys.size, txn_attrs.size, "Expected #{expected.keys.size} header attributes, " +
                 "but found #{txn_attrs.size}"
               expected.each do |header, value|
