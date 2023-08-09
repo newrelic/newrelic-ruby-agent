@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 require_relative 'roda/instrumentation'
+require_relative '../../rack/agent_hooks'
+require_relative '../../rack/browser_monitoring'
 
 DependencyDetection.defer do
   named :roda
@@ -15,10 +17,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    # These requires are inside an executes block because they require rack, and
-    # we can't be sure that rack is available when this file is first required.
-    require 'new_relic/rack/agent_hooks'
-    require 'new_relic/rack/browser_monitoring'
     if use_prepend?
       require_relative 'roda/prepend'
       prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend
