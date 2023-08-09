@@ -8,10 +8,16 @@ module NewRelic
   module Agent
     class Transaction
       class RequestAttributes
-        attr_reader :request_path, :referer, :accept, :content_length, :content_type,
-          :host, :port, :user_agent, :request_method
+        # the HTTP standard has "referrer" mispelled as "referer"
+        attr_reader :accept, :content_length, :content_type, :host, :other_headers, :port, :referer, :request_method,
+          :request_path, :user_agent
 
         HTTP_ACCEPT_HEADER_KEY = 'HTTP_ACCEPT'.freeze
+
+        BASE_HEADERS = %w[CONTENT_LENGTH CONTENT_TYPE HTTP_ACCEPT HTTP_REFERER HTTP_USER_AGENT PATH_INFO REMOTE_HOST
+          REQUEST_METHOD REQUEST_URI SERVER_PORT].freeze
+
+        ATTRIBUTE_PREFIX = 'request.headers.'
 
         def initialize(request)
           @request_path = path_from_request(request)
@@ -23,6 +29,7 @@ module NewRelic
           @port = port_from_request(request)
           @user_agent = attribute_from_request(request, :user_agent)
           @request_method = attribute_from_request(request, :request_method)
+          @other_headers = other_headers_from_request(request)
         end
 
         def assign_agent_attributes(txn)
@@ -63,6 +70,10 @@ module NewRelic
 
           if request_method
             txn.add_agent_attribute(:'request.method', request_method, default_destinations)
+          end
+
+          other_headers.each do |header, value|
+            txn.add_agent_attribute(header, value, default_destinations)
           end
         end
 
@@ -115,6 +126,26 @@ module NewRelic
           if env = attribute_from_request(request, :env)
             env[key]
           end
+        end
+
+        def allow_other_headers?
+          NewRelic::Agent.config[:allow_all_headers] && !NewRelic::Agent.config[:high_security]
+        end
+
+        def other_headers_from_request(request)
+          # confirm that `request` is an instance of `Rack::Request` by checking
+          # for #each_header
+          return NewRelic::EMPTY_HASH unless allow_other_headers? && request.respond_to?(:each_header)
+
+          request.each_header.with_object({}) do |(header, value), hash|
+            next if BASE_HEADERS.include?(header)
+
+            hash[formatted_header(header)] = value
+          end
+        end
+
+        def formatted_header(raw_name)
+          "#{ATTRIBUTE_PREFIX}#{NewRelic::LanguageSupport.camelize_with_first_letter_downcased(raw_name)}".to_sym
         end
       end
     end

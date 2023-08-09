@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version <dev> of the agent adds a new 'allow_all_headers' configuration parameter to permit the capturing of all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+
+- **Feature: New allow_all_headers configuration parameter**
+
+  A new 'allow_all_headers' configuration parameter has been added to bring parity with the Node.js agent and others. This configuration parameter defaults to a value of `false`. When set to `true` and as long as the agent is not operating in high security mode, all HTTP headers gleaned from a request will be captured and relayed to New Relic instead of the default core set of headers. All existing behavior for `.*attributes.include` and `.*attributes.exclude` configuration parameters will be respected for any desired filtration of the headers when `allow_all_headers` is enabled. This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
 
 - **Feature: Improved error tracking transaction linking**
 
