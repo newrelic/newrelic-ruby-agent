@@ -119,10 +119,9 @@ class RodaInstrumentationTest < Minitest::Test
 
   def test_rack_request_params_error
     NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
-      # Have the #params call made on the request raise an exception to test
-      # the error handling
-      RodaTestApp::RodaRequest.any_instance.stubs(:params).raises(StandardError.new)
-      get('/home?')
+      # Unit-syle test calling rack_request_params directly. No Rack request exists,
+      # so @_request.params should fail.
+      app.rack_request_params
 
       assert_logged(/Failed to get params from Rack request./)
     end
