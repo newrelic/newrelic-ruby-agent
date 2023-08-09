@@ -3,8 +3,6 @@
 # frozen_string_literal: true
 
 require_relative 'roda/instrumentation'
-require_relative 'roda/chain'
-require_relative 'roda/prepend'
 
 DependencyDetection.defer do
   named :roda
@@ -22,8 +20,10 @@ DependencyDetection.defer do
     require 'new_relic/rack/agent_hooks'
     require 'new_relic/rack/browser_monitoring'
     if use_prepend?
+      require_relative 'roda/prepend'
       prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend
     else
+      require_relative 'roda/chain'
       chain_instrument NewRelic::Agent::Instrumentation::Roda::Build::Chain
     end
   end
@@ -32,8 +32,10 @@ DependencyDetection.defer do
     NewRelic::Agent.logger.info('Installing Roda instrumentation')
 
     if use_prepend?
+      require_relative 'roda/prepend'
       prepend_instrument Roda, NewRelic::Agent::Instrumentation::Roda::Prepend
     else
+      require_relative 'roda/chain'
       chain_instrument NewRelic::Agent::Instrumentation::Roda::Chain
     end
   end

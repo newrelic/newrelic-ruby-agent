@@ -46,16 +46,6 @@ class RodaInstrumentationTest < Minitest::Test
     RodaTestApp
   end
 
-  def test_nil_verb
-    NewRelic::Agent::Instrumentation::Roda::TransactionNamer.stub(:http_verb, nil) do
-      get('/home')
-      txn = harvest_transaction_events![1][0]
-
-      assert_equal 'Controller/Roda/RodaTestApp/home', txn[0]['name']
-      assert_equal 200, txn[2][:'http.statusCode']
-    end
-  end
-
   def test_http_verb_request_no_request_method
     fake_request = Struct.new('FakeRequest', :path).new
     name = NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name(fake_request)

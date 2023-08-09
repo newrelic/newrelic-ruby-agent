@@ -10,12 +10,12 @@ module NewRelic
           extend self
 
           ROOT = '/'.freeze
-          REGEX_MUTIPLE_SLASHES = %r{^[/^\\A]*(.*?)[/\$\?\\z]*$}.freeze
+          REGEX_MULTIPLE_SLASHES = %r{^[/^\A]*(.*?)[/$?\z]*$}.freeze
 
           def transaction_name(request)
-            verb = http_verb(request)
+            verb = request.request_method if request.respond_to?(:request_method)
             path = request.path || ::NewRelic::Agent::UNKNOWN_METRIC
-            name = path.gsub(REGEX_MUTIPLE_SLASHES, '\1') # remove any rogue slashes
+            name = path.gsub(REGEX_MULTIPLE_SLASHES, '\1') # remove any rogue slashes
             name = ROOT if name.empty?
             name = "#{verb} #{name}" unless verb.nil?
 
@@ -23,10 +23,6 @@ module NewRelic
           rescue => e
             ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Roda transaction name")
             ::NewRelic::Agent::UNKNOWN_METRIC
-          end
-
-          def http_verb(request)
-            request.request_method if request.respond_to?(:request_method)
           end
         end
       end
