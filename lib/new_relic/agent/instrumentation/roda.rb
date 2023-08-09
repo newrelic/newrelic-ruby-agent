@@ -3,8 +3,6 @@
 # frozen_string_literal: true
 
 require_relative 'roda/instrumentation'
-require_relative '../../rack/agent_hooks'
-require_relative '../../rack/browser_monitoring'
 
 DependencyDetection.defer do
   named :roda

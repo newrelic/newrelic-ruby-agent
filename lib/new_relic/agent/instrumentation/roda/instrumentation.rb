@@ -2,6 +2,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative '../../../rack/agent_hooks'
+require_relative '../../../rack/browser_monitoring'
+
 module NewRelic::Agent::Instrumentation
   module Roda
     module Tracer
