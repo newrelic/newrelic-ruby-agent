@@ -232,7 +232,6 @@ module NewRelic
             in_transaction do |txn|
               attrs = RequestAttributes.new(RACK_REQUEST)
               attrs.assign_agent_attributes(txn)
-              # txn_attrs = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
               txn_attrs = txn.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
               expected = {}
               BASE_HEADERS_MAP.each do |_k, definition|
