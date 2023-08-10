@@ -31,11 +31,12 @@ module NewRelic
       RAKE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Rake/"
       MESSAGE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Message/"
       RACK_PREFIX = "#{CONTROLLER_PREFIX}Rack/"
+      RODA_PREFIX = "#{CONTROLLER_PREFIX}Roda/"
       SINATRA_PREFIX = "#{CONTROLLER_PREFIX}Sinatra/"
       GRAPE_PREFIX = "#{CONTROLLER_PREFIX}Grape/"
       ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
-      WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
+      WEB_TRANSACTION_CATEGORIES = %i[action_cable controller grape middleware rack roda sinatra web uri].freeze
 
       MIDDLEWARE_SUMMARY_METRICS = ['Middleware/all'].freeze
       WEB_SUMMARY_METRIC = 'HttpDispatcher'

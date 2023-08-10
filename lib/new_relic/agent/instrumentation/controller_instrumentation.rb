@@ -243,6 +243,7 @@ module NewRelic
             when :background then ::NewRelic::Agent::Transaction::TASK_PREFIX
             when :rack then ::NewRelic::Agent::Transaction::RACK_PREFIX
             when :uri then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :roda then ::NewRelic::Agent::Transaction::RODA_PREFIX
             when :sinatra then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
             when :middleware then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
             when :grape then ::NewRelic::Agent::Transaction::GRAPE_PREFIX

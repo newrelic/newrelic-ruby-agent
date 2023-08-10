@@ -115,6 +115,7 @@ module NewRelic
                 :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
+            when defined?(::Roda) then :roda
             when defined?(::NewRelic::IA) then :external
             else :ruby
             end
@@ -1234,6 +1235,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
         },
+        :disable_roda_auto_middleware => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables agent middleware for Roda. This middleware is responsible for advanced feature support such as [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser) and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).'
+        },
         :disable_sinatra_auto_middleware => {
           :default => false,
           :public => true,
@@ -1570,6 +1578,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of resque at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.roda' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Roda at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',
