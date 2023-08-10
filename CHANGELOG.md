@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> of the agent introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+
+- **Feature: Add Roda instrumentation**
+
+  [Roda](https://roda.jeremyevans.net/) is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
 
 - **Feature: Improved error tracking transaction linking**
 
