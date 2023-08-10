@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> of the agent adds a new 'allow_all_headers' configuration parameter to permit the capturing of all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version <dev> of the agent adds a new 'allow_all_headers' configuration parameter to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
 
 - **Feature: New allow_all_headers configuration parameter**
 
