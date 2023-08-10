@@ -164,6 +164,7 @@ module NewRelic
         end
 
         def test_if_allow_all_headers_is_specified_then_allow_them_all
+          skip_unless_rails_gte('5.2')
           skip_unless_minitest5_or_above
 
           with_config(allow_all_headers: true) do
@@ -221,9 +222,10 @@ module NewRelic
         end
 
         def test_the_use_of_attributes_exclude_as_a_blocklist
+          skip_unless_rails_gte('5.2')
           skip_unless_minitest5_or_above
-          excluded_header = :'request.headers.customHeader'
 
+          excluded_header = :'request.headers.customHeader'
           with_config(allow_all_headers: true,
             'attributes.include': %w[],
             'attributes.exclude': [excluded_header.to_s]) do
