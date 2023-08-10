@@ -79,6 +79,20 @@ module NewRelic
                              'request.headers.requestPath': ENV_HASH['REQUEST_PATH'],
                              'request.headers.customHeader': ENV_HASH['CUSTOM_HEADER']}.freeze
 
+        # these are special cased base headers
+        #   - port: always available as an attribute on the RequestAttributes
+        #           instane, but not reported as an agent attribute by default
+        #   - referer: by default only routed to 1 destination
+        #   - uri: by default only routed to 2 destinations
+        #
+        # when allow_all_headers is enabled, all 3 should appear as agent
+        # attributes for ALL destinations.
+        #
+        # the mapping here is agent attribute key => expected value
+        CONDITIONAL_BASE_HEADERS_MAP = {'request.headers.port': ENV_HASH['SERVER_PORT'].to_i,
+                                        'request.headers.referer': ENV_HASH['HTTP_REFERER'],
+                                        'request.uri': ENV_HASH['REQUEST_PATH']}
+
         def test_tolerates_request_without_desired_methods
           request = stub('request')
           attrs = RequestAttributes.new(request)
@@ -241,6 +255,11 @@ module NewRelic
               end
               OTHER_HEADERS_MAP.each do |header, value|
                 next if header == excluded_header
+
+                expected[header] = value
+              end
+              CONDITIONAL_BASE_HEADERS_MAP.each do |header, value|
+                next if expected.key?(header)
 
                 expected[header] = value
               end

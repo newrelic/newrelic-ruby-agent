@@ -38,14 +38,17 @@ module NewRelic
             AttributeFilter::DST_ERROR_COLLECTOR
 
           if referer
-            txn.add_agent_attribute(:'request.headers.referer', referer, AttributeFilter::DST_ERROR_COLLECTOR)
+            destinations = allow_other_headers? ? default_destinations : AttributeFilter::DST_ERROR_COLLECTOR
+            txn.add_agent_attribute(:'request.headers.referer', referer, destinations)
           end
 
           if request_path
-            txn.add_agent_attribute(:'request.uri',
-              request_path,
-              AttributeFilter::DST_TRANSACTION_TRACER |
-                AttributeFilter::DST_ERROR_COLLECTOR)
+            destinations = if allow_other_headers?
+              default_destinations
+            else
+              AttributeFilter::DST_TRANSACTION_TRACER | AttributeFilter::DST_ERROR_COLLECTOR
+            end
+            txn.add_agent_attribute(:'request.uri', request_path, destinations)
           end
 
           if accept
@@ -70,6 +73,10 @@ module NewRelic
 
           if request_method
             txn.add_agent_attribute(:'request.method', request_method, default_destinations)
+          end
+
+          if port && allow_other_headers?
+            txn.add_agent_attribute(:'request.headers.port', port, default_destinations)
           end
 
           other_headers.each do |header, value|
