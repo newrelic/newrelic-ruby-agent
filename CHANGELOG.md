@@ -12,6 +12,9 @@ Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrument
 
   A new `allow_all_headers` configuration parameter brings parity with the Node.js agent (see the [v2.7.0 changelog](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/)). This configuration parameter defaults to a value of `false`. When set to `true`, and as long as the agent is not operating in high-security mode, all HTTP headers gleaned from a request will be captured and relayed to New Relic instead of the default core set of headers. All existing behavior for `.*attributes.include` and `.*attributes.exclude` configuration parameters will be respected for any desired filtration of the headers when `allow_all_headers` is enabled. This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
 
+  NOTE: The extra headers collected by having `allow_all_headers` enabled requires Rack version 2 or higher.
+  NOTE: The extra headers will appear as attributes prefixed with `request.headers.`
+
 - **Feature: Improved error tracking transaction linking**
 
   Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035) 
