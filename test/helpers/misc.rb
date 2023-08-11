@@ -125,13 +125,6 @@ def skip_unless_minitest5_or_above
   skip 'This test requires MiniTest v5+'
 end
 
-def skip_unless_no_rails_or_rails_version_at_or_above(min_version)
-  return unless defined?(Rails) && Rails.respond_to?(:version)
-  return if Gem::Version.new(Rails.version) >= Gem::Version.new(min_version)
-
-  skip "This test requires no Rails or Rails >= v#{min_version}"
-end
-
 def skip_unless_ci_cron
   return if ENV['CI_CRON']
 
