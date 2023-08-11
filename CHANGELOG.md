@@ -10,10 +10,16 @@ Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrument
 
 - **Feature: New allow_all_headers configuration option**
 
-  A new `allow_all_headers` configuration parameter brings parity with the Node.js agent (see the [v2.7.0 changelog](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/)). This configuration parameter defaults to a value of `false`. When set to `true`, and as long as the agent is not operating in high-security mode, all HTTP headers gleaned from a request will be captured and relayed to New Relic instead of the default core set of headers. All existing behavior for `.*attributes.include` and `.*attributes.exclude` configuration parameters will be respected for any desired filtration of the headers when `allow_all_headers` is enabled. This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
-
-  NOTE: The extra headers collected by enabling `allow_all_headers` requires Rack version 2 or higher.
-  NOTE: The extra headers will appear as attributes prefixed with `request.headers.`
+  A new `allow_all_headers` configuration option brings parity with the [Node.js agent](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/) to capture all HTTP request headers.
+  
+  This configuration option:
+    * Defaults to `false`
+    * Is not compatible with high security mode
+    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above) 
+    * Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
+    * Captures the additional headers as attributes prefixed with `request.headers.`
+  
+  This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
 
 - **Feature: Improved error tracking transaction linking**
 
