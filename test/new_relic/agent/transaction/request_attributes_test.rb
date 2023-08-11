@@ -178,7 +178,7 @@ module NewRelic
         end
 
         def test_if_allow_all_headers_is_specified_then_allow_them_all
-          skip 'Test requires Rack v2+' if Rack.respond_to?(:release) && Rack.release.start_with?('1.')
+          skip 'Test requires Rack v2+' unless Rack.respond_to?(:release) && !Rack.release.start_with?('1.')
           skip_unless_minitest5_or_above
 
           with_config(allow_all_headers: true) do
@@ -236,7 +236,7 @@ module NewRelic
         end
 
         def test_the_use_of_attributes_exclude_as_a_blocklist
-          skip 'Test requires Rack v2+' if Rack.respond_to?(:release) && Rack.release.start_with?('1.')
+          skip 'Test requires Rack v2+' unless Rack.respond_to?(:release) && !Rack.release.start_with?('1.')
           skip_unless_minitest5_or_above
 
           excluded_header = :'request.headers.customHeader'
