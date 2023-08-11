@@ -81,7 +81,7 @@ module NewRelic
 
         # these are special cased base headers
         #   - port: always available as an attribute on the RequestAttributes
-        #           instane, but not reported as an agent attribute by default
+        #           instance, but not reported as an agent attribute by default
         #   - referer: by default only routed to 1 destination
         #   - uri: by default only routed to 2 destinations
         #
