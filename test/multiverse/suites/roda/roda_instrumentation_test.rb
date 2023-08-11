@@ -111,7 +111,7 @@ class RodaInstrumentationTest < Minitest::Test
       # pass in {} to produce an error, because {} doesn't support #path and
       # confirm that the desired error handling took place
       result = NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name({})
-      # binding.irb
+
       assert_equal NewRelic::Agent::UNKNOWN_METRIC, result
       assert_logged(/NoMethodError.*Error encountered trying to identify Roda transaction name/m)
     end
