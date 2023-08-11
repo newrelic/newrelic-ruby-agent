@@ -113,7 +113,7 @@ class RodaInstrumentationTest < Minitest::Test
       result = NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name({})
 
       assert_equal NewRelic::Agent::UNKNOWN_METRIC, result
-      assert_logged(/NoMethodError.*Error encountered trying to identify Roda transaction name/)
+      assert_logged(/NoMethodError.*Error encountered trying to identify Roda transaction name/m)
     end
   end
 
@@ -128,7 +128,10 @@ class RodaInstrumentationTest < Minitest::Test
   end
 
   def assert_logged(expected)
-    found = NewRelic::Agent.logger.messages.flatten.any? { |m| m.match?(expected) }
+    # Example logger array:
+    # [[:debug, ["NoMethodError : undefined method `path' for \
+    # {}:Hash - Error encountered trying to identify Roda transaction name"], nil]]
+    found = NewRelic::Agent.logger.messages.any? { |m| m[1][0].match?(expected) }
 
     assert(found, "Didn't see log message: '#{expected}'")
   end
