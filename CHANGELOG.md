@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.4.0
 
-Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
 
 - **Feature: Add Roda instrumentation**
 
