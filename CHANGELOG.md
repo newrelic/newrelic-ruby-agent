@@ -2,11 +2,24 @@
 
 ## dev
 
-Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
 
 - **Feature: Add Roda instrumentation**
 
   [Roda](https://roda.jeremyevans.net/) is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
+
+- **Feature: New allow_all_headers configuration option**
+
+  A new `allow_all_headers` configuration option brings parity with the [Node.js agent](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/) to capture all HTTP request headers.
+  
+  This configuration option:
+    * Defaults to `false`
+    * Is not compatible with high security mode
+    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above) 
+    * Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
+    * Captures the additional headers as attributes prefixed with `request.headers.`
+  
+  This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
 
 - **Feature: Improved error tracking transaction linking**
 

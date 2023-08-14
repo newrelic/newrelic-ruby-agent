@@ -819,6 +819,13 @@ module NewRelic
           :description => 'If `true`, the agent captures metrics related to logging for your application.'
         },
         # Attributes
+        :'allow_all_headers' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables capture of all HTTP request headers for all destinations.'
+        },
         :'attributes.enabled' => {
           :default => true,
           :public => true,
