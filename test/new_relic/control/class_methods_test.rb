@@ -50,8 +50,4 @@ class NewRelic::Control::ClassMethodsTest < Minitest::Test
       @base.load_framework_class('missing')
     end
   end
-
-  def test_camelize
-    assert_equal 'TestConstantize', @base.camelize('test_constantize')
-  end
 end

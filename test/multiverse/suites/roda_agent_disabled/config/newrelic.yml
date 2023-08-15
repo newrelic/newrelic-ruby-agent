@@ -1,0 +1,20 @@
+---
+development:
+  error_collector:
+    enabled: true
+  apdex_t: 0.5
+  agent_enabled: false
+  monitor_mode: false
+  license_key: bootstrap_newrelic_admin_license_key_000
+  ca_bundle_path: ../../../config/test.cert.crt
+  app_name: test
+  host: localhost
+  api_host: localhost
+  port: <%= $collector && $collector.port %>
+  transaction_tracer:
+    record_sql: obfuscated
+    enabled: true
+    stack_trace_threshold: 0.5
+    transaction_threshold: 1.0
+  capture_params: false
+  disable_serialization: false

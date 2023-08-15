@@ -13,6 +13,7 @@ require 'new_relic/agent/distributed_tracing'
 class TraceContextRequestMonitor < Performance::TestCase
   include Mocha::API
 
+  ITERATIONS = 20_000
   CONFIG = {
     :'cross_application_tracer.enabled' => false,
     :'distributed_tracing.enabled' => true,
@@ -45,7 +46,7 @@ class TraceContextRequestMonitor < Performance::TestCase
 
     @events.notify(:initial_configuration_complete)
 
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         @events.notify(:before_call, carrier)
       end

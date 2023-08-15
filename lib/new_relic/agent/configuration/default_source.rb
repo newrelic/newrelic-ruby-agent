@@ -24,7 +24,7 @@ module NewRelic
       # Does not appear in logs.
       def self.deprecated_description(new_setting, description)
         link_ref = new_setting.to_s.tr('.', '-')
-        %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
+        %{Please see: [#{new_setting}](##{link_ref}). \n\n#{description}}
       end
 
       class Boolean
@@ -115,6 +115,7 @@ module NewRelic
                 :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
+            when defined?(::Roda) then :roda
             when defined?(::NewRelic::IA) then :external
             else :ruby
             end
@@ -818,6 +819,13 @@ module NewRelic
           :description => 'If `true`, the agent captures metrics related to logging for your application.'
         },
         # Attributes
+        :'allow_all_headers' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables capture of all HTTP request headers for all destinations.'
+        },
         :'attributes.enabled' => {
           :default => true,
           :public => true,
@@ -1042,7 +1050,7 @@ module NewRelic
           :allowed_from_server => true,
           :deprecated => true,
           :description => deprecated_description(
-            :'distributed_tracing-enabled',
+            :'distributed_tracing.enabled',
             'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) when `distributed_tracing.enabled` is set to `false`.'
           )
         },
@@ -1226,6 +1234,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
+        },
+        :disable_roda_auto_middleware => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables agent middleware for Roda. This middleware is responsible for advanced feature support such as [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser) and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).'
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
@@ -1563,6 +1578,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of resque at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.roda' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Roda at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',

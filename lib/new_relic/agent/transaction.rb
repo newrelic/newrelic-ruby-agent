@@ -31,11 +31,12 @@ module NewRelic
       RAKE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Rake/"
       MESSAGE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Message/"
       RACK_PREFIX = "#{CONTROLLER_PREFIX}Rack/"
+      RODA_PREFIX = "#{CONTROLLER_PREFIX}Roda/"
       SINATRA_PREFIX = "#{CONTROLLER_PREFIX}Sinatra/"
       GRAPE_PREFIX = "#{CONTROLLER_PREFIX}Grape/"
       ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
-      WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
+      WEB_TRANSACTION_CATEGORIES = %i[action_cable controller grape middleware rack roda sinatra web uri].freeze
 
       MIDDLEWARE_SUMMARY_METRICS = ['Middleware/all'].freeze
       WEB_SUMMARY_METRIC = 'HttpDispatcher'
@@ -289,7 +290,7 @@ module NewRelic
       end
 
       def sampled?
-        return unless Agent.config[:'distributed_tracing.enabled']
+        return false unless Agent.config[:'distributed_tracing.enabled']
 
         if @sampled.nil?
           @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
@@ -545,8 +546,8 @@ module NewRelic
       end
 
       def user_defined_rules_ignore?
-        return unless request_path
-        return if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
+        return false unless request_path
+        return false if (rules = NewRelic::Agent.config[:"rules.ignore_url_regexes"]).empty?
 
         rules.any? do |rule|
           request_path.match(rule)

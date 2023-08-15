@@ -3,11 +3,12 @@
 # frozen_string_literal: true
 
 class SegmentTermsRuleTests < Performance::TestCase
-  def setup
-  end
+  ITERATIONS = 600_000
+
+  def setup; end
 
   def test_segment_terms_rule_matches?
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::RulesEngine::SegmentTermsRule.new({
         'prefix' => 'foo/bar/',
         'terms' => []
@@ -16,7 +17,7 @@ class SegmentTermsRuleTests < Performance::TestCase
   end
 
   def test_segment_terms_rule_apply
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent::RulesEngine::SegmentTermsRule.new({
         'prefix' => 'foo/bar/',
         'terms' => []

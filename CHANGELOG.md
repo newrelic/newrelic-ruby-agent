@@ -1,5 +1,34 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.4.0
+
+Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+
+- **Feature: Add Roda instrumentation**
+
+  [Roda](https://roda.jeremyevans.net/) is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
+
+- **Feature: New allow_all_headers configuration option**
+
+  A new `allow_all_headers` configuration option brings parity with the [Node.js agent](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/) to capture all HTTP request headers.
+  
+  This configuration option:
+    * Defaults to `false`
+    * Is not compatible with high security mode
+    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above) 
+    * Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
+    * Captures the additional headers as attributes prefixed with `request.headers.`
+  
+  This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
+
+- **Feature: Improved error tracking transaction linking**
+
+  Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035) 
+
+- **Feature: Use Net::HTTP native timeout logic**
+
+  In line with current Ruby best practices, make use of Net::HTTP's own timeout logic and avoid the use of `Timeout.timeout()` when possible. The agent's data transmissions and cloud provider detection routines have been updated accordingly. [PR#2147](https://github.com/newrelic/newrelic-ruby-agent/pull/2147)
+
 ## v9.3.1
 
 Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
@@ -13,7 +42,6 @@ Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
 - **Source Documentation: update the Rack spec URL**
 
   Community member [@olleolleolle](https://github.com/olleolleolle) noticed that our source code was referencing a now defunct URL for the Rack specification and submitted [PR#2121](https://github.com/newrelic/newrelic-ruby-agent/pull/2121) to update it. He also provided a terrific recommendation that we automate the checking of links to proactively catch defunct ones in future. Thanks, @olleolleolle!
-
 
 ## v9.3.0
 

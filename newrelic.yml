@@ -33,6 +33,9 @@ common: &default_settings
   # - a.third.event
   # active_support_custom_events_names: []
 
+  # If true, enables capture of all HTTP request headers for all destinations.
+  # allow_all_headers: false
+
   # Your New Relic userKey. Required when using the New Relic REST API v2 to record
   # deployments using the newrelic deployments command.
   # api_key: ""
@@ -221,6 +224,10 @@ common: &default_settings
   # If true, the agent won't wrap third-party middlewares in instrumentation
   # (regardless of whether they are installed via Rack::Builder or Rails).
   # disable_middleware_instrumentation: false
+
+  # If true, disables agent middleware for Roda. This middleware is responsible for
+  # advanced feature support such as page load timing and error collection.
+  # disable_roda_auto_middleware: false
 
   # If true, disables the collection of sampler metrics. Sampler metrics are metrics
   # that are not event-based (such as CPU time or memory usage).
@@ -478,6 +485,10 @@ common: &default_settings
   # Controls auto-instrumentation of resque at start up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.resque: auto
+
+  # Controls auto-instrumentation of Roda at start up. May be one of: auto, prepend,
+  # chain, disabled.
+  # instrumentation.roda: auto
 
   # Controls auto-instrumentation of Sinatra at start up. May be one of: auto,
   # prepend, chain, disabled.

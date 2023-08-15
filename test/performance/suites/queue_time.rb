@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 class QueueTimePerfTests < Performance::TestCase
+  ITERATIONS = 350_000
+
   def setup
     @headers = [
       {'HTTP_X_REQUEST_START' => 't=1409849996.2152882'},
@@ -12,7 +14,7 @@ class QueueTimePerfTests < Performance::TestCase
   end
 
   def test_queue_time_parsing
-    measure do
+    measure(ITERATIONS) do
       @headers.each do |h|
         NewRelic::Agent::Instrumentation::QueueTime.parse_frontend_timestamp(h)
       end

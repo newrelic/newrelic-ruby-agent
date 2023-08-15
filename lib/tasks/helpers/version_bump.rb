@@ -55,8 +55,8 @@ module VersionBump
   # Replace dev with version number in changelog
   def self.update_changelog(version)
     file = read_file('CHANGELOG.md')
-    file.gsub!(/## dev/, "## v#{version}")
-    file.gsub!(/Version <dev>/, "Version #{version}")
+    file.gsub!('## dev', "## v#{version}")
+    file.gsub!('Version <dev>', "Version #{version}")
     write_file('CHANGELOG.md', file)
   end
 end

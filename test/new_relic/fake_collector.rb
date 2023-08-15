@@ -132,7 +132,7 @@ module NewRelic
         res.write('Method not found')
       end
       run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
-      req.body.rewind
+      req.body.rewind if req.body.respond_to?(:rewind) # no #rewind for an instance of Rackup::Handler::WEBrick::Input
 
       begin
         raw_body = req.body.read

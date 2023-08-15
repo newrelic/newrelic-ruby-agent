@@ -8,10 +8,12 @@ require 'new_relic/agent/instrumentation/redis'
 
 # Primarily just tests allocations around argument formatting
 class RedisTest < Performance::TestCase
+  ITERATIONS = 500_000
+
   def test_no_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       command = ['lonely_command']
-      measure do
+      measure(ITERATIONS) do
         NewRelic::Agent::Datastores::Redis.format_command(command)
       end
     end
@@ -20,7 +22,7 @@ class RedisTest < Performance::TestCase
   def test_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       commands = %w[argumentative commands get called a bunch]
-      measure do
+      measure(ITERATIONS) do
         NewRelic::Agent::Datastores::Redis.format_command(commands)
       end
     end
@@ -29,7 +31,7 @@ class RedisTest < Performance::TestCase
   def test_long_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       commands = ['loooooong_command', 'a' * 100, 'b' * 100, 'c' * 100]
-      measure do
+      measure(ITERATIONS) do
         NewRelic::Agent::Datastores::Redis.format_command(commands)
       end
     end
@@ -42,7 +44,7 @@ class RedisTest < Performance::TestCase
         ['second', 'a' * 100, 'b' * 100, 'c' * 100]
       ]
 
-      measure do
+      measure(ITERATIONS) do
         NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
       end
     end
