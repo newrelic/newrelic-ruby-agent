@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.4.1
+
+Version 9.4.1 of the agent resolves a `NoMethodError` introduced in 9.4.0.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.0 introduced [Roda instrumentation](https://github.com/newrelic/newrelic-ruby-agent/pull/2144), which caused a `NoMethodError` to be raised when attempting to name a Roda transaction. This has been fixed. Thanks to [@spickermann](https://github.com/spickermann) for reporting this issue. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
 ## v9.4.0
 
 Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
