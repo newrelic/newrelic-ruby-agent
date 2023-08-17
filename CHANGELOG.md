@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.4.2
+
+Version 9.4.2 of the agent re-addresses a `NoMethodError` introduced in 9.4.0.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.1 attempted to fix a `NoMethodError` introduced in 9.4.0. A missing `require` prevented a method from scoping appropriately and has now been added. Thanks to [@spickermann](https://github.com/spickermann) and [ColinOrr](https://github.com/ColinOrr) for working with us to get this resolved. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
 ## v9.4.1
 
 Version 9.4.1 of the agent resolves a `NoMethodError` introduced in 9.4.0.
