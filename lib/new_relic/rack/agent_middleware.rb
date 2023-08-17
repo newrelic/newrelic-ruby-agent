@@ -27,21 +27,17 @@ module NewRelic
         "#{prefix}#{self.class.name}/call"
       end
 
-      # If middleware tracing is disabled, we'll still inject our agent-specific
-      # middlewares, and still trace those, but we don't want to capture HTTP
-      # response codes, since middleware that's outside of ours might change the
-      # response code before it goes back to the client.
-      def capture_http_response_code(state, result)
-        return if NewRelic::Agent.config[:disable_middleware_instrumentation]
+      # # If middleware tracing is disabled, we'll still inject our agent-specific
+      # # middlewares, and still trace those, but the http response code might be
+      # # changed by middleware outside of ours. We will still capute the response
+      # # code, but it is not guaranteed to be the final response code.
+      # def capture_http_response_code(state, result)
+      #   super
+      # end
 
-        super
-      end
-
-      def capture_response_content_type(state, result)
-        return if NewRelic::Agent.config[:disable_middleware_instrumentation]
-
-        super
-      end
+      # def capture_response_content_type(state, result)
+      #   super
+      # end
     end
   end
 end
