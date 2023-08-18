@@ -106,6 +106,13 @@ class RodaInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_roda_namer_removes_rogue_slashes
+    get('/home//')
+    txn = harvest_transaction_events![1][0]
+
+    assert_equal 'Controller/Roda/RodaTestApp/GET home', txn[0]['name']
+  end
+
   def test_transaction_name_error
     NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
       # pass in {} to produce an error, because {} doesn't support #path and
