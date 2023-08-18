@@ -2,7 +2,7 @@
 
 ## v9.4.2
 
-Version 9.4.2 of the agent re-addresses a `NoMethodError` introduced in 9.4.0.
+Version 9.4.2 of the agent re-addresses the 9.4.0 issue of `NoMethodError` seen when using the `uppy-s3_multipart` gem.
 
 - **Bugfix: Resolve NoMethodError**
 
