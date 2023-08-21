@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+
+## dev
+
+Version <dev> allows the agent to record the http status code on a transaction when middleware instrumentation is disabled
+
+
+- **Feature: Transactions now report http status codes when middleware instrumentation is disabled**
+  Previously, if `disable_middleware_instrumentation` is set to true, the agent would not record the value of the response code on the transaction. This was due to the possibility that a middleware could be used that might alter the response, which would not be captured by the agent if the middleware instrumentation is disabled. However, based on customer feedback, the agent will now report the http status code on a transaction still when middleware instrumentation is disabled. [PR#]()
+
+
 ## v9.4.1
 
 Version 9.4.1 of the agent resolves a `NoMethodError` introduced in 9.4.0.
