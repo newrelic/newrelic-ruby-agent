@@ -10,7 +10,7 @@ Version <dev> allows the agent to record the http status code on a transaction w
 Previously, when `disable_middleware_instrumentation` was set to `true`, the agent would not record the value of the response code on the transaction. This was due to the possibility that a middleware could alter the response, which would not be captured by the agent when the middleware instrumentation was disabled. However, based on customer feedback, the agent will now report the HTTP status code on a transaction when middleware instrumentation is disabled. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
 
 - **Bugfix: Resolve inverted logic of NewRelic::Rack::AgentHooks.needed?**
-  Previously, `NewRelic::Rack::AgentHooks.needed?` was incorrectly using inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+  Previously, `NewRelic::Rack::AgentHooks.needed?` incorrectly used inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
 
 
 ## v9.4.2
