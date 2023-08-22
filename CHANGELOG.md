@@ -13,6 +13,14 @@ Version <dev> allows the agent to record the http status code on a transaction w
   Previously, `NewRelic::Rack::AgentHooks.needed?` was incorrectly using inverted logic. This has now been resolved. [PR#]()
 
 
+## v9.4.2
+
+Version 9.4.2 of the agent re-addresses the 9.4.0 issue of `NoMethodError` seen when using the `uppy-s3_multipart` gem.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.1 attempted to fix a `NoMethodError` introduced in 9.4.0. A missing `require` prevented a method from scoping appropriately and has now been added. Thanks to [@spickermann](https://github.com/spickermann) and [@ColinOrr](https://github.com/ColinOrr) for working with us to get this resolved. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
 ## v9.4.1
 
 Version 9.4.1 of the agent resolves a `NoMethodError` introduced in 9.4.0.
