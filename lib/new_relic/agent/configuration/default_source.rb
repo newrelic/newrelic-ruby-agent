@@ -1216,7 +1216,7 @@ module NewRelic
             If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
 
               <Callout variant="important">
-                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the http status code reported on the transaction may not reflect the altered value.
+                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
               </Callout>
           DESCRIPTION
         },
