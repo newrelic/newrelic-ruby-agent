@@ -26,18 +26,6 @@ module NewRelic
         prefix = ::NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer.prefix_for_category(nil, @category)
         "#{prefix}#{self.class.name}/call"
       end
-
-      # # If middleware tracing is disabled, we'll still inject our agent-specific
-      # # middlewares, and still trace those, but the http response code might be
-      # # changed by middleware outside of ours. We will still capute the response
-      # # code, but it is not guaranteed to be the final response code.
-      # def capture_http_response_code(state, result)
-      #   super
-      # end
-
-      # def capture_response_content_type(state, result)
-      #   super
-      # end
     end
   end
 end
