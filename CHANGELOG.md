@@ -3,7 +3,7 @@
 
 ## dev
 
-Version <dev> allows the agent to record the http status code on a transaction when middleware instrumentation is disabled and fixes a bug in `NewRelic::Rack::AgentHooks.needed?.
+Version <dev> allows the agent to record the http status code on a transaction when middleware instrumentation is disabled and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
 
 
 - **Feature: Transactions now report http status codes when middleware instrumentation is disabled**
