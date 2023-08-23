@@ -23,7 +23,7 @@ module NewRelic::Rack
   #
   class AgentHooks < AgentMiddleware
     def self.needed?
-      !NewRelic::Agent.config[:disable_middleware_instrumentation]
+      NewRelic::Agent.config[:disable_middleware_instrumentation]
     end
 
     def traced_call(env)

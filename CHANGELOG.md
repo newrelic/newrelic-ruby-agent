@@ -1,5 +1,18 @@
 # New Relic Ruby Agent Release Notes
 
+
+## dev
+
+Version <dev> allows the agent to record additional response information on a transaction when middleware instrumentation is disabled and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
+
+
+- **Feature: Report transaction HTTP status codes when middleware instrumentation is disabled**
+  Previously, when `disable_middleware_instrumentation` was set to `true`, the agent would not record the value of the response code or content type on the transaction. This was due to the possibility that a middleware could alter the response, which would not be captured by the agent when the middleware instrumentation was disabled. However, based on customer feedback, the agent will now report the HTTP status code and content type on a transaction when middleware instrumentation is disabled. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+
+- **Bugfix: Resolve inverted logic of NewRelic::Rack::AgentHooks.needed?**
+  Previously, `NewRelic::Rack::AgentHooks.needed?` incorrectly used inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+
+
 ## v9.4.2
 
 Version 9.4.2 of the agent re-addresses the 9.4.0 issue of `NoMethodError` seen when using the `uppy-s3_multipart` gem.

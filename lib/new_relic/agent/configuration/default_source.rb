@@ -1212,7 +1212,13 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).'
+          :description => <<~DESCRIPTION
+            If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
+
+              <Callout variant="important">
+                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+              </Callout>
+          DESCRIPTION
         },
         :disable_samplers => {
           :default => false,
