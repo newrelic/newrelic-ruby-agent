@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'roda/instrumentation'
+require_relative 'roda/roda_transaction_namer'
 
 DependencyDetection.defer do
   named :roda
