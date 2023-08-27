@@ -30,10 +30,10 @@ class ExternalRequestFromWithinARBlockTest < Minitest::Test
       ActiveRecord::Base.transaction do
         perform_net_request
       end
+      external_segments = txn.segments.select { |s| s.name.start_with?('External/') }
 
-      # in_transaction creates a dummy segment on its own, and we expect another
-      assert_equal 2, txn.segments.size
-      segment = txn.segments.detect { |s| s.name.start_with?('External/') }
+      assert_equal 1, external_segments.size
+      segment = external_segments.first
 
       assert segment, "Failed to find an 'External/' request segment"
       error = segment.noticed_error
