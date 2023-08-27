@@ -24,6 +24,9 @@ module NewRelic
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
+        CALLBACK = :@callback
+        SEGMENT = 'segment'
+
         def initialize(name = nil, start_time = nil)
           @name = name
           @starting_segment_key = NewRelic::Agent::Tracer.current_segment_key
@@ -49,6 +52,7 @@ module NewRelic
           @code_function = nil
           @code_lineno = nil
           @code_namespace = nil
+          invoke_callback
         end
 
         def start
@@ -326,6 +330,25 @@ module NewRelic
           else
             Tracer.state
           end
+        end
+
+        def invoke_callback
+          return unless self.class.instance_variable_defined?(CALLBACK)
+
+          NewRelic::Agent.logger.debug("Invoking callback for #{self.class.name}...")
+          self.class.instance_variable_get(CALLBACK).call
+        end
+
+        def self.set_segment_callback(callback_proc)
+          unless callback_proc.is_a?(Proc)
+            NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
+                                         "got #{callback_proc.class}")
+            return
+          end
+
+          label = "set_callback_#{name.split('::').last.downcase.sub(SEGMENT, NewRelic::EMPTY_STR)}".to_sym
+          NewRelic::Agent.record_api_supportability_metric(label)
+          instance_variable_set(CALLBACK, callback_proc)
         end
       end
     end
