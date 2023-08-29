@@ -15,11 +15,6 @@ module NewRelic
       EVENT_BUFFER_MACRO_PATTERN = /(capacity_key|enabled_key)\s+:(['"])?([a-z\._]+)\2?/
       ASSIGNED_CONSTANT_PATTERN = /[A-Z]+\s*=\s*:(['"])?([a-z\._]+)\1?\s*/
 
-      # These config settings shouldn't be worried about, possibly because they
-      # are only referenced via Ruby metaprogramming that won't work with this
-      # module's regex matching
-      IGNORED = %i[sidekiq.args.include sidekiq.args.exclude]
-
       def scan_and_remove_used_entries(default_keys, non_test_files)
         non_test_files.each do |file|
           lines_in(file).each do |line|
@@ -35,8 +30,6 @@ module NewRelic
             captures.flatten.compact.each do |key|
               default_keys.delete(key.delete("'").to_sym)
             end
-
-            IGNORED.each { |key| default_keys.delete(key) }
 
             # Remove any config keys that are annotated with the 'dynamic_name' setting
             # This indicates that the names of these keys are constructed dynamically at

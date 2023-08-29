@@ -1721,25 +1721,31 @@ module NewRelic
           default: NewRelic::EMPTY_ARRAY,
           public: true,
           type: Array,
+          dynamic_name: true,
           allowed_from_server: false,
-          description: 'An array of strings that will collectively serve as an allowlist for filtering which Sidekiq ' +
-            'job arguments get reported to New Relic. The capturing of any Sidekiq arguments requires that ' +
-            "'job.sidekiq.args.*' be added to the separate :'attributes.include' configuration option. Each " +
-            'string in this array will be turned into a regular expression via `Regexp.new` to permit advanced ' +
-            'matching. For job argument hashes, if either a key or value matches the pair will be included. All ' +
-            'matching job argument array elements and job argument scalars will be included.'
+          description: <<~SIDEKIQ_ARGS_INCLUDE.chomp.tr("\n", ' ')
+            An array of strings that will collectively serve as an allowlist for filtering which Sidekiq
+            job arguments get reported to New Relic. The capturing of any Sidekiq arguments requires that
+            'job.sidekiq.args.*' be added to the separate :'attributes.include' configuration option. Each
+            string in this array will be turned into a regular expression via `Regexp.new` to permit advanced
+            matching. For job argument hashes, if either a key or value matches the pair will be included. All
+            matching job argument array elements and job argument scalars will be included.
+          SIDEKIQ_ARGS_INCLUDE
         },
         :'sidekiq.args.exclude' => {
           default: NewRelic::EMPTY_ARRAY,
           public: true,
           type: Array,
+          dynamic_name: true,
           allowed_from_server: false,
-          description: 'An array of strings that will collectively serve as a denylist for filtering which Sidekiq ' +
-            'job arguments get reported to New Relic. The capturing of any Sidekiq arguments requires that ' +
-            "'job.sidekiq.args.*' be added to the separate :'attributes.include' configuration option. Each string " +
-            'in this array will be turned into a regular expression via `Regexp.new` to permit advanced matching. ' +
-            'For job argument hashes, if either a key or value matches the pair will be excluded. All matching job ' +
-            'argument array elements and job argument scalars will be excluded.'
+          description: <<~SIDEKIQ_ARGS_EXCLUDE.chomp.tr("\n", ' ')
+            An array of strings that will collectively serve as a denylist for filtering which Sidekiq
+            job arguments get reported to New Relic. The capturing of any Sidekiq arguments requires that
+            'job.sidekiq.args.*' be added to the separate :'attributes.include' configuration option. Each string
+            in this array will be turned into a regular expression via `Regexp.new` to permit advanced matching.
+            For job argument hashes, if either a key or value matches the pair will be excluded. All matching job
+            argument array elements and job argument scalars will be excluded.
+          SIDEKIQ_ARGS_EXCLUDE
         },
         # Slow SQL
         :'slow_sql.enabled' => {
