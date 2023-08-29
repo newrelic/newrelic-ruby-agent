@@ -12,8 +12,11 @@ Version <dev> allows the agent to record additional response information on a tr
 
   `newrelic.yml` examples:
 
+  Any string in the `:'sidekiq.args.include'` or `:'sidekiq.args.exclude'` arrays will be turned into a regular expression. Knowledge of [Ruby regular expression support](https://ruby-doc.org/3.2.2/Regexp.html) can be leveraged but is not required. If regular expression syntax is not used, inexact matches will be performed and the string "Fortune" will match both "Fortune 500" and "Fortune and Glory". For exact matches, use [regular expression anchors](https://ruby-doc.org/3.2.2/Regexp.html#class-Regexp-label-Anchors).
+
   ```yaml
   # Include any argument whose string representation matches either "apple" or "banana"
+  # The "apple" pattern will match both "green apple" and "red apple"
   sidekiq.args.include:
     - apple
     - banana
