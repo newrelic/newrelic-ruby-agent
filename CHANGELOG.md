@@ -12,7 +12,7 @@ Version <dev> allows the agent to record additional response information on a tr
 
   `newrelic.yml` examples:
 
-  ```
+  ```yaml
   # Include any argument whose string representation matches either "apple" or "banana"
   sidekiq.args.include:
     - apple
