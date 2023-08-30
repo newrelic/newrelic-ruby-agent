@@ -7,6 +7,10 @@ module NewRelic::Agent::Instrumentation::Sidekiq
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
     include Sidekiq::ServerMiddleware if defined?(Sidekiq::ServerMiddleware)
 
+    ATTRIBUTE_BASE_NAMESPACE = 'sidekiq.args'
+    ATTRIBUTE_FILTER_TYPES = %i[include exclude].freeze
+    ATTRIBUTE_JOB_NAMESPACE = :"job.#{ATTRIBUTE_BASE_NAMESPACE}"
+
     # Client middleware has additional parameters, and our tests use the
     # middleware client-side to work inline.
     def call(worker, msg, queue, *_)
@@ -18,10 +22,16 @@ module NewRelic::Agent::Instrumentation::Sidekiq
       trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
 
       perform_action_with_newrelic_trace(trace_args) do
-        NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.args',
-          NewRelic::Agent::AttributeFilter::DST_NONE)
+        NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
+          NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
+          ATTRIBUTE_JOB_NAMESPACE,
+          NewRelic::Agent::AttributeFilter::DST_NONE
+        )
 
-        ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other') if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
+        if ::NewRelic::Agent.config[:'distributed_tracing.enabled'] && trace_headers&.any?
+          ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, 'Other')
+        end
+
         yield
       end
     end
@@ -32,6 +42,16 @@ module NewRelic::Agent::Instrumentation::Sidekiq
         :class_name => msg['class'],
         :category => 'OtherTransaction/SidekiqJob'
       }
+    end
+
+    def self.nr_attribute_options
+      @nr_attribute_options ||= begin
+        ATTRIBUTE_FILTER_TYPES.each_with_object({}) do |type, opts|
+          pattern =
+            NewRelic::Agent::AttributePreFiltering.formulate_regexp_union(:"#{ATTRIBUTE_BASE_NAMESPACE}.#{type}")
+          opts[type] = pattern if pattern
+        end.merge(attribute_namespace: ATTRIBUTE_JOB_NAMESPACE)
+      end
     end
   end
 end
