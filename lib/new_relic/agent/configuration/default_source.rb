@@ -1725,8 +1725,8 @@ module NewRelic
           allowed_from_server: false,
           description: <<~SIDEKIQ_ARGS_INCLUDE.chomp.tr("\n", ' ')
             An array of strings that will collectively serve as an allowlist for filtering which Sidekiq
-            job arguments get reported to New Relic. The capturing of any Sidekiq arguments requires that
-            'job.sidekiq.args.*' be added to the separate :'attributes.include' configuration option. Each
+            job arguments get reported to New Relic. To capture any Sidekiq arguments,
+            'job.sidekiq.args.*' must be added to the separate `:'attributes.include'` configuration option. Each
             string in this array will be turned into a regular expression via `Regexp.new` to permit advanced
             matching. For job argument hashes, if either a key or value matches the pair will be included. All
             matching job argument array elements and job argument scalars will be included.
