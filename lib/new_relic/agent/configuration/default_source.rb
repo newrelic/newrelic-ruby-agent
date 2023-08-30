@@ -1595,6 +1595,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Sinatra at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.stripe' => {
+          :default => 'enabled',
+          :documentation_default => 'enabled',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Stripe at start up. May be one of: `enabled`, `disabled`.'
+        },
         :'instrumentation.thread' => {
           :default => 'auto',
           :public => true,
