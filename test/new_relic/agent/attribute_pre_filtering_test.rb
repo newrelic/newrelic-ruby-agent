@@ -197,7 +197,7 @@ class AttributePreFilteringTest < Minitest::Test
 
   def test_pre_filter_scalar_without_exclude
     input = false
-    options = {exclude: /true/}
+    options = {include: /false/}
     result = NewRelic::Agent::AttributePreFiltering.pre_filter_scalar(input, options)
 
     assert_equal input, result, "pre_filter_scalar returned >>#{result}<<, expected >>#{input}<<"
