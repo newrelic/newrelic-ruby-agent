@@ -29,7 +29,7 @@ class CveNotifier < SlackNotifier
   end
 
   def self.cve_message(title, url)
-    ":rotating_light: #{title}\n<#{url}|More info here>".to_json
+    ":rotating_light: #{title}\n<#{url}|More info here>"
   end
 end
 

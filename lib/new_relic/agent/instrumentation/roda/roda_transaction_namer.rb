@@ -10,7 +10,7 @@ module NewRelic
           extend self
 
           ROOT = '/'.freeze
-          REGEX_MULTIPLE_SLASHES = %r{^[/^\A]*(.*?)[/$?\z]*$}.freeze
+          REGEX_MULTIPLE_SLASHES = %r{^[/^]*(.*?)[/$?]*$}.freeze
 
           def transaction_name(request)
             path = request.path || ::NewRelic::Agent::UNKNOWN_METRIC

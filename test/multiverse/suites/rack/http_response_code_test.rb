@@ -35,17 +35,17 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
       assert_equal(302, get_last_analytics_event[2][:'http.statusCode'])
     end
 
-    def test_skips_http_response_code_if_middleware_tracing_disabled
+    def test_records_http_response_code_if_middleware_tracing_disabled
       with_config(:disable_middleware_instrumentation => true) do
         rsp = get('/', {'override-response-code' => 404})
 
         assert_equal(404, rsp.status)
-        refute get_last_analytics_event[2][:'http.statusCode']
+        assert get_last_analytics_event[2][:'http.statusCode']
 
         rsp = get('/', {'override-response-code' => 302})
 
         assert_equal(302, rsp.status)
-        refute get_last_analytics_event[2][:'http.statusCode']
+        assert get_last_analytics_event[2][:'http.statusCode']
       end
     end
   end

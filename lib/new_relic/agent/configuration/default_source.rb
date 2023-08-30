@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'forwardable'
+require_relative '../../constants'
 
 module NewRelic
   module Agent
@@ -1212,7 +1213,13 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).'
+          :description => <<~DESCRIPTION
+            If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
+
+              <Callout variant="important">
+                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+              </Callout>
+          DESCRIPTION
         },
         :disable_samplers => {
           :default => false,
@@ -1715,6 +1722,37 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
+        },
+        # Sidekiq
+        :'sidekiq.args.include' => {
+          default: NewRelic::EMPTY_ARRAY,
+          public: true,
+          type: Array,
+          dynamic_name: true,
+          allowed_from_server: false,
+          description: <<~SIDEKIQ_ARGS_INCLUDE.chomp.tr("\n", ' ')
+            An array of strings that will collectively serve as an allowlist for filtering which Sidekiq
+            job arguments get reported to New Relic. To capture any Sidekiq arguments,
+            'job.sidekiq.args.*' must be added to the separate `:'attributes.include'` configuration option. Each
+            string in this array will be turned into a regular expression via `Regexp.new` to permit advanced
+            matching. For job argument hashes, if either a key or value matches the pair will be included. All
+            matching job argument array elements and job argument scalars will be included.
+          SIDEKIQ_ARGS_INCLUDE
+        },
+        :'sidekiq.args.exclude' => {
+          default: NewRelic::EMPTY_ARRAY,
+          public: true,
+          type: Array,
+          dynamic_name: true,
+          allowed_from_server: false,
+          description: <<~SIDEKIQ_ARGS_EXCLUDE.chomp.tr("\n", ' ')
+            An array of strings that will collectively serve as a denylist for filtering which Sidekiq
+            job arguments get reported to New Relic. To capture any Sidekiq arguments,
+            'job.sidekiq.args.*' must be added to the separate `:'attributes.include'` configuration option. Each string
+            in this array will be turned into a regular expression via `Regexp.new` to permit advanced matching.
+            For job argument hashes, if either a key or value matches the pair will be excluded. All matching job
+            argument array elements and job argument scalars will be excluded.
+          SIDEKIQ_ARGS_EXCLUDE
         },
         # Slow SQL
         :'slow_sql.enabled' => {

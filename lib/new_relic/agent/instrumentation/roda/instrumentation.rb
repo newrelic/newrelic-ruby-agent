@@ -41,7 +41,7 @@ module NewRelic::Agent::Instrumentation
       def _roda_handle_main_route_with_tracing(*args)
         perform_action_with_newrelic_trace(
           category: :roda,
-          name: TransactionNamer.transaction_name(request),
+          name: ::NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name(request),
           params: ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, rack_request_params)
         ) do
           yield

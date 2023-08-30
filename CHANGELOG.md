@@ -2,7 +2,66 @@
 
 ## dev
 
-Version <dev> of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+Version <dev> allows the agent to record additional response information on a transaction when middleware instrumentation is disabled, introduces new `:'sidekiq.args.include'` and `:'sidekiq.args.exclude:` configuration options to permit capturing only certain Sidekiq job arguments, and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
+
+- **Feature: Report transaction HTTP status codes when middleware instrumentation is disabled**
+  Previously, when `disable_middleware_instrumentation` was set to `true`, the agent would not record the value of the response code or content type on the transaction. This was due to the possibility that a middleware could alter the response, which would not be captured by the agent when the middleware instrumentation was disabled. However, based on customer feedback, the agent will now report the HTTP status code and content type on a transaction when middleware instrumentation is disabled. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+
+- **Feature: Permit capturing only certain Sidekiq job arguments**
+  New `:'sidekiq.args.include'` and `:'sidekiq.args.exclude'` configuration options have been introduced to permit fine grained control over which Sidekiq job arguments (args) are reported to New Relic. By default, no Sidekiq args are reported. To report any Sidekiq options, the `:'attributes.include'` array must include the string `'jobs.sidekiq.args.*'`. With that string in place, all arguments will be reported unless one or more of the new include/exclude options are used. The `:'sidekiq.args.include'` option can be set to an array of strings. Each of those strings will be passed to `Regexp.new` and collectively serve as an allowlist for desired args. For job arguments that are hashes, if a hash's key matches one of the include patterns, then both the key and its corresponding value will be included. For scalar arguments, the string representation of the scalar will need to match one of the include patterns to be captured. The `:'sidekiq.args.exclude'` option works similarly. It can be set to an array of strings that will each be passed to `Regexp.new` to create patterns. These patterns will collectively serve as a denylist for unwanted job args. Any hash key, hash value, or scalar that matches an exclude pattern will be excluded (not sent to New Relic). [PR#2177](https://github.com/newrelic/newrelic-ruby-agent/pull/2177)
+
+  `newrelic.yml` examples:
+
+  Any string in the `:'sidekiq.args.include'` or `:'sidekiq.args.exclude'` arrays will be turned into a regular expression. Knowledge of [Ruby regular expression support](https://ruby-doc.org/3.2.2/Regexp.html) can be leveraged but is not required. If regular expression syntax is not used, inexact matches will be performed and the string "Fortune" will match both "Fortune 500" and "Fortune and Glory". For exact matches, use [regular expression anchors](https://ruby-doc.org/3.2.2/Regexp.html#class-Regexp-label-Anchors).
+
+  ```yaml
+  # Include any argument whose string representation matches either "apple" or "banana"
+  # The "apple" pattern will match both "green apple" and "red apple"
+  sidekiq.args.include:
+    - apple
+    - banana
+
+  # Exclude any arguments that match either "grape", "orange", or "pear"
+  sidekiq.args.exclude:
+    - grape
+    - orange
+    - pear
+
+  # Exclude any argument that is a 9 digit number
+  sidekiq.args.exclude:
+    - '\d{9}'
+
+  # Include anything that starts with "blue" but exclude anything that ends in "green"
+  sidekiq.args.include
+    - '^blue'
+
+  sidekiq.args.exclude
+    - 'green$'
+  ```
+
+- **Bugfix: Resolve inverted logic of NewRelic::Rack::AgentHooks.needed?**
+  Previously, `NewRelic::Rack::AgentHooks.needed?` incorrectly used inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+
+
+## v9.4.2
+
+Version 9.4.2 of the agent re-addresses the 9.4.0 issue of `NoMethodError` seen when using the `uppy-s3_multipart` gem.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.1 attempted to fix a `NoMethodError` introduced in 9.4.0. A missing `require` prevented a method from scoping appropriately and has now been added. Thanks to [@spickermann](https://github.com/spickermann) and [@ColinOrr](https://github.com/ColinOrr) for working with us to get this resolved. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
+## v9.4.1
+
+Version 9.4.1 of the agent resolves a `NoMethodError` introduced in 9.4.0.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.0 introduced [Roda instrumentation](https://github.com/newrelic/newrelic-ruby-agent/pull/2144), which caused a `NoMethodError` to be raised when attempting to name a Roda transaction. This has been fixed. Thanks to [@spickermann](https://github.com/spickermann) for reporting this issue. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
+## v9.4.0
+
+Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
 
 - **Feature: Add Roda instrumentation**
 
