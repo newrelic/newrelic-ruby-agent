@@ -376,8 +376,7 @@ module NewRelic
             return
           end
 
-          label = "set_callback_#{name.split('::').last.downcase.sub(SEGMENT, NewRelic::EMPTY_STR)}".to_sym
-          NewRelic::Agent.record_api_supportability_metric(label)
+          NewRelic::Agent.record_api_supportability_metric(:set_segment_callback)
           instance_variable_set(CALLBACK, callback_proc)
         end
       end

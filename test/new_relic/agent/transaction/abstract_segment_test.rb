@@ -351,6 +351,20 @@ module NewRelic
             basic_segment # this calls BasicSegment.new
           end
         end
+
+        def test_callback_usage_generated_supportability_metrics
+          skip_unless_minitest5_or_above
+
+          metric = NewRelic::SupportabilityHelper::API_SUPPORTABILITY_METRICS[:set_segment_callback]
+          engine_mock = Minitest::Mock.new
+          engine_mock.expect :tl_record_unscoped_metrics, nil, [metric]
+          NewRelic::Agent.instance.stub :stats_engine, engine_mock do
+            BasicSegment.set_segment_callback(-> { Hash[*%w[hello world]] })
+            basic_segment
+          end
+
+          engine_mock.verify
+        end
         # END callbacks
       end
     end
