@@ -19,7 +19,7 @@ module NewRelic
           segment = Tracer.start_segment(name: metric_name(event))
           event.user_data[:newrelic_segment] = segment
         rescue => e
-          NewRelic::Agent.logger.debug("Error starting New Relic Stripe segment: #{e}")
+          NewRelic::Agent.logger.error("Error starting New Relic Stripe segment: #{e}")
         end
 
         def metric_name(event)
@@ -38,7 +38,7 @@ module NewRelic
             segment.finish
           end
         rescue => e
-          NewRelic::Agent.logger.debug("Error finishing New Relic Stripe segment: #{e}")
+          NewRelic::Agent.logger.error("Error finishing New Relic Stripe segment: #{e}")
         end
       end
     end
