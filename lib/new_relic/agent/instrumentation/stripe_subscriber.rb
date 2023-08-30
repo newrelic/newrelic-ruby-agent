@@ -9,12 +9,12 @@ module NewRelic
         DEFAULT_DESTINATIONS = AttributeFilter::DST_SPAN_EVENTS
         EVENT_ATTRIBUTES = %i[http_status method num_retries path request_id].freeze
 
-        def state
-          NewRelic::Agent::Tracer.state
+        def is_execution_traced?
+          NewRelic::Agent::Tracer.state.is_execution_traced?
         end
 
         def start_segment(event)
-          return unless state.is_execution_traced?
+          return unless is_execution_traced?
 
           segment = Tracer.start_segment(name: metric_name(event))
           event.user_data[:newrelic_segment] = segment
@@ -28,7 +28,7 @@ module NewRelic
 
         def finish_segment(event)
           begin
-            return unless state.is_execution_traced?
+            return unless is_execution_traced?
 
             segment = event.user_data[:newrelic_segment]
             EVENT_ATTRIBUTES.each do |attribute|

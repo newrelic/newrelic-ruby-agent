@@ -1597,7 +1597,6 @@ module NewRelic
         },
         :'instrumentation.stripe' => {
           :default => 'enabled',
-          :documentation_default => 'enabled',
           :public => true,
           :type => String,
           :allowed_from_server => false,

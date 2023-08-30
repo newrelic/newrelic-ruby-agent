@@ -21,7 +21,8 @@ DependencyDetection.defer do
   end
 
   executes do
-    Stripe::Instrumentation.subscribe(:request_begin) { |event| NewRelic::Agent::Instrumentation::StripeSubscriber.new.start_segment(event) }
-    Stripe::Instrumentation.subscribe(:request_end) { |event| NewRelic::Agent::Instrumentation::StripeSubscriber.new.finish_segment(event) }
+    newrelic_subscriber = NewRelic::Agent::Instrumentation::StripeSubscriber.new
+    Stripe::Instrumentation.subscribe(:request_begin) { |event| newrelic_subscriber.start_segment(event) }
+    Stripe::Instrumentation.subscribe(:request_end) { |event| newrelic_subscriber.finish_segment(event) }
   end
 end
