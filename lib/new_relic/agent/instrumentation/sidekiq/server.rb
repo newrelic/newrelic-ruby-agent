@@ -23,7 +23,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
 
       perform_action_with_newrelic_trace(trace_args) do
         NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
-          NewRelic::Agent::AttributeProcessing.pre_filter(msg['args'], self.class.nr_attribute_options),
+          NewRelic::Agent::AttributePreFiltering.pre_filter(msg['args'], self.class.nr_attribute_options),
           ATTRIBUTE_JOB_NAMESPACE,
           NewRelic::Agent::AttributeFilter::DST_NONE
         )
@@ -48,7 +48,7 @@ module NewRelic::Agent::Instrumentation::Sidekiq
       @nr_attribute_options ||= begin
         ATTRIBUTE_FILTER_TYPES.each_with_object({}) do |type, opts|
           pattern =
-            NewRelic::Agent::AttributeProcessing.formulate_regexp_union(:"#{ATTRIBUTE_BASE_NAMESPACE}.#{type}")
+            NewRelic::Agent::AttributePreFiltering.formulate_regexp_union(:"#{ATTRIBUTE_BASE_NAMESPACE}.#{type}")
           opts[type] = pattern if pattern
         end.merge(attribute_namespace: ATTRIBUTE_JOB_NAMESPACE)
       end
