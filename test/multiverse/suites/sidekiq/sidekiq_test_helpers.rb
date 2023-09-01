@@ -70,9 +70,18 @@ module SidekiqTestHelpers
       cli = Sidekiq::CLI.instance
       cli.parse(['--require', File.absolute_path(__FILE__), '--queue', 'default,1'])
       cli.logger.instance_variable_get(:@logdev).instance_variable_set(:@dev, File.new('/dev/null', 'w'))
-      cli.instance_variable_set(:@config, Sidekiq::Config.new) unless cli.respond_to?(:config) && cli.config
+      ensure_sidekiq_config(cli)
       cli
     end
+  end
+
+  def ensure_sidekiq_config(cli)
+    return unless Sidekiq::VERSION.split('.').first.to_i >= 7
+    return unless cli.respond_to?(:config)
+    return unless cli.config.nil?
+
+    require 'sidekiq/config'
+    cli.instance_variable_set(:@config, ::Sidekiq::Config.new)
   end
 
   def flatten(object)
