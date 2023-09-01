@@ -14,9 +14,6 @@ SIDEKIQ_VERSIONS = [
 
 def gem_list(sidekiq_version = nil)
   <<-RB
-    gem 'rack', "~> 2.2.4"
-    gem 'json'
-    #{ruby3_gem_sorted_set}
     gem 'sidekiq'#{sidekiq_version}
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
