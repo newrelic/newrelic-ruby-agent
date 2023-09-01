@@ -1607,7 +1607,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Stripe at start up. May be one of: `enabled`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Stripe at startup. May be one of: `enabled`, `disabled`.'
         },
         :'stripe.user_data.include' => {
           default: NewRelic::EMPTY_ARRAY,
@@ -1619,7 +1619,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported
             to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
-            permit advanced matching. Setting the value to `"."` will report all `user_data`.
+            permit advanced matching. Setting the value to `["."]` will report all `user_data`.
           DESCRIPTION
         },
         :'stripe.user_data.exclude' => {
@@ -1632,7 +1632,8 @@ module NewRelic
           :description => <<~DESCRIPTION
             An array of strings to specify which keys inside a Stripe event's `user_data` hash should not be reported
             to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
-            permit advanced matching. By default, no `user_data` is reported.
+            permit advanced matching. By default, no `user_data` is reported, so this option should only be used if 
+            the `stripe.user_data.include` option is being used.
           DESCRIPTION
         },
         :'instrumentation.thread' => {

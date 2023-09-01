@@ -24,5 +24,7 @@ DependencyDetection.defer do
     newrelic_subscriber = NewRelic::Agent::Instrumentation::StripeSubscriber.new
     Stripe::Instrumentation.subscribe(:request_begin) { |event| newrelic_subscriber.start_segment(event) }
     Stripe::Instrumentation.subscribe(:request_end) { |event| newrelic_subscriber.finish_segment(event) }
+  rescue => e
+    NewRelic::Agent.logger.error("Error subscribing to Stripe event: #{e}")
   end
 end
