@@ -1609,6 +1609,32 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Stripe at start up. May be one of: `enabled`, `disabled`.'
         },
+        :'stripe.user_data.include' => {
+          default: NewRelic::EMPTY_ARRAY,
+          public: true,
+          type: Array,
+          dynamic_name: true,
+          allowed_from_server: false,
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => <<~DESCRIPTION
+            An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported
+            to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
+            permit advanced matching. Setting the value to '.' will report all `user_data`.
+          DESCRIPTION
+        },
+        :'stripe.user_data.exclude' => {
+          default: NewRelic::EMPTY_ARRAY,
+          public: true,
+          type: Array,
+          dynamic_name: true,
+          allowed_from_server: false,
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => <<~DESCRIPTION
+            An array of strings to specify which keys inside a Stripe event's `user_data` hash should not be reported
+            to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
+            permit advanced matching. By default, no `user_data` is reported.
+          DESCRIPTION
+        },
         :'instrumentation.thread' => {
           :default => 'auto',
           :public => true,
