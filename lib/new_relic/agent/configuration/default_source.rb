@@ -1619,7 +1619,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported
             to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
-            permit advanced matching. Setting the value to '.' will report all `user_data`.
+            permit advanced matching. Setting the value to `"."` will report all `user_data`.
           DESCRIPTION
         },
         :'stripe.user_data.exclude' => {
