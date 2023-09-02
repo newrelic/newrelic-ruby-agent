@@ -9,7 +9,7 @@ end
 SIDEKIQ_VERSIONS = [
   [nil, 2.7],
   ['6.4.0', 2.5],
-  ['5.0.3', 2.4]
+  ['5.0.3', 2.4, 2.5]
 ]
 
 def gem_list(sidekiq_version = nil)
