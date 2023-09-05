@@ -18,7 +18,7 @@ module NewRelic
         def start_segment(event)
           return unless is_execution_traced?
 
-          segment = Tracer.start_segment(name: metric_name(event))
+          segment = NewRelic::Agent::Tracer.start_segment(name: metric_name(event))
           event.user_data[:newrelic_segment] = segment
         rescue => e
           NewRelic::Agent.logger.error("Error starting New Relic Stripe segment: #{e}")
