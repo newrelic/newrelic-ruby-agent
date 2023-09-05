@@ -10,9 +10,11 @@ class ExternalRequestFromWithinARBlockTest < Minitest::Test
   # callback will be called and it will check to see if the external request
   # segment has been created from within an ActiveRecord transaction block.
   # If that check succeeds, generate an error and have the agent notice it.
+  #
+  # https://github.com/newrelic/newrelic-ruby-agent/issues/1556
   def test_callback_to_notice_error_if_an_external_request_is_made_within_an_ar_block
     callback = proc do
-      return unless caller.any? { |line| line.match?(%r{active_record/transactions.rb}) }
+      return unless ActiveRecord::Base.connection.transaction_open?
 
       caller = respond_to?(:name) ? name : '(unknown)'
       klass = respond_to?(:class) ? self.class.name : '(unknown)'
