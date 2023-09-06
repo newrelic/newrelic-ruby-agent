@@ -123,6 +123,6 @@ class ConcurrentRubyInstrumentationTest < Minitest::Test
       Concurrent::Promises.future { 'two-banana' }
     end
 
-    assert_metrics_recorded(NewRelic::Agent::Instrumentation::ConcurrentRuby::SUPPORTABILITY_METRIC)
+    assert_metrics_recorded('Supportability/ConcurrentRuby/Invoked')
   end
 end

@@ -11,6 +11,8 @@ module NewRelic
         module Server
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
+          INSTRUMENTATION_NAME = 'GRPCServer'
+
           DT_KEYS = [NewRelic::NEWRELIC_KEY, NewRelic::TRACEPARENT_KEY, NewRelic::TRACESTATE_KEY].freeze
           INSTANCE_VAR_HOST = :@host_nr
           INSTANCE_VAR_PORT = :@port_nr
@@ -22,6 +24,8 @@ module NewRelic
 
           def handle_with_tracing(streamer_type, active_call, mth, _inter_ctx)
             return yield unless trace_with_newrelic?
+
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
             metadata = metadata_for_call(active_call)
             txn = NewRelic::Agent::Transaction.start_new_transaction(NewRelic::Agent::Tracer.state,

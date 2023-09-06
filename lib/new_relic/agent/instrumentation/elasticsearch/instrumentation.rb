@@ -8,9 +8,12 @@ module NewRelic::Agent::Instrumentation
   module Elasticsearch
     PRODUCT_NAME = 'Elasticsearch'
     OPERATION = 'perform_request'
+    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
     def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
+
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,

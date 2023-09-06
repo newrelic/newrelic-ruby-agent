@@ -6,6 +6,8 @@ module NewRelic
   module Agent
     module Instrumentation
       module Logger
+        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
         def skip_instrumenting?
           defined?(@skip_instrumenting) && @skip_instrumenting
         end
@@ -51,6 +53,7 @@ module NewRelic
             mark_skip_instrumenting
 
             unless ::NewRelic::Agent.agent.nil?
+              ::NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
               ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity)
               formatted_message = LocalLogDecorator.decorate(formatted_message)
             end

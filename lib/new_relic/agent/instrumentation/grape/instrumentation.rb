@@ -9,6 +9,8 @@ module NewRelic::Agent::Instrumentation
     module Instrumentation
       extend self
 
+      INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
       # Since 1.2.0, the class `Grape::API` no longer refers to an API instance, rather, what used to be `Grape::API` is `Grape::API::Instance`
       # https://github.com/ruby-grape/grape/blob/c20a73ac1e3f3ba1082005ed61bf69452373ba87/UPGRADING.md#upgrading-to--120
       def instrumented_class
@@ -45,6 +47,8 @@ module NewRelic::Agent::Instrumentation
 
       def handle_transaction(endpoint, class_name, version)
         return unless endpoint && route = endpoint.route
+
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
         name_transaction(route, class_name, version)
         capture_params(endpoint)

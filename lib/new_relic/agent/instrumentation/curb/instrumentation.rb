@@ -15,6 +15,8 @@ module NewRelic
             :_nr_original_on_failure,
             :_nr_serial
 
+          INSTRUMENTATION_NAME = 'Curb'
+
           # We have to hook these three methods separately, as they don't use
           # Curl::Easy#http
           def http_head_with_tracing
@@ -80,6 +82,8 @@ module NewRelic
           # Trace as an External/Multiple call if the first request isn't serial.
           def perform_with_tracing
             return yield if first_request_is_serial?
+
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
             trace_execution_scoped('External/Multiple/Curb::Multi/perform') do
               yield

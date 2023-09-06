@@ -214,6 +214,17 @@ module NewRelic
       record_metric(metric_name, value)
     end
 
+    def record_instrumentation_invocation(library)
+      record_metric_once("Supportability/#{library}/Invoked")
+    end
+
+    # see ActiveSupport::Inflector.demodulize
+    def base_name(klass_name)
+      return klass_name unless ridx = klass_name.rindex('::')
+
+      klass_name[(ridx + 2), klass_name.length]
+    end
+
     SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
 
     # Increment a simple counter metric.
