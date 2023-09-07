@@ -13,7 +13,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Stripe) &&
-      Gem::Version.new(Stripe::VERSION) >= Gem::Version.new('5.15.0') # Stripe subscribers added 5.15.0
+      Gem::Version.new(Stripe::VERSION) >= Gem::Version.new('5.38.0') # Stripe subscribers added 5.15.0
   end
 
   executes do

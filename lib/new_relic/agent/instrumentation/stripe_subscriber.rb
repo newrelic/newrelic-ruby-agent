@@ -35,6 +35,8 @@ module NewRelic
         end
 
         def add_custom_attributes(segment, event)
+          return if NewRelic::Agent.config[:'stripe.user_data.include'].empty?
+
           event.user_data.delete(:newrelic_segment)
           filtered_attributes = NewRelic::Agent::AttributePreFiltering.pre_filter_hash(event.user_data, nr_attribute_options)
           filtered_attributes.each do |key, value|
