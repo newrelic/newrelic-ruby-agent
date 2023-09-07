@@ -146,7 +146,7 @@ class StripeInstrumentation < Minitest::Test
   def test_start_segment_records_error
     NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
       bad_event = OpenStruct.new(path: 'v1/charges', method: 'get')
-      newrelic_subscriber = NewRelic::Agent::Instrumentation::StripeSubscriber.new.start_segment(bad_event)
+      NewRelic::Agent::Instrumentation::StripeSubscriber.new.start_segment(bad_event)
 
       assert_logged(/Error starting New Relic Stripe segment/m)
     end
