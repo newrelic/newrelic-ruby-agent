@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module Instrumentation
       module Logger
-        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+        INSTRUMENTATION_NAME = 'Logger'
 
         def skip_instrumenting?
           defined?(@skip_instrumenting) && @skip_instrumenting
