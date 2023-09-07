@@ -15,8 +15,6 @@ module NewRelic
             :_nr_original_on_failure,
             :_nr_serial
 
-          INSTRUMENTATION_NAME = 'Curb'
-
           # We have to hook these three methods separately, as they don't use
           # Curl::Easy#http
           def http_head_with_tracing
@@ -69,6 +67,8 @@ module NewRelic
 
         module Multi
           include NewRelic::Agent::MethodTracer
+
+          INSTRUMENTATION_NAME = 'Curb'
 
           # Add CAT with callbacks if the request is serial
           def add_with_tracing(curl)

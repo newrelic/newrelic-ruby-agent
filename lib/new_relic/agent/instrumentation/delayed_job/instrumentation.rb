@@ -6,8 +6,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module DelayedJob
-        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
-
         def initialize_with_tracing
           yield
           worker_name = case
@@ -33,6 +31,7 @@ module NewRelic
         include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
         NR_TRANSACTION_CATEGORY = 'OtherTransaction/DelayedJob'.freeze
+        INSTRUMENTATION_NAME = 'DelayedJob'
 
         def invoke_job_with_tracing
           NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
