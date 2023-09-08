@@ -11,7 +11,7 @@ module NewRelic
         module Server
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
-          INSTRUMENTATION_NAME = 'GRPCServer'
+          INSTRUMENTATION_NAME = 'gRPC_Server'
 
           DT_KEYS = [NewRelic::NEWRELIC_KEY, NewRelic::TRACEPARENT_KEY, NewRelic::TRACESTATE_KEY].freeze
           INSTANCE_VAR_HOST = :@host_nr

@@ -13,7 +13,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    supportability_name = 'gRPC_Client'
+    supportability_name = NewRelic::Agent::Instrumentation::GRPC::Client::INSTRUMENTATION_NAME
     if use_prepend?
       prepend_instrument GRPC::ClientStub, NewRelic::Agent::Instrumentation::GRPC::Client::Prepend, supportability_name
     else

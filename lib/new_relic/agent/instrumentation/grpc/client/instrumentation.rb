@@ -12,7 +12,7 @@ module NewRelic
         module Client
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
-          INSTRUMENTATION_NAME = 'GRPCClient'
+          INSTRUMENTATION_NAME = 'gRPC_Client'
 
           def issue_request_with_tracing(grpc_type, method, requests, marshal, unmarshal,
             deadline:, return_op:, parent:, credentials:, metadata:)
