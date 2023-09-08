@@ -27,7 +27,7 @@ class StripeInstrumentation < Minitest::Test
   end
 
   def test_version_supported
-    assert(Gem::Version.new(Stripe::VERSION) >= '5.38.0')
+    assert(Gem::Version.new(Stripe::VERSION) >= Gem::Version.new('5.38.0'))
   end
 
   def test_subscribed_request_begin
