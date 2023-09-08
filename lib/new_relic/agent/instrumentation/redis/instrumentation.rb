@@ -6,6 +6,8 @@ require_relative 'constants'
 
 module NewRelic::Agent::Instrumentation
   module Redis
+    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
     def connect_with_tracing
       with_tracing(Constants::CONNECT, database: db) { yield }
     end
@@ -43,6 +45,8 @@ module NewRelic::Agent::Instrumentation
     private
 
     def with_tracing(operation, statement: nil, database: nil)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: Constants::PRODUCT_NAME,
         operation: operation,

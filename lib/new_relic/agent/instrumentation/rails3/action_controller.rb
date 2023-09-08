@@ -9,6 +9,8 @@ module NewRelic
     module Instrumentation
       module Rails3
         module ActionController
+          INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
           # determine the path that is used in the metric name for
           # the called controller action
           def newrelic_metric_path(action_name_override = nil)
@@ -21,6 +23,8 @@ module NewRelic
           end
 
           def process_action(*args) # THREAD_LOCAL_ACCESS
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
             munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(request.filtered_parameters)
             perform_action_with_newrelic_trace(:category => :controller,
               :name => self.action_name,

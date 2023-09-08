@@ -10,10 +10,13 @@ module NewRelic::Agent::Instrumentation::Sidekiq
     ATTRIBUTE_BASE_NAMESPACE = 'sidekiq.args'
     ATTRIBUTE_FILTER_TYPES = %i[include exclude].freeze
     ATTRIBUTE_JOB_NAMESPACE = :"job.#{ATTRIBUTE_BASE_NAMESPACE}"
+    INSTRUMENTATION_NAME = 'SidekiqServer'
 
     # Client middleware has additional parameters, and our tests use the
     # middleware client-side to work inline.
     def call(worker, msg, queue, *_)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       trace_args = if worker.respond_to?(:newrelic_trace_args)
         worker.newrelic_trace_args(msg, queue)
       else

@@ -8,8 +8,8 @@ module NewRelic
       module Typhoeus
         HYDRA_SEGMENT_NAME = 'External/Multiple/Typhoeus::Hydra/run'
         NOTICEABLE_ERROR_CLASS = 'Typhoeus::Errors::TyphoeusError'
-
         EARLIEST_VERSION = Gem::Version.new('0.5.3')
+        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
         def self.is_supported_version?
           Gem::Version.new(::Typhoeus::VERSION) >= EARLIEST_VERSION
@@ -31,6 +31,8 @@ module NewRelic
         end
 
         def with_tracing
+          NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
           segment = NewRelic::Agent::Tracer.start_segment(name: HYDRA_SEGMENT_NAME)
           instance_variable_set(:@__newrelic_hydra_segment, segment)
           begin
@@ -41,6 +43,8 @@ module NewRelic
         end
 
         def self.trace(request)
+          NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
           state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 
