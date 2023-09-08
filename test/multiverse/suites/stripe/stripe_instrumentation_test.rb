@@ -106,7 +106,8 @@ class StripeInstrumentation < Minitest::Test
       events.user_data[:bird] = 'tweet'
     end
 
-    with_config(:'stripe.user_data.exclude' => 'bird') do
+    with_config('stripe.user_data.include': %w[.],
+      'stripe.user_data.exclude': %w[bird]) do
       with_stubbed_connection_manager do
         in_transaction do |txn|
           start_stripe_event
@@ -116,6 +117,29 @@ class StripeInstrumentation < Minitest::Test
           stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
 
           assert_nil(stripe_attributes['stripe_user_data_bird'])
+        end
+      end
+    end
+  end
+
+  def test_agent_ignores_user_data_values
+    Stripe::Instrumentation.subscribe(:request_begin) do |events|
+      events.user_data[:contact_name] = 'Jenny'
+      events.user_data[:contact_phone] = '867-5309'
+    end
+
+    with_config('stripe.user_data.include': %w[.],
+      'stripe.user_data.exclude': ['^\d{3}-\d{4}$']) do
+      with_stubbed_connection_manager do
+        in_transaction do |txn|
+          start_stripe_event
+          stripe_segment = stripe_segment_from_transaction(txn)
+
+          assert(stripe_segment)
+          stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+
+          assert(stripe_attributes['stripe_user_data_contact_name'])
+          assert_nil(stripe_attributes['stripe_user_data_contact_phone'])
         end
       end
     end
