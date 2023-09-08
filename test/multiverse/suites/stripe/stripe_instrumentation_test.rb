@@ -8,6 +8,7 @@ require 'net/http'
 
 class StripeInstrumentation < Minitest::Test
   API_KEY = '123456789'
+  STRIPE_URL = 'Stripe/v1/customers/get'
 
   def setup
     Stripe.api_key = API_KEY
@@ -21,12 +22,12 @@ class StripeInstrumentation < Minitest::Test
       object: 'list',
       data: [{'id': '12134'}],
       has_more: false,
-      url: '/v1/charges'
+      url: STRIPE_URL
     }.to_json
   end
 
   def test_version_supported
-    assert(Stripe::VERSION >= '5.38.0')
+    assert(Gem::Version.new(Stripe::VERSION) >= '5.38.0')
   end
 
   def test_subscribed_request_begin
@@ -44,14 +45,12 @@ class StripeInstrumentation < Minitest::Test
   end
 
   def test_newrelic_segment
-    Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-      @connection.stub(:execute_request, @response) do
-        in_transaction do |txn|
-          Stripe::Customer.list({limit: 3})
-          stripe_segment = txn.segments.detect { |s| s.name == 'Stripe/v1/customers get' }
+    with_stubbed_connection_manager do
+      in_transaction do |txn|
+        start_stripe_event
+        stripe_segment = stripe_segment_from_transaction(txn)
 
-          assert(stripe_segment)
-        end
+        assert(stripe_segment)
       end
     end
   end
@@ -63,18 +62,16 @@ class StripeInstrumentation < Minitest::Test
     end
 
     with_config(:'stripe.user_data.include' => '.') do
-      Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-        @connection.stub(:execute_request, @response) do
-          in_transaction do |txn|
-            Stripe::Customer.list({limit: 3}) # Start a Stripe event
-            stripe_segment = txn.segments.detect { |s| s.name == 'Stripe/v1/customers get' }
+      with_stubbed_connection_manager do
+        in_transaction do |txn|
+          start_stripe_event
+          stripe_segment = stripe_segment_from_transaction(txn)
 
-            assert(stripe_segment)
-            stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          assert(stripe_segment)
+          stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
 
-            assert_equal('meow', stripe_attributes['stripe_user_data_cat'])
-            assert_equal('woof', stripe_attributes['stripe_user_data_dog'])
-          end
+          assert_equal('meow', stripe_attributes['stripe_user_data_cat'])
+          assert_equal('woof', stripe_attributes['stripe_user_data_dog'])
         end
       end
     end
@@ -88,19 +85,17 @@ class StripeInstrumentation < Minitest::Test
     end
 
     with_config(:'stripe.user_data.include' => 'frog, sheep') do
-      Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-        @connection.stub(:execute_request, @response) do
-          in_transaction do |txn|
-            Stripe::Customer.list({limit: 3}) # Start a Stripe event
-            stripe_segment = txn.segments.detect { |s| s.name == 'Stripe/v1/customers get' }
+      with_stubbed_connection_manager do
+        in_transaction do |txn|
+          start_stripe_event
+          stripe_segment = stripe_segment_from_transaction(txn)
 
-            assert(stripe_segment)
-            stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          assert(stripe_segment)
+          stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
 
-            assert_equal('ribbit', stripe_attributes['stripe_user_data_frog'])
-            assert_equal('baa', stripe_attributes['stripe_user_data_sheep'])
-            assert_nil(stripe_attributes['stripe_user_data_cow'])
-          end
+          assert_equal('ribbit', stripe_attributes['stripe_user_data_frog'])
+          assert_equal('baa', stripe_attributes['stripe_user_data_sheep'])
+          assert_nil(stripe_attributes['stripe_user_data_cow'])
         end
       end
     end
@@ -112,32 +107,28 @@ class StripeInstrumentation < Minitest::Test
     end
 
     with_config(:'stripe.user_data.exclude' => 'bird') do
-      Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-        @connection.stub(:execute_request, @response) do
-          in_transaction do |txn|
-            Stripe::Customer.list({limit: 3})
-            stripe_segment = txn.segments.detect { |s| s.name == 'Stripe/v1/customers get' }
+      with_stubbed_connection_manager do
+        in_transaction do |txn|
+          start_stripe_event
+          stripe_segment = stripe_segment_from_transaction(txn)
 
-            assert(stripe_segment)
-            stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          assert(stripe_segment)
+          stripe_attributes = stripe_segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
 
-            assert_nil(stripe_attributes['stripe_user_data_bird'])
-          end
+          assert_nil(stripe_attributes['stripe_user_data_bird'])
         end
       end
     end
   end
 
   def test_start_when_not_traced
-    Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-      @connection.stub(:execute_request, @response) do
-        NewRelic::Agent::Tracer.state.stub(:is_execution_traced?, false) do
-          in_transaction do |txn|
-            Stripe::Customer.list({limit: 3})
-            stripe_segment = txn.segments.detect { |s| s.name == 'Stripe/v1/customers get' }
+    with_stubbed_connection_manager do
+      NewRelic::Agent::Tracer.state.stub(:is_execution_traced?, false) do
+        in_transaction do |txn|
+          start_stripe_event
+          stripe_segment = stripe_segment_from_transaction(txn)
 
-            assert_empty txn.segments
-          end
+          refute stripe_segment
         end
       end
     end
@@ -149,6 +140,22 @@ class StripeInstrumentation < Minitest::Test
       NewRelic::Agent::Instrumentation::StripeSubscriber.new.start_segment(bad_event)
 
       assert_logged(/Error starting New Relic Stripe segment/m)
+    end
+  end
+
+  def start_stripe_event
+    Stripe::Customer.list({limit: 3})
+  end
+
+  def stripe_segment_from_transaction(txn)
+    txn.segments.detect { |s| s.name == STRIPE_URL }
+  end
+
+  def with_stubbed_connection_manager(&block)
+    Stripe::StripeClient.stub(:default_connection_manager, @connection) do
+      @connection.stub(:execute_request, @response) do
+        yield
+      end
     end
   end
 
