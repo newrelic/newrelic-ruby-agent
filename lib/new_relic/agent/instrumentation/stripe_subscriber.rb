@@ -11,10 +11,6 @@ module NewRelic
         ATTRIBUTE_NAMESPACE = 'stripe.user_data'
         ATTRIBUTE_FILTER_TYPES = %i[include exclude].freeze
 
-        def is_execution_traced?
-          NewRelic::Agent::Tracer.state.is_execution_traced?
-        end
-
         def start_segment(event)
           return unless is_execution_traced?
 
@@ -24,8 +20,26 @@ module NewRelic
           NewRelic::Agent.logger.error("Error starting New Relic Stripe segment: #{e}")
         end
 
+        def finish_segment(event)
+          return unless is_execution_traced?
+
+          segment = remove_and_return_nr_segment(event)
+          add_stripe_attributes(segment, event)
+          add_custom_attributes(segment, event)
+        rescue => e
+          NewRelic::Agent.logger.error("Error finishing New Relic Stripe segment: #{e}")
+        ensure
+          segment&.finish
+        end
+
+        private
+
+        def is_execution_traced?
+          NewRelic::Agent::Tracer.state.is_execution_traced?
+        end
+
         def metric_name(event)
-          "Stripe#{event.path} #{event.method}"
+          "Stripe#{event.path}/#{event.method}"
         end
 
         def add_stripe_attributes(segment, event)
@@ -37,7 +51,6 @@ module NewRelic
         def add_custom_attributes(segment, event)
           return if NewRelic::Agent.config[:'stripe.user_data.include'].empty?
 
-          event.user_data.delete(:newrelic_segment)
           filtered_attributes = NewRelic::Agent::AttributePreFiltering.pre_filter_hash(event.user_data, nr_attribute_options)
           filtered_attributes.each do |key, value|
             segment.add_agent_attribute("stripe_user_data_#{key}", value, DEFAULT_DESTINATIONS)
@@ -52,18 +65,11 @@ module NewRelic
           end
         end
 
-        def finish_segment(event)
-          begin
-            return unless is_execution_traced?
+        def remove_and_return_nr_segment(event)
+          segment = event.user_data[:newrelic_segment]
+          event.user_data.delete(:newrelic_segment)
 
-            segment = event.user_data[:newrelic_segment]
-            add_stripe_attributes(segment, event)
-            add_custom_attributes(segment, event)
-          ensure
-            segment.finish
-          end
-        rescue => e
-          NewRelic::Agent.logger.error("Error finishing New Relic Stripe segment: #{e}")
+          segment
         end
       end
     end
