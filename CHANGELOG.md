@@ -2,15 +2,18 @@
 
 ## dev
 
-Version <dev> introduces Stripe instrumentation, allows the agent to record additional response information on a transaction when middleware instrumentation is disabled, introduces new `:'sidekiq.args.include'` and `:'sidekiq.args.exclude:` configuration options to permit capturing only certain Sidekiq job arguments, and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
+Version <dev> introduces Stripe instrumentation, allows the agent to record additional response information on a transaction when middleware instrumentation is disabled, introduces new `:'sidekiq.args.include'` and `:'sidekiq.args.exclude:` configuration options to permit capturing only certain Sidekiq job arguments, updates Elasticsearch datastore instance metrics, and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
 
 - **Feature: Add Stripe instrumentation**
+
   [Stripe](https://stripe.com/) calls are now automatically instrumented. Additionally, new `:'stripe.user_data.include'` and `:'stripe.user_data.exclude'` configuration options permit capturing custom `user_data` key-value pairs that can be stored in [Stripe events](https://github.com/stripe/stripe-ruby#instrumentation). No `user_data` key-value pairs are captured by default. The agent currently supports Stripe versions 5.38.0+. [PR#2180](https://github.com/newrelic/newrelic-ruby-agent/pull/2180)
 
 - **Feature: Report transaction HTTP status codes when middleware instrumentation is disabled**
+
   Previously, when `disable_middleware_instrumentation` was set to `true`, the agent would not record the value of the response code or content type on the transaction. This was due to the possibility that a middleware could alter the response, which would not be captured by the agent when the middleware instrumentation was disabled. However, based on customer feedback, the agent will now report the HTTP status code and content type on a transaction when middleware instrumentation is disabled. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
 
 - **Feature: Permit capturing only certain Sidekiq job arguments**
+
   New `:'sidekiq.args.include'` and `:'sidekiq.args.exclude'` configuration options have been introduced to permit fine grained control over which Sidekiq job arguments (args) are reported to New Relic. By default, no Sidekiq args are reported. To report any Sidekiq options, the `:'attributes.include'` array must include the string `'jobs.sidekiq.args.*'`. With that string in place, all arguments will be reported unless one or more of the new include/exclude options are used. The `:'sidekiq.args.include'` option can be set to an array of strings. Each of those strings will be passed to `Regexp.new` and collectively serve as an allowlist for desired args. For job arguments that are hashes, if a hash's key matches one of the include patterns, then both the key and its corresponding value will be included. For scalar arguments, the string representation of the scalar will need to match one of the include patterns to be captured. The `:'sidekiq.args.exclude'` option works similarly. It can be set to an array of strings that will each be passed to `Regexp.new` to create patterns. These patterns will collectively serve as a denylist for unwanted job args. Any hash key, hash value, or scalar that matches an exclude pattern will be excluded (not sent to New Relic). [PR#2177](https://github.com/newrelic/newrelic-ruby-agent/pull/2177)
 
   `newrelic.yml` examples:
@@ -42,7 +45,12 @@ Version <dev> introduces Stripe instrumentation, allows the agent to record addi
     - 'green$'
   ```
 
+- **Bugfix: Update Elasticsearch datastore instance metric to use port instead of path**
+
+  Previously, the Elasticsearch datastore instance metric (`Datastore/instance/Elasticsearch/<host>/*`) used the path as the final value. This caused a [metrics grouping issue](https://docs.newrelic.com/docs/new-relic-solutions/solve-common-issues/troubleshooting/metric-grouping-issues) for some users, as every document ID created a unique metric. Now, the datastore instance metric has been updated to use the port as the final value. This also has the benefit of being more accurate for datastore instance metrics, as this port is directly associated with the already listed host.
+
 - **Bugfix: Resolve inverted logic of NewRelic::Rack::AgentHooks.needed?**
+
   Previously, `NewRelic::Rack::AgentHooks.needed?` incorrectly used inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
 
 
@@ -73,19 +81,19 @@ Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrument
 - **Feature: New allow_all_headers configuration option**
 
   A new `allow_all_headers` configuration option brings parity with the [Node.js agent](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/) to capture all HTTP request headers.
-  
+
   This configuration option:
     * Defaults to `false`
     * Is not compatible with high security mode
-    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above) 
+    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above)
     * Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
     * Captures the additional headers as attributes prefixed with `request.headers.`
-  
+
   This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
 
 - **Feature: Improved error tracking transaction linking**
 
-  Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035) 
+  Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035)
 
 - **Feature: Use Net::HTTP native timeout logic**
 
