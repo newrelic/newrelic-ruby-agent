@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
         product: PRODUCT_NAME,
         operation: nr_operation || OPERATION,
         host: nr_hosts[:host],
-        port_path_or_id: path,
+        port_path_or_id: nr_hosts[:port],
         database_name: nr_cluster_name
       )
       begin
