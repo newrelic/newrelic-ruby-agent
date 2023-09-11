@@ -38,6 +38,11 @@ module NewRelic
       SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'
       SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'
       SYNTHETICS_MONITOR_ID_KEY = 'nr.syntheticsMonitorId'
+      SYNTHETICS_TYPE_KEY = 'nr.syntheticsType'
+      SYNTHETICS_INITIATOR_KEY = 'nr.syntheticsInitiator'
+      SYNTHETICS_KEY_PREFIX = 'nr.synthetics'
+
+      SYNTHETICS_PAYLOAD_EXPECTED = [:synthetics_resource_id, :synthetics_job_id, :synthetics_monitor_id, :synthetics_type, :synthetics_initiator]
 
       def create(payload)
         intrinsics = {
@@ -71,7 +76,21 @@ module NewRelic
         optionally_append(SYNTHETICS_RESOURCE_ID_KEY, :synthetics_resource_id, sample, payload)
         optionally_append(SYNTHETICS_JOB_ID_KEY, :synthetics_job_id, sample, payload)
         optionally_append(SYNTHETICS_MONITOR_ID_KEY, :synthetics_monitor_id, sample, payload)
+        optionally_append(SYNTHETICS_TYPE_KEY, :synthetics_type, sample, payload)
+        optionally_append(SYNTHETICS_INITIATOR_KEY, :synthetics_initatior, sample, payload)
+        append_synthetics_info_attributes(sample, payload)
         append_cat_alternate_path_hashes(sample, payload)
+      end
+
+      def append_synthetics_info_attributes(sample, payload)
+        return unless payload.include?(:synthetics_job_id)
+
+        payload.each do |k, v|
+          next unless k.to_s.start_with?('synthetics_') && !SYNTHETICS_PAYLOAD_EXPECTED.include?(k)
+
+          new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.to_s.gsub('synthetics_', ''))
+          sample[new_key] = v
+        end
       end
 
       def append_cat_alternate_path_hashes(sample, payload)
