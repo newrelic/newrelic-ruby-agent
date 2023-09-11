@@ -14,6 +14,7 @@ module NewRelic
       # @api public
       class ExternalRequestSegment < Segment
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'
+        NR_SYNTHETICS_INFO_HEADER = 'X-NewRelic-Synthetics-Info'
         APP_DATA_KEY = 'NewRelicAppData'
 
         EXTERNAL_ALL = 'External/all'
@@ -63,13 +64,15 @@ module NewRelic
         def add_request_headers(request)
           process_host_header(request)
           synthetics_header = transaction&.raw_synthetics_header
-          insert_synthetics_header(request, synthetics_header) if synthetics_header
+          synthetics_info_header = transaction&.raw_synthetics_info_header
+          insert_synthetics_header(request, synthetics_header, synthetics_info_header) if synthetics_header
 
           return unless record_metrics?
 
           transaction.distributed_tracer.insert_headers(request)
         rescue => e
           NewRelic::Agent.logger.error('Error in add_request_headers', e)
+          puts e
         end
 
         # This method extracts app data from an external response if present. If
@@ -207,8 +210,9 @@ module NewRelic
           end
         end
 
-        def insert_synthetics_header(request, header)
+        def insert_synthetics_header(request, header, info)
           request[NR_SYNTHETICS_HEADER] = header
+          request[NR_SYNTHETICS_INFO_HEADER] = info if info
         end
 
         def segment_complete
