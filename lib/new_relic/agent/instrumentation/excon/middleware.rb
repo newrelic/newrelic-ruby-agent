@@ -6,6 +6,7 @@ module ::Excon
   module Middleware
     class NewRelicCrossAppTracing
       TRACE_DATA_IVAR = :@newrelic_trace_data
+      INSTRUMENTATION_NAME = 'Excon'
 
       def initialize(stack)
         @stack = stack
@@ -18,6 +19,8 @@ module ::Excon
           # :idempotent in the options, but there will be only a single
           # accompanying response_call/error_call.
           if datum[:connection] && !datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
             wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(datum)
             segment = NewRelic::Agent::Tracer.start_external_request_segment(
               library: wrapped_request.type,

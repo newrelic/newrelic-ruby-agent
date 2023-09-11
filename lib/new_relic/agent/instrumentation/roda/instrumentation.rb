@@ -7,6 +7,8 @@ module NewRelic::Agent::Instrumentation
     module Tracer
       include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+      INSTRUMENTATION_NAME = 'Roda'
+
       def self.included(clazz)
         clazz.extend(self)
       end
@@ -39,6 +41,8 @@ module NewRelic::Agent::Instrumentation
       end
 
       def _roda_handle_main_route_with_tracing(*args)
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
         perform_action_with_newrelic_trace(
           category: :roda,
           name: ::NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name(request),

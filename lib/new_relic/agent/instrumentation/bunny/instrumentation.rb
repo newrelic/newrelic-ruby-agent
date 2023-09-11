@@ -12,6 +12,7 @@ module NewRelic
         DEFAULT_NAME = 'Default'
         DEFAULT_TYPE = :direct
         SLASH = '/'
+        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
         def exchange_name(name)
           name.empty? ? DEFAULT_NAME : name
@@ -28,6 +29,8 @@ module NewRelic
           include Bunny
 
           def publish_with_tracing(payload, opts = {})
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
             begin
               destination = exchange_name(name)
 
@@ -62,6 +65,8 @@ module NewRelic
           include Bunny
 
           def pop_with_tracing
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
             bunny_error, delivery_info, message_properties, _payload = nil, nil, nil, nil
             begin
               t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
@@ -104,6 +109,8 @@ module NewRelic
           end
 
           def purge_with_tracing
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
             begin
               type = server_named? ? :temporary_queue : :queue
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
@@ -129,6 +136,8 @@ module NewRelic
           include Bunny
 
           def call_with_tracing(*args)
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
             delivery_info, message_properties, _ = args
             queue_name = queue.respond_to?(:name) ? queue.name : queue
 

@@ -4,7 +4,11 @@
 
 module NewRelic::Agent::Instrumentation
   module HTTPrb
+    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
     def with_tracing(request)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       wrapped_request = ::NewRelic::Agent::HTTPClients::HTTPRequest.new(request)
 
       begin
