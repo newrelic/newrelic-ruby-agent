@@ -4,7 +4,11 @@
 
 module NewRelic::Agent::Instrumentation
   module Padrino
+    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
     def invoke_route_with_tracing(*args)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       begin
         env['newrelic.last_route'] = args[0].original_path
       rescue => e

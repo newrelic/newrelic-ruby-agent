@@ -47,6 +47,10 @@ module NewRelic
           end
         end
 
+        # The agent doesn't use the traditional ActiveSupport::Notifications.subscribe
+        # pattern due to threading issues discovered on initial instrumentation.
+        # Instead we define a #start and #finish method, which Rails responds to.
+        # See: https://github.com/rails/rails/issues/12069
         def start(name, id, payload)
           return unless state.is_execution_traced?
 

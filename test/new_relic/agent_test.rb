@@ -622,6 +622,28 @@ module NewRelic
       end
     end
 
+    def test_record_instrumentation_invocation
+      library = 'NewRelicFly'
+      dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/record_metric')
+      dummy_engine.expects(:tl_record_unscoped_metrics).with("Supportability/#{library}/Invoked", 0.0).once
+      NewRelic::Agent.record_instrumentation_invocation(library)
+      NewRelic::Agent.record_instrumentation_invocation(library)
+      NewRelic::Agent.record_instrumentation_invocation(library)
+    end
+
+    def test_base_name
+      name = 'Ladies::Gentlemen::May::I::Welcome::You'
+
+      assert_equal 'You', NewRelic::Agent.base_name(name)
+    end
+
+    def test_base_name_without_module_namespace
+      name = 'Poirot'
+
+      assert_equal name, NewRelic::Agent.base_name(name)
+    end
+
     private
 
     def with_unstarted_agent

@@ -22,6 +22,7 @@ services:
     mem_limit: 1g
   mysql:
     image: mysql:5.7
+    platform: linux/x86_64
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: mysql_root_password

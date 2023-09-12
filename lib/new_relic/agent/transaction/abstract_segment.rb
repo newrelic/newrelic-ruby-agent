@@ -24,6 +24,9 @@ module NewRelic
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
+        CALLBACK = :@callback
+        SEGMENT = 'segment'
+
         def initialize(name = nil, start_time = nil)
           @name = name
           @starting_segment_key = NewRelic::Agent::Tracer.current_segment_key
@@ -49,6 +52,7 @@ module NewRelic
           @code_function = nil
           @code_lineno = nil
           @code_namespace = nil
+          invoke_callback
         end
 
         def start
@@ -326,6 +330,54 @@ module NewRelic
           else
             Tracer.state
           end
+        end
+
+        # for segment callback usage info, see self.set_segment_callback
+        def invoke_callback
+          return unless self.class.instance_variable_defined?(CALLBACK)
+
+          NewRelic::Agent.logger.debug("Invoking callback for #{self.class.name}...")
+          self.class.instance_variable_get(CALLBACK).call
+        end
+
+        # Setting and invoking a segment callback
+        # =======================================
+        # Each individual segment class such as `ExternalRequestSegment` allows
+        # for exactly one instance of a `Proc` (meaning a proc or lambda) to be
+        # set as a callback. A callback can be set on a segment class by calling
+        # `.set_segment_callback` with a proc or lambda as the only argument.
+        # If set, the callback will be invoked with `#call` at segment class
+        # initialization time.
+        #
+        # Example usage:
+        #   callback = -> { puts 'Hello, World! }
+        #   ExternalRequestSegment.set_segment_callback(callback)
+        #   ExternalRequestSegment.new(library, uri, procedure)
+        #
+        # A callback set on a segment class will only be called when that
+        # specific segment class is initialized. Other segment classes will not
+        # be impacted.
+        #
+        # Great caution should be taken in the defining of the callback block
+        # to not have the block perform anything too time consuming or resource
+        # intensive in order to keep the New Relic Ruby agent operating
+        # normally.
+        #
+        # Given that callbacks are user defined, they must be set entirely at
+        # the user's own risk. It is recommended that each callback use
+        # conditional logic that only performs work for certain qualified
+        # segments. It is recommended that each callback be thoroughly tested
+        # in non-production environments before being introduced to production
+        # environments.
+        def self.set_segment_callback(callback_proc)
+          unless callback_proc.is_a?(Proc)
+            NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
+                                         "got #{callback_proc.class}")
+            return
+          end
+
+          NewRelic::Agent.record_api_supportability_metric(:set_segment_callback)
+          instance_variable_set(CALLBACK, callback_proc)
         end
       end
     end

@@ -223,6 +223,9 @@ common: &default_settings
 
   # If true, the agent won't wrap third-party middlewares in instrumentation
   # (regardless of whether they are installed via Rack::Builder or Rails).
+  # When middleware instrumentation is disabled, if an application is using
+  # middleware that could alter the response code, the HTTP status code reported on
+  # the transaction may not reflect the altered value.
   # disable_middleware_instrumentation: false
 
   # If true, disables agent middleware for Roda. This middleware is responsible for
@@ -494,6 +497,10 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.sinatra: auto
 
+  # Controls auto-instrumentation of Stripe at startup. May be one of: enabled,
+  # disabled.
+  # instrumentation.stripe: enabled
+
   # Controls auto-instrumentation of the Thread class at start up to allow the agent
   # to correctly nest spans inside of an asynchronous transaction. This does not
   # enable the agent to automatically trace all threads created (see
@@ -585,6 +592,26 @@ common: &default_settings
   # before shutting down.
   # send_data_on_exit: true
 
+  # An array of strings that will collectively serve as a denylist for filtering
+  # which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq
+  # arguments, 'job.sidekiq.args.*' must be added to the separate
+  # :'attributes.include' configuration option. Each string in this array will be
+  # turned into a regular expression via Regexp.new to permit advanced matching. For
+  # job argument hashes, if either a key or value matches the pair will be excluded.
+  # All matching job argument array elements and job argument scalars will be
+  # excluded.
+  # sidekiq.args.exclude: []
+
+  # An array of strings that will collectively serve as an allowlist for filtering
+  # which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq
+  # arguments, 'job.sidekiq.args.*' must be added to the separate
+  # :'attributes.include' configuration option. Each string in this array will be
+  # turned into a regular expression via Regexp.new to permit advanced matching. For
+  # job argument hashes, if either a key or value matches the pair will be included.
+  # All matching job argument array elements and job argument scalars will be
+  # included.
+  # sidekiq.args.include: []
+
   # If true, the agent collects slow SQL queries.
   # slow_sql.enabled: true
 
@@ -633,6 +660,24 @@ common: &default_settings
   # If true, the agent strips messages from all exceptions except those in the
   # allowlist. Enabled automatically in high security mode.
   # strip_exception_messages.enabled: false
+
+  # An array of strings to specify which keys and/or values inside a Stripe event's
+  # user_data hash should
+  # not be reported to New Relic. Each string in this array will be turned into a
+  # regular expression via
+  # Regexp.new to permit advanced matching. For each hash pair, if either the key or
+  # value is matched the
+  # pair will not be reported. By default, no user_data is reported, so this option
+  # should only be used if 
+  # the stripe.user_data.include option is being used.
+  # stripe.user_data.exclude: []
+
+  # An array of strings to specify which keys inside a Stripe event's user_data hash
+  # should be reported
+  # to New Relic. Each string in this array will be turned into a regular expression
+  # via Regexp.new to
+  # permit advanced matching. Setting the value to ["."] will report all user_data.
+  # stripe.user_data.include: []
 
   # When set to true, forces a synchronous connection to the New Relic collector
   # during application startup. For very short-lived processes, this helps ensure

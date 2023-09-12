@@ -13,6 +13,8 @@ module NewRelic::Agent::Instrumentation
     module Tracer
       include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+      INSTRUMENTATION_NAME = 'Sinatra'
+
       def self.included(clazz)
         clazz.extend(self)
       end
@@ -90,6 +92,8 @@ module NewRelic::Agent::Instrumentation
       end
 
       def dispatch_with_tracing
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
         request_params = get_request_params
         filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params || {})
 

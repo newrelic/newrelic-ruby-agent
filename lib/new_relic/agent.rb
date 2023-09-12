@@ -58,6 +58,7 @@ module NewRelic
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
+    require 'new_relic/agent/attribute_pre_filtering'
     require 'new_relic/agent/attribute_processing'
     require 'new_relic/agent/linking_metadata'
     require 'new_relic/agent/local_log_decorator'
@@ -211,6 +212,17 @@ module NewRelic
       return unless @metrics_already_recorded.add?(metric_name)
 
       record_metric(metric_name, value)
+    end
+
+    def record_instrumentation_invocation(library)
+      record_metric_once("Supportability/#{library}/Invoked")
+    end
+
+    # see ActiveSupport::Inflector.demodulize
+    def base_name(klass_name)
+      return klass_name unless ridx = klass_name.rindex('::')
+
+      klass_name[(ridx + 2), klass_name.length]
     end
 
     SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze

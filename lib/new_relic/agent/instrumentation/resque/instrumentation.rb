@@ -6,7 +6,11 @@ module NewRelic::Agent::Instrumentation
   module Resque
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
+    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
     def with_tracing
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       begin
         perform_action_with_newrelic_trace(
           :name => 'perform',
