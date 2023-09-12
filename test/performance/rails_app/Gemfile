@@ -1,0 +1,15 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'newrelic_rpm', path: File.expand_path('../../../..', __FILE__)
+
+gem 'puma', '~> 5.0'
+gem 'rails', '~> 7.0.6'
+gem 'sqlite3', '~> 1.4'
+
+gem 'mocha'
+gem 'redis'
+gem 'simplecov'
+gem 'stackprof'
+gem 'webrick' if RUBY_VERSION >= '3.0'
