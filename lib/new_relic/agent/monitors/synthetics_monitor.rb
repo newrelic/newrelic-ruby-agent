@@ -31,7 +31,7 @@ module NewRelic
         txn.raw_synthetics_header = encoded_header
         txn.raw_synthetics_info_header = info_header
         txn.synthetics_payload = incoming_payload
-        txn.synthetics_info_header = load_json(info_header, SYNTHETICS_INFO_HEADER_KEY)
+        txn.synthetics_info_payload = load_json(info_header, SYNTHETICS_INFO_HEADER_KEY)
       end
 
       def load_json(header, key)

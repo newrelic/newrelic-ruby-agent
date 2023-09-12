@@ -90,7 +90,7 @@ module NewRelic
       attr_reader :transaction_trace
 
       # Fields for tracking synthetics requests
-      attr_accessor :raw_synthetics_header, :synthetics_payload, :synthetics_info_header, :raw_synthetics_info_header
+      attr_accessor :raw_synthetics_header, :synthetics_payload, :synthetics_info_payload, :raw_synthetics_info_header
 
       # Return the currently active transaction, or nil.
       def self.tl_current
@@ -715,7 +715,7 @@ module NewRelic
       end
 
       def synthetics_info(key)
-        synthetics_info_header[key] if synthetics_info_header
+        synthetics_info_payload[key] if synthetics_info_payload
       end
 
       def append_apdex_perf_zone(payload)
