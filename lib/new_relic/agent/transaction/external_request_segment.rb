@@ -72,7 +72,6 @@ module NewRelic
           transaction.distributed_tracer.insert_headers(request)
         rescue => e
           NewRelic::Agent.logger.error('Error in add_request_headers', e)
-          puts e
         end
 
         # This method extracts app data from an external response if present. If
