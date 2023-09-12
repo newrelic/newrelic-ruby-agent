@@ -29,7 +29,10 @@ module NewRelic
         payload = generate_payload('whatever', {
           :synthetics_resource_id => 3,
           :synthetics_job_id => 4,
-          :synthetics_monitor_id => 5
+          :synthetics_monitor_id => 5,
+          :synthetics_type => 'automatedTest',
+          :synthetics_initiator => 'cli',
+          :synthetics_batch_id => 42
         })
 
         intrinsics, *_ = TransactionEventPrimitive.create(payload)
@@ -37,6 +40,10 @@ module NewRelic
         assert_equal '3', intrinsics['nr.syntheticsResourceId']
         assert_equal '4', intrinsics['nr.syntheticsJobId']
         assert_equal '5', intrinsics['nr.syntheticsMonitorId']
+
+        assert_equal 'automatedTest', intrinsics['nr.syntheticsType']
+        assert_equal 'cli', intrinsics['nr.syntheticsInitiator']
+        assert_equal '42', intrinsics['nr.syntheticsBatchId']        
       end
 
       def test_custom_attributes_in_event_are_normalized_to_string_keys

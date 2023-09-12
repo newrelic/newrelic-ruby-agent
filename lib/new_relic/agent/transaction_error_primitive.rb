@@ -82,12 +82,12 @@ module NewRelic
         sample[SYNTHETICS_JOB_ID_KEY] = payload[:synthetics_job_id] if payload[:synthetics_job_id]
         sample[SYNTHETICS_MONITOR_ID_KEY] = payload[:synthetics_monitor_id] if payload[:synthetics_monitor_id]
         sample[SYNTHETICS_TYPE_KEY] = payload[:synthetics_type] if payload[:synthetics_type]
-        sample[SYNTHETICS_INITIATOR_KEY] = payload[:synthetics_initiator] if payload[:synthetics_initatior]
+        sample[SYNTHETICS_INITIATOR_KEY] = payload[:synthetics_initiator] if payload[:synthetics_initiator]
 
         payload.each do |k, v|
           next unless k.to_s.start_with?('synthetics_') && !SYNTHETICS_PAYLOAD_EXPECTED.include?(k)
 
-          new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.gsub('synthetics_', ''))
+          new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.to_s.gsub('synthetics_', ''))
           sample[new_key] = v
         end
       end

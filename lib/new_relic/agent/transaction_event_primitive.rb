@@ -77,7 +77,7 @@ module NewRelic
         optionally_append(SYNTHETICS_JOB_ID_KEY, :synthetics_job_id, sample, payload)
         optionally_append(SYNTHETICS_MONITOR_ID_KEY, :synthetics_monitor_id, sample, payload)
         optionally_append(SYNTHETICS_TYPE_KEY, :synthetics_type, sample, payload)
-        optionally_append(SYNTHETICS_INITIATOR_KEY, :synthetics_initatior, sample, payload)
+        optionally_append(SYNTHETICS_INITIATOR_KEY, :synthetics_initiator, sample, payload)
         append_synthetics_info_attributes(sample, payload)
         append_cat_alternate_path_hashes(sample, payload)
       end
@@ -89,7 +89,7 @@ module NewRelic
           next unless k.to_s.start_with?('synthetics_') && !SYNTHETICS_PAYLOAD_EXPECTED.include?(k)
 
           new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.to_s.gsub('synthetics_', ''))
-          sample[new_key] = v
+          sample[new_key] = v.to_s
         end
       end
 
