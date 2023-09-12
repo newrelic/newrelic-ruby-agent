@@ -43,7 +43,7 @@ module NewRelic
 
         assert_equal 'automatedTest', intrinsics['nr.syntheticsType']
         assert_equal 'cli', intrinsics['nr.syntheticsInitiator']
-        assert_equal '42', intrinsics['nr.syntheticsBatchId']        
+        assert_equal '42', intrinsics['nr.syntheticsBatchId']
       end
 
       def test_custom_attributes_in_event_are_normalized_to_string_keys
