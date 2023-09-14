@@ -626,13 +626,19 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_type, synthetics_info('type'))
           attributes.add_intrinsic_attribute(:synthetics_initiator, synthetics_info('initiator'))
 
-          synthetics_info('attributes')&.each do |k, v|
-            new_key = "synthetics_#{NewRelic::LanguageSupport.snakeize(v)}".to_sym
-            attributes.add_intrinsic_attribute(new_key, v.to_s)
+          synthetics_additional_attributes do |key, value|
+            attributes.add_intrinsic_attribute(key, value)
           end
         end
 
         distributed_tracer.assign_intrinsics
+      end
+
+      def synthetics_additional_attributes(&block)
+        synthetics_info('attributes')&.each do |k, v|
+          new_key = "synthetics_#{NewRelic::LanguageSupport.snakeize(k.to_s)}".to_sym
+          yield(new_key, v.to_s)
+        end
       end
 
       def calculate_gc_time
@@ -742,8 +748,11 @@ module NewRelic
         payload[:synthetics_job_id] = synthetics_job_id
         payload[:synthetics_monitor_id] = synthetics_monitor_id
         payload[:synthetics_type] = synthetics_info('type')
-        payload[:synthetics_initatior] = synthetics_info('initiator')
-        # payload[:synthetics_attributes] = synthetics_info('attributes')
+        payload[:synthetics_initiator] = synthetics_info('initiator')
+
+        synthetics_additional_attributes do |key, value|
+          payload[key] = value
+        end
       end
 
       def merge_metrics
