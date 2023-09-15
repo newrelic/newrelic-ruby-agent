@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'net_http_test_cases'
-#require_relative '../../../helpers/misc'
 
 class Testbed
   include NewRelic::Agent::Instrumentation::NetHTTP
