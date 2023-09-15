@@ -338,6 +338,9 @@ module NewRelic
 
           NewRelic::Agent.logger.debug("Invoking callback for #{self.class.name}...")
           self.class.instance_variable_get(CALLBACK).call
+        rescue Exception => e
+          NewRelic::Agent.logger.error("Error encountered while invoking callback for #{self.class.name}: " +
+                                       "#{e.class} - #{e.message}")
         end
 
         # Setting and invoking a segment callback
