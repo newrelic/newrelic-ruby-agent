@@ -124,4 +124,10 @@ class NewRelic::LanguageSupportTest < Minitest::Test
 
     assert_equal 'NewrelicInfiniteTracing', NewRelic::LanguageSupport.camelize(name)
   end
+
+  def test_snakeize
+    name = 'SyntheticsBatchId'
+
+    assert_equal 'synthetics_batch_id', NewRelic::LanguageSupport.snakeize(name)
+  end
 end
