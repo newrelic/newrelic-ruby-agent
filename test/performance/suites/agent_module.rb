@@ -9,7 +9,7 @@ class AgentModuleTest < Performance::TestCase
   ITERATIONS = 50_000
 
   def test_increment_metric_by_1
-    measure do
+    measure(ITERATIONS) do
       NewRelic::Agent.increment_metric(METRIC)
     end
   end
