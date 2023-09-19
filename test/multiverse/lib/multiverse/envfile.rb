@@ -18,6 +18,11 @@ module Multiverse
       @ignore_ruby_version = options[:ignore_ruby_version] if options.key?(:ignore_ruby_version)
       if File.exist?(file_path)
         @text = File.read(self.file_path)
+        # TODO: Test this behavior against Ruby 3.3.0 when it is out of preview
+        #       to see if this behavior persists. Remove the gsub if not.
+        # With Ruby 3.3.0-preview2, eval() yields '(eval ...' as the String value
+        # when __FILE__ is used so swap out __FILE__ for the known agent root path
+        @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
       @gemfiles = [''] if @gemfiles.empty?
