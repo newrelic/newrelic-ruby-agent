@@ -6,11 +6,7 @@ instrumentation_methods :chain, :prepend
 
 # The Rack suite also tests Puma::Rack::Builder
 # Which is why we also control Puma tested versions here
-# Puma <= v6.3.0's URLMap class won't work with Ruby v3.3+, see:
-#   https://github.com/puma/puma/pull/3165
-# TODO: replace the GitHub ref with a version number greater than 6.3.0 once
-#       one has been published to RubyGems
-PUMA_VERSIONS = RUBY_VERSION >= '3.3.0' ? ["github: 'puma', ref: 'ffcc83e987e6a125b16bd6097ae72b611f268e76'"] : [
+PUMA_VERSIONS = [
   'nil',
   '5.6.4',
   '4.3.12',
