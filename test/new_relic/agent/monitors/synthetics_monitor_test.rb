@@ -111,6 +111,32 @@ module NewRelic::Agent
       end
     end
 
+    def test_load_json
+      info_payload = <<~PAYLOAD
+        {
+          "version": "1",
+          "type": "automatedTest",
+          "initiator": "cli",
+          "attributes": {
+            "attribute1": "on0e"
+          }
+        }
+      PAYLOAD
+
+      expected_info = {
+        'version' => '1',
+        'type' => 'automatedTest',
+        'initiator' => 'cli',
+        'attributes' => {
+          'attribute1' => 'one'
+        }
+      }
+
+      loaded = NewRelic::Agent::SyntheticsMonitor.new(@events).load_json(info_payload, 'info-header')
+
+      assert_equal expected_info, loaded
+    end
+
     def both_synthetics_headers(payload, info_payload)
       header_info_key = SyntheticsMonitor::SYNTHETICS_INFO_HEADER_KEY
       synthetics_header(payload).merge({
