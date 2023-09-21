@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> brings support for gleaning a Docker container id from cgroups v2 based containers.
+
+- **Feature: Enhance Docker container id reporting**
+
+  Previously the agent was only capable of determining a host Docker container's id if the container was based on cgroups v1. Now containers based on cgroups v2 will also have their container ids reported to New Relic. [PR#2026](https://github.com/newrelic/newrelic-ruby-agent/issues/2026).
+
 ## v9.5.0
 
 Version 9.5.0 introduces Stripe instrumentation, allows the agent to record additional response information on a transaction when middleware instrumentation is disabled, introduces new `:'sidekiq.args.include'` and `:'sidekiq.args.exclude:` configuration options to permit capturing only certain Sidekiq job arguments, updates Elasticsearch datastore instance metrics, and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
