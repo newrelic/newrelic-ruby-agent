@@ -172,13 +172,37 @@ module NewRelic
         proc_try_read('/proc/version')
       end
 
+      # When operating within a Docker container, attempt to obtain the
+      # container id.
+      #
+      # First look for `/proc/self/mountinfo` to exist on disk to signify
+      # cgroups v2. If that file exists, read it and expect it to contain one
+      # or more "/docker/containers/<container_id>/" lines from which the
+      # container id can be gleaned.
+      #
+      # Next look for `/proc/self/cgroup` to exist on disk to signify cgroup v1.
+      # If that file exists, read it and parse the "cpu" group info in the hope
+      # of finding a 64 character container id value.
+      #
+      # For non-cgroups based containers, use a `nil` value for the container
+      # id without generating any warnings or errors.
       def self.docker_container_id
         return unless ruby_os_identifier.include?('linux')
+
+        cgroupsv2_based_id = docker_container_id_for_cgroupsv2
+        return cgroupsv2_based_id if cgroupsv2_based_id
 
         cgroup_info = proc_try_read('/proc/self/cgroup')
         return unless cgroup_info
 
         parse_docker_container_id(cgroup_info)
+      end
+
+      def self.docker_container_id_for_cgroupsv2
+        mountinfo = proc_try_read('/proc/self/mountinfo')
+        return unless mountinfo
+
+        Regexp.last_match(1) if mountinfo =~ %r{/docker/containers/([^/]+)/}
       end
 
       def self.parse_docker_container_id(cgroup_info)
