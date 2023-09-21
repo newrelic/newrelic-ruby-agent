@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor
-      SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
+      SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'
       SYNTHETICS_INFO_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS_INFO'
 
       SUPPORTED_VERSION = 1
