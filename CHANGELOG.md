@@ -6,7 +6,7 @@ Version <dev> brings support for gleaning a Docker container id from cgroups v2 
 
 - **Feature: Enhance Docker container id reporting**
 
-  Previously the agent was only capable of determining a host Docker container's id if the container was based on cgroups v1. Now containers based on cgroups v2 will also have their container ids reported to New Relic. [PR#2026](https://github.com/newrelic/newrelic-ruby-agent/issues/2026).
+  Previously the agent was only capable of determining a host Docker container's id if the container was based on cgroups v1. Now containers based on cgroups v2 will also have their container ids reported to New Relic. [PR#2229](https://github.com/newrelic/newrelic-ruby-agent/issues/2229).
 
 ## v9.5.0
 
