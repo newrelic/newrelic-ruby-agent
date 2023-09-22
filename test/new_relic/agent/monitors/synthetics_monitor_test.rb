@@ -118,7 +118,7 @@ module NewRelic::Agent
           "type": "automatedTest",
           "initiator": "cli",
           "attributes": {
-            "attribute1": "on0e"
+            "attribute1": "one"
           }
         }
       PAYLOAD
