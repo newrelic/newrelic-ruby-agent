@@ -6,11 +6,13 @@ require_relative '../../../../test_helper'
 require 'new_relic/agent/instrumentation/active_job_subscriber'
 
 module NewRelic::Agent::Instrumentation
-  class RetryMe < StandardError; end
   class DiscardMe < StandardError; end
+  class RetryMe < StandardError; end
+  class RetryStopped < StandardError; end
 
   class TestJob < ActiveJob::Base
     retry_on RetryMe
+    retry_on RetryStopped, attempts: 1
 
     discard_on DiscardMe
 
@@ -82,7 +84,16 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    # TODO: test for retry_stopped.active_job
+    def test_retry_stopped_active_job
+      skip 'Notification requires Rails v6+' unless Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('6.0')
+
+      in_transaction do |txn|
+        assert_raises(RetryStopped) do
+          TestJob.perform_now(RetryStopped)
+        end
+        validate_transaction(txn, 'retry_stopped')
+      end
+    end
 
     private
 
