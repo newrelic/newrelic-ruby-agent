@@ -31,8 +31,13 @@ module NewRelic
       SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'.freeze
       SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'.freeze
       SYNTHETICS_MONITOR_ID_KEY = 'nr.syntheticsMonitorId'.freeze
+      SYNTHETICS_TYPE_KEY = 'nr.syntheticsType'
+      SYNTHETICS_INITIATOR_KEY = 'nr.syntheticsInitiator'
+      SYNTHETICS_KEY_PREFIX = 'nr.synthetics'
       PRIORITY_KEY = 'priority'.freeze
       SPAN_ID_KEY = 'spanId'.freeze
+
+      SYNTHETICS_PAYLOAD_EXPECTED = [:synthetics_resource_id, :synthetics_job_id, :synthetics_monitor_id, :synthetics_type, :synthetics_initiator]
 
       def create(noticed_error, payload, span_id)
         [
@@ -71,9 +76,20 @@ module NewRelic
       end
 
       def append_synthetics(payload, sample)
+        return unless payload[:synthetics_job_id]
+
         sample[SYNTHETICS_RESOURCE_ID_KEY] = payload[:synthetics_resource_id] if payload[:synthetics_resource_id]
         sample[SYNTHETICS_JOB_ID_KEY] = payload[:synthetics_job_id] if payload[:synthetics_job_id]
         sample[SYNTHETICS_MONITOR_ID_KEY] = payload[:synthetics_monitor_id] if payload[:synthetics_monitor_id]
+        sample[SYNTHETICS_TYPE_KEY] = payload[:synthetics_type] if payload[:synthetics_type]
+        sample[SYNTHETICS_INITIATOR_KEY] = payload[:synthetics_initiator] if payload[:synthetics_initiator]
+
+        payload.each do |k, v|
+          next unless k.to_s.start_with?('synthetics_') && !SYNTHETICS_PAYLOAD_EXPECTED.include?(k)
+
+          new_key = SYNTHETICS_KEY_PREFIX + NewRelic::LanguageSupport.camelize(k.to_s.gsub('synthetics_', ''))
+          sample[new_key] = v
+        end
       end
 
       def append_cat(payload, sample)
