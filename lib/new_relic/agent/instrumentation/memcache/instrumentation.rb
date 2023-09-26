@@ -10,8 +10,11 @@ module NewRelic::Agent::Instrumentation
       LOCALHOST = 'localhost'
       MULTIGET_METRIC_NAME = 'get_multi_request'
       MEMCACHED = 'Memcached'
+      INSTRUMENTATION_NAME = 'Dalli'
 
       def with_newrelic_tracing(operation, *args)
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: MEMCACHED,
           operation: operation
@@ -28,6 +31,8 @@ module NewRelic::Agent::Instrumentation
       end
 
       def server_for_key_with_newrelic_tracing
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
         yield.tap do |server|
           begin
             if txn = ::NewRelic::Agent::Tracer.current_transaction
@@ -43,6 +48,8 @@ module NewRelic::Agent::Instrumentation
       end
 
       def get_multi_with_newrelic_tracing(method_name)
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
         segment = NewRelic::Agent::Tracer.start_segment(
           name: "Ruby/Memcached/Dalli/#{method_name}"
         )
@@ -55,6 +62,8 @@ module NewRelic::Agent::Instrumentation
       end
 
       def send_multiget_with_newrelic_tracing(keys)
+        NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
         segment = ::NewRelic::Agent::Tracer.start_datastore_segment(
           product: MEMCACHED,
           operation: MULTIGET_METRIC_NAME

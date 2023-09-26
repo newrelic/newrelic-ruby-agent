@@ -26,9 +26,9 @@ end
 class Minitest::Test
   def after_teardown
     super
-    User.delete_all
-    Alias.delete_all
-    Order.delete_all
-    Shipment.delete_all
+    User.delete_all if defined?(User)
+    Alias.delete_all if defined?(Alias)
+    Order.delete_all if defined?(Order)
+    Shipment.delete_all if defined?(Shipment)
   end
 end

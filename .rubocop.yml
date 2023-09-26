@@ -1259,6 +1259,7 @@ Style/MethodCallWithArgsParentheses:
     - raise
     - require
     - skip
+    - sleep
     - source
     - stub
     - stub_const

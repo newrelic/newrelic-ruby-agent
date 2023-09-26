@@ -74,10 +74,10 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_equal Socket.gethostname, @segment.host
   end
 
-  def test_segment_port_path_or_id_uses_path_if_present
+  def test_segment_port_path_or_id_uses_port
     search
 
-    assert_equal 'my-index/_search', @segment.port_path_or_id
+    assert_equal port.to_s, @segment.port_path_or_id
   end
 
   def test_segment_database_name

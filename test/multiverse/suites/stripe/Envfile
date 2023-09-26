@@ -1,0 +1,18 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+# While Stripe instrumentation doesn't do any monkey patching, we need to
+# include an instrumentation method for multiverse to run the tests
+instrumentation_methods :chain
+
+STRIPE_VERSIONS = [
+  [nil, 2.4],
+  ['5.38.0', 2.4]
+]
+
+def gem_list(stripe_version = nil)
+  "gem 'stripe'#{stripe_version}"
+end
+
+create_gemfiles(STRIPE_VERSIONS)

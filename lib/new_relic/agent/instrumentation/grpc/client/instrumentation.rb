@@ -12,9 +12,13 @@ module NewRelic
         module Client
           include NewRelic::Agent::Instrumentation::GRPC::Helper
 
+          INSTRUMENTATION_NAME = 'gRPC_Client'
+
           def issue_request_with_tracing(grpc_type, method, requests, marshal, unmarshal,
             deadline:, return_op:, parent:, credentials:, metadata:)
             return yield unless trace_with_newrelic?
+
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
             segment = request_segment(method)
             request_wrapper = NewRelic::Agent::Instrumentation::GRPC::Client::RequestWrapper.new(@host)

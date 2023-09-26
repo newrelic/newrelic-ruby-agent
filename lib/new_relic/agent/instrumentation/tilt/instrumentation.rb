@@ -6,6 +6,8 @@ module NewRelic
   module Agent
     module Instrumentation
       module Tilt
+        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
         def metric_name(klass, file)
           "View/#{klass}/#{file}/Rendering"
         end
@@ -21,6 +23,8 @@ module NewRelic
         end
 
         def render_with_tracing(*args, &block)
+          NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
           begin
             finishable = Tracer.start_segment(
               name: metric_name(self.class, create_filename_for_metric(self.file))

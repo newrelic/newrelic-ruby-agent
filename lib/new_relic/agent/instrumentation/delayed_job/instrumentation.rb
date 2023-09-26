@@ -31,8 +31,11 @@ module NewRelic
         include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
         NR_TRANSACTION_CATEGORY = 'OtherTransaction/DelayedJob'.freeze
+        INSTRUMENTATION_NAME = 'DelayedJob'
 
         def invoke_job_with_tracing
+          NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
           options = {
             :category => NR_TRANSACTION_CATEGORY,
             :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
