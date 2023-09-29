@@ -1024,10 +1024,8 @@ module NewRelic
             Rails::Command::GenerateCommand
             Rails::Command::InitializersCommand
             Rails::Command::NotesCommand
-            Rails::Command::RakeCommand
             Rails::Command::RoutesCommand
             Rails::Command::SecretsCommand
-            Rails::Command::TestCommand
             Rails::Console
             Rails::DBConsole].join(','),
           :public => true,
