@@ -6,7 +6,7 @@ Version <dev> brings support for gleaning a Docker container id from cgroups v2 
 
 - **Feature: Prevent the agent from starting in additional Rails CLI/TUI contexts**
 
-  The agent already knew how to not start up when recognizing that `rails console` or a Rake task was running, but it did not recognize other Rails CLI/TUI contexts resulting from commands such as `rails routes`. Now the agent will additionally recognize other Rails commands such as `rails routes`, `rails dbconsole`, `rails test`, etc. and not start up in those contexts. Note that the agent will continue to start up when the `rails server` and `rails runner` commands and invoked. [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239)
+  The agent already knew how to not start up when recognizing that `rails console` or a Rake task was running, but it did not recognize other Rails CLI/TUI contexts resulting from commands such as `rails routes`. Now the agent will additionally recognize other Rails commands such as `rails routes`, `rails dbconsole`, etc. and not start up in those contexts. Note that the agent will continue to start up when the `rails server` and `rails runner` commands and invoked. [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239)
 
 - **Feature: Enhance Docker container id reporting**
 
