@@ -10,17 +10,45 @@ class AutostartTest < Minitest::Test
     assert_predicate ::NewRelic::Agent::Autostart, :agent_should_start?
   end
 
-  if defined?(::Rails)
-    def test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined
-      refute defined?(::Rails::Console), "precondition: Rails::Console shouldn't be defined"
-      Rails.const_set(:Console, Class.new)
+  def test_agent_will_not_autostart_in_certain_contexts_recognized_by_constants_being_defined
+    rails_is_present = defined?(::Rails)
+    NewRelic::Agent.config[:'autostart.denylisted_constants'].split(/\s*,\s*/).each do |constant|
+      assert_predicate ::NewRelic::Agent::Autostart, :agent_should_start?, 'Agent should autostart by default'
 
-      refute_predicate ::NewRelic::Agent::Autostart, :agent_should_start?, "Agent shouldn't autostart in Rails Console session"
-    ensure
-      Rails.send(:remove_const, :Console)
+      # For Rails::Command::ConsoleCommand as an example, eval these:
+      #   'module ::Rails; end',
+      #   'module ::Rails::Command; end', and
+      #   'module ::Rails::Command::ConsoleCommand; end'
+      #
+      # If this test is running within a context that already has Rails defined,
+      # the result of `::NewRelic::LanguageSupport.constantize('::Rails')` will
+      # be non-nil and the first `eval` will be skipped.
+      elements = constant.split('::')
+      elements.inject(+'') do |namespace, element|
+        namespace += "::#{element}"
+        eval("module #{namespace}; end") unless ::NewRelic::LanguageSupport.constantize(namespace)
+        namespace
+      end
+
+      refute_predicate ::NewRelic::Agent::Autostart,
+        :agent_should_start?,
+        "Agent shouldn't autostart when the '#{constant}' constant is defined"
+
+      # For Rails::Command::ConsoleCommand as an example, eval these:
+      # "::Rails::Command.send(:remove_const, 'ConsoleCommand'.to_sym)" and
+      # "::Rails.send(:remove_const, 'Command'.to_sym)".
+      #
+      # and then invoke `Object.send(:remove_const, 'Rails'.to_sym)` to
+      # undefine Rails itself. If Rails was already defined before this test
+      # ran, don't invoke the `Object.send` command and leave Rails alone.
+      dupe = constant.dup
+      while dupe =~ /^.+(::.+)$/
+        element = Regexp.last_match(1)
+        dupe.sub!(/#{element}$/, '')
+        eval("::#{dupe}.send(:remove_const, '#{element.sub('::', '')}'.to_sym)")
+      end
+      Object.send(:remove_const, dupe.to_sym) unless dupe == 'Rails' && rails_is_present
     end
-  else
-    puts "Skipping `test_agent_wont_autostart_if_RAILS_CONSOLE_constant_is_defined` in #{File.basename(__FILE__)} because Rails is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
   end
 
   def test_agent_will_autostart_if_global_CONSOLE_constant_is_defined

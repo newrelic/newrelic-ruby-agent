@@ -1014,7 +1014,22 @@ module NewRelic
         },
         # Autostart
         :'autostart.denylisted_constants' => {
-          :default => 'Rails::Console',
+          :default => %w[Rails::Command::ConsoleCommand
+            Rails::Command::CredentialsCommand
+            Rails::Command::Db::System::ChangeCommand
+            Rails::Command::DbConsoleCommand
+            Rails::Command::DestroyCommand
+            Rails::Command::DevCommand
+            Rails::Command::EncryptedCommand
+            Rails::Command::GenerateCommand
+            Rails::Command::InitializersCommand
+            Rails::Command::NotesCommand
+            Rails::Command::RakeCommand
+            Rails::Command::RoutesCommand
+            Rails::Command::SecretsCommand
+            Rails::Command::TestCommand
+            Rails::Console
+            Rails::DBConsole].join(','),
           :public => true,
           :type => String,
           :allowed_from_server => false,
