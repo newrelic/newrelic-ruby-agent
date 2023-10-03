@@ -83,6 +83,10 @@ module NewRelic
       camelized[0].downcase.concat(camelized[1..-1])
     end
 
+    def snakeize(string)
+      string.gsub(/(.)([A-Z])/, '\1_\2').downcase
+    end
+
     def bundled_gem?(gem_name)
       defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?(gem_name)
     rescue => e

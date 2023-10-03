@@ -644,6 +644,15 @@ module NewRelic::Agent
       end
     end
 
+    def test_not_synthetics_with_only_info_header
+      in_transaction do |txn|
+        txn.raw_synthetics_info_header = '{"version" => 1, "type" => "automatedTest", "initiator" => "cli"}'
+        txn.synthetics_info_payload = {'version' => 1, 'type' => 'automatedTest', 'initiator' => 'cli'}
+
+        refute_predicate txn, :is_synthetics_request?
+      end
+    end
+
     def test_is_synthetic_request
       in_transaction do |txn|
         txn.raw_synthetics_header = ''
@@ -676,11 +685,17 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.raw_synthetics_header = 'something'
         txn.synthetics_payload = [1, 1, 100, 200, 300]
+        txn.raw_synthetics_info_header = '{"version" => 1, "type" => "automatedTest", "initiator" => "cli", "attributes" => {"batchId" => 42}}'
+        txn.synthetics_info_payload = {'version' => 1, 'type' => 'automatedTest', 'initiator' => 'cli', 'attributes' => {'batchId' => 42, 'otherAttribute' => 'somethingelse'}}
       end
 
       assert_includes keys, :synthetics_resource_id
       assert_includes keys, :synthetics_job_id
       assert_includes keys, :synthetics_monitor_id
+      assert_includes keys, :synthetics_type
+      assert_includes keys, :synthetics_initiator
+      assert_includes keys, :synthetics_batch_id
+      assert_includes keys, :synthetics_other_attribute
     end
 
     def test_synthetics_fields_not_in_finish_event_payload_if_no_cross_app_calls

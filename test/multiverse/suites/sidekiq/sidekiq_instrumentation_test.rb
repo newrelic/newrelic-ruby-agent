@@ -47,7 +47,7 @@ class SidekiqInstrumentationTest < Minitest::Test
     exception = StandardError.new('bonk')
     noticed = []
     NewRelic::Agent.stub :notice_error, proc { |e| noticed.push(e) } do
-      Sidekiq::CLI.instance.handle_exception(exception)
+      cli.handle_exception(exception)
     end
 
     assert_equal 1, noticed.size

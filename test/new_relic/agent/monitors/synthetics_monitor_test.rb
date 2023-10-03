@@ -78,6 +78,72 @@ module NewRelic::Agent
       end
     end
 
+    def test_records_synthetics_info_header_if_available
+      key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY
+      synthetics_payload = [VERSION_ID] + STANDARD_DATA
+      info_payload = <<~PAYLOAD
+        {
+          "version": "1",
+          "type": "automatedTest",
+          "initiator": "cli",
+          "attributes": {
+            "attribute1": "one"
+          }
+        }
+      PAYLOAD
+
+      expected_info = {
+        'version' => '1',
+        'type' => 'automatedTest',
+        'initiator' => 'cli',
+        'attributes' => {
+          'attribute1' => 'one'
+        }
+      }
+
+      with_synthetics_headers(synthetics_payload, headers: both_synthetics_headers(synthetics_payload, info_payload)) do
+        txn = NewRelic::Agent::Tracer.current_transaction
+
+        assert_equal @last_encoded_header, txn.raw_synthetics_header
+        assert_equal synthetics_payload, txn.synthetics_payload
+        assert_equal info_payload, txn.raw_synthetics_info_header
+        assert_equal expected_info, txn.synthetics_info_payload
+      end
+    end
+
+    def test_load_json
+      info_payload = <<~PAYLOAD
+        {
+          "version": "1",
+          "type": "automatedTest",
+          "initiator": "cli",
+          "attributes": {
+            "attribute1": "one"
+          }
+        }
+      PAYLOAD
+
+      expected_info = {
+        'version' => '1',
+        'type' => 'automatedTest',
+        'initiator' => 'cli',
+        'attributes' => {
+          'attribute1' => 'one'
+        }
+      }
+
+      loaded = NewRelic::Agent::SyntheticsMonitor.new(@events).load_json(info_payload, 'info-header')
+
+      assert_equal expected_info, loaded
+    end
+
+    def both_synthetics_headers(payload, info_payload)
+      header_info_key = SyntheticsMonitor::SYNTHETICS_INFO_HEADER_KEY
+      synthetics_header(payload).merge({
+        header_info_key => info_payload
+      })
+    end
+
     def synthetics_header(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)
       @last_encoded_header = json_dump_and_encode(payload)
       {header_key => @last_encoded_header}
@@ -87,9 +153,9 @@ module NewRelic::Agent
       assert_nil NewRelic::Agent::Tracer.current_transaction.synthetics_payload
     end
 
-    def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)
+    def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY, headers: nil)
       in_transaction do
-        @events.notify(:before_call, synthetics_header(payload, header_key))
+        @events.notify(:before_call, headers || synthetics_header(payload, header_key))
         yield
       end
     end
