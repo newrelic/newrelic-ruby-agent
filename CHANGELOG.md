@@ -4,6 +4,10 @@
 
 Version <dev> brings support for gleaning a Docker container id from cgroups v2 based containers and records additional synthetics attributes.
 
+- **Feature: Prevent the agent from starting in rails commands in Rails 7**
+
+  Previously, the agent ignored many Rails commands by default, such as `rails routes`, using Rake-specific logic. This was accomplished by setting these commands as default values for the config option `autostart.denylisted_rake_tasks`. However, Rails 7 no longer uses Rake for these commands, causing the agent to start running and attempting to record data when running these commands. The commands have now been added to the default value for the config option `autostart.denylisted_constants`, which will allow the agent to recognize these commands correctly in Rails 7 and prevent the agent from starting during ignored tasks. Note that the agent will continue to start up when the `rails server` and `rails runner` commands are invoked. [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239)
+
 - **Feature: Enhance Docker container id reporting**
 
   Previously, the agent was only capable of determining a host Docker container's ID if the container was based on cgroups v1. Now, containers based on cgroups v2 will also have their container IDs reported to New Relic. [PR#2229](https://github.com/newrelic/newrelic-ruby-agent/issues/2229).
