@@ -16,6 +16,10 @@ Version <dev> brings support for gleaning a Docker container id from cgroups v2 
 
   The agent will now record additional synthetics attributes on synthetics events if these attributes are available.  [PR#2203](https://github.com/newrelic/newrelic-ruby-agent/pull/2203)
 
+- **Feature: Declare a gem dependency on the Ruby Base 64 gem 'base64'**
+
+  For compatibility with Ruby 3.4 and to silence compatibility warnings present in Ruby 3.3, declare a dependency on the `base64` gem. The New Relic Ruby agent uses the native Ruby `base64` gem for Base 64 encoding/decoding. The agent is joined by Ruby on Rails ([rails/rails@3e52adf](https://github.com/rails/rails/commit/3e52adf28e90af490f7e3bdc4bcc85618a4e0867)) and others in making this change in preparation for Ruby 3.3/3.4.
+
 
 ## v9.5.0
 
