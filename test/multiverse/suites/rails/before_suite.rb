@@ -20,9 +20,4 @@ if Gem::Version.new(Rails.version) >= Gem::Version.new('7.1.0')
       self
     end
   end
-  class Hash
-    def to_ary
-      self
-    end
-  end
 end
