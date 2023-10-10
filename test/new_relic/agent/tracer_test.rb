@@ -308,7 +308,7 @@ module NewRelic
         txn = Tracer.start_transaction(name: 'Controller/blogs/index', category: :controller)
         threads = []
         threads << Thread.new do
-          segment = Tracer.start_segment(name: 'Custom/MyClass/myoperation')
+          Tracer.start_segment(name: 'Custom/MyClass/myoperation')
           sleep(0.01) until txn.finished?
 
           threads << Thread.new do

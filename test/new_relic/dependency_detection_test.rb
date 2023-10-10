@@ -211,11 +211,9 @@ class DependencyDetectionTest < Minitest::Test
   end
 
   def test_config_enabling_with_auto
-    executed = false
-
     dd = DependencyDetection.defer do
       named(:testing)
-      executes { executed = true }
+      executes { true }
     end
 
     with_config(:'instrumentation.testing' => 'auto') do
@@ -228,11 +226,9 @@ class DependencyDetectionTest < Minitest::Test
   end
 
   def test_config_enabling_with_prepend
-    executed = false
-
     dd = DependencyDetection.defer do
       named(:testing)
-      executes { executed = true }
+      executes { true }
     end
 
     with_config(:'instrumentation.testing' => 'prepend') do
@@ -245,11 +241,9 @@ class DependencyDetectionTest < Minitest::Test
   end
 
   def test_config_enabling_with_chain
-    executed = false
-
     dd = DependencyDetection.defer do
       named(:testing)
-      executes { executed = true }
+      executes { true }
     end
 
     with_config(:'instrumentation.testing' => 'chain') do

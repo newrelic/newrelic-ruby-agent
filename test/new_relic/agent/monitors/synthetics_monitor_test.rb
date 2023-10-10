@@ -79,7 +79,6 @@ module NewRelic::Agent
     end
 
     def test_records_synthetics_info_header_if_available
-      key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY
       synthetics_payload = [VERSION_ID] + STANDARD_DATA
       info_payload = <<~PAYLOAD
         {
