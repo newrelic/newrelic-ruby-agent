@@ -11,7 +11,6 @@ require 'filtering_test_app'
 # Tests should feel free to define their own Controllers locally, but if they
 # need anything special at the Application level, put it here
 if !defined?(MyApp)
-
   ENV['NEW_RELIC_DISPATCHER'] = 'test'
 
   class NamedMiddleware
