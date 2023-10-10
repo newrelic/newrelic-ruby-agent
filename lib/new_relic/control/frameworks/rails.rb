@@ -10,8 +10,8 @@ module NewRelic
       # Rails specific configuration, instrumentation, environment values,
       # etc.
       class Rails < NewRelic::Control::Frameworks::Ruby
-        INSTALLED_SINGLETON = NewRelic::Agent.config
-        INSTALLED = :@browser_monitoring_installed
+        BROWSER_MONITORING_INSTALLED_SINGLETON = NewRelic::Agent.config
+        BROWSER_MONITORING_INSTALLED_VARIABLE = :@browser_monitoring_installed
 
         def env
           @env ||= (ENV['NEW_RELIC_ENV'] || RAILS_ENV.dup)
@@ -116,12 +116,12 @@ module NewRelic
         end
 
         def browser_agent_already_installed?
-          INSTALLED_SINGLETON.instance_variable_defined?(INSTALLED) &&
-            INSTALLED_SINGLETON.instance_variable_get(INSTALLED)
+          BROWSER_MONITORING_INSTALLED_SINGLETON.instance_variable_defined?(BROWSER_MONITORING_INSTALLED_VARIABLE) &&
+            BROWSER_MONITORING_INSTALLED_SINGLETON.instance_variable_get(BROWSER_MONITORING_INSTALLED_VARIABLE)
         end
 
         def mark_browser_agent_as_installed
-          INSTALLED_SINGLETON.instance_variable_set(INSTALLED, true)
+          BROWSER_MONITORING_INSTALLED_SINGLETON.instance_variable_set(BROWSER_MONITORING_INSTALLED_VARIABLE, true)
         end
 
         def rails_version

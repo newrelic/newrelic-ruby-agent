@@ -36,18 +36,19 @@ class NewRelic::Control::Frameworks::RailsTest < Minitest::Test
   private
 
   def reset_installed_instance_variable
-    return unless NewRelic::Control::Frameworks::Rails::INSTALLED_SINGLETON.instance_variable_defined?(
-      NewRelic::Control::Frameworks::Rails::INSTALLED
-    )
+    return unless \
+      NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_SINGLETON.instance_variable_defined?(
+        NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_VARIABLE
+      )
 
-    NewRelic::Control::Frameworks::Rails::INSTALLED_SINGLETON.remove_instance_variable(
-      NewRelic::Control::Frameworks::Rails::INSTALLED
+    NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_SINGLETON.remove_instance_variable(
+      NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_VARIABLE
     )
   end
 
   def set_installed_instance_variable
-    NewRelic::Control::Frameworks::Rails::INSTALLED_SINGLETON.instance_variable_set(
-      NewRelic::Control::Frameworks::Rails::INSTALLED, true
+    NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_SINGLETON.instance_variable_set(
+      NewRelic::Control::Frameworks::Rails::BROWSER_MONITORING_INSTALLED_VARIABLE, true
     )
   end
 end
