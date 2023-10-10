@@ -105,7 +105,7 @@ class ThreadProfilingTest < Minitest::Test
         sleep # sleep until explicitly woken in join_background_threads
       end
     end
-    q.pop # block until the thread has had a chance to start up
+    q.pop # block until the thread has had a chance to start-up
   end
 
   def let_it_finish
