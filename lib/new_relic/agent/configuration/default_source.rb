@@ -1370,6 +1370,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of `ActiveSupport::Logger` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.async_http' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Async::HTTP at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.bunny' => {
           :default => 'auto',
           :public => true,
