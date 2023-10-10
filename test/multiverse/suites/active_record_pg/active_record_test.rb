@@ -66,17 +66,19 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  if active_record_version >= Gem::Version.new('4.0.0')
-    def test_metrics_for_ids
-      in_web_transaction do
-        Order.ids
-      end
+  def test_metrics_for_ids
+    in_web_transaction do
+      Order.ids
+    end
 
-      if active_record_major_version >= 7
-        assert_activerecord_metrics(Order, 'pluck')
+    if active_record_major_version >= 7
+      if active_record_minor_version >= 1
+        assert_activerecord_metrics(Order, 'ids')
       else
-        assert_activerecord_metrics(Order, 'select')
+        assert_activerecord_metrics(Order, 'pluck')
       end
+    else
+      assert_activerecord_metrics(Order, 'select')
     end
   end
 
@@ -621,6 +623,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def assert_activerecord_metrics(model, operation, stats = {})
+    binding.irb if operation == 'plucky'
     operation = operation_for(operation) if %w[create delete].include?(operation)
 
     assert_metrics_recorded({
