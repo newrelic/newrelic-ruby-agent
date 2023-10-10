@@ -374,39 +374,39 @@ common: &default_settings
   # Configures the TCP/IP port for the trace observer Host
   # infinite_tracing.trace_observer.port: 443
 
-  # Controls auto-instrumentation of ActiveSupport::Logger at start up. May be one
+  # Controls auto-instrumentation of ActiveSupport::Logger at start-up. May be one
   # of: auto, prepend, chain, disabled.
   # instrumentation.active_support_logger: auto
 
-  # Controls auto-instrumentation of bunny at start up. May be one of: auto,
+  # Controls auto-instrumentation of bunny at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.bunny: auto
 
-  # Controls auto-instrumentation of the concurrent-ruby library at start up. May be
+  # Controls auto-instrumentation of the concurrent-ruby library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.concurrent_ruby: auto
 
-  # Controls auto-instrumentation of Curb at start up. May be one of: auto, prepend,
+  # Controls auto-instrumentation of Curb at start-up. May be one of: auto, prepend,
   # chain, disabled.
   # instrumentation.curb: auto
 
-  # Controls auto-instrumentation of Delayed Job at start up. May be one of: auto,
+  # Controls auto-instrumentation of Delayed Job at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.delayed_job: auto
 
-  # Controls auto-instrumentation of the elasticsearch library at start up. May be
+  # Controls auto-instrumentation of the elasticsearch library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.elasticsearch: auto
 
-  # Controls auto-instrumentation of Excon at start up. May be one of: enabled,
+  # Controls auto-instrumentation of Excon at start-up. May be one of: enabled,
   # disabled.
   # instrumentation.excon: enabled
 
-  # Controls auto-instrumentation of the Fiber class at start up. May be one of:
+  # Controls auto-instrumentation of the Fiber class at start-up. May be one of:
   # auto, prepend, chain, disabled.
   # instrumentation.fiber: auto
 
-  # Controls auto-instrumentation of Grape at start up. May be one of: auto,
+  # Controls auto-instrumentation of Grape at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.grape: auto
 
@@ -419,43 +419,43 @@ common: &default_settings
   # example, "private.com$,exception.*"
   # instrumentation.grpc.host_denylist: []
 
-  # Controls auto-instrumentation of gRPC clients at start up. May be one of: auto,
+  # Controls auto-instrumentation of gRPC clients at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.grpc_client: auto
 
-  # Controls auto-instrumentation of gRPC servers at start up. May be one of: auto,
+  # Controls auto-instrumentation of gRPC servers at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.grpc_server: auto
 
-  # Controls auto-instrumentation of HTTPClient at start up. May be one of: auto,
+  # Controls auto-instrumentation of HTTPClient at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.httpclient: auto
 
-  # Controls auto-instrumentation of http.rb gem at start up. May be one of: auto,
+  # Controls auto-instrumentation of http.rb gem at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.httprb: auto
 
-  # Controls auto-instrumentation of Ruby standard library Logger at start up. May
+  # Controls auto-instrumentation of Ruby standard library Logger at start-up. May
   # be one of: auto, prepend, chain, disabled.
   # instrumentation.logger: auto
 
-  # Controls auto-instrumentation of dalli gem for Memcache at start up. May be one
+  # Controls auto-instrumentation of dalli gem for Memcache at start-up. May be one
   # of: auto, prepend, chain, disabled.
   # instrumentation.memcache: auto
 
-  # Controls auto-instrumentation of memcache-client gem for Memcache at start up.
+  # Controls auto-instrumentation of memcache-client gem for Memcache at start-up.
   # May be one of: auto, prepend, chain, disabled.
   # instrumentation.memcache_client: auto
 
-  # Controls auto-instrumentation of memcached gem for Memcache at start up. May be
+  # Controls auto-instrumentation of memcached gem for Memcache at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.memcached: auto
 
-  # Controls auto-instrumentation of Mongo at start up. May be one of: enabled,
+  # Controls auto-instrumentation of Mongo at start-up. May be one of: enabled,
   # disabled.
   # instrumentation.mongo: enabled
 
-  # Controls auto-instrumentation of Net::HTTP at start up. May be one of: auto,
+  # Controls auto-instrumentation of Net::HTTP at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.net_http: auto
 
@@ -464,7 +464,7 @@ common: &default_settings
   # application startup. May be one of: auto, prepend, chain, disabled.
   # instrumentation.puma_rack: auto
 
-  # Controls auto-instrumentation of Puma::Rack::URLMap at start up. May be one of:
+  # Controls auto-instrumentation of Puma::Rack::URLMap at start-up. May be one of:
   # auto, prepend, chain, disabled.
   # instrumentation.puma_rack_urlmap: auto
 
@@ -473,27 +473,27 @@ common: &default_settings
   # startup. May be one of: auto, prepend, chain, disabled.
   # instrumentation.rack: auto
 
-  # Controls auto-instrumentation of Rack::URLMap at start up. May be one of: auto,
+  # Controls auto-instrumentation of Rack::URLMap at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.rack_urlmap: auto
 
-  # Controls auto-instrumentation of rake at start up. May be one of: auto, prepend,
+  # Controls auto-instrumentation of rake at start-up. May be one of: auto, prepend,
   # chain, disabled.
   # instrumentation.rake: auto
 
-  # Controls auto-instrumentation of Redis at start up. May be one of: auto,
+  # Controls auto-instrumentation of Redis at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.redis: auto
 
-  # Controls auto-instrumentation of resque at start up. May be one of: auto,
+  # Controls auto-instrumentation of resque at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.resque: auto
 
-  # Controls auto-instrumentation of Roda at start up. May be one of: auto, prepend,
+  # Controls auto-instrumentation of Roda at start-up. May be one of: auto, prepend,
   # chain, disabled.
   # instrumentation.roda: auto
 
-  # Controls auto-instrumentation of Sinatra at start up. May be one of: auto,
+  # Controls auto-instrumentation of Sinatra at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.sinatra: auto
 
@@ -501,13 +501,13 @@ common: &default_settings
   # disabled.
   # instrumentation.stripe: enabled
 
-  # Controls auto-instrumentation of the Thread class at start up to allow the agent
+  # Controls auto-instrumentation of the Thread class at start-up to allow the agent
   # to correctly nest spans inside of an asynchronous transaction. This does not
   # enable the agent to automatically trace all threads created (see
   # instrumentation.thread.tracing). May be one of: auto, prepend, chain, disabled.
   # instrumentation.thread: auto
 
-  # Controls auto-instrumentation of the Thread class at start up to automatically
+  # Controls auto-instrumentation of the Thread class at start-up to automatically
   # add tracing to all Threads created in the application.
   # instrumentation.thread.tracing: true
 
@@ -515,7 +515,7 @@ common: &default_settings
   # up. May be one of: auto, prepend, chain, disabled.
   # instrumentation.tilt: auto
 
-  # Controls auto-instrumentation of Typhoeus at start up. May be one of: auto,
+  # Controls auto-instrumentation of Typhoeus at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.typhoeus: auto
 

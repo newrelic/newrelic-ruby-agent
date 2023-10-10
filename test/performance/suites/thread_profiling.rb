@@ -43,7 +43,7 @@ class ThreadProfiling < Performance::TestCase
       end
     end
 
-    # Ensure that all threads have had a chance to start up
+    # Ensure that all threads have had a chance to start-up
     started_count = 0
     while started_count < @nthreads
       @threadq.pop
