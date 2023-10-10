@@ -12,6 +12,7 @@ end
 serialize!
 
 ACTIVERECORD_VERSIONS = [
+  ["github: 'rails'", 3.0], # Rails Edge
   [nil, 2.7],
   ['7.0.0', 2.7],
   ['6.1.0', 2.5],

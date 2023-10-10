@@ -623,7 +623,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def assert_activerecord_metrics(model, operation, stats = {})
-    binding.irb if operation == 'plucky'
     operation = operation_for(operation) if %w[create delete].include?(operation)
 
     assert_metrics_recorded({
