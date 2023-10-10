@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 RAILS_VERSIONS = [
+  ["github: 'rails'", 3.0], # Rails Edge
   [nil, 2.7],
   ['7.0.4', 2.7],
   ['6.1.7', 2.5],
