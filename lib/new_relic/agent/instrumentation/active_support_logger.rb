@@ -10,13 +10,7 @@ DependencyDetection.defer do
   named :active_support_logger
 
   depends_on do
-    defined?(ActiveSupport::Logger) &&
-      # TODO: Rails 7.1 - ActiveSupport::Logger#broadcast method removed
-      # APM logs-in-context automatic forwarding still works, but sends
-      # log events for each broadcasted logger, often causing duplicates
-      # Issue #2245
-      defined?(Rails::VERSION::STRING) &&
-      Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('7.1.0')
+    defined?(ActiveSupport::Logger) && defined?(ActiveSupport::Logger.broadcast)
   end
 
   executes do

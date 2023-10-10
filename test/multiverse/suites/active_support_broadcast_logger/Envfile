@@ -1,0 +1,19 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+# ActiveSupport::BroadcastLogger introduced in Rails 7.1.
+# Rails 7.1 is the latest version at the time of writing.
+ACTIVE_SUPPORT_VERSIONS = [
+  [nil, 2.7]
+]
+
+def gem_list(activesupport_version = nil)
+  <<-RB
+    gem 'activesupport'#{activesupport_version}
+  RB
+end
+
+create_gemfiles(ACTIVE_SUPPORT_VERSIONS)
