@@ -25,6 +25,14 @@ if defined?(ActionCable::Channel)
         @logger = Logger.new(StringIO.new)
       end
 
+      # In Rails itself, `#config` is delegated via a stub.
+      # See https://github.com/rails/rails/commit/8fff6d609cec2d20972235d3c2cf7d004e2d6983
+      # But seeing as that stub is not distributed in the ActionCable gem, we
+      # use this workaround.
+      def config
+        Rails.application.config
+      end
+
       def transmit(data)
         @transmissions << data
       end
