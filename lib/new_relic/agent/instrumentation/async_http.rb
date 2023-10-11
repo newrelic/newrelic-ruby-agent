@@ -12,7 +12,7 @@ DependencyDetection.defer do
   depends_on do
     # The class that needs to be defined to prepend/chain onto. This can be used
     # to determine whether the library is installed.
-    defined?(Async::Http)
+    defined?(Async::HTTP)
     # Add any additional requirements to verify whether this instrumentation
     # should be installed
   end
@@ -20,8 +20,10 @@ DependencyDetection.defer do
   executes do
     NewRelic::Agent.logger.info('Installing async_http instrumentation')
 
+    require 'async/http/internet'
+    require 'new_relic/agent/http_clients/async_http_wrappers'
     if use_prepend?
-      prepend_instrument Async::Http, NewRelic::Agent::Instrumentation::AsyncHttp::Prepend
+      prepend_instrument Async::HTTP::Internet, NewRelic::Agent::Instrumentation::AsyncHttp::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::AsyncHttp::Chain
     end

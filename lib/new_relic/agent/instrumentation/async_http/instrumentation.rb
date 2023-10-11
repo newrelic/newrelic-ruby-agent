@@ -4,9 +4,31 @@
 
 module NewRelic::Agent::Instrumentation
   module AsyncHttp
-    def method_to_instrument_with_new_relic(*args)
-      # add instrumentation content here
-      yield
+    def call_with_new_relic(method, url, headers = nil, body = nil)
+      wrapped_request = NewRelic::Agent::HTTPClients::AsyncHTTPRequest.new(self, method, url, headers)
+
+      segment = NewRelic::Agent::Tracer.start_external_request_segment(
+        library: wrapped_request.type,
+        uri: wrapped_request.uri,
+        procedure: wrapped_request.method
+      )
+
+      begin
+        response = nil
+        segment.add_request_headers(wrapped_request)
+
+        NewRelic::Agent.disable_all_tracing do
+          response = NewRelic::Agent::Tracer.capture_segment_error(segment) do
+            yield
+          end
+        end
+
+        wrapped_response = NewRelic::Agent::HTTPClients::AsyncHTTPResponse.new(response)
+        segment.process_response_headers(wrapped_response)
+        response
+      ensure
+        segment&.finish
+      end
     end
   end
 end

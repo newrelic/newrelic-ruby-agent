@@ -2,12 +2,14 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'instrumentation'
+
 module NewRelic::Agent::Instrumentation
   module AsyncHttp::Prepend
     include NewRelic::Agent::Instrumentation::AsyncHttp
 
-    def method_to_instrument(*args)
-      method_to_instrument_with_new_relic(*args) { super }
+    def call(*args)
+      call_with_new_relic(*args) { super }
     end
   end
 end

@@ -2,17 +2,19 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'instrumentation'
+
 module NewRelic::Agent::Instrumentation
   module AsyncHttp::Chain
     def self.instrument!
-      ::Async::Http.class_eval do
+      ::Async::HTTP::Internet.class_eval do
         include NewRelic::Agent::Instrumentation::AsyncHttp
 
-        alias_method(:method_to_instrument_without_new_relic, :method_to_instrument)
+        alias_method(:call_without_new_relic, :call)
 
-        def method_to_instrument(*args)
-          method_to_instrument_with_new_relic(*args) do
-            method_to_instrument_without_new_relic(*args)
+        def call(*args)
+          call_with_new_relic(*args) do
+            call_without_new_relic(*args)
           end
         end
       end
