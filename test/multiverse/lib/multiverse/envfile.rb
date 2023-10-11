@@ -133,9 +133,9 @@ module Multiverse
       @serialize
     end
 
-    # add Rails Edge to the array of gem versions for testing,
+    # add Rails Edge to the beginning of the array of gem versions for testing,
     # unless we're operating in a PR workflow context
-    def prepend_rails_edge(gem_version_array = [])
+    def unshift_rails_edge(gem_version_array = [])
       return if ci_for_pr?
 
       # Unshift Rails Edge (representing the latest GitHub primary branch
