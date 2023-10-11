@@ -133,6 +133,34 @@ module Multiverse
       @serialize
     end
 
+    # add Rails Edge to the array of gem versions for testing,
+    # unless we're operating in a PR workflow context
+    def prepend_rails_edge(gem_version_array = [])
+      return if ci_for_pr?
+
+      # Unshift Rails Edge (representing the latest GitHub primary branch
+      # commit for https://github.com/rails/rails) onto the front of the
+      # gem version array. This produces the following line in the generated
+      # Gemfile file:
+      #
+      #   gem 'rails', github: 'rails'
+      #
+      # NOTE: Individually distributed Rails gems such as Active Record are each
+      #       contained within the same 'rails' GitHub repo. For now we are not
+      #       too concerned with cloning the entire Rails repo despite only
+      #       wanting to test one gem.
+      #
+      # NOTE: The Rails Edge version is not tested unless the Ruby version in
+      #       play is greater than or equal to (>=) the version number at the
+      #       end of the unshifted inner array
+      array.unshift(["github: 'rails'", 3.0])
+    end
+
+    # are we running in a CI context intended for PR approvals?
+    def ci_for_pr?
+      ENV.key?('CI_FOR_PR')
+    end
+
     private
 
     def last_supported_ruby_version?(last_supported_ruby_version)

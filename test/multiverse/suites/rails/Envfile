@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 RAILS_VERSIONS = [
-  ["github: 'rails'", 3.0], # Rails Edge
   [nil, 2.7],
   ['7.0.4', 2.7],
   ['6.1.7', 2.5],
@@ -13,6 +12,8 @@ RAILS_VERSIONS = [
   ['5.0.7', 2.4, 2.7],
   ['4.2.11', 2.4, 2.4]
 ]
+
+prepend_rails_edge(RAILS_VERSIONS)
 
 def haml_rails(rails_version = nil)
   if rails_version && (
