@@ -35,4 +35,7 @@ module NewRelic
 
   CONNECT_RETRY_PERIODS = [15, 15, 30, 60, 120, 300]
   MAX_RETRY_PERIOD = 300
+
+  SLASH = '/'
+  ROOT = SLASH
 end
