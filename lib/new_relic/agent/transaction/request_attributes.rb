@@ -103,12 +103,10 @@ module NewRelic
         # rails construct the PATH_INFO enviroment variable improperly and we're generally
         # being defensive.
 
-        ROOT_PATH = '/'.freeze
-
         def path_from_request(request)
           path = attribute_from_request(request, :path) || ''
           path = HTTPClients::URIUtil.strip_query_string(path)
-          path.empty? ? ROOT_PATH : path
+          path.empty? ? NewRelic::ROOT : path
         end
 
         def content_length_from_request(request)

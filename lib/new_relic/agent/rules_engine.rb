@@ -9,7 +9,7 @@ require 'new_relic/language_support'
 module NewRelic
   module Agent
     class RulesEngine
-      SEGMENT_SEPARATOR = '/'.freeze
+      SEGMENT_SEPARATOR = NewRelic::SLASH
       LEADING_SLASH_REGEX = %r{^/}.freeze
 
       include Enumerable
