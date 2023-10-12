@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require './app'
+require_relative 'app'
 
 # Rails's broadcast system sends identical log events to multiple loggers.
 # This test makes sure that our code doesn't send two log events to New Relic.
