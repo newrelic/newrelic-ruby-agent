@@ -24,9 +24,6 @@ Version <dev> brings support for gleaning a Docker container id from cgroups v2 
 
   Rails 7.1 introduced the public API [`ActiveSupport::BroadcastLogger`](https://api.rubyonrails.org/classes/ActiveSupport/BroadcastLogger.html). This logger replaces a private API, `ActiveSupport::Logger.broadcast`. In Rails versions below 7.1, the agent uses the `broadcast` method to stop duplicate logs from being recoded by broadcasted loggers. Now, we've updated the code to provide a similar duplication fix with the new `ActiveSupport::BroadcastLogger` class.
 
-  Previously, the agent prevented broadcasted loggers from recording duplicate log events by skipping instrumentation for broadcasted loggers, identified by calling `ActiveSupport::Logger.broadcast`. In Rails 7.1, this method has been refactored into a class. The agent now records log events for only the first logger found in an `ActiveSupport::BroadcastLogger.broadcasts` array.
-
-
 ## v9.5.0
 
 Version 9.5.0 introduces Stripe instrumentation, allows the agent to record additional response information on a transaction when middleware instrumentation is disabled, introduces new `:'sidekiq.args.include'` and `:'sidekiq.args.exclude:` configuration options to permit capturing only certain Sidekiq job arguments, updates Elasticsearch datastore instance metrics, and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
