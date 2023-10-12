@@ -24,10 +24,8 @@ module NewRelic
           body
         end
 
-        SLASH = '/'.freeze
-
         def trim_leading(value)
-          value.split(SLASH).last
+          value.split(NewRelic::SLASH).last
         end
       end
     end

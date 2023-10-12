@@ -232,7 +232,6 @@ module NewRelic
 
           DEFAULT = 'default'.freeze
           UNKNOWN = 'unknown'.freeze
-          SLASH = '/'.freeze
           LOCALHOST = 'localhost'.freeze
 
           def adapter_from_config(config)
@@ -288,7 +287,7 @@ module NewRelic
           private
 
           def postgres_unix_domain_socket_case?(host, adapter)
-            adapter == :postgres && host && host.start_with?(SLASH)
+            adapter == :postgres && host && host.start_with?(NewRelic::SLASH)
           end
 
           def mysql_default_case?(config, adapter)

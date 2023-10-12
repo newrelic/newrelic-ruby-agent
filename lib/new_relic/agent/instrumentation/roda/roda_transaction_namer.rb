@@ -9,13 +9,12 @@ module NewRelic
         module TransactionNamer
           extend self
 
-          ROOT = '/'.freeze
           REGEX_MULTIPLE_SLASHES = %r{^[/^]*(.*?)[/$?]*$}.freeze
 
           def transaction_name(request)
             path = request.path || ::NewRelic::Agent::UNKNOWN_METRIC
             name = path.gsub(REGEX_MULTIPLE_SLASHES, '\1') # remove any rogue slashes
-            name = ROOT if name.empty?
+            name = NewRelic::ROOT if name.empty?
             name = "#{request.request_method} #{name}" if request.respond_to?(:request_method)
 
             name
