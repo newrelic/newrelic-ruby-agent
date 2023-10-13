@@ -1361,6 +1361,15 @@ module NewRelic
           :description => 'Configures the TCP/IP port for the trace observer Host'
         },
         # Instrumentation
+        :'instrumentation.active_support_broadcast_logger' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
+          :dynamic_name => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of `ActiveSupport::BroadcastLogger` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`. Used in Rails versions >= 7.1.'
+        },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :documentation_default => 'auto',
@@ -1368,7 +1377,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of `ActiveSupport::Logger` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of `ActiveSupport::Logger` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`. Used in Rails versions below 7.1.'
         },
         :'instrumentation.bunny' => {
           :default => 'auto',
@@ -1646,7 +1655,7 @@ module NewRelic
             An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
             not be reported to New Relic. Each string in this array will be turned into a regular expression via
             `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the
-            pair will not be reported. By default, no `user_data` is reported, so this option should only be used if 
+            pair will not be reported. By default, no `user_data` is reported, so this option should only be used if
             the `stripe.user_data.include` option is being used.
           DESCRIPTION
         },

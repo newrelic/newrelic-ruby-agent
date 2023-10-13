@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> brings support for gleaning a Docker container id from cgroups v2 based containers and records additional synthetics attributes.
+Version <dev> brings support for gleaning a Docker container id from cgroups v2 based containers, records additional synthetics attributes, and fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic.
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
 
@@ -20,6 +20,9 @@ Version <dev> brings support for gleaning a Docker container id from cgroups v2 
 
   For compatibility with Ruby 3.4 and to silence compatibility warnings present in Ruby 3.3, declare a dependency on the `base64` gem. The New Relic Ruby agent uses the native Ruby `base64` gem for Base 64 encoding/decoding. The agent is joined by Ruby on Rails ([rails/rails@3e52adf](https://github.com/rails/rails/commit/3e52adf28e90af490f7e3bdc4bcc85618a4e0867)) and others in making this change in preparation for Ruby 3.3/3.4.
 
+- **Fix: Stop sending duplicate log events for Rails 7.1 users**
+
+  Rails 7.1 introduced the public API [`ActiveSupport::BroadcastLogger`](https://api.rubyonrails.org/classes/ActiveSupport/BroadcastLogger.html). This logger replaces a private API, `ActiveSupport::Logger.broadcast`. In Rails versions below 7.1, the agent uses the `broadcast` method to stop duplicate logs from being recoded by broadcasted loggers. Now, we've updated the code to provide a similar duplication fix with the new `ActiveSupport::BroadcastLogger` class.
 
 ## v9.5.0
 
