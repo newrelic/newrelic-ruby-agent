@@ -60,13 +60,6 @@ module HttpClientTestCases
     res.body
   end
 
-  # TODO: remove method and its callers once Excon version is at or above 0.20.0
-  def jruby_excon_skip?
-    defined?(JRUBY_VERSION) &&
-      defined?(::Excon::VERSION) &&
-      Gem::Version.new(::Excon::VERSION) < Gem::Version.new('0.20.0')
-  end
-
   # Tests
 
   def test_validate_request_wrapper
@@ -229,8 +222,6 @@ module HttpClientTestCases
   end
 
   def test_ignore
-    skip "Don't test JRuby with old Excon." if jruby_excon_skip?
-
     in_transaction do
       NewRelic::Agent.disable_all_tracing do
         post_response
@@ -247,16 +238,12 @@ module HttpClientTestCases
   end
 
   def test_post
-    skip "Don't test JRuby with old Excon." if jruby_excon_skip?
-
     in_transaction { post_response }
 
     assert_externals_recorded_for('localhost', 'POST')
   end
 
   def test_put
-    skip "Don't test JRuby with old Excon." if jruby_excon_skip?
-
     in_transaction { put_response }
 
     assert_externals_recorded_for('localhost', 'PUT')
@@ -730,7 +717,8 @@ module HttpClientTestCases
       # NOP -- allowing span and transaction to notice error
     end
 
-    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    # allow "timeout", "couldn't connect", or "couldnt_connect"
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn'?t(?:\s|_)connect/i
     assert_transaction_noticed_error txn, timeout_error_class.name
   end
 
@@ -745,7 +733,8 @@ module HttpClientTestCases
       end
     end
 
-    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    # allow "timeout", "couldn't connect", or "couldnt_connect"
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn'?t(?:\s|_)connect/i
     refute_transaction_noticed_error txn, timeout_error_class.name
   end
 
