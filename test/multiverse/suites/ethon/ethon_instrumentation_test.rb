@@ -46,16 +46,8 @@ class EthonInstrumentationTest < Minitest::Test
   #       - The header is not pulled from the current transaction at the time of the request being performed
   #   - test_noticed_error_at_segment_and_txn_on_error
   #       - Currently errors are only set on segments, not transactions
-  #   - test_noticed_forbidden_error
-  #       - Server is unreachable even by `curl`
-  #       - a response_code is 0 is seen, an error is noted, but there's no 403 code
-  #   - test_noticed_internal_server_error
-  #       - Similar to the forbidden error.
-  #       - response_code is 0, not 500
   %i[test_raw_synthetics_header_is_passed_along_when_cat_disabled
-    test_noticed_error_at_segment_and_txn_on_error
-    test_noticed_forbidden_error
-    test_noticed_internal_server_error].each do |test|
+    test_noticed_error_at_segment_and_txn_on_error].each do |test|
     define_method(test) {}
   end
 
