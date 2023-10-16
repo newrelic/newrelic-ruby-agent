@@ -59,7 +59,11 @@ module NewRelic::Agent::Instrumentation
 
         on_complete { callback.call }
 
-        yield
+        NewRelic::Agent.disable_all_tracing do
+          NewRelic::Agent::Tracer.capture_segment_error(segment) do
+            yield
+          end
+        end
       ensure
         ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end

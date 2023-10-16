@@ -357,9 +357,7 @@ module NewRelic
           yield
         rescue => exception
           # needs else branch coverage
-          if segment && segment.is_a?(Transaction::AbstractSegment) # rubocop:disable Style/SafeNavigation
-            segment.notice_error(exception)
-          end
+          segment.notice_error(exception) if segment&.is_a?(Transaction::AbstractSegment)
           raise
         end
 

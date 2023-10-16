@@ -79,6 +79,7 @@ module NewRelic
 
         def []=(key, value)
           headers[key] = value
+          @easy.headers = headers
         end
 
         def headers

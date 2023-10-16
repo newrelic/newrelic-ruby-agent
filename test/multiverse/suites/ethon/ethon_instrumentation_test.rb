@@ -41,16 +41,6 @@ class EthonInstrumentationTest < Minitest::Test
     define_method(test) {}
   end
 
-  # TODO: These tests are not currently working with Ethon
-  #   - test_raw_synthetics_header_is_passed_along_when_cat_disabled
-  #       - The header is not pulled from the current transaction at the time of the request being performed
-  #   - test_noticed_error_at_segment_and_txn_on_error
-  #       - Currently errors are only set on segments, not transactions
-  %i[test_raw_synthetics_header_is_passed_along_when_cat_disabled
-    test_noticed_error_at_segment_and_txn_on_error].each do |test|
-    define_method(test) {}
-  end
-
   # TODO: needed for non-shared tests?
   # def setup
   #   @stats_engine = NewRelic::Agent.instance.stats_engine
@@ -62,6 +52,26 @@ class EthonInstrumentationTest < Minitest::Test
   # end
 
   # TODO: non-shared tests to go here as driven by code coverage
+
+  # HttpClientTestCases required method
+  #   NOTE: only required for clients that support multi
+  #   NOTE: this method must be defined publicly to satisfy the
+  #         the shared tests' `respond_to?` check
+  # TODO: Ethon::Multi testing
+  def xget_response_multi(url, count)
+    multi = Ethon::Multi.new
+    easies = []
+    count.times do
+      easy = Ethon::Easy.new
+      easy.http_request(url, :get, {})
+      easies << easy
+      multi.add(easy)
+    end
+    multi.perform
+    easies.each_with_object([]) do |easy, responses|
+      responses << DummyResponse.new(easy.response_body)
+    end
+  end
 
   private
 
@@ -81,16 +91,9 @@ class EthonInstrumentationTest < Minitest::Test
   end
 
   # HttpClientTestCases required method
-  # TODO: for multi
-  # def get_response_multi(uri, count)
-
-  # end
-
-  # HttpClientTestCases required method
   # NOTE that the request won't actually be performed; simply inspected
   def request_instance
-    # TODO: confirm the NOTE above
-    NewRelic::Agent::HTTPClients::EthonHTTPRequest.new(Ethon::Easy.new(url: 'https://newrelic.com'))
+    NewRelic::Agent::HTTPClients::EthonHTTPRequest.new(Ethon::Easy.new(url: 'not a real URL'))
   end
 
   # HttpClientTestCases required method
@@ -115,7 +118,12 @@ class EthonInstrumentationTest < Minitest::Test
 
   # HttpClientTestCases required method
   def simulate_error_response
-    get_response('http://localhost:666/evil')
+    e = Ethon::Easy.new
+    e.http_request(default_url, :get, {})
+    e.stub :headers, -> { raise timeout_error_class.new('timeout') } do
+      e.perform
+    end
+    DummyResponse.new(e.response_body)
   end
 
   def perform_easy_request(url, action, headers = nil)
