@@ -129,7 +129,6 @@ class RodaIgnoreAllRoutesAppTest < Minitest::Test
 end
 
 class RodaIgnoreApdexApp < Roda
-  # newrelic_ignore called without any arguments will ignore the entire app
   newrelic_ignore_apdex('/no_apdex')
 
   route do |r|
