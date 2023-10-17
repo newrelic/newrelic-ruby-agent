@@ -10,17 +10,10 @@ require_relative '../../../../lib/new_relic/agent/http_clients/ethon_wrappers'
 class EthonInstrumentationTest < Minitest::Test
   include HttpClientTestCases
 
-  # TODO: these 3 cause issues with Ethon
-  %i[test_response_wrapper_ignores_case_in_header_keys
-    test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-    test_crossapp_metrics_allow_valid_utf8_characters].each do |test|
-    define_method(test) {}
-  end
-
   # Ethon::Easy#perform doesn't return a response object. Our Ethon
   # instrumentation knows that and works fine. But the shared HTTP
   # client test cases expect one, so we'll fake one.
-  DummyResponse = Struct.new(:body)
+  DummyResponse = Struct.new(:body, :response_headers)
 
   # TODO: needed for non-shared tests?
   # def setup
@@ -50,7 +43,7 @@ class EthonInstrumentationTest < Minitest::Test
     end
     multi.perform
     easies.each_with_object([]) do |easy, responses|
-      responses << DummyResponse.new(easy.response_body)
+      responses << e.response_headers.new(easy.response_body, easy.response_headers)
     end
   end
 
@@ -104,7 +97,7 @@ class EthonInstrumentationTest < Minitest::Test
     e.stub :headers, -> { raise timeout_error_class.new('timeout') } do
       e.perform
     end
-    DummyResponse.new(e.response_body)
+    DummyResponse.new(e.response_body, e.response_headers)
   end
 
   def perform_easy_request(url, action, headers = nil)
@@ -112,7 +105,7 @@ class EthonInstrumentationTest < Minitest::Test
     e.http_request(url, action, {})
     e.headers = headers if headers
     e.perform
-    DummyResponse.new(e.response_body)
+    DummyResponse.new(e.response_body, e.response_headers)
   end
 
   # HttpClientTestCases required method
@@ -125,11 +118,7 @@ class EthonInstrumentationTest < Minitest::Test
 
   # HttpClientTestCases required method
   def response_instance(headers = {})
-    e = Ethon::Easy.new
-    e.http_request(default_url, :get, {})
-    e.headers = headers
-    e.perform
-
-    NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(e)
+    response = DummyResponse.new('', headers.inject(+"200\r\n") { |s, (k, v)| s += "#{k}: #{v}\r\n" })
+    NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(response)
   end
 end

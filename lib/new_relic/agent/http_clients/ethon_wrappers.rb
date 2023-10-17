@@ -8,32 +8,7 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-      module EthonShared
-        def headers
-          @headers ||= if @easy.instance_variable_defined?(headers_instance_var)
-            @easy.instance_variable_get(headers_instance_var)
-          else
-            {}
-          end
-        end
-
-        def headers_instance_var
-          NewRelic::Agent::Instrumentation::Ethon::Easy::HEADERS_INSTANCE_VAR
-        end
-
-        def [](key)
-          headers.key?(key) ? headers[key] : headers[key.downcase]
-          # headers[key]
-        end
-
-        def to_hash
-          headers
-        end
-      end
-
       class EthonHTTPResponse < AbstractResponse
-        include EthonShared
-
         def initialize(easy)
           @easy = easy
         end
@@ -41,11 +16,27 @@ module NewRelic
         def status_code
           @easy.response_code
         end
+
+        def [](key)
+          headers[format_key(key)]
+        end
+
+        def headers
+          # Ethon::Easy#response_headers will return '' if headers are unset
+          @easy.response_headers.scan(/\n([^:]+?): ([^:\n]+?)\r/).each_with_object({}) do |pair, hash|
+            hash[format_key(pair[0])] = pair[1]
+          end
+        end
+        alias to_hash headers
+
+        private
+
+        def format_key(key)
+          key.tr('-', '_').downcase
+        end
       end
 
       class EthonHTTPRequest < AbstractRequest
-        include EthonShared
-
         attr_reader :uri
 
         DEFAULT_ACTION = 'unknownaction'
@@ -97,6 +88,22 @@ module NewRelic
         def []=(key, value)
           headers[key] = value
           @easy.headers = headers
+        end
+
+        def headers
+          @headers ||= if @easy.instance_variable_defined?(headers_instance_var)
+            @easy.instance_variable_get(headers_instance_var)
+          else
+            {}
+          end
+        end
+
+        def headers_instance_var
+          NewRelic::Agent::Instrumentation::Ethon::Easy::HEADERS_INSTANCE_VAR
+        end
+
+        def [](key)
+          headers[key]
         end
       end
     end
