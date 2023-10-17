@@ -36,8 +36,7 @@ module NewRelic::Agent::Instrumentation
         else
           opts[:newrelic_ignores][type] += routes.map do |r|
             # Roda adds leading slashes to routes, so we need to do the same
-            r = '/' + r unless r.start_with?('/')
-            r
+            "#{'/' unless r.start_with?('/')}#{r}"
           end
         end
       end
