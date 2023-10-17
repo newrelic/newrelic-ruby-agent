@@ -12,6 +12,14 @@ module NewRelic
         def get_status_code
           get_status_code_using(:status)
         end
+
+        def [](key)
+          @wrapped_response.headers.to_h[key.downcase]&.first
+        end
+
+        def to_hash
+          @wrapped_response.headers.to_h
+        end
       end
 
       class AsyncHTTPRequest < AbstractRequest

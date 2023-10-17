@@ -12,9 +12,9 @@ module NewRelic::Agent::Instrumentation
 
         alias_method(:call_without_new_relic, :call)
 
-        def call(*args)
-          call_with_new_relic(*args) do
-            call_without_new_relic(*args)
+        def call(method, url, headers = nil, body = nil)
+          call_with_new_relic(method, url, headers, body) do |hdr|
+            call_without_new_relic(method, url, hdr, body)
           end
         end
       end

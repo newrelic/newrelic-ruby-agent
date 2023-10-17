@@ -6,4 +6,5 @@ instrumentation_methods :chain, :prepend
 
 gemfile <<~RB
   gem 'async-http'
+  gem 'rack'
 RB

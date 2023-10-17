@@ -8,8 +8,8 @@ module NewRelic::Agent::Instrumentation
   module AsyncHttp::Prepend
     include NewRelic::Agent::Instrumentation::AsyncHttp
 
-    def call(*args)
-      call_with_new_relic(*args) { super }
+    def call(method, url, headers = nil, body = nil)
+      call_with_new_relic(method, url, headers, body) { |hdr| super(method, url, hdr, body) }
     end
   end
 end
