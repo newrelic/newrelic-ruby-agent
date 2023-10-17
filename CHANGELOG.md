@@ -20,11 +20,20 @@ Version <dev> gleans Docker container IDs from cgroups v2-based containers, reco
 
   For compatibility with Ruby 3.4 and to silence compatibility warnings present in Ruby 3.3, declare a dependency on the `base64` gem. The New Relic Ruby agent uses the native Ruby `base64` gem for Base 64 encoding/decoding. The agent is joined by Ruby on Rails ([rails/rails@3e52adf](https://github.com/rails/rails/commit/3e52adf28e90af490f7e3bdc4bcc85618a4e0867)) and others in making this change in preparation for Ruby 3.3/3.4. [PR#2238](https://github.com/newrelic/newrelic-ruby-agent/pull/2238)
 
-- **Fix: Stop sending duplicate log events for Rails 7.1 users**
+-**Feature: Add Roda support for the newrelic_ignore\* family of methods**
+
+  The agent can now selectively disable instrumentation for particular requests within Roda applications. Supported methods include:
+  - `newrelic_ignore`: ignore a given route.
+  - `newrelic_ignore_apdex`: exclude a given route from consideration in overall Apdex calculations.
+  - `newrelic_ignore_enduser`: prevent automatic injection of the page load timing JavaScript when a route is rendered.
+
+  For more information, see [Roda Instrumentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/instrumented-gems/roda-instrumentation/). [PR#2267](https://github.com/newrelic/newrelic-ruby-agent/pull/2267)
+
+- **Bugfix: Stop sending duplicate log events for Rails 7.1 users**
 
   Rails 7.1 introduced the public API [`ActiveSupport::BroadcastLogger`](https://api.rubyonrails.org/classes/ActiveSupport/BroadcastLogger.html). This logger replaces a private API, `ActiveSupport::Logger.broadcast`. In Rails versions below 7.1, the agent uses the `broadcast` method to stop duplicate logs from being recoded by broadcasted loggers. Now, we've updated the code to provide a similar duplication fix for the `ActiveSupport::BroadcastLogger` class. [PR#2252](https://github.com/newrelic/newrelic-ruby-agent/pull/2252)
 
-- **Fix: Resolve Sidekiq 8.0 error handler deprecation warning**
+- **Bugfix: Resolve Sidekiq 8.0 error handler deprecation warning**
 
   Sidekiq 8.0 will require procs passed to the error handler to include three arguments: error, context, and config. Users running sidekiq/main would receive a deprecation warning with this change any time an error was raised within a job. Thank you, [@fukayatsu](https://github.com/fukayatsu) for your proactive fix! [PR#2261](https://github.com/newrelic/newrelic-ruby-agent/pull/2261)
 
