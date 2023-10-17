@@ -9,7 +9,9 @@ require_relative 'active_support_logger/prepend'
 DependencyDetection.defer do
   named :active_support_logger
 
-  depends_on { defined?(ActiveSupport::Logger) }
+  depends_on do
+    defined?(ActiveSupport::Logger) && defined?(ActiveSupport::Logger.broadcast)
+  end
 
   executes do
     NewRelic::Agent.logger.info('Installing ActiveSupport::Logger instrumentation')

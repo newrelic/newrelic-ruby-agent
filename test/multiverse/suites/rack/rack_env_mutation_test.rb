@@ -27,7 +27,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           end
         end
 
-        # Give the thread we just spawned a chance to start up
+        # Give the thread we just spawned a chance to start-up
         Thread.pass
 
         [200, {}, ['cool story']]

@@ -2,13 +2,13 @@
 
 ## dev
 
-Version <dev> brings support for gleaning a Docker container id from cgroups v2 based containers and records additional synthetics attributes.
+Version <dev> gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
 
-  Previously, the agent ignored many Rails commands by default, such as `rails routes`, using Rake-specific logic. This was accomplished by setting these commands as default values for the config option `autostart.denylisted_rake_tasks`. However, Rails 7 no longer uses Rake for these commands, causing the agent to start running and attempting to record data when running these commands. The commands have now been added to the default value for the config option `autostart.denylisted_constants`, which will allow the agent to recognize these commands correctly in Rails 7 and prevent the agent from starting during ignored tasks. Note that the agent will continue to start up when the `rails server` and `rails runner` commands are invoked. [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239)
+  Previously, the agent ignored many Rails commands by default, such as `rails routes`, using Rake-specific logic. This was accomplished by setting these commands as default values for the config option `autostart.denylisted_rake_tasks`. However, Rails 7 no longer uses Rake for these commands, causing the agent to start running and attempting to record data when running these commands. The commands have now been added to the default value for the config option `autostart.denylisted_constants`, which will allow the agent to recognize these commands correctly in Rails 7 and prevent the agent from starting during ignored tasks. Note that the agent will continue to start-up when the `rails server` and `rails runner` commands are invoked. [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239)
 
-- **Feature: Enhance Docker container id reporting**
+- **Feature: Glean Docker container ID for cgroups v2-based containers**
 
   Previously, the agent was only capable of determining a host Docker container's ID if the container was based on cgroups v1. Now, containers based on cgroups v2 will also have their container IDs reported to New Relic. [PR#2229](https://github.com/newrelic/newrelic-ruby-agent/issues/2229).
 
@@ -16,6 +16,17 @@ Version <dev> brings support for gleaning a Docker container id from cgroups v2 
 
   The agent will now record additional synthetics attributes on synthetics events if these attributes are available.  [PR#2203](https://github.com/newrelic/newrelic-ruby-agent/pull/2203)
 
+- **Feature: Declare a gem dependency on the Ruby Base 64 gem 'base64'**
+
+  For compatibility with Ruby 3.4 and to silence compatibility warnings present in Ruby 3.3, declare a dependency on the `base64` gem. The New Relic Ruby agent uses the native Ruby `base64` gem for Base 64 encoding/decoding. The agent is joined by Ruby on Rails ([rails/rails@3e52adf](https://github.com/rails/rails/commit/3e52adf28e90af490f7e3bdc4bcc85618a4e0867)) and others in making this change in preparation for Ruby 3.3/3.4. [PR#2238](https://github.com/newrelic/newrelic-ruby-agent/pull/2238)
+
+- **Fix: Stop sending duplicate log events for Rails 7.1 users**
+
+  Rails 7.1 introduced the public API [`ActiveSupport::BroadcastLogger`](https://api.rubyonrails.org/classes/ActiveSupport/BroadcastLogger.html). This logger replaces a private API, `ActiveSupport::Logger.broadcast`. In Rails versions below 7.1, the agent uses the `broadcast` method to stop duplicate logs from being recoded by broadcasted loggers. Now, we've updated the code to provide a similar duplication fix for the `ActiveSupport::BroadcastLogger` class. [PR#2252](https://github.com/newrelic/newrelic-ruby-agent/pull/2252)
+
+- **Fix: Resolve Sidekiq 8.0 error handler deprecation warning**
+
+  Sidekiq 8.0 will require procs passed to the error handler to include three arguments: error, context, and config. Users running sidekiq/main would receive a deprecation warning with this change any time an error was raised within a job. Thank you, [@fukayatsu](https://github.com/fukayatsu) for your proactive fix! [PR#2261](https://github.com/newrelic/newrelic-ruby-agent/pull/2261)
 
 ## v9.5.0
 
@@ -452,7 +463,7 @@ Version 8.15.0 of the agent confirms compatibility with Ruby 3.2.0, adds instrum
 
   | Configuration name                | Default | Behavior                                                                                                                        |
   | --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
-  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
 
 - **Infinite Tracing: Use batching and compression**
 
@@ -551,7 +562,7 @@ Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increase
 
   | Configuration name                | Default | Behavior                                                                                                                      |
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-  | `instrumentation.elasticsearch`   | auto    | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+  | `instrumentation.elasticsearch`   | auto    | Controls auto-instrumentation of the elasticsearch library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
   | `elasticsearch.capture_queries`   | true    | If `true`, the agent captures Elasticsearch queries in transaction traces.                                                    |
   | `elasticsearch.obfuscate_queries` | true    | If `true`, the agent obfuscates Elasticsearch queries in transaction traces.                                                  |
 
@@ -1166,7 +1177,7 @@ The multiverse collection of test suites requires a variety of data handling sof
 - **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times**
 
   In rare cases on jRuby, the BrowserMonitoring middleware could attempt to install itself
-  multiple times at start up. This bug fix addresses that by using a mutex to introduce
+  multiple times at start-up. This bug fix addresses that by using a mutex to introduce
   thread safety to the operation. Sintra in particular can have this race condition because
   its middleware stack is not installed until the first request is received.
 
@@ -1177,7 +1188,7 @@ The multiverse collection of test suites requires a variety of data handling sof
 - **Bugfix: nil Middlewares injection now prevented and gracefully handled in Sinatra**
 
   Previously, the agent could potentially inject multiples of an instrumented middleware if Sinatra received many
-  requests at once during start up and initialization due to Sinatra's ability to delay full start up as long as possible.
+  requests at once during start-up and initialization due to Sinatra's ability to delay full start-up as long as possible.
   This has now been fixed and the Ruby agent correctly instruments only once as well as gracefully handles nil middleware
   classes in general.
 
@@ -3394,7 +3405,7 @@ For more details on our Resque support, see https://docs.newrelic.com/docs/agent
 - Support agent when starting Resque Pool from Rake task
 
 When running resque-pool with its provided rake tasks, the agent would not
-start up properly. Thanks Tiago Sousa for the fix!
+start-up properly. Thanks Tiago Sousa for the fix!
 
 - Fix for DelayedJob + Rails 4.x queue depth metrics
 
@@ -5338,7 +5349,7 @@ Agent improvements to support future RPM enhancements
 - fix incompatibility in the developer mode with the safe_erb plugin
 - fix module namespace issue causing an error accessing
   NewRelic::Instrumentation modules
-- fix issue where the agent sometimes failed to start up if there was a
+- fix issue where the agent sometimes failed to start-up if there was a
   transient network problem
 - fix IgnoreSilentlyException message
 
