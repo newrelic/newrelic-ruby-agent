@@ -6,6 +6,8 @@ require_relative '../../../../lib/new_relic/agent/instrumentation/roda/instrumen
 require_relative '../../../../lib/new_relic/agent/instrumentation/roda/roda_transaction_namer'
 require_relative '../../../../lib/new_relic/agent/instrumentation/roda/ignorer'
 
+JS_AGENT_LOADER = 'JS_AGENT_LOADER'
+
 class RodaIgnorerTestApp < Roda
   newrelic_ignore('/ignore_me', '/ignore_me_too')
   newrelic_ignore('no_leading_slash')
@@ -148,6 +150,10 @@ class RodaIgnoreApdexAppTest < Minitest::Test
 end
 
 class RodaIgnoreEndUserApp < Roda
+  def fake_html_for_browser_timing_header
+    '<html><head><title></title></head><body></body></html>'
+  end
+
   newrelic_ignore_enduser('ignore_enduser')
 
   route do |r|
@@ -159,6 +165,14 @@ end
 class RodaIgnoreEndUserAppTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
+
+  def assert_enduser_ignored(response)
+    refute_match(/#{JS_AGENT_LOADER}/o, response.body)
+  end
+
+  def refute_enduser_ignored(response)
+    assert_match(/#{JS_AGENT_LOADER}/o, response.body)
+  end
 
   setup_and_teardown_agent(:application_id => 'appId',
     :beacon => 'beacon',
@@ -186,20 +200,4 @@ class RodaIgnoreEndUserAppTest < Minitest::Test
 
     assert_enduser_ignored(last_response)
   end
-end
-
-private
-
-JS_AGENT_LOADER = 'JS_AGENT_LOADER'
-
-def assert_enduser_ignored(response)
-  refute_match(/#{JS_AGENT_LOADER}/o, response.body)
-end
-
-def refute_enduser_ignored(response)
-  assert_match(/#{JS_AGENT_LOADER}/o, response.body)
-end
-
-def fake_html_for_browser_timing_header
-  '<html><head><title></title></head><body></body></html>'
 end
