@@ -591,8 +591,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     # ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     #       ActiveRecord::Base.configs_for(env_name: NewRelic::Control.instance.env)['adapter']
     #       ActiveRecord::Base.configs_for(env_name: RAILS_ENV)['adapter']
-    # require 'pry'; binding.pry
     # Order.configurations[RAILS_ENV]['adapter']
+    if ENV['ENABLE_PRY']
+      require 'pry'
+      binding.pry
+    end
     adapter_string = ::NewRelic::Agent::DatabaseAdapter.value
     adapter_string.downcase.to_sym
   end

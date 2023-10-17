@@ -58,7 +58,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.16'
-  s.add_development_dependency 'pry' unless ENV['CI']
+  s.add_development_dependency 'pry' if ENV['ENABLE_PRY']
   s.add_development_dependency 'rack'
   s.add_development_dependency 'rake', '12.3.3'
 

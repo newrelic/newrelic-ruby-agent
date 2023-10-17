@@ -23,6 +23,11 @@ end
 
 gem 'newrelic_rpm', path: '../../..'
 
-gem 'pry', '~> 0.9.12'
+group :development do
+  if ENV['ENABLE_PRY']
+    gem 'pry', '~> 0.9.12'
+  end
+end
+
 gem 'warning'
 gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'

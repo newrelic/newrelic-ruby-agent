@@ -131,7 +131,7 @@ end
 
 desc 'Start an interactive console session'
 task :console do
-  require 'pry'
+  require 'pry' if ENV['ENABLE_PRY']
   require 'newrelic_rpm'
   ARGV.clear
   Pry.start
