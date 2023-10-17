@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Roda
     module Ignorer
       def self.should_ignore?(app, type)
-        return false if !app.opts.include?(:newrelic_ignores)
+        return false unless app.opts.include?(:newrelic_ignores)
 
         app.opts[:newrelic_ignores][type].any? do |pattern|
           pattern === app.request.path_info
