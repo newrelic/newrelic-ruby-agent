@@ -4,6 +4,7 @@
 
 require_relative 'roda/instrumentation'
 require_relative 'roda/roda_transaction_namer'
+require_relative 'roda/ignorer'
 
 DependencyDetection.defer do
   named :roda
@@ -30,5 +31,6 @@ DependencyDetection.defer do
       chain_instrument NewRelic::Agent::Instrumentation::Roda::Build::Chain
       chain_instrument NewRelic::Agent::Instrumentation::Roda::Chain
     end
+    Roda.class_eval { extend NewRelic::Agent::Instrumentation::Roda::Ignorer }
   end
 end

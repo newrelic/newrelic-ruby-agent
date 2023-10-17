@@ -6,10 +6,10 @@ module NewRelic::Agent::Instrumentation
   module Roda
     module Ignorer
       def self.should_ignore?(app, type)
-        return false if !app.settings.respond_to?(:newrelic_ignores)
+        return false if !app.opts.include?(:newrelic_ignores)
 
-        app.settings.newrelic_ignores[type].any? do |pattern|
-          pattern.match(app.request.path_info)
+        app.opts[:newrelic_ignores][type].any? do |pattern|
+          pattern === app.request.path_info
         end
       end
 
@@ -28,17 +28,17 @@ module NewRelic::Agent::Instrumentation
       private
 
       def set_newrelic_ignore(type, *routes)
-        # Important to default this in the context of the actual app
-        # If it's done at register time, ignores end up shared between apps.
-        set(:newrelic_ignores, Hash.new([])) if !respond_to?(:newrelic_ignores)
+        # Create a newrelic_ignores hash if one doesn't exist
+        opts[:newrelic_ignores] = Hash.new([]) if !opts.include?(:newrelic_ignores)
 
-        # If we call an ignore without a route, it applies to the whole app
-        routes = ['*'] if routes.empty?
-
-        settings.newrelic_ignores[type] += routes.map do |r|
-          # Ugly sending to private Base#compile, but we want to mimic
-          # exactly Sinatra's mapping of route text to regex
-          Array(send(:compile, r)).first
+        if routes.empty?
+          opts[:newrelic_ignores][type] += [Regexp.new('.*')]
+        else
+          opts[:newrelic_ignores][type] += routes.map do |r|
+            # Roda adds leading slashes to routes, so we need to do the same
+            r = '/' + r unless r.start_with?('/')
+            r
+          end
         end
       end
     end
