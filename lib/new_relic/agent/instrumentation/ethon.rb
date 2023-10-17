@@ -9,15 +9,6 @@ require_relative 'ethon/prepend'
 DependencyDetection.defer do
   named :ethon
 
-  # If Ethon is being used as a dependency of Typhoeus, allow the Typhoeus
-  # instrumentation to handle everything. Otherwise each external network call
-  # will confusingly appear with "Ethon" segment naming.
-  depends_on do
-    !defined?(Typhoeus)
-  end
-
-  # ^-- TODO: do both segments exist and it's only the shared tests that are problematic?
-
   depends_on do
     defined?(Ethon) && Gem::Version.new(Ethon::VERSION) >= Gem::Version.new('0.12.0')
   end

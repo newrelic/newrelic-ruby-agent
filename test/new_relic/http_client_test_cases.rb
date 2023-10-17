@@ -216,9 +216,7 @@ module HttpClientTestCases
       get_response
     end
 
-    last_node = find_last_transaction_node()
-
-    assert_equal "External/localhost/#{client_name}/GET", last_node.metric_name
+    perform_last_node_assertions
   end
 
   def test_ignore
@@ -378,12 +376,7 @@ module HttpClientTestCases
       end
     end
 
-    last_node = find_last_transaction_node()
-
-    assert_includes last_node.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
-
-    assert_metrics_recorded([
+    perform_last_node_error_assertions([
       'External/all',
       'External/allOther',
       'ExternalApp/localhost/18#1884/all',
@@ -403,12 +396,7 @@ module HttpClientTestCases
       end
     end
 
-    last_node = find_last_transaction_node()
-
-    assert_includes last_node.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
-
-    assert_metrics_recorded([
+    perform_last_node_error_assertions([
       'External/all',
       'External/allOther',
       'ExternalApp/localhost/12#1114/all',
@@ -518,27 +506,46 @@ module HttpClientTestCases
     # transaction in which the error occurs. That, coupled with the fact that
     # fixing it for old versions of Typhoeus would require large changes to
     # the instrumentation, makes us say 'meh'.
-    is_typhoeus = (client_name == 'Typhoeus')
-    if !is_typhoeus || (is_typhoeus && Typhoeus::VERSION >= '0.5.4')
-      evil_server = NewRelic::EvilServer.new
-      evil_server.start
+    skip 'Not tested with Typhoeus < 0.5.4' if typhoeus? && Typhoeus::VERSION < '0.5.4'
 
-      in_transaction do
-        begin
-          get_response("http://localhost:#{evil_server.port}")
-        rescue
-          # it's expected that this will raise for some HTTP libraries (e.g.
-          # Net::HTTP). we unfortunately don't know the exact exception class
-          # across all libraries
-        end
+    evil_server = NewRelic::EvilServer.new
+    evil_server.start
+
+    in_transaction do
+      begin
+        get_response("http://localhost:#{evil_server.port}")
+      rescue
+        # it's expected that this will raise for some HTTP libraries (e.g.
+        # Net::HTTP). we unfortunately don't know the exact exception class
+        # across all libraries
       end
-
-      last_node = find_last_transaction_node()
-
-      assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
-
-      evil_server.stop
     end
+
+    perform_last_node_assertions
+
+    evil_server.stop
+  end
+
+  def typhoeus?
+    client_name == 'Typhoeus'
+  end
+
+  def perform_last_node_assertions
+    last_node = find_last_transaction_node()
+
+    expected_name = typhoeus? ? 'Ethon' : client_name
+
+    assert_equal("External/localhost/#{expected_name}/GET", last_node.metric_name)
+    assert_equal("External/localhost/#{client_name}/GET", last_node.parent_node.metric_name) if typhoeus?
+  end
+
+  def perform_last_node_error_assertions(metrics)
+    last_node = find_last_transaction_node()
+    error_node = typhoeus? ? last_node.parent_node : last_node
+
+    assert_includes error_node.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, error_node.params[:transaction_guid]
+    assert_metrics_recorded(metrics)
   end
 
   def test_raw_synthetics_header_is_passed_along_if_present

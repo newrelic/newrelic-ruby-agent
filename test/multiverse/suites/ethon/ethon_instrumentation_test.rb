@@ -10,36 +10,17 @@ require_relative '../../../../lib/new_relic/agent/http_clients/ethon_wrappers'
 class EthonInstrumentationTest < Minitest::Test
   include HttpClientTestCases
 
+  # TODO: these 3 cause issues with Ethon
+  %i[test_response_wrapper_ignores_case_in_header_keys
+    test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
+    test_crossapp_metrics_allow_valid_utf8_characters].each do |test|
+    define_method(test) {}
+  end
+
   # Ethon::Easy#perform doesn't return a response object. Our Ethon
   # instrumentation knows that and works fine. But the shared HTTP
   # client test cases expect one, so we'll fake one.
   DummyResponse = Struct.new(:body)
-
-  # Don't bother with CAT for Ethon - undefine all of the tests requiring CAT
-  # Also, Ethon's instrumentation doesn't use a response wrapper, as it's
-  # primarily used for CAT headers, so undefine the response wrapper based tests
-  # as well
-  load_cross_agent_test('cat_map').map { |t| define_method("test_#{t['name']}") {} }
-  load_cross_agent_test('synthetics/synthetics').map { |t| define_method("test_synthetics_http_#{t['name']}") {} }
-  %i[test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
-    test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
-    test_adds_newrelic_transaction_header
-    test_validate_response_wrapper
-    test_status_code_is_present
-    test_response_headers_for_missing_key
-    test_response_wrapper_ignores_case_in_header_keys
-    test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
-    test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
-    test_agent_doesnt_add_a_request_header_if_empty_encoding_key
-    test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
-    test_instrumentation_with_crossapp_disabled_records_normal_metrics_even_if_header_is_present
-    test_instrumentation_with_crossapp_enabled_records_crossapp_metrics_if_header_present
-    test_crossapp_metrics_allow_valid_utf8_characters
-    test_crossapp_metrics_ignores_crossapp_header_with_malformed_cross_process_id
-    test_raw_synthetics_header_is_passed_along_if_present
-    test_no_raw_synthetics_header_if_not_present].each do |test|
-    define_method(test) {}
-  end
 
   # TODO: needed for non-shared tests?
   # def setup
@@ -132,5 +113,23 @@ class EthonInstrumentationTest < Minitest::Test
     e.headers = headers if headers
     e.perform
     DummyResponse.new(e.response_body)
+  end
+
+  # HttpClientTestCases required method
+  def get_wrapped_response(url)
+    e = Ethon::Easy.new
+    e.http_request(url, :get, {})
+    e.perform
+    NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(e)
+  end
+
+  # HttpClientTestCases required method
+  def response_instance(headers = {})
+    e = Ethon::Easy.new
+    e.http_request(default_url, :get, {})
+    e.headers = headers
+    e.perform
+
+    NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(e)
   end
 end

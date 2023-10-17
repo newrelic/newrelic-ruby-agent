@@ -38,7 +38,7 @@ module NewRelic::Agent::Instrumentation
 
         NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
-        wrapped_request = ::NewRelic::Agent::HTTPClients::EthonHTTPRequest.new(self)
+        wrapped_request = NewRelic::Agent::HTTPClients::EthonHTTPRequest.new(self)
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: wrapped_request.type,
           uri: wrapped_request.uri,
@@ -47,11 +47,12 @@ module NewRelic::Agent::Instrumentation
         segment.add_request_headers(wrapped_request)
 
         callback = proc do
+          wrapped_response = NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(self)
+          segment.process_response_headers(wrapped_response)
+
           if response_code == 0
             e = NewRelic::Agent::NoticeableError.new(NOTICEABLE_ERROR_CLASS, "return_code: >>#{return_code}<<")
             segment.notice_error(e)
-          else
-            segment.instance_variable_set(:@http_status_code, response_code)
           end
 
           ::NewRelic::Agent::Transaction::Segment.finish(segment)
@@ -65,7 +66,7 @@ module NewRelic::Agent::Instrumentation
           end
         end
       ensure
-        ::NewRelic::Agent::Transaction::Segment.finish(segment)
+        NewRelic::Agent::Transaction::Segment.finish(segment)
       end
     end
   end

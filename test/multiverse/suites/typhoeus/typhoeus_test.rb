@@ -32,7 +32,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def timeout_error_class
-      Typhoeus::Errors::TyphoeusError
+      Ethon::Errors::EthonError
     end
 
     def simulate_error_response
@@ -90,7 +90,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         # NOP -- allowing span and transaction to notice error
       end
 
-      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /couldnt_connect/
 
       # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
@@ -130,7 +130,8 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       last_node = find_last_transaction_node
 
-      assert_equal 'External/localhost/Typhoeus/GET', last_node.metric_name
+      assert_equal 'External/localhost/Typhoeus/GET', last_node.parent_node.metric_name
+      assert_equal 'External/localhost/Ethon/GET', last_node.metric_name
     end
 
     def test_request_succeeds_even_if_tracing_doesnt
@@ -182,7 +183,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         # NOP -- allowing span and transaction to notice error
       end
 
-      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+      assert_segment_noticed_error txn, /GET$/, 'Typhoeus::Errors::TyphoeusError', /timeout|couldn't connect/i
 
       get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
 

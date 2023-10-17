@@ -8,19 +8,44 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-      # NOTE: There isn't an `EthonHTTPResponse` class. Typically HTTP
-      #       instrumentation response wrapper class instances are passed to
-      #       `ExternalRequestSegment#process_response_headers` in order to
-      #         - set the HTTP status code on the segment
-      #         - to process CAT headers
-      #       Given that:
-      #         - `Ethon::Easy` doesn't create a response object and only uses
-      #           instance methods for interacting with the response
-      #         - We do not plan to support CAT for new instrumentation
-      #       The decision was made to forego a response wrapper class for Ethon
-      #       and simply set the HTTP status code on the segment directly
+      module EthonShared
+        def headers
+          @headers ||= if @easy.instance_variable_defined?(headers_instance_var)
+            @easy.instance_variable_get(headers_instance_var)
+          else
+            {}
+          end
+        end
+
+        def headers_instance_var
+          NewRelic::Agent::Instrumentation::Ethon::Easy::HEADERS_INSTANCE_VAR
+        end
+
+        def [](key)
+          headers.key?(key) ? headers[key] : headers[key.downcase]
+          # headers[key]
+        end
+
+        def to_hash
+          headers
+        end
+      end
+
+      class EthonHTTPResponse < AbstractResponse
+        include EthonShared
+
+        def initialize(easy)
+          @easy = easy
+        end
+
+        def status_code
+          @easy.response_code
+        end
+      end
 
       class EthonHTTPRequest < AbstractRequest
+        include EthonShared
+
         attr_reader :uri
 
         DEFAULT_ACTION = 'unknownaction'
@@ -69,25 +94,9 @@ module NewRelic
           NewRelic::Agent::Instrumentation::Ethon::Easy::ACTION_INSTANCE_VAR
         end
 
-        def headers_instance_var
-          NewRelic::Agent::Instrumentation::Ethon::Easy::HEADERS_INSTANCE_VAR
-        end
-
-        def [](key)
-          headers[key]
-        end
-
         def []=(key, value)
           headers[key] = value
           @easy.headers = headers
-        end
-
-        def headers
-          @headers ||= if @easy.instance_variable_defined?(headers_instance_var)
-            @easy.instance_variable_get(headers_instance_var)
-          else
-            {}
-          end
         end
       end
     end
