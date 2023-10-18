@@ -40,7 +40,7 @@ module NewRelic
         end
 
         def host_from_header
-          if hostname = (headers[LHOST] || headers[UHOST])
+          if hostname = (self[LHOST] || self[UHOST])
             hostname.split(COLON).first
           end
         end
@@ -50,11 +50,20 @@ module NewRelic
         end
 
         def [](key)
-          headers[key]
+          return headers[key] unless headers.is_a?(Array)
+
+          headers.each do |header|
+            return header[1] if header[0].casecmp?(key)
+          end
+          nil
         end
 
         def []=(key, value)
-          headers[key] = value
+          if headers.is_a?(Array)
+            headers << [key, value]
+          else
+            headers[key] = value
+          end
         end
 
         def uri

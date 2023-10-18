@@ -4,7 +4,6 @@
 
 module NewRelic::Agent::Instrumentation
   module AsyncHttp
-
     # from the async http doumentation:
     # @parameter method [String] The request method, e.g. `GET`.
     # @parameter url [String] The URL to request, e.g. `https://www.codeotaku.com`.
