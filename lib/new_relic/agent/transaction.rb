@@ -520,7 +520,7 @@ module NewRelic
       end
 
       def finish
-        return unless state.is_execution_traced?
+        return unless state.is_execution_traced? && initial_segment
 
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @duration = @end_time - @start_time

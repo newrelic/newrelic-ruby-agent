@@ -13,6 +13,7 @@ if defined?(ActionController::Live)
     end
 
     def brain_stream
+      headers['last-modified'] = Time.now # tell Rack not to call #to_ary on the response object
       render(:inline => RESPONSE_BODY, :stream => true)
     end
   end
