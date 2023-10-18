@@ -86,7 +86,7 @@ module MultiverseHelpers
 
     NewRelic::Agent.shutdown
 
-    # If we didn't start up right, our Control might not have reset on shutdown
+    # If we didn't start-up right, our Control might not have reset on shutdown
     NewRelic::Control.reset
   end
 

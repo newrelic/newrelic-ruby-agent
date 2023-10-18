@@ -13,6 +13,8 @@ RAILS_VERSIONS = [
   ['4.2.11', 2.4, 2.4]
 ]
 
+unshift_rails_edge(RAILS_VERSIONS)
+
 def haml_rails(rails_version = nil)
   if rails_version && (
     rails_version.include?('4.0.13') ||

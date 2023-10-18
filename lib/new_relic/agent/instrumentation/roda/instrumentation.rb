@@ -51,6 +51,18 @@ module NewRelic::Agent::Instrumentation
           yield
         end
       end
+
+      def do_not_trace?
+        NewRelic::Agent::Instrumentation::Roda::Ignorer.should_ignore?(self, :routes)
+      end
+
+      def ignore_apdex?
+        NewRelic::Agent::Instrumentation::Roda::Ignorer.should_ignore?(self, :apdex)
+      end
+
+      def ignore_enduser?
+        NewRelic::Agent::Instrumentation::Roda::Ignorer.should_ignore?(self, :enduser)
+      end
     end
   end
 end

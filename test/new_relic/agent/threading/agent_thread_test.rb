@@ -45,7 +45,7 @@ module NewRelic::Agent::Threading
       end
 
       q0.pop
-      # wait until thread has had a chance to start up
+      # wait until thread has had a chance to start-up
       assert_equal :request, AgentThread.bucket_thread(t, DONT_CARE)
 
       q1.push('unblock background thread')

@@ -1,0 +1,32 @@
+common: &default_settings
+  license_key: 'bd0e1d52adade840f7ca727d29a86249e89a6f1c'
+  ca_bundle_path: ../../../config/test.cert.crt
+  host: localhost
+  api_host: localhost
+  port: <%= $collector && $collector.port %>
+  app_name: Rails multiverse test app
+  enabled: true
+  apdex_t: 1.0
+  capture_params: true
+  transaction_tracer:
+    enabled: true
+    transaction_threshold: apdex_f
+    record_sql: obfuscated
+    stack_trace_threshold: 0.500
+  error_collector:
+    enabled: true
+    ignore_classes: NewRelic::TestHelpers::Exceptions::IgnoredError
+  instrumentation:
+    active_support_logger <%= $instrumentation_method %>
+
+development:
+  <<: *default_settings
+
+test:
+  <<: *default_settings
+
+production:
+  <<: *default_settings
+
+staging:
+  <<: *default_settings

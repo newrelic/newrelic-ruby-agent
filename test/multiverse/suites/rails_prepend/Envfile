@@ -13,6 +13,8 @@ RAILS_VERSIONS = [
   ['4.2.0', 2.4, 2.4]
 ]
 
+unshift_rails_edge(RAILS_VERSIONS)
+
 def gem_list(rails_version = nil)
   # earlier thor errors, uncertain if they persist
   thor = "gem 'thor', '< 0.20.1'" if RUBY_PLATFORM == 'java' && rails_version && rails_version.include?('4')

@@ -25,6 +25,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          CI_FOR_PR: true
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - "3306:3306"
@@ -83,6 +84,7 @@ jobs:
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
           RAILS_VERSION: ${{ env.rails }}
+          CI_FOR_PR: true
 
       - name: Run Unit Tests
         uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
@@ -94,6 +96,7 @@ jobs:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           VERBOSE_TEST_OUTPUT: true
           COVERAGE: true
+          CI_FOR_PR: true
 
       - name: Save coverage results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
@@ -253,6 +256,7 @@ jobs:
           POSTGRES_PASSWORD: password
           SERIALIZE: 1
           COVERAGE: true
+          CI_FOR_PR: true
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -306,6 +310,7 @@ jobs:
           VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
           COVERAGE: true
+          CI_FOR_PR: true
 
       - name: Annotate errors
         if: ${{ failure() }}

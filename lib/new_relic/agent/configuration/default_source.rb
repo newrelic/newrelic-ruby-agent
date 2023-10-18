@@ -1361,6 +1361,15 @@ module NewRelic
           :description => 'Configures the TCP/IP port for the trace observer Host'
         },
         # Instrumentation
+        :'instrumentation.active_support_broadcast_logger' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
+          :dynamic_name => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of `ActiveSupport::BroadcastLogger` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`. Used in Rails versions >= 7.1.'
+        },
         :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :documentation_default => 'auto',
@@ -1368,7 +1377,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of `ActiveSupport::Logger` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of `ActiveSupport::Logger` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`. Used in Rails versions below 7.1.'
         },
         :'instrumentation.async_http' => {
           :default => 'auto',
@@ -1384,7 +1393,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of bunny at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.fiber' => {
           :default => 'auto',
@@ -1392,7 +1401,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the Fiber class at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the Fiber class at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.concurrent_ruby' => {
           :default => 'auto',
@@ -1400,7 +1409,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the concurrent-ruby library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.curb' => {
           :default => 'auto',
@@ -1409,7 +1418,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Curb at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Curb at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.delayed_job' => {
           :default => 'auto',
@@ -1418,7 +1427,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Delayed Job at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Delayed Job at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.elasticsearch' => {
           :default => 'auto',
@@ -1426,7 +1435,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the elasticsearch library at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the elasticsearch library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.excon' => {
           :default => 'enabled',
@@ -1435,7 +1444,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Excon at start up. May be one of: `enabled`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Excon at start-up. May be one of: `enabled`, `disabled`.'
         },
         :'instrumentation.grape' => {
           :default => 'auto',
@@ -1443,7 +1452,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Grape at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Grape at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.grpc_client' => {
           :default => 'auto',
@@ -1452,7 +1461,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of gRPC clients at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of gRPC clients at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.grpc.host_denylist' => {
           :default => [],
@@ -1469,7 +1478,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of gRPC servers at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of gRPC servers at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.httpclient' => {
           :default => 'auto',
@@ -1478,7 +1487,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of HTTPClient at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of HTTPClient at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.httprb' => {
           :default => 'auto',
@@ -1487,7 +1496,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of http.rb gem at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of http.rb gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
@@ -1496,7 +1505,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Ruby standard library Logger at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.memcache' => {
           :default => 'auto',
@@ -1504,7 +1513,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of dalli gem for Memcache at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.memcached' => {
           :default => 'auto',
@@ -1513,7 +1522,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of memcached gem for Memcache at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of memcached gem for Memcache at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.memcache_client' => {
           :default => 'auto',
@@ -1522,7 +1531,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of memcache-client gem for Memcache at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.mongo' => {
           :default => 'enabled',
@@ -1531,7 +1540,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Mongo at start up. May be one of: `enabled`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Mongo at start-up. May be one of: `enabled`, `disabled`.'
         },
         :'instrumentation.net_http' => {
           :default => 'auto',
@@ -1540,7 +1549,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of `Net::HTTP` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of `Net::HTTP` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),
@@ -1560,7 +1569,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of `Puma::Rack::URLMap` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of `Puma::Rack::URLMap` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.rack' => {
           :default => 'auto',
@@ -1580,7 +1589,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of `Rack::URLMap` at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of `Rack::URLMap` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.rake' => {
           :default => 'auto',
@@ -1588,7 +1597,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of rake at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of rake at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.redis' => {
           :default => 'auto',
@@ -1596,7 +1605,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Redis at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Redis at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.resque' => {
           :default => 'auto',
@@ -1605,7 +1614,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of resque at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of resque at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.roda' => {
           :default => 'auto',
@@ -1613,7 +1622,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Roda at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Roda at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',
@@ -1621,7 +1630,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Sinatra at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Sinatra at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.stripe' => {
           :default => 'enabled',
@@ -1654,7 +1663,7 @@ module NewRelic
             An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
             not be reported to New Relic. Each string in this array will be turned into a regular expression via
             `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the
-            pair will not be reported. By default, no `user_data` is reported, so this option should only be used if 
+            pair will not be reported. By default, no `user_data` is reported, so this option should only be used if
             the `stripe.user_data.include` option is being used.
           DESCRIPTION
         },
@@ -1664,14 +1673,14 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the Thread class at start up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the Thread class at start-up to allow the agent to correctly nest spans inside of an asynchronous transaction. This does not enable the agent to automatically trace all threads created (see `instrumentation.thread.tracing`). May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.thread.tracing' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the Thread class at start up to automatically add tracing to all Threads created in the application.'
+          :description => 'Controls auto-instrumentation of the Thread class at start-up to automatically add tracing to all Threads created in the application.'
         },
         :'thread_ids_enabled' => {
           :default => false,
@@ -1686,7 +1695,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the Tilt template rendering library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.typhoeus' => {
           :default => 'auto',
@@ -1695,7 +1704,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Typhoeus at start up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of Typhoeus at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         # Message tracer
         :'message_tracer.segment_parameters.enabled' => {
@@ -2328,7 +2337,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Used in tests for the agent to start up, but not connect to the collector. Formerly used `developer_mode` in test config for this purpose.'
+          :description => 'Used in tests for the agent to start-up, but not connect to the collector. Formerly used `developer_mode` in test config for this purpose.'
         },
         :'thread_profiler.max_profile_overhead' => {
           :default => 0.05,

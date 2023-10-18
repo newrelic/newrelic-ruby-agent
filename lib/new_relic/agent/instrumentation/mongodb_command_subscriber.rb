@@ -131,10 +131,8 @@ module NewRelic
           UNKNOWN
         end
 
-        SLASH = '/'.freeze
-
         def unix_domain_socket?(host)
-          host.start_with?(SLASH)
+          host.start_with?(NewRelic::SLASH)
         end
       end
     end
