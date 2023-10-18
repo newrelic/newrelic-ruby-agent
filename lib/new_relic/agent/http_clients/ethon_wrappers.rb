@@ -39,8 +39,8 @@ module NewRelic
       class EthonHTTPRequest < AbstractRequest
         attr_reader :uri
 
-        DEFAULT_ACTION = 'unknownaction'
-        DEFAULT_HOST = 'unknownhost'
+        DEFAULT_ACTION = 'GET'
+        DEFAULT_HOST = 'UNKNOWN_HOST'
         ETHON = 'Ethon'
         LHOST = 'host'.freeze
         UHOST = 'Host'.freeze

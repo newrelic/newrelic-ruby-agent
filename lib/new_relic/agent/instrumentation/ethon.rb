@@ -19,8 +19,10 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument Ethon::Easy, NewRelic::Agent::Instrumentation::Ethon::Easy::Prepend
-      prepend_instrument Ethon::Multi, NewRelic::Agent::Instrumentation::Ethon::Multi::Prepend
+      # NOTE: to prevent a string like 'Ethon::Easy' from being converted into
+      #       'Ethon/Easy', a 3rd argument is supplied to `prepend_instrument`
+      prepend_instrument Ethon::Easy, NewRelic::Agent::Instrumentation::Ethon::Easy::Prepend, Ethon::Easy.name
+      prepend_instrument Ethon::Multi, NewRelic::Agent::Instrumentation::Ethon::Multi::Prepend, Ethon::Multi.name
     else
       chain_instrument NewRelic::Agent::Instrumentation::Ethon::Chain
     end
