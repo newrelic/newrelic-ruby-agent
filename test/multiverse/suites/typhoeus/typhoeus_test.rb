@@ -183,9 +183,9 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         # NOP -- allowing span and transaction to notice error
       end
 
-      assert_segment_noticed_error txn, /GET$/, 'Typhoeus::Errors::TyphoeusError', /timeout|couldn't connect/i
+      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /couldnt_connect/i
 
-      get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
+      get_segments = txn.segments.select { |s| s.name =~ %r{Typhoeus/GET$} }
 
       assert_equal 5, get_segments.size
       assert get_segments.all? { |s| s.noticed_error }, 'Expected every GET to notice an error'
