@@ -24,6 +24,15 @@ module NewRelic::Agent::Instrumentation
             perform_with_tracing(*args) { perform_without_tracing(*args) }
           end
         end
+
+        ::Ethon::Multi.class_eval do
+          include NewRelic::Agent::Instrumentation::Ethon::Multi
+
+          alias_method(:perform_without_tracing, :perform)
+          def perform(*args)
+            perform_with_tracing(*args) { perform_without_tracing(*args) }
+          end
+        end
       end
     end
   end

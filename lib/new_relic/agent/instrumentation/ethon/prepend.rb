@@ -23,7 +23,13 @@ module NewRelic::Agent::Instrumentation
     end
 
     module Multi
-      # TODO
+      module Prepend
+        include NewRelic::Agent::Instrumentation::Ethon::Multi
+
+        def perform(*args)
+          perform_with_tracing(*args) { super }
+        end
+      end
     end
   end
 end

@@ -15,12 +15,12 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent.logger.info('Installing ethon instrumentation')
-    require 'new_relic/agent/http_clients/ethon_wrappers'
   end
 
   executes do
     if use_prepend?
       prepend_instrument Ethon::Easy, NewRelic::Agent::Instrumentation::Ethon::Easy::Prepend
+      prepend_instrument Ethon::Multi, NewRelic::Agent::Instrumentation::Ethon::Multi::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Ethon::Chain
     end

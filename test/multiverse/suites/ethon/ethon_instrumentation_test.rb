@@ -15,39 +15,42 @@ class EthonInstrumentationTest < Minitest::Test
   # client test cases expect one, so we'll fake one.
   DummyResponse = Struct.new(:body, :response_headers)
 
-  # TODO: needed for non-shared tests?
-  # def setup
-  #   @stats_engine = NewRelic::Agent.instance.stats_engine
-  # end
-
-  # TODO: needed for non-shared tests?
-  # def teardown
-  #   NewRelic::Agent.instance.stats_engine.clear_stats
-  # end
-
-  # TODO: non-shared tests to go here as driven by code coverage
-
-  # HttpClientTestCases required method
-  #   NOTE: only required for clients that support multi
-  #   NOTE: this method must be defined publicly to satisfy the
-  #         the shared tests' `respond_to?` check
-  # TODO: Ethon::Multi testing
-  def xget_response_multi(url, count)
-    multi = Ethon::Multi.new
+  def test_ethon_multi
     easies = []
-    count.times do
-      easy = Ethon::Easy.new
-      easy.http_request(url, :get, {})
-      easies << easy
-      multi.add(easy)
+    count = 2
+    in_transaction do
+      multi = Ethon::Multi.new
+      count.times do
+        easy = Ethon::Easy.new
+        easy.http_request(default_url, :get, {})
+        easies << easy
+        multi.add(easy)
+      end
+      multi.perform
     end
-    multi.perform
-    easies.each_with_object([]) do |easy, responses|
-      responses << e.response_headers.new(easy.response_body, easy.response_headers)
+
+    multi_node_name = NewRelic::Agent::Instrumentation::Ethon::Multi::MULTI_SEGMENT_NAME
+    node = find_node_with_name(last_transaction_trace, multi_node_name)
+
+    assert node, "Unable to locate a node named '#{multi_node_name}'"
+    assert_equal count, node.children.size,
+      "Expected '#{multi_node_name}' node to have #{count} children, found #{node.children.size}"
+    node.children.each { |child| assert_equal 'External/localhost/Ethon/GET', child.metric_name }
+    easies.each do |easy|
+      assert_match(/<html><head>/, easy.response_body)
+      assert_match(%r{^HTTP/1.1 200 OK}, easy.response_headers)
     end
   end
 
   private
+
+  def perform_easy_request(url, action, headers = nil)
+    e = Ethon::Easy.new
+    e.http_request(url, action, {})
+    e.headers = headers if headers
+    e.perform
+    DummyResponse.new(e.response_body, e.response_headers)
+  end
 
   # HttpClientTestCases required method
   def client_name
@@ -97,14 +100,6 @@ class EthonInstrumentationTest < Minitest::Test
     e.stub :headers, -> { raise timeout_error_class.new('timeout') } do
       e.perform
     end
-    DummyResponse.new(e.response_body, e.response_headers)
-  end
-
-  def perform_easy_request(url, action, headers = nil)
-    e = Ethon::Easy.new
-    e.http_request(url, action, {})
-    e.headers = headers if headers
-    e.perform
     DummyResponse.new(e.response_body, e.response_headers)
   end
 
