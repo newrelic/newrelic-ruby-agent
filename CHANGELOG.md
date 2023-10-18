@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
+Version <dev> adds instrumentation for Ethon, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
+
+- **Feature: Add instrumentation for Ethon**
+
+  Instrumentation has been added for the [Ethon](https://github.com/typhoeus/ethon) HTTP client gem. The agent will now record external request segments for invocations of `Ethon::Easy#perform` and `Ethon::Multi#perform`. NOTE: The [Typhoeus](https://github.com/typhoeus/typhoeus) gem is maintained by the same team that maintains Ethon and depends on Ethon for its functionality. The existing Typhoeus instrumentation provided by the agent will now cascade with the new Ethon instrumentation and Typhoeus users will now notice additional segments for the Ethon activity that was previously unreported. Users who use Ethon without Typhoeus will see only Ethon segments. [PR#2260](https://github.com/newrelic/newrelic-ruby-agent/pull/2260)
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
 
