@@ -24,8 +24,9 @@ module NewRelic::Agent::Instrumentation
           wrapped_response = NewRelic::Agent::HTTPClients::EthonHTTPResponse.new(easy)
           segment.process_response_headers(wrapped_response)
 
-          if easy.response_code == 0
-            e = NewRelic::Agent::NoticeableError.new(NOTICEABLE_ERROR_CLASS, "return_code: >>#{easy.return_code}<<")
+          if easy.return_code != :ok
+            e = NewRelic::Agent::NoticeableError.new(NOTICEABLE_ERROR_CLASS,
+              "return_code: >>#{easy.return_code}<<, response_code: >>#{easy.response_code}<<")
             segment.notice_error(e)
           end
 
