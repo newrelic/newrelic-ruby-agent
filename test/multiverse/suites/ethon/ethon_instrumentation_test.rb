@@ -6,6 +6,7 @@ require 'ethon'
 require 'newrelic_rpm'
 require 'http_client_test_cases'
 require_relative '../../../../lib/new_relic/agent/http_clients/ethon_wrappers'
+require_relative '../../../test_helper'
 
 class EthonInstrumentationTest < Minitest::Test
   include HttpClientTestCases
@@ -39,6 +40,30 @@ class EthonInstrumentationTest < Minitest::Test
     easies.each do |easy|
       assert_match(/<html><head>/, easy.response_body)
       assert_match(%r{^HTTP/1.1 200 OK}, easy.response_headers)
+    end
+  end
+
+  def test_host_is_host_from_uri
+    skip_unless_minitest5_or_above
+
+    host = 'silverpumpin.com'
+    easy = Ethon::Easy.new(url: host)
+    wrapped = NewRelic::Agent::HTTPClients::EthonHTTPRequest.new(easy)
+
+    assert_equal host, wrapped.host
+  end
+
+  def test_host_is_default_host
+    skip_unless_minitest5_or_above
+
+    url = 'foxs'
+    mock_uri = Minitest::Mock.new
+    mock_uri.expect :host, nil, []
+    URI.stub :parse, mock_uri, [url] do
+      easy = Ethon::Easy.new(url: url)
+      wrapped = NewRelic::Agent::HTTPClients::EthonHTTPRequest.new(easy)
+
+      assert_equal NewRelic::Agent::HTTPClients::EthonHTTPRequest::DEFAULT_HOST, wrapped.host
     end
   end
 
