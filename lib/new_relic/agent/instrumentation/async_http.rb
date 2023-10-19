@@ -10,9 +10,7 @@ DependencyDetection.defer do
   named :'async_http'
 
   depends_on do
-    # The class that needs to be defined to prepend/chain onto. This can be used
-    # to determine whether the library is installed.
-    defined?(Async::HTTP)
+    defined?(Async::HTTP) && Gem::Version.new(Async::HTTP::VERSION) >= Gem::Version.new('0.59.0')
   end
 
   executes do

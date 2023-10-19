@@ -6,7 +6,7 @@ Version <dev> adds instrumentation for Async::HTTP, gleans Docker container IDs 
 
 - **Feature: Add instrumentation for Async::HTTP**
 
-  The agent will now record spans for Async::HTTP requests. [PR#2272](https://github.com/newrelic/newrelic-ruby-agent/pull/2272)
+  The agent will now record spans for Async::HTTP requests. Versions 0.59.0 and above of the async-http gem are supported. [PR#2272](https://github.com/newrelic/newrelic-ruby-agent/pull/2272)
 
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
