@@ -19,6 +19,22 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     CURRENT_TYPHOEUS_VERSION = Gem::Version.new(Typhoeus::VERSION)
 
+    # Calling Typhoeus::Request.get results in an underyling Ethon::Easy
+    # instance with a response code of 0. In the unpublished initial draft
+    # for Ethon instrumentation, this would produce error spans. Make sure
+    # these error spans are absent for successful Typhoeus requests.
+    def test_the_underlying_ethon_easy_status_of_0_doesnt_produce_errors
+      in_transaction do |txn|
+        response = Typhoeus::Request.get(default_url)
+        ethon_segment = txn.segments.detect { |t| t.name.include?('Ethon') }
+
+        assert_equal 200, response.response_code,
+          "The Typhoeus request itself did not succeed - HTTP #{response.response_code}"
+        assert ethon_segment, 'Unable to detect an Ethon segment'
+        refute ethon_segment.noticed_error, 'The Ethon segment should not contain a noticed error'
+      end
+    end
+
     def ssl_option
       if CURRENT_TYPHOEUS_VERSION >= USE_SSL_VERIFYPEER_VERSION
         {:ssl_verifypeer => false}
