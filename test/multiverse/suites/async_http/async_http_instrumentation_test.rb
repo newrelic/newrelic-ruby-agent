@@ -30,8 +30,6 @@ class AsyncHttpInstrumentationTest < Minitest::Test
       internet = Async::HTTP::Internet.new
       resp = internet.send(method, url, headers)
       @read_resp = resp&.read
-    rescue => e
-      puts "**************************ERROR: #{e}"
     ensure
       internet&.close
     end
