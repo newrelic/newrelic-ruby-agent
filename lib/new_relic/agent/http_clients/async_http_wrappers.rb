@@ -14,7 +14,7 @@ module NewRelic
         end
 
         def [](key)
-          @wrapped_response.headers.to_h[key.downcase]&.first
+          to_hash[key.downcase]&.first
         end
 
         def to_hash
