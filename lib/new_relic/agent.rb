@@ -633,7 +633,9 @@ module NewRelic
     def add_new_segment_attributes(params, segment)
       # Make sure not to override existing segment-level custom attributes
       segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
-      segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
+      segment.add_custom_attributes(params.reject do |k, _v|
+        segment_custom_keys.include?(k.to_sym) if k.respond_to?(:to_sym) # param keys can be integers
+      end)
     end
 
     # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the

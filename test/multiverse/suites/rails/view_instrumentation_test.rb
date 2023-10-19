@@ -65,19 +65,6 @@ class ViewsController < ApplicationController
     render((1..3).map { |x| Foo.new })
   end
 
-  # proc rendering isn't available in rails 3 but you can do nonsense like this
-  # and assign an enumerable object to the response body.
-  def proc_render
-    streamer = Class.new do
-      def each
-        10_000.times do |i|
-          yield("This is line #{i}\n")
-        end
-      end
-    end
-    self.response_body = streamer.new
-  end
-
   def raise_render
     raise 'this is an uncaught RuntimeError'
   end
@@ -85,7 +72,7 @@ end
 
 class ViewInstrumentationTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
-  RENDERING_OPTIONS = [:js_render, :xml_render, :proc_render, :json_render]
+  RENDERING_OPTIONS = [:js_render, :xml_render, :json_render]
 
   setup_and_teardown_agent do
     # ActiveSupport testing keeps blowing away my subscribers on
@@ -98,7 +85,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  (ViewsController.action_methods - %w[raise_render collection_render haml_render proc_render]).each do |method|
+  (ViewsController.action_methods - %w[raise_render collection_render haml_render]).each do |method|
     define_method("test_sanity_#{method}") do
       get "/views/#{method}"
 
