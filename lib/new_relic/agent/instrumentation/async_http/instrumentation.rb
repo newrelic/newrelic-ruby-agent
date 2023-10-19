@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'new_relic/agent/http_clients/async_http_wrappers'
+
 module NewRelic::Agent::Instrumentation
   module AsyncHttp
     def call_with_new_relic(method, url, headers = nil, body = nil)
