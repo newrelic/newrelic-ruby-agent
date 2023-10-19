@@ -5,8 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 ASYNC_HTTP_VERSIONS = [
-  nil,
-  '0.59.0'
+  [nil, 2.5],
+  ['0.59.0', 2.5]
 ]
 
 def gem_list(async_http_version = nil)
