@@ -4,7 +4,16 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<~RB
-  gem 'async-http'
-  gem 'rack'
-RB
+ASYNC_HTTP_VERSIONS = [
+  nil,
+  '0.53.1'
+]
+
+def gem_list(async_http_version = nil)
+  <<~GEM_LIST
+    gem 'async-http'#{async_http_version}
+    gem 'rack'
+  GEM_LIST
+end
+
+create_gemfiles(ASYNC_HTTP_VERSIONS)
