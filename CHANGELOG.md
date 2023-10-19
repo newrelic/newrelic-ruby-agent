@@ -6,7 +6,7 @@ Version <dev> adds instrumentation for Ethon, gleans Docker container IDs from c
 
 - **Feature: Add instrumentation for Ethon**
 
-  Instrumentation has been added for the [Ethon](https://github.com/typhoeus/ethon) HTTP client gem. The agent will now record external request segments for invocations of `Ethon::Easy#perform` and `Ethon::Multi#perform`. NOTE: The [Typhoeus](https://github.com/typhoeus/typhoeus) gem is maintained by the same team that maintains Ethon and depends on Ethon for its functionality. The existing Typhoeus instrumentation provided by the agent will now cascade with the new Ethon instrumentation and Typhoeus users will now notice additional segments for the Ethon activity that was previously unreported. Users who use Ethon without Typhoeus will see only Ethon segments. [PR#2260](https://github.com/newrelic/newrelic-ruby-agent/pull/2260)
+  Instrumentation has been added for the [Ethon](https://github.com/typhoeus/ethon) HTTP client gem. The agent will now record external request segments for invocations of `Ethon::Easy#perform` and `Ethon::Multi#perform`. NOTE: The [Typhoeus](https://github.com/typhoeus/typhoeus) gem is maintained by the same team that maintains Ethon and depends on Ethon for its functionality. To prevent duplicate reporting for each HTTP request, the Ethon instrumentation will be disabled when Typhoeus is detected. [PR#2260](https://github.com/newrelic/newrelic-ruby-agent/pull/2260)
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
 

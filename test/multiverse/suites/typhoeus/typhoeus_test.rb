@@ -19,22 +19,6 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     CURRENT_TYPHOEUS_VERSION = Gem::Version.new(Typhoeus::VERSION)
 
-    # Calling Typhoeus::Request.get results in an underyling Ethon::Easy
-    # instance with a response code of 0. In the unpublished initial draft
-    # for Ethon instrumentation, this would produce error spans. Make sure
-    # these error spans are absent for successful Typhoeus requests.
-    def test_the_underlying_ethon_easy_status_of_0_doesnt_produce_errors
-      in_transaction do |txn|
-        response = Typhoeus::Request.get(default_url)
-        ethon_segment = txn.segments.detect { |t| t.name.include?('Ethon') }
-
-        assert_equal 200, response.response_code,
-          "The Typhoeus request itself did not succeed - HTTP #{response.response_code}"
-        assert ethon_segment, 'Unable to detect an Ethon segment'
-        refute ethon_segment.noticed_error, 'The Ethon segment should not contain a noticed error'
-      end
-    end
-
     def ssl_option
       if CURRENT_TYPHOEUS_VERSION >= USE_SSL_VERIFYPEER_VERSION
         {:ssl_verifypeer => false}
@@ -48,7 +32,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def timeout_error_class
-      Ethon::Errors::EthonError
+      Typhoeus::Errors::TyphoeusError
     end
 
     def simulate_error_response
@@ -106,7 +90,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         # NOP -- allowing span and transaction to notice error
       end
 
-      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /couldnt_connect/
+      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
       # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
@@ -146,8 +130,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       last_node = find_last_transaction_node
 
-      assert_equal 'External/localhost/Typhoeus/GET', last_node.parent_node.metric_name
-      assert_equal 'External/localhost/Ethon/GET', last_node.metric_name
+      assert_equal 'External/localhost/Typhoeus/GET', last_node.metric_name
     end
 
     def test_request_succeeds_even_if_tracing_doesnt
@@ -199,9 +182,9 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         # NOP -- allowing span and transaction to notice error
       end
 
-      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /couldnt_connect/i
+      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
-      get_segments = txn.segments.select { |s| s.name =~ %r{Typhoeus/GET$} }
+      get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
 
       assert_equal 5, get_segments.size
       assert get_segments.all? { |s| s.noticed_error }, 'Expected every GET to notice an error'
