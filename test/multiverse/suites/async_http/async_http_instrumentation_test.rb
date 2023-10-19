@@ -27,11 +27,13 @@ class AsyncHttpInstrumentationTest < Minitest::Test
   def request_and_wait(method, url, headers = nil, body = nil)
     resp = nil
     Async do
-      internet = Async::HTTP::Internet.new
-      resp = internet.send(method, url, headers)
-      @read_resp = resp&.read
-    ensure
-      internet&.close
+      begin
+        internet = Async::HTTP::Internet.new
+        resp = internet.send(method, url, headers)
+        @read_resp = resp&.read
+      ensure
+        internet&.close
+      end
     end
     resp
   end
