@@ -2,12 +2,15 @@
 
 ## dev
 
-Version <dev> adds instrumentation for Async::HTTP, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
+Version <dev> adds instrumentation for Async::HTTP and HTTPX, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
 
 - **Feature: Add instrumentation for Async::HTTP**
 
   The agent will now record spans for Async::HTTP requests. Versions 0.59.0 and above of the async-http gem are supported. [PR#2272](https://github.com/newrelic/newrelic-ruby-agent/pull/2272)
 
+- **Feature: Add instrumentation for HTTPX**
+
+  The agent now offers instrumentation for the HTTP client [HTTPX](https://honeyryderchuck.gitlab.io/httpx/), provided the gem is at version 1.0.0 or above. [PR#2274](https://github.com/newrelic/newrelic-ruby-agent/pull/2274)
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
 

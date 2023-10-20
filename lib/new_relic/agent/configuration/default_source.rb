@@ -1498,6 +1498,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of http.rb gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.httpx' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of httpx at start up. May be one of [auto|prepend|chain|disabled]'
+        },
         :'instrumentation.logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :documentation_default => 'auto',

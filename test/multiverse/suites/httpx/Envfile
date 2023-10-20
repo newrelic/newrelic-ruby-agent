@@ -1,0 +1,19 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+HTTPX_VERSIONS = [
+  nil,
+  '1.0.0'
+]
+
+def gem_list(httpx_version = nil)
+  <<~GEM_LIST
+    gem 'httpx'#{httpx_version}
+    gem 'rack'
+  GEM_LIST
+end
+
+create_gemfiles(HTTPX_VERSIONS)

@@ -105,7 +105,7 @@ module Multiverse
       'rails' => %w[active_record active_record_pg active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
       'frameworks' => %w[grape padrino roda sinatra],
       'httpclients' => %w[async_http curb excon httpclient],
-      'httpclients_2' => %w[typhoeus net_http httprb],
+      'httpclients_2' => %w[typhoeus net_http httprb httpx],
       'infinite_tracing' => ['infinite_tracing'],
 
       'rest' => [] # Specially handled below
