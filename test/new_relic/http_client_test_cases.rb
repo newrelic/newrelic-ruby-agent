@@ -60,13 +60,6 @@ module HttpClientTestCases
     res.body
   end
 
-  # TODO: remove method and its callers once Excon version is at or above 0.20.0
-  def jruby_excon_skip?
-    defined?(JRUBY_VERSION) &&
-      defined?(::Excon::VERSION) &&
-      Gem::Version.new(::Excon::VERSION) < Gem::Version.new('0.20.0')
-  end
-
   # Tests
 
   def test_validate_request_wrapper
@@ -223,14 +216,10 @@ module HttpClientTestCases
       get_response
     end
 
-    last_node = find_last_transaction_node()
-
-    assert_equal "External/localhost/#{client_name}/GET", last_node.metric_name
+    perform_last_node_assertions
   end
 
   def test_ignore
-    skip "Don't test JRuby with old Excon." if jruby_excon_skip?
-
     in_transaction do
       NewRelic::Agent.disable_all_tracing do
         post_response
@@ -247,16 +236,12 @@ module HttpClientTestCases
   end
 
   def test_post
-    skip "Don't test JRuby with old Excon." if jruby_excon_skip?
-
     in_transaction { post_response }
 
     assert_externals_recorded_for('localhost', 'POST')
   end
 
   def test_put
-    skip "Don't test JRuby with old Excon." if jruby_excon_skip?
-
     in_transaction { put_response }
 
     assert_externals_recorded_for('localhost', 'PUT')
@@ -391,12 +376,7 @@ module HttpClientTestCases
       end
     end
 
-    last_node = find_last_transaction_node()
-
-    assert_includes last_node.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
-
-    assert_metrics_recorded([
+    perform_last_node_error_assertions([
       'External/all',
       'External/allOther',
       'ExternalApp/localhost/18#1884/all',
@@ -416,12 +396,7 @@ module HttpClientTestCases
       end
     end
 
-    last_node = find_last_transaction_node()
-
-    assert_includes last_node.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
-
-    assert_metrics_recorded([
+    perform_last_node_error_assertions([
       'External/all',
       'External/allOther',
       'ExternalApp/localhost/12#1114/all',
@@ -531,27 +506,38 @@ module HttpClientTestCases
     # transaction in which the error occurs. That, coupled with the fact that
     # fixing it for old versions of Typhoeus would require large changes to
     # the instrumentation, makes us say 'meh'.
-    is_typhoeus = (client_name == 'Typhoeus')
-    if !is_typhoeus || (is_typhoeus && Typhoeus::VERSION >= '0.5.4')
-      evil_server = NewRelic::EvilServer.new
-      evil_server.start
+    skip 'Not tested with Typhoeus < 0.5.4' if client_name == 'Typhoeus' && Typhoeus::VERSION < '0.5.4'
 
-      in_transaction do
-        begin
-          get_response("http://localhost:#{evil_server.port}")
-        rescue
-          # it's expected that this will raise for some HTTP libraries (e.g.
-          # Net::HTTP). we unfortunately don't know the exact exception class
-          # across all libraries
-        end
+    evil_server = NewRelic::EvilServer.new
+    evil_server.start
+
+    in_transaction do
+      begin
+        get_response("http://localhost:#{evil_server.port}")
+      rescue
+        # it's expected that this will raise for some HTTP libraries (e.g.
+        # Net::HTTP). we unfortunately don't know the exact exception class
+        # across all libraries
       end
-
-      last_node = find_last_transaction_node()
-
-      assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
-
-      evil_server.stop
     end
+
+    perform_last_node_assertions
+
+    evil_server.stop
+  end
+
+  def perform_last_node_assertions
+    last_node = find_last_transaction_node()
+
+    assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
+  end
+
+  def perform_last_node_error_assertions(metrics)
+    last_node = find_last_transaction_node()
+
+    assert_includes last_node.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
+    assert_metrics_recorded(metrics)
   end
 
   def test_raw_synthetics_header_is_passed_along_if_present
@@ -730,7 +716,8 @@ module HttpClientTestCases
       # NOP -- allowing span and transaction to notice error
     end
 
-    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    # allow "timeout", "couldn't connect", or "couldnt_connect"
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn'?t(?:\s|_)connect/i
     assert_transaction_noticed_error txn, timeout_error_class.name
   end
 
@@ -745,7 +732,8 @@ module HttpClientTestCases
       end
     end
 
-    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    # allow "timeout", "couldn't connect", or "couldnt_connect"
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn'?t(?:\s|_)connect/i
     refute_transaction_noticed_error txn, timeout_error_class.name
   end
 

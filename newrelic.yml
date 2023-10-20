@@ -102,7 +102,7 @@ common: &default_settings
   # Specify a list of constants that should prevent the agent from starting
   # automatically. Separate individual constants with a comma ,. For example,
   # "Rails::Console,UninstrumentedBackgroundJob".
-  # autostart.denylisted_constants: Rails::Console
+  # autostart.denylisted_constants: Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RoutesCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole
 
   # Defines a comma-delimited list of executables that the agent should not
   # instrument. For example, "rake,my_ruby_script.rb".
@@ -374,8 +374,12 @@ common: &default_settings
   # Configures the TCP/IP port for the trace observer Host
   # infinite_tracing.trace_observer.port: 443
 
-  # Controls auto-instrumentation of ActiveSupport::Logger at start-up. May be one
-  # of: auto, prepend, chain, disabled.
+  # Controls auto-instrumentation of ActiveSupport::BroadcastLogger at start up. May
+  # be one of: auto, prepend, chain, disabled. Used in Rails versions >= 7.1.
+  # instrumentation.active_support_broadcast_logger: auto
+
+  # Controls auto-instrumentation of ActiveSupport::Logger at start up. May be one
+  # of: auto, prepend, chain, disabled. Used in Rails versions below 7.1.
   # instrumentation.active_support_logger: auto
 
   # Controls auto-instrumentation of bunny at start-up. May be one of: auto,
@@ -401,6 +405,10 @@ common: &default_settings
   # Controls auto-instrumentation of the elasticsearch library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.elasticsearch: auto
+
+  # Controls auto-instrumentation of ethon at start up. May be one of
+  # [auto|prepend|chain|disabled]
+  # instrumentation.ethon: auto
 
   # Controls auto-instrumentation of Excon at start-up. May be one of: enabled,
   # disabled.
@@ -515,8 +523,8 @@ common: &default_settings
   # add tracing to all Threads created in the application.
   # instrumentation.thread.tracing: true
 
-  # Controls auto-instrumentation of the Tilt template rendering library at start
-  # up. May be one of: auto, prepend, chain, disabled.
+  # Controls auto-instrumentation of the Tilt template rendering library at
+  # start-up. May be one of: auto, prepend, chain, disabled.
   # instrumentation.tilt: auto
 
   # Controls auto-instrumentation of Typhoeus at start-up. May be one of: auto,
@@ -672,7 +680,7 @@ common: &default_settings
   # Regexp.new to permit advanced matching. For each hash pair, if either the key or
   # value is matched the
   # pair will not be reported. By default, no user_data is reported, so this option
-  # should only be used if 
+  # should only be used if
   # the stripe.user_data.include option is being used.
   # stripe.user_data.exclude: []
 

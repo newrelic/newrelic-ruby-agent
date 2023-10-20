@@ -1437,6 +1437,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the elasticsearch library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.ethon' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of ethon at start up. May be one of [auto|prepend|chain|disabled]'
+        },
         :'instrumentation.excon' => {
           :default => 'enabled',
           :documentation_default => 'enabled',
