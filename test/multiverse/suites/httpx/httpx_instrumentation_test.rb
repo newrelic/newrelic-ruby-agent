@@ -20,12 +20,9 @@ end
 class HTTPXInstrumentationTest < Minitest::Test
   include HttpClientTestCases
 
-  # TODO: make sure our transaction level and segment level error
-  #       handling for HTTPX is working as desired
-  %i[test_noticed_error_at_segment_and_txn_on_error
-    test_noticed_error_only_at_segment_on_error].each do |method|
-    define_method(method) {}
-  end
+  # NOTE: httpx errors are only ever set on the segment and not the transaction,
+  #       so skip the test for a scenario of having a noticed error on both
+  define_method(:test_noticed_error_at_segment_and_txn_on_error) {}
 
   def test_finish_without_response
     PhonySession.new.nr_finish_segment.call(nil, nil)
@@ -95,9 +92,8 @@ class HTTPXInstrumentationTest < Minitest::Test
 
   # HttpClientTestCases required method
   def simulate_error_response
-    # TODO
-    # stub something
-    # get_response(default_url)
+    HTTPX::Connection.any_instance.stubs(:consume).raises(HTTPX::Error.new(OpenStruct.new))
+    get_response(default_url)
   end
 
   # HttpClientTestCases required method

@@ -19,9 +19,9 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument HTTPX::Session, NewRelic::Agent::Instrumentation::HTTPX::Prepend, 'HTTPX'
+      prepend_instrument HTTPX::Session, NewRelic::Agent::Instrumentation::HTTPX::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::HTTPX::Chain, 'HTTPX'
+      chain_instrument NewRelic::Agent::Instrumentation::HTTPX::Chain
     end
   end
 end

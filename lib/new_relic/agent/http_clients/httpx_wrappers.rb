@@ -7,9 +7,22 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
+      # HTTPX returns an instance of HTTPX::ErrorResponse on error,
+      # and that instance itself yields the underlying HTTP response
+      # object via #response, but depending on the error that HTTP
+      # response object could be unset.
+      class HTTPXErrorResponse
+        def status; end
+        def headers; {}; end
+      end
+
       class HTTPXHTTPResponse < AbstractResponse
         def initialize(response)
-          @response = response
+          if response.is_a?(::HTTPX::ErrorResponse)
+            @response = response.response || HTTPXErrorResponse.new
+          else
+            @response = response
+          end
         end
 
         def status_code

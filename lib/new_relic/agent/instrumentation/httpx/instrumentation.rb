@@ -41,8 +41,7 @@ module NewRelic::Agent::Instrumentation::HTTPX
       segment.process_response_headers(wrapped_response)
 
       if response.is_a?(::HTTPX::ErrorResponse)
-        e = NewRelic::Agent::NoticeableError.new(NOTICEABLE_ERROR_CLASS,
-          "Couldn't connect: class=>>#{response&.error&.class}<<, message=>>#{response&.error&.message}<<")
+        e = NewRelic::Agent::NoticeableError.new(NOTICEABLE_ERROR_CLASS, "Couldn't connect: #{response}")
         segment.notice_error(e)
       end
 
