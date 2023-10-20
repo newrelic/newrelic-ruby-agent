@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds instrumentation for Async::HTTP and Ethon, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
+Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
 
 - **Feature: Add instrumentation for Async::HTTP**
 
@@ -11,6 +11,10 @@ Version <dev> adds instrumentation for Async::HTTP and Ethon, gleans Docker cont
 - **Feature: Add instrumentation for Ethon**
 
   Instrumentation has been added for the [Ethon](https://github.com/typhoeus/ethon) HTTP client gem. Versions 0.12.0 and above are supported. The agent will now record external request segments for invocations of `Ethon::Easy#perform` and `Ethon::Multi#perform`. NOTE: The [Typhoeus](https://github.com/typhoeus/typhoeus) gem is maintained by the same team that maintains Ethon and depends on Ethon for its functionality. To prevent duplicate reporting for each HTTP request, the Ethon instrumentation will be disabled when Typhoeus is detected. [PR#2260](https://github.com/newrelic/newrelic-ruby-agent/pull/2260)
+
+- **Feature: Add instrumentation for HTTPX**
+
+  The agent now offers instrumentation for the HTTP client [HTTPX](https://honeyryderchuck.gitlab.io/httpx/), provided the gem is at version 1.0.0 or above. [PR#2278](https://github.com/newrelic/newrelic-ruby-agent/pull/2278)
 
 - **Feature: Prevent the agent from starting in rails commands in Rails 7**
 
