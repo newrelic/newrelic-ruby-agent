@@ -533,18 +533,14 @@ module HttpClientTestCases
   def perform_last_node_assertions
     last_node = find_last_transaction_node()
 
-    expected_name = typhoeus? ? 'Ethon' : client_name
-
-    assert_equal("External/localhost/#{expected_name}/GET", last_node.metric_name)
-    assert_equal("External/localhost/#{client_name}/GET", last_node.parent_node.metric_name) if typhoeus?
+    assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
   end
 
   def perform_last_node_error_assertions(metrics)
     last_node = find_last_transaction_node()
-    error_node = typhoeus? ? last_node.parent_node : last_node
 
-    assert_includes error_node.params.keys, :transaction_guid
-    assert_equal TRANSACTION_GUID, error_node.params[:transaction_guid]
+    assert_includes last_node.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
     assert_metrics_recorded(metrics)
   end
 
