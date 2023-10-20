@@ -27,8 +27,9 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      # NOTE: to prevent a string like 'Ethon::Easy' from being converted into
-      #       'Ethon/Easy', a 3rd argument is supplied to `prepend_instrument`
+      # NOTE: by default prepend_instrument will go with the module name that
+      #       precedes 'Prepend' (so 'Easy' and 'Multi'), but we want to use
+      #       'Ethon::Easy' and 'Ethon::Multi' so 3rd argument is supplied
       prepend_instrument Ethon::Easy, NewRelic::Agent::Instrumentation::Ethon::Easy::Prepend, Ethon::Easy.name
       prepend_instrument Ethon::Multi, NewRelic::Agent::Instrumentation::Ethon::Multi::Prepend, Ethon::Multi.name
     else
