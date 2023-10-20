@@ -382,7 +382,11 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.bunny: auto
 
-  # Controls auto-instrumentation of the concurrent-ruby library at start-up. May be
+  # Controls auto-instrumentation of Async::HTTP at start up.
+  # May be one of [auto|prepend|chain|disabled]
+  # instrumentation.async_http: auto
+
+  # Controls auto-instrumentation of the concurrent-ruby library at start up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.concurrent_ruby: auto
 
