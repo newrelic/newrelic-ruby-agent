@@ -104,7 +104,7 @@ if Rails::VERSION::STRING >= '4.2.0'
         (NewRelic::Agent::Instrumentation::ActiveJobSubscriber::PAYLOAD_KEYS.size + 1).times do
           segment.expect(:params, {}, [])
         end
-        3.times do
+        4.times do
           segment.expect(:finish, [])
         end
         segment.expect(:record_scoped_metric=, nil, [false])

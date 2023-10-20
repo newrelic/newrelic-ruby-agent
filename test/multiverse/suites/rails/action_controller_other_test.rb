@@ -17,6 +17,11 @@ if defined?(ActionController::Live)
       send_data('wow its a adata')
     end
 
+    # send_stream
+    def send_test_stream
+      send_stream(filename: 'dinosaurs.html')
+    end
+
     # halted_callback
     before_action :do_a_redirect, only: :halt_my_callback
     def halt_my_callback; end
@@ -49,6 +54,13 @@ if defined?(ActionController::Live)
       get('/data/send_test_data')
 
       assert_metrics_recorded(['Controller/data/send_test_data', 'Ruby/ActionController/send_data'])
+    end
+
+    def test_send_stream
+      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('7.2.0')
+      get('/data/send_test_stream')
+
+      assert_metrics_recorded(['Controller/data/send_test_stream', 'Ruby/ActionController/send_stream'])
     end
 
     def test_halted_callback
