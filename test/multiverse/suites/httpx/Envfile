@@ -5,8 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 HTTPX_VERSIONS = [
-  nil,
-  '1.0.0'
+  [nil, 2.7],
+  ['1.0.0', 2.7]
 ]
 
 def gem_list(httpx_version = nil)
