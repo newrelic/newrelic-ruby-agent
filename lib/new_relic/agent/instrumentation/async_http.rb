@@ -7,7 +7,7 @@ require_relative 'async_http/chain'
 require_relative 'async_http/prepend'
 
 DependencyDetection.defer do
-  named :'async_http'
+  named :async_http
 
   depends_on do
     defined?(Async::HTTP) && Gem::Version.new(Async::HTTP::VERSION) >= Gem::Version.new('0.59.0')
