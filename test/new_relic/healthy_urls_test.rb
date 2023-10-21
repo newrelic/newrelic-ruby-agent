@@ -65,13 +65,13 @@ class HealthyUrlsTest < Minitest::Test
   FILE_PATTERN = /(?:^(?:#{FILENAMES.join('|')})$)|\.(?:#{EXTENSIONS.join('|')})$/.freeze
   IGNORED_FILE_PATTERN = %r{/(?:coverage|test)/}.freeze
   URL_PATTERN = %r{(https?://.*?)[^a-zA-Z0-9/\.\-_#]}.freeze
-  IGNORED_URL_PATTERN = %r{(?:\{|\(|\$|169\.254|\.\.\.|metadata\.google)}
+  IGNORED_URL_PATTERN = %r{(?:\{|\(|\$|169\.254|\.\.\.|metadata\.google|honeyryderchuck\.gitlab\.io/httpx|http://#)}
   TIMEOUT = 5
   DEBUG = false
 
   def test_all_urls
-    skip_unless_ci_cron
-    skip_unless_newest_ruby
+    # skip_unless_ci_cron
+    # skip_unless_newest_ruby
 
     urls = gather_urls
     errors = urls.each_with_object({}) do |(url, _files), hash|
