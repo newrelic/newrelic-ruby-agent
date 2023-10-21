@@ -288,8 +288,8 @@ module Multiverse
 
         if debug
           f.puts "gem 'pry', '~> 0.14'" if ENV['ENABLE_PRY']
-          f.puts "gem 'pry-nav' if ENV['ENABLE_PRY']"
-          f.puts "gem 'pry-stack_explorer', platforms: :mri' if ENV['ENABLE_PRY']"
+          f.puts "gem 'pry-nav'" if ENV['ENABLE_PRY']
+          f.puts "gem 'pry-stack_explorer', platforms: :mri" if ENV['ENABLE_PRY']
         end
       end
       if verbose?
