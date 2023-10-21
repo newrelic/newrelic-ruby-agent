@@ -70,8 +70,8 @@ class HealthyUrlsTest < Minitest::Test
   DEBUG = false
 
   def test_all_urls
-    # skip_unless_ci_cron
-    # skip_unless_newest_ruby
+    skip_unless_ci_cron
+    skip_unless_newest_ruby
 
     urls = gather_urls
     errors = urls.each_with_object({}) do |(url, _files), hash|
