@@ -52,7 +52,7 @@ Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 
   External request segments now offer 3 additional attributes:
   - `http.request.method`: The HTTP method (ex: 'GET')
-  - `server.address': The target host.
+  - `server.address`: The target host.
   - `server.port`: The target port.
 
   For maximum backwards compatibility, no existing attributes have been renamed or removed. [PR#2283](https://github.com/newrelic/newrelic-ruby-agent/pull/2283)
