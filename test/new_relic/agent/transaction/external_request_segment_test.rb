@@ -841,6 +841,9 @@ module NewRelic::Agent
           assert_equal expected_name, external_intrinsics.fetch('name')
           assert_equal segment.library, external_intrinsics.fetch('component')
           assert_equal segment.procedure, external_intrinsics.fetch('http.method')
+          assert_equal segment.procedure, external_intrinsics.fetch('http.request.method')
+          assert_equal 'remotehost.com', external_intrinsics.fetch('server.address')
+          assert_equal 80, external_intrinsics.fetch('server.port')
           assert_equal 'http', external_intrinsics.fetch('category')
           assert_equal segment.uri.to_s, external_agent_attributes.fetch('http.url')
         end
