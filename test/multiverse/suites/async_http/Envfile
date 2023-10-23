@@ -16,4 +16,4 @@ def gem_list(async_http_version = nil)
   GEM_LIST
 end
 
-create_gemfiles(ASYNC_HTTP_VERSIONS)
+create_gemfiles(ASYNC_HTTP_VERSIONS) unless defined?(JRUBY_VERSION) # async-http needs native extensions
