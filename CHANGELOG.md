@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, and fixes a deprecation warning for the Sidekiq error handler.
+Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, and adds additional attributes for OpenTelemetry compatibility.
 
 - **Feature: Add instrumentation for Async::HTTP**
 
@@ -32,7 +32,7 @@ Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, gleans Doc
 
   For compatibility with Ruby 3.4 and to silence compatibility warnings present in Ruby 3.3, declare a dependency on the `base64` gem. The New Relic Ruby agent uses the native Ruby `base64` gem for Base 64 encoding/decoding. The agent is joined by Ruby on Rails ([rails/rails@3e52adf](https://github.com/rails/rails/commit/3e52adf28e90af490f7e3bdc4bcc85618a4e0867)) and others in making this change in preparation for Ruby 3.3/3.4. [PR#2238](https://github.com/newrelic/newrelic-ruby-agent/pull/2238)
 
--**Feature: Add Roda support for the newrelic_ignore\* family of methods**
+- **Feature: Add Roda support for the newrelic_ignore\* family of methods**
 
   The agent can now selectively disable instrumentation for particular requests within Roda applications. Supported methods include:
   - `newrelic_ignore`: ignore a given route.
@@ -40,6 +40,22 @@ Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, gleans Doc
   - `newrelic_ignore_enduser`: prevent automatic injection of the page load timing JavaScript when a route is rendered.
 
   For more information, see [Roda Instrumentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/instrumented-gems/roda-instrumentation/). [PR#2267](https://github.com/newrelic/newrelic-ruby-agent/pull/2267)
+
+- **Feature: Add additional span attributes for OpenTelemetry compatibility**
+
+  For improved compatibility with OpenTelemetry's semantic conventions, the agent's datastore (for databases) and external request (for HTTP clients) segments have been updated with additional attributes.
+
+  Datastore segments now offer 3 additional attributes:
+  - `db.system`: The database system. For Ruby we use the database adapter name here.
+  - `server.address`: The database host.
+  - `server.port`: The database port.
+
+  External request segments now offer 3 additional attributes:
+  - `http.request.method`: The HTTP method (ex: 'GET')
+  - `server.address`: The target host.
+  - `server.port`: The target port.
+
+  For maximum backwards compatibility, no existing attributes have been renamed or removed. [PR#2283](https://github.com/newrelic/newrelic-ruby-agent/pull/2283)
 
 - **Bugfix: Stop sending duplicate log events for Rails 7.1 users**
 
