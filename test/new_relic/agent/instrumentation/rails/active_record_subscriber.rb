@@ -244,7 +244,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
   end
 
-  def xtest_instrumentation_can_be_disabled_with_disable_active_record_notifications
+  def test_instrumentation_can_be_disabled_with_disable_active_record_notifications
     with_subscribed_check_disabled do
       common_test_for_disabling(:disable_active_record_notifications)
     end
