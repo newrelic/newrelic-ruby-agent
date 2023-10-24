@@ -11,7 +11,10 @@ module NewRelic
 
       attr_accessor :wait
 
-      SUPPORTABILITY_METRIC = 'Supportability/Ruby/SecurityAgent/Enabled/'
+      SUPPORTABILITY_PREFIX_SECURITY = 'Supportability/Ruby/SecurityAgent/Enabled/'
+      SUPPORTABILITY_PREFIX_SECURITY_AGENT = 'Supportability/Ruby/SecurityAgent/Agent/Enabled/'
+      ENABLED = 'enabled'
+      DISABLED = 'disabled'
 
       def agent_started?
         (@agent_started ||= false) == true
@@ -24,20 +27,33 @@ module NewRelic
       def init_agent
         return if agent_started? || waiting?
 
+        record_supportability_metrics
+
         if Agent.config[:'security.agent.enabled'] && Agent.config[:'security.enabled'] && !Agent.config[:high_security]
           Agent.logger.info('Invoking New Relic security module')
-          NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC + 'enabled')
           require 'newrelic_security'
 
           @agent_started = true
         else
           Agent.logger.info('New Relic Security is completely disabled by one of the user provided config `security.agent.enabled`, `security.enabled`, or `high_security`. Not loading security capabilities.')
-          NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC + 'disabled')
         end
       rescue LoadError
         Agent.logger.info('New Relic security agent not found - skipping')
       rescue StandardError => exception
         Agent.logger.error("Exception in New Relic security module loading: #{exception} #{exception.backtrace}")
+      end
+
+      def record_supportability_metrics
+        Agent.config[:'security.enabled'] ? security_metric(ENABLED) : security_metric(DISABLED)
+        Agent.config[:'security.agent.enabled'] ? security_agent_metric(ENABLED) : security_agent_metric(DISABLED)
+      end
+
+      def security_metric(setting)
+        NewRelic::Agent.record_metric_once(SUPPORTABILITY_PREFIX_SECURITY + setting)
+      end
+
+      def security_agent_metric(setting)
+        NewRelic::Agent.record_metric_once(SUPPORTABILITY_PREFIX_SECURITY_AGENT + setting)
       end
     end
   end
