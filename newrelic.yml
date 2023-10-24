@@ -382,15 +382,15 @@ common: &default_settings
   # of: auto, prepend, chain, disabled. Used in Rails versions below 7.1.
   # instrumentation.active_support_logger: auto
 
+  # Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto,
+  # prepend, chain, disabled.
+  # instrumentation.async_http: auto
+
   # Controls auto-instrumentation of bunny at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.bunny: auto
 
-  # Controls auto-instrumentation of Async::HTTP at start up.
-  # May be one of [auto|prepend|chain|disabled]
-  # instrumentation.async_http: auto
-
-  # Controls auto-instrumentation of the concurrent-ruby library at start up. May be
+  # Controls auto-instrumentation of the concurrent-ruby library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.concurrent_ruby: auto
 
@@ -446,6 +446,10 @@ common: &default_settings
   # Controls auto-instrumentation of http.rb gem at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.httprb: auto
+
+  # Controls auto-instrumentation of httpx at start up. May be one of
+  # [auto|prepend|chain|disabled]
+  # instrumentation.httpx: auto
 
   # Controls auto-instrumentation of Ruby standard library Logger at start-up. May
   # be one of: auto, prepend, chain, disabled.
