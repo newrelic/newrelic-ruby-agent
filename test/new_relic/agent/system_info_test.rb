@@ -92,12 +92,26 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   # BEGIN cgroups v2
   def test_docker_container_id_is_gleaned_from_mountinfo_for_cgroups_v2
     skip_unless_minitest5_or_above
-
-    container_id = "And Autumn leaves lie thick and still o'er land that is lost now"
+    container_id = '3145490ee377105a4d3a7abd55083c61c0c2d616d786614e755176433c648d09'
     mountinfo = "line1\nline2\n/docker/containers/#{container_id}/other/content\nline4\nline5"
     NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'linux' do
       NewRelic::Agent::SystemInfo.stub :proc_try_read, mountinfo, %w[/proc/self/mountinfo] do
         assert_equal container_id, NewRelic::Agent::SystemInfo.docker_container_id
+      end
+    end
+  end
+
+  def test_docker_container_id_must_match_sha_256_format
+    skip_unless_minitest5_or_above
+    bogus_container_ids = %w[3145490ee377105a4d3a7abd55083c61c0c2d616d786614e755176433c648d0
+      3145490ee377105a4d3a7abd55083c61c0c2d616d78g614e755176433c648d09
+      3145490ee377105a4d3a7abd55083C61c0c2d616d786614e755176433c648d09]
+    bogus_container_ids.each do |id|
+      mountinfo = "line1\nline2\n/docker/containers/#{id}/other/content\nline4\nline5"
+      NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'linux' do
+        NewRelic::Agent::SystemInfo.stub :proc_try_read, mountinfo, %w[/proc/self/mountinfo] do
+          refute NewRelic::Agent::SystemInfo.docker_container_id
+        end
       end
     end
   end
