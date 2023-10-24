@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, and adds additional attributes for Open Telemetry compatibility.
+Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, and adds additional attributes for OpenTelemetry compatibility.
 
 - **Feature: Add instrumentation for Async::HTTP**
 
@@ -41,9 +41,9 @@ Version <dev> adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 
   For more information, see [Roda Instrumentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/instrumented-gems/roda-instrumentation/). [PR#2267](https://github.com/newrelic/newrelic-ruby-agent/pull/2267)
 
-- **Feature: Add additional span attributes for Open Telemetry compatibility**
+- **Feature: Add additional span attributes for OpenTelemetry compatibility**
 
-  For improved compatibility with Open Telemetry's specifications, the agent's datastore (for databases) and external request (for HTTP clients) segments have been updated with additional attributes.
+  For improved compatibility with OpenTelemetry's semantic conventions, the agent's datastore (for databases) and external request (for HTTP clients) segments have been updated with additional attributes.
 
   Datastore segments now offer 3 additional attributes:
   - `db.system`: The database system. For Ruby we use the database adapter name here.
