@@ -11,6 +11,8 @@ module NewRelic
 
       attr_accessor :wait
 
+      SUPPORTABILITY_METRIC = 'Supportability/Ruby/SecurityAgent/Enabled/'
+
       def agent_started?
         (@agent_started ||= false) == true
       end
@@ -24,11 +26,13 @@ module NewRelic
 
         if Agent.config[:'security.agent.enabled'] && Agent.config[:'security.enabled'] && !Agent.config[:high_security]
           Agent.logger.info('Invoking New Relic security module')
+          NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC + 'enabled')
           require 'newrelic_security'
 
           @agent_started = true
         else
           Agent.logger.info('New Relic Security is completely disabled by one of the user provided config `security.agent.enabled`, `security.enabled`, or `high_security`. Not loading security capabilities.')
+          NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC + 'disabled')
         end
       rescue LoadError
         Agent.logger.info('New Relic security agent not found - skipping')
@@ -38,3 +42,13 @@ module NewRelic
     end
   end
 end
+
+# __END__
+
+# SUPPORTABILITY_METRIC = 'Supportability/Ruby/SecurityAgent/Agent/Enabled/{enabled|disabled}'
+
+# NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC)
+
+# record_metric(metric_name, value)
+
+
