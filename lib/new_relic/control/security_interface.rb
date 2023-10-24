@@ -42,13 +42,3 @@ module NewRelic
     end
   end
 end
-
-# __END__
-
-# SUPPORTABILITY_METRIC = 'Supportability/Ruby/SecurityAgent/Agent/Enabled/{enabled|disabled}'
-
-# NewRelic::Agent.record_metric_once(SUPPORTABILITY_METRIC)
-
-# record_metric(metric_name, value)
-
-
