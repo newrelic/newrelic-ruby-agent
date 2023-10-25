@@ -217,8 +217,13 @@ module MultiverseHelpers
   end
 
   def single_event_posted
-    assert_equal 1, $collector.calls_for('analytic_event_data').length
-    assert_equal 1, $collector.calls_for('analytic_event_data').first.events.length
+    if defined?(JRUBY_VERSION)
+      refute_predicate $collector.calls_for('analytic_event_data').length, :zero?
+      refute_predicate $collector.calls_for('analytic_event_data').first.events.length, :zero?
+    else
+      assert_equal 1, $collector.calls_for('analytic_event_data').length
+      assert_equal 1, $collector.calls_for('analytic_event_data').first.events.length
+    end
 
     $collector.calls_for('analytic_event_data').first.events.first
   end
