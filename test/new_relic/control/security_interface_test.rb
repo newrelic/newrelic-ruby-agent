@@ -15,8 +15,12 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
   # For testing purposes, clear out the supportability metrics that have already been recorded.
   def reset_supportability_metrics
-    NewRelic::Agent.shutdown
     NewRelic::Agent.instance_variable_get(:@metrics_already_recorded)&.clear
+  end
+
+  def assert_supportability_metrics_enabled
+    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
+    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
   end
 
   def test_initialization_short_circuits_when_the_security_agent_is_disabled
@@ -65,8 +69,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
       end
 
       refute_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
+      assert_supportability_metrics_enabled
     end
     logger.verify
   end
@@ -113,8 +116,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
     assert required, 'Expected init_agent to perform a require statement'
     assert_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
-    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
-    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
+    assert_supportability_metrics_enabled
   end
 
   def test_initialization_anticipates_a_load_error
@@ -134,8 +136,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
       logger.verify
 
       refute_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
+      assert_supportability_metrics_enabled
     end
   end
 
@@ -157,7 +158,6 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     logger.verify
 
     refute_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
-    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
-    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
+    assert_supportability_metrics_enabled
   end
 end
