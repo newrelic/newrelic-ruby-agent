@@ -13,7 +13,15 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     end
   end
 
+  # For testing purposes, clear out the supportability metrics that have already been recorded.
+  def reset_supportability_metrics
+    NewRelic::Agent.shutdown
+    NewRelic::Agent.instance_variable_get(:@metrics_already_recorded)&.clear
+  end
+
   def test_initialization_short_circuits_when_the_security_agent_is_disabled
+    reset_supportability_metrics
+
     logger = MiniTest::Mock.new
     with_config('security.agent.enabled' => false, 'security.enabled' => true, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
@@ -30,6 +38,8 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   end
 
   def test_initialization_short_circuits_when_the_security_is_disabled
+    reset_supportability_metrics
+
     logger = MiniTest::Mock.new
     with_config('security.agent.enabled' => true, 'security.enabled' => false, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
