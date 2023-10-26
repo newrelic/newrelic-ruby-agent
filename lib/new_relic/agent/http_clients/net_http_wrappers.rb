@@ -30,9 +30,6 @@ module NewRelic
           NET_HTTP
         end
 
-        HOST = 'host'
-        COLON = ':'
-
         def host_from_header
           if hostname = self[HOST]
             hostname.split(COLON).first
