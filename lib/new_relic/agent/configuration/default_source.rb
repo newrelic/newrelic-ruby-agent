@@ -57,7 +57,7 @@ module NewRelic
           default_settings[:transform] if default_settings
         end
 
-        def self.config_search_paths # rubocop:disable Metrics/AbcSize
+        def self.config_search_paths
           proc {
             yaml = 'newrelic.yml'
             config_yaml = File.join('config', yaml)
