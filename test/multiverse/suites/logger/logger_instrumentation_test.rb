@@ -209,6 +209,6 @@ class LoggerInstrumentationTest < Minitest::Test
       'Supportability/Logging/Forwarding/Seen' => {},
       'Supportability/Logging/Forwarding/Sent' => {}
     },
-      :ignore_filter => %r{^Supportability/API/})
+      :ignore_filter => %r{^Supportability/(?:API/|Logger/Invoked)})
   end
 end

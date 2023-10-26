@@ -283,17 +283,13 @@ module Multiverse
 
         f.puts "gem 'mocha', '~> 1.9.0', require: false"
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
-
-        # pin webrick until we investigate why 1.8.1 breaks things
-        f.puts "gem 'webrick', '< 1.8.0'"
-        # f.puts ruby3_gem_webrick
-
+        f.puts "gem 'webrick'"
         f.puts "gem 'warning'"
 
         if debug
-          f.puts "gem 'pry', '~> 0.14'"
-          f.puts "gem 'pry-nav'"
-          f.puts "gem 'pry-stack_explorer', platforms: :mri"
+          f.puts "gem 'pry', '~> 0.14'" if ENV['ENABLE_PRY']
+          f.puts "gem 'pry-nav'" if ENV['ENABLE_PRY']
+          f.puts "gem 'pry-stack_explorer', platforms: :mri" if ENV['ENABLE_PRY']
         end
       end
       if verbose?
@@ -413,10 +409,10 @@ module Multiverse
       puts yellow("Starting tests in child PID #{Process.pid} at #{Time.now}\n")
     end
 
-    # active_record_pg test suite runs in serial to prevent database conflicts
+    # to force a suite to run serialized, place `serialized!` somewhere in the
+    # suite's `Envfile` file
     def should_serialize?
-      # TODO: Devise a way for an individual suite to express that it doesn't support parallel
-      ENV['SERIALIZE'] || debug || self.directory.include?('active_record_pg')
+      ENV['SERIALIZE'] || debug || environments.serialize?
     end
 
     def check_environment_condition

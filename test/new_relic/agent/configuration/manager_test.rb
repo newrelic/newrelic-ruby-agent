@@ -494,7 +494,7 @@ module NewRelic::Agent::Configuration
     def test_auto_determined_values_stay_cached
       name = :knockbreck_manse
 
-      dd = DependencyDetection.defer do
+      DependencyDetection.defer do
         named(name)
         executes { use_prepend? }
       end
@@ -512,7 +512,7 @@ module NewRelic::Agent::Configuration
     def test_unsatisfied_values_stay_cached
       name = :tears_of_the_kingdom
 
-      dd = DependencyDetection.defer do
+      DependencyDetection.defer do
         named(name)
 
         # guarantee the instrumentation's dependencies are unsatisfied

@@ -29,6 +29,7 @@ lib/new_relic/build.rb
 artifacts/
 test/performance/log/
 test/performance/script/log/
+test/performance/rails_app/log/
 infinite_tracing/log/
 test/fixtures/cross_agent_tests/*/README.md
 node_modules/
@@ -41,4 +42,4 @@ Brewfile.lock.json
 .github/actions/simplecov-report/lib/
 test/minitest/minitest_time_report
 gem_manifest_*.json
-nr-security-home
+yarn-error.log

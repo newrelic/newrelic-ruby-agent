@@ -102,10 +102,10 @@ module Multiverse
       'background' => %w[delayed_job sidekiq resque],
       'background_2' => ['rake'],
       'database' => %w[elasticsearch mongo redis sequel],
-      'rails' => %w[active_record active_record_pg rails rails_prepend activemerchant],
-      'frameworks' => %w[sinatra padrino grape],
-      'httpclients' => %w[curb excon httpclient],
-      'httpclients_2' => %w[typhoeus net_http httprb],
+      'rails' => %w[active_record active_record_pg active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
+      'frameworks' => %w[grape padrino roda sinatra],
+      'httpclients' => %w[async_http curb excon httpclient],
+      'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
       'infinite_tracing' => ['infinite_tracing'],
 
       'rest' => [] # Specially handled below

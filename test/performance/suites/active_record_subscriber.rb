@@ -55,6 +55,8 @@ unless defined?(ActiveSupport::Notifications::Event)
 end
 
 class ActiveRecordSubscriberTest < Performance::TestCase
+  ITERATIONS = 25_000
+
   def setup
     @config = {:adapter => 'mysql', :host => 'server'}
     @connection = Object.new
@@ -81,7 +83,7 @@ class ActiveRecordSubscriberTest < Performance::TestCase
   end
 
   def test_subscriber_in_txn
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         simulate_query
       end

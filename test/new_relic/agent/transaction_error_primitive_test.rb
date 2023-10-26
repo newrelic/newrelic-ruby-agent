@@ -42,12 +42,19 @@ module NewRelic
         intrinsics, *_ = create_event(:payload_options => {
           :synthetics_resource_id => 3,
           :synthetics_job_id => 4,
-          :synthetics_monitor_id => 5
+          :synthetics_monitor_id => 5,
+          :synthetics_type => 'automatedTest',
+          :synthetics_initiator => 'cli',
+          :synthetics_batch_id => 42
         })
 
         assert_equal 3, intrinsics['nr.syntheticsResourceId']
         assert_equal 4, intrinsics['nr.syntheticsJobId']
         assert_equal 5, intrinsics['nr.syntheticsMonitorId']
+
+        assert_equal 'automatedTest', intrinsics['nr.syntheticsType']
+        assert_equal 'cli', intrinsics['nr.syntheticsInitiator']
+        assert_equal 42, intrinsics['nr.syntheticsBatchId']
       end
 
       def test_includes_mapped_metrics

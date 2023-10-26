@@ -46,7 +46,7 @@ A pre-commit hook is provided that can help keep dist/index.js in tune with loca
 # Using Node as a REPL
 
 If you're developing or working on the index.js script, it can be handy to try out stuff 
-locally.  To do that, use Node to start up a REPL shell by running it from the action's folder:
+locally.  To do that, use Node to start-up a REPL shell by running it from the action's folder:
 
 ```
 cd .github/workflow/actions/annotate

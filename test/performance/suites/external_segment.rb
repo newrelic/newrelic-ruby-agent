@@ -6,6 +6,8 @@ require 'net/http'
 require 'new_relic/agent/obfuscator'
 
 class ExternalSegment < Performance::TestCase
+  ITERATIONS = 1_000
+
   CAT_CONFIG = {
     :license_key => 'a' * 40,
     :'cross_application_tracer.enabled' => true,
@@ -31,7 +33,7 @@ class ExternalSegment < Performance::TestCase
 
   def test_external_request
     io_server = start_server
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         Net::HTTP.get(TEST_URI)
       end
@@ -41,7 +43,7 @@ class ExternalSegment < Performance::TestCase
 
   def test_external_request_in_thread
     io_server = start_server
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         thread = Thread.new { Net::HTTP.get(TEST_URI) }
         thread.join
@@ -55,7 +57,7 @@ class ExternalSegment < Performance::TestCase
 
     io_server = start_server
     reply_with_cat_headers(io_server)
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         Net::HTTP.get(TEST_URI)
       end
@@ -67,7 +69,7 @@ class ExternalSegment < Performance::TestCase
     NewRelic::Agent.config.add_config_for_testing(TRACE_CONTEXT_CONFIG)
 
     io_server = start_server
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         Net::HTTP.get(TEST_URI)
       end
@@ -79,7 +81,7 @@ class ExternalSegment < Performance::TestCase
     NewRelic::Agent.config.add_config_for_testing(TRACE_CONTEXT_CONFIG)
 
     io_server = start_server
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         thread = Thread.new { Net::HTTP.get(TEST_URI) }
         thread.join

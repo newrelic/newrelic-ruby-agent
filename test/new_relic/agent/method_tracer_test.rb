@@ -489,19 +489,17 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded ['Custom/proxy/hello']
   end
 
-  def trace_no_push_scope
+  def test_trace_no_push_scope
     in_transaction('test_txn') do
       self.class.add_method_tracer(:method_to_be_traced, 'X', :push_scope => false)
       method_to_be_traced(1, 2, 3, true, nil)
       self.class.remove_method_tracer(:method_to_be_traced)
       method_to_be_traced(1, 2, 3, false, 'X')
     end
+    scoped = NewRelic::Agent.instance.stats_engine.to_h.keys.reject { |k| k.scope.empty? }.map(&:name)
 
-    assert_metrics_not_recorded %w[X test_txn]
-  end
-
-  def check_time(t1, t2)
-    assert_in_delta t2, t1, 0.001
+    refute_includes(scoped, 'X', "Did not expect to find 'X' on the scoped list")
+    refute_includes(scoped, 'test_txn', "Did not expect to find 'test_txn' on the scoped list")
   end
 
   # =======================================================

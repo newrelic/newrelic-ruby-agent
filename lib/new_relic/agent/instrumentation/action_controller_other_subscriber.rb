@@ -23,7 +23,7 @@ module NewRelic
 
         def metric_name(name, payload)
           controller_name = controller_name_for_metric(payload)
-          "Ruby/ActionController#{"/#{controller_name}" if controller_name}/#{name.gsub(/\.action_controller/, '')}"
+          "Ruby/ActionController#{"/#{controller_name}" if controller_name}/#{name.gsub('.action_controller', '')}"
         end
 
         def controller_name_for_metric(payload)

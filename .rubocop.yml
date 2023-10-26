@@ -1248,6 +1248,7 @@ Style/MethodCallWithArgsParentheses:
   AllowedMethods:
     - add_dependency
     - add_development_dependency
+    - catch
     - expect
     - fail
     - gem
@@ -1258,10 +1259,13 @@ Style/MethodCallWithArgsParentheses:
     - raise
     - require
     - skip
+    - sleep
     - source
     - stub
     - stub_const
+    - throw
     - use
+    - warn
   AllowedPatterns: [^assert, ^refute]
 
 Style/MethodCallWithoutArgsParentheses:

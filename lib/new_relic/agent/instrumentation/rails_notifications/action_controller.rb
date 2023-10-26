@@ -34,6 +34,7 @@ DependencyDetection.defer do
 
     subs = %w[send_file
       send_data
+      send_stream
       redirect_to
       halted_callback
       unpermitted_parameters]

@@ -6,8 +6,12 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveSupportLogger
+        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
         # Mark @skip_instrumenting on any broadcasted loggers to instrument Rails.logger only
         def broadcast_with_tracing(logger)
+          NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
           NewRelic::Agent::Instrumentation::Logger.mark_skip_instrumenting(logger)
           yield
         rescue => error

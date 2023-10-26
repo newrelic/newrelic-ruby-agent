@@ -5,6 +5,8 @@
 class RumAutoInsertion < Performance::TestCase
   attr_reader :browser_monitor, :html, :html_with_meta, :html_with_meta_after
 
+  ITERATIONS = 10_000
+
   def setup
     # Don't require until we're actually running tests to avoid weirdness in
     # the parent runner process...
@@ -67,7 +69,7 @@ class RumAutoInsertion < Performance::TestCase
   def run_autoinstrument_source(text)
     @app.text = text
     @host.run do
-      measure do
+      measure(ITERATIONS) do
         browser_monitor.call({})
       end
     end

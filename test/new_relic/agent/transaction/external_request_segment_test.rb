@@ -366,10 +366,12 @@ module NewRelic::Agent
       end
 
       def test_segment_writes_synthetics_header_for_synthetics_txn
+        synthetics_info_header = {'version' => '1', 'type' => 'automatedTest', 'initiator' => 'cli', 'attributes' => {'attribute1' => 'one'}}
         request = RequestWrapper.new
         with_config(cat_config) do
           in_transaction(:category => :controller) do |txn|
             txn.raw_synthetics_header = json_dump_and_encode([1, 42, 100, 200, 300])
+            txn.raw_synthetics_info_header = synthetics_info_header
             segment = Tracer.start_external_request_segment(
               library: 'Net::HTTP',
               uri: 'http://remotehost.com/blogs/index',
@@ -381,6 +383,8 @@ module NewRelic::Agent
         end
 
         assert request.headers.key?('X-NewRelic-Synthetics'), 'Expected to find X-NewRelic-Synthetics header'
+        assert request.headers.key?('X-NewRelic-Synthetics-Info'), 'Expected to find X-NewRelic-Synthetics-Info header'
+        assert_equal request.headers['X-NewRelic-Synthetics-Info'], synthetics_info_header
       end
 
       def test_add_request_headers_renames_segment_based_on_host_header
@@ -837,6 +841,9 @@ module NewRelic::Agent
           assert_equal expected_name, external_intrinsics.fetch('name')
           assert_equal segment.library, external_intrinsics.fetch('component')
           assert_equal segment.procedure, external_intrinsics.fetch('http.method')
+          assert_equal segment.procedure, external_intrinsics.fetch('http.request.method')
+          assert_equal 'remotehost.com', external_intrinsics.fetch('server.address')
+          assert_equal 80, external_intrinsics.fetch('server.port')
           assert_equal 'http', external_intrinsics.fetch('category')
           assert_equal segment.uri.to_s, external_agent_attributes.fetch('http.url')
         end

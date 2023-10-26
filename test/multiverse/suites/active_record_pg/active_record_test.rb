@@ -66,17 +66,19 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  if active_record_version >= Gem::Version.new('4.0.0')
-    def test_metrics_for_ids
-      in_web_transaction do
-        Order.ids
-      end
+  def test_metrics_for_ids
+    in_web_transaction do
+      Order.ids
+    end
 
-      if active_record_major_version >= 7
-        assert_activerecord_metrics(Order, 'pluck')
+    if active_record_major_version >= 7
+      if active_record_minor_version >= 1
+        assert_activerecord_metrics(Order, 'ids')
       else
-        assert_activerecord_metrics(Order, 'select')
+        assert_activerecord_metrics(Order, 'pluck')
       end
+    else
+      assert_activerecord_metrics(Order, 'select')
     end
   end
 
@@ -589,7 +591,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     # ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
     #       ActiveRecord::Base.configs_for(env_name: NewRelic::Control.instance.env)['adapter']
     #       ActiveRecord::Base.configs_for(env_name: RAILS_ENV)['adapter']
-    # require 'pry'; binding.pry
     # Order.configurations[RAILS_ENV]['adapter']
     adapter_string = ::NewRelic::Agent::DatabaseAdapter.value
     adapter_string.downcase.to_sym

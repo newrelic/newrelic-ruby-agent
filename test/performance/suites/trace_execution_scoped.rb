@@ -11,6 +11,8 @@ class TestClass
 end
 
 class TraceExecutionScopedTests < Performance::TestCase
+  ITERATIONS = 20_000
+
   def setup
     @test_class = TestClass.new
     TestClass.instance_eval('include NewRelic::Agent::MethodTracer')
@@ -18,11 +20,11 @@ class TraceExecutionScopedTests < Performance::TestCase
   end
 
   def test_trace_execution_scoped
-    measure { @test_class.method_1 }
+    measure(ITERATIONS) { @test_class.method_1 }
   end
 
   def test_trace_execution_scoped_in_a_transaction
-    measure do
+    measure(ITERATIONS) do
       in_transaction do
         @test_class.method_1
       end

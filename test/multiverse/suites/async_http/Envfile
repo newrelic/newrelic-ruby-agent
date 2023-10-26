@@ -1,0 +1,19 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+ASYNC_HTTP_VERSIONS = [
+  [nil, 2.5],
+  ['0.59.0', 2.5]
+]
+
+def gem_list(async_http_version = nil)
+  <<~GEM_LIST
+    gem 'async-http'#{async_http_version}
+    gem 'rack'
+  GEM_LIST
+end
+
+create_gemfiles(ASYNC_HTTP_VERSIONS)

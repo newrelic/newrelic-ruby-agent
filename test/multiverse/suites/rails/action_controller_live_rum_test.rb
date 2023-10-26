@@ -5,7 +5,6 @@
 require './app'
 
 if defined?(ActionController::Live)
-
   class UndeadController < ApplicationController
     RESPONSE_BODY = '<html><head></head><body>Brains!</body></html>'
 
@@ -14,6 +13,7 @@ if defined?(ActionController::Live)
     end
 
     def brain_stream
+      headers['last-modified'] = Time.now # tell Rack not to call #to_ary on the response object
       render(:inline => RESPONSE_BODY, :stream => true)
     end
   end
@@ -44,6 +44,7 @@ if defined?(ActionController::Live)
     def test_excludes_rum_instrumentation_when_streaming_with_action_stream_true
       get('/undead/brain_stream', env: {'HTTP_VERSION' => 'HTTP/1.1'})
 
+      assert_predicate(response, :ok?, 'Expected ActionController streaming response to be OK')
       assert_includes(response.body, UndeadController::RESPONSE_BODY)
       assert_not_includes(response.body, JS_LOADER)
     end

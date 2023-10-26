@@ -7,10 +7,14 @@ module NewRelic
     module Instrumentation
       module Rake
         module Tracer
+          INSTRUMENTATION_NAME = 'Rake'
+
           def invoke_with_newrelic_tracing(*args)
             unless NewRelic::Agent::Instrumentation::Rake.should_trace?(name)
               return yield
             end
+
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
             begin
               timeout = NewRelic::Agent.config[:'rake.connect_timeout']

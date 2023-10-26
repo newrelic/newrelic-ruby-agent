@@ -8,6 +8,10 @@ name: Repolinter Action
 # filtered in the "Test Default Branch" step.
 on: [push, workflow_dispatch]
 
+permissions:
+  # Needed to create issues with the failed checks
+  issues: write
+
 jobs:
   repolint:
     name: Run Repolinter

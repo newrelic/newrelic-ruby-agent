@@ -68,6 +68,8 @@ module NewRelic
         module Multi
           include NewRelic::Agent::MethodTracer
 
+          INSTRUMENTATION_NAME = 'Curb'
+
           # Add CAT with callbacks if the request is serial
           def add_with_tracing(curl)
             if curl.respond_to?(:_nr_serial) && curl._nr_serial
@@ -80,6 +82,8 @@ module NewRelic
           # Trace as an External/Multiple call if the first request isn't serial.
           def perform_with_tracing
             return yield if first_request_is_serial?
+
+            NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
             trace_execution_scoped('External/Multiple/Curb::Multi/perform') do
               yield

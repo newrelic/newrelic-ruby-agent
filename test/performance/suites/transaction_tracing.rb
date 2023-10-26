@@ -4,6 +4,8 @@
 
 class TransactionTracingPerfTests < Performance::TestCase
   FAILURE_MESSAGE = 'O_o'
+  ITERATIONS_QUICK = 15_000
+  ITERATIONS_SLOW = 10
 
   BOO = 'boo'
   HOO = 'hoo'
@@ -87,33 +89,33 @@ class TransactionTracingPerfTests < Performance::TestCase
   end
 
   def test_short_transactions
-    measure { @dummy.short_transaction }
+    measure(ITERATIONS_QUICK) { @dummy.short_transaction }
   end
 
   def test_long_transactions
-    measure do
+    measure(ITERATIONS_SLOW) do
       @dummy.long_transaction(10000)
     end
   end
 
   def test_short_transactions_in_thread
-    measure { Thread.new { @dummy.short_transaction }.join }
+    measure(ITERATIONS_QUICK) { Thread.new { @dummy.short_transaction }.join }
   end
 
   def test_long_transactions_in_thread
-    measure { Thread.new { @dummy.long_transaction(10000) }.join }
+    measure(ITERATIONS_SLOW) { Thread.new { @dummy.long_transaction(10000) }.join }
   end
 
   def test_with_custom_attributes
-    measure { @dummy.transaction_with_attributes }
+    measure(ITERATIONS_QUICK) { @dummy.transaction_with_attributes }
   end
 
   def test_spans_with_custom_attributes
-    measure { @dummy.span_with_attributes }
+    measure(ITERATIONS_QUICK) { @dummy.span_with_attributes }
   end
 
   def test_failure
-    measure do
+    measure(ITERATIONS_QUICK) do
       begin
         @dummy.failure
       rescue
@@ -125,7 +127,7 @@ class TransactionTracingPerfTests < Performance::TestCase
   TXNAME = 'Controller/Blogs/index'.freeze
 
   def test_start_with_tracer_start
-    measure do
+    measure(ITERATIONS_QUICK) do
       if NewRelic::Agent::Tracer.tracing_enabled? &&
           !NewRelic::Agent::Tracer.current_transaction
         finishable = NewRelic::Agent::Tracer.start_transaction(
@@ -138,7 +140,7 @@ class TransactionTracingPerfTests < Performance::TestCase
   end
 
   def test_short_transaction_with_datastore_segment
-    measure do
+    measure(ITERATIONS_QUICK) do
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
@@ -152,7 +154,7 @@ class TransactionTracingPerfTests < Performance::TestCase
   end
 
   def test_short_transaction_with_datastore_segment_in_thread
-    measure do
+    measure(ITERATIONS_QUICK) do
       in_transaction do |txn|
         txn.sampled = true
         thread = Thread.new do
@@ -169,7 +171,7 @@ class TransactionTracingPerfTests < Performance::TestCase
   end
 
   def test_short_transaction_with_external_request_segment
-    measure do
+    measure(ITERATIONS_QUICK) do
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
@@ -183,7 +185,7 @@ class TransactionTracingPerfTests < Performance::TestCase
   end
 
   def test_short_transaction_with_external_request_segment_in_thread
-    measure do
+    measure(ITERATIONS_QUICK) do
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_external_request_segment(

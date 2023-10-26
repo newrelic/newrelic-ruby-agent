@@ -96,12 +96,12 @@ class UtilizationDataCollectionTest < Minitest::Test
       @dummy_port = p
 
       class << self
-        def start_with_patch(address, port = nil, p_addr = nil, p_port = nil, p_user = nil, p_pass = nil, &block)
+        def start_with_patch(address, port, *_args, &block)
           if address == '169.254.169.254'
             address = 'localhost'
             port = @dummy_port
           end
-          start_without_patch(address, port, p_addr, p_port, p_user, p_pass, &block)
+          start_without_patch(address, port, &block)
         end
 
         alias_method :start_without_patch, :start
