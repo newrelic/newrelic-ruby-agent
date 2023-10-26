@@ -34,7 +34,7 @@ module NewRelic
         end
 
         def host_from_header
-          if hostname = self[HOST]
+          if hostname = self[LHOST]
             hostname.split(COLON).first
           end
         end
