@@ -40,15 +40,14 @@ jobs:
           destination_branch_create: ${{env.branch_name}}
           commit_message: 'chore(ruby agent): add release notes'
 
-      - name: Make pull request
-        uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # tag v2.12.1
-        with:
-          github_token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
-          source_branch: ${{env.branch_name}}
-          destination_branch: "develop"
-          pr_title: "Ruby Release Notes"
-          pr_body: "This is an automated PR generated when the Ruby agent is released. Please merge as soon as possible."
-          destination_repository: "newrelic/docs-website"
+      - name: Create pull request
+        run: gh pr create --base "develop" --repo "$REPO" --head "$HEAD" --title "$TITLE" --body "$BODY"
+        env:
+          GH_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          REPO: https://github.com/newrelic/docs-website/
+          HEAD: ${{env.branch_name}}
+          TITLE: "Ruby Release Notes"
+          BODY: "This is an automated PR generated when the Ruby agent is released. Please merge as soon as possible."
 
   delete_branch_on_fail:
     name: Delete branch on fail

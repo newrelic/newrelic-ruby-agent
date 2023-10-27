@@ -13,7 +13,7 @@ class LicenseTest < Minitest::Test
   LICENSE_HEADER_REGEX = %r{^#{LICENSE_LINE1}\n#{LICENSE_LINE2}$}.freeze
 
   def ruby_files
-    Dir.glob(File.join(PROJECT_ROOT, '**', '*.{rb,rake}')).reject { |path| path =~ %r{/(?:vendor|tmp|db)/} }
+    Dir.glob(File.join(PROJECT_ROOT, '**', '*.{rb,rake}')).reject { |path| path =~ %r{/(?:vendor|tmp|db|rails_app)/} }
   end
 
   def test_all_files_have_license_header

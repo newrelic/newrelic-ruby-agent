@@ -2,6 +2,11 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+def grpc_version
+  RUBY_VERSION < '2.6.0' ? ", '1.49.1'" : ''
+end
+
 gemfile <<~RB
   gem 'newrelic-infinite_tracing', :path => '../../../../infinite_tracing'
+  gem 'grpc'#{grpc_version}
 RB

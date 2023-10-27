@@ -114,7 +114,8 @@ module Performance
       iterations
     end
 
-    def measure(&blk)
+    def measure(desired_iterations = nil, &blk)
+      target_iterations ||= desired_iterations
       total_iterations = 0
       start_time = nil
       elapsed = nil

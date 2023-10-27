@@ -36,3 +36,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+## Contributing
+
+- Clone the repo containing the action
+- Make sure you have Node.js (the action was originally tested with version 18 LTS) and Yarn installed
+- In the directory containing this `README.md` file and the `package.json` file, run `yarn install`
+- Make your desired changes to `index.js`
+    - note: ignore `dist/index.js`, as it is only intended for use by GitHub Actions
+- Test your changes with `node index.js` and/or `yarn run test`
+- Lint your changes with `yarn run lint`
+- Regenerate the distribution file `dist/index.js` by running `yarn run package`
+- Submit a PR with your changes

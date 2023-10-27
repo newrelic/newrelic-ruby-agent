@@ -5,8 +5,7 @@
 omit_collector!
 
 PSYCH_VERSIONS = [
-  # TODO: re-enable 'nil' once Psych v5 testing (released 2022-12-05) is complete
-  # [nil],
+  [nil],
   ['4.0.0', 2.4],
   ['3.3.0', 2.4]
 ]

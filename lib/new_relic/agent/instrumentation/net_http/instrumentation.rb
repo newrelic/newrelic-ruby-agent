@@ -6,7 +6,11 @@ module NewRelic
   module Agent
     module Instrumentation
       module NetHTTP
+        INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+
         def request_with_tracing(request)
+          NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
           wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
 
           segment = NewRelic::Agent::Tracer.start_external_request_segment(
@@ -31,7 +35,7 @@ module NewRelic
             segment.process_response_headers(wrapped_response)
             response
           ensure
-            segment.finish
+            segment&.finish
           end
         end
       end

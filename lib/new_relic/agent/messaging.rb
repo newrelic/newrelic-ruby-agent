@@ -329,9 +329,9 @@ module NewRelic
 
       def transaction_name(library, destination_type, destination_name)
         transaction_name = Transaction::MESSAGE_PREFIX + library
-        transaction_name << Transaction::MessageBrokerSegment::SLASH
+        transaction_name << NewRelic::SLASH
         transaction_name << Transaction::MessageBrokerSegment::TYPES[destination_type]
-        transaction_name << Transaction::MessageBrokerSegment::SLASH
+        transaction_name << NewRelic::SLASH
 
         case destination_type
         when :queue

@@ -6,6 +6,9 @@ require 'mocha/api'
 
 class ThreadProfiling < Performance::TestCase
   include Mocha::API
+  ITERATIONS_BACKTRACES = 2_000
+  ITERATIONS_SUBSCRIBED = 100_000
+  ITERATIONS_TRACES = 15
 
   def recurse(n, final)
     if n == 0
@@ -40,7 +43,7 @@ class ThreadProfiling < Performance::TestCase
       end
     end
 
-    # Ensure that all threads have had a chance to start up
+    # Ensure that all threads have had a chance to start-up
     started_count = 0
     while started_count < @nthreads
       @threadq.pop
@@ -74,7 +77,7 @@ class ThreadProfiling < Performance::TestCase
 
   def test_gather_backtraces
     @service.subscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
-    measure do
+    measure(ITERATIONS_BACKTRACES) do
       @service.poll
     end
     @service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
@@ -82,7 +85,7 @@ class ThreadProfiling < Performance::TestCase
 
   def test_gather_backtraces_subscribed
     @service.subscribe('eagle')
-    measure do
+    measure(ITERATIONS_SUBSCRIBED) do
       t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @service.poll
       payload = {
@@ -100,7 +103,7 @@ class ThreadProfiling < Performance::TestCase
   def test_generating_traces
     require 'new_relic/agent/threading/thread_profile'
 
-    measure do
+    measure(ITERATIONS_TRACES) do
       profile = ::NewRelic::Agent::Threading::ThreadProfile.new({})
 
       aggregate_lots_of_nodes(profile, 5, [])

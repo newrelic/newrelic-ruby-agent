@@ -5,6 +5,8 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'agent_helper')
 
 class Marshalling < Performance::TestCase
+  ITERATIONS = 50
+
   def setup
     @payload = build_analytics_events_payload
     @tt_payload = build_transaction_trace_payload
@@ -13,7 +15,7 @@ class Marshalling < Performance::TestCase
   def test_basic_marshalling_json
     with_config(:normalize_json_string_encodings => true) do
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-      measure do
+      measure(ITERATIONS) do
         marshaller.dump(@payload)
         marshaller.dump(@tt_payload)
       end
@@ -25,7 +27,7 @@ class Marshalling < Performance::TestCase
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       convert_strings_to_binary(@payload)
       convert_strings_to_binary(@tt_payload)
-      measure do
+      measure(ITERATIONS) do
         marshaller.dump(@payload)
         marshaller.dump(@tt_payload)
       end
@@ -37,7 +39,7 @@ class Marshalling < Performance::TestCase
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       convert_strings_to_utf16(@payload)
       convert_strings_to_utf16(@tt_payload)
-      measure do
+      measure(ITERATIONS) do
         marshaller.dump(@payload)
         marshaller.dump(@tt_payload)
       end
@@ -49,7 +51,7 @@ class Marshalling < Performance::TestCase
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       convert_strings_to_latin1(@payload)
       convert_strings_to_latin1(@tt_payload)
-      measure do
+      measure(ITERATIONS) do
         marshaller.dump(@payload)
         marshaller.dump(@tt_payload)
       end

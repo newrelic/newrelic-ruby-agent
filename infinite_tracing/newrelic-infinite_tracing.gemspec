@@ -80,12 +80,11 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest', '~> 5.15'
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.9.0'
-  s.add_development_dependency 'pry-nav', '~> 0.3.0'
-  s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
+  s.add_development_dependency 'pry-nav', '~> 0.3.0' if ENV['ENABLE_PRY']
+  s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9' if ENV['ENABLE_PRY']
   s.add_development_dependency 'guard', '~> 2.16.0'
   s.add_development_dependency 'guard-minitest', '~> 2.4.0'
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'simplecov'
-
   s.add_development_dependency 'grpc-tools', '~> 1.14'
 end

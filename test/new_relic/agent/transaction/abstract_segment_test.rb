@@ -29,6 +29,8 @@ module NewRelic
 
         def setup
           nr_freeze_process_time
+          var = NewRelic::Agent::Transaction::AbstractSegment::CALLBACK
+          BasicSegment.remove_instance_variable(var) if BasicSegment.instance_variable_defined?(var)
         end
 
         def teardown
@@ -318,6 +320,61 @@ module NewRelic
 
           assert_in_delta(0.0, segment.send(:range_overlap, 4.0..5.0))
         end
+
+        # BEGIN callbacks
+        def test_self_set_segment_callback
+          callback = proc { puts 'Hello, World!' }
+          BasicSegment.set_segment_callback(callback)
+
+          assert_equal callback, BasicSegment.instance_variable_get(BasicSegment::CALLBACK)
+        end
+
+        def test_self_set_segment_callback_with_a_non_proc_object
+          skip_unless_minitest5_or_above
+
+          logger = Minitest::Mock.new
+          logger.expect :error, nil, [/expected an argument of type Proc/]
+          NewRelic::Agent.stub :logger, logger do
+            BasicSegment.set_segment_callback([])
+
+            refute BasicSegment.instance_variable_defined?(NewRelic::Agent::Transaction::AbstractSegment::CALLBACK)
+          end
+          logger.verify
+        end
+
+        def test_callback_invocation
+          output = 'Hello, World!'
+          callback = proc { puts output }
+          BasicSegment.set_segment_callback(callback)
+
+          assert_output "#{output}\n" do
+            basic_segment # this calls BasicSegment.new
+          end
+        end
+
+        def test_callback_usage_generated_supportability_metrics
+          skip_unless_minitest5_or_above
+
+          metric = NewRelic::SupportabilityHelper::API_SUPPORTABILITY_METRICS[:set_segment_callback]
+          engine_mock = Minitest::Mock.new
+          engine_mock.expect :tl_record_unscoped_metrics, nil, [metric]
+          NewRelic::Agent.instance.stub :stats_engine, engine_mock do
+            BasicSegment.set_segment_callback(-> { Hash[*%w[hello world]] })
+            basic_segment
+          end
+
+          engine_mock.verify
+        end
+
+        # No matter what the callback does, carry on with segment creation
+        # https://github.com/newrelic/newrelic-ruby-agent/issues/2213
+        def test_callback_invocation_cannot_prevent_segment_creation
+          callback = proc { raise 'kaboom' }
+          BasicSegment.set_segment_callback(callback)
+
+          assert basic_segment # this calls BasicSegment.new
+        end
+        # END callbacks
       end
     end
   end

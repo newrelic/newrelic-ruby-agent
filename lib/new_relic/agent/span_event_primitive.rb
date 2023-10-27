@@ -29,12 +29,16 @@ module NewRelic
       CATEGORY_KEY = 'category'
       HTTP_URL_KEY = 'http.url'
       HTTP_METHOD_KEY = 'http.method'
+      HTTP_REQUEST_METHOD_KEY = 'http.request.method'
       HTTP_STATUS_CODE_KEY = 'http.statusCode'
       COMPONENT_KEY = 'component'
       DB_INSTANCE_KEY = 'db.instance'
       DB_STATEMENT_KEY = 'db.statement'
+      DB_SYSTEM_KEY = 'db.system'
       PEER_ADDRESS_KEY = 'peer.address'
       PEER_HOSTNAME_KEY = 'peer.hostname'
+      SERVER_ADDRESS_KEY = 'server.address'
+      SERVER_PORT_KEY = 'server.port'
       SPAN_KIND_KEY = 'span.kind'
       ENTRY_POINT_KEY = 'nr.entryPoint'
       TRUSTED_PARENT_KEY = 'trustedParentId'
@@ -69,10 +73,12 @@ module NewRelic
 
         intrinsics[COMPONENT_KEY] = segment.library
         intrinsics[HTTP_METHOD_KEY] = segment.procedure
+        intrinsics[HTTP_REQUEST_METHOD_KEY] = segment.procedure
         intrinsics[HTTP_STATUS_CODE_KEY] = segment.http_status_code if segment.http_status_code
         intrinsics[CATEGORY_KEY] = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY] = CLIENT
-
+        intrinsics[SERVER_ADDRESS_KEY] = segment.uri.host
+        intrinsics[SERVER_PORT_KEY] = segment.uri.port
         agent_attributes = error_attributes(segment) || {}
 
         if allowed?(HTTP_URL_KEY)
@@ -86,7 +92,7 @@ module NewRelic
         [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
-      def for_datastore_segment(segment)
+      def for_datastore_segment(segment) # rubocop:disable Metrics/AbcSize
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY] = segment.product
@@ -101,9 +107,15 @@ module NewRelic
         if segment.host && segment.port_path_or_id && allowed?(PEER_ADDRESS_KEY)
           agent_attributes[PEER_ADDRESS_KEY] = truncate("#{segment.host}:#{segment.port_path_or_id}")
         end
-        if segment.host && allowed?(PEER_HOSTNAME_KEY)
-          agent_attributes[PEER_HOSTNAME_KEY] = truncate(segment.host)
+        if segment.host
+          [PEER_HOSTNAME_KEY, SERVER_ADDRESS_KEY].each do |key|
+            agent_attributes[key] = truncate(segment.host) if allowed?(key)
+          end
         end
+        if segment.port_path_or_id&.match?(/^\d+$/) && allowed?(SERVER_PORT_KEY)
+          agent_attributes[SERVER_PORT_KEY] = segment.port_path_or_id
+        end
+        agent_attributes[DB_SYSTEM_KEY] = segment.product if allowed?(DB_SYSTEM_KEY)
 
         if segment.sql_statement && allowed?(DB_STATEMENT_KEY)
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)

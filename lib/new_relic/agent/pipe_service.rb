@@ -15,7 +15,7 @@ module NewRelic
         if @pipe && @pipe.parent_pid != $$
           @pipe.after_fork_in_child
         else
-          NewRelic::Agent.logger.error('No communication channel to parent process, please see https://newrelic.com/docs/ruby/resque-instrumentation for more information.')
+          NewRelic::Agent.logger.error('No communication channel to parent process, please see https://docs.newrelic.com/docs/apm/agents/ruby-agent/background-jobs/resque-instrumentation/ for more information.')
         end
       end
 

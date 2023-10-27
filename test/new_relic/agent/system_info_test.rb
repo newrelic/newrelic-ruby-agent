@@ -60,6 +60,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
+  # BEGIN cgroups v1
   container_id_test_dir = File.join(cross_agent_tests_dir, 'docker_container_id')
   container_id_test_cases = load_cross_agent_test(File.join('docker_container_id', 'cases'))
 
@@ -86,6 +87,35 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       end
     end
   end
+  # END cgroups v1
+
+  # BEGIN cgroups v2
+  def test_docker_container_id_is_gleaned_from_mountinfo_for_cgroups_v2
+    skip_unless_minitest5_or_above
+    container_id = '3145490ee377105a4d3a7abd55083c61c0c2d616d786614e755176433c648d09'
+    mountinfo = "line1\nline2\n/docker/containers/#{container_id}/other/content\nline4\nline5"
+    NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'linux' do
+      NewRelic::Agent::SystemInfo.stub :proc_try_read, mountinfo, %w[/proc/self/mountinfo] do
+        assert_equal container_id, NewRelic::Agent::SystemInfo.docker_container_id
+      end
+    end
+  end
+
+  def test_docker_container_id_must_match_sha_256_format
+    skip_unless_minitest5_or_above
+    bogus_container_ids = %w[3145490ee377105a4d3a7abd55083c61c0c2d616d786614e755176433c648d0
+      3145490ee377105a4d3a7abd55083c61c0c2d616d78g614e755176433c648d09
+      3145490ee377105a4d3a7abd55083C61c0c2d616d786614e755176433c648d09]
+    bogus_container_ids.each do |id|
+      mountinfo = "line1\nline2\n/docker/containers/#{id}/other/content\nline4\nline5"
+      NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'linux' do
+        NewRelic::Agent::SystemInfo.stub :proc_try_read, mountinfo, %w[/proc/self/mountinfo] do
+          refute NewRelic::Agent::SystemInfo.docker_container_id
+        end
+      end
+    end
+  end
+  # END cgroups v2
 
   each_cross_agent_test :dir => 'proc_meminfo', :pattern => '*.txt' do |file|
     if File.basename(file) =~ /^meminfo_(\d+)MB.txt$/
@@ -297,6 +327,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def test_supportability_metric_recorded_when_docker_id_unavailable
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
     cgroup_info = File.read(File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt'))
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/mountinfo').returns(cgroup_info)
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/self/cgroup').returns(cgroup_info)
 
     in_transaction('txn') do

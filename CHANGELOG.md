@@ -1,8 +1,195 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.6.0
 
-Version <dev> of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
+Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, adds additional attributes for OpenTelemetry compatibility, and resolves some technical debt, thanks to the community.
+
+- **Feature: Add instrumentation for Async::HTTP**
+
+  The agent will now record spans for Async::HTTP requests. Versions 0.59.0 and above of the async-http gem are supported. [PR#2272](https://github.com/newrelic/newrelic-ruby-agent/pull/2272)
+
+- **Feature: Add instrumentation for Ethon**
+
+  Instrumentation has been added for the [Ethon](https://github.com/typhoeus/ethon) HTTP client gem. Versions 0.12.0 and above are supported. The agent will now record external request segments for invocations of `Ethon::Easy#perform` and `Ethon::Multi#perform`. NOTE: The [Typhoeus](https://github.com/typhoeus/typhoeus) gem is maintained by the same team that maintains Ethon and depends on Ethon for its functionality. To prevent duplicate reporting for each HTTP request, the Ethon instrumentation will be disabled when Typhoeus is detected. [PR#2260](https://github.com/newrelic/newrelic-ruby-agent/pull/2260)
+
+- **Feature: Add instrumentation for HTTPX**
+
+  The agent now offers instrumentation for the HTTP client [HTTPX](https://honeyryderchuck.gitlab.io/httpx/), provided the gem is at version 1.0.0 or above. [PR#2278](https://github.com/newrelic/newrelic-ruby-agent/pull/2278)
+
+- **Feature: Prevent the agent from starting in "rails" commands in Rails 7**
+
+  Previously, the agent ignored many Rails commands by default, such as `rails routes`, using Rake-specific logic. This was accomplished by setting these commands as default values for the config option `autostart.denylisted_rake_tasks`. However, Rails 7 no longer uses Rake for these commands, causing the agent to start running and attempting to record data when running these commands. The commands have now been added to the default value for the config option `autostart.denylisted_constants`, which will allow the agent to recognize these commands correctly in Rails 7 and prevent the agent from starting during ignored tasks. Note that the agent will continue to start-up when the `rails server` and `rails runner` commands are invoked. [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239)
+
+- **Feature: Glean Docker container ID for cgroups v2-based containers**
+
+  Previously, the agent was only capable of determining a host Docker container's ID if the container was based on cgroups v1. Now, containers based on cgroups v2 will also have their container IDs reported to New Relic. [PR#2229](https://github.com/newrelic/newrelic-ruby-agent/issues/2229).
+
+- **Feature: Update events with additional synthetics attributes when available**
+
+  The agent will now record additional synthetics attributes on synthetics events if these attributes are available.  [PR#2203](https://github.com/newrelic/newrelic-ruby-agent/pull/2203)
+
+- **Feature: Declare a gem dependency on the Ruby Base 64 gem 'base64'**
+
+  For compatibility with Ruby 3.4 and to silence compatibility warnings present in Ruby 3.3, declare a dependency on the `base64` gem. The New Relic Ruby agent uses the native Ruby `base64` gem for Base 64 encoding/decoding. The agent is joined by Ruby on Rails ([rails/rails@3e52adf](https://github.com/rails/rails/commit/3e52adf28e90af490f7e3bdc4bcc85618a4e0867)) and others in making this change in preparation for Ruby 3.3/3.4. [PR#2238](https://github.com/newrelic/newrelic-ruby-agent/pull/2238)
+
+- **Feature: Add Roda support for the newrelic_ignore\* family of methods**
+
+  The agent can now selectively disable instrumentation for particular requests within Roda applications. Supported methods include:
+  - `newrelic_ignore`: ignore a given route.
+  - `newrelic_ignore_apdex`: exclude a given route from consideration in overall Apdex calculations.
+  - `newrelic_ignore_enduser`: prevent automatic injection of the page load timing JavaScript when a route is rendered.
+
+  For more information, see [Roda Instrumentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/instrumented-gems/roda-instrumentation/). [PR#2267](https://github.com/newrelic/newrelic-ruby-agent/pull/2267)
+
+- **Feature: Add additional span attributes for OpenTelemetry compatibility**
+
+  For improved compatibility with OpenTelemetry's semantic conventions, the agent's datastore (for databases) and external request (for HTTP clients) segments have been updated with additional attributes.
+
+  Datastore segments now offer 3 additional attributes:
+  - `db.system`: The database system. For Ruby we use the database adapter name here.
+  - `server.address`: The database host.
+  - `server.port`: The database port.
+
+  External request segments now offer 3 additional attributes:
+  - `http.request.method`: The HTTP method (ex: 'GET')
+  - `server.address`: The target host.
+  - `server.port`: The target port.
+
+  For maximum backwards compatibility, no existing attributes have been renamed or removed. [PR#2283](https://github.com/newrelic/newrelic-ruby-agent/pull/2283)
+
+- **Bugfix: Stop sending duplicate log events for Rails 7.1 users**
+
+  Rails 7.1 introduced the public API [`ActiveSupport::BroadcastLogger`](https://api.rubyonrails.org/classes/ActiveSupport/BroadcastLogger.html). This logger replaces a private API, `ActiveSupport::Logger.broadcast`. In Rails versions below 7.1, the agent uses the `broadcast` method to stop duplicate logs from being recoded by broadcasted loggers. Now, we've updated the code to provide a similar duplication fix for the `ActiveSupport::BroadcastLogger` class. [PR#2252](https://github.com/newrelic/newrelic-ruby-agent/pull/2252)
+
+- **Bugfix: Resolve Sidekiq 8.0 error handler deprecation warning**
+
+  Sidekiq 8.0 will require procs passed to the error handler to include three arguments: error, context, and config. Users running sidekiq/main would receive a deprecation warning with this change any time an error was raised within a job. Thank you, [@fukayatsu](https://github.com/fukayatsu) for your proactive fix! [PR#2261](https://github.com/newrelic/newrelic-ruby-agent/pull/2261)
+
+- **Community: Resolve technical debt**
+
+  We also received some great contributions from community members to resolve some outstanding technical debt issues. Thank you for your contributions!
+    * Add and Replace SLASH and ROOT constants: [PR#2256](https://github.com/newrelic/newrelic-ruby-agent/pull/2256) [chahmedejaz](https://github.com/chahmedejaz)
+    * Remove pry as a dev dependency: [PR#2665](https://github.com/newrelic/newrelic-ruby-agent/pull/2265), [PR#2273](https://github.com/newrelic/newrelic-ruby-agent/pull/2273) [AlajeBash](https://github.com/AlajeBash)
+    * Replace "start up" with "start-up": [PR#2249](https://github.com/newrelic/newrelic-ruby-agent/pull/2249) [chahmedejaz](https://github.com/chahmedejaz)
+    * Remove unused variables in test suites: [PR#2250](https://github.com/newrelic/newrelic-ruby-agent/pull/2250)
+
+
+## v9.5.0
+
+Version 9.5.0 introduces Stripe instrumentation, allows the agent to record additional response information on a transaction when middleware instrumentation is disabled, introduces new `:'sidekiq.args.include'` and `:'sidekiq.args.exclude:` configuration options to permit capturing only certain Sidekiq job arguments, updates Elasticsearch datastore instance metrics, and fixes a bug in `NewRelic::Rack::AgentHooks.needed?`.
+
+- **Feature: Add Stripe instrumentation**
+
+  [Stripe](https://stripe.com/) calls are now automatically instrumented. Additionally, new `:'stripe.user_data.include'` and `:'stripe.user_data.exclude'` configuration options permit capturing custom `user_data` key-value pairs that can be stored in [Stripe events](https://github.com/stripe/stripe-ruby#instrumentation). No `user_data` key-value pairs are captured by default. The agent currently supports Stripe versions 5.38.0+. [PR#2180](https://github.com/newrelic/newrelic-ruby-agent/pull/2180)
+
+- **Feature: Report transaction HTTP status codes when middleware instrumentation is disabled**
+
+  Previously, when `disable_middleware_instrumentation` was set to `true`, the agent would not record the value of the response code or content type on the transaction. This was due to the possibility that a middleware could alter the response, which would not be captured by the agent when the middleware instrumentation was disabled. However, based on customer feedback, the agent will now report the HTTP status code and content type on a transaction when middleware instrumentation is disabled. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+
+- **Feature: Permit capturing only certain Sidekiq job arguments**
+
+  New `:'sidekiq.args.include'` and `:'sidekiq.args.exclude'` configuration options have been introduced to permit fine grained control over which Sidekiq job arguments (args) are reported to New Relic. By default, no Sidekiq args are reported. To report any Sidekiq options, the `:'attributes.include'` array must include the string `'jobs.sidekiq.args.*'`. With that string in place, all arguments will be reported unless one or more of the new include/exclude options are used. The `:'sidekiq.args.include'` option can be set to an array of strings. Each of those strings will be passed to `Regexp.new` and collectively serve as an allowlist for desired args. For job arguments that are hashes, if a hash's key matches one of the include patterns, then both the key and its corresponding value will be included. For scalar arguments, the string representation of the scalar will need to match one of the include patterns to be captured. The `:'sidekiq.args.exclude'` option works similarly. It can be set to an array of strings that will each be passed to `Regexp.new` to create patterns. These patterns will collectively serve as a denylist for unwanted job args. Any hash key, hash value, or scalar that matches an exclude pattern will be excluded (not sent to New Relic). [PR#2177](https://github.com/newrelic/newrelic-ruby-agent/pull/2177)
+
+  `newrelic.yml` examples:
+
+  Any string in the `:'sidekiq.args.include'` or `:'sidekiq.args.exclude'` arrays will be turned into a regular expression. Knowledge of [Ruby regular expression support](https://ruby-doc.org/3.2.2/Regexp.html) can be leveraged but is not required. If regular expression syntax is not used, inexact matches will be performed and the string "Fortune" will match both "Fortune 500" and "Fortune and Glory". For exact matches, use [regular expression anchors](https://ruby-doc.org/3.2.2/Regexp.html#class-Regexp-label-Anchors).
+
+  ```yaml
+  # Include any argument whose string representation matches either "apple" or "banana"
+  # The "apple" pattern will match both "green apple" and "red apple"
+  sidekiq.args.include:
+    - apple
+    - banana
+
+  # Exclude any arguments that match either "grape", "orange", or "pear"
+  sidekiq.args.exclude:
+    - grape
+    - orange
+    - pear
+
+  # Exclude any argument that is a 9 digit number
+  sidekiq.args.exclude:
+    - '\d{9}'
+
+  # Include anything that starts with "blue" but exclude anything that ends in "green"
+  sidekiq.args.include
+    - '^blue'
+
+  sidekiq.args.exclude
+    - 'green$'
+  ```
+
+- **Bugfix: Update Elasticsearch datastore instance metric to use port instead of path**
+
+  Previously, the Elasticsearch datastore instance metric (`Datastore/instance/Elasticsearch/<host>/*`) used the path as the final value. This caused a [metrics grouping issue](https://docs.newrelic.com/docs/new-relic-solutions/solve-common-issues/troubleshooting/metric-grouping-issues) for some users, as every document ID created a unique metric. Now, the datastore instance metric has been updated to use the port as the final value. This also has the benefit of being more accurate for datastore instance metrics, as this port is directly associated with the already listed host.
+
+- **Bugfix: Resolve inverted logic of NewRelic::Rack::AgentHooks.needed?**
+
+  Previously, `NewRelic::Rack::AgentHooks.needed?` incorrectly used inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
+
+
+## v9.4.2
+
+Version 9.4.2 of the agent re-addresses the 9.4.0 issue of `NoMethodError` seen when using the `uppy-s3_multipart` gem.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.1 attempted to fix a `NoMethodError` introduced in 9.4.0. A missing `require` prevented a method from scoping appropriately and has now been added. Thanks to [@spickermann](https://github.com/spickermann) and [@ColinOrr](https://github.com/ColinOrr) for working with us to get this resolved. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
+## v9.4.1
+
+Version 9.4.1 of the agent resolves a `NoMethodError` introduced in 9.4.0.
+
+- **Bugfix: Resolve NoMethodError**
+
+  Ruby agent 9.4.0 introduced [Roda instrumentation](https://github.com/newrelic/newrelic-ruby-agent/pull/2144), which caused a `NoMethodError` to be raised when attempting to name a Roda transaction. This has been fixed. Thanks to [@spickermann](https://github.com/spickermann) for reporting this issue. [PR#2167](https://github.com/newrelic/newrelic-ruby-agent/pull/2167)
+
+## v9.4.0
+
+Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrumentation, adds a new `allow_all_headers` configuration option to permit capturing all HTTP headers, introduces improved error tracking functionality by associating a transaction id with each error, and uses more reliable network timeout logic.
+
+- **Feature: Add Roda instrumentation**
+
+  [Roda](https://roda.jeremyevans.net/) is a now an instrumented framework. The agent currently supports Roda versions 3.19.0+. [PR#2144](https://github.com/newrelic/newrelic-ruby-agent/pull/2144)
+
+- **Feature: New allow_all_headers configuration option**
+
+  A new `allow_all_headers` configuration option brings parity with the [Node.js agent](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/) to capture all HTTP request headers.
+
+  This configuration option:
+    * Defaults to `false`
+    * Is not compatible with high security mode
+    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above)
+    * Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
+    * Captures the additional headers as attributes prefixed with `request.headers.`
+
+  This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
+
+- **Feature: Improved error tracking transaction linking**
+
+  Errors tracked and sent to the New Relic errors inbox will now be associated with a transaction id to enable improved UI/UX associations between transactions and errors. [PR#2035](https://github.com/newrelic/newrelic-ruby-agent/pull/2035)
+
+- **Feature: Use Net::HTTP native timeout logic**
+
+  In line with current Ruby best practices, make use of Net::HTTP's own timeout logic and avoid the use of `Timeout.timeout()` when possible. The agent's data transmissions and cloud provider detection routines have been updated accordingly. [PR#2147](https://github.com/newrelic/newrelic-ruby-agent/pull/2147)
+
+## v9.3.1
+
+Version 9.3.1 of the agent fixes `NewRelic::Agent.require_test_helper`.
+
+- **Bugfix: Fix NewRelic::Agent.require_test_helper**
+
+  Version 9.3.0 of the agent made a change to the files distributed with the gem. This change unintentionally broke the `NewRelic::Agent.require_test_helper` API by removing the `test/agent_helper.rb` file. The file has been added back to the gem. This change also removes the `lib/new_relic/build.rb` file from the list because it is no longer created with our current release process.
+
+  Our thanks go to [@ajesler](https://github.com/ajesler) for reporting this issue and writing a test for the bug. [Issue#2113](https://github.com/newrelic/newrelic-ruby-agent/issues/2113), [PR#2115](https://github.com/newrelic/newrelic-ruby-agent/pull/2115), [Issue#2117](https://github.com/newrelic/newrelic-ruby-agent/issues/2117), [PR#2118](https://github.com/newrelic/newrelic-ruby-agent/pull/2118)
+
+- **Source Documentation: update the Rack spec URL**
+
+  Community member [@olleolleolle](https://github.com/olleolleolle) noticed that our source code was referencing a now defunct URL for the Rack specification and submitted [PR#2121](https://github.com/newrelic/newrelic-ruby-agent/pull/2121) to update it. He also provided a terrific recommendation that we automate the checking of links to proactively catch defunct ones in future. Thanks, @olleolleolle!
+
+## v9.3.0
+
+Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for log events, and updates instrumentation for Action Cable. It also provides fixes for how `Fiber` args are treated, Code-Level Metrics, unnecessary files being included in the gem, and `NewRelic::Agent::Logging::DecoratingFormatter#clear_tags!` being incorrectly private.
 
 - **Feature: Filter forwarded logs based on level**
 
@@ -35,9 +222,17 @@ Version <dev> of the agent adds log-level filtering, adds custom attributes for 
     * `transmit_subscription_confirmation.action_cable`
     * `transmit_subscription_rejection.action_cable`
 
+- **Bugfix: Removed unwanted files from being included in file_list in gemspec**
+
+  Previously, the agent was including some files in the gem that were not needed but added to the size of the gem. These files will no longer be included. Thanks to [@manuraj17](https://github.com/manuraj17) for the contribution! [PR#2089](https://github.com/newrelic/newrelic-ruby-agent/pull/2089)
+
 - **Bugfix: Report Code-Level Metrics for Rails controller methods**
 
   Controllers in Rails automatically render views with names that correspond to valid routes. This means that a controller method may not have a corresponding method in the controller class. Code-Level Metrics now report on these methods and don't log false warnings. Thanks to [@jcrisp](https://github.com/jcrisp) for reporting this issue. [PR#2061](https://github.com/newrelic/newrelic-ruby-agent/pull/2061)
+
+- **Bugfix: Code-Level Metrics for ActiveRecord models**
+
+  Classes that inherit from ActiveRecord were not reporting Code-Level Metrics due to an error in the agent when identifying the class name. This has been fixed and Code-Level Metrics will now report for ActiveRecord models. Thanks to [@abigail-rolling](https://github.com/abigail-rolling) for reporting this issue. [PR#2092](https://github.com/newrelic/newrelic-ruby-agent/pull/2092).
 
 - **Bugfix: Private method `clear_tags!` for NewRelic::Agent::Logging::DecoratingFormatter**
 
@@ -314,7 +509,7 @@ Version 8.15.0 of the agent confirms compatibility with Ruby 3.2.0, adds instrum
 
   | Configuration name                | Default | Behavior                                                                                                                        |
   | --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
-  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+  | `instrumentation.concurrent_ruby` | auto    | Controls auto-instrumentation of the concurrent-ruby library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
 
 - **Infinite Tracing: Use batching and compression**
 
@@ -413,7 +608,7 @@ Version 8.12.0 of the agent delivers new Elasticsearch instrumentation, increase
 
   | Configuration name                | Default | Behavior                                                                                                                      |
   | --------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-  | `instrumentation.elasticsearch`   | auto    | Controls auto-instrumentation of the elasticsearch library at start up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
+  | `instrumentation.elasticsearch`   | auto    | Controls auto-instrumentation of the elasticsearch library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`. |
   | `elasticsearch.capture_queries`   | true    | If `true`, the agent captures Elasticsearch queries in transaction traces.                                                    |
   | `elasticsearch.obfuscate_queries` | true    | If `true`, the agent obfuscates Elasticsearch queries in transaction traces.                                                  |
 
@@ -1028,7 +1223,7 @@ The multiverse collection of test suites requires a variety of data handling sof
 - **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times**
 
   In rare cases on jRuby, the BrowserMonitoring middleware could attempt to install itself
-  multiple times at start up. This bug fix addresses that by using a mutex to introduce
+  multiple times at start-up. This bug fix addresses that by using a mutex to introduce
   thread safety to the operation. Sintra in particular can have this race condition because
   its middleware stack is not installed until the first request is received.
 
@@ -1039,7 +1234,7 @@ The multiverse collection of test suites requires a variety of data handling sof
 - **Bugfix: nil Middlewares injection now prevented and gracefully handled in Sinatra**
 
   Previously, the agent could potentially inject multiples of an instrumented middleware if Sinatra received many
-  requests at once during start up and initialization due to Sinatra's ability to delay full start up as long as possible.
+  requests at once during start-up and initialization due to Sinatra's ability to delay full start-up as long as possible.
   This has now been fixed and the Ruby agent correctly instruments only once as well as gracefully handles nil middleware
   classes in general.
 
@@ -3256,7 +3451,7 @@ For more details on our Resque support, see https://docs.newrelic.com/docs/agent
 - Support agent when starting Resque Pool from Rake task
 
 When running resque-pool with its provided rake tasks, the agent would not
-start up properly. Thanks Tiago Sousa for the fix!
+start-up properly. Thanks Tiago Sousa for the fix!
 
 - Fix for DelayedJob + Rails 4.x queue depth metrics
 
@@ -5200,7 +5395,7 @@ Agent improvements to support future RPM enhancements
 - fix incompatibility in the developer mode with the safe_erb plugin
 - fix module namespace issue causing an error accessing
   NewRelic::Instrumentation modules
-- fix issue where the agent sometimes failed to start up if there was a
+- fix issue where the agent sometimes failed to start-up if there was a
   transient network problem
 - fix IgnoreSilentlyException message
 

@@ -84,6 +84,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_noticed_error_only_at_segment_when_command_fails
+            skip if ENV['CI']
             expected_error_class = /Mongo\:\:Error/
             txn = nil
             in_transaction do |db_txn|

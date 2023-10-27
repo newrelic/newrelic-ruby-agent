@@ -10,7 +10,7 @@ module NewRelic
       ATTRIBUTE_VALUE_CHARACTER_LIMIT = 4094
 
       def add_custom_attributes(attributes)
-        return if @custom_attribute_limit_reached
+        return if defined?(@custom_attribute_limit_reached) && @custom_attribute_limit_reached
 
         attributes.each do |key, value|
           next if absent?(key) || absent?(value)
