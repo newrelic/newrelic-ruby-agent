@@ -70,7 +70,7 @@ module TransactionIgnoringTestCases
 
     post = first_call_for('analytic_event_data')
 
-    events = posts.first.events
+    events = post.events
 
     assert_equal(1, events.size)
     assert_equal(TXN_PREFIX + 'accepted_transaction', events.first[0]['name'])
@@ -84,9 +84,7 @@ module TransactionIgnoringTestCases
 
     post = first_call_for('sql_trace_data')
 
-    assert_equal(1, posts.size)
-
-    traces = posts.first.traces
+    traces = post.traces
 
     assert_equal(1, traces.size)
 
