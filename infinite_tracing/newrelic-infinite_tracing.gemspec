@@ -45,7 +45,7 @@ Gem::Specification.new do |s|
     New Relic is a performance management system, developed by New Relic,
     Inc (http://www.newrelic.com).  New Relic provides you with deep
     information about the performance of your web application as it runs
-    in production. The New Relic Ruby Agent is dual-purposed as a either a
+    in production. The New Relic Ruby agent is dual-purposed as a either a
     Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
   EOS
 

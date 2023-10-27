@@ -70,7 +70,7 @@ module NewRelic
     def rails_32_deprecation
       return unless defined?(Rails::VERSION) && Gem::Version.new(Rails::VERSION::STRING) <= Gem::Version.new('3.2')
 
-      deprecation_msg = 'The Ruby Agent is dropping support for Rails 3.2 ' \
+      deprecation_msg = 'The Ruby agent is dropping support for Rails 3.2 ' \
         'in a future major release. Please upgrade your Rails version to continue receiving support. ' \
 
       Agent.logger.log_once(

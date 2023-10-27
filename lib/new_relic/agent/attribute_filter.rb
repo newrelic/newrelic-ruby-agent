@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This class applies filtering rules as specified in the Agent Attributes
+# This class applies filtering rules as specified in the agent Attributes
 # cross-agent spec.
 #
 # Instances of it are constructed by deriving a set of rules from the agent
@@ -44,7 +44,7 @@
 # 1. First, the names are compared lexicographically. This has the impact of
 #    forcing shorter (more general) rules towards the top of the list and longer
 #    (more specific) rules towards the bottom. This is important, because the
-#    Agent Attributes spec stipulates that the most specific rule for a given
+#    agent Attributes spec stipulates that the most specific rule for a given
 #    destination should take precedence. Since rules are applied top-to-bottom,
 #    this sorting guarantees that the most specific rule will be applied last.
 # 2. If the names are identical, we next examine the wildcard flag. Rules ending

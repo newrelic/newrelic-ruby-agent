@@ -1465,7 +1465,7 @@ The multiverse collection of test suites requires a variety of data handling sof
 
 - **Additional Transaction Information applied to Span Events**
 
-  When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
+  When Distributed Tracing and/or Infinite Tracing are enabled, the agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
 
   The following items are affected:
 
