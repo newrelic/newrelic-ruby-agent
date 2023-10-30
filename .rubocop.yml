@@ -1265,6 +1265,7 @@ Style/MethodCallWithArgsParentheses:
     - stub_const
     - throw
     - use
+    - warn
   AllowedPatterns: [^assert, ^refute]
 
 Style/MethodCallWithoutArgsParentheses:

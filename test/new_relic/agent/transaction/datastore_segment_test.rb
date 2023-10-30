@@ -289,6 +289,9 @@ module NewRelic
           assert_equal 'calzone_zone', agent_attributes.fetch('db.instance')
           assert_equal 'rachel.foo:1337807', agent_attributes.fetch('peer.address')
           assert_equal 'rachel.foo', agent_attributes.fetch('peer.hostname')
+          assert_equal 'rachel.foo', agent_attributes.fetch('server.address')
+          assert_equal '1337807', agent_attributes.fetch('server.port')
+          assert_equal 'SQLite', agent_attributes.fetch('db.system')
           assert_equal sql_statement, agent_attributes.fetch('db.statement')
         end
 

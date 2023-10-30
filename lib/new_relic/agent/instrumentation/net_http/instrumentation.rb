@@ -35,7 +35,7 @@ module NewRelic
             segment.process_response_headers(wrapped_response)
             response
           ensure
-            segment.finish
+            segment&.finish
           end
         end
       end

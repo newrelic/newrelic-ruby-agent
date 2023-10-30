@@ -365,6 +365,15 @@ module NewRelic
 
           engine_mock.verify
         end
+
+        # No matter what the callback does, carry on with segment creation
+        # https://github.com/newrelic/newrelic-ruby-agent/issues/2213
+        def test_callback_invocation_cannot_prevent_segment_creation
+          callback = proc { raise 'kaboom' }
+          BasicSegment.set_segment_callback(callback)
+
+          assert basic_segment # this calls BasicSegment.new
+        end
         # END callbacks
       end
     end

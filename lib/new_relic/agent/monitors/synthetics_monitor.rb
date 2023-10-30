@@ -5,7 +5,8 @@
 module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor
-      SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
+      SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'
+      SYNTHETICS_INFO_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS_INFO'
 
       SUPPORTED_VERSION = 1
       EXPECTED_PAYLOAD_LENGTH = 5
@@ -16,6 +17,7 @@ module NewRelic
 
       def on_before_call(request) # THREAD_LOCAL_ACCESS
         encoded_header = request[SYNTHETICS_HEADER_KEY]
+        info_header = request[SYNTHETICS_INFO_HEADER_KEY]
         return unless encoded_header
 
         incoming_payload = deserialize_header(encoded_header, SYNTHETICS_HEADER_KEY)
@@ -27,7 +29,16 @@ module NewRelic
 
         txn = Tracer.current_transaction
         txn.raw_synthetics_header = encoded_header
+        txn.raw_synthetics_info_header = info_header
         txn.synthetics_payload = incoming_payload
+        txn.synthetics_info_payload = load_json(info_header, SYNTHETICS_INFO_HEADER_KEY)
+      end
+
+      def load_json(header, key)
+        ::JSON.load(header)
+      rescue => err
+        NewRelic::Agent.logger.debug("Failure loading json header '#{key}' in #{self.class}, #{err.class}, #{err.message}")
+        nil
       end
 
       class << self

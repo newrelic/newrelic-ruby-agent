@@ -90,7 +90,7 @@ module NewRelic
       attr_reader :transaction_trace
 
       # Fields for tracking synthetics requests
-      attr_accessor :raw_synthetics_header, :synthetics_payload
+      attr_accessor :raw_synthetics_header, :synthetics_payload, :synthetics_info_payload, :raw_synthetics_info_header
 
       # Return the currently active transaction, or nil.
       def self.tl_current
@@ -520,7 +520,7 @@ module NewRelic
       end
 
       def finish
-        return unless state.is_execution_traced?
+        return unless state.is_execution_traced? && initial_segment
 
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @duration = @end_time - @start_time
@@ -623,9 +623,22 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_resource_id, synthetics_resource_id)
           attributes.add_intrinsic_attribute(:synthetics_job_id, synthetics_job_id)
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
+          attributes.add_intrinsic_attribute(:synthetics_type, synthetics_info('type'))
+          attributes.add_intrinsic_attribute(:synthetics_initiator, synthetics_info('initiator'))
+
+          synthetics_additional_attributes do |key, value|
+            attributes.add_intrinsic_attribute(key, value)
+          end
         end
 
         distributed_tracer.assign_intrinsics
+      end
+
+      def synthetics_additional_attributes(&block)
+        synthetics_info('attributes')&.each do |k, v|
+          new_key = "synthetics_#{NewRelic::LanguageSupport.snakeize(k.to_s)}".to_sym
+          yield(new_key, v.to_s)
+        end
       end
 
       def calculate_gc_time
@@ -707,6 +720,10 @@ module NewRelic
         info[4]
       end
 
+      def synthetics_info(key)
+        synthetics_info_payload[key] if synthetics_info_payload
+      end
+
       def append_apdex_perf_zone(payload)
         if recording_web_transaction?
           bucket = apdex_bucket(duration, apdex_t)
@@ -730,6 +747,12 @@ module NewRelic
         payload[:synthetics_resource_id] = synthetics_resource_id
         payload[:synthetics_job_id] = synthetics_job_id
         payload[:synthetics_monitor_id] = synthetics_monitor_id
+        payload[:synthetics_type] = synthetics_info('type')
+        payload[:synthetics_initiator] = synthetics_info('initiator')
+
+        synthetics_additional_attributes do |key, value|
+          payload[key] = value
+        end
       end
 
       def merge_metrics

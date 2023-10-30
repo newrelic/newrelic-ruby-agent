@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'uri'
 require_relative '../../test_helper'
 
 module NewRelic
@@ -325,18 +326,24 @@ module NewRelic
                 segment = MiniTest::Mock.new
                 segment.expect(:library, :library)
                 segment.expect(:procedure, :procedure)
+                segment.expect(:procedure, :procedure) # 2 calls
                 segment.expect(:http_status_code, :http_status_code)
                 segment.expect(:http_status_code, :http_status_code) # 2 calls
-                segment.expect(:uri, :uri)
+                segment.expect(:uri, uri_for_testing)
+                segment.expect(:uri, uri_for_testing)
+                segment.expect(:uri, uri_for_testing) # 3 calls
                 segment.expect(:record_agent_attributes?, false)
                 result = SpanEventPrimitive.for_external_request_segment(segment)
                 expected_intrinsics = {'component' => :library,
                                        'http.method' => :procedure,
+                                       'http.request.method' => :procedure,
                                        'http.statusCode' => :http_status_code,
                                        'category' => 'http',
-                                       'span.kind' => 'client'}
+                                       'span.kind' => 'client',
+                                       'server.address' => 'newrelic.com',
+                                       'server.port' => 443}
                 expected_custom_attrs = {}
-                expected_agent_attrs = {'http.url' => 'uri'}
+                expected_agent_attrs = {'http.url' => uri_for_testing.to_s}
 
                 assert_equal [expected_intrinsics, expected_custom_attrs, expected_agent_attrs], result
               end
@@ -353,24 +360,36 @@ module NewRelic
                   segment = MiniTest::Mock.new
                   segment.expect(:library, :library)
                   segment.expect(:procedure, :procedure)
+                  segment.expect(:procedure, :procedure) # 2 calls
                   segment.expect(:http_status_code, :http_status_code)
                   segment.expect(:http_status_code, :http_status_code) # 2 calls
-                  segment.expect(:uri, :uri)
+                  segment.expect(:uri, uri_for_testing)
+                  segment.expect(:uri, uri_for_testing)
+                  segment.expect(:uri, uri_for_testing) # 3 calls
                   segment.expect(:record_agent_attributes?, true)
                   result = SpanEventPrimitive.for_external_request_segment(segment)
                   expected_intrinsics = {'component' => :library,
                                          'http.method' => :procedure,
+                                         'http.request.method' => :procedure,
                                          'http.statusCode' => :http_status_code,
                                          'category' => 'http',
-                                         'span.kind' => 'client'}
+                                         'span.kind' => 'client',
+                                         'server.address' => 'newrelic.com',
+                                         'server.port' => 443}
                   expected_custom_attrs = {}
-                  expected_agent_attrs = {'http.url' => 'uri'}.merge(existing_agent_attributes)
+                  expected_agent_attrs = {'http.url' => uri_for_testing.to_s}.merge(existing_agent_attributes)
 
                   assert_equal [expected_intrinsics, expected_custom_attrs, expected_agent_attrs], result
                 end
               end
             end
           end
+        end
+
+        private
+
+        def uri_for_testing
+          URI.parse('https://newrelic.com')
         end
       end
     end

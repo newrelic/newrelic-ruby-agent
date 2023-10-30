@@ -49,13 +49,16 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/newrelic/newrelic-ruby-agent'
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
+
+  s.add_dependency 'base64'
+
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
   s.add_development_dependency 'minitest', "#{RUBY_VERSION >= '2.7.0' ? '5.3.3' : '4.7.5'}"
   s.add_development_dependency 'minitest-stub-const', '0.6'
   s.add_development_dependency 'mocha', '~> 1.16'
-  s.add_development_dependency 'pry' unless ENV['CI']
+  s.add_development_dependency 'pry' if ENV['ENABLE_PRY']
   s.add_development_dependency 'rack'
   s.add_development_dependency 'rake', '12.3.3'
 

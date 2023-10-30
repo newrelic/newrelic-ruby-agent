@@ -15,7 +15,6 @@ module NewRelic
         PRODUCE = 'Produce'.freeze
         QUEUE = 'Queue'.freeze
         PURGE = 'Purge'.freeze
-        SLASH = '/'.freeze
         TEMP = 'Temp'.freeze
         TOPIC = 'Topic'.freeze
         UNKNOWN = 'Unknown'.freeze
@@ -73,7 +72,7 @@ module NewRelic
           return @name if @name
 
           @name = METRIC_PREFIX + library
-          @name << SLASH << TYPES[destination_type] << SLASH << ACTIONS[action] << SLASH
+          @name << NewRelic::SLASH << TYPES[destination_type] << NewRelic::SLASH << ACTIONS[action] << NewRelic::SLASH
 
           if destination_type == :temporary_queue || destination_type == :temporary_topic
             @name << TEMP

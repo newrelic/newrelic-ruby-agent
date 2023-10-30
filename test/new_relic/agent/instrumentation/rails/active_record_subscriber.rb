@@ -239,36 +239,22 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_instrumentation_can_be_disabled_with_disable_active_record_instrumentation
-    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+    with_subscribed_check_disabled do
       common_test_for_disabling(:disable_active_record_instrumentation)
     end
   end
 
   def test_instrumentation_can_be_disabled_with_disable_active_record_notifications
-    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+    with_subscribed_check_disabled do
       common_test_for_disabling(:disable_active_record_notifications)
     end
   end
 
   def test_instrumentation_is_enabled_by_default
-    # When performing "env" tests, the initial loading of the agent via Rails
-    # initialization will trigger the dependency check with default config
-    # options and then subscribe to AR notifications. We have to stub out the
-    # "have we already subscribed?" check to ensure that the agent doesn't
-    # short-circuit based on an existing subscription while we're really focused
-    # on configuration based behavior, not subscription existence.
-    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+    with_subscribed_check_disabled do
       enabled_config = {disable_active_record_instrumentation: false,
                         disable_active_record_notifications: false}
-      instrumentation_name = :active_record_notifications
-
-      item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == instrumentation_name }
-
-      assert item, "Could not locate the '#{instrumentation_name}' dependency detection item for AR notifications"
-      dependency_check = item.dependencies.detect { |d| d.source.match?(/disable_#{instrumentation_name}/) }
-
-      assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
-        'configuration parameter'
+      dependency_check = dependency_check_for(:active_record_notifications)
 
       with_config(enabled_config) do
         assert dependency_check.call, 'Expected the AR notifications dependency check to be made when given ' \
@@ -285,20 +271,55 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     @subscriber.finish('sql.active_record', :id, @params)
   end
 
+  # When performing "env" tests, the initial loading of the agent via Rails
+  # initialization will trigger the dependency check with default config
+  # options and then subscribe to AR notifications. We have to stub out the
+  # "have we already subscribed?" check to ensure that the agent doesn't
+  # short-circuit based on an existing subscription while we're really focused
+  # on configuration based behavior, not subscription existence.
+  def with_subscribed_check_disabled(&block)
+    NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.stub :subscribed?, false do
+      yield
+    end
+  end
+
   def common_test_for_disabling(parameter)
-    instrumentation_name = :active_record_notifications
-
-    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == instrumentation_name }
-
-    assert item, "Could not locate the '#{instrumentation_name}' dependency detection item for AR notifications"
-    dependency_check = item.dependencies.detect { |d| d.source.match?(/disable_#{instrumentation_name}/) }
-
-    assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
-      'configuration parameter'
+    dependency_check = dependency_check_for(parameter)
 
     with_config(parameter => true) do
       refute dependency_check.call, 'Expected the AR notifications dependency check to NOT be made when given ' \
         "a #{parameter} value of true."
     end
+  end
+
+  def dependency_check_for(parameter)
+    instrumentation_name = :active_record_notifications
+    item = DependencyDetection.instance_variable_get(:@items).detect { |i| i.name == instrumentation_name }
+
+    assert item, "Could not locate the '#{instrumentation_name}' dependency detection item for AR notifications"
+
+    dependency_check = nil
+    item.dependencies.each_with_index do |d, i|
+      if dependency_check_matches?(d, i, instrumentation_name)
+        dependency_check = d
+        break
+      end
+    end
+
+    assert dependency_check, "Could not locate the dependency check related to the disable_#{instrumentation_name} " \
+      'configuration parameter'
+
+    dependency_check
+  end
+
+  def dependency_check_matches?(depends_on, index, instrumentation_name)
+    return depends_on.source.match?(/disable_#{instrumentation_name}/) if depends_on.respond_to?(:source)
+
+    depends = File.read(depends_on.source_location.first).scan(/^(\s+)depends_on do\n(.*?)\1end/m)
+    if depends.empty? || (index + 1) > depends.size
+      raise "Failed to find a suitable `depends_on` block within `#{depends_on.source_location}`!"
+    end
+
+    depends[index].join.match?(/disable_#{instrumentation_name}/m)
   end
 end

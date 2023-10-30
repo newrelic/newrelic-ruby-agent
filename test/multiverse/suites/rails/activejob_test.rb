@@ -98,7 +98,17 @@ if Rails::VERSION::STRING >= '4.2.0'
                     namespace: 'MyJob'}
         segment = MiniTest::Mock.new
         segment.expect(:code_information=, nil, [expected])
-        segment.expect(:finish, [])
+        segment.expect(:code_information=,
+          nil,
+          [{transaction_name: 'OtherTransaction/ActiveJob::Inline/MyJob/execute'}])
+        (NewRelic::Agent::Instrumentation::ActiveJobSubscriber::PAYLOAD_KEYS.size + 1).times do
+          segment.expect(:params, {}, [])
+        end
+        4.times do
+          segment.expect(:finish, [])
+        end
+        segment.expect(:record_scoped_metric=, nil, [false])
+        segment.expect(:notice_error, nil, [])
         NewRelic::Agent::Tracer.stub(:start_segment, segment) do
           MyJob.perform_later
         end

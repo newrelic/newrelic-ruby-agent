@@ -18,6 +18,11 @@ module Multiverse
       @ignore_ruby_version = options[:ignore_ruby_version] if options.key?(:ignore_ruby_version)
       if File.exist?(file_path)
         @text = File.read(self.file_path)
+        # TODO: Test this behavior against Ruby 3.3.0 when it is out of preview
+        #       to see if this behavior persists. Remove the gsub if not.
+        # With Ruby 3.3.0-preview2, eval() yields '(eval ...' as the String value
+        # when __FILE__ is used so swap out __FILE__ for the known agent root path
+        @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
       @gemfiles = [''] if @gemfiles.empty?
@@ -126,6 +131,34 @@ module Multiverse
 
     def serialize?
       @serialize
+    end
+
+    # add Rails Edge to the beginning of the array of gem versions for testing,
+    # unless we're operating in a PR workflow context
+    def unshift_rails_edge(gem_version_array = [])
+      return if ci_for_pr?
+
+      # Unshift Rails Edge (representing the latest GitHub primary branch
+      # commit for https://github.com/rails/rails) onto the front of the
+      # gem version array. This produces the following line in the generated
+      # Gemfile file:
+      #
+      #   gem 'rails', github: 'rails'
+      #
+      # NOTE: Individually distributed Rails gems such as Active Record are each
+      #       contained within the same 'rails' GitHub repo. For now we are not
+      #       too concerned with cloning the entire Rails repo despite only
+      #       wanting to test one gem.
+      #
+      # NOTE: The Rails Edge version is not tested unless the Ruby version in
+      #       play is greater than or equal to (>=) the version number at the
+      #       end of the unshifted inner array
+      gem_version_array.unshift(["github: 'rails'", 3.0])
+    end
+
+    # are we running in a CI context intended for PR approvals?
+    def ci_for_pr?
+      ENV.key?('CI_FOR_PR')
     end
 
     private

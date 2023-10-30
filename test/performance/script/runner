@@ -9,4 +9,4 @@ require_relative '../rails_app/config/boot'
 require 'rails/command'
 require_relative '../lib/performance'
 
-Rails::Command.invoke(:runner, %w[Performance::Runner.new.run_and_report])
+Rails::Command.invoke(:runner, %w[Performance::Runner.new.run_and_report] + ARGV)
