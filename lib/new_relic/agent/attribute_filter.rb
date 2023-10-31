@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This class applies filtering rules as specified in the agent Attributes
+# This class applies filtering rules as specified in the agent attributes
 # cross-agent spec.
 #
 # Instances of it are constructed by deriving a set of rules from the agent

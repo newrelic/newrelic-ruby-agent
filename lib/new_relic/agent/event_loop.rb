@@ -156,7 +156,7 @@ module NewRelic
         end
 
         if !errors.empty?
-          ::NewRelic::Agent.logger.error("#{errors.size} error(s) running task for event '#{event}' in agent Event Loop:", *errors)
+          ::NewRelic::Agent.logger.error("#{errors.size} error(s) running task for event '#{event}' in agent event loop:", *errors)
         end
       end
 
