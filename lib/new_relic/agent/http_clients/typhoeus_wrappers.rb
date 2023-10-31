@@ -48,9 +48,6 @@ module NewRelic
           TYPHOEUS
         end
 
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
-
         def host_from_header
           self[LHOST] || self[UHOST]
         end
