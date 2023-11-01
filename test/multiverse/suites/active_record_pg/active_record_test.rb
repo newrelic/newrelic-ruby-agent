@@ -414,6 +414,24 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_generic_rollup_metrics('select')
   end
 
+  def test_metrics_for_find_by_sql
+    skip if active_record_major_version < 7
+    in_web_transaction do
+      Order.find_by_sql('SELECT * FROM orders')
+    end
+
+    assert_activerecord_metrics(Order, 'find')
+  end
+
+  def test_metrics_for_async_find_by_sql
+    skip if active_record_major_version < 7
+    in_web_transaction do
+      Order.async_find_by_sql('SELECT * FROM orders')
+    end
+
+    assert_activerecord_metrics(Order, 'find')
+  end
+
   def test_metrics_for_direct_sql_other
     in_web_transaction do
       conn = Order.connection
