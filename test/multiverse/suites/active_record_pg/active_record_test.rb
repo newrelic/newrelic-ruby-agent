@@ -415,7 +415,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_find_by_sql
-    skip if active_record_major_version < 7
+    skip unless active_record_major_version >= 7
     in_web_transaction do
       Order.find_by_sql('SELECT * FROM orders')
     end
@@ -424,7 +424,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_find_by_sql
-    skip if active_record_major_version < 7 && active_record_minor_version < 1
+    skip unless active_record_major_version >= 7 && active_record_minor_version >= 1
     in_web_transaction do
       Order.async_find_by_sql('SELECT * FROM orders')
     end
