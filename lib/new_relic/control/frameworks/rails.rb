@@ -74,7 +74,7 @@ module NewRelic
             # Might not be running if it does not think mongrel, thin,
             # passenger, etc. is running, if it thinks it's a rake task, or
             # if the agent_enabled is false.
-            ::NewRelic::Agent.logger.info('New Relic Agent not running. Skipping browser monitoring and agent hooks.')
+            ::NewRelic::Agent.logger.info('New Relic agent not running. Skipping browser monitoring and agent hooks.')
           else
             install_browser_monitoring(rails_config)
             install_agent_hooks(rails_config)
@@ -92,9 +92,9 @@ module NewRelic
             return unless NewRelic::Rack::AgentHooks.needed?
 
             config.middleware.use(NewRelic::Rack::AgentHooks)
-            ::NewRelic::Agent.logger.debug('Installed New Relic Agent Hooks middleware')
+            ::NewRelic::Agent.logger.debug('Installed New Relic agent hooks middleware')
           rescue => e
-            ::NewRelic::Agent.logger.warn('Error installing New Relic Agent Hooks middleware', e)
+            ::NewRelic::Agent.logger.warn('Error installing New Relic agent hooks middleware', e)
           end
         end
 

@@ -444,7 +444,7 @@ module NewRelic
             'before shutting down to be installed regardless of detecting scenarios where it generally should not be. ' \
             'Known use-case for this option is where Sinatra is running as an embedded service within another framework ' \
             'and the agent is detecting the Sinatra app and skipping the `at_exit` handler as a result. Sinatra classically ' \
-            'runs the entire application in an `at_exit` block and would otherwise misbehave if the Agent\'s `at_exit` handler ' \
+            'runs the entire application in an `at_exit` block and would otherwise misbehave if the agent\'s `at_exit` handler ' \
             'was also installed in those circumstances. Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
         },
         :high_security => {

@@ -98,7 +98,7 @@ class RumAutoTest < Minitest::Test
   def assert_response_includes(*texts)
     texts.each do |text|
       assert_match(Regexp.new(text), last_response.body,
-        "Response missing #{text} for JS Agent instrumentation:\n #{last_response.body}")
+        "Response missing #{text} for JS agent instrumentation:\n #{last_response.body}")
     end
   end
 end

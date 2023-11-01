@@ -1,7 +1,7 @@
-# Using Docker with the New Relic Ruby Agent
+# Using Docker with the New Relic Ruby agent
 
 These instructions will guide you through the process of setting up Docker for
-use with developing the New Relic Ruby Agent. The use of Docker containers can
+use with developing the New Relic Ruby agent. The use of Docker containers can
 provide for a consistent experience free from machine specific issues.
 
 ## Quick Start
