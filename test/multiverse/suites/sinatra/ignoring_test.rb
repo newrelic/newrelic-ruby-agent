@@ -3,31 +3,53 @@
 # frozen_string_literal: true
 
 class SinatraIgnoreTestApp < Sinatra::Base
-  get '/record' do request.path_info end
+  get '/record' do
+    request.path_info
+  end
 
   newrelic_ignore '/ignore'
-  get '/ignore' do request.path_info end
+  get '/ignore' do
+    request.path_info
+  end
 
   newrelic_ignore '/splat*'
-  get '/splattered' do request.path_info end
+  get '/splattered' do
+    request.path_info
+  end
 
   newrelic_ignore '/named/:id'
-  get '/named/:id' do request.path_info end
+  get '/named/:id' do
+    request.path_info
+  end
 
   newrelic_ignore '/v1', '/v2'
-  get '/v1' do request.path_info end
-  get '/v2' do request.path_info end
-  get '/v3' do request.path_info end
+  get '/v1' do
+    request.path_info
+  end
+  get '/v2' do
+    request.path_info
+  end
+  get '/v3' do
+    request.path_info
+  end
 
   newrelic_ignore(/\/.+regex.*/)
-  get '/skip_regex' do request.path_info end
-  get '/regex_seen' do request.path_info end
+  get '/skip_regex' do
+    request.path_info
+  end
+  get '/regex_seen' do
+    request.path_info
+  end
 
   newrelic_ignore '/ignored_erroring'
-  get '/ignored_erroring' do raise 'boom'; end
+  get '/ignored_erroring' do
+    raise 'boom';
+  end
 
   newrelic_ignore_apdex '/no_apdex'
-  get '/no_apdex' do request.path_info end
+  get '/no_apdex' do
+    request.path_info
+  end
 
   newrelic_ignore_enduser '/no_enduser'
 
@@ -202,7 +224,9 @@ end
 class SinatraIgnoreItAllApp < Sinatra::Base
   newrelic_ignore
 
-  get '/' do request.path_info end
+  get '/' do
+    request.path_info
+  end
 end
 
 class SinatraIgnoreItAllTest < SinatraTestCase
@@ -227,7 +251,9 @@ class SinatraIgnoreApdexAndEndUserApp < Sinatra::Base
   newrelic_ignore_apdex
   newrelic_ignore_enduser
 
-  get '/' do request.path_info end
+  get '/' do
+    request.path_info
+  end
 end
 
 class SinatraIgnoreApdexAndEndUserTest < SinatraTestCase
