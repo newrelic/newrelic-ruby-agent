@@ -414,24 +414,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_generic_rollup_metrics('select')
   end
 
-  def test_metrics_for_find_by_sql
-    skip unless active_record_major_version >= 7
-    in_web_transaction do
-      Order.find_by_sql('SELECT * FROM orders')
-    end
-
-    assert_activerecord_metrics(Order, 'find')
-  end
-
-  def test_metrics_for_async_find_by_sql
-    skip unless active_record_major_version >= 7 && active_record_minor_version >= 1
-    in_web_transaction do
-      Order.async_find_by_sql('SELECT * FROM orders')
-    end
-
-    assert_activerecord_metrics(Order, 'find')
-  end
-
   def test_metrics_for_direct_sql_other
     in_web_transaction do
       conn = Order.connection
@@ -603,6 +585,51 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     )
   end
 
+  def test_metrics_for_async_find_by_sql
+    skip_unless_below_active_record_7_1
+
+    in_web_transaction do
+      Order.async_find_by_sql('SELECT * FROM orders')
+    end
+
+    assert_activerecord_metrics(Order, 'find')
+  end
+
+  def test_metrics_for_async_count_by_sql
+    skip_unless_below_active_record_7_1
+
+    in_web_transaction do
+      Order.create(:name => 'wendy')
+      Order.count_by_sql("SELECT * FROM orders where name = 'wendy'")
+    end
+
+    assert_activerecord_metrics(Order, 'find')
+  end
+
+  def test_metrics_for_async_pluck
+    skip_unless_below_active_record_7_1
+
+    in_web_transaction do
+      Order.async_pluck(:id)
+    end
+
+    assert_activerecord_metrics(Order, 'pluck')
+  end
+
+  def test_metrics_for_async_calculation_methods
+    skip_unless_below_active_record_7_1
+
+    in_web_transaction do
+      Order.async_count
+      Order.async_average(:id)
+      Order.async_minimum(:id)
+      Order.async_maximum(:id)
+      Order.async_sum(:id)
+    end
+
+    assert_activerecord_metrics(Order, 'find')
+  end
+
   ## helpers
 
   def adapter
@@ -656,5 +683,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       'Datastore/allWeb',
       'Datastore/all'
     ])
+  end
+
+  def skip_unless_below_active_record_7_1
+    skip unless active_record_major_version >= 7 && active_record_minor_version >= 1
   end
 end
