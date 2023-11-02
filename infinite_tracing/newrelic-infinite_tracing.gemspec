@@ -72,7 +72,7 @@ Gem::Specification.new do |s|
   s.summary = 'New Relic Infinite Tracing for the Ruby agent'
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
-  s.add_dependency 'grpc', '~> 1.59'
+  s.add_dependency 'grpc', '~> 1.34'
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify'
