@@ -586,7 +586,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_find_by_sql
-    skip_unless_below_active_record_7_1
+    skip_unless_active_record_7_1_or_above
 
     in_web_transaction do
       Order.async_find_by_sql('SELECT * FROM orders')
@@ -596,7 +596,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_count_by_sql
-    skip_unless_below_active_record_7_1
+    skip_unless_active_record_7_1_or_above
 
     in_web_transaction do
       Order.create(:name => 'wendy')
@@ -607,7 +607,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_pluck
-    skip_unless_below_active_record_7_1
+    skip_unless_active_record_7_1_or_above
 
     in_web_transaction do
       Order.async_pluck(:id)
@@ -617,7 +617,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_async_calculation_methods
-    skip_unless_below_active_record_7_1
+    skip_unless_active_record_7_1_or_above
 
     in_web_transaction do
       Order.async_count
@@ -685,7 +685,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     ])
   end
 
-  def skip_unless_below_active_record_7_1
+  def skip_unless_active_record_7_1_or_above
     skip unless active_record_major_version >= 7 && active_record_minor_version >= 1
   end
 end
