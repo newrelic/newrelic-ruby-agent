@@ -47,7 +47,7 @@ require 'new_relic/agent/agent_helpers/transmit'
 
 module NewRelic
   module Agent
-    # The Agent is a singleton that is instantiated when the plugin is
+    # The agent is a singleton that is instantiated when the plugin is
     # activated.  It collects performance data from ruby applications
     # in realtime as the application runs, and periodically sends that
     # data to the NewRelic server.

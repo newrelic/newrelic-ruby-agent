@@ -16,7 +16,7 @@ module NewRelicYML
 
   HEADER = <<~HEADER
     #
-    # This file configures the New Relic Agent.  New Relic monitors Ruby, Java,
+    # This file configures the New Relic agent.  New Relic monitors Ruby, Java,
     # .NET, PHP, Python, Node, and Go applications with deep visibility and low
     # overhead.  For more information, visit www.newrelic.com.
 

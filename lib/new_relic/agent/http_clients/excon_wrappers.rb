@@ -47,9 +47,6 @@ module NewRelic
         attr_reader :method
 
         EXCON = 'Excon'
-        LHOST = 'host'
-        UHOST = 'Host'
-        COLON = ':'
 
         def initialize(datum)
           @datum = datum

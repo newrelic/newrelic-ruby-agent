@@ -42,8 +42,6 @@ module NewRelic
         DEFAULT_ACTION = 'GET'
         DEFAULT_HOST = 'UNKNOWN_HOST'
         ETHON = 'Ethon'
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
 
         def initialize(easy)
           @easy = easy

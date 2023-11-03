@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This is the initialization for the New Relic Ruby Agent when used as
+# This is the initialization for the New Relic Ruby agent when used as
 # a plugin
 require 'new_relic/control'
 
@@ -12,7 +12,7 @@ require 'new_relic/control'
 # If you can't find any log files and you don't see anything in your
 # application log files please visit support.newrelic.com.
 
-# Initializer for the NewRelic Ruby Agent
+# Initializer for the New Relic Ruby agent
 
 # After version 2.0 of Rails we can access the configuration directly.
 # We need it to add dev mode routes after initialization finished.

@@ -88,7 +88,7 @@ module NewRelic
             raise
           rescue => e
             # Don't blow out the stack for anything that hasn't already propagated
-            ::NewRelic::Agent.logger.error('Error running task in Agent Worker Loop:', e)
+            ::NewRelic::Agent.logger.error('Error running task in agent worker loop:', e)
           end
         end
       end

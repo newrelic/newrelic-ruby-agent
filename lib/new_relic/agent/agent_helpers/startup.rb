@@ -103,7 +103,7 @@ module NewRelic
         # so we can disambiguate processes in the log file and make
         # sure they're running a reasonable version
         def log_version_and_pid
-          ::NewRelic::Agent.logger.debug("New Relic Ruby Agent #{NewRelic::VERSION::STRING} Initialized: pid = #{$$}")
+          ::NewRelic::Agent.logger.debug("New Relic Ruby agent #{NewRelic::VERSION::STRING} initialized: pid = #{$$}")
         end
 
         # Logs the configured application names
@@ -180,7 +180,7 @@ module NewRelic
 
           unless app_name_configured?
             NewRelic::Agent.logger.error('No application name configured.',
-              'The Agent cannot start without at least one. Please check your ',
+              'The agent cannot start without at least one. Please check your ',
               'newrelic.yml and ensure that it is valid and has at least one ',
               "value set for app_name in the #{NewRelic::Control.instance.env} ",
               'environment.')

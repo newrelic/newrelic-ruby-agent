@@ -3,7 +3,7 @@
 ## Testing in a multitude of environments
 
 Multiverse was created to solve a specific problem experienced by the Agent
-team.  Not only does the New Relic Agent run in a wide variety of environments,
+team.  Not only does the New Relic agent run in a wide variety of environments,
 but its expected behavior *changes* based on the environment.  Instrumentation is
 toggled on and off based on the presence of certain libraries, and some of these
 libraries are incompatible with each other.  Effective testing requires us to
@@ -41,9 +41,9 @@ If you are using [Homebrew](https://brew.sh/), then you may make use of this
 project's [Brewfile](../../../Brewfile) file to automatically install all of
 those applications as well as these additional dependency packages:
 
-* [pkg-config](https://freedesktop.org/wiki/Software/pkg-config/)  
-* [OpenSSL](https://www.openssl.org/)  
-* [ImageMagick](https://imagemagick.org/)  
+* [pkg-config](https://freedesktop.org/wiki/Software/pkg-config/)
+* [OpenSSL](https://www.openssl.org/)
+* [ImageMagick](https://imagemagick.org/)
 
 To use the project [Brewfile](../../../Brewfile) file, run the following from
 the root of the project git clone where the file resides:

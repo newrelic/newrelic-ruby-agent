@@ -763,7 +763,7 @@ module NewRelic
       end
 
       # This test reproduces a bug in Net::HTTP related to Gzip decoding
-      # that can trigger the Agent's worker thread to hang on shutdown.
+      # that can trigger the agent's worker thread to hang on shutdown.
       # See also:
       # https://bugs.ruby-lang.org/issues/13882#note-4
       # https://github.com/newrelic/newrelic-ruby-agent/issues/340

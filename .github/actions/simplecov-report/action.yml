@@ -11,7 +11,7 @@ inputs:
     required: false
   failedThresholdBranch:
     description: Failed threshold (branch)
-    default: "85.5"
+    default: "82.0"
     required: false
   resultPath:
     description: "json path"

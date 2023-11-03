@@ -36,7 +36,7 @@ class HealthyUrlsTest < Minitest::Test
     LICENSE
     mega-runner
     newrelic
-    newrelic_cmd
+    newrelic_rpm
     nrdebug
     Rakefile
     run_tests
