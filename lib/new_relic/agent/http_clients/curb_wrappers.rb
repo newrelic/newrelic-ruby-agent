@@ -7,10 +7,8 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-      class CurbRequest
+      class CurbRequest < AbstractRequest
         CURB = 'Curb'
-        LHOST = 'host'
-        UHOST = 'Host'
 
         def initialize(curlobj)
           @curlobj = curlobj

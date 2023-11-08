@@ -20,8 +20,6 @@ module NewRelic
 
       class HTTPRequest < AbstractRequest
         HTTP_RB = 'http.rb'
-        HOST = 'host'
-        COLON = ':'
 
         def initialize(wrapped_request)
           @wrapped_request = wrapped_request
@@ -36,7 +34,7 @@ module NewRelic
         end
 
         def host_from_header
-          if hostname = self[HOST]
+          if hostname = self[LHOST]
             hostname.split(COLON).first
           end
         end

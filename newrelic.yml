@@ -1,5 +1,5 @@
 #
-# This file configures the New Relic Agent.  New Relic monitors Ruby, Java,
+# This file configures the New Relic agent.  New Relic monitors Ruby, Java,
 # .NET, PHP, Python, Node, and Go applications with deep visibility and low
 # overhead.  For more information, visit www.newrelic.com.
 
@@ -8,8 +8,7 @@
 # For full documentation of agent configuration options, please refer to
 # https://docs.newrelic.com/docs/agents/ruby-agent/installation-configuration/ruby-agent-configuration
 
-common: &default_settings
-  # Required license key associated with your New Relic account.
+common: &default_settings # Required license key associated with your New Relic account.
   license_key: <%= license_key %>
 
   # Your application name. Renaming here affects where data displays in New
@@ -341,7 +340,7 @@ common: &default_settings
   # embedded service within another framework and the agent is detecting the Sinatra
   # app and skipping the at_exit handler as a result. Sinatra classically runs the
   # entire application in an at_exit block and would otherwise misbehave if the
-  # Agent's at_exit handler was also installed in those circumstances. Note:
+  # agent's at_exit handler was also installed in those circumstances. Note:
   # send_data_on_exit should also be set to true in  tandem with this setting.
   # force_install_exit_handler: false
 
@@ -382,15 +381,15 @@ common: &default_settings
   # of: auto, prepend, chain, disabled. Used in Rails versions below 7.1.
   # instrumentation.active_support_logger: auto
 
+  # Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto,
+  # prepend, chain, disabled.
+  # instrumentation.async_http: auto
+
   # Controls auto-instrumentation of bunny at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.bunny: auto
 
-  # Controls auto-instrumentation of Async::HTTP at start up.
-  # May be one of [auto|prepend|chain|disabled]
-  # instrumentation.async_http: auto
-
-  # Controls auto-instrumentation of the concurrent-ruby library at start up. May be
+  # Controls auto-instrumentation of the concurrent-ruby library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.concurrent_ruby: auto
 
@@ -446,6 +445,10 @@ common: &default_settings
   # Controls auto-instrumentation of http.rb gem at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.httprb: auto
+
+  # Controls auto-instrumentation of httpx at start up. May be one of
+  # [auto|prepend|chain|disabled]
+  # instrumentation.httpx: auto
 
   # Controls auto-instrumentation of Ruby standard library Logger at start-up. May
   # be one of: auto, prepend, chain, disabled.

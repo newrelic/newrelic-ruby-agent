@@ -39,7 +39,7 @@ DependencyDetection.defer do
   executes do
     next unless Gem::Version.new(ActiveMerchant::VERSION) < Gem::Version.new('1.65.0')
 
-    deprecation_msg = 'The Ruby Agent is dropping support for ActiveMerchant versions below 1.65.0 ' \
+    deprecation_msg = 'The Ruby agent is dropping support for ActiveMerchant versions below 1.65.0 ' \
       'in version 9.0.0. Please upgrade your ActiveMerchant version to continue receiving full support. ' \
 
     NewRelic::Agent.logger.log_once(
