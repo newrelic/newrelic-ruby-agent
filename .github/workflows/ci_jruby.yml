@@ -24,9 +24,9 @@ jobs:
       - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011 # tag v1.157.0
+        uses: ruby/setup-ruby@036ef458ddccddb148a2b9fb67e95a22fdbf728b # tag v1.160.0
         with:
-          ruby-version: jruby-9.4.4.0
+          ruby-version: jruby-9.4.5.0
 
       - name: Bundle
         run: bundle install
@@ -123,9 +123,9 @@ jobs:
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011 # tag v1.157.0 
+        uses: ruby/setup-ruby@036ef458ddccddb148a2b9fb67e95a22fdbf728b # tag v1.160.0
         with:
-          ruby-version: jruby-9.4.4.0
+          ruby-version: jruby-9.4.5.0
 
       - name: Bundle
         run: bundle install
