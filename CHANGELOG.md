@@ -69,7 +69,7 @@ Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 
   We also received some great contributions from community members to resolve some outstanding technical debt issues. Thank you for your contributions!
     * Add and Replace SLASH and ROOT constants: [PR#2256](https://github.com/newrelic/newrelic-ruby-agent/pull/2256) [chahmedejaz](https://github.com/chahmedejaz)
-    * Remove pry as a dev dependency: [PR#2665](https://github.com/newrelic/newrelic-ruby-agent/pull/2265), [PR#2273](https://github.com/newrelic/newrelic-ruby-agent/pull/2273) [AlajeBash](https://github.com/AlajeBash)
+    * Remove pry as a dev dependency: PR#2665, PR#2273, AlajeBash (profile no longer active)
     * Replace "start up" with "start-up": [PR#2249](https://github.com/newrelic/newrelic-ruby-agent/pull/2249) [chahmedejaz](https://github.com/chahmedejaz)
     * Remove unused variables in test suites: [PR#2250](https://github.com/newrelic/newrelic-ruby-agent/pull/2250)
 
