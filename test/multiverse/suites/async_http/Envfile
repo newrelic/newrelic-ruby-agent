@@ -4,8 +4,11 @@
 
 instrumentation_methods :chain, :prepend
 
+# TODO: pending the outcome of async-io#74, the latest version of async-io
+#       may again support Ruby 2.5.
+#       https://github.com/socketry/async-io/issues/74
 ASYNC_HTTP_VERSIONS = [
-  [nil, 2.5],
+  [nil, 2.7],
   ['0.59.0', 2.5]
 ]
 
