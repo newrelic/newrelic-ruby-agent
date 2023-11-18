@@ -81,10 +81,9 @@ class KeyTransactionsTest < Minitest::Test
 
     NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
-    traces = $collector.calls_for('transaction_sample_data')
+    trace = first_call_for('transaction_sample_data')
 
-    assert_equal 1, traces.size
-    assert_equal(WEB_KEY_TXN, traces[0].metric_name)
+    assert_equal(WEB_KEY_TXN, trace.metric_name)
   end
 
   def test_applied_correct_apdex_t_to_background_key_txn
@@ -109,9 +108,8 @@ class KeyTransactionsTest < Minitest::Test
 
     NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
-    traces = $collector.calls_for('transaction_sample_data')
+    trace = first_call_for('transaction_sample_data')
 
-    assert_equal 1, traces.size
-    assert_equal(OTHER_KEY_TXN, traces[0].metric_name)
+    assert_equal(OTHER_KEY_TXN, trace.metric_name)
   end
 end

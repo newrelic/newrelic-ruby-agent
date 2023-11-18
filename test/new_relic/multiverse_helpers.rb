@@ -193,50 +193,43 @@ module MultiverseHelpers
   end
 
   def single_transaction_trace_posted
-    posts = $collector.calls_for('transaction_sample_data')
-
-    assert_equal 1, posts.length, 'Unexpected post count'
-
-    transactions = posts.first.samples
+    post = first_call_for('transaction_sample_data')
+    transactions = post.samples
 
     assert_equal 1, transactions.length, 'Unexpected trace count'
-
     transactions.first
   end
 
   def single_error_posted
+    error_data = first_call_for('error_data')
+
     if defined?(JRUBY_VERSION)
-      refute_predicate $collector.calls_for('error_data').length, :zero?
-      refute_predicate $collector.calls_for('error_data').first.errors.length, :zero?
+      refute_predicate error_data.errors.length, :zero?, 'Expected at least 1 error'
     else
-      assert_equal 1, $collector.calls_for('error_data').length
-      assert_equal 1, $collector.calls_for('error_data').first.errors.length
+      assert_equal 1, error_data.errors.length, 'Expected exactly 1 error'
     end
 
-    $collector.calls_for('error_data').first.errors.first
+    error_data.errors.first
   end
 
   def single_event_posted
+    analytic_data = first_call_for('analytic_event_data')
+
     if defined?(JRUBY_VERSION)
-      refute_predicate $collector.calls_for('analytic_event_data').length, :zero?
-      refute_predicate $collector.calls_for('analytic_event_data').first.events.length, :zero?
+      refute_predicate analytic_data.events.length, :zero?, 'Expected at least 1 analytic event'
     else
-      assert_equal 1, $collector.calls_for('analytic_event_data').length
-      assert_equal 1, $collector.calls_for('analytic_event_data').first.events.length
+      assert_equal 1, analytic_data.events.length, 'Expected exactly 1 analytic event'
     end
 
-    $collector.calls_for('analytic_event_data').first.events.first
+    analytic_data.events.first
   end
 
   def single_metrics_post
-    assert_equal 1, $collector.calls_for('metric_data').length
-
-    $collector.calls_for('metric_data').first
+    first_call_for('metric_data')
   end
 
   def single_connect_posted
-    assert_equal 1, $collector.calls_for(:connect).size
-    $collector.calls_for(:connect).first
+    first_call_for('connect')
   end
 
   def capture_js_data

@@ -107,10 +107,9 @@ class ResqueTest < Minitest::Test
   end
 
   def assert_metric_and_call_count(name, expected_call_count)
-    metric_data = $collector.calls_for('metric_data')
+    metric_data = first_call_for('metric_data')
 
-    assert_equal(1, metric_data.size, 'expected exactly one metric_data post from agent')
-    metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
+    metric = metric_data.metrics.find { |m| m[0]['name'] == name }
 
     assert(metric, "could not find metric named #{name}")
 

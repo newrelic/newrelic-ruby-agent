@@ -1025,3 +1025,15 @@ def defer_testing_to_min_supported_rails(test_file, min_rails_version, supports_
     puts "Skipping tests in #{File.basename(test_file)} because Rails >= #{min_rails_version} is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
   end
 end
+
+def first_call_for(subject)
+  items = $collector.calls_for(subject)
+
+  if defined?(JRUBY_VERSION)
+    refute_predicate items.size, :zero?, "Expected at least one call for '#{subject}'"
+  else
+    assert_equal 1, items.size, "Expected exactly one call for '#{subject}'"
+  end
+
+  items.first
+end

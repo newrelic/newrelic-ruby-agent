@@ -96,18 +96,4 @@ module TransactionIgnoringTestCases
     assert_equal(TXN_PREFIX + 'accepted_transaction', trace[0])
     assert_equal(1, trace[5])
   end
-
-  private
-
-  def first_call_for(subject)
-    items = $collector.calls_for(subject)
-
-    if defined?(JRUBY_VERSION)
-      refute_predicate items.size, :zero?
-    else
-      assert_equal(1, items.size)
-    end
-
-    items.first
-  end
 end

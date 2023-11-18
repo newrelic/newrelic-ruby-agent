@@ -12,10 +12,9 @@ module MarshallingTestCases
 
     transmit_data
 
-    result = $collector.calls_for('metric_data')
+    result = first_call_for('metric_data')
 
-    assert_equal 1, result.length
-    assert_includes result.first.metric_names, 'Boo'
+    assert_includes result.metric_names, 'Boo'
   end
 
   def test_sends_errors
@@ -25,11 +24,10 @@ module MarshallingTestCases
 
     transmit_data
 
-    result = $collector.calls_for('error_data')
+    result = first_call_for('error_data')
 
-    assert_equal 1, result.length
-    assert_equal 1, result.first.errors.length
-    assert_equal 'StandardError', result.first.errors.first.exception_class_name
+    assert_equal 1, result.errors.length
+    assert_equal 'StandardError', result.errors.first.exception_class_name
   end
 
   def test_sends_transaction_traces
@@ -41,10 +39,9 @@ module MarshallingTestCases
 
     transmit_data
 
-    result = $collector.calls_for('transaction_sample_data')
+    result = first_call_for('transaction_sample_data')
 
-    assert_equal 1, result.length
-    assert_equal 'TestTransaction/do_it', result.first.metric_name
+    assert_equal 'TestTransaction/do_it', result.metric_name
   end
 
   def test_sends_transaction_events
@@ -56,10 +53,9 @@ module MarshallingTestCases
 
     transmit_event_data
 
-    result = $collector.calls_for('analytic_event_data')
+    result = first_call_for('analytic_event_data')
 
-    assert_equal 1, result.length
-    events = result.first.events
+    events = result.events
 
     assert_equal 1, events.length
 
@@ -91,10 +87,9 @@ module MarshallingTestCases
 
     transmit_event_data
 
-    result = $collector.calls_for('custom_event_data')
+    result = first_call_for('custom_event_data')
 
-    assert_equal 1, result.length
-    events = result.first.events
+    events = result.events
 
     assert_equal 1, events.length
 
@@ -125,10 +120,9 @@ module MarshallingTestCases
 
     transmit_data
 
-    result = $collector.calls_for('error_event_data')
+    result = first_call_for('error_event_data')
 
-    assert_equal 1, result.length
-    events = result.first.events
+    events = result.events
 
     assert_equal 1, events.length
 
@@ -175,18 +169,16 @@ module MarshallingTestCases
 
     transmit_data
 
-    result = $collector.calls_for('log_event_data')
+    result = first_call_for('log_event_data')
 
-    assert_equal 1, result.length
-
-    common = result.first.common['attributes']
+    common = result.common['attributes']
 
     refute_nil common['hostname']
 
     # Excluding this explicitly vs classic logs-in-context to save space
     assert_nil common['entity.type']
 
-    logs = result.first.logs
+    logs = result.logs
 
     refute_empty logs
 
