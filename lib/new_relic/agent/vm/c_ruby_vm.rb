@@ -8,7 +8,7 @@ require 'new_relic/agent/vm/snapshot'
 module NewRelic
   module Agent
     module VM
-      class MriVM
+      class CRubyVM
         def snapshot
           snap = Snapshot.new
           gather_stats(snap)
