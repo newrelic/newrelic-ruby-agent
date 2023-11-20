@@ -364,15 +364,21 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
-          preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
-          new_cache
-          preserved.each { |k, v| @cache[k] = v }
+          mutex.synchronize do
+            preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+            new_cache
+            preserved.each { |k, v| @cache[k] = v }
+          end
 
           @cache
         end
 
         def new_cache
           @cache = Hash.new { |hash, key| hash[key] = self.fetch(key) }
+        end
+
+        def mutex
+          @mutex ||= Mutex.new
         end
 
         def log_config(direction, source)
