@@ -36,7 +36,7 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 2
-          command:  bundle exec rake test:env[norails,rails61,rails60]
+          command:  bundle exec rake test:env[norails,rails70]
         env:
           VERBOSE_TEST_OUTPUT: true
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
