@@ -94,7 +94,7 @@ module NewRelic::Agent
         end
       end
 
-      # The metadata for the RPC calls is a blocking call waiting for the Agent to
+      # The metadata for the RPC calls is a blocking call waiting for the agent to
       # connect and receive the server side configuration, which contains the license_key
       # as well as the agent_id (agent_run_token).
       def metadata
