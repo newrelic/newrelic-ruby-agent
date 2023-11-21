@@ -7,7 +7,7 @@ on:
 
 jobs:
   unit_tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       mysql:
         image: mysql:5.7
@@ -45,7 +45,7 @@ jobs:
 
 
   jruby_multiverse:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       elasticsearch7:
         image: elasticsearch:7.16.2
