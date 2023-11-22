@@ -131,6 +131,16 @@ if Rails::VERSION::STRING >= '4.2.0'
       assert_metrics_recorded("#{PERFORM_PREFIX}/default")
     end
 
+    def test_record_perform_all_later_metrics_in_web
+      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('7.1.0')
+
+      in_web_transaction do
+        ActiveJob.perform_all_later(MyJob.new)
+      end
+
+      assert_metrics_recorded("#{PERFORM_PREFIX}/default")
+    end
+
     def test_record_perform_metrics_with_alternate_queue_in_web
       in_web_transaction do
         MyJobWithAlternateQueue.perform_later
