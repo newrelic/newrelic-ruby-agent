@@ -46,7 +46,7 @@ jobs:
 
 
   jruby_multiverse:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       elasticsearch7:
         image: elasticsearch:7.16.2
@@ -143,7 +143,7 @@ jobs:
           VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JAVA_OPTS: --add-opens java.base/sun.nio.ch=org.jruby.dist --add-opens java.base/java.io=org.jruby.dist -Xmx2g -Xms512m
+          JAVA_OPTS: --add-opens java.base/sun.nio.ch=org.jruby.dist --add-opens java.base/java.io=org.jruby.dist -Xmx4g -Xms512m
 
 
           # JRUBY_OPTS: --dev --debug
