@@ -7,7 +7,7 @@ on:
 
 jobs:
   unit_tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -45,7 +45,7 @@ jobs:
 
 
   jruby_multiverse:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       elasticsearch7:
         image: elasticsearch:7.16.2
@@ -115,8 +115,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent]
-        # multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        suite: [active_record, active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, concurrent_ruby, config_file_loading, deferred_instrumentation, elasticsearch, ethon, excon, grape, high_security, httpclient, httprb, httpx, json, logger, marshalling, memcache, mongo, net_http, padrino, rack, rails, rails_prepend, rake, redis, resque, roda, roda_agent_disabled, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
+
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -133,7 +133,7 @@ jobs:
         run: bundle install
 
       - name: Run Multiverse Tests
-        run: "bundle exec rake test:multiverse[group=${{ matrix.multiverse }}]"
+        run: "bundle exec rake test:multiverse[${{ matrix.suite }}]"
         env: 
           VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
