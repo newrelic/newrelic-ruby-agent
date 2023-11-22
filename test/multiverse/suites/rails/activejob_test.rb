@@ -135,7 +135,7 @@ if Rails::VERSION::STRING >= '4.2.0'
       skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('7.1.0')
 
       in_web_transaction do
-        ActiveJob.perform_all_later(MyJob.new)
+        ActiveJob.perform_all_later(MyJob.new, MyJob.new, MyJob.new)
       end
 
       assert_metrics_recorded("#{PERFORM_PREFIX}/default")
