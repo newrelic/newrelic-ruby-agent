@@ -41,7 +41,8 @@ jobs:
           VERBOSE_TEST_OUTPUT: true
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           JAVA_OPTS: --add-opens java.base/sun.nio.ch=org.jruby.dist --add-opens java.base/java.io=org.jruby.dist
-          JRUBY_OPTS: --dev --debug
+
+          # JRUBY_OPTS: --dev --debug
 
 
   jruby_multiverse:
@@ -142,8 +143,10 @@ jobs:
           VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          JAVA_OPTS: --add-opens java.base/sun.nio.ch=org.jruby.dist --add-opens java.base/java.io=org.jruby.dist
-          JRUBY_OPTS: --dev --debug
+          JAVA_OPTS: --add-opens java.base/sun.nio.ch=org.jruby.dist --add-opens java.base/java.io=org.jruby.dist -Xmx2g -Xms512m
+
+
+          # JRUBY_OPTS: --dev --debug
 
       - name: Annotate errors
         if: ${{ failure() }}
