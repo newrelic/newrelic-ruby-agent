@@ -4,7 +4,7 @@
 
 require 'new_relic/agent/method_tracer'
 
-class ::Bloodhound < ActiveRecord::Base
+class Bloodhound < ActiveRecord::Base
   include ::NewRelic::Agent::MethodTracer
 
   def sniff
