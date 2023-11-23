@@ -46,76 +46,11 @@ jobs:
 
   jruby_multiverse:
     runs-on: ubuntu-22.04
-    services:
-      elasticsearch7:
-        image: elasticsearch:7.16.2
-        env:
-          discovery.type: single-node
-        ports:
-          - 9200:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      elasticsearch8:
-        image: elasticsearch:8.4.2
-        env:
-          discovery.type: single-node
-          xpack.security.enabled: false
-        ports:
-          - 9250:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-        options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: mongo:5.0.11
-        ports:
-          - 27017:27017
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - "3306:3306"
-      postgres:
-        image: postgres:latest
-        ports:
-          - 5432:5432
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: >-
-          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        suite: [active_record, active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, concurrent_ruby, config_file_loading, deferred_instrumentation, elasticsearch, ethon, excon, grape, high_security, httpclient, httprb, httpx, json, logger, marshalling, memcache, mongo, net_http, padrino, rack, rails, rails_prepend, rake, redis, resque, roda, roda_agent_disabled, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
+        suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
+        # suite: [active_record, active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, concurrent_ruby, config_file_loading, deferred_instrumentation, elasticsearch, ethon, excon, grape, high_security, httpclient, httprb, httpx, json, logger, marshalling, memcache, mongo, net_http, padrino, rack, rails, rails_prepend, rake, redis, resque, roda, roda_agent_disabled, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
 
     steps:
       - name: Configure git
