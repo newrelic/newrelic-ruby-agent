@@ -79,10 +79,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
   end
 
   def last_custom_event_post
-    posts = $collector.calls_for('custom_event_data')
-
-    assert_equal(1, posts.size)
-    posts.first
+    first_call_for('custom_event_data')
   end
 
   def last_posted_events

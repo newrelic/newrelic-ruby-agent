@@ -364,7 +364,7 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
-          preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+          preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
           new_cache
           preserved.each { |k, v| @cache[k] = v }
 

@@ -17,20 +17,18 @@ class SyntheticsTest < Minitest::Test
   end
 
   def last_sent_analytics_event
-    calls = $collector.calls_for(:analytic_event_data)
+    call = first_call_for(:analytic_event_data)
 
-    assert_equal(1, calls.size)
-    events = calls.first.events
+    events = call.events
 
     assert_equal(1, events.size)
     events.first
   end
 
   def last_sent_transaction_trace
-    calls = $collector.calls_for(:transaction_sample_data)
+    call = first_call_for(:transaction_sample_data)
 
-    assert_equal(1, calls.size)
-    traces = calls.first.samples
+    traces = call.samples
 
     assert_equal(1, traces.size)
     traces.first
