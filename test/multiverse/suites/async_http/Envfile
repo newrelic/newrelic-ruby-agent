@@ -4,6 +4,10 @@
 
 instrumentation_methods :chain, :prepend
 
+suite_condition('async-http needs native C extensions') do
+  RUBY_PLATFORM != 'java'
+end
+
 ASYNC_HTTP_VERSIONS = [
   [nil, 2.5],
   ['0.59.0', 2.5]
@@ -16,4 +20,4 @@ def gem_list(async_http_version = nil)
   GEM_LIST
 end
 
-create_gemfiles(ASYNC_HTTP_VERSIONS) unless defined?(JRUBY_VERSION) # async-http needs native extensions
+create_gemfiles(ASYNC_HTTP_VERSIONS)
