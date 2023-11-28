@@ -871,7 +871,7 @@ def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
-  data = JSON.load(data)
+  data = JSON.parse(data)
   data.each { |testcase| testcase['testname'].tr!(' ', '_') if String === testcase['testname'] }
   data
 end
