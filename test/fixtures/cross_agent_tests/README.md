@@ -30,7 +30,7 @@ Push access to this repository is granted via membership in the agents GHE group
 | [transaction_segment_terms.json](transaction_segment_terms.json) | These tests cover agent implementations of the `transaction_segment_terms` transaction renaming rules introduced in collector protocol 14. See [the spec](https://newrelic.atlassian.net/wiki/display/eng/Language+agent+transaction+segment+terms+rules) for details. |
 | [synthetics](synthetics) | These tests cover agent support for Synthetics. For details, see [Agent Support for Synthetics: Forced Transaction Traces and Analytic Events](https://source.datanerd.us/agents/agent-specs/blob/master/Synthetics-PORTED.md). |
 | [docker_container_id](docker_container_id) | These tests cover parsing of Docker container IDs from `/proc/*/cgroup` on Linux hosts. |
-| [docker_container_id_v2](docker_container_id_v2) | These tests cover parsing of Docker container IDs from `/proc/*/mountinfop` on Linux hosts. |
+| [docker_container_id_v2](docker_container_id_v2) | These tests cover parsing of Docker container IDs from `/proc/*/mountinfo` on Linux hosts. |
 | [utilization](utilization) | These tests cover the collection and validation of metadata for billing purposes as per the [Utilization spec](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md). |
 | [utilization_vendor_specific](utilization_vendor_specific) | These tests cover the collection and validation of metadata for AWS, Pivotal Cloud Foundry, Google Cloud Platform, and Azure as per the [Utilization spec](https://source.datanerd.us/agents/agent-specs/blob/master/Utilization.md). |
 | [distributed_tracing](distributed_tracing) | distributed tracing, a.k.a. CAT CATs |
