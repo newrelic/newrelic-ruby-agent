@@ -275,11 +275,13 @@ class NewRelicServiceTest < Minitest::Test
     initial_connect_log = with_array_logger(level = :debug) { @service.connect }
 
     assert_log_contains initial_connect_log, 'Sending request to localhost'
+    assert_log_contains initial_connect_log, '<LICENSE_KEY>'
 
     # If we need to reconnect, preconnect should use the locally configured collector again
     reconnect_log = with_array_logger(level = :debug) { @service.preconnect }
 
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
+    assert_log_contains reconnect_log, '<LICENSE_KEY>'
   end
 
   def test_preconnect_with_no_token_and_no_lasp
@@ -1027,6 +1029,13 @@ class NewRelicServiceTest < Minitest::Test
 
     refute_includes header_keys, 'x-nr-run-token'
     refute_includes header_keys, 'x-nr-metadata'
+  end
+
+  def test_filtered_uri
+    base = 'https://cdpr_cp2077.com?license_key='
+    filtered = @service.send(:filtered_uri, base + @service.send(:license_key))
+
+    assert_equal base + '<LICENSE_KEY>', filtered
   end
 
   def build_stats_hash(items = {})
