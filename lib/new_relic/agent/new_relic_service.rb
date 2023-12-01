@@ -414,7 +414,7 @@ module NewRelic
         else
           request = Net::HTTP::Post.new(opts[:uri], headers)
         end
-        @audit_logger.log_request_headers(opts[:uri], headers)
+        @audit_logger.log_request_headers(filtered_uri(opts[:uri]), headers)
         request['user-agent'] = user_agent
         request.content_type = 'application/octet-stream'
         request.body = opts[:data]
@@ -431,7 +431,7 @@ module NewRelic
         rescue *CONNECTION_ERRORS => e
           close_shared_connection
           if attempts < MAX_ATTEMPTS
-            ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
+            ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{filtered_uri(opts[:uri])} after #{e}")
             retry
           else
             raise ServerConnectionException, "Recoverable error talking to #{@collector} after #{attempts} attempts: #{e}"
@@ -444,7 +444,7 @@ module NewRelic
 
       def attempt_request(request, opts)
         conn = http_connection
-        ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{opts[:uri]} with #{request.method}")
+        ::NewRelic::Agent.logger.debug("Sending request to #{opts[:collector]}#{filtered_uri(opts[:uri])} with #{request.method}")
         conn.request(request)
       end
 
@@ -689,9 +689,7 @@ module NewRelic
 
       def invoke_remote_send_request(method, payload, data, encoding)
         uri = remote_method_uri(method)
-        full_uri = "#{@collector}#{uri}"
-
-        @audit_logger.log_request(full_uri, payload, @marshaller)
+        @audit_logger.log_request("#{@collector}#{filtered_uri(uri)}", payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         response = send_request(:data => data,
           :uri       => uri,
@@ -699,6 +697,10 @@ module NewRelic
           :collector => @collector,
           :endpoint  => method)
         [response, request_send_ts, Process.clock_gettime(Process::CLOCK_MONOTONIC)]
+      end
+
+      def filtered_uri(uri)
+        uri.gsub(license_key, ASTERISK * license_key.size)
       end
     end
   end

@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 module NewRelic
+  ASTERISK = '*'
+
   PRIORITY_PRECISION = 6
 
   EMPTY_ARRAY = [].freeze
