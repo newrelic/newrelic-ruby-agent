@@ -702,7 +702,7 @@ module NewRelic
       end
 
       def filtered_uri(uri)
-        uri.gsub(license_key, '<LICENSE_KEY>')
+        uri.gsub(license_key, ASTERISK * license_key.size)
       end
     end
   end
