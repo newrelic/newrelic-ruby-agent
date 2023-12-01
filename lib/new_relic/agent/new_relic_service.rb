@@ -689,9 +689,7 @@ module NewRelic
 
       def invoke_remote_send_request(method, payload, data, encoding)
         uri = remote_method_uri(method)
-        full_uri = "#{@collector}#{filtered_uri(uri)}"
-
-        @audit_logger.log_request(full_uri, payload, @marshaller)
+        @audit_logger.log_request("#{@collector}#{filtered_uri(uri)}", payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         response = send_request(:data => data,
           :uri       => uri,
