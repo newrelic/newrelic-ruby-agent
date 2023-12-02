@@ -274,7 +274,7 @@ module NewRelic
 
       def initialize(attribute_name, destinations, is_include)
         @attribute_name = attribute_name.sub(/\*$/, '')
-        @wildcard = attribute_name.end_with?('*')
+        @wildcard = attribute_name.end_with?(ASTERISK)
         @is_include = is_include
         @destinations = is_include ? destinations : ~destinations
       end
