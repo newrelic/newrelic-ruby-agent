@@ -1,4 +1,4 @@
-# This file is distributed under New Relic's license terms.
+#2. This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
@@ -14,7 +14,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     )
     # Ensure the client is running before the tests start
     @client.cluster.health
-    @client.index(index: 'my-index', id: 1, body: {title: 'Test'})
+    @client.index(index: 'my-index', type: 'mytype', id: 1, body: {title: 'Test'})
     @client.indices.refresh(index: 'my-index')
   end
 
