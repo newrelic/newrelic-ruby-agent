@@ -50,7 +50,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def test_segment_operation_is_index_when_index_method_called
     txn = in_transaction do
-      @client.index(index: 'my-index', id: 1, body: {title: 'Test'})
+      @client.index(index: 'my-index', type: 'mytype', id: 1, body: {title: 'Test'})
     end
 
     segment = txn.segments[1]
