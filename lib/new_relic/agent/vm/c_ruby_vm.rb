@@ -20,6 +20,7 @@ module NewRelic
           gather_ruby_vm_stats(snap)
           gather_thread_stats(snap)
           gather_gc_time(snap)
+          gather_yjit_stats(snap)
         end
 
         def gather_gc_stats(snap)
@@ -70,6 +71,17 @@ module NewRelic
 
         def gather_thread_stats(snap)
           snap.thread_count = Thread.list.size
+        end
+
+        def gather_yjit_stats(snap)
+          # NOTE: RubyVM::YJIT.stats_enabled? guards most runtime stats, but
+          # some stats are still available without it, so let's simply check
+          # if YJIT itself has been enabled
+          return unless defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
+
+          RubyVM::YJIT.runtime_stats.each do |key, value|
+            snap.send("#{key}=", value)
+          end
         end
 
         def supports?(key)

@@ -336,6 +336,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :exclude_from_reported_settings => true,
           :description => 'Your New Relic <InlinePopover type="licenseKey" />.'
         },
         :log_level => {

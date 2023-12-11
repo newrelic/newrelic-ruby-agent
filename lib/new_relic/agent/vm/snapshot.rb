@@ -14,6 +14,12 @@ module NewRelic
         def initialize
           @taken_at = Process.clock_gettime(Process::CLOCK_REALTIME)
         end
+
+        def method_missing(method, *args, &blk)
+          return self.send(:method, args, blk) unless method.to_s.end_with?('=')
+
+          self.instance_variable_set("@#{method[0..-2]}".to_sym, args.first)
+        end
       end
     end
   end
