@@ -2228,7 +2228,8 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'JavaScript agent loader content.'
+          :description => 'JavaScript agent loader content.',
+          :exclude_from_reported_settings => true
         },
         :keep_alive_timeout => {
           :default => 60,
