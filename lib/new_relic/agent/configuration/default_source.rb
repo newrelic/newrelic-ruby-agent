@@ -1657,6 +1657,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Stripe at startup. May be one of: `enabled`, `disabled`.'
         },
+        :'instrumentation.view_component' => {
+          :default => 'enabled',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of ViewComponent at startup. May be one of: `enabled`, `disabled`.'
+        },
         :'stripe.user_data.include' => {
           default: NewRelic::EMPTY_ARRAY,
           public: true,
