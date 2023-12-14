@@ -1,5 +1,17 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.7.0
+
+Version 9.7.0 adds a configuration value that toggles whether the agent will perform health check requests on Elasticsearch clusters.
+
+- **Feature: Add elasticsearch.perform_health_check configuration**
+
+  In [#2360](https://github.com/newrelic/newrelic-ruby-agent/pull/2360), it was brought to our attention that large clusters starting the agent can be overwhelmed by requests to `_cluster/health` performed by the agent to acquire the cluster name. The cluster name, once acquired, is assigned to the `database_name` attribute on Elasticsearch datastore segments. Now, users can disable these requests using a new configuration value. When set to `false`, the `database_name` will be `nil`. Thank you [@erikkessler1](https://github.com/erikkessler1) for bringing this to our attention.
+
+  | Configuration name          | Default | Behavior                                               |
+  | --------------------------- | ------- | ------------------------------------------------------ |
+  | `elasticsearch.perform_health_check` | `true` | If true, the agent will query the cluster's `_cluster/health` endpoint to determine information about the cluster, including its name. When false, the database_name attribute will be `nil``. |
+
 ## v9.6.0
 
 Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, adds additional attributes for OpenTelemetry compatibility, and resolves some technical debt, thanks to the community.

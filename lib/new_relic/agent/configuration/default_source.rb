@@ -313,6 +313,7 @@ module NewRelic
         'webpacker:compile'
       ].join(',').freeze
 
+      # rubocop:disable Metrics/CollectionLiteralLength
       DEFAULTS = {
         # Critical
         :agent_enabled => {
@@ -1324,6 +1325,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If `true`, the agent obfuscates Elasticsearch queries in transaction traces.'
+        },
+        :'elasticsearch.perform_health_check' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "If true, the agent will query the cluster's `_cluster/health` endpoint to determine information about the cluster, including its name. When false, the database_name attribute for Elasticsearch datastore segements will be nil."
         },
         # Heroku
         :'heroku.use_dyno_names' => {
@@ -2405,6 +2413,7 @@ module NewRelic
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         }
       }.freeze
+      # rubocop:enable Metrics/CollectionLiteralLength
     end
   end
 end

@@ -86,6 +86,26 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_equal 'docker-cluster', @segment.database_name
   end
 
+  def test_segment_database_name_nil_if_perform_health_check_false
+    with_config(:'elasticsearch.perform_health_check' => false) do
+      # We need to create a new client for this test because
+      # the one defined in #setup is created while the
+      # :elasticsearch.perform_health_check config is true
+      # so @nr_cluster_name would already be set
+      @client = ::Elasticsearch::Client.new(
+        log: false,
+        hosts: "localhost:#{port}"
+      )
+
+      @client.index(index: 'my-index', id: 1, body: {title: 'Test'})
+      @client.indices.refresh(index: 'my-index')
+
+      search
+
+      assert_nil @segment.database_name
+    end
+  end
+
   def test_nosql_statement_recorded_params_obfuscated
     with_config(:'elasticsearch.obfuscate_queries' => true) do
       txn = in_transaction do
