@@ -7,11 +7,7 @@ require_relative 'view_component/chain'
 require_relative 'view_component/prepend'
 
 DependencyDetection.defer do
-  named :'view_component'
-
-  depends_on do
-    NewRelic::Agent.config[:'instrumentation.view_component'] == 'enabled'
-  end
+  named :view_component
 
   depends_on do
     defined?(ViewComponent) &&
@@ -19,7 +15,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing view_component instrumentation')
+    NewRelic::Agent.logger.info('Installing ViewComponent instrumentation')
 
     if use_prepend?
       prepend_instrument ViewComponent::Base, NewRelic::Agent::Instrumentation::ViewComponent::Prepend

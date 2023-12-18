@@ -1658,11 +1658,11 @@ module NewRelic
           :description => 'Controls auto-instrumentation of Stripe at startup. May be one of: `enabled`, `disabled`.'
         },
         :'instrumentation.view_component' => {
-          :default => 'enabled',
+          :default => 'auto',
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of ViewComponent at startup. May be one of: `enabled`, `disabled`.'
+          :description => 'Controls auto-instrumentation of ViewComponent at startup. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'stripe.user_data.include' => {
           default: NewRelic::EMPTY_ARRAY,

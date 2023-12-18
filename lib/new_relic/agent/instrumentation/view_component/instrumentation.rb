@@ -4,7 +4,7 @@
 
 module NewRelic::Agent::Instrumentation
   module ViewComponent
-    INSTRUMENTATION_NAME = 'view_component'
+    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
     def render_in_with_tracing(*args)
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
