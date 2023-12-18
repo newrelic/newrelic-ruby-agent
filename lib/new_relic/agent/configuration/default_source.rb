@@ -1661,6 +1661,7 @@ module NewRelic
           :default => 'auto',
           :public => true,
           :type => String,
+          :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of ViewComponent at startup. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
