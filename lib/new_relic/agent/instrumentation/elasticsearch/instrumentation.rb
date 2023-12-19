@@ -56,7 +56,7 @@ module NewRelic::Agent::Instrumentation
       return if nr_hosts.empty?
 
       NewRelic::Agent.disable_all_tracing do
-        @nr_cluster_name ||= perform_request('GET', '_cluster/health').body['cluster_name']
+        @nr_cluster_name ||= perform_request('GET', '/_cluster/stats/nodes/_all,master:false').body['cluster_name']
       end
     rescue StandardError => e
       NewRelic::Agent.logger.error('Failed to get cluster name for elasticsearch', e)
