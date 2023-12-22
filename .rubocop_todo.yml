@@ -24,11 +24,6 @@ Metrics/AbcSize:
     - lib/new_relic/cli/commands/deployments.rb
     - test/**/*
 
-# Offense count: 1
-Metrics/CollectionLiteralLength:
-  Exclude:
-    - 'lib/new_relic/agent/configuration/default_source.rb'
-
 # Offense count: 7
 Minitest/AssertRaisesCompoundBody:
   Exclude:

@@ -5,7 +5,7 @@
 module NewRelic::Agent::Instrumentation
   module ViewComponent::Chain
     def self.instrument!
-      ::ViewComponent.class_eval do
+      ::ViewComponent::Base.class_eval do
         include NewRelic::Agent::Instrumentation::ViewComponent
 
         alias_method(:render_in_without_tracing, :render_in)

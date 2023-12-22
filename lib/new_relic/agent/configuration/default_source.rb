@@ -313,6 +313,7 @@ module NewRelic
         'webpacker:compile'
       ].join(',').freeze
 
+      # rubocop:disable Metrics/CollectionLiteralLength
       DEFAULTS = {
         # Critical
         :agent_enabled => {
@@ -2413,6 +2414,7 @@ module NewRelic
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         }
       }.freeze
+      # rubocop:enable Metrics/CollectionLiteralLength
     end
   end
 end

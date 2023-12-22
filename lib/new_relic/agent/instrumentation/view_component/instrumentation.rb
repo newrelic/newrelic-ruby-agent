@@ -12,14 +12,14 @@ module NewRelic::Agent::Instrumentation
       component = self.class.name
       identifier = self.class.identifier
 
-      segment = NewRelic::Agent::Tracer.start_segment(
-        name: metric_name(identifier, component)
-      )
-
       begin
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        segment = NewRelic::Agent::Tracer.start_segment(
+          name: metric_name(identifier, component)
+        )
+      rescue => e
+        ::NewRelic::Agent.logger.debug('Failed starting ViewComponent segment', e)
       ensure
-        NewRelic::Agent::Transaction::Segment.finish(segment)
+        segment&.finish
       end
     end
 

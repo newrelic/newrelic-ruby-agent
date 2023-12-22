@@ -94,6 +94,8 @@ if !defined?(MyApp)
 
     post '/parameter_capture', :to => 'parameter_capture#create'
 
+    get '/view_components', :to => 'view_component#index'
+
     get '/:controller(/:action(/:id))'
   end
 
