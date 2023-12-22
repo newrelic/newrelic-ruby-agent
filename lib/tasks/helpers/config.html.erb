@@ -42,7 +42,7 @@ In other words, environment variables override all other configuration settings 
 
 ## View and edit config file options [#Edit]
 
-The Ruby agent's `newrelic.yml` is a standard YAML configuration file. It typically includes a `Defaults` section at the top, plus sections below for each application environment (for example, `Development`, `Staging`, and `Production`).
+The Ruby agent's `newrelic.yml` is a standard YAML configuration file. It typically includes a `Defaults` section at the top, plus sections below for each application environment (`Development`, `Test`, `Staging`, and `Production`).
 
 The Ruby agent determines which section of the `newrelic.yml` config file to read from by looking at certain environment variables to derive the application's environment. This can be useful when you want to use `info` for the `log_level` config setting in your production environment, and you want more verbose `log_level` config settings (such as `debug`) in your development environment.
 
