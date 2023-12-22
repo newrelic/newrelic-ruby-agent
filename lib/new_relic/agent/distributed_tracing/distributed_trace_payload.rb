@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'json'
-require 'base64'
+require 'new_relic/base64'
 
 module NewRelic
   module Agent
@@ -78,7 +78,7 @@ module NewRelic
         end
 
         def from_http_safe(http_safe_payload)
-          decoded_payload = Base64.strict_decode64(http_safe_payload)
+          decoded_payload = NewRelic::Base64.strict_decode64(http_safe_payload)
           from_json(decoded_payload)
         end
 
@@ -156,7 +156,7 @@ module NewRelic
       #
       # @api public
       def http_safe
-        Base64.strict_encode64(text)
+        NewRelic::Base64.strict_encode64(text)
       end
     end
   end

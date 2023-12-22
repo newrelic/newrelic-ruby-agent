@@ -4,7 +4,6 @@
 
 require_relative '../../test_helper'
 require 'new_relic/agent/javascript_instrumentor'
-require 'base64'
 
 class NewRelic::Agent::JavaScriptInstrumentorTest < Minitest::Test
   attr_reader :instrumentor

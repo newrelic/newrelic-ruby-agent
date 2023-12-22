@@ -751,7 +751,7 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal(expected_string, result[0])
 
     base64_encoded_compressed_json_field = result[1]
-    compressed_json_field = Base64.decode64(base64_encoded_compressed_json_field)
+    compressed_json_field = NewRelic::Base64.decode64(base64_encoded_compressed_json_field)
     json_field = Zlib::Inflate.inflate(compressed_json_field)
     field = JSON.parse(json_field)
 

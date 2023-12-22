@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'base64'
+require 'new_relic/base64'
 
 module NewRelic
   module Agent
@@ -257,7 +257,7 @@ module NewRelic
           Marshal.load(data)
         rescue StandardError => e
           ::NewRelic::Agent.logger.error('Failure unmarshalling message from Resque child process', e)
-          ::NewRelic::Agent.logger.debug(Base64.encode64(data))
+          ::NewRelic::Agent.logger.debug(NewRelic::Base64.encode64(data))
           nil
         end
 
