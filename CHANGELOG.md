@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.7.0
+
+Version 9.7.0 changes the endpoint used to access the cluster name for Elasticsearch instrumentation.
+
+- **Feature: Use root path to access Elasticsearch cluster name**
+
+  Previously, the agent used the cluster health endpoint (`/_cluster/health`) to access the cluster name. However, this has been found to make startup unstable for large clusters. Now, the agent uses the more performant root endpoint (`/`).
+
+  Our thanks go to [@erikkessler1](https://github.com/erikkessler1), [@gremerritt](https://github.com/gremerritt), and [@joshbranham](https://github.com/joshbranham) for reporting the issue, suggesting solutions, and testing them. [Issue#2360](https://github.com/newrelic/newrelic-ruby-agent/issues/2360) [PR#2377](https://github.com/newrelic/newrelic-ruby-agent/pull/2377)
+
 ## v9.6.0
 
 Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, adds additional attributes for OpenTelemetry compatibility, and resolves some technical debt, thanks to the community.
