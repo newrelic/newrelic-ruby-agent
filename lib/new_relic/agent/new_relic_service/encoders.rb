@@ -2,10 +2,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'base64'
 require 'json'
 require 'stringio'
 require 'zlib'
+require 'new_relic/base64'
 
 module NewRelic
   module Agent
@@ -45,7 +45,7 @@ module NewRelic
               data = NewRelic::Agent::EncodingNormalizer.normalize_object(data)
             end
             json = ::JSON.dump(data)
-            Base64.encode64(Compressed::Deflate.encode(json))
+            NewRelic::Base64.encode64(Compressed::Deflate.encode(json))
           end
         end
       end

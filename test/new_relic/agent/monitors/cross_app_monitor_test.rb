@@ -239,7 +239,7 @@ module NewRelic::Agent
     end
 
     def for_id(id)
-      encoded_id = id == '' ? '' : Base64.encode64(id)
+      encoded_id = id == '' ? '' : NewRelic::Base64.encode64(id)
       encoded_txn_info = json_dump_and_encode([REF_TRANSACTION_GUID, false])
 
       return {
@@ -255,7 +255,7 @@ module NewRelic::Agent
     def unpacked_response
       return nil unless response_app_data
 
-      ::JSON.load(Base64.decode64(response_app_data))
+      ::JSON.load(NewRelic::Base64.decode64(response_app_data))
     end
   end
 end
