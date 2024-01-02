@@ -7,7 +7,8 @@ instrumentation_methods :chain, :prepend
 # ActiveSupport::BroadcastLogger introduced in Rails 7.1.
 # Rails 7.1 is the latest version at the time of writing.
 ACTIVE_SUPPORT_VERSIONS = [
-  [nil, 2.7]
+  [nil, 3.1],
+  ['7.1.0', 2.7]
 ]
 
 unshift_rails_edge(ACTIVE_SUPPORT_VERSIONS)

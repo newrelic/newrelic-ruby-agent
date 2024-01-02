@@ -153,7 +153,7 @@ module Multiverse
       # NOTE: The Rails Edge version is not tested unless the Ruby version in
       #       play is greater than or equal to (>=) the version number at the
       #       end of the unshifted inner array
-      gem_version_array.unshift(["github: 'rails'", 3.0])
+      gem_version_array.unshift(["github: 'rails'", 3.1])
     end
 
     # are we running in a CI context intended for PR approvals?
