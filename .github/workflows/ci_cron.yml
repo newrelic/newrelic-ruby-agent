@@ -70,10 +70,10 @@ jobs:
                 "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               },
               "2.7.8": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60,rails70"
               },
               "3.0.6": {
-                "rails": "norails,rails61,rails60,rails70,railsedge"
+                "rails": "norails,rails61,rails60,rails70"
               },
               "3.1.4": {
                 "rails": "norails,rails61,rails70,railsedge"
