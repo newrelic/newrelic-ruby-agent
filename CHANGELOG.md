@@ -10,6 +10,14 @@ Version 9.7.0 changes the endpoint used to access the cluster name for Elasticse
 
   Our thanks go to [@erikkessler1](https://github.com/erikkessler1), [@gremerritt](https://github.com/gremerritt), and [@joshbranham](https://github.com/joshbranham) for reporting the issue, suggesting solutions, and testing them. [Issue#2360](https://github.com/newrelic/newrelic-ruby-agent/issues/2360) [PR#2377](https://github.com/newrelic/newrelic-ruby-agent/pull/2377)
 
+- **Feature: Remove base64 dependency, use direct calls to String methods**
+
+  In version 9.6.0, the agent required the Ruby `base64` gem as a depdendency to prepare for deprecation warnings in Ruby 3.3 and the gem's removal from the Ruby standard libraries in 3.4. Including `base64` as a dependency has caused problems with version resolution in some environments.
+
+  To resolve this, the agent now directly calls the `String` methods used in the `base64` library in the new `NewRelic::Base64` module.
+
+  Thank you, [@Earlopain](https://github.com/Earlopain) for submitting this change. [PR#2378](https://github.com/newrelic/newrelic-ruby-agent/pull/2378)
+
 ## v9.6.0
 
 Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, adds additional attributes for OpenTelemetry compatibility, and resolves some technical debt, thanks to the community.
