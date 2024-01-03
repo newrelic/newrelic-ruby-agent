@@ -5,7 +5,7 @@
 require_relative '../rails/app'
 
 class ExampleComponent < ViewComponent::Base
-  <<-ERB
+  <<~ERB
     <%= @title %>
   ERB
 
@@ -27,7 +27,7 @@ class ViewComponentInstrumentationTest < ActionDispatch::IntegrationTest
   def test_metric_recorded
     get('/view_components')
 
-    assert_metrics_recorded('View/view_component/instrumentation_test.rb/ExampleComponent')
+    assert_metrics_recorded('View/view_component/view_component_instrumentation_test.rb/ExampleComponent')
   end
 
   def test_records_nothing_if_tracing_disabled
@@ -35,6 +35,6 @@ class ViewComponentInstrumentationTest < ActionDispatch::IntegrationTest
       get('/view_components')
     end
 
-    assert_metrics_not_recorded('View/view_component/instrumentation_test.rb/ExampleComponent')
+    assert_metrics_not_recorded('View/view_component/view_component_instrumentation_test.rb/ExampleComponent')
   end
 end

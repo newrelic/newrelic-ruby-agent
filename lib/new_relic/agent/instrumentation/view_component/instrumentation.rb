@@ -9,12 +9,9 @@ module NewRelic::Agent::Instrumentation
     def render_in_with_tracing(*args)
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
-      component = self.class.name
-      identifier = self.class.identifier
-
       begin
         segment = NewRelic::Agent::Tracer.start_segment(
-          name: metric_name(identifier, component)
+          name: metric_name(self.class.identifier, self.class.name)
         )
       rescue => e
         ::NewRelic::Agent.logger.debug('Failed starting ViewComponent segment', e)
@@ -28,9 +25,9 @@ module NewRelic::Agent::Instrumentation
     end
 
     def metric_path(identifier)
-      if identifier.nil?
-        'component'
-      elsif identifier && (parts = identifier.split('/')).size > 1
+      return 'component' unless identifier
+
+      if (parts = identifier.split('/')).size > 1
         parts[-2..-1].join('/') # Get filepath by assuming the Rails' structure: app/components/home/example_component.rb
       else
         NewRelic::Agent::UNKNOWN_METRIC

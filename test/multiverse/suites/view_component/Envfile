@@ -6,14 +6,15 @@ instrumentation_methods :chain, :prepend
 
 VIEW_COMPONENT_VERSIONS = [
   [nil, 2.7],
-  ['2.0.0', 2.4]
+  ['2.25.0', 2.4]
 ]
 
 def gem_list(view_component_version = nil)
-  <<-RB
+  <<~RB
   gem 'rails'
   gem 'view_component'#{view_component_version}
   gem 'rack-test'
+  gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'
   RB
 end
 
