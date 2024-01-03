@@ -35,27 +35,27 @@ class CrossApplicationTracingTest < Minitest::Test
   end
 
   def test_cross_app_doesnt_modify_with_invalid_header
-    get('/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('otherjunk')})
+    get('/', nil, {'HTTP_X_NEWRELIC_ID' => NewRelic::Base64.encode64('otherjunk')})
 
     refute last_response.headers['X-NewRelic-App-Data']
   end
 
   def test_cross_app_writes_out_information
-    get('/', nil, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
+    get('/', nil, {'HTTP_X_NEWRELIC_ID' => NewRelic::Base64.encode64('1#234')})
 
     refute_nil last_response.headers['X-NewRelic-App-Data']
     assert_metrics_recorded(['ClientApplication/1#234/all'])
   end
 
   def test_cross_app_doesnt_modify_if_txn_is_ignored
-    get('/', {'transaction_name' => 'ignored_transaction'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
+    get('/', {'transaction_name' => 'ignored_transaction'}, {'HTTP_X_NEWRELIC_ID' => NewRelic::Base64.encode64('1#234')})
 
     refute last_response.headers['X-NewRelic-App-Data']
   end
 
   def test_cross_app_error_attaches_process_id_to_intrinsics
     assert_raises(RuntimeError) do
-      get('/', {'fail' => 'true'}, {'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234')})
+      get('/', {'fail' => 'true'}, {'HTTP_X_NEWRELIC_ID' => NewRelic::Base64.encode64('1#234')})
     end
 
     assert_includes attributes_for(last_traced_error, :intrinsic), :client_cross_process_id
@@ -66,7 +66,7 @@ class CrossApplicationTracingTest < Minitest::Test
     if !test_case['outboundRequests']
       if test_case['inboundPayload']
         request_headers = {
-          'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234'),
+          'HTTP_X_NEWRELIC_ID' => NewRelic::Base64.encode64('1#234'),
           'HTTP_X_NEWRELIC_TRANSACTION' => json_dump_and_encode(test_case['inboundPayload'])
         }
       else

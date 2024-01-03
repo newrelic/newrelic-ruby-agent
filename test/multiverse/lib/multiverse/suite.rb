@@ -9,9 +9,9 @@
 
 require_relative '../../../warning_test_helper'
 require_relative '../../../simplecov_test_helper'
+require_relative '../../../../lib/new_relic/base64'
 
 require 'rubygems'
-require 'base64'
 require 'fileutils'
 require 'digest'
 require_relative 'bundler_patch'
@@ -33,11 +33,11 @@ module Multiverse
     end
 
     def self.encode_options(decoded_opts)
-      Base64.encode64(Marshal.dump(decoded_opts)).delete("\n")
+      NewRelic::Base64.encode64(Marshal.dump(decoded_opts)).delete("\n")
     end
 
     def self.decode_options(encoded_opts)
-      Marshal.load(Base64.decode64(encoded_opts))
+      Marshal.load(NewRelic::Base64.decode64(encoded_opts))
     end
 
     def suite

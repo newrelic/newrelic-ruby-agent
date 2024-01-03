@@ -3,13 +3,13 @@
 # frozen_string_literal: true
 
 require_relative '../../../test_helper'
-require 'base64'
 require 'thread'
 require 'timeout'
 require 'zlib'
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
 require 'new_relic/agent/commands/thread_profiler_session'
+require 'new_relic/base64'
 
 module ThreadProfilerSessionTestHelpers
   START = {

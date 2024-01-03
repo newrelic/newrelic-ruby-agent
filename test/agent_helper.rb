@@ -845,7 +845,7 @@ ensure
 end
 
 def json_dump_and_encode(object)
-  Base64.encode64(JSON.dump(object))
+  NewRelic::Base64.encode64(JSON.dump(object))
 end
 
 def get_last_analytics_event
