@@ -2,7 +2,11 @@
 
 ## v9.7.0
 
-Version 9.7.0 changes the endpoint used to access the cluster name for Elasticsearch instrumentation and adds support for Falcon.
+Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint used to access the cluster name for Elasticsearch instrumentation, and adds support for Falcon.
+
+- **Feature: ViewComponent instrumentation**
+
+  [ViewComponent](https://viewcomponent.org/) is a now an instrumented framework. The agent currently supports Roda versions 2.0.0+. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
 
 - **Feature: Use root path to access Elasticsearch cluster name**
 
