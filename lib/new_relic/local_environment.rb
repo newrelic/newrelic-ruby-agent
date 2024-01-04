@@ -74,6 +74,7 @@ module NewRelic
         unicorn
         webrick
         fastcgi
+        falcon
       ]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send('check_for_' + (dispatchers.shift))
@@ -135,6 +136,12 @@ module NewRelic
     def check_for_puma
       if defined?(::Puma) && File.basename($0) == 'puma'
         @discovered_dispatcher = :puma
+      end
+    end
+
+    def check_for_falcon
+      if defined?(::Falcon::Server) && NewRelic::LanguageSupport.object_space_usable?
+        @discovered_dispatcher = :falcon if find_class_in_object_space(::Falcon::Server)
       end
     end
 
