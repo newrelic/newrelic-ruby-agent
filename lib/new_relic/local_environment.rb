@@ -141,8 +141,7 @@ module NewRelic
 
     def check_for_falcon
       if defined?(::Falcon::Server) && NewRelic::LanguageSupport.object_space_usable?
-        v = find_class_in_object_space(::Falcon::Server)
-        @discovered_dispatcher = :falcon if v
+        @discovered_dispatcher = :falcon if find_class_in_object_space(::Falcon::Server)
       end
     end
 
