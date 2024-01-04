@@ -2,7 +2,7 @@
 
 ## v9.7.0
 
-Version 9.7.0 changes the endpoint used to access the cluster name for Elasticsearch instrumentation.
+Version 9.7.0 changes the endpoint used to access the cluster name for Elasticsearch instrumentation and adds support for Falcon.
 
 - **Feature: Use root path to access Elasticsearch cluster name**
 
@@ -17,6 +17,10 @@ Version 9.7.0 changes the endpoint used to access the cluster name for Elasticse
   To resolve this, the agent now directly calls the `String` methods used in the `base64` library in the new `NewRelic::Base64` module.
 
   Thank you, [@Earlopain](https://github.com/Earlopain), for submitting this change. [PR#2378](https://github.com/newrelic/newrelic-ruby-agent/pull/2378)
+
+- **Feature: Add Falcon support**
+
+  The agent now supports the web server [Falcon](https://socketry.github.io/falcon/). [PR#2383](https://github.com/newrelic/newrelic-ruby-agent/pull/2383)
 
 ## v9.6.0
 
