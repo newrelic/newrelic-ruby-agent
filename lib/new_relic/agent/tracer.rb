@@ -418,16 +418,17 @@ module NewRelic
           NewRelic::Agent.config[:'instrumentation.thread.tracing']
         end
 
-        def thread_block_with_current_transaction(segment_name:, parent: nil, &block)
+        def thread_block_with_current_transaction(segment_name: nil, parent: nil, &block)
           parent ||= current_segment
           current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
           proc do |*args|
             begin
               if current_txn && !current_txn.finished?
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
+                ::Thread.current[:newrelic_thread_span_parent] = parent
                 current_txn.async = true
-                segment_name += "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
-                segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent)
+                segment_name = segment_name.to_s + "/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
+                segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent) if segment_name
               end
               NewRelic::Agent::Tracer.capture_segment_error(segment) do
                 yield(*args)
