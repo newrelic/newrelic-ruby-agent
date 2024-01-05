@@ -13,8 +13,9 @@ module NewRelic::Agent::Instrumentation
         segment = NewRelic::Agent::Tracer.start_segment(
           name: metric_name(self.class.identifier, self.class.name)
         )
+        yield
       rescue => e
-        ::NewRelic::Agent.logger.debug('Failed starting ViewComponent segment', e)
+        ::NewRelic::Agent.logger.debug('Error capturing ViewComponent segment', e)
       ensure
         segment&.finish
       end
