@@ -127,22 +127,24 @@ module NewRelic
     end
 
     def check_for_unicorn
-      if (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) && NewRelic::LanguageSupport.object_space_usable?
-        v = find_class_in_object_space(::Unicorn::HttpServer)
-        @discovered_dispatcher = :unicorn if v
-      end
+      return unless (defined?(::Unicorn) && defined?(::Unicorn::HttpServer)) &&
+        NewRelic::LanguageSupport.object_space_usable?
+
+      v = find_class_in_object_space(::Unicorn::HttpServer)
+      @discovered_dispatcher = :unicorn if v
     end
 
     def check_for_puma
-      if defined?(::Puma) && File.basename($0) == 'puma'
-        @discovered_dispatcher = :puma
-      end
+      return unless defined?(::Puma) && File.basename($0) == 'puma'
+
+      @discovered_dispatcher = :puma
     end
 
     def check_for_falcon
-      if defined?(::Falcon::Server) && NewRelic::LanguageSupport.object_space_usable?
-        @discovered_dispatcher = :falcon if find_class_in_object_space(::Falcon::Server)
-      end
+      return unless defined?(::Falcon::Server) &&
+        NewRelic::LanguageSupport.object_space_usable?
+
+      @discovered_dispatcher = :falcon if find_class_in_object_space(::Falcon::Server)
     end
 
     def check_for_delayed_job
@@ -185,15 +187,15 @@ module NewRelic
     end
 
     def check_for_litespeed
-      if caller.pop.include?('fcgi-bin/RailsRunner.rb')
-        @discovered_dispatcher = :litespeed
-      end
+      return unless caller.pop.include?('fcgi-bin/RailsRunner.rb')
+
+      @discovered_dispatcher = :litespeed
     end
 
     def check_for_passenger
-      if defined?(::PhusionPassenger)
-        @discovered_dispatcher = :passenger
-      end
+      return unless defined?(::PhusionPassenger)
+
+      @discovered_dispatcher = :passenger
     end
 
     public
