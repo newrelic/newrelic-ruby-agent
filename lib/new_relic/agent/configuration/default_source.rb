@@ -313,6 +313,7 @@ module NewRelic
         'webpacker:compile'
       ].join(',').freeze
 
+      # rubocop:disable Metrics/CollectionLiteralLength
       DEFAULTS = {
         # Critical
         :agent_enabled => {
@@ -1657,6 +1658,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Stripe at startup. May be one of: `enabled`, `disabled`.'
         },
+        :'instrumentation.view_component' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of ViewComponent at startup. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'stripe.user_data.include' => {
           default: NewRelic::EMPTY_ARRAY,
           public: true,
@@ -2405,6 +2414,7 @@ module NewRelic
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         }
       }.freeze
+      # rubocop:enable Metrics/CollectionLiteralLength
     end
   end
 end
