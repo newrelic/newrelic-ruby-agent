@@ -10,7 +10,9 @@ DependencyDetection.defer do
   named :async_http
 
   depends_on do
-    defined?(Async::HTTP) && Gem::Version.new(Async::HTTP::VERSION) >= Gem::Version.new('0.59.0')
+    defined?(Async::HTTP) &&
+      Gem::Version.new(Async::HTTP::VERSION) >= Gem::Version.new('0.59.0') &&
+      !defined?(Traces::Backend::NewRelic)
   end
 
   executes do
