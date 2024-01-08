@@ -8,7 +8,8 @@
 # For full documentation of agent configuration options, please refer to
 # https://docs.newrelic.com/docs/agents/ruby-agent/installation-configuration/ruby-agent-configuration
 
-common: &default_settings # Required license key associated with your New Relic account.
+common: &default_settings
+  # Required license key associated with your New Relic account.
   license_key: <%= license_key %>
 
   # Your application name. Renaming here affects where data displays in New
@@ -533,6 +534,10 @@ common: &default_settings # Required license key associated with your New Relic 
   # Controls auto-instrumentation of Typhoeus at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.typhoeus: auto
+
+  # Controls auto-instrumentation of ViewComponent at startup. May be one of: auto,
+  # prepend, chain, disabled.
+  # instrumentation.view_component: auto
 
   # A dictionary of label names and values that will be applied to the data sent
   # from this agent. May also be expressed as a semicolon-delimited ; string of
