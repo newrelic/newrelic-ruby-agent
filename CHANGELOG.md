@@ -2,7 +2,8 @@
 
 ## v9.7.0
 
-Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint used to access the cluster name for Elasticsearch instrumentation, and adds support for Falcon.
+
+Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint used to access the cluster name for Elasticsearch instrumentation, removes the creation of the Ruby/Thread and Ruby/Fiber spans, and adds support for Falcon.
 
 - **Feature: ViewComponent instrumentation**
 
@@ -25,6 +26,10 @@ Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint use
 - **Feature: Add Falcon support**
 
   The agent now supports the web server [Falcon](https://socketry.github.io/falcon/). [PR#2383](https://github.com/newrelic/newrelic-ruby-agent/pull/2383)
+
+- **Feature: Remove spans with name Ruby/Thread and Ruby/Fiber**
+
+  Due to the lack of helpful information and the confusion commonly caused by the spans named Ruby/Thread and Ruby/Fiber, these spans have been removed. However, the agents ability to monitor instrumented code running in a thread or fiber will remain unchanged. [PR#2389](https://github.com/newrelic/newrelic-ruby-agent/pull/2389)
 
 ## v9.6.0
 

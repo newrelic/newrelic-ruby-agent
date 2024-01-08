@@ -383,7 +383,6 @@ module NewRelic
           threads.each(&:join)
           txn.finish
 
-          assert_equal 2, txn.segments.count { |s| s.name == 'Ruby/Thread' }
           assert_nil Tracer.current_segment
         end
       end
@@ -419,11 +418,11 @@ module NewRelic
             Thread.new { 'woof' }.join
           end
 
-          assert_match %r{Ruby/Thread/Thread\d+/Fiber\d+}, txn.segments.last.name
+          assert_match %r{/Thread\d+/Fiber\d+}, txn.segments.last.name
         end
       end
 
-      def test_thread_ids_absent_when_disabled
+      def test_thread_spans_absent_when_ids_disabled
         with_config(
           :'instrumentation.thread.tracing' => true,
           :'thread_ids_enabled' => false
@@ -432,7 +431,7 @@ module NewRelic
             Thread.new { 'woof' }.join
           end
 
-          assert_match %r{Ruby/Thread$}, txn.segments.last.name
+          assert_equal 1, txn.segments.count
         end
       end
 

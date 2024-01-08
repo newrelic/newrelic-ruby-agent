@@ -33,21 +33,22 @@ class ThreadFiberInstrumentationTest < Minitest::Test
     async_class2 ||= async_class1
 
     in_transaction do |txn|
+      parent_segment = NewRelic::Agent::Tracer.current_segment
       do_segment(name: 'Outer') do |outer_segment|
         async1 = async_class1.new do
-          fiber_segment = NewRelic::Agent::Tracer.current_segment
-
-          assert_parent outer_segment, fiber_segment
+          assert_parent parent_segment, outer_segment
           async2 = nil
           do_segment(name: 'Inner') do |inner_segment|
-            assert_parent fiber_segment, inner_segment
+            assert_parent outer_segment, inner_segment
             async2 = async_class2.new do
-              assert_parent inner_segment, NewRelic::Agent::Tracer.current_segment
+              do_segment(name: 'InnerInner') do |inner_inner_segment|
+                assert_parent inner_segment, inner_inner_segment
+              end
             end
           end
 
           do_segment(name: 'Inner2') do |inner_2_segment|
-            assert_parent fiber_segment, inner_2_segment
+            assert_parent outer_segment, inner_2_segment
           end
           run_or_wait(async2)
         end
@@ -55,7 +56,7 @@ class ThreadFiberInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_equal 6, harvest_span_events![0][:events_seen]
+    assert_equal 5, harvest_span_events![0][:events_seen]
   end
 
   def test_parents_thread_thread

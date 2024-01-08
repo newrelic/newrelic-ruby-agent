@@ -14,10 +14,7 @@ module NewRelic::Agent::Instrumentation
     def add_thread_tracing(&block)
       return block if !NewRelic::Agent::Tracer.thread_tracing_enabled?
 
-      NewRelic::Agent::Tracer.thread_block_with_current_transaction(
-        segment_name: 'Ruby/Fiber',
-        &block
-      )
+      NewRelic::Agent::Tracer.thread_block_with_current_transaction(&block)
     end
   end
 end
