@@ -5,7 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 VIEW_COMPONENT_VERSIONS = [
-  [nil, 2.7]
+  [nil, 2.7],
+  ['2.53.0', 2.4]
 ]
 
 def gem_list(view_component_version = nil)
