@@ -26,9 +26,6 @@ module NewRelic
         attr_reader :request
 
         HTTP_CLIENT = 'HTTPClient'.freeze
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
-        COLON = ':'.freeze
 
         def initialize(request)
           @request = request

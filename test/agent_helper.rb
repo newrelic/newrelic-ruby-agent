@@ -845,7 +845,7 @@ ensure
 end
 
 def json_dump_and_encode(object)
-  Base64.encode64(JSON.dump(object))
+  NewRelic::Base64.encode64(JSON.dump(object))
 end
 
 def get_last_analytics_event
@@ -871,7 +871,7 @@ def load_cross_agent_test(name)
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
-  data = JSON.load(data)
+  data = JSON.parse(data)
   data.each { |testcase| testcase['testname'].tr!(' ', '_') if String === testcase['testname'] }
   data
 end
@@ -1024,4 +1024,16 @@ def defer_testing_to_min_supported_rails(test_file, min_rails_version, supports_
   else
     puts "Skipping tests in #{File.basename(test_file)} because Rails >= #{min_rails_version} is unavailable" if ENV['VERBOSE_TEST_OUTPUT']
   end
+end
+
+def first_call_for(subject)
+  items = $collector.calls_for(subject)
+
+  if defined?(JRUBY_VERSION)
+    refute_predicate items.size, :zero?, "Expected at least one call for '#{subject}'"
+  else
+    assert_equal 1, items.size, "Expected exactly one call for '#{subject}'"
+  end
+
+  items.first
 end

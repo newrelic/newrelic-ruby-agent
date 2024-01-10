@@ -230,7 +230,7 @@ module NewRelic
         end
 
         def to_collector_hash
-          DottedHash.new(apply_mask(flattened)).to_hash.delete_if do |k, v|
+          DottedHash.new(apply_mask(flattened)).to_hash.delete_if do |k, _v|
             default = DEFAULTS[k]
             if default
               default[:exclude_from_reported_settings]
@@ -364,7 +364,7 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
-          preserved = @cache.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+          preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
           new_cache
           preserved.each { |k, v| @cache[k] = v }
 
@@ -376,12 +376,13 @@ module NewRelic
         end
 
         def log_config(direction, source)
-          # Just generating this log message (specifically calling
-          # flattened.inspect) is expensive enough that we don't want to do it
-          # unless we're actually going to be logging the message based on our
-          # current log level.
+          # Just generating this log message (specifically calling `flattened`)
+          # is expensive enough that we don't want to do it unless we're
+          # actually going to be logging the message based on our current log
+          # level, so use a `do` block.
           ::NewRelic::Agent.logger.debug do
-            "Updating config (#{direction}) from #{source.class}. Results: #{flattened.inspect}"
+            hash = flattened.delete_if { |k, _h| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
+            "Updating config (#{direction}) from #{source.class}. Results: #{hash.inspect}"
           end
         end
 

@@ -80,7 +80,7 @@ module NewRelic
         "Expected #{klass} for `#{name}` but got #{arg.class}"
 
       NewRelic::Agent.logger.warn(message)
-      nil
+      false
     end
   end
 end

@@ -8,7 +8,6 @@ module NewRelic
       class SegmentTermsRule
         PREFIX_KEY = 'prefix'.freeze
         TERMS_KEY = 'terms'.freeze
-        SEGMENT_PLACEHOLDER = '*'.freeze
         ADJACENT_PLACEHOLDERS_REGEX = %r{((?:^|/)\*)(?:/\*)*}.freeze
         ADJACENT_PLACEHOLDERS_REPLACEMENT = '\1'.freeze
 
@@ -52,7 +51,7 @@ module NewRelic
           rest = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
           segments = rest.split(SEGMENT_SEPARATOR, -1)
-          segments.map! { |s| @terms.include?(s) ? s : SEGMENT_PLACEHOLDER }
+          segments.map! { |s| @terms.include?(s) ? s : ASTERISK }
           transformed_suffix = collapse_adjacent_placeholder_segments(segments)
 
           "#{@prefix}#{leading_slash}#{transformed_suffix}"

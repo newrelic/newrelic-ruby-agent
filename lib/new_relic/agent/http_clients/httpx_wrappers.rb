@@ -52,8 +52,6 @@ module NewRelic
 
         DEFAULT_HOST = 'UNKNOWN_HOST'
         TYPE = 'HTTPX'
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
 
         def initialize(request)
           @request = request

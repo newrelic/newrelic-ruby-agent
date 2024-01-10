@@ -22,7 +22,7 @@ module NewRelic
 
         def add_segment(segment, parent = nil)
           segment.transaction = self
-          segment.parent = parent || current_segment
+          segment.parent = parent || thread_starting_span || current_segment
           set_current_segment(segment)
           if @segments.length < segment_limit
             @segments << segment
@@ -37,6 +37,16 @@ module NewRelic
             end
           end
           segment.transaction_assigned
+        end
+
+        def thread_starting_span
+          # if the previous current segment was in another thread, use the thread local parent
+          if ::Thread.current[:newrelic_thread_span_parent] &&
+              current_segment &&
+              current_segment.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
+
+            ::Thread.current[:newrelic_thread_span_parent]
+          end
         end
 
         def segment_complete(segment)

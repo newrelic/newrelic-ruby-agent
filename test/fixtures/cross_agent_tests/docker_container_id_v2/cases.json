@@ -1,0 +1,36 @@
+[
+  {
+    "filename": "docker-20.10.16.txt",
+    "containerId": "84cf3472a20d1bfb4b50e48b6ff50d96dfcd812652d76dd907951e6f98997bce",
+    "expectedMetrics": null
+  },
+  {
+    "filename": "docker-24.0.2.txt",
+    "containerId": "b0a24eed1b031271d8ba0784b8f354b3da892dfd08bbcf14dd7e8a1cf9292f65",
+    "expectedMetrics": null
+  },
+  {
+    "filename": "empty.txt",
+    "containerId": null,
+    "expectedMetrics": null
+  },
+  {
+    "filename": "invalid-characters.txt",
+    "containerId": null,
+    "expectedMetrics": null
+  },
+  {
+    "filename": "docker-too-long.txt",
+    "containerId": null,
+    "expectedMetrics": null
+  },
+  {
+    "filename": "invalid-length.txt",
+    "containerId": null,
+    "expectedMetrics": {
+      "Supportability/utilization/docker/error": {
+        "callCount": 1
+      }
+    }
+  }
+]

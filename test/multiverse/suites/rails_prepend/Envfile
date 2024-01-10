@@ -3,7 +3,8 @@
 # frozen_string_literal: true
 
 RAILS_VERSIONS = [
-  [nil, 2.7],
+  [nil, 3.1],
+  ['7.1.0', 2.7],
   ['7.0.0', 2.7],
   ['6.1.0', 2.5],
   ['6.0.0', 2.5, 2.7],

@@ -11,7 +11,7 @@ module NewRelic
         def shutdown
           return unless started?
 
-          ::NewRelic::Agent.logger.info('Starting Agent shutdown')
+          ::NewRelic::Agent.logger.info('Starting agent shutdown')
 
           stop_event_loop
           trap_signals_for_litespeed

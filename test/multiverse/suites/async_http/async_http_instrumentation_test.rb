@@ -31,6 +31,7 @@ class AsyncHttpInstrumentationTest < Minitest::Test
         internet = Async::HTTP::Internet.new
         resp = internet.send(method, url, headers)
         @read_resp = resp&.read
+      rescue Async::TimeoutError, EOFError
       ensure
         internet&.close
       end

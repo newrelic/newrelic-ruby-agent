@@ -97,10 +97,8 @@ class EncodingHandlingTest < Minitest::Test
     agent.send(:transmit_custom_event_data)
     agent.send(:transmit_error_event_data)
     agent.send(:transmit_span_event_data)
-    requests = $collector.calls_for(endpoint)
+    request = first_call_for(endpoint)
 
-    assert_equal(1, requests.size)
-    request = requests.first
     request.decode! if request.respond_to?(:decode!)
 
     assert_contains_string(request, string)

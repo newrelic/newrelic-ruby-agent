@@ -14,6 +14,10 @@ module NewRelic
       #
       # @api public
       class AbstractRequest
+        LHOST = 'host'
+        UHOST = 'Host'
+        COLON = ':'
+
         %i[[] []= type host_from_header host method headers uri].each do |name|
           define_method(name) do
             not_implemented(name)

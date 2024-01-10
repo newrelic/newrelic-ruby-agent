@@ -275,11 +275,13 @@ class NewRelicServiceTest < Minitest::Test
     initial_connect_log = with_array_logger(level = :debug) { @service.connect }
 
     assert_log_contains initial_connect_log, 'Sending request to localhost'
+    assert_log_contains initial_connect_log, Regexp.escape('license_key=***********')
 
     # If we need to reconnect, preconnect should use the locally configured collector again
     reconnect_log = with_array_logger(level = :debug) { @service.preconnect }
 
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
+    assert_log_contains reconnect_log, Regexp.escape('license_key=***********')
   end
 
   def test_preconnect_with_no_token_and_no_lasp
@@ -749,7 +751,7 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal(expected_string, result[0])
 
     base64_encoded_compressed_json_field = result[1]
-    compressed_json_field = Base64.decode64(base64_encoded_compressed_json_field)
+    compressed_json_field = NewRelic::Base64.decode64(base64_encoded_compressed_json_field)
     json_field = Zlib::Inflate.inflate(compressed_json_field)
     field = JSON.parse(json_field)
 
@@ -1027,6 +1029,13 @@ class NewRelicServiceTest < Minitest::Test
 
     refute_includes header_keys, 'x-nr-run-token'
     refute_includes header_keys, 'x-nr-metadata'
+  end
+
+  def test_filtered_uri
+    base = 'https://cdpr_cp2077.com?license_key='
+    filtered = @service.send(:filtered_uri, base + @service.send(:license_key))
+
+    assert_equal base + '***********', filtered
   end
 
   def build_stats_hash(items = {})

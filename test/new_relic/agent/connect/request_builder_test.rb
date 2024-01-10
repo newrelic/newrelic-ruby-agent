@@ -90,4 +90,13 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   ensure
     ENV[key] = nil
   end
+
+  def test_excluded_config_settings_are_in_fact_excluded
+    excluded = NewRelic::Agent::Configuration::DEFAULTS.select { |k, h|
+      k if h.fetch(:exclude_from_reported_settings, false)
+    }
+
+    refute @request_builder.connect_payload[:settings].keys.detect { |k| excluded.include?(k) },
+      "Did not expect the request builder's connect payload to include any excluded config settings"
+  end
 end

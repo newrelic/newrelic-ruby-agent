@@ -31,9 +31,6 @@ module NewRelic
         end
 
         ASYNC_HTTP = 'Async::HTTP'
-        LHOST = 'host'
-        UHOST = 'Host'
-        COLON = ':'
 
         def type
           ASYNC_HTTP

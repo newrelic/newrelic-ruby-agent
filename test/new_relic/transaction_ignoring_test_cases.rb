@@ -41,11 +41,8 @@ module TransactionIgnoringTestCases
 
     NewRelic::Agent.instance.send(:harvest_and_send_errors)
 
-    posts = $collector.calls_for('error_data')
-
-    assert_equal(1, posts.size)
-
-    errors = posts.first.errors
+    post = first_call_for('error_data')
+    errors = post.errors
 
     assert_equal(1, errors.size)
     assert_equal('Buffy lives :)', errors.first.message)
@@ -56,12 +53,12 @@ module TransactionIgnoringTestCases
       trigger_transaction('accepted_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
-      assert_equal(1, $collector.calls_for('transaction_sample_data').size)
+      first_call_for('transaction_sample_data')
 
       trigger_transaction('ignored_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
 
-      assert_equal(1, $collector.calls_for('transaction_sample_data').size)
+      first_call_for('transaction_sample_data')
     end
   end
 
@@ -71,11 +68,9 @@ module TransactionIgnoringTestCases
 
     NewRelic::Agent.instance.send(:harvest_and_send_analytic_event_data)
 
-    posts = $collector.calls_for('analytic_event_data')
+    post = first_call_for('analytic_event_data')
 
-    assert_equal(1, posts.size)
-
-    events = posts.first.events
+    events = post.events
 
     assert_equal(1, events.size)
     assert_equal(TXN_PREFIX + 'accepted_transaction', events.first[0]['name'])
@@ -87,11 +82,9 @@ module TransactionIgnoringTestCases
 
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
 
-    posts = $collector.calls_for('sql_trace_data')
+    post = first_call_for('sql_trace_data')
 
-    assert_equal(1, posts.size)
-
-    traces = posts.first.traces
+    traces = post.traces
 
     assert_equal(1, traces.size)
 

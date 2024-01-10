@@ -1,14 +1,14 @@
 # Ruby Agent Performance Tests
 
-This is a performance testing framework for the Ruby Agent.
+This is a performance testing framework for the Ruby agent.
 
 ## Motivation
 
 There are two main goals driving the development of this framework:
 
-1. Add a way for automated performance tests to be run against the Ruby Agent
+1. Add a way for automated performance tests to be run against the Ruby agent
    and ingested into a system for tracking these results over time.
-2. Provide a tool for Ruby Agent engineers to use while working on performance
+2. Provide a tool for Ruby agent engineers to use while working on performance
    improvements.
 
 ## Examples

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'new_relic/language_support'
-require 'new_relic/agent/vm/mri_vm'
+require 'new_relic/agent/vm/c_ruby_vm'
 require 'new_relic/agent/vm/jruby_vm'
 
 module NewRelic
@@ -21,7 +21,7 @@ module NewRelic
         if NewRelic::LanguageSupport.jruby?
           JRubyVM.new
         else
-          MriVM.new
+          CRubyVM.new
         end
       end
     end

@@ -1,8 +1,12 @@
-# Using Docker with the New Relic Ruby Agent
+# Using Docker with the New Relic Ruby agent
 
 These instructions will guide you through the process of setting up Docker for
-use with developing the New Relic Ruby Agent. The use of Docker containers can
-provide for a consistent experience free from machine specific issues.
+use with **developing** the New Relic Ruby agent. Using Docker containers 
+while developing the Ruby agent can provide a consistent experience free from 
+machine-specific issues.
+
+**Do not follow these instructions if you are trying to connect the agent to
+an application in a containerized environment. Instead, visit [the docs][install-url]. **
 
 ## Quick Start
 
@@ -165,3 +169,6 @@ of entry when it comes to providing contributions to the agent project itself.
 
 For questions, feature requests, proposals to support Podman, PRs to improve
 behavior or documentation, etc., please see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+
+[install-docs]: https://docs.newrelic.com/docs/apm/agents/ruby-agent/installation/install-new-relic-ruby-agent/#install-the-gem-installing_the_gem 
