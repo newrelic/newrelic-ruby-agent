@@ -530,6 +530,13 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_logger_does_not_receive_excluded_settings
+      log = with_array_logger(:debug) { @manager.log_config('direction', 'source') }.array.join('')
+
+      assert_includes(log, ':app_name')
+      refute_includes(log, ':license_key')
+    end
+
     private
 
     def assert_parsed_labels(expected)

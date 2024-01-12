@@ -3,7 +3,7 @@ name: Create Prerelease
 on:
   workflow_dispatch:
 
-jobs: 
+jobs:
   create_prerelease:
     runs-on: ubuntu-22.04
     permissions:
@@ -11,7 +11,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Install Ruby 3.2
-      uses: ruby/setup-ruby@7d546f4868fb108ed378764d873683f920672ae2 # tag v1.149.0
+      uses: ruby/setup-ruby@af848b40be8bb463a751551a1180d74782ba8a72 # tag v1.162.0
       with:
         ruby-version: 3.2
 
@@ -43,7 +43,7 @@ jobs:
         TITLE: "Prerelease ${{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml (if it needs updating). This is an automated PR."
         LABEL: prerelease
-       
+
     - name: Create pre release tag
       uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # tag v0.1.15
       with:

@@ -15,10 +15,10 @@ class NewRelicRpmTest < Minitest::Test
     skip unless defined?(Rails::VERSION)
     skip RAILS_32_SKIP_MESSAGE if Rails::VERSION::MAJOR == 3
 
-    assert Bloodhound.newrelic_method_exists?('sniff'),
+    assert ::Bloodhound.newrelic_method_exists?('sniff'),
       'Bloodhound#sniff not found by' \
       'NewRelic::Agent::MethodTracer::ClassMethods::AddMethodTracer.newrelic_method_exists?'
-    assert Bloodhound.method_traced?('sniff'),
+    assert ::Bloodhound.method_traced?('sniff'),
       'Bloodhound#sniff not found by' \
       'NewRelic::Agent::MethodTracer::ClassMethods::AddMethodTracer.method_traced?'
   end

@@ -128,7 +128,7 @@ module NewRelic
           end
 
           def self.drop_indexes?(name, payload)
-            name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == '*'
+            name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == ASTERISK
           end
 
           def self.drop_index?(name, payload)

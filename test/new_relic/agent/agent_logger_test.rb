@@ -204,7 +204,7 @@ class AgentLoggerTest < Minitest::Test
 
       logger.info('The nice thing about standards is that you have so many to choose from. -- ast')
 
-      assert_logged(/#{Date.today.strftime("%Y-%m-%d")}/)
+      assert_logged(/#{Date.today.strftime('%Y-%m-%d')}/)
     end
   end
 

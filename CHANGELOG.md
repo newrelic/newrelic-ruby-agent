@@ -1,5 +1,36 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.7.0
+
+
+Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint used to access the cluster name for Elasticsearch instrumentation, removes the creation of the Ruby/Thread and Ruby/Fiber spans, and adds support for Falcon.
+
+- **Feature: ViewComponent instrumentation**
+
+  [ViewComponent](https://viewcomponent.org/) is a now an instrumented framework. The agent currently supports Roda versions 2.0.0+. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
+
+- **Feature: Use root path to access Elasticsearch cluster name**
+
+  Previously, the agent used the cluster health endpoint (`/_cluster/health`) to access the cluster name. However, this has been found to make startup unstable for large clusters. Now, the agent uses the more performant root endpoint (`/`).
+
+  Our thanks go to [@erikkessler1](https://github.com/erikkessler1), [@gremerritt](https://github.com/gremerritt), and [@joshbranham](https://github.com/joshbranham) for reporting the issue, suggesting solutions, and testing them. [Issue#2360](https://github.com/newrelic/newrelic-ruby-agent/issues/2360) [PR#2377](https://github.com/newrelic/newrelic-ruby-agent/pull/2377)
+
+- **Feature: Remove base64 dependency, use direct calls to String methods**
+
+  In version 9.6.0, the agent required the Ruby `base64` gem as a depdendency to prepare for deprecation warnings in Ruby 3.3 and the gem's removal from the Ruby standard libraries in 3.4. Including `base64` as a dependency has caused problems with version resolution in some environments.
+
+  To resolve this, the agent now directly calls the `String` methods used in the `base64` library in the new `NewRelic::Base64` module.
+
+  Thank you, [@Earlopain](https://github.com/Earlopain), for submitting this change. [PR#2378](https://github.com/newrelic/newrelic-ruby-agent/pull/2378)
+
+- **Feature: Add Falcon support**
+
+  The agent now supports the web server [Falcon](https://socketry.github.io/falcon/). [PR#2383](https://github.com/newrelic/newrelic-ruby-agent/pull/2383)
+
+- **Feature: Remove spans with name Ruby/Thread and Ruby/Fiber**
+
+  Due to the lack of helpful information and the confusion commonly caused by the spans named Ruby/Thread and Ruby/Fiber, these spans have been removed. However, the agents ability to monitor instrumented code running in a thread or fiber will remain unchanged. [PR#2389](https://github.com/newrelic/newrelic-ruby-agent/pull/2389)
+
 ## v9.6.0
 
 Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the ability to ignore specific routes with Roda, gleans Docker container IDs from cgroups v2-based containers, records additional synthetics attributes, fixes an issue with Rails 7.1 that could cause duplicate log records to be sent to New Relic, fixes a deprecation warning for the Sidekiq error handler, adds additional attributes for OpenTelemetry compatibility, and resolves some technical debt, thanks to the community.
@@ -69,7 +100,7 @@ Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 
   We also received some great contributions from community members to resolve some outstanding technical debt issues. Thank you for your contributions!
     * Add and Replace SLASH and ROOT constants: [PR#2256](https://github.com/newrelic/newrelic-ruby-agent/pull/2256) [chahmedejaz](https://github.com/chahmedejaz)
-    * Remove pry as a dev dependency: [PR#2665](https://github.com/newrelic/newrelic-ruby-agent/pull/2265), [PR#2273](https://github.com/newrelic/newrelic-ruby-agent/pull/2273) [AlajeBash](https://github.com/AlajeBash)
+    * Remove pry as a dev dependency: PR#2665, PR#2273, AlajeBash (profile no longer active)
     * Replace "start up" with "start-up": [PR#2249](https://github.com/newrelic/newrelic-ruby-agent/pull/2249) [chahmedejaz](https://github.com/chahmedejaz)
     * Remove unused variables in test suites: [PR#2250](https://github.com/newrelic/newrelic-ruby-agent/pull/2250)
 
@@ -1465,7 +1496,7 @@ The multiverse collection of test suites requires a variety of data handling sof
 
 - **Additional Transaction Information applied to Span Events**
 
-  When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
+  When Distributed Tracing and/or Infinite Tracing are enabled, the agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
 
   The following items are affected:
 

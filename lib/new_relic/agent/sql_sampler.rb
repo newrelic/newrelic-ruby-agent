@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'zlib'
-require 'base64'
 require 'digest/md5'
 
 module NewRelic

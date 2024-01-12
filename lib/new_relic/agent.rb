@@ -252,7 +252,7 @@ module NewRelic
 
     # @!group Recording custom errors
 
-    # Set a filter to be applied to errors that the Ruby Agent will
+    # Set a filter to be applied to errors that the Ruby agent will
     # track.  The block should evaluate to the exception to track
     # (which could be different from the original exception) or nil to
     # ignore this exception.
@@ -391,13 +391,13 @@ module NewRelic
 
     # @!group Manual agent configuration and startup/shutdown
 
-    # Call this to manually start the Agent in situations where the Agent does
+    # Call this to manually start the agent in situations where the agent does
     # not auto-start.
     #
-    # When the app environment loads, so does the Agent. However, the
-    # Agent will only connect to the service if a web front-end is found. If
+    # When the app environment loads, so does the agent. However, the
+    # agent will only connect to the service if a web front-end is found. If
     # you want to selectively monitor ruby processes that don't use
-    # web plugins, then call this method in your code and the Agent
+    # web plugins, then call this method in your code and the agent
     # will fire up and start reporting to the service.
     #
     # Options are passed in as overrides for values in the

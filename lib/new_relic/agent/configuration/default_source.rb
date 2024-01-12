@@ -313,6 +313,7 @@ module NewRelic
         'webpacker:compile'
       ].join(',').freeze
 
+      # rubocop:disable Metrics/CollectionLiteralLength
       DEFAULTS = {
         # Critical
         :agent_enabled => {
@@ -336,6 +337,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :exclude_from_reported_settings => true,
           :description => 'Your New Relic <InlinePopover type="licenseKey" />.'
         },
         :log_level => {
@@ -444,7 +446,7 @@ module NewRelic
             'before shutting down to be installed regardless of detecting scenarios where it generally should not be. ' \
             'Known use-case for this option is where Sinatra is running as an embedded service within another framework ' \
             'and the agent is detecting the Sinatra app and skipping the `at_exit` handler as a result. Sinatra classically ' \
-            'runs the entire application in an `at_exit` block and would otherwise misbehave if the Agent\'s `at_exit` handler ' \
+            'runs the entire application in an `at_exit` block and would otherwise misbehave if the agent\'s `at_exit` handler ' \
             'was also installed in those circumstances. Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
         },
         :high_security => {
@@ -1656,6 +1658,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Stripe at startup. May be one of: `enabled`, `disabled`.'
         },
+        :'instrumentation.view_component' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of ViewComponent at startup. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'stripe.user_data.include' => {
           default: NewRelic::EMPTY_ARRAY,
           public: true,
@@ -2227,7 +2237,8 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'JavaScript agent loader content.'
+          :description => 'JavaScript agent loader content.',
+          :exclude_from_reported_settings => true
         },
         :keep_alive_timeout => {
           :default => 60,
@@ -2471,6 +2482,7 @@ module NewRelic
           :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
         }
       }.freeze
+      # rubocop:enable Metrics/CollectionLiteralLength
     end
   end
 end

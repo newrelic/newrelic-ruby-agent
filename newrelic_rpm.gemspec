@@ -21,8 +21,8 @@ Gem::Specification.new do |s|
     https://github.com/newrelic/newrelic-ruby-agent/
   EOS
   s.email = 'support@newrelic.com'
-  # TODO: MAJOR VERSION - remove newrelic_cmd, deprecated since version 2.13
-  s.executables = %w[newrelic_cmd newrelic nrdebug]
+  # TODO: MAJOR VERSION - remove newrelic, deprecated since version xxx.
+  s.executables = %w[newrelic_rpm newrelic nrdebug]
   s.extra_rdoc_files = [
     'CHANGELOG.md',
     'LICENSE',
@@ -50,8 +50,6 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
 
-  s.add_dependency 'base64'
-
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
@@ -62,7 +60,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rack'
   s.add_development_dependency 'rake', '12.3.3'
 
-  s.add_development_dependency 'rubocop', '1.54' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
+  s.add_development_dependency 'rubocop', '1.57.2' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'rubocop-ast', '1.28.1' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'rubocop-minitest', '0.27.0' unless ENV['CI'] && RUBY_VERSION < '3.0.0'
   s.add_development_dependency 'rubocop-performance', '1.16.0' unless ENV['CI'] && RUBY_VERSION < '3.0.0'

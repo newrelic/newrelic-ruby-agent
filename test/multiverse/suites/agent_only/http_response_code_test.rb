@@ -21,7 +21,7 @@ class HttpResponseCodeTest < Minitest::Test
 
     # make sure the data gets thrown away after we called collector without crashing
     assert_metrics_not_recorded(['Custom/too_big'])
-    assert_equal(1, $collector.calls_for('metric_data').size)
+    first_call_for('metric_data')
   end
 
   def test_unsupported_media_type
@@ -35,6 +35,6 @@ class HttpResponseCodeTest < Minitest::Test
 
     # make sure the data gets thrown away after we called collector without crashing
     assert_metrics_not_recorded(['Custom/too_big'])
-    assert_equal(1, $collector.calls_for('metric_data').size)
+    first_call_for('metric_data')
   end
 end

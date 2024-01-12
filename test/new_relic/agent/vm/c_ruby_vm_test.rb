@@ -3,16 +3,16 @@
 # frozen_string_literal: true
 
 require_relative '../../../test_helper'
-require 'new_relic/agent/vm/mri_vm'
+require 'new_relic/agent/vm/c_ruby_vm'
 
 unless NewRelic::LanguageSupport.jruby?
   module NewRelic
     module Agent
       module VM
-        class MriVMTest < Minitest::Test
+        class CRubyVMTest < Minitest::Test
           def setup
             @snap = Snapshot.new
-            @vm = MriVM.new
+            @vm = CRubyVM.new
           end
 
           def test_gather_gc_time_sets_gc_total_time_if_gc_profiler_is_enabled

@@ -227,7 +227,7 @@ module NewRelic
       def self.unblob(blob)
         return unless blob
 
-        JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
+        JSON.load(Zlib::Inflate.inflate(NewRelic::Base64.decode64(blob)))
       end
     end
 

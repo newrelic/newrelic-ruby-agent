@@ -1,5 +1,5 @@
 #
-# This file configures the New Relic Agent.  New Relic monitors Ruby, Java,
+# This file configures the New Relic agent.  New Relic monitors Ruby, Java,
 # .NET, PHP, Python, Node, and Go applications with deep visibility and low
 # overhead.  For more information, visit www.newrelic.com.
 
@@ -341,7 +341,7 @@ common: &default_settings
   # embedded service within another framework and the agent is detecting the Sinatra
   # app and skipping the at_exit handler as a result. Sinatra classically runs the
   # entire application in an at_exit block and would otherwise misbehave if the
-  # Agent's at_exit handler was also installed in those circumstances. Note:
+  # agent's at_exit handler was also installed in those circumstances. Note:
   # send_data_on_exit should also be set to true in  tandem with this setting.
   # force_install_exit_handler: false
 
@@ -534,6 +534,10 @@ common: &default_settings
   # Controls auto-instrumentation of Typhoeus at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.typhoeus: auto
+
+  # Controls auto-instrumentation of ViewComponent at startup. May be one of: auto,
+  # prepend, chain, disabled.
+  # instrumentation.view_component: auto
 
   # A dictionary of label names and values that will be applied to the data sent
   # from this agent. May also be expressed as a semicolon-delimited ; string of
