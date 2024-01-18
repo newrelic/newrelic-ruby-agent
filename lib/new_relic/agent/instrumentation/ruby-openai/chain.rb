@@ -11,7 +11,7 @@ module NewRelic::Agent::Instrumentation
         alias_method(:method_to_instrument_without_new_relic, :method_to_instrument)
         alias_method(:method_to_instrument, :method_to_instrument_with_new_relic)
 
-        def method_to_instrument(*args)
+        def method_to_instrument(*args) # rubocop:disable Lint/DuplicateMethods
           method_to_instrument_with_new_relic(*args) do
             method_to_instrument_without_new_relic(*args)
           end

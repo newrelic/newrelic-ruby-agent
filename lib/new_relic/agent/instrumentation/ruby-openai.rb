@@ -12,16 +12,16 @@ DependencyDetection.defer do
   depends_on do
     # The class that needs to be defined to prepend/chain onto. This can be used
     # to determine whether the library is installed.
-    defined?(::OpenAI::Client)
+    defined?(OpenAI::Client)
     # Add any additional requirements to verify whether this instrumentation
     # should be installed
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing ruby-openai instrumentation')
+    NewRelic::Agent.logger.info('Installing ruby-openai instrumentation')
 
     if use_prepend?
-      prepend_instrument ::OpenAI::Client,
+      prepend_instrument OpenAI::Client,
         NewRelic::Agent::Instrumentation::OpenAI::Client::Prepend,
         NewRelic::Agent::Instrumentation::OpenAI::Client::SUPPORTABILITY_NAME
     else
@@ -30,4 +30,3 @@ DependencyDetection.defer do
     end
   end
 end
-
