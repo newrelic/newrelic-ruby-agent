@@ -64,7 +64,7 @@ module NewRelic
           result = result.first(MAX_ATTRIBUTE_COUNT)
         end
 
-        result.map do |key, val|
+        result.each_with_object({}) do |(key, val), new_result|
           # name is limited to 255
           if key.is_a?(String) && key.bytesize > MAX_NAME_SIZE
             key = key.byteslice(0, MAX_NAME_SIZE)
@@ -75,8 +75,8 @@ module NewRelic
             val = val.byteslice(0, MAX_ATTRIBUTE_SIZE)
           end
 
-          [key, val]
-        end.to_h
+          new_result[key] = val
+        end
       end
 
       def after_initialize
