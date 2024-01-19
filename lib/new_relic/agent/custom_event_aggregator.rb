@@ -15,6 +15,8 @@ module NewRelic
       PRIORITY = 'priority'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
       MAX_ATTRIBUTE_COUNT = 64
+      MAX_ATTRIBUTE_SIZE = 4095
+      MAX_NAME_SIZE = 255
 
       named :CustomEventAggregator
       capacity_key :'custom_insights_events.max_samples_stored'
@@ -56,9 +58,24 @@ module NewRelic
 
       def create_custom_event_attributes(attributes)
         result = AttributeProcessing.flatten_and_coerce(attributes)
+
         if result.size > MAX_ATTRIBUTE_COUNT
           NewRelic::Agent.logger.warn("Custom event attributes are limited to #{MAX_ATTRIBUTE_COUNT}. Discarding #{result.size - MAX_ATTRIBUTE_COUNT} attributes")
           result = result.first(MAX_ATTRIBUTE_COUNT)
+        end
+
+        result.map do |key, val|
+          # name is limited to 255
+          if key.is_a?(String) && key.bytesize > MAX_NAME_SIZE
+            key = key.byteslice(0, MAX_NAME_SIZE)
+          end
+
+          # value is limited to 4095
+          if val.is_a?(String) && val.bytesize > MAX_ATTRIBUTE_SIZE
+            val = val.byteslice(0, MAX_ATTRIBUTE_SIZE)
+          end
+
+          [key, val]
         end
       end
 

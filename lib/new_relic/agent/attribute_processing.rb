@@ -9,8 +9,7 @@ module NewRelic
 
       EMPTY_HASH_STRING_LITERAL = '{}'.freeze
       EMPTY_ARRAY_STRING_LITERAL = '[]'.freeze
-      MAX_ATTRIBUTE_SIZE = 4095
-      MAX_NAME_SIZE = 255
+
 
       def flatten_and_coerce(object, prefix = nil, result = {}, &blk)
         if object.is_a?(Hash)
@@ -19,9 +18,6 @@ module NewRelic
           flatten_and_coerce_array(object, prefix, result, &blk)
         elsif prefix
           val = Coerce.scalar(object)
-          # truncate val to 4095 bytes
-          val = val.byteslice(0, MAX_ATTRIBUTE_SIZE) if val.is_a?(String) && val.bytesize > MAX_ATTRIBUTE_SIZE
-          prefix = prefix.byteslice(0, MAX_NAME_SIZE) if prefix.is_a?(String) && prefix.bytesize > MAX_NAME_SIZE
           if blk
             yield(prefix, val)
           elsif !val.nil?
@@ -31,6 +27,10 @@ module NewRelic
           NewRelic::Agent.logger.warn("Unexpected object: #{object.inspect} with nil prefix passed to NewRelic::Agent::AttributeProcessing.flatten_and_coerce")
         end
         result
+      end
+
+      def custom_event_flatten_and_coerce(object, prefix = nil, result = {}, &blk)
+
       end
 
       def flatten_and_coerce_hash(hash, prefix, result, &blk)

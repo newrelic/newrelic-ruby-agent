@@ -48,20 +48,6 @@ class AttributeProcessingTest < Minitest::Test
     assert_equal(expected, actual)
   end
 
-  def test_flatten_and_coerce_truncates_strings
-    params = {
-      "#{'b' * 300}" => 'a' * 5000
-    }
-
-    expected = {
-      "#{'b' * 255}" => 'a' * 4095
-    }
-
-    actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
-
-    assert_equal(expected, actual)
-  end
-
   def test_prefix_optional_for_flatten_and_coerce
     params = {:foo => {:bar => %w[v1 v2]}}
 
