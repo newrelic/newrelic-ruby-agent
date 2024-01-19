@@ -92,9 +92,9 @@ module NewRelic::Agent
 
       @aggregator.record(:footype, params)
 
-      actual = @aggregator.harvest![1].first[1].first
+      actual = @aggregator.harvest![1].first[1]
 
-      assert_equal(actual, expected)
+      assert_equal(expected, actual)
     end
 
     def test_lowering_limit_truncates_buffer
