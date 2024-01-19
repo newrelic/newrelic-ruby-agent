@@ -9,7 +9,7 @@ gemfile <<~RB
   gem 'activesupport'
   gem 'padrino'
   gem 'rack-test'
-  gem 'sinatra'
+  gem 'sinatra', '< 4'
 RB
 
 # Sinatra <3
