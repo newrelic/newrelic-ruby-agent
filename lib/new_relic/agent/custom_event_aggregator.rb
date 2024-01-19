@@ -66,13 +66,13 @@ module NewRelic
 
         result.each_with_object({}) do |(key, val), new_result|
           # name is limited to 255
-          if key.is_a?(String) && key.bytesize > MAX_NAME_SIZE
-            key = key.byteslice(0, MAX_NAME_SIZE)
+          if key.is_a?(String) && key.length > MAX_NAME_SIZE
+            key = key[0, MAX_NAME_SIZE]
           end
 
           # value is limited to 4095
-          if val.is_a?(String) && val.bytesize > MAX_ATTRIBUTE_SIZE
-            val = val.byteslice(0, MAX_ATTRIBUTE_SIZE)
+          if val.is_a?(String) && val.length > MAX_ATTRIBUTE_SIZE
+            val = val[0, MAX_ATTRIBUTE_SIZE]
           end
 
           new_result[key] = val
