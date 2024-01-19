@@ -28,9 +28,6 @@ module NewRelic
         result
       end
 
-      def custom_event_flatten_and_coerce(object, prefix = nil, result = {}, &blk)
-      end
-
       def flatten_and_coerce_hash(hash, prefix, result, &blk)
         if hash.empty?
           if blk
