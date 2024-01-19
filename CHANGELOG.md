@@ -7,7 +7,7 @@ Version <dev> adds maximum size limits to custom event attributes.
 
 - **Bugfix: Enforce a maximum size for Custom Event attributes**
 
-  Previously, the agent would allow custom event attributes to be any size. This would lead to the New Relic backend dropping the attribute that was larger than the maximum size. Now, the agent will truncate custom even attribute values to 4095 bytes, attribute names to 255, and the total count of attributes to 64. [PR#2401](https://github.com/newrelic/newrelic-ruby-agent/pull/2401)
+  Previously, the agent would allow custom event attributes to be any size. This would lead to the New Relic backend dropping the attribute that was larger than the maximum size. Now, the agent will truncate custom event attribute values to 4095 bytes, attribute names to 255, and the total count of attributes to 64. [PR#2401](https://github.com/newrelic/newrelic-ruby-agent/pull/2401)
 
 
 ## v9.7.0
