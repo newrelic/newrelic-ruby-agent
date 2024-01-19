@@ -10,6 +10,7 @@ module NewRelic
       EMPTY_HASH_STRING_LITERAL = '{}'.freeze
       EMPTY_ARRAY_STRING_LITERAL = '[]'.freeze
       MAX_ATTRIBUTE_SIZE = 4095
+      MAX_NAME_SIZE = 255
 
       def flatten_and_coerce(object, prefix = nil, result = {}, &blk)
         if object.is_a?(Hash)
@@ -20,6 +21,7 @@ module NewRelic
           val = Coerce.scalar(object)
           # truncate val to 4095 bytes
           val = val.byteslice(0, MAX_ATTRIBUTE_SIZE) if val.is_a?(String) && val.bytesize > MAX_ATTRIBUTE_SIZE
+          prefix = prefix.byteslice(0, MAX_NAME_SIZE) if prefix.is_a?(String) && prefix.bytesize > MAX_NAME_SIZE
           if blk
             yield(prefix, val)
           elsif !val.nil?

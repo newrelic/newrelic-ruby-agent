@@ -50,11 +50,11 @@ class AttributeProcessingTest < Minitest::Test
 
   def test_flatten_and_coerce_truncates_strings
     params = {
-      'custom_attr' => 'a' * 5000
+      "#{'b' * 300}" => 'a' * 5000
     }
 
     expected = {
-      'custom_attr' => 'a' * 4095
+      "#{'b' * 255}" => 'a' * 4095
     }
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
