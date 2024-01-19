@@ -76,7 +76,7 @@ module NewRelic
           end
 
           [key, val]
-        end
+        end.to_h
       end
 
       def after_initialize

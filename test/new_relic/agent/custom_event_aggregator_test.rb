@@ -86,10 +86,10 @@ module NewRelic::Agent
         "#{'b' * 300}" => 'a' * 5000
       }
 
-      expected = [
-        "#{'b' * 255}",
-        'a' * 4095
-      ]
+      expected = {
+        "#{'b' * 255}" => 'a' * 4095
+      }
+
       @aggregator.record(:footype, params)
 
       actual = @aggregator.harvest![1].first[1].first
