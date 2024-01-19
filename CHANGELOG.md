@@ -3,7 +3,7 @@
 
 ## dev 
 
-Version <dev> adds a maximum size limit to custom event attributes
+Version <dev> adds maximum size limits to custom event attributes.
 
 - **Bugfix: Enforce a maximum size for Custom Event attributes**
 
