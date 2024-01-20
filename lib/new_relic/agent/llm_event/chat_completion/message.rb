@@ -20,7 +20,7 @@ module NewRelic
           end
 
           def message_attributes
-            {content: @content, role: @role}.merge(chat_completion_attributes, llm_event_attributes)
+            {content: @content, role: @role, sequence: @sequence, completion_id: @completion_id, is_response: @is_response}.merge(chat_completion_attributes, llm_event_attributes)
           end
 
           def record

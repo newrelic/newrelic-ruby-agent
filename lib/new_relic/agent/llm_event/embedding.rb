@@ -7,28 +7,66 @@ class NewRelic
     class LlmEvent
       class Embedding < NewRelic::Agent::LlmEvent
 
-        attr_accessor 
-          :input, 
-          :'request.model', 
-          :'response.organization', 
-          :'response.usage.total_tokens', 
-          :'response.usage.prompt_tokens',
-          :'response.headers.llmVersion',
-          :'response.headers.ratelimitLimitRequests'
-          :'response.headers.ratelimitLimitTokens',
-          :'response.headers.ratelimitResetTokens',
-          :'response.headers.ratelimitResetRequests',
-          :'response.headers.ratelimitRemainingTokens',
-          :'response.headers.ratelimitRemainingRequests',
+        # The real object for all response_ actially is response.x.
+        attr_accessor
+          :input,
+          :request_model,
+          :response_organization,
+          :response_usage_total_tokens,
+          :response_usage_prompt_tokens,
+          :response_headers_llmVersion,
+          :response_headers_ratelimitLimitRequests
+          :response_headers_ratelimitLimitTokens,
+          :response_headers_ratelimitResetTokens,
+          :response_headers_ratelimitResetRequests,
+          :response_headers_ratelimitRemainingTokens,
+          :response_headers_ratelimitRemainingRequests,
           :duration,
           :error
 
-        def initialize
+          EVENT_NAME = 'LlmEmbedding'
 
+        def initialize (input:, request_model:, response_organization:, response_usage_total_tokens:, response_usage_prompt_tokens:, response_headers_llmVersion:,
+          response_headers_ratelimitLimitRequests:, response_headers_ratelimitLimitTokens:, response_headers_ratelimitResetTokens:, response_headers_ratelimitResetRequests:,
+          response_headers_ratelimitRemainingTokens:, response_headers_ratelimitRemainingRequests:, duration:, error:, **args)
+          @input = input
+          @request_model = request_model
+          @response_organization = response_organization
+          @response_usage_total_tokens = response_usage_total_tokens
+          @response_usage_prompt_tokens = response_usage_prompt_tokens
+          @response_headers_llmVersion = response_headers_llmVersion
+          @response_headers_ratelimitLimitRequests = response_headers_ratelimitLimitRequests
+          @response_headers_ratelimitLimitTokens = response_headers_ratelimitLimitTokens
+          @response_headers_ratelimitResetTokens = response_headers_ratelimitResetTokens
+          @response_headers_ratelimitResetRequests = response_headers_ratelimitResetRequests
+          @response_headers_ratelimitRemainingTokens = response_headers_ratelimitRemainingTokens
+          @response_headers_ratelimitRemainingRequests = response_headers_ratelimitRemainingRequests
+          @duration = duration
+          @error = error
+          super
+        end
+
+        def embedding_attributes
+          {
+            input: @input,
+            request_model: @request_model,
+            response_organization: @response_organization,
+            response_usage_total_tokens: @response_usage_total_tokens,
+            response_usage_prompt_tokens: @response_usage_prompt_tokens,
+            response_headers_llmVersion: @response_headers_llmVersion,
+            response_headers_ratelimitLimitRequests: @response_headers_ratelimitLimitRequests,
+            response_headers_ratelimitLimitTokens: @response_headers_ratelimitLimitTokens,
+            response_headers_ratelimitResetTokens: @response_headers_ratelimitResetTokens,
+            response_headers_ratelimitResetRequests: @response_headers_ratelimitResetRequests,
+            response_headers_ratelimitRemainingTokens: @response_headers_ratelimitRemainingTokens,
+            response_headers_ratelimitRemainingRequests: @response_headers_ratelimitRemainingRequests,
+            duration: @duration,
+            error: @error
+          }.merge(llm_event_attributes)
         end
 
         def record
-
+          NewRelic::Agent.record_custom_event(EVENT_NAME, embedding_attributes)
         end
       end
     end
