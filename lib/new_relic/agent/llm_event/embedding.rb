@@ -8,7 +8,7 @@ module NewRelic
       class Embedding < NewRelic::Agent::LlmEvent
         EVENT_NAME = 'LlmEmbedding'
 
-        def initialize (input: nil, request_model: nil, response_organization: nil, response_usage_total_tokens: nil, response_usage_prompt_tokens: nil, response_headers: nil, duration: nil, error: nil, **args)
+        def initialize(input: nil, request_model: nil, response_organization: nil, response_usage_total_tokens: nil, response_usage_prompt_tokens: nil, response_headers: nil, duration: nil, error: nil, **args)
           @input = input
           @request_model = request_model
           @response_organization = response_organization

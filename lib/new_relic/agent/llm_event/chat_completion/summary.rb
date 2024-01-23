@@ -9,7 +9,7 @@ module NewRelic
         EVENT_NAME = 'LlmChatCompletionSummary'
 
         class Summary < NewRelic::Agent::LlmEvent::ChatCompletion
-          def initialize (request_model: nil, response_organization: nil, response_usage_total_tokens: nil, response_usage_prompt_tokens: nil, response_usage_completion_tokens: nil,
+          def initialize(request_model: nil, response_organization: nil, response_usage_total_tokens: nil, response_usage_prompt_tokens: nil, response_usage_completion_tokens: nil,
             response_choices_finish_reason: nil, duration: nil, request_temperature: nil, error: nil, **args)
             @request_model = request_model
             @response_organization = response_organization

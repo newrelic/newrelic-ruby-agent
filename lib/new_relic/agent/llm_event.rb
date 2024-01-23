@@ -29,7 +29,7 @@ module NewRelic
 
       def llm_event_attributes
         {id: @id, app_name: @app_name, request_id: @request_id, span_id: @span_id, transaction_id: @transaction_id,
-        trace_id: @trace_id, response_model: @response_model, vendor: @vendor }
+         trace_id: @trace_id, response_model: @response_model, vendor: @vendor}
       end
 
       # Method for subclasses to override

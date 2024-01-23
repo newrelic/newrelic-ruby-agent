@@ -9,8 +9,7 @@ module NewRelic
         # may need to update the attribute keys to use camel casing
         def initialize(llm_version: nil, rate_limit_requests: nil, rate_limit_tokens: nil,
           rate_limit_reset_requests: nil, rate_limit_reset_tokens: nil,
-          rate_limit_remaining_requests: nil, rate_limit_remaining_tokens: nil
-        )
+          rate_limit_remaining_requests: nil, rate_limit_remaining_tokens: nil)
           @llm_version = llm_version
           @rate_limit_requests = rate_limit_requests
           @rate_limit_tokens = rate_limit_tokens
@@ -18,9 +17,9 @@ module NewRelic
           @rate_limit_reset_tokens = rate_limit_reset_tokens
           @rate_limit_remaining_requests = rate_limit_remaining_requests
           @rate_limit_remaining_tokens = rate_limit_remaining_tokens
-       end
+        end
 
-       # Headers is a hash of Net::HTTP response headers 
+        # Headers is a hash of Net::HTTP response headers
         def populate_openai_response_headers(headers)
           @llm_version = headers['openai-version'][0]
           @rate_limit_requests = headers['x-ratelimit-limit-requests'][0]

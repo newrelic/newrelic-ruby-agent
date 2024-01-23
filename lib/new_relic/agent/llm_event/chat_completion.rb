@@ -17,7 +17,7 @@ module NewRelic
 
         def chat_completion_attributes
           {api_key_last_four_digits: @api_key_last_four_digits, conversation_id: @conversation_id,
-          request_max_tokens: @request_max_tokens, response_number_of_messages: @response_number_of_messages}
+           request_max_tokens: @request_max_tokens, response_number_of_messages: @response_number_of_messages}
         end
 
         # Method for subclasses to override

@@ -15,21 +15,20 @@ module NewRelic::Agent
       priority = events[0][0]['priority']
 
       assert_equal([[
-        {"type"=>"LlmChatCompletionMessage",
-        "timestamp"=>timestamp,
-        "priority"=>priority
-        },
-        {"content"=>"hi",
-        "role"=>"speaker",
-        "api_key_last_four_digits"=>"sk-0",
-        "conversation_id"=>123,
-        "request_max_tokens"=>10,
-        "response_number_of_messages"=>5,
-        "id"=>345,
-        "app_name.0"=>"a",
-        "app_name.1"=>"b",
-        "app_name.2"=>"c"
-        }]], events)
+        {'type' => 'LlmChatCompletionMessage',
+         'timestamp' => timestamp,
+         'priority' => priority},
+        {'content' => 'hi',
+         'role' => 'speaker',
+         'api_key_last_four_digits' => 'sk-0',
+         'conversation_id' => 123,
+         'request_max_tokens' => 10,
+         'response_number_of_messages' => 5,
+         'id' => 345,
+         'app_name.0' => 'a',
+         'app_name.1' => 'b',
+         'app_name.2' => 'c'}
+      ]], events)
     end
 
     def chat_message
@@ -39,8 +38,8 @@ module NewRelic::Agent
         api_key_last_four_digits: 'sk-0',
         conversation_id: 123, id: 345,
         app_name: NewRelic::Agent.config[:app_name],
-        request_max_tokens:10,
-        response_number_of_messages:5
+        request_max_tokens: 10,
+        response_number_of_messages: 5
       )
     end
   end
