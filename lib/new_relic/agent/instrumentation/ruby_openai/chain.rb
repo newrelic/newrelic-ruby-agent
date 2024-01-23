@@ -9,11 +9,8 @@ module NewRelic::Agent::Instrumentation
         include NewRelic::Agent::Instrumentation::OpenAI
 
         alias_method(:json_post_without_new_relic, :json_post)
-        alias_method(:json_post, :json_post_with_new_relic)
 
-        # TODO: check if this works on older versions of Ruby
-        # also, check if we need this disable directive
-        def json_post(**kwargs) # rubocop:disable Lint/DuplicateMethods
+        def json_post(**kwargs)
           json_post_with_new_relic(**kwargs) do
             json_post_without_new_relic(**kwargs)
           end
