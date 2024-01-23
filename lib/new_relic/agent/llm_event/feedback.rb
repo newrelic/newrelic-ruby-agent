@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 
-class NewRelic
-  class Agent
+module NewRelic
+  module Agent
     class LlmEvent
       class Feedback < NewRelic::Agent::LlmEvent
       end

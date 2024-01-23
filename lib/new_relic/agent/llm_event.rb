@@ -3,10 +3,11 @@
 # frozen_string_literal: true
 
 require_relative 'llm_event/chat_completion'
-# require_relative 'llm_event/embedding'
-# require_relative 'llm_event/feedback'
 require_relative 'llm_event/chat_completion/message'
-# require_relative 'llm_event/chat_completion/summary'
+require_relative 'llm_event/chat_completion/summary'
+require_relative 'llm_event/embedding'
+require_relative 'llm_event/feedback'
+require_relative 'llm_event/response_headers'
 
 module NewRelic
   module Agent
@@ -14,7 +15,7 @@ module NewRelic
       # response_model looks like repsonse.model
       attr_accessor :id, :app_name, :request_id, :span_id, :transaction_id, :trace_id, :response_model, :vendor
       INGEST_SOURCE = 'Ruby'
- 
+
       def initialize(id: nil, request_id: nil, span_id: nil, transaction_id: nil, trace_id: nil, response_model: nil, vendor: nil, **args)
         @id = id
         @app_name = NewRelic::Agent.config[:app_name]

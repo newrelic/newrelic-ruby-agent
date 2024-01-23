@@ -2,48 +2,22 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-class NewRelic
-  class Agent
+module NewRelic
+  module Agent
     class LlmEvent
       class ChatCompletion
-        attr_accessor
-          :request_model,
-          :response_organization,
-          :response_usage_total_tokens,
-          :response_usage_prompt_tokens,
-          :response_usage_completion_tokens,
-          :response_choices_finish_reason,
-          :response_headers_llmVersion,
-          :response_headers_ratelimitLimitRequests,
-          :response_headers_ratelimitLimitTokens,
-          :response_headers_ratelimitResetTokens,
-          :response_headers_ratelimitResetRequests,
-          :response_headers_ratelimitRemainingTokens,
-          :response_headers_ratelimitRemainingRequests,
-          :duration,
-          :request_temperature,
-          :error
-
         EVENT_NAME = 'LlmChatCompletionSummary'
 
         class Summary < NewRelic::Agent::LlmEvent::ChatCompletion
-          def initialize (request_model:, response_organization:, response_usage_total_tokens:, response_usage_prompt_tokens:, response_usage_completion_tokens:,
-            response_choices_finish_reason:, response_headers_llmVersion:, response_headers_ratelimitLimitRequests:, response_headers_ratelimitLimitTokens:,
-            response_headers_ratelimitResetTokens:, response_headers_ratelimitResetRequests:, response_headers_ratelimitRemainingTokens:,
-            response_headers_ratelimitRemainingRequests:, duration:, request_temperature:, error:, **args)
+          def initialize (request_model: nil, response_organization: nil, response_usage_total_tokens: nil, response_usage_prompt_tokens: nil, response_usage_completion_tokens: nil,
+            response_choices_finish_reason: nil, duration: nil, request_temperature: nil, error: nil, **args)
             @request_model = request_model
             @response_organization = response_organization
             @response_usage_total_tokens = response_usage_total_tokens
             @response_usage_prompt_tokens = response_usage_prompt_tokens
             @response_usage_completion_tokens = response_usage_completion_tokens
             @response_choices_finish_reason = response_choices_finish_reason
-            @response_headers_llmVersion = response_headers_llmVersion
-            @response_headers_ratelimitLimitRequests = response_headers_ratelimitLimitRequests
-            @response_headers_ratelimitLimitTokens = response_headers_ratelimitLimitTokens
-            @response_headers_ratelimitResetTokens = response_headers_ratelimitResetTokens
-            @response_headers_ratelimitResetRequests = response_headers_ratelimitResetRequests
-            @response_headers_ratelimitRemainingTokens = response_headers_ratelimitRemainingTokens
-            @response_headers_ratelimitRemainingRequests = response_headers_ratelimitRemainingRequests
+            @response_headers = LlmEvent::ResponseHeaders.new
             @duration = duration
             @request_temperature = request_temperature
             @error = error
@@ -58,13 +32,7 @@ class NewRelic
               response_usage_prompt_tokens: @response_usage_prompt_tokens,
               response_usage_completion_tokens: @response_usage_completion_tokens,
               response_choices_finish_reason: @response_choices_finish_reason,
-              response_headers_llmVersion: @response_headers_llmVersion,
-              response_headers_ratelimitLimitRequests: @response_headers_ratelimitLimitRequests,
-              response_headers_ratelimitLimitTokens: @response_headers_ratelimitLimitTokens,
-              response_headers_ratelimitResetTokens: @response_headers_ratelimitResetTokens,
-              response_headers_ratelimitResetRequests: @response_headers_ratelimitResetRequests,
-              response_headers_ratelimitRemainingTokens: @response_headers_ratelimitRemainingTokens,
-              response_headers_ratelimitRemainingRequests: @response_headers_ratelimitRemainingRequests,
+              response_headers: @response_headers, # need to do something to break this down further... or just treat like another thing to merge
               duration: @duration,
               request_temperature: @request_temperature,
               error: @error

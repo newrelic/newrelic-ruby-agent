@@ -7,7 +7,6 @@ module NewRelic
     class LlmEvent
       class ChatCompletion
         class Message < ChatCompletion
-          attr_accessor :content, :role, :sequence, :completion_id, :is_response
           EVENT_NAME = 'LlmChatCompletionMessage'
 
           def initialize(content: nil, role: nil, sequence: nil, completion_id: nil, is_response: nil, **args)

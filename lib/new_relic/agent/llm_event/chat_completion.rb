@@ -6,10 +6,8 @@ module NewRelic
   module Agent
     class LlmEvent
       class ChatCompletion < LlmEvent
-        # Real metrics are written: request.max_tokens, response.number_of_messages
-        attr_accessor :api_key_last_four_digits, :conversation_id, :request_max_tokens, :response_number_of_messages
-
-        def initialize(api_key_last_four_digits:, conversation_id:, request_max_tokens:, response_number_of_messages:, **args)
+        # TODO: should any of the attrs be required on initialization?
+        def initialize(api_key_last_four_digits: nil, conversation_id: nil, request_max_tokens: nil, response_number_of_messages: nil, **args)
           @api_key_last_four_digits = api_key_last_four_digits
           @conversation_id = conversation_id
           @request_max_tokens = request_max_tokens
