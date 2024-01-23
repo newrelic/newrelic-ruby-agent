@@ -7,31 +7,41 @@ require_relative '../../agent_helper'
 
 module NewRelic::Agent
   class LlmEventTest < Minitest::Test
-    # def test_attributes
-    #   NewRelic::Agent::LlmEvent.new
-    def setup
-      events = NewRelic::Agent.instance.events
-      @aggregator = NewRelic::Agent::CustomEventAggregator.new(events)
-    end
-
-    def test_attributes_chat
-      NewRelic::Agent::LlmEvent::ChatCompletion::Message.new(id: 123)
-    end
-
     def test_attribute_merge
-      message = NewRelic::Agent::LlmEvent::ChatCompletion::Message.new(content: 'hi', role: 'speaker', api_key_last_four_digits: 'sk-0', conversation_id: 123, id: 345, app_name: NewRelic::Agent.config[:app_name])
+      message = chat_message
       message.record
-      binding.irb
-      _, events = @aggregator.harvest!
-      # NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
-      # returned = first_call_for('custom_event_data').events
-      # events.first[0].delete('priority')
-      # event = events.first
+      _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
+      timestamp = events[0][0]['timestamp']
+      priority = events[0][0]['priority']
 
-      expected_event = [{'type' => 'DummyType', 'timestamp' => 'bhjbjh'},
-        {'foo' => 'bar', 'baz' => 'qux'}]
+      assert_equal([[
+        {"type"=>"LlmChatCompletionMessage",
+        "timestamp"=>timestamp,
+        "priority"=>priority
+        },
+        {"content"=>"hi",
+        "role"=>"speaker",
+        "api_key_last_four_digits"=>"sk-0",
+        "conversation_id"=>123,
+        "request_max_tokens"=>10,
+        "response_number_of_messages"=>5,
+        "id"=>345,
+        "app_name.0"=>"a",
+        "app_name.1"=>"b",
+        "app_name.2"=>"c"
+        }]], events)
+    end
 
-      assert_equal(expected_event, events)
+    def chat_message
+      NewRelic::Agent::LlmEvent::ChatCompletion::Message.new(
+        content: 'hi',
+        role: 'speaker',
+        api_key_last_four_digits: 'sk-0',
+        conversation_id: 123, id: 345,
+        app_name: NewRelic::Agent.config[:app_name],
+        request_max_tokens:10,
+        response_number_of_messages:5
+      )
     end
   end
 end
