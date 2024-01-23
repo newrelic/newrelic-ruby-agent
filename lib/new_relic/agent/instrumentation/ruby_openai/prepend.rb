@@ -3,12 +3,11 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module OpenAI::Client
-    SUPPORTABILITY_NAME = 'OpenAI'
+  module OpenAI::Prepend
+    include NewRelic::Agent::Instrumentation::OpenAI
 
-    def method_to_instrument_with_new_relic(*args)
-      # add instrumentation content here
-      yield
+    def json_post(**kwargs)
+      json_post_with_new_relic(**kwargs)
     end
   end
 end
