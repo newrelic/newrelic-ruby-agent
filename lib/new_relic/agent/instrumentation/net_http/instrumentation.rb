@@ -32,11 +32,26 @@ module NewRelic
             end
 
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
+            add_llm_response_headers(wrapped_response, segment.parent) if llm_parent?(segment)
             segment.process_response_headers(wrapped_response)
             response
           ensure
             segment&.finish
           end
+        end
+
+        def llm_parent?(segment)
+          puts segment.parent.name
+          result = segment&.parent&.name.match?(/Llm\/.*\/OpenAI\/create/)
+          puts result
+          result
+        end
+
+        def add_llm_response_headers(response, parent)
+          return unless parent.instance_variable_defined?(:@llm_summary) # and maybe log a warning??
+          event = parent.instance_variable_get(:@llm_summary)
+          event.instance_variable_set(:@request_id, response['x-request-id'])
+          event.instance_variable_get(:@reponse_headers).populate_response_headers(response.to_hash)
         end
       end
     end

@@ -7,7 +7,7 @@ module NewRelic::Agent::Instrumentation
     include NewRelic::Agent::Instrumentation::OpenAI
 
     def json_post(**kwargs)
-      json_post_with_new_relic(**kwargs)
+      json_post_with_new_relic(**kwargs) { super }
     end
   end
 end
