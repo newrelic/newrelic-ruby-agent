@@ -52,7 +52,7 @@ class ViewComponentInstrumentationTest < ActionDispatch::IntegrationTest
     assert(FAKE_CLASS.metric_path('nothing_to_see_here'), 'unknown')
   end
 
-    def test_error_raised
+  def test_error_raised
     NewRelic::Agent::Tracer.stub(:start_segment, proc { |_args| raise 'kaboom' }) do
       assert_equal(500, get('/view_components'))
     end
