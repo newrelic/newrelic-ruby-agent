@@ -42,13 +42,14 @@ module NewRelic
 
         def llm_parent?(segment)
           puts segment.parent.name
-          result = segment&.parent&.name.match?(/Llm\/.*\/OpenAI\/create/)
+          result = segment&.parent&.name&.match?(/Llm\/.*\/OpenAI\/create/)
           puts result
           result
         end
 
         def add_llm_response_headers(response, parent)
           return unless parent.instance_variable_defined?(:@llm_summary) # and maybe log a warning??
+
           event = parent.instance_variable_get(:@llm_summary)
           event.instance_variable_set(:@request_id, response['x-request-id'])
           event.instance_variable_get(:@reponse_headers).populate_response_headers(response.to_hash)
