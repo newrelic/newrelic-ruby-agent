@@ -10,11 +10,9 @@ DependencyDetection.defer do
   named :'ruby_openai'
 
   depends_on do
-    # The class that needs to be defined to prepend/chain onto. This can be used
-    # to determine whether the library is installed.
     defined?(OpenAI) && defined?(OpenAI::Client)
-    # Add any additional requirements to verify whether this instrumentation
-    # should be installed
+    # maybe add DT check here eventually?
+    # possible also a config check for ai.enabled 
   end
 
   executes do
