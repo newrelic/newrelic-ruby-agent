@@ -32,11 +32,10 @@ module NewRelic
               response_usage_prompt_tokens: @response_usage_prompt_tokens,
               response_usage_completion_tokens: @response_usage_completion_tokens,
               response_choices_finish_reason: @response_choices_finish_reason,
-              response_headers: @response_headers, # need to do something to break this down further... or just treat like another thing to merge
               duration: @duration,
               request_temperature: @request_temperature,
               error: @error
-            }.merge(chat_completion_attributes, llm_event_attributes)
+            }.merge(chat_completion_attributes, llm_event_attributes, @response_headers.attributes)
           end
 
           def record

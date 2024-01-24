@@ -27,10 +27,9 @@ module NewRelic
             response_organization: @response_organization,
             response_usage_total_tokens: @response_usage_total_tokens,
             response_usage_prompt_tokens: @response_usage_prompt_tokens,
-            response_headers: @response_headers, # may need to break down further
             duration: @duration,
             error: @error
-          }.merge(llm_event_attributes)
+          }.merge(llm_event_attributes, @response_headers.attributes)
         end
 
         def record

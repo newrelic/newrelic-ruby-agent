@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     class LlmEvent
       class ResponseHeaders < NewRelic::Agent::LlmEvent
-        # may need to update the attribute keys to use camel casing
         def initialize(llm_version: nil, rate_limit_requests: nil, rate_limit_tokens: nil,
           rate_limit_reset_requests: nil, rate_limit_reset_tokens: nil,
           rate_limit_remaining_requests: nil, rate_limit_remaining_tokens: nil)
@@ -28,6 +27,22 @@ module NewRelic
           @rate_limit_reset_tokens = headers['x-ratelimit-reset-tokens'][0]
           @rate_limit_remaining_requests = headers['x-ratelimit-remaining-requests'][0]
           @rate_limit_remaining_tokens = headers['x-ratelimit-remaining-tokens'][0]
+        end
+
+        # this reflects the string casing in the spec
+        # we may or may not need to do it this way
+        # if we need to do it like this, we should update the
+        # attribute methods in the other classes
+        def attributes
+          {
+            :'response.headers.llmVersion' => @llm_version,
+            :'response.headers.rateLimitRequests' => @rate_limit_requests,
+            :'response.headers.rateLimitTokens' => @rate_limit_tokens,
+            :'response.headers.rateLimitResetRequests' => @rate_limit_reset_requests,
+            :'response.headers.rateLimitResetTokens' => @rate_limit_reset_tokens,
+            :'response.headers.rateLimitRemainingRequests' => @rate_limit_remaining_requests,
+            :'response.headers.rateLimitRemainingTokens' => @rate_limit_remaining_tokens
+          }
         end
       end
     end
