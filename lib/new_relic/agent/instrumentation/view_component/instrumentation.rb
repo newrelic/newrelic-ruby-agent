@@ -15,7 +15,8 @@ module NewRelic::Agent::Instrumentation
         )
         yield
       rescue => e
-        ::NewRelic::Agent.logger.debug('Error capturing ViewComponent segment', e)
+        NewRelic::Agent.notice_error(e)
+        raise
       ensure
         segment&.finish
       end
