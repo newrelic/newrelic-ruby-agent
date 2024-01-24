@@ -24,10 +24,7 @@ module NewRelic::Agent
          'conversation_id' => 123,
          'request_max_tokens' => 10,
          'response_number_of_messages' => 5,
-         'id' => 345,
-         'app_name.0' => 'a',
-         'app_name.1' => 'b',
-         'app_name.2' => 'c'}
+         'id' => 345}
       ]], events)
     end
 
@@ -37,7 +34,6 @@ module NewRelic::Agent
         role: 'speaker',
         api_key_last_four_digits: 'sk-0',
         conversation_id: 123, id: 345,
-        app_name: NewRelic::Agent.config[:app_name],
         request_max_tokens: 10,
         response_number_of_messages: 5
       )
