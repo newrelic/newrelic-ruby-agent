@@ -69,6 +69,34 @@ module NewRelic::Agent
       assert_equal(max_samples, results.size)
     end
 
+    def test_max_attribute_count
+      attributes = {}
+      70.times do |i|
+        attributes["key#{i}"] = "value#{i}"
+      end
+      @aggregator.record(:footype, attributes)
+
+      event = @aggregator.harvest![1].first
+
+      assert_equal(64, event[1].size)
+    end
+
+    def test_truncates_attributes
+      params = {
+        "#{'b' * 300}" => 'a' * 5000
+      }
+
+      expected = {
+        "#{'b' * 255}" => 'a' * 4095
+      }
+
+      @aggregator.record(:footype, params)
+
+      actual = @aggregator.harvest![1].first[1]
+
+      assert_equal(expected, actual)
+    end
+
     def test_lowering_limit_truncates_buffer
       orig_max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
 

@@ -5,7 +5,8 @@
 instrumentation_methods :chain, :prepend
 
 SINATRA_VERSIONS = [
-  [nil, 2.4],
+  [nil, 2.7],
+  ['3.2.0', 2.6],
   ['2.1.0', 2.4],
   ['1.4.8']
 ]
@@ -14,9 +15,11 @@ def gem_list(sinatra_version = nil)
   <<~RB
     gem 'sinatra'#{sinatra_version}, :require => false
     gem 'rack-test', '>= 0.8.0', :require => 'rack/test'
+    #{"gem 'rackup'" if sinatra_version.nil? || sinatra_version > '3.2.0'}
     
   RB
 end
+
 
 create_gemfiles(SINATRA_VERSIONS)
 
