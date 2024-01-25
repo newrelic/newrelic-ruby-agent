@@ -7,7 +7,7 @@ Version 9.7.1 fixes a ViewComponent instrumentation bug and enforces maximum siz
 
 - **Bugfix: Stop suppressing ViewComponent errors**
 
-  Previously, the agent suppressed ViewComponent render errors. The agent now reports these errors and allows them to raise. Thank you @mjacobus for reporting this bug and providing a fix! [PR#2410](https://github.com/newrelic/newrelic-ruby-agent/pull/2410)
+  Previously, the agent suppressed ViewComponent render errors. The agent now reports these errors and allows them to raise. Thank you [@mjacobus](https://github.com/mjacobus) for reporting this bug and providing a fix! [PR#2410](https://github.com/newrelic/newrelic-ruby-agent/pull/2410)
 
 - **Bugfix: Enforce maximum size limits for custom event attributes**
 
