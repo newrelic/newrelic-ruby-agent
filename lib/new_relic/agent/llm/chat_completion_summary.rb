@@ -11,11 +11,11 @@ module NewRelic
         include ChatCompletion
         include ResponseHeaders
 
-        ATTRIBUTES = %i[api_key_last_four_digits response_number_of_messages
+        ATTRIBUTES = %i[api_key_last_four_digits request_max_tokens
+          response_number_of_messages request_model response_organization
+          response_usage_total_tokens response_usage_prompt_tokens
           response_usage_completion_tokens response_choices_finish_reason
-          request_temperature request_max_tokens request_model
-          response_organization response_usage_total_tokens
-          response_usage_prompt_tokens duration error]
+          request_temperature duration error]
         EVENT_NAME = 'LlmChatCompletionSummary'
 
         attr_accessor(*ATTRIBUTES)
@@ -24,8 +24,8 @@ module NewRelic
           LlmEvent::ATTRIBUTES + ChatCompletion::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
         end
 
-        def record
-          NewRelic::Agent.record_custom_event(EVENT_NAME, event_attributes)
+        def event_name
+          EVENT_NAME
         end
       end
     end

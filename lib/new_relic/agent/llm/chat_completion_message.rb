@@ -17,8 +17,8 @@ module NewRelic
           LlmEvent::ATTRIBUTES + ChatCompletion::ATTRIBUTES + ATTRIBUTES
         end
 
-        def record
-          NewRelic::Agent.record_custom_event(EVENT_NAME, event_attributes)
+        def event_name
+          EVENT_NAME
         end
       end
     end

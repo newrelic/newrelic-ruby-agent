@@ -8,8 +8,8 @@ module NewRelic
       class LlmEvent
         # Every subclass must define its own ATTRIBUTES constant, an array of symbols representing
         # that class's unique attributes
-        ATTRIBUTES = %i[id ingest_source request_id span_id transaction_id
-          trace_id response_model vendor]
+        ATTRIBUTES = %i[id request_id span_id transaction_id
+          trace_id response_model vendor ingest_source]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
         INGEST_SOURCE = 'Ruby'
@@ -47,7 +47,11 @@ module NewRelic
         end
 
         # Subclasses that record events will override this method
+        def event_name
+        end
+
         def record
+          NewRelic::Agent.record_custom_event(event_name, event_attributes)
         end
       end
     end

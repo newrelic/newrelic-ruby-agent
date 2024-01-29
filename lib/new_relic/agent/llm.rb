@@ -9,10 +9,3 @@ require_relative 'llm/chat_completion_summary'
 require_relative 'llm/embedding'
 require_relative 'llm/feedback'
 require_relative 'llm/response_headers'
-
-module NewRelic
-  module Agent
-    module Llm
-    end
-  end
-end

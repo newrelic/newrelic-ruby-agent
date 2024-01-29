@@ -8,7 +8,7 @@ module NewRelic
       class Embedding < LlmEvent
         include ResponseHeaders
 
-        ATTRIBUTES = %i[api_key_last_four_digits input request_model
+        ATTRIBUTES = %i[input api_key_last_four_digits request_model
           response_organization response_usage_total_tokens
           response_usage_prompt_tokens duration error]
         EVENT_NAME = 'LlmEmbedding'
@@ -19,8 +19,8 @@ module NewRelic
           LlmEvent::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
         end
 
-        def record
-          NewRelic::Agent.record_custom_event(EVENT_NAME, event_attributes)
+        def event_name
+          EVENT_NAME
         end
       end
     end
