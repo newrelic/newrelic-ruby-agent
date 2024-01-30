@@ -25,14 +25,17 @@ module NewRelic::Agent::Instrumentation
         create_chat_completion_messages(parameters)
         begin
           response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+          add_response_params(parameters, response, event)
           # binding.irb
           # event.whatever_attr_name = response[:find_me]
           # add attributes from the response body
           # create_chat_completion_messages(response) ??
           # set error:true if an error was raised
         ensure
-          event.record # always record the event
           segment&.finish
+          event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
+          event&.duration = segment&.duration
+          event&.record # always record the event
         end
       else
         # does this case work? request to non-endpoint?
@@ -49,6 +52,7 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_summary(parameters)
       event = NewRelic::Agent::Llm::ChatCompletionSummary.new(
+        vendor: VENDOR,
         id: NewRelic::Agent::GuidGenerator.generate_guid, # this can probably be moved to a shared module for embeddings/chat completions
         conversation_id: 'CHECK TO SEE IF TRANSACTION CUSTOM ATTRIBUTES HAS ME',
         api_key_last_four_digits: parse_api_key,
@@ -61,9 +65,19 @@ module NewRelic::Agent::Instrumentation
       # transation_id => assigned by llm_event
       # trace_id => assigned by llm_event
       # llm_metadata => assigned via API to be created
-      # response.number_of_messages => assigned after request if we can still get at params
-      # response.model => assigned from response payload
+
     end
+
+    def add_response_params(parameters, response, event)
+      event.response_number_of_messages = parameters[:messages].size + response['choices'].size # is .size or .length more performant?
+      event.response_model = response['model']
+      event.response_usage_total_tokens = response["usage"]["total_tokens"]
+      event.response_usage_prompt_tokens = response["usage"]["prompt_tokens"]
+      event.response_usage_completion_tokens = response["usage"]["completion_tokens"]
+      event.response_choices_finish_reason = response["choices"][0]["finish_reason"]
+    end
+
+
     # def chat_completions_instrumentation(parameters, request_headers)
     #   # TBD
     #   segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion/OpenAI/create')
