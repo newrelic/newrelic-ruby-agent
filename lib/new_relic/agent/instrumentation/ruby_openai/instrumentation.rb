@@ -15,6 +15,29 @@ module NewRelic::Agent::Instrumentation
 
       if path == EMBEDDINGS_PATH
         embeddings_instrumentation(parameters, headers)
+        binding.irb
+
+        segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/embedding/OpenAI/create')
+        NewRelic::Agent.record_metric('Ruby/ML/OpenAI/6.3.1', 0.0)
+        event = create_embedding_event(parameters)
+
+        # segment.chat_completion_summary = event
+        # create_chat_completion_messages(parameters)
+        begin
+          response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+          add_response_params(parameters, response, event)
+          # binding.irb
+          # event.whatever_attr_name = response[:find_me]
+          # add attributes from the response body
+          # create_chat_completion_messages(response) ??
+          # set error:true if an error was raised
+        ensure
+          segment&.finish
+          event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
+          event&.duration = segment&.duration
+          event&.record # always record the event
+        end
+      ##################
       elsif path == CHAT_COMPLETIONS_PATH
         # binding.irb
         # chat_completions_instrumentation(parameters, headers)
@@ -68,13 +91,39 @@ module NewRelic::Agent::Instrumentation
 
     end
 
+    def create_embedding_event
+      # id	| NewRelic::Agent::GuidGenerator.generate_guid
+      # request_id |response.headers.x-request-id
+      # span_id	| NewRelic::Agent::Tracer.current_span_id
+      # transaction_id | NewRelic::Agent::Tracer.current_transaction.guid
+      # trace_id	| NewRelic::Agent::Tracer.current_trace_id
+      # metadata | assigned	assigned via new set_llm_metadata API, access TBD
+      # input	| request.params.input 
+      # api_key_last_four_digits |	"within Http#json_post, call headers[:Authorization] | Prefix with sk-, take last 4 of key"
+      # request.model |	parameters[:model]
+      # response.model| response["model"]
+      # response.usage.total_tokens	| response["usage"]["total_tokens"]
+      # response.usage.prompt_tokens |	response["usage"]["prompt_tokens"]
+      # vendor| static value openAI
+      # ingest_source	| static value Ruby
+      # response.headers.llmVersion	| set from response.headers.openai-version
+      # response.headers.ratelimitLimitRequests	| set from response.headers.x-ratelimit-limit-requests
+      # response.headers.ratelimitLimitTokens	| set from response.headers.x-ratelimit-limit-tokens
+      # response.headers.ratelimitResetTokens	| set from response.headers.x-ratelimit-reset-tokens
+      # response.headers.ratelimitResetRequests	| set from response.headers.x-ratelimit-reset-requests
+      # response.headers.ratelimitRemainingTokens	| set from response.headers.x-ratelimit-remaining-tokens
+      # response.headers.ratelimitRemainingRequests	| set from response.headers.x-ratelimit-remaining-requests
+      # duration	| NewRelic::Agent::Tracer.current_segment.duration
+      # error	| Boolean set to True if an error occurred during call 
+    end
+
     def add_response_params(parameters, response, event)
       event.response_number_of_messages = parameters[:messages].size + response['choices'].size # is .size or .length more performant?
       event.response_model = response['model']
-      event.response_usage_total_tokens = response["usage"]["total_tokens"]
-      event.response_usage_prompt_tokens = response["usage"]["prompt_tokens"]
-      event.response_usage_completion_tokens = response["usage"]["completion_tokens"]
-      event.response_choices_finish_reason = response["choices"][0]["finish_reason"]
+      event.response_usage_total_tokens = response['usage']['total_tokens']
+      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
+      event.response_usage_completion_tokens = response['usage']['completion_tokens']
+      event.response_choices_finish_reason = response['choices'][0]['finish_reason']
     end
 
 
