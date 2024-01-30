@@ -13,6 +13,7 @@ module NewRelic
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
         INGEST_SOURCE = 'Ruby'
+        X_REQUEST_ID = 'x-request-id'
 
         attr_accessor(*ATTRIBUTES)
 

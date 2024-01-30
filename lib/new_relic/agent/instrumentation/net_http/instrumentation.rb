@@ -41,18 +41,16 @@ module NewRelic
         end
 
         def llm_parent?(segment)
-          puts segment.parent.name
-          result = segment&.parent&.name&.match?(/Llm\/.*\/OpenAI\/create/)
-          puts result
-          result
+          segment&.parent&.name&.match?(/Llm\/.*\/OpenAI\/create/)
         end
 
         def add_llm_response_headers(response, parent)
-          return unless parent.instance_variable_defined?(:@llm_summary) # and maybe log a warning??
+          # binding.irb
+          return unless parent.instance_variable_defined?(:@chat_completion_summary) # and maybe log a warning??
 
-          event = parent.instance_variable_get(:@llm_summary)
-          event.instance_variable_set(:@request_id, response['x-request-id'])
-          event.instance_variable_get(:@reponse_headers).populate_response_headers(response.to_hash)
+          event = parent.chat_completion_summary
+          event.request_id = response[NewRelic::Agent::Llm::LlmEvent::X_REQUEST_ID] # every event needs this, maybe we should move it someplace else?
+          event.populate_openai_response_headers(response.to_hash)
         end
       end
     end

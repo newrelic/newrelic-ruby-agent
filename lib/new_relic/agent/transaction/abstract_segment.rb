@@ -20,7 +20,7 @@ module NewRelic
         # calculation in all other cases.
         #
         attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid, :starting_segment_key
-        attr_accessor :name, :parent, :children_time, :transaction, :transaction_name
+        attr_accessor :name, :parent, :children_time, :transaction, :transaction_name, :chat_completion_summary
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
