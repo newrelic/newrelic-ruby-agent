@@ -92,7 +92,7 @@ module NewRelic::Agent::Instrumentation
     # Name is defined in Ruby 3.0+
     # copied from rails code
     # Parameter keys might be symbols and might be strings
-    # response body keys have always been strings 
+    # response body keys have always been strings
     def hash_with_indifferent_access_whatever
       if Symbol.method_defined?(:name)
         key.kind_of?(Symbol) ? key.name : key
