@@ -29,6 +29,7 @@ module NewRelic
             instance_variable_set(:"@#{attr}", opts[attr]) if opts.key?(attr)
           end
 
+          @id = id || NewRelic::Agent::GuidGenerator.generate_guid
           @span_id = NewRelic::Agent::Tracer.current_span_id
           @transaction_id = NewRelic::Agent::Tracer.current_transaction&.guid
           @trace_id = NewRelic::Agent::Tracer.current_trace_id

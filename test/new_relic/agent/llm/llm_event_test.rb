@@ -49,5 +49,20 @@ module NewRelic::Agent::Llm
 
       assert_empty events
     end
+
+    def test_initialize_sets_id_as_guid_if_no_arg_passed
+      NewRelic::Agent::GuidGenerator.stub(:generate_guid, 123) do
+        event = NewRelic::Agent::Llm::LlmEvent.new
+
+        assert_equal 123, event.id
+      end
+    end
+
+    def test_initialize_sets_id_as_arg_if_passed
+      id = 456
+      event = NewRelic::Agent::Llm::LlmEvent.new(id: id)
+
+      assert_equal(id, event.id)
+    end
   end
 end
