@@ -45,12 +45,17 @@ module NewRelic
         end
 
         def add_llm_response_headers(response, parent)
-          # binding.irb
-          return unless parent.instance_variable_defined?(:@chat_completion_summary) # and maybe log a warning??
+          return unless parent.instance_variable_defined?(:@chat_completion_summary) ||  parent.instance_variable_defined?(:@embedding)# and maybe log a warning??
 
-          event = parent.chat_completion_summary
-          event.request_id = response[NewRelic::Agent::Llm::LlmEvent::X_REQUEST_ID] # every event needs this, maybe we should move it someplace else?
-          event.populate_openai_response_headers(response.to_hash)
+          if parent.instance_variable_defined?(:@chat_completion_summary)
+            event = parent.chat_completion_summary
+            event.request_id = response[NewRelic::Agent::Llm::LlmEvent::X_REQUEST_ID] # every event needs this, maybe we should move it someplace else?
+            event.populate_openai_response_headers(response.to_hash)
+          elsif parent.instance_variable_defined?(:@embedding)
+            event = parent.embedding
+            event.request_id = response[NewRelic::Agent::Llm::LlmEvent::X_REQUEST_ID] # every event needs this, maybe we should move it someplace else?
+            event.populate_openai_response_headers(response.to_hash)
+          end
         end
       end
     end
