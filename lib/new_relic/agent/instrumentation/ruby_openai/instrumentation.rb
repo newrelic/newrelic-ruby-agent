@@ -67,7 +67,7 @@ module NewRelic::Agent::Instrumentation
       event = NewRelic::Agent::Llm::ChatCompletionSummary.new(
         vendor: VENDOR,
         id: NewRelic::Agent::GuidGenerator.generate_guid, # this can probably be moved to a shared module for embeddings/chat completions
-        conversation_id: 'CHECK TO SEE IF TRANSACTION CUSTOM ATTRIBUTES HAS ME',
+        conversation_id: conversation_id,
         api_key_last_four_digits: parse_api_key,
         request_max_tokens: parameters[:max_tokens], # figure out how to access this in case it's a string
         request_model: parameters[:model],
@@ -86,7 +86,7 @@ module NewRelic::Agent::Instrumentation
         id: NewRelic::Agent::GuidGenerator.generate_guid, # this can probably be moved to a shared module for embeddings/chat completions
         input: parameters[:input],
         api_key_last_four_digits: parse_api_key,
-        request_model: parameters[:model],
+        request_model: parameters[:model]
       )
       # request_id | net::http connection
       # span_id	| assigned by llm_event
@@ -110,7 +110,6 @@ module NewRelic::Agent::Instrumentation
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
     end
 
-
     # def chat_completions_instrumentation(parameters, request_headers)
     #   # TBD
     #   segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion/OpenAI/create')
@@ -124,11 +123,19 @@ module NewRelic::Agent::Instrumentation
       'sk-' + headers['Authorization'][-4..-1]
     end
 
+    def conversation_id
+      return @nr_conversation_id if @nr_conversation_id
+
+      @nr_conversation_id ||= NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes['conversation_id']
+    end
+    # don't want diff conversation_id b/w summary and message
+
+
     def create_chat_completion_messages(parameters, summary_id) # can this be used for the request messages and the repsonse messages?, let's take off the key if not
       parameters[:messages].map.with_index do |message, i|
         NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: message[:content],
-          role: message[:role],
+          content: message[:content] || message['content'],
+          role: message[:role] || message['role'],
           sequence: i,
           completion_id: summary_id,
           vendor: VENDOR,
@@ -156,6 +163,7 @@ module NewRelic::Agent::Instrumentation
       response_id = response['id'] || NewRelic::Agent::GuidGenerator.generate_guid
       messages.each do |message|
         message.id = "#{response_id}-#{message.sequence}"
+        message.conversation_id = conversation_id
         # message.request_id = # needs to be assigned from the net::http response, or passed from the summary object
         # metadata => TBD, create API
         message.response_model = response['model']
