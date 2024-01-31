@@ -16,12 +16,26 @@ module NewRelic
           response_usage_total_tokens response_usage_prompt_tokens
           response_usage_completion_tokens response_choices_finish_reason
           request_temperature duration error]
+        ATTRIBUTE_NAME_EXCEPTIONS = {
+          response_number_of_messages: 'response.number_of_messages',
+          request_model: 'request.model',
+          response_usage_total_tokens: 'response.usage.total_tokens',
+          response_usage_prompt_tokens: 'response.usage.prompt_tokens',
+          response_usage_completion_tokens: 'response.usage.completion_tokens',
+          response_choices_finish_reason: 'response.choices.finish_reason',
+          temperature: 'request.temperature'
+        }
+
         EVENT_NAME = 'LlmChatCompletionSummary'
 
         attr_accessor(*ATTRIBUTES)
 
         def attributes
           LlmEvent::ATTRIBUTES + ChatCompletion::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
+        end
+
+        def attribute_name_exceptions
+          LlmEvent::ATTRIBUTE_NAME_EXCEPTIONS.merge(ResponseHeaders::ATTRIBUTE_NAME_EXCEPTIONS, ATTRIBUTE_NAME_EXCEPTIONS)
         end
 
         def event_name

@@ -9,6 +9,15 @@ module NewRelic
         ATTRIBUTES = %i[llm_version rate_limit_requests rate_limit_tokens
           rate_limit_remaining_requests rate_limit_remaining_tokens
           rate_limit_reset_requests rate_limit_reset_tokens]
+        ATTRIBUTE_NAME_EXCEPTIONS = {
+          llm_version: 'response.headers.llm_version',
+          rate_limit_requests: 'response.headers.ratelimitLimitRequests',
+          rate_limit_tokens: 'response.headers.ratelimitLimitTokens',
+          rate_limit_remaining_requests: 'response.headers.ratelimitRemainingRequests',
+          rate_limit_remaining_tokens: 'response.headers.ratelimitRemainingTokens',
+          rate_limit_reset_requests: 'response.headers.ratelimitResetRequests',
+          rate_limit_reset_tokens: 'response.headers.ratelimitResetTokens'
+        }
 
         OPENAI_VERSION = 'openai-version'
         X_RATELIMIT_LIMIT_REQUESTS = 'x-ratelimit-limit-requests'

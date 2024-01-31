@@ -12,6 +12,8 @@ module NewRelic
           trace_id response_model vendor ingest_source]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
+        ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
+
         INGEST_SOURCE = 'Ruby'
 
         attr_accessor(*ATTRIBUTES)
@@ -36,7 +38,7 @@ module NewRelic
         # attributes and their values
         def event_attributes
           attributes.each_with_object({}) do |attr, hash|
-            hash[attr] = instance_variable_get(:"@#{attr}")
+            hash[replace_attr_with_string(attr)] = instance_variable_get(:"@#{attr}")
           end
         end
 
@@ -50,8 +52,24 @@ module NewRelic
         def event_name
         end
 
+        # Some attribute names include periods, which aren't valid values for
+        # Ruby method names. This method returns a Hash with the key as the
+        # Ruby symbolized version of the attribute and the value as the
+        # period-delimited string expected upstream
+        def attribute_name_exceptions
+          ATTRIBUTE_NAME_EXCEPTIONS
+        end
+
         def record
           NewRelic::Agent.record_custom_event(event_name, event_attributes)
+        end
+
+        private
+
+        def replace_attr_with_string(attr)
+          return attribute_name_exceptions[attr] if attribute_name_exceptions.key?(attr)
+
+          attr
         end
       end
     end

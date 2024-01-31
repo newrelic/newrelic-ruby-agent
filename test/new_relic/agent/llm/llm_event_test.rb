@@ -33,11 +33,13 @@ module NewRelic::Agent::Llm
     def test_event_attributes_returns_a_hash_of_assigned_attributes_and_values
       event = NewRelic::Agent::Llm::LlmEvent.new(id: 123)
       event.vendor = 'OpenAI'
+      event.response_model = 'gpt-4'
       result = event.event_attributes
 
-      assert_equal(result.keys, NewRelic::Agent::Llm::LlmEvent::ATTRIBUTES)
+      assert_instance_of(Hash, result)
       assert_equal(123, result[:id])
       assert_equal('OpenAI', result[:vendor])
+      assert_equal('gpt-4', result['response.model'])
     end
 
     def test_record_does_not_create_an_event
