@@ -12,6 +12,22 @@ module NewRelic
           trace_id response_model vendor ingest_source]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
+        EXPORT_ATTRIBUTE_NAME = {
+          response_number_of_messages: 'response.number_of_messages',
+          request_model: 'request.model',
+          response_model: 'response.model',
+          response_usage_total_tokens: 'response.usage.total_tokens',
+          response_usage_prompt_tokens: 'response.usage.prompt_tokens',
+          response_usage_completion_tokens: 'response.usage.completion_tokens',
+          response_choices_finish_reason: 'response.choices.finish_reason',
+          llm_version: 'response.headers.llm_version',
+          rate_limit_requests: 'response.headers.ratelimitLimitRequests',
+          rate_limit_tokens: 'response.headers.ratelimitLimitTokens',
+          rate_limit_reset_requests: 'response.headers.ratelimitResetRequests',
+          rate_limit_reset_tokens: 'response.headers.ratelimitResetTokens',
+          rate_limit_remaining_requests: 'response.headers.ratelimitRemainingRequests',
+          rate_limit_remaining_tokens: 'response.headers.ratelimitRemainingRequests'
+        }
         INGEST_SOURCE = 'Ruby'
         X_REQUEST_ID = 'x-request-id'
 
