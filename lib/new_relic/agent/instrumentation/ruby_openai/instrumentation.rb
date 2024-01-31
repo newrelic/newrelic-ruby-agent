@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
 
     # This method is defined in the OpenAI::HTTP module that is included
     # only in the OpenAI::Client class
-    def json_post_with_new_relic(path:, parameters:)
+    def json_post_with_new_relic(path:, parameters:) # rubocop:disable Metrics/AbcSize
       NewRelic::Agent.record_instrumentation_invocation(VENDOR) # idk if this is quite the right spot, since it'll catch situations where the gem is invoked, but our instrumented methods aren't called?
 
       if path == EMBEDDINGS_PATH
@@ -30,14 +30,15 @@ module NewRelic::Agent::Instrumentation
       elsif path == CHAT_COMPLETIONS_PATH
         # chat_completions_instrumentation(parameters, headers)
         segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion/OpenAI/create')
-        NewRelic::Agent.record_metric('Ruby/ML/OpenAI/6.3.1', 0.0)
+        NewRelic::Agent.record_metric("Ruby/ML/OpenAI/#{::OpenAI::VERSION}", 0.0) # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
         event = create_chat_completion_summary(parameters)
         segment.chat_completion_summary = event
-        create_chat_completion_messages(parameters)
+        summary_event_id = event.id
+        messages = create_chat_completion_messages(parameters, summary_event_id)
         begin
           response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
           add_response_params(parameters, response, event)
-          # binding.irb
+          messages = update_chat_completion_messages(messages, response, summary_event_id)
           # event.whatever_attr_name = response[:find_me]
           # add attributes from the response body
           # create_chat_completion_messages(response) ??
@@ -47,12 +48,13 @@ module NewRelic::Agent::Instrumentation
           event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
           event&.duration = segment&.duration
           event&.record # always record the event
+          messages&.each { |m| m&.record }
         end
       else
         # does this case work? request to non-endpoint?
         yield
       end
-    end
+    end # rubocop:enable Metrics/AbcSize
 
     private
 
@@ -76,7 +78,6 @@ module NewRelic::Agent::Instrumentation
       # transation_id => assigned by llm_event
       # trace_id => assigned by llm_event
       # llm_metadata => assigned via API to be created
-
     end
 
     def create_embedding_event(parameters)
@@ -123,15 +124,41 @@ module NewRelic::Agent::Instrumentation
       'sk-' + headers['Authorization'][-4..-1]
     end
 
-    def create_chat_completion_messages(parameters) # can this be used for the request messages and the repsonse messages?
-      parameters[:messages].each_with_index do |message, i|
+    def create_chat_completion_messages(parameters, summary_id) # can this be used for the request messages and the repsonse messages?, let's take off the key if not
+      parameters[:messages].map.with_index do |message, i|
         NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          id: 'response["id"] + index of parameters["message"] or response["choices"][0]["index"]',
-          role: message[:role],
           content: message[:content],
+          role: message[:role],
           sequence: i,
-          completion_id: 'special helper to get id of summary object'
+          completion_id: summary_id,
+          vendor: VENDOR,
+          is_response: false
         )
+      end
+    end
+
+    def create_chat_completion_response_messages(response, sequence_origin, summary_id)
+      response['choices'].map.with_index(sequence_origin) do |choice, i|
+        NewRelic::Agent::Llm::ChatCompletionMessage.new(
+          content: choice['message']['content'],
+          role: choice['message']['role'],
+          sequence: i,
+          completion_id: summary_id,
+          vendor: VENDOR,
+          is_response: true
+        )
+      end
+    end
+
+    def update_chat_completion_messages(messages, response, summary_id)
+      messages += create_chat_completion_response_messages(response, messages.size, summary_id) # need to fix the sequence, possibly
+      # now we have all the messages from the entire exchange
+      response_id = response['id'] || NewRelic::Agent::GuidGenerator.generate_guid
+      messages.each do |message|
+        message.id = "#{response_id}-#{message.sequence}"
+        # message.request_id = # needs to be assigned from the net::http response, or passed from the summary object
+        # metadata => TBD, create API
+        message.response_model = response['model']
       end
     end
 
