@@ -14,42 +14,9 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.record_instrumentation_invocation(VENDOR) # idk if this is quite the right spot, since it'll catch situations where the gem is invoked, but our instrumented methods aren't called?
 
       if path == EMBEDDINGS_PATH
-        segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/embedding/OpenAI/create')
-        NewRelic::Agent.record_metric('Ruby/ML/OpenAI/6.3.1', 0.0)
-        event = create_embedding_event(parameters)
-        segment.embedding = event
-        begin
-          response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-          add_embedding_response_params(response, event)
-        ensure
-          segment&.finish
-          event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
-          event&.duration = segment&.duration
-          event&.record # always record the event
-        end
+        embedding_instrumentation(parameters) {yield}
       elsif path == CHAT_COMPLETIONS_PATH
-        # chat_completions_instrumentation(parameters, headers)
-        segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion/OpenAI/create')
-        NewRelic::Agent.record_metric("Ruby/ML/OpenAI/#{::OpenAI::VERSION}", 0.0) # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
-        event = create_chat_completion_summary(parameters)
-        segment.chat_completion_summary = event
-        summary_event_id = event.id
-        messages = create_chat_completion_messages(parameters, summary_event_id)
-        begin
-          response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-          add_response_params(parameters, response, event)
-          messages = update_chat_completion_messages(messages, response, summary_event_id)
-          # event.whatever_attr_name = response[:find_me]
-          # add attributes from the response body
-          # create_chat_completion_messages(response) ??
-          # set error:true if an error was raised
-        ensure
-          segment&.finish
-          event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
-          event&.duration = segment&.duration
-          event&.record # always record the event
-          messages&.each { |m| m&.record }
-        end
+        chat_completion_instrumentation(parameters) {yield}
       else
         # does this case work? request to non-endpoint?
         yield
@@ -58,9 +25,45 @@ module NewRelic::Agent::Instrumentation
 
     private
 
-    def embeddings_instrumentation(parameters, request_headers)
-      # TBD
-      # yield
+    def embedding_instrumentation(parameters)
+      segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/embedding/OpenAI/create')
+      NewRelic::Agent.record_metric('Ruby/ML/OpenAI/6.3.1', 0.0)
+      event = create_embedding_event(parameters)
+      segment.embedding = event
+      begin
+        response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        add_embedding_response_params(response, event)
+      ensure
+        segment&.finish
+        event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
+        event&.duration = segment&.duration
+        event&.record # always record the event
+      end
+    end
+
+    def chat_completion_instrumentation(parameters)
+      # chat_completions_instrumentation(parameters, headers)
+      segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion/OpenAI/create')
+      NewRelic::Agent.record_metric("Ruby/ML/OpenAI/#{::OpenAI::VERSION}", 0.0) # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
+      event = create_chat_completion_summary(parameters)
+      segment.chat_completion_summary = event
+      summary_event_id = event.id
+      messages = create_chat_completion_messages(parameters, summary_event_id)
+      begin
+        response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        add_response_params(parameters, response, event)
+        messages = update_chat_completion_messages(messages, response, summary_event_id)
+        # event.whatever_attr_name = response[:find_me]
+        # add attributes from the response body
+        # create_chat_completion_messages(response) ??
+        # set error:true if an error was raised
+      ensure
+        segment&.finish
+        event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
+        event&.duration = segment&.duration
+        event&.record # always record the event
+        messages&.each { |m| m&.record }
+      end
     end
 
     def create_chat_completion_summary(parameters)
