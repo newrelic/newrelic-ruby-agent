@@ -45,7 +45,7 @@ module NewRelic
         end
 
         def add_llm_response_headers(response, parent)
-          return unless parent.instance_variable_defined?(:@chat_completion_summary) ||  parent.instance_variable_defined?(:@embedding)# and maybe log a warning??
+          return unless parent.instance_variable_defined?(:@chat_completion_summary) || parent.instance_variable_defined?(:@embedding) # and maybe log a warning??
 
           if parent.instance_variable_defined?(:@chat_completion_summary)
             event = parent.chat_completion_summary

@@ -5,29 +5,29 @@
 module NewRelic::Agent::Instrumentation
   module OpenAI
     VENDOR = 'OpenAI' # or SUPPORTBILITY_NAME? or both?
-    EMBEDDINGS_PATH = '/embeddings'
+    EMBEDDINGS_PATH = '/embeddings' # should everything below be called embeddings if we renamed to chat completions?
     CHAT_COMPLETIONS_PATH = '/chat/completions'
 
     # This method is defined in the OpenAI::HTTP module that is included
     # only in the OpenAI::Client class
-    def json_post_with_new_relic(path:, parameters:) # rubocop:disable Metrics/AbcSize
+    def json_post_with_new_relic(path:, parameters:)
       NewRelic::Agent.record_instrumentation_invocation(VENDOR) # idk if this is quite the right spot, since it'll catch situations where the gem is invoked, but our instrumented methods aren't called?
 
       if path == EMBEDDINGS_PATH
-        embedding_instrumentation(parameters) {yield}
+        embedding_instrumentation(parameters) { yield }
       elsif path == CHAT_COMPLETIONS_PATH
-        chat_completions_instrumentation(parameters) {yield}
+        chat_completions_instrumentation(parameters) { yield }
       else
         # does this case work? request to non-endpoint?
         yield
       end
-    end # rubocop:enable Metrics/AbcSize
+    end
 
     private
 
     def embedding_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/embedding/OpenAI/create')
-      NewRelic::Agent.record_metric('Ruby/ML/OpenAI/6.3.1', 0.0)
+      record_openai_metric
       event = create_embedding_event(parameters)
       segment.embedding = event
       begin
@@ -35,40 +35,37 @@ module NewRelic::Agent::Instrumentation
       ensure
         add_embedding_response_params(response, event) if response
         segment&.finish
-        event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
+        event&.error = true if segment_noticed_error? # need to test throwing an error
         event&.duration = segment&.duration
         event&.record # always record the event
+        super # ?? that's what record_metrics, the last part of finishing the segment does
       end
     end
 
     def chat_completions_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion/OpenAI/create')
-      NewRelic::Agent.record_metric("Ruby/ML/OpenAI/#{::OpenAI::VERSION}", 0.0) # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
+      record_openai_metric
       event = create_chat_completion_summary(parameters)
       segment.chat_completion_summary = event
       summary_event_id = event.id
       messages = create_chat_completion_messages(parameters, summary_event_id)
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-        # event.whatever_attr_name = response[:find_me]
-        # add attributes from the response body
-        # create_chat_completion_messages(response) ??
-        # set error:true if an error was raised
-      ensure
         add_response_params(parameters, response, event) if response
         messages = update_chat_completion_messages(messages, response, summary_event_id) if response
+      ensure
         segment&.finish
-        event&.error = true if segment&.instance_variable_get(:@notice_error) # need to test throwing an error
+        event&.error = true if segment_noticed_error? # need to test throwing an error
         event&.duration = segment&.duration
         event&.record # always record the event
         messages&.each { |m| m&.record }
+        super ## ?? that's what record_metrics, the last part of finishing the segment does
       end
     end
 
     def create_chat_completion_summary(parameters)
       event = NewRelic::Agent::Llm::ChatCompletionSummary.new(
         vendor: VENDOR,
-        id: NewRelic::Agent::GuidGenerator.generate_guid, # this can probably be moved to a shared module for embeddings/chat completions
         conversation_id: conversation_id,
         api_key_last_four_digits: parse_api_key,
         request_max_tokens: parameters[:max_tokens], # figure out how to access this in case it's a string
@@ -85,7 +82,6 @@ module NewRelic::Agent::Instrumentation
     def create_embedding_event(parameters)
       event = NewRelic::Agent::Llm::Embedding.new(
         vendor: VENDOR,
-        id: NewRelic::Agent::GuidGenerator.generate_guid, # this can probably be moved to a shared module for embeddings/chat completions
         input: parameters[:input],
         api_key_last_four_digits: parse_api_key,
         request_model: parameters[:model]
@@ -100,6 +96,10 @@ module NewRelic::Agent::Instrumentation
     def add_response_params(parameters, response, event)
       event.response_number_of_messages = parameters[:messages].size + response['choices'].size # is .size or .length more performant?
       event.response_model = response['model']
+      # TODO: A usage object may not always be returned by the LLM.
+      # In this case, the value of `response.usage.total_tokens` will need to be
+      # calculated by adding together the input and output token counts. If
+      # these values are unavailable, the value of this attribute should be null.
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
       event.response_usage_completion_tokens = response['usage']['completion_tokens']
@@ -122,7 +122,6 @@ module NewRelic::Agent::Instrumentation
       @nr_conversation_id ||= NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes['conversation_id']
     end
     # don't want diff conversation_id b/w summary and message
-
 
     def create_chat_completion_messages(parameters, summary_id) # can this be used for the request messages and the repsonse messages?, let's take off the key if not
       parameters[:messages].map.with_index do |message, i|
@@ -173,6 +172,15 @@ module NewRelic::Agent::Instrumentation
       else
         key.kind_of?(Symbol) ? key.to_s : key
       end
+    end
+
+    # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
+    def record_openai_metric
+      NewRelic::Agent.record_metric("Ruby/ML/OpenAI/#{::OpenAI::VERSION}", 0.0)
+    end
+
+    def segment_noticed_error?
+      segment&.instance_variable_get(:@notice_error)
     end
   end
 end
