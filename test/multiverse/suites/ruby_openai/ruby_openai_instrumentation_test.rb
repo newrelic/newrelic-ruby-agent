@@ -107,4 +107,25 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     assert_equal ChatResponse.new.body, result
   end
+
+  def test_set_llm_agent_attribute_on_transaction
+    in_transaction do |txn|
+      client.stub(:conn, faraday_connection) do
+        result = client.chat(parameters: chat_params)
+      end
+    end
+
+    assert_truthy harvest_transaction_events![1][0][2][:llm]
+  end
+
+  def test_set_llm_agent_attribute_on_error_transaction
+    in_transaction do |txn|
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+        NewRelic::Agent.notice_error(StandardError.new)
+      end
+    end
+
+    assert_truthy harvest_error_events![1][0][2][:llm]
+  end
 end

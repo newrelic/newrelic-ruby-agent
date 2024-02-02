@@ -13,14 +13,15 @@ module NewRelic::Agent::Instrumentation
     # This method is defined in the OpenAI::HTTP module that is included
     # only in the OpenAI::Client class
     def json_post_with_new_relic(path:, parameters:)
+      return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH # do we need return?
+
+      NewRelic::Agent.record_instrumentation_invocation(VENDOR)
+      NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
+
       if path == EMBEDDINGS_PATH
-        NewRelic::Agent.record_instrumentation_invocation(VENDOR)
         embedding_instrumentation(parameters) { yield }
       elsif path == CHAT_COMPLETIONS_PATH
-        NewRelic::Agent.record_instrumentation_invocation(VENDOR)
         chat_completions_instrumentation(parameters) { yield }
-      else
-        yield
       end
     end
 
@@ -50,7 +51,7 @@ module NewRelic::Agent::Instrumentation
       record_openai_metric
       event = create_chat_completion_summary(parameters)
       segment.chat_completion_summary = event
-      messages = create_chat_completion_messages(parameters, summary_event_id)
+      messages = create_chat_completion_messages(parameters, event.id)
       response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       add_response_params(parameters, response, event) if response
       messages = update_chat_completion_messages(messages, response, event) if response
