@@ -137,4 +137,12 @@ module NetHttpTestCases
       'External/[::1]/Net::HTTP/GET' => {:call_count => 1}
     )
   end
+
+  def test_response_header_attributes_added_to_chat_completion_summary
+    raise 'write me!'
+  end
+
+  def test_response_header_exits_if_no_llm_event
+    raise 'write me!'
+  end
 end
