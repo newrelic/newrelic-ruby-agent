@@ -12,7 +12,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(OpenAI) && defined?(OpenAI::Client)
     # maybe add DT check here eventually?
-    # possible also a config check for ai.enabled 
+    # possibly also a config check for ai.enabled
   end
 
   executes do

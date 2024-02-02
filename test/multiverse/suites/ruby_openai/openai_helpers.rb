@@ -39,9 +39,9 @@ module OpenAIHelpers
 
   def edits_params
     {
-        model: "text-davinci-edit-001",
-        input: "What day of the wek is it?",
-        instruction: "Fix the spelling mistakes"
+      model: 'text-davinci-edit-001',
+      input: 'What day of the wek is it?',
+      instruction: 'Fix the spelling mistakes'
     }
   end
 
