@@ -3,6 +3,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}  # Ensure that only one instance of this workflow is running per Pull Request
+  cancel-in-progress: true  # Cancel any previous runs of this workflow
+
 jobs:
   run_rubocop:
     runs-on: ubuntu-22.04

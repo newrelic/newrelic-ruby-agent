@@ -674,5 +674,35 @@
       "cassandra",
       "mssql"
     ]
+  },
+  {
+    "name": "prepended_comments_with_quotes.postgres",
+    "sql": "/*application:Demo,controller:posts,action:update*/ UPDATE \"posts\" SET \"updated_at\" = '2023-11-01 19:02:34.795909' WHERE \"posts\".\"id\" = 3",
+    "obfuscated": [
+      "? UPDATE \"posts\" SET \"updated_at\" = ? WHERE \"posts\".\"id\" = ?"
+    ],
+    "dialects": [
+      "postgres"
+    ]
+  },
+  {
+    "name": "prepended_comments_with_quotes.mysql",
+    "sql": "/*action='show',application='TrilogyTest',controller='users'*/ SELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1",
+    "obfuscated": [
+      "? SELECT `users`.* FROM `users` WHERE `users`.`id` = ? LIMIT ?"
+    ],
+    "dialects": [
+      "mysql"
+    ]
+  },
+  {
+    "name": "prepended_multiline_comments_with_quotes.mysql",
+    "sql": "/*action='show',\napplication='TrilogyTest',controller='users'*/\nSELECT `users`.*\nFROM `users`\nWHERE `users`.`id` = 1 LIMIT 1",
+    "obfuscated": [
+      "?\nSELECT `users`.*\nFROM `users`\nWHERE `users`.`id` = ? LIMIT ?"
+    ],
+    "dialects": [
+      "mysql"
+    ]
   }
 ]
