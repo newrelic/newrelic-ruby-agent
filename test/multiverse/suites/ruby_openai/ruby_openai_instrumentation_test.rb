@@ -5,22 +5,52 @@
 class RubyOpenAIInstrumentationTest < Minitest::Test
   include OpenAIHelpers
 
-  def test_instrumentation_doesnt_interfere_with_other_methods_that_use_json_post
+  def setup
+    @aggregator = NewRelic::Agent.agent.custom_event_aggregator
+    NewRelic::Agent.drop_buffered_data
   end
 
-  def test_openai_metric_recorded_for_embeddings_every_time
+  def test_instrumentation_doesnt_record_anything_with_other_paths_that_use_json_post
+    in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.json_post(path: '/edits', parameters: edits_params)
+      end
+    end
+
+    refute_metrics_recorded(["Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
   end
 
   def test_openai_metric_recorded_for_chat_completions_every_time
-  end
+    in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+        client.chat(parameters: chat_params)
+      end
+    end
 
-  def test_openai_embedding_segment_name
+    assert_metrics_recorded({"Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
   end
 
   def test_openai_chat_completion_segment_name
+    txn = in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    refute_nil chat_completion_segment(txn)
   end
 
-  def test_embeddings_records_embedding_event
+  def test_summary_event_has_duration_of_segment
+    txn = in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    segment = chat_completion_segment(txn)
+
+    assert_equal segment.duration, segment.chat_completion_summary.duration
   end
 
   def test_chat_completion_records_summary_event
@@ -29,15 +59,52 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
         client.chat(parameters: chat_params)
       end
     end
-    _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
+    _, events = @aggregator.harvest!
+    summary_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
 
-    assert_equal 6, events.size
+    assert_equal 1, summary_events.length
+
+    # summary_event = summary_events[0]
+    # assert it has all the required attributes?
   end
 
-  def test_net_http_segment_adds_response_header_attributes_to_event
-    # TODO: the stubs used in the test_chat_completion_records_summary_event
-    # do not trigger the Net::HTTP instrumentation
-    # we need to stub differently to make that get called
-    # or maybe does this stuff go into the Net::HTTP tests?
+  def test_chat_completion_records_message_events
+    in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+    summary_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    assert_equal 5, summary_events.length
+    # assert the events have the right attributes?
+  end
+
+  def test_segment_error_captured_if_raised
+    txn = raise_segment_error
+
+    assert_segment_noticed_error(txn, /.*OpenAI\/create/, RuntimeError.name, /deception/i)
+  end
+
+  def test_segment_summary_event_sets_error_true_if_raised
+    txn = raise_segment_error
+
+    segment = chat_completion_segment(txn)
+
+    refute_nil segment.chat_completion_summary
+    assert segment.chat_completion_summary.error
+  end
+
+  def test_chat_completion_returns_chat_completion_body
+    result = nil
+
+    in_transaction do
+      client.stub(:conn, faraday_connection) do
+        result = client.chat(parameters: chat_params)
+      end
+    end
+
+    assert_equal ChatResponse.new.body, result
   end
 end
