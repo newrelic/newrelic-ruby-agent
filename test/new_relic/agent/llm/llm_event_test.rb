@@ -64,5 +64,15 @@ module NewRelic::Agent::Llm
 
       assert_equal(id, event.id)
     end
+
+    def test_set_llm_agent_attribute_on_transaction
+      in_transaction do |txn|
+        NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
+        NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
+      end
+
+      assert_truthy harvest_transaction_events![1][0][2][:llm]
+      assert_truthy harvest_error_events![1][0][2][:llm]
+    end
   end
 end

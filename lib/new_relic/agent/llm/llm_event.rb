@@ -13,11 +13,18 @@ module NewRelic
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
-
+        LLM_AGENT_ATTRIBUTE_DESTINATIONS = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+          NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
         INGEST_SOURCE = 'Ruby'
         X_REQUEST_ID = 'x-request-id'
+        LLM = :llm
 
         attr_accessor(*ATTRIBUTES)
+
+        def self.set_llm_agent_attribute_on_transaction
+          NewRelic::Agent::Transaction.add_agent_attribute(LLM, true, LLM_AGENT_ATTRIBUTE_DESTINATIONS)
+        end
 
         # This initialize method is used for all subclasses.
         # It leverages the subclass's `attributes` method to iterate through
