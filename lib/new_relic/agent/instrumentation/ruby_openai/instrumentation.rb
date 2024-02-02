@@ -4,7 +4,7 @@
 
 module NewRelic::Agent::Instrumentation
   module OpenAI
-    VENDOR = 'OpenAI' # or SUPPORTBILITY_NAME? or both?
+    VENDOR = 'openAI'
     # TODO: should everything below be called embeddings if we renamed to chat completions?
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
