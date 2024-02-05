@@ -8,8 +8,8 @@ module NewRelic
       class LlmEvent
         # Every subclass must define its own ATTRIBUTES constant, an array of symbols representing
         # that class's unique attributes
-        ATTRIBUTES = %i[id request_id span_id transaction_id
-          trace_id response_model vendor ingest_source]
+        ATTRIBUTES = %i[id request_id span_id transaction_id trace_id
+          response_model vendor ingest_source]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
@@ -17,8 +17,8 @@ module NewRelic
           NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
           NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
         INGEST_SOURCE = 'Ruby'
-        X_REQUEST_ID = 'x-request-id'
         LLM = :llm
+        CUSTOM_ATTRIBUTE_CONVERSATION_ID = 'llm.conversation_id'
 
         attr_accessor(*ATTRIBUTES)
 

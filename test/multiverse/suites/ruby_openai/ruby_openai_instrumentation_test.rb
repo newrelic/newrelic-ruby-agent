@@ -75,9 +75,9 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
     _, events = @aggregator.harvest!
-    summary_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+    message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
-    assert_equal 5, summary_events.length
+    assert_equal 5, message_events.length
     # assert the events have the right attributes?
   end
 
@@ -111,7 +111,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   def test_set_llm_agent_attribute_on_transaction
     in_transaction do |txn|
       client.stub(:conn, faraday_connection) do
-        result = client.chat(parameters: chat_params)
+        client.chat(parameters: chat_params)
       end
     end
 
@@ -127,5 +127,52 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
 
     assert_truthy harvest_error_events![1][0][2][:llm]
+  end
+
+  def test_conversation_id_added_to_summary_events
+    conversation_id = '12345'
+    txn = in_transaction do
+      NewRelic::Agent.add_custom_attributes({'llm.conversation_id' => conversation_id})
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    summary_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
+
+    assert_equal conversation_id, summary_event[1]['conversation_id']
+  end
+
+  def test_conversation_id_added_to_message_events
+    conversation_id = '12345'
+    txn = in_transaction do
+      NewRelic::Agent.add_custom_attributes({'llm.conversation_id' => conversation_id})
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    message_events.each do |event|
+      assert_equal conversation_id, event[1]['conversation_id']
+    end
+  end
+
+  def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
+    txn = in_transaction do
+      NewRelic::Agent.add_custom_attributes({unique: 'attr'})
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    events.each do |event|
+      binding.irb
+      refute conversation_id, event[1]['conversation_id']
+    end
   end
 end

@@ -52,21 +52,24 @@ module NewRelic::Agent::Instrumentation
       event = create_chat_completion_summary(parameters)
       segment.chat_completion_summary = event
       messages = create_chat_completion_messages(parameters, event.id)
-      response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-      add_response_params(parameters, response, event) if response
-      messages = update_chat_completion_messages(messages, response, event) if response
 
-      response # return the response to the original caller
-    ensure
-      segment&.finish
-      event&.error = true if segment_noticed_error?(segment)
-      event&.duration = segment&.duration
-      event&.record # always record the event
-      messages&.each { |m| m&.record }
+      begin
+        response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        add_response_params(parameters, response, event) if response
+        messages = update_chat_completion_messages(messages, response, event) if response
+
+        response # return the response to the original caller
+      ensure
+        segment&.finish
+        event&.error = true if segment_noticed_error?(segment)
+        event&.duration = segment&.duration
+        event&.record # always record the event
+        messages&.each { |m| m.record }
+      end
     end
 
     def create_chat_completion_summary(parameters)
-      event = NewRelic::Agent::Llm::ChatCompletionSummary.new(
+      NewRelic::Agent::Llm::ChatCompletionSummary.new(
         # metadata => TBD, create API
         vendor: VENDOR,
         conversation_id: conversation_id,
@@ -80,7 +83,7 @@ module NewRelic::Agent::Instrumentation
 
     def create_embedding_event(parameters)
       # TODO: Determine how to access parameters with keys as strings
-      event = NewRelic::Agent::Llm::Embedding.new(
+      NewRelic::Agent::Llm::Embedding.new(
         # metadata => TBD, create API
         vendor: VENDOR,
         input: parameters[:input],
@@ -113,7 +116,7 @@ module NewRelic::Agent::Instrumentation
     def conversation_id
       return @nr_conversation_id if @nr_conversation_id
 
-      @nr_conversation_id ||= NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes['conversation_id']
+      @nr_conversation_id ||= NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes[NewRelic::Agent::Llm::LlmEvent::CUSTOM_ATTRIBUTE_CONVERSATION_ID]
     end
 
     def create_chat_completion_messages(parameters, summary_id)

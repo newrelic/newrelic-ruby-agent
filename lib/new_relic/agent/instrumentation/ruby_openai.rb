@@ -19,9 +19,9 @@ DependencyDetection.defer do
     NewRelic::Agent.logger.info('Installing ruby-openai instrumentation')
 
     if use_prepend?
-      # instead of metaprogramming on OpenAI::Client, we could also use OpenAI::HTTP,
-      # it's a module that's required by OpenAI::Client and contains the
-      # json_post method we're instrumenting
+      # instead of metaprogramming on OpenAI::Client, we could also use
+      # OpenAI::HTTP, it's a module that's required by OpenAI::Client and
+      # contains the json_post method we're instrumenting
       prepend_instrument OpenAI::Client,
         NewRelic::Agent::Instrumentation::OpenAI::Prepend,
         NewRelic::Agent::Instrumentation::OpenAI::VENDOR

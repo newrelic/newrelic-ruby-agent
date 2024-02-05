@@ -37,6 +37,34 @@ module OpenAIHelpers
     }
   end
 
+  def chat_completion_net_http_response_headers
+    {'date' => ['Fri, 02 Feb 2024 17:37:16 GMT'],
+     'content-type' => ['application/json'],
+     'transfer-encoding' => ['chunked'],
+     'connection' => ['keep-alive'],
+     'access-control-allow-origin' => ['*'],
+     'cache-control' => ['no-cache, must-revalidate'],
+     'openai-model' => ['gpt-3.5-turbo-0613'],
+     'openai-organization' => ['user-gr8l0l'],
+     'openai-processing-ms' => ['242'],
+     'openai-version' => ['2020-10-01'],
+     'strict-transport-security' => ['max-age=15724800; includeSubDomains'],
+     'x-ratelimit-limit-requests' => ['5000'],
+     'x-ratelimit-limit-tokens' => ['80000'],
+     'x-ratelimit-remaining-requests' => ['4999'],
+     'x-ratelimit-remaining-tokens' => ['79952'],
+     'x-ratelimit-reset-requests' => ['12ms'],
+     'x-ratelimit-reset-tokens' => ['36ms'],
+     'x-request-id' => ['cabbag3'],
+     'cf-cache-status' => ['DYNAMIC'],
+     'set-cookie' =>
+  ['__cf_bm=8fake_value; path=/; expires=Fri, 02-Feb-24 18:07:16 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    '_cfuvid=fake_value; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None'],
+     'server' => ['cloudflare'],
+     'cf-ray' => ['g2g-SJC'],
+     'alt-svc' => ['h3=":443"; ma=86400']}
+  end
+
   def edits_params
     {
       model: 'text-davinci-edit-001',

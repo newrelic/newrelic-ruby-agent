@@ -5,5 +5,5 @@
 instrumentation_methods :chain, :prepend
 
 gemfile <<~RB
-  gem 'ruby-openai', path: '~/dev/ruby-openai'
+  gem 'ruby-openai'
 RB
