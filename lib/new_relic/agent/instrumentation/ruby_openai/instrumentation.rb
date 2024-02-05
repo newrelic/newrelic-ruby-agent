@@ -27,7 +27,7 @@ module NewRelic::Agent::Instrumentation
     private
 
     def embeddings_instrumentation(parameters)
-      segment = NewRelic::Agent::Tracer.start_segment(SEGMENT_NAME_FORMAT % 'embedding')
+      segment = NewRelic::Agent::Tracer.start_segment(name: SEGMENT_NAME_FORMAT % 'embedding')
       record_openai_metric
       event = create_embeddings_event(parameters)
       segment.embedding = event
