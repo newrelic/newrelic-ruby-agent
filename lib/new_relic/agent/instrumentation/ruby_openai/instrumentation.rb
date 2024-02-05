@@ -74,7 +74,7 @@ module NewRelic::Agent::Instrumentation
         vendor: VENDOR,
         conversation_id: conversation_id,
         api_key_last_four_digits: parse_api_key,
-        request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'], 
+        request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
         request_model: parameters[:model] || parameters['model'],
         temperature: parameters[:temperature] || parameters['temperature']
       )

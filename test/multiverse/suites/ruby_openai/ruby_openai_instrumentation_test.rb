@@ -171,7 +171,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     _, events = @aggregator.harvest!
     events.each do |event|
-      binding.irb
+
       refute conversation_id, event[1]['conversation_id']
     end
   end
