@@ -5,7 +5,6 @@
 module NewRelic::Agent::Instrumentation
   module OpenAI
     VENDOR = 'openAI'
-    # TODO: should everything below be called embeddings if we renamed to chat completions?
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
     SEGMENT_NAME_FORMAT = 'Llm/%s/OpenAI/create'
@@ -19,7 +18,7 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
 
       if path == EMBEDDINGS_PATH
-        embedding_instrumentation(parameters) { yield }
+        embeddings_instrumentation(parameters) { yield }
       elsif path == CHAT_COMPLETIONS_PATH
         chat_completions_instrumentation(parameters) { yield }
       end
@@ -27,17 +26,17 @@ module NewRelic::Agent::Instrumentation
 
     private
 
-    def embedding_instrumentation(parameters)
+    def embeddings_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(SEGMENT_NAME_FORMAT % 'embedding')
       record_openai_metric
-      event = create_embedding_event(parameters)
+      event = create_embeddings_event(parameters)
       segment.embedding = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
 
         response
       ensure
-        add_embedding_response_params(response, event) if response
+        add_embeddings_response_params(response, event) if response
         segment&.finish
         event&.error = true if segment_noticed_error?(segment) # need to test throwing an error
         event&.duration = segment&.duration
@@ -80,7 +79,7 @@ module NewRelic::Agent::Instrumentation
       )
     end
 
-    def create_embedding_event(parameters)
+    def create_embeddings_event(parameters)
       NewRelic::Agent::Llm::Embedding.new(
         # metadata => TBD, create API
         vendor: VENDOR,
@@ -99,7 +98,7 @@ module NewRelic::Agent::Instrumentation
       event.response_choices_finish_reason = response['choices'][0]['finish_reason']
     end
 
-    def add_embedding_response_params(response, event)
+    def add_embeddings_response_params(response, event)
       event.response_model = response['model']
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']

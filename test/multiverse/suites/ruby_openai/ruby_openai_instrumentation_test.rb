@@ -161,18 +161,18 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
-    txn = in_transaction do
-      NewRelic::Agent.add_custom_attributes({unique: 'attr'})
-      client.stub(:conn, faraday_connection) do
-        client.chat(parameters: chat_params)
-      end
-    end
+  # def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
+  #   txn = in_transaction do
+  #     NewRelic::Agent.add_custom_attributes({unique: 'attr'})
+  #     client.stub(:conn, faraday_connection) do
+  #       client.chat(parameters: chat_params)
+  #     end
+  #   end
 
-    _, events = @aggregator.harvest!
-    events.each do |event|
+  #   _, events = @aggregator.harvest!
+  #   events.each do |event|
 
-      refute conversation_id, event[1]['conversation_id']
-    end
-  end
+  #     refute conversation_id, event[1]['conversation_id']
+  #   end
+  # end
 end

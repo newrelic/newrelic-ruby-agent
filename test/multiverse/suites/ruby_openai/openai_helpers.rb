@@ -23,6 +23,13 @@ module OpenAIHelpers
     @client ||= OpenAI::Client.new(access_token: 'FAKE_ACCESS_TOKEN')
   end
 
+  # def embeddings_params
+  #   {
+  #     model: 'text-embedding-ada-002', # Required.
+  #     input: 'The food was delicious and the waiter...'
+  #   }
+  # end
+
   def chat_params
     {
       model: 'gpt-3.5-turbo', # Required.
