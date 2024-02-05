@@ -64,6 +64,7 @@ module NewRelic::Agent::Llm
         summary.response_number_of_messages = 5
         summary.request_model = 'gpt-4-turbo-preview'
         summary.response_model = 'gpt-4'
+        summary.response_organization = 'newrelic-org-abc123'
         summary.response_usage_total_tokens = 20
         summary.response_usage_prompt_tokens = '24'
         summary.response_usage_completion_tokens = '26'
@@ -96,6 +97,7 @@ module NewRelic::Agent::Llm
         assert_equal 5, attributes['response.number_of_messages']
         assert_equal 'gpt-4-turbo-preview', attributes['request.model']
         assert_equal 'gpt-4', attributes['response.model']
+        assert_equal 'newrelic-org-abc123', attributes['response.organization']
         assert_equal 20, attributes['response.usage.total_tokens']
         assert_equal '24', attributes['response.usage.prompt_tokens']
         assert_equal '26', attributes['response.usage.completion_tokens']

@@ -48,13 +48,9 @@ module NewRelic
           return unless parent.instance_variable_defined?(:@chat_completion_summary) || parent.instance_variable_defined?(:@embedding) # and maybe log a warning??
 
           if parent.instance_variable_defined?(:@chat_completion_summary)
-            event = parent.chat_completion_summary
-            event.request_id = response[NewRelic::Agent::Llm::LlmEvent::X_REQUEST_ID] # every event needs this, maybe we should move it someplace else?
-            event.populate_openai_response_headers(response.to_hash)
+            parent.chat_completion_summary.populate_openai_response_headers(response.to_hash)
           elsif parent.instance_variable_defined?(:@embedding)
-            event = parent.embedding
-            event.request_id = response[NewRelic::Agent::Llm::LlmEvent::X_REQUEST_ID] # every event needs this, maybe we should move it someplace else?
-            event.populate_openai_response_headers(response.to_hash)
+            parent.embedding.populate_openai_response_headers(response.to_hash)
           end
         end
       end
