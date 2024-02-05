@@ -74,21 +74,19 @@ module NewRelic::Agent::Instrumentation
         vendor: VENDOR,
         conversation_id: conversation_id,
         api_key_last_four_digits: parse_api_key,
-        # TODO: Determine how to access parameters with keys as strings
-        request_max_tokens: parameters[:max_tokens],
-        request_model: parameters[:model],
-        temperature: parameters[:temperature]
+        request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'], 
+        request_model: parameters[:model] || parameters['model'],
+        temperature: parameters[:temperature] || parameters['temperature']
       )
     end
 
     def create_embedding_event(parameters)
-      # TODO: Determine how to access parameters with keys as strings
       NewRelic::Agent::Llm::Embedding.new(
         # metadata => TBD, create API
         vendor: VENDOR,
-        input: parameters[:input],
+        input: parameters[:input] || parameters['input'],
         api_key_last_four_digits: parse_api_key,
-        request_model: parameters[:model]
+        request_model: parameters[:model] || parameters['model']
       )
     end
 
@@ -156,18 +154,6 @@ module NewRelic::Agent::Instrumentation
         message.conversation_id = conversation_id
         message.request_id = summary.request_id
         message.response_model = response['model']
-      end
-    end
-
-    # Name is defined in Ruby 3.0+
-    # copied from rails code
-    # Parameter keys might be symbols and might be strings
-    # response body keys have always been strings
-    def hash_with_indifferent_access_whatever
-      if Symbol.method_defined?(:name)
-        key.kind_of?(Symbol) ? key.name : key
-      else
-        key.kind_of?(Symbol) ? key.to_s : key
       end
     end
 
