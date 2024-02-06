@@ -82,13 +82,13 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_segment_error_captured_if_raised
-    txn = raise_segment_error
+    txn = raise_chat_segment_error
 
     assert_segment_noticed_error(txn, /.*OpenAI\/create/, RuntimeError.name, /deception/i)
   end
 
   def test_segment_summary_event_sets_error_true_if_raised
-    txn = raise_segment_error
+    txn = raise_chat_segment_error
 
     segment = chat_completion_segment(txn)
 
@@ -108,7 +108,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_equal ChatResponse.new.body, result
   end
 
-  def test_set_llm_agent_attribute_on_transaction
+  def test_set_llm_agent_attribute_on_chat_transaction
     in_transaction do |txn|
       client.stub(:conn, faraday_connection) do
         client.chat(parameters: chat_params)
@@ -118,7 +118,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
 
-  def test_set_llm_agent_attribute_on_error_transaction
+  def test_set_llm_agent_attribute_on_chat_error_transaction
     in_transaction do |txn|
       client.stub(:conn, faraday_connection) do
         client.chat(parameters: chat_params)
@@ -161,18 +161,80 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
   end
 
-  # def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
-  #   txn = in_transaction do
-  #     NewRelic::Agent.add_custom_attributes({unique: 'attr'})
-  #     client.stub(:conn, faraday_connection) do
-  #       client.chat(parameters: chat_params)
-  #     end
-  #   end
+  def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
+    txn = in_transaction do
+      NewRelic::Agent.add_custom_attributes({unique: 'attr'})
+      client.stub(:conn, faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
+    end
 
-  #   _, events = @aggregator.harvest!
-  #   events.each do |event|
+    _, events = @aggregator.harvest!
+    events.each do |event|
 
-  #     refute conversation_id, event[1]['conversation_id']
-  #   end
-  # end
+      refute event[1]['conversation_id']
+    end
+  end
+
+  def test_openai_embedding_segment_name
+    txn = in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    refute_nil embedding_segment(txn)
+  end
+
+  def test_embedding_has_duration_of_segment
+    txn = in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    segment = embedding_segment(txn)
+
+    assert_equal segment.duration, segment.embedding.duration
+  end
+
+  def test_openai_metric_recorded_for_embeddings_every_time
+    in_transaction do
+      client.stub(:conn, faraday_connection) do
+        client.embeddings(parameters: embeddings_params)
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    assert_metrics_recorded({"Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
+  end
+
+  def test_embedding_event_sets_error_true_if_raised
+    txn = raise_embedding_segment_error
+    segment = embedding_segment(txn)
+
+    refute_nil segment.embedding
+    assert segment.embedding.error
+  end
+
+  def test_set_llm_agent_attribute_on_embedding_transaction
+    in_transaction do |txn|
+      client.stub(:conn, faraday_connection) do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    assert_truthy harvest_transaction_events![1][0][2][:llm]
+  end
+
+  def test_set_llm_agent_attribute_on_embedding_error_transaction
+    in_transaction do |txn|
+      client.stub(:conn, faraday_connection) do
+        client.embeddings(parameters: embeddings_params)
+        NewRelic::Agent.notice_error(StandardError.new)
+      end
+    end
+
+    assert_truthy harvest_error_events![1][0][2][:llm]
+  end
 end
