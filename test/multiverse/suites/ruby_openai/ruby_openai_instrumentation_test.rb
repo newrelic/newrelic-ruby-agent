@@ -170,8 +170,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
 
     _, events = @aggregator.harvest!
-    events.each do |event|
 
+    events.each do |event|
       refute event[1]['conversation_id']
     end
   end
