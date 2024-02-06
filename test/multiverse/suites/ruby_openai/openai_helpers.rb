@@ -23,12 +23,12 @@ module OpenAIHelpers
     @client ||= OpenAI::Client.new(access_token: 'FAKE_ACCESS_TOKEN')
   end
 
-  # def embeddings_params
-  #   {
-  #     model: 'text-embedding-ada-002', # Required.
-  #     input: 'The food was delicious and the waiter...'
-  #   }
-  # end
+  def embeddings_params
+    {
+      model: 'text-embedding-ada-002', # Required.
+      input: 'The food was delicious and the waiter...'
+    }
+  end
 
   def chat_params
     {
@@ -96,23 +96,48 @@ module OpenAIHelpers
     faraday_connection
   end
 
-  def simulate_json_post_error
+  def simulate_chat_json_post_error
     client.stub(:conn, error_faraday_connection) do
       client.chat(parameters: chat_params)
     end
+  end
+
+  def simulate_embedding_json_post_error
+    client.stub(:conn, error_faraday_connection) do
+      client.embeddings(parameters: embeddings_params)
+    end
+  end
+
+  def embedding_segment(txn)
+    txn.segments.find { |s| s.name == 'Llm/embedding/OpenAI/create' }
   end
 
   def chat_completion_segment(txn)
     txn.segments.find { |s| s.name == 'Llm/completion/OpenAI/create' }
   end
 
-  def raise_segment_error
+  def raise_chat_segment_error
     txn = nil
 
     begin
       in_transaction('OpenAI') do |ai_txn|
         txn = ai_txn
-        simulate_json_post_error
+        simulate_chat_json_post_error
+      end
+    rescue StandardError
+      # NOOP - allow span and transaction to notice error
+    end
+
+    txn
+  end
+
+  def raise_embedding_segment_error
+    txn = nil
+
+    begin
+      in_transaction('OpenAI') do |ai_txn|
+        txn = ai_txn
+        simulate_embedding_json_post_error
       end
     rescue StandardError
       # NOOP - allow span and transaction to notice error
