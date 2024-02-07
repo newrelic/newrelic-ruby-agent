@@ -8,8 +8,7 @@ RUBY_OPENAI_VERSIONS = [
   [nil, 2.6], # 6.0.0 returns the body, whereas older version return body.to_json
   ['5.0.0', 2.6], # json_post moves from a class method to an instance method
   ['4.3.2', 2.6], # Replace HTTParty with Faraday
-  ['3.4.0', 2.6], # Add OpenAI::Client#chat method
-  ['3.0.3', 2.6] # Add the json_post method as a class method in OpenAI::Client using HTTParty as the HTTP client
+  ['3.4.0', 2.6] # Add OpenAI::Client#chat method
 ]
 
 def gem_list(version = nil)

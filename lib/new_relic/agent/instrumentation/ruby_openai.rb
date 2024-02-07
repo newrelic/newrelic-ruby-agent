@@ -14,7 +14,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(OpenAI) && defined?(OpenAI::Client) && # clear for 3.4.0
-      OPENAI_VERSION > Gem::Version.new('3.0.3')
+      OPENAI_VERSION >= Gem::Version.new('3.4.0')
     # maybe add DT check here eventually?
     # possibly also a config check for ai.enabled
   end
