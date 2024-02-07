@@ -112,15 +112,29 @@ module OpenAIHelpers
     faraday_connection
   end
 
+  def error_httparty_connection
+    def HTTParty.post(*args); raise 'deception'; end
+  end
+
   def simulate_chat_json_post_error
-    connection_client.stub(:conn, error_faraday_connection) do
+    if Gem::Version.new(::Ruby::OpenAI::VERSION) < Gem::Version.new('4.0.0')
+      error_httparty_connection
       client.chat(parameters: chat_params)
+    else
+      connection_client.stub(:conn, error_faraday_connection) do
+        client.chat(parameters: chat_params)
+      end
     end
   end
 
   def simulate_embedding_json_post_error
-    connection_client.stub(:conn, error_faraday_connection) do
+    if Gem::Version.new(::Ruby::OpenAI::VERSION) < Gem::Version.new('4.0.0')
+      error_httparty_connection
       client.embeddings(parameters: embeddings_params)
+    else
+      connection_client.stub(:conn, error_faraday_connection) do
+        client.embeddings(parameters: embeddings_params)
+      end
     end
   end
 

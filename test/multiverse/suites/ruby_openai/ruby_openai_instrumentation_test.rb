@@ -84,18 +84,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_segment_error_captured_if_raised
-    txn = nil
-
-    begin
-      in_transaction('OpenAI') do |ai_txn|
-        txn = ai_txn
-        HTTParty.stub(:post, raise('deception!')) do
-          client.chat(parameters: chat_params)
-        end
-      end
-    rescue StandardError => e
-      # noop
-    end
+    txn = raise_chat_segment_error
 
     assert_segment_noticed_error(txn, /.*OpenAI\/create/, RuntimeError.name, /deception/i)
   end
