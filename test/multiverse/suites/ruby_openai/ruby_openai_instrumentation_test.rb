@@ -17,7 +17,11 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_instrumentation_doesnt_record_anything_with_other_paths_that_use_json_post
-    edits_request
+    in_transaction do
+      stub_post_request do
+        connection_client.json_post(path: '/edits', parameters: edits_params)
+      end
+    end
 
     refute_metrics_recorded(["Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
   end
@@ -84,13 +88,17 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_segment_error_captured_if_raised
-    txn = raise_chat_segment_error
+    txn = raise_segment_error do
+      client.chat(parameters: chat_params)
+    end
 
     assert_segment_noticed_error(txn, /.*OpenAI\/create/, RuntimeError.name, /deception/i)
   end
 
   def test_segment_summary_event_sets_error_true_if_raised
-    txn = raise_chat_segment_error
+    txn = raise_segment_error do
+      client.chat(parameters: chat_params)
+    end
 
     segment = chat_completion_segment(txn)
 
@@ -222,7 +230,9 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_embedding_event_sets_error_true_if_raised
-    txn = raise_embedding_segment_error
+    txn = raise_segment_error do
+      client.embeddings(parameters: embeddings_params)
+    end
     segment = embedding_segment(txn)
 
     refute_nil segment.embedding

@@ -4,6 +4,8 @@
 
 module OpenAIHelpers
   class ChatResponse
+    # TODO: Build OpenAI version comparison helper
+
     def body(return_value: false)
       if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0') || return_value
         {'id' => 'chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq',
@@ -88,14 +90,6 @@ module OpenAIHelpers
     }
   end
 
-  def edits_request
-    in_transaction do
-      stub_post_request do
-        connection_client.json_post(path: '/edits', parameters: edits_params)
-      end
-    end
-  end
-
   # ruby-openai uses Faraday to make requests to the OpenAI API
   # by stubbing the connection, we can avoid making HTTP requests
   def faraday_connection
@@ -116,24 +110,13 @@ module OpenAIHelpers
     def HTTParty.post(*args); raise 'deception'; end
   end
 
-  def simulate_chat_json_post_error
-    if Gem::Version.new(::Ruby::OpenAI::VERSION) < Gem::Version.new('4.0.0')
+  def simulate_error(&blk)
+    if Gem::Version.new(::OpenAI::VERSION) < Gem::Version.new('4.0.0')
       error_httparty_connection
-      client.chat(parameters: chat_params)
+      yield
     else
       connection_client.stub(:conn, error_faraday_connection) do
-        client.chat(parameters: chat_params)
-      end
-    end
-  end
-
-  def simulate_embedding_json_post_error
-    if Gem::Version.new(::Ruby::OpenAI::VERSION) < Gem::Version.new('4.0.0')
-      error_httparty_connection
-      client.embeddings(parameters: embeddings_params)
-    else
-      connection_client.stub(:conn, error_faraday_connection) do
-        client.embeddings(parameters: embeddings_params)
+        yield
       end
     end
   end
@@ -146,28 +129,15 @@ module OpenAIHelpers
     txn.segments.find { |s| s.name == 'Llm/completion/OpenAI/create' }
   end
 
-  def raise_chat_segment_error
+  def raise_segment_error(&blk)
     txn = nil
 
     begin
       in_transaction('OpenAI') do |ai_txn|
         txn = ai_txn
-        simulate_chat_json_post_error
-      end
-    rescue StandardError
-      # NOOP - allow span and transaction to notice error
-    end
-
-    txn
-  end
-
-  def raise_embedding_segment_error
-    txn = nil
-
-    begin
-      in_transaction('OpenAI') do |ai_txn|
-        txn = ai_txn
-        simulate_embedding_json_post_error
+        simulate_error do
+          yield
+        end
       end
     rescue StandardError
       # NOOP - allow span and transaction to notice error
