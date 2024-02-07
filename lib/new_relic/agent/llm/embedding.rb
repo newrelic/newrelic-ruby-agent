@@ -25,7 +25,8 @@ module NewRelic
         end
 
         def attribute_name_exceptions
-          LlmEvent::ATTRIBUTE_NAME_EXCEPTIONS.merge(ResponseHeaders::ATTRIBUTE_NAME_EXCEPTIONS, ATTRIBUTE_NAME_EXCEPTIONS)
+          # TODO: `merge` accepts *args once <Ruby 2.5 is dropped
+          LlmEvent::ATTRIBUTE_NAME_EXCEPTIONS.merge(ResponseHeaders::ATTRIBUTE_NAME_EXCEPTIONS).merge(ATTRIBUTE_NAME_EXCEPTIONS)
         end
 
         def event_name
