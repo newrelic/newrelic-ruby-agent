@@ -9,6 +9,7 @@ module NewRelic::Agent::Instrumentation
       puts "&" * 100
       puts "invoke_model_with_new_relic"
 
+      # make a span or smthng
       response = yield
       parse_attributes_by_model(params, options, response)
       response
@@ -75,52 +76,76 @@ module NewRelic::Agent::Instrumentation
     # request_temperature duration error
 
 
-    def titan_attributes(params, options, result)
+    def titan_attributes(params, options, response)
+      body = JSON.parse(params[:body])
+      response_body = JSON.parse(response.body.read)
+      response.body.rewind
+    
 
-      cc_message = NewRelic::Agent::Llm::ChatCompletionMessage.new
-      cc_summary = NewRelic::Agent::Llm::ChatCompletionSummary.new
-
+      shared_attributes = { }
       # id 
       # AWS Titan -         uuid + -[index of message] 
 
       # LlmEvent attributes
-      cc_message.id             = cc_summary.id             = NewRelic::Agent::GuidGenerator.generate_guid # uuid - 
-      cc_message.request_id     = cc_summary.request_id     = 1 # response headers prbly
-      cc_message.response_model = cc_summary.response_model = params[:model_id]
-      cc_message.vendor         = cc_summary.vendor         = 'bedrock'
-      cc_message.ingest_source  = cc_summary.ingest_source  = 'Ruby'
+      # cc_message.id             = cc_summary.id             = NewRelic::Agent::GuidGenerator.generate_guid # uuid - 
+
+      shared_attributes[:request_id] = 1
+      shared_attributes[:response_model] = params[:model_id]
+      shared_attributes[:vendor] = 'bedrock'
+      shared_attributes[:ingest_source] = 'Ruby'
 
       # ChatCompletion attributes
       # Optional attribute that can be added to a transaction by a customer via add_custom_attribute API
-      # cc_message.conversation_id = cc_summary.conversation_id = 1
+      shared_attributes[:conversation_id] = 
+      conversation_id = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes[NewRelic::Agent::Llm::LlmEvent::CUSTOM_ATTRIBUTE_CONVERSATION_ID]
+
+
+      summary_attributes = {}
+
+      summary_attributes[:api_key_last_four_digits] = 1
+      summary_attributes[:request_max_tokens] = body['maxTokenCount']  
+      summary_attributes[:response_number_of_messages] = 1 + response_body['results'].length
+      summary_attributes[:request_model] = params[:model_id]
+      summary_attributes[:response_organization] = 1 # headers 
+      summary_attributes[:response_usage_total_tokens] = response_body['inputTextTokenCount'] + response_body['results'][0]['tokenCount']
+      summary_attributes[:response_usage_prompt_tokens] = response_body['inputTextTokenCount']
+      # do we add all tokens from responses together?
+      summary_attributes[:response_usage_completion_tokens] = response_body['results'][0]['tokenCount'] 
+      summary_attributes[:response_choices_finish_reason] = response_body['results'][0]['completionReason']
+      summary_attributes[:request_temperature] = body['temperature']
+      summary_attributes[:duration] = 1
+      # summary_attributes[:error] = true # only if an error happened
+
 
       # ChatCompletionMessage attributes
-      body = JSON.parse(params[:body])
-      # binding.irb
-      binding.irb
-      cc_message.content = body['inputText']
-      cc_message.role = 1
-      cc_message.sequence = 1
-      cc_message.completion_id = 1
-      cc_message.is_response = 1
 
-      # ChatCompletionSummary attributes
-      cc_summary.api_key_last_four_digits = 1
-      cc_summary.request_max_tokens = body['maxTokenCount']
-      cc_summary.response_number_of_messages = 1
-      cc_summary.request_model = 1
-      cc_summary.response_organization = 1
-      cc_summary.response_usage_total_tokens = 1
-      cc_summary.response_usage_prompt_tokens = 1
-      cc_summary.response_usage_completion_tokens = 1
-      cc_summary.response_choices_finish_reason = 1
-      cc_summary.request_temperature = body['temperature']
-      cc_summary.duration = 1
-      cc_summary.error = 1
+      messages_attributes = []
 
+      # user input message
+      messages_attributes << {
+        content: body['inputText'],
+        role: 'user',
+        sequence: 0,
+        # completion_id: 1, # id of summary
+        # is_response: 1 # omitted if false
+      }
 
-      # record/fininsh events here?
+      # new one for each result? but also like how do i get multiple results?
+      response_body['results'].each_with_index do |result, index|
+        messages_attributes << {
+          content: result['outputText'],
+          role: 'assistant',
+          sequence: index + 1,
+          # completion_id: 1, # id of summary
+          is_response: true
+
+        }
+      end
+
+      shared_attributes, summary_attributes, messages_attributes
     end
+
+    
 
 
 
