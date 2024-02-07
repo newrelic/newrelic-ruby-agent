@@ -69,8 +69,8 @@ module NewRelic::Agent::Llm
       in_transaction do |txn|
         NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
         NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
-        agent_attributes = txn.instance_variable_get('@attributes').instance_variable_get('@agent_attributes')
-        exceptions = txn.instance_variable_get('@exceptions')
+        agent_attributes = txn.instance_variable_get(:@attributes).instance_variable_get(:@agent_attributes)
+        exceptions = txn.instance_variable_get(:@exceptions)
 
         assert_truthy agent_attributes.include?(:llm)
         assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
