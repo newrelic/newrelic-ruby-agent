@@ -30,10 +30,6 @@ module NewRelic
             segment.record_on_finish = true
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
 
-            if taking_too_long < limit
-              shut it down
-              
-            end
             if finished?
               ::NewRelic::Agent.logger.debug("Transaction #{best_name} has finished but segments still being created, resetting state.")
               NewRelic::Agent::Tracer.state.reset
