@@ -15,6 +15,7 @@ class GemspecFilesTest < Minitest::Test
     #       to see if this behavior persists. Remove the gsub if not.
     # With Ruby 3.3.0-preview2, eval() yields '(eval ...' as the String value
     # when __FILE__ is used so swap out __FILE__ for the known agent root path
+    # Related to Issue #2430
     gem_spec_content.gsub!('__FILE__', "'#{gem_spec_file_path}'")
 
     Dir.chdir(File.dirname(gem_spec_file_path)) do
