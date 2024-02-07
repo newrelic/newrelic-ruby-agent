@@ -7,10 +7,8 @@ module NewRelic::Agent::Instrumentation
     VENDOR = 'openAI'
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
-    SEGMENT_NAME_FORMAT = 'Llm/%s/OpenAI/create'
+    SEGMENT_NAME_FORMAT = 'Llm/%s/OpenAI/create' # TODO: Does the segment name need to end with the name of the method called by the customer?
 
-    # This method is defined in the OpenAI::HTTP module that is included
-    # only in the OpenAI::Client class
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH # do we need return?
 
@@ -38,14 +36,13 @@ module NewRelic::Agent::Instrumentation
       ensure
         add_embeddings_response_params(response, event) if response
         segment&.finish
-        event&.error = true if segment_noticed_error?(segment) # need to test throwing an error
+        event&.error = true if segment_noticed_error?(segment)
         event&.duration = segment&.duration
-        event&.record # always record the event
+        event&.record
       end
     end
 
     def chat_completions_instrumentation(parameters)
-      # TODO: Do we have to start the segment outside the ensure block?
       segment = NewRelic::Agent::Tracer.start_segment(name: SEGMENT_NAME_FORMAT % 'completion')
       record_openai_metric
       event = create_chat_completion_summary(parameters)
@@ -53,16 +50,18 @@ module NewRelic::Agent::Instrumentation
       messages = create_chat_completion_messages(parameters, event.id)
 
       begin
+        # binding.irb
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        # binding.irb
         add_response_params(parameters, response, event) if response
         messages = update_chat_completion_messages(messages, response, event) if response
 
-        response # return the response to the original caller
+        response
       ensure
         segment&.finish
         event&.error = true if segment_noticed_error?(segment)
         event&.duration = segment&.duration
-        event&.record # always record the event
+        event&.record
         messages&.each { |m| m.record }
       end
     end
@@ -90,7 +89,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def add_response_params(parameters, response, event)
-      event.response_number_of_messages = parameters[:messages].size + response['choices'].size
+      event.response_number_of_messages = (parameters[:messages] || parameters['messages']).size + response['choices'].size
       event.response_model = response['model']
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
@@ -108,8 +107,8 @@ module NewRelic::Agent::Instrumentation
       'sk-' + headers['Authorization'][-4..-1]
     end
 
-    # The customer must call add_custom_attributes with conversation_id before
-    # the transaction starts. Otherwise, the conversation_id will be nil
+    # The customer must call add_custom_attributes with llm.conversation_id
+    # before the transaction starts. Otherwise, the conversation_id will be nil
     def conversation_id
       return @nr_conversation_id if @nr_conversation_id
 
@@ -117,8 +116,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_chat_completion_messages(parameters, summary_id)
-      # TODO: Determine how to access parameters with keys as strings
-      parameters[:messages].map.with_index do |message, i|
+      (parameters[:messages] || parameters['messages']).map.with_index do |message, i|
         NewRelic::Agent::Llm::ChatCompletionMessage.new(
           content: message[:content] || message['content'],
           role: message[:role] || message['role'],

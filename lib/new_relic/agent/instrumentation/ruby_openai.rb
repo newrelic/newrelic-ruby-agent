@@ -9,22 +9,28 @@ require_relative 'ruby_openai/prepend'
 DependencyDetection.defer do
   named :'ruby_openai'
 
+  OPENAI_VERSION = Gem::Version.new(OpenAI::VERSION) if defined?(OpenAI)
+  VERSION_5_0_0 = Gem::Version.new('5.0.0')
+
   depends_on do
-    defined?(OpenAI) && defined?(OpenAI::Client)
+    defined?(OpenAI) && defined?(OpenAI::Client) && # clear for 3.4.0
+      OPENAI_VERSION > Gem::Version.new('3.0.3')
     # maybe add DT check here eventually?
     # possibly also a config check for ai.enabled
   end
 
   executes do
     NewRelic::Agent.logger.info('Installing ruby-openai instrumentation')
-
     if use_prepend?
-      # instead of metaprogramming on OpenAI::Client, we could also use
-      # OpenAI::HTTP, it's a module that's required by OpenAI::Client and
-      # contains the json_post method we're instrumenting
-      prepend_instrument OpenAI::Client,
-        NewRelic::Agent::Instrumentation::OpenAI::Prepend,
-        NewRelic::Agent::Instrumentation::OpenAI::VENDOR
+      if OPENAI_VERSION >= VERSION_5_0_0
+        prepend_instrument OpenAI::Client,
+          NewRelic::Agent::Instrumentation::OpenAI::Prepend,
+          NewRelic::Agent::Instrumentation::OpenAI::VENDOR
+      elsif OPENAI_VERSION < VERSION_5_0_0
+        prepend_instrument OpenAI::Client.singleton_class,
+          NewRelic::Agent::Instrumentation::OpenAI::Prepend,
+          NewRelic::Agent::Instrumentation::OpenAI::VENDOR
+      end
     else
       chain_instrument NewRelic::Agent::Instrumentation::OpenAI::Chain,
         NewRelic::Agent::Instrumentation::OpenAI::VENDOR

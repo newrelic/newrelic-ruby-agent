@@ -4,23 +4,31 @@
 
 module OpenAIHelpers
   class ChatResponse
-    def body
-      {'id' => 'chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq',
-       'object' => 'chat.completion',
-       'created' => 1706744788,
-       'model' => 'gpt-3.5-turbo-0613',
-       'choices' =>
-        [{'index' => 0,
-          'message' => {'role' => 'assistant', 'content' => 'The 2020 World Series was played at Globe'},
-          'logprobs' => nil,
-          'finish_reason' => 'length'}],
-       'usage' => {'prompt_tokens' => 53, 'completion_tokens' => 10, 'total_tokens' => 63},
-       'system_fingerprint' => nil}
+    def body(return_value: false)
+      if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0') || return_value
+        {'id' => 'chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq',
+         'object' => 'chat.completion',
+         'created' => 1706744788,
+         'model' => 'gpt-3.5-turbo-0613',
+         'choices' =>
+          [{'index' => 0,
+            'message' => {'role' => 'assistant', 'content' => 'The 2020 World Series was played at Globe'},
+            'logprobs' => nil,
+            'finish_reason' => 'length'}],
+         'usage' => {'prompt_tokens' => 53, 'completion_tokens' => 10, 'total_tokens' => 63},
+         'system_fingerprint' => nil}
+      else
+        "{\n  \"id\": \"chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq\",\n  \"object\": \"chat.completion\",\n  \"created\": 1706744788,\n  \"model\": \"gpt-3.5-turbo-0613\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"The 2020 World Series was played at Globe\"\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"length\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 53,\n    \"completion_tokens\": 10,\n    \"total_tokens\": 63\n  },\n  \"system_fingerprint\": null\n}\n"
+      end
     end
   end
 
   def client
     @client ||= OpenAI::Client.new(access_token: 'FAKE_ACCESS_TOKEN')
+  end
+
+  def connection_client
+    Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('4.3.2') ? OpenAI::Client : client
   end
 
   def embeddings_params
@@ -80,6 +88,14 @@ module OpenAIHelpers
     }
   end
 
+  def edits_request
+    in_transaction do
+      stub_post_request do
+        connection_client.json_post(path: '/edits', parameters: edits_params)
+      end
+    end
+  end
+
   # ruby-openai uses Faraday to make requests to the OpenAI API
   # by stubbing the connection, we can avoid making HTTP requests
   def faraday_connection
@@ -97,13 +113,13 @@ module OpenAIHelpers
   end
 
   def simulate_chat_json_post_error
-    client.stub(:conn, error_faraday_connection) do
+    connection_client.stub(:conn, error_faraday_connection) do
       client.chat(parameters: chat_params)
     end
   end
 
   def simulate_embedding_json_post_error
-    client.stub(:conn, error_faraday_connection) do
+    connection_client.stub(:conn, error_faraday_connection) do
       client.embeddings(parameters: embeddings_params)
     end
   end
@@ -144,5 +160,17 @@ module OpenAIHelpers
     end
 
     txn
+  end
+
+  def stub_post_request(&blk)
+    if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
+      HTTParty.stub(:post, ChatResponse.new.body(return_value: true)) do
+        yield
+      end
+    else
+      connection_client.stub(:conn, faraday_connection) do
+        yield
+      end
+    end
   end
 end
