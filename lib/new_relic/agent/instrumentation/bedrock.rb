@@ -19,11 +19,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing bedrock instrumentation')
+    NewRelic::Agent.logger.info('Installing bedrock instrumentation')
 
     if use_prepend?
       prepend_instrument Aws::BedrockRuntime::Client, NewRelic::Agent::Instrumentation::Bedrock::Prepend
-      # prepend_instrument RubyAmazonBedrock::Runtime, NewRelic::Agent::Instrumentation::BedrockRuntime::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::Bedrock::Chain
     end
