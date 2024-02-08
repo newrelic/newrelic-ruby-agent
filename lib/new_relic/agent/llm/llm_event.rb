@@ -51,6 +51,7 @@ module NewRelic
         end
 
         def record
+          # if an attribute has nil, will it be included?
           NewRelic::Agent.record_custom_event(event_name, event_attributes)
         end
       end
