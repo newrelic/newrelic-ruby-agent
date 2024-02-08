@@ -23,7 +23,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    refute_metrics_recorded(["Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
+    refute_metrics_recorded(["Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"])
   end
 
   def test_openai_metric_recorded_for_chat_completions_every_time

@@ -155,7 +155,6 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
     def record_openai_metric
       NewRelic::Agent.record_metric(SUPPORTABILITY_METRIC, 0.0)
     end
