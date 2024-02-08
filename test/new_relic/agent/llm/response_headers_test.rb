@@ -6,6 +6,11 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class ResponseHeadersTest < Minitest::Test
+
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def openai_response_headers_hash
       # Response headers from a real OpenAI request
       # rubocop:disable Style/StringLiterals, Style/WordArray

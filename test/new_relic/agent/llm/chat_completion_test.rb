@@ -6,6 +6,11 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class ChatCompletionTest < Minitest::Test
+
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_attributes_include_conversation_id
       assert_includes ChatCompletion::ATTRIBUTES, :conversation_id
     end
