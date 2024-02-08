@@ -8,6 +8,7 @@ module NewRelic::Agent::Instrumentation
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
     SEGMENT_NAME_FORMAT = 'Llm/%s/OpenAI/create' # TODO: Does the segment name need to end with the name of the method called by the customer?
+    SUPPORTABILITY_METRIC = "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
 
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH # do we need return?
@@ -155,9 +156,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     # the preceding :: are necessary to access the OpenAI module defined in the gem rather than the current module
-    # TODO: discover whether this metric name should be prepended with 'Supportability'
     def record_openai_metric
-      NewRelic::Agent.record_metric("Ruby/ML/OpenAI/#{::OpenAI::VERSION}", 0.0)
+      NewRelic::Agent.record_metric(SUPPORTABILITY_METRIC, 0.0)
     end
 
     def segment_noticed_error?(segment)

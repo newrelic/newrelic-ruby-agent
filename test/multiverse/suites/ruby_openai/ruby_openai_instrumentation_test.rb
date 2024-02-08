@@ -34,7 +34,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_metrics_recorded({"Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
+    assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
   end
 
   def test_openai_chat_completion_segment_name
@@ -226,7 +226,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_metrics_recorded({"Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
+    assert_metrics_recorded({"Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}" => {call_count: 2}})
   end
 
   def test_embedding_event_sets_error_true_if_raised
