@@ -33,6 +33,10 @@ module NewRelic
 
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
             segment.process_response_headers(wrapped_response)
+
+            # do this differently
+            NewRelic::Agent::Tracer.current_transaction.aws_request_id = wrapped_response['x-amzn-requestid'] if NewRelic::Agent::Tracer.current_transaction
+
             response
           ensure
             segment&.finish

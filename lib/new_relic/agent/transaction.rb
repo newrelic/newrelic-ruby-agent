@@ -57,6 +57,8 @@ module NewRelic
       # A Time instance for the start time, never nil
       attr_accessor :start_time
 
+
+      attr_accessor :aws_request_id
       # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
