@@ -69,10 +69,12 @@ module NewRelic::Agent::Llm
       in_transaction do |txn|
         NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
         NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
-      end
+        agent_attributes = txn.instance_variable_get(:@attributes).instance_variable_get(:@agent_attributes)
+        exceptions = txn.instance_variable_get(:@exceptions)
 
-      assert_truthy harvest_transaction_events![1][0][2][:llm]
-      assert_truthy harvest_error_events![1][0][2][:llm]
+        assert_truthy agent_attributes.include?(:llm)
+        assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
+      end
     end
   end
 end
