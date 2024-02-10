@@ -7,7 +7,8 @@ module NewRelic::Agent::Instrumentation
     VENDOR = 'openAI'
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
-    SEGMENT_NAME_FORMAT = 'Llm/%s/OpenAI/create' # TODO: Does the segment name need to end with the name of the method called by the customer?
+    EMBEDDINGS_SEGMENT_NAME = 'Llm/embedding/OpenAI/embeddings'
+    CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
     SUPPORTABILITY_METRIC = "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
 
     def json_post_with_new_relic(path:, parameters:)
@@ -26,7 +27,7 @@ module NewRelic::Agent::Instrumentation
     private
 
     def embeddings_instrumentation(parameters)
-      segment = NewRelic::Agent::Tracer.start_segment(name: SEGMENT_NAME_FORMAT % 'embedding')
+      segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
       segment.embedding = event
@@ -44,7 +45,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def chat_completions_instrumentation(parameters)
-      segment = NewRelic::Agent::Tracer.start_segment(name: SEGMENT_NAME_FORMAT % 'completion')
+      segment = NewRelic::Agent::Tracer.start_segment(name: CHAT_COMPLETIONS_SEGMENT_NAME)
       record_openai_metric
       event = create_chat_completion_summary(parameters)
       segment.chat_completion_summary = event
