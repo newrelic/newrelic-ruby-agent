@@ -27,11 +27,23 @@ module NewRelic
           @connect_state == :disconnected
         end
 
-        # Don't connect if we're already connected, or if we tried to connect
-        # and were rejected with prejudice because of a license issue, unless
-        # we're forced to by force_reconnect.
+        def serverless
+          @connect_state = :serverless
+        end
+
+        def serverless?
+          @connect_state == :serverless
+        end
+
+        def ready?
+          connected? || serverless?
+        end
+
+        # Don't connect if we're already connected, if we're in serverless mode,
+        # or if we tried to connect and were rejected with prejudice because of
+        # a license issue, unless we're forced to by force_reconnect.
         def should_connect?(force = false)
-          force || (!connected? && !disconnected?)
+          force || (!ready? && !disconnected?)
         end
 
         # Per the spec at
@@ -62,10 +74,8 @@ module NewRelic
         # no longer try to connect to the server, saving the
         # application and the server load
         def handle_license_error(error)
-          ::NewRelic::Agent.logger.error( \
-            error.message, \
-            'Visit NewRelic.com to obtain a valid license key, or to upgrade your account.'
-          )
+          ::NewRelic::Agent.logger.error(error.message,
+            'Visit NewRelic.com to obtain a valid license key, or to upgrade your account.')
           disconnect
         end
 
@@ -94,7 +104,7 @@ module NewRelic
         # connects, then configures the agent using the response from
         # the connect service
         def connect_to_server
-          request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new( \
+          request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(
             @service,
             Agent.config,
             event_harvest_config,
@@ -141,7 +151,7 @@ module NewRelic
         end
 
         def wait_on_connect(timeout)
-          return if connected?
+          return if ready?
 
           @waited_on_connect = true
           NewRelic::Agent.logger.debug('Waiting on connect to complete.')
@@ -150,7 +160,7 @@ module NewRelic
             @wait_on_connect_condition.wait(@wait_on_connect_mutex, timeout)
           end
 
-          unless connected?
+          unless ready?
             raise WaitOnConnectTimeout, "Agent was unable to connect in #{timeout} seconds."
           end
         end

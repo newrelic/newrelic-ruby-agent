@@ -34,6 +34,7 @@ require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
+require 'new_relic/agent/serverless_handler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
 
@@ -96,6 +97,7 @@ module NewRelic
         @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
+        @serverless_handler = ServerlessHandler.new
       end
 
       def init_event_handlers
@@ -172,6 +174,7 @@ module NewRelic
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
+        attr_reader :serverless_handler
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
@@ -237,7 +240,7 @@ module NewRelic
 
         def install_pipe_service(channel_id)
           @service = PipeService.new(channel_id)
-          if connected?
+          if ready?
             @connected_pid = Process.pid
           else
             ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
@@ -307,8 +310,8 @@ module NewRelic
           @stats_engine = StatsEngine.new
         end
 
-        def flush_pipe_data
-          if connected? && @service.is_a?(PipeService)
+        def flush_pipe_data # used only by resque
+          if ready? && @service.is_a?(PipeService)
             transmit_data_types
           end
         end

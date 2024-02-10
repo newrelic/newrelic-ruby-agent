@@ -127,8 +127,9 @@ module NewRelic
         def deferred_work!(connection_options)
           catch_errors do
             NewRelic::Agent.disable_all_tracing do
+              serverless if NewRelic::Agent.config[:'serverless_mode.enabled']
               connect(connection_options)
-              if connected?
+              if ready?
                 create_and_run_event_loop
                 # never reaches here unless there is a problem or
                 # the agent is exiting

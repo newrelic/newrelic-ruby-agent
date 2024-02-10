@@ -554,6 +554,8 @@ module NewRelic
       # enough to be worth compressing, and handles any errors the
       # server may return
       def invoke_remote(method, payload = [], options = {})
+        return NewRelic::Agent.agent.serverless_handler.write(method, payload) if NewRelic::Agent.agent.serverless?
+
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         request_send_ts, response_check_ts = nil
         data, encoding, size, serialize_finish_ts = marshal_payload(method, payload, options)
@@ -561,8 +563,10 @@ module NewRelic
         response, request_send_ts, response_check_ts = invoke_remote_send_request(method, payload, data, encoding)
         @marshaller.load(decompress_response(response))
       ensure
-        record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
-        record_size_supportability_metrics(method, size, options[:item_count]) if size
+        unless NewRelic::Agent.agent.serverless?
+          record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
+          record_size_supportability_metrics(method, size, options[:item_count]) if size
+        end
       end
 
       def handle_serialization_error(method, e)

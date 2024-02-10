@@ -1808,6 +1808,18 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
         },
+        # Serverless
+        :'serverless_mode.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :transform => proc { |bool|
+            ENV.key?(NewRelic::Agent::ServerlessHandler::LAMBDA_ENVIRONMENT_VARIABLE) || bool
+          },
+          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short lived ' \
+                          'serverless functions.'
+        },
         # Sidekiq
         :'sidekiq.args.include' => {
           default: NewRelic::EMPTY_ARRAY,
