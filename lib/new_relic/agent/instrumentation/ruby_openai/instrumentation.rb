@@ -96,7 +96,6 @@ module NewRelic::Agent::Instrumentation
     end
 
     def add_embeddings_response_params(response, event)
-      binding.irb
       event.response_model = response['model']
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']

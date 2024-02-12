@@ -28,7 +28,7 @@ module OpenAIHelpers
       if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('4.3.2') || return_value
         nil
       else
-        {"error"=>{"message"=>"you must provide a model parameter", "type"=>"invalid_request_error", "param"=>nil, "code"=>nil}}
+        {'error' => {'message' => 'you must provide a model parameter', 'type' => 'invalid_request_error', 'param' => nil, 'code' => nil}}
       end
     end
   end
