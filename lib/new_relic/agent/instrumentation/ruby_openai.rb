@@ -20,7 +20,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing ruby-openai instrumentation')
     if use_prepend?
       if OPENAI_VERSION >= VERSION_5_0_0
         prepend_instrument OpenAI::Client,

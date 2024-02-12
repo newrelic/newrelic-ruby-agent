@@ -8,8 +8,6 @@ module NewRelic::Agent::Instrumentation
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
     EMBEDDINGS_SEGMENT_NAME = 'Llm/embedding/OpenAI/embeddings'
-    CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
-    SUPPORTABILITY_METRIC = "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
 
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH # do we need return?
@@ -33,10 +31,10 @@ module NewRelic::Agent::Instrumentation
       segment.embedding = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        add_embeddings_response_params(response, event) if response && !response.include?('error')
 
         response
       ensure
-        add_embeddings_response_params(response, event) if response
         segment&.finish
         event&.error = true if segment_noticed_error?(segment)
         event&.duration = segment&.duration
@@ -52,10 +50,8 @@ module NewRelic::Agent::Instrumentation
       messages = create_chat_completion_messages(parameters, event.id)
 
       begin
-        # binding.irb
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-        # binding.irb
-        add_response_params(parameters, response, event) if response
+        add_response_params(parameters, response, event) if response && !response.include?('error')
         messages = update_chat_completion_messages(messages, response, event) if response
 
         response
@@ -157,11 +153,15 @@ module NewRelic::Agent::Instrumentation
     end
 
     def record_openai_metric
-      NewRelic::Agent.record_metric(SUPPORTABILITY_METRIC, 0.0)
+      NewRelic::Agent.record_metric(nr_supportability_metric, 0.0)
     end
 
     def segment_noticed_error?(segment)
       segment&.instance_variable_get(:@noticed_error)
+    end
+
+    def nr_supportability_metric
+      @nr_supportability_metric ||= "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
     end
   end
 end

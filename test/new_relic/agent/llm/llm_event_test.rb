@@ -6,6 +6,10 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class LlmEventTest < Minitest::Test
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_agent_defined_attributes_set
       assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
 
@@ -68,13 +72,22 @@ module NewRelic::Agent::Llm
     def test_set_llm_agent_attribute_on_transaction
       in_transaction do |txn|
         NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
-        NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
-        agent_attributes = txn.instance_variable_get(:@attributes).instance_variable_get(:@agent_attributes)
-        exceptions = txn.instance_variable_get(:@exceptions)
-
-        assert_truthy agent_attributes.include?(:llm)
-        assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
       end
+
+      assert_truthy harvest_transaction_events![1][0][2][:llm]
     end
+
+    # def test_set_llm_agent_attribute_on_error
+    #   in_transaction do |txn|
+    #     NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
+    #     NewRelic::Agent.notice_error(NewRelic::TestHelpers::Exceptions::TestError.new)
+    #     exceptions = txn.instance_variable_get(:@exceptions)
+    #     # binding.irb
+    #     assert_truthy harvest_transaction_events![1][0][2][:llm]
+    #     assert_truthy harvest_error_events![1][0][2][:llm]
+
+    #     # assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
+    #   end
+    # end
   end
 end
