@@ -31,10 +31,10 @@ module NewRelic::Agent::Instrumentation
       segment.embedding = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+        add_embeddings_response_params(response, event) if response && !response.include?('error')
 
         response
       ensure
-        add_embeddings_response_params(response, event) if response
         segment&.finish
         event&.error = true if segment_noticed_error?(segment)
         event&.duration = segment&.duration
@@ -50,10 +50,8 @@ module NewRelic::Agent::Instrumentation
       messages = create_chat_completion_messages(parameters, event.id)
 
       begin
-        # binding.irb
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-        # binding.irb
-        add_response_params(parameters, response, event) if response
+        add_response_params(parameters, response, event) if response && !response.include?('error')
         messages = update_chat_completion_messages(messages, response, event) if response
 
         response
@@ -98,6 +96,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def add_embeddings_response_params(response, event)
+      binding.irb
       event.response_model = response['model']
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']

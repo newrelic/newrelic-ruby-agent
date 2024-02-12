@@ -6,7 +6,6 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class EmbeddingTest < Minitest::Test
-
     def setup
       NewRelic::Agent.drop_buffered_data
     end

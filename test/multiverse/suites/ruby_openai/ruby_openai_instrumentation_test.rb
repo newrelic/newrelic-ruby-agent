@@ -259,4 +259,15 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     assert_truthy harvest_error_events![1][0][2][:llm]
   end
+
+  def test_missing_parameters
+    in_transaction do |txn|
+      stub_error_post_request do
+        client.embeddings(parameters: missing_embeddings_param)
+        NewRelic::Agent.notice_error(StandardError.new)
+      end
+    end
+
+    assert_truthy harvest_error_events![1][0][2][:llm]
+  end
 end

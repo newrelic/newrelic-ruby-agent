@@ -23,6 +23,14 @@ module OpenAIHelpers
         "{\n  \"id\": \"chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq\",\n  \"object\": \"chat.completion\",\n  \"created\": 1706744788,\n  \"model\": \"gpt-3.5-turbo-0613\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"The 2020 World Series was played at Globe\"\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"length\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 53,\n    \"completion_tokens\": 10,\n    \"total_tokens\": 63\n  },\n  \"system_fingerprint\": null\n}\n"
       end
     end
+
+    def error_response(return_value: false)
+      if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('4.3.2') || return_value
+        nil
+      else
+        {"error"=>{"message"=>"you must provide a model parameter", "type"=>"invalid_request_error", "param"=>nil, "code"=>nil}}
+      end
+    end
   end
 
   def client
@@ -40,6 +48,12 @@ module OpenAIHelpers
     }
   end
 
+  def missing_embeddings_param
+    {
+      input: 'The food was delicious and the waiter...'
+    }
+  end
+
   def chat_params
     {
       model: 'gpt-3.5-turbo', # Required.
@@ -51,6 +65,25 @@ module OpenAIHelpers
       ],
       temperature: 0.7,
       max_tokens: 10
+    }
+  end
+
+  def missing_chat_param
+    {
+      model: 'gpt-3.5-turbo', # Required.
+      temperature: 0.7,
+      max_tokens: 10
+    }
+  end
+
+  def missing_chat_param_response
+    {
+      "error": {
+        "message": "'messages' is a required property",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": null
+      }
     }
   end
 
@@ -149,6 +182,18 @@ module OpenAIHelpers
   def stub_post_request(&blk)
     if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
       HTTParty.stub(:post, ChatResponse.new.body(return_value: true)) do
+        yield
+      end
+    else
+      connection_client.stub(:conn, faraday_connection) do
+        yield
+      end
+    end
+  end
+
+  def stub_error_post_request(&blk)
+    if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
+      HTTParty.stub(:post, ChatResponse.new.error_response(return_value: true)) do
         yield
       end
     else
