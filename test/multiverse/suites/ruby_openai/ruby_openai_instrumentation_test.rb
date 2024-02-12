@@ -56,7 +56,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     segment = chat_completion_segment(txn)
 
-    assert_equal segment.duration, segment.chat_completion_summary.duration
+    assert_equal segment.duration, segment.llm_event.duration
   end
 
   def test_chat_completion_records_summary_event
@@ -102,8 +102,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     segment = chat_completion_segment(txn)
 
-    refute_nil segment.chat_completion_summary
-    assert segment.chat_completion_summary.error
+    refute_nil segment.llm_event
+    assert segment.llm_event.error
   end
 
   def test_chat_completion_returns_chat_completion_body
@@ -215,7 +215,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     segment = embedding_segment(txn)
 
-    assert_equal segment.duration, segment.embedding.duration
+    assert_equal segment.duration, segment.llm_event.duration
   end
 
   def test_openai_metric_recorded_for_embeddings_every_time
@@ -235,8 +235,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
     segment = embedding_segment(txn)
 
-    refute_nil segment.embedding
-    assert segment.embedding.error
+    refute_nil segment.llm_event
+    assert segment.llm_event.error
   end
 
   def test_set_llm_agent_attribute_on_embedding_transaction
