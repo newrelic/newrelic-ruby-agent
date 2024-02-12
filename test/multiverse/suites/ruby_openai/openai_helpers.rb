@@ -68,25 +68,6 @@ module OpenAIHelpers
     }
   end
 
-  def missing_chat_param
-    {
-      model: 'gpt-3.5-turbo', # Required.
-      temperature: 0.7,
-      max_tokens: 10
-    }
-  end
-
-  def missing_chat_param_response
-    {
-      "error": {
-        "message": "'messages' is a required property",
-        "type": "invalid_request_error",
-        "param": null,
-        "code": null
-      }
-    }
-  end
-
   def chat_completion_net_http_response_headers
     {'date' => ['Fri, 02 Feb 2024 17:37:16 GMT'],
      'content-type' => ['application/json'],
