@@ -8,6 +8,7 @@ module NewRelic::Agent::Instrumentation
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
     EMBEDDINGS_SEGMENT_NAME = 'Llm/embedding/OpenAI/embeddings'
+    CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
 
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH # do we need return?
