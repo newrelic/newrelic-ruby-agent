@@ -8,8 +8,8 @@ module NewRelic::Agent::Instrumentation
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
     EMBEDDINGS_PATH = '/embeddings'
     CHAT_COMPLETIONS_PATH = '/chat/completions'
-    EMBEDDINGS_SEGMENT_NAME = "Llm/embedding/OpenAI/embeddings"
-    CHAT_COMPLETIONS_SEGMENT_NAME = "Llm/completion/OpenAI/chat"
+    EMBEDDINGS_SEGMENT_NAME = 'Llm/embedding/OpenAI/embeddings'
+    CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
 
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH
