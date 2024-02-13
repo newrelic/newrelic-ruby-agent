@@ -134,11 +134,11 @@ module OpenAIHelpers
   end
 
   def embedding_segment(txn)
-    txn.segments.find { |s| s.name == 'Llm/embedding/openAI/embeddings' }
+    txn.segments.find { |s| s.name == 'Llm/embedding/OpenAI/embeddings' }
   end
 
   def chat_completion_segment(txn)
-    txn.segments.find { |s| s.name == 'Llm/completion/openAI/chat' }
+    txn.segments.find { |s| s.name == 'Llm/completion/OpenAI/chat' }
   end
 
   def raise_segment_error(&blk)

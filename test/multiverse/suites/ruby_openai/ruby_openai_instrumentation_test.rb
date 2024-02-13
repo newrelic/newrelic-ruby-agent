@@ -90,7 +90,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       client.chat(parameters: chat_params)
     end
 
-    assert_segment_noticed_error(txn, /Llm.*openAI\/.*/, RuntimeError.name, /deception/i)
+    assert_segment_noticed_error(txn, /Llm.*OpenAI\/.*/, RuntimeError.name, /deception/i)
   end
 
   def test_segment_summary_event_sets_error_true_if_raised
