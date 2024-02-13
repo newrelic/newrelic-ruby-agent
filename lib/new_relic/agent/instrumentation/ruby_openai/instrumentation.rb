@@ -122,7 +122,7 @@ module NewRelic::Agent::Instrumentation
           sequence: index,
           completion_id: summary_id,
           vendor: VENDOR,
-          is_response: false
+          is_response: true
         )
       end
     end
