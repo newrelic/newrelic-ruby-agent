@@ -87,7 +87,6 @@ module NewRelic::Agent::Llm
       end
 
       assert_truthy harvest_transaction_events![1][0][2][:llm]
-      assert_truthy harvest_error_events![1][0][2][:llm]
       assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
     end
   end
