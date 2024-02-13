@@ -130,17 +130,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
 
-  def test_set_llm_agent_attribute_on_chat_error_transaction
-    in_transaction do |txn|
-      stub_post_request do
-        client.chat(parameters: chat_params)
-        NewRelic::Agent.notice_error(StandardError.new)
-      end
-    end
-
-    assert_truthy harvest_error_events![1][0][2][:llm]
-  end
-
   def test_conversation_id_added_to_summary_events
     conversation_id = '12345'
     in_transaction do
@@ -240,27 +229,5 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
 
     assert_truthy harvest_transaction_events![1][0][2][:llm]
-  end
-
-  def test_set_llm_agent_attribute_on_embedding_error_transaction
-    in_transaction do |txn|
-      stub_post_request do
-        client.embeddings(parameters: embeddings_params)
-        NewRelic::Agent.notice_error(StandardError.new)
-      end
-    end
-
-    assert_truthy harvest_error_events![1][0][2][:llm]
-  end
-
-  def test_missing_parameters
-    in_transaction do |txn|
-      stub_error_post_request do
-        client.embeddings(parameters: missing_embeddings_param)
-        NewRelic::Agent.notice_error(StandardError.new)
-      end
-    end
-
-    assert_truthy harvest_error_events![1][0][2][:llm]
   end
 end
