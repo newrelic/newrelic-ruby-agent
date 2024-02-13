@@ -6,6 +6,10 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class ChatCompletionMessageTest < Minitest::Test
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::ChatCompletionMessage.ancestors, NewRelic::Agent::Llm::LlmEvent
       assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
@@ -76,7 +80,7 @@ module NewRelic::Agent::Llm
         assert_equal txn.current_segment.guid, attributes['span_id']
         assert_equal txn.guid, attributes['transaction_id']
         assert_equal txn.trace_id, attributes['trace_id']
-        assert_equal 'gpt-4', attributes['response_model']
+        assert_equal 'gpt-4', attributes['response.model']
         assert_equal 'OpenAI', attributes['vendor']
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal 'Red-Tailed Hawk', attributes['content']

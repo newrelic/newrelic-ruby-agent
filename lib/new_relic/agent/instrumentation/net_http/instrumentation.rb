@@ -32,17 +32,27 @@ module NewRelic
             end
 
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
-            segment.process_response_headers(wrapped_response)
 
-            # do this differently
-            # binding.irb
-            NewRelic::Agent::Tracer.current_transaction.aws_request_id = wrapped_response['x-amzn-requestid'] if NewRelic::Agent::Tracer.current_transaction
-            NewRelic::Agent::Tracer.current_transaction.response_headers << wrapped_response.to_hash if NewRelic::Agent::Tracer.current_transaction
+            if openai_parent?(segment)
+              populate_openai_response_headers(wrapped_response, segment.parent)
+            end
+
+            segment.process_response_headers(wrapped_response)
 
             response
           ensure
             segment&.finish
           end
+        end
+
+        def openai_parent?(segment)
+          segment&.parent&.name&.match?(/Llm\/.*\/OpenAI\/.*/)
+        end
+
+        def populate_openai_response_headers(response, parent)
+          return unless parent.instance_variable_defined?(:@llm_event)
+
+          parent.llm_event.populate_openai_response_headers(response.to_hash)
         end
       end
     end

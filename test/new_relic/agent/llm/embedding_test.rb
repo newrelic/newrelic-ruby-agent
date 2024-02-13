@@ -6,6 +6,10 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class EmbeddingTest < Minitest::Test
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::Embedding.ancestors, NewRelic::Agent::Llm::LlmEvent
       assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
@@ -46,7 +50,7 @@ module NewRelic::Agent::Llm
         embedding.request_id = '789'
         embedding.api_key_last_four_digits = 'sk-0126'
         embedding.response_model = 'text-embedding-3-large'
-        embedding.response_organization = '98338'
+        embedding.response_organization = 'newrelic-org-abc123'
         embedding.response_usage_total_tokens = '20'
         embedding.response_usage_prompt_tokens = '24'
         embedding.vendor = 'OpenAI'
@@ -73,22 +77,22 @@ module NewRelic::Agent::Llm
         assert_equal txn.trace_id, attributes['trace_id']
         assert_equal 'Bonjour', attributes['input']
         assert_equal 'sk-0126', attributes['api_key_last_four_digits']
-        assert_equal 'text-embedding-ada-002', attributes['request_model']
-        assert_equal 'text-embedding-3-large', attributes['response_model']
-        assert_equal '98338', attributes['response_organization']
-        assert_equal '20', attributes['response_usage_total_tokens']
-        assert_equal '24', attributes['response_usage_prompt_tokens']
+        assert_equal 'text-embedding-ada-002', attributes['request.model']
+        assert_equal 'text-embedding-3-large', attributes['response.model']
+        assert_equal 'newrelic-org-abc123', attributes['response.organization']
+        assert_equal '20', attributes['response.usage.total_tokens']
+        assert_equal '24', attributes['response.usage.prompt_tokens']
         assert_equal 'OpenAI', attributes['vendor']
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal '500', attributes['duration']
         assert_equal 'true', attributes['error']
-        assert_equal '2022-01-01', attributes['llm_version']
-        assert_equal '100', attributes['rate_limit_requests']
-        assert_equal '101', attributes['rate_limit_tokens']
-        assert_equal '102', attributes['rate_limit_reset_tokens']
-        assert_equal '103', attributes['rate_limit_reset_requests']
-        assert_equal '104', attributes['rate_limit_remaining_tokens']
-        assert_equal '105', attributes['rate_limit_remaining_requests']
+        assert_equal '2022-01-01', attributes['response.headers.llm_version']
+        assert_equal '100', attributes['response.headers.ratelimitLimitRequests']
+        assert_equal '101', attributes['response.headers.ratelimitLimitTokens']
+        assert_equal '102', attributes['response.headers.ratelimitResetTokens']
+        assert_equal '103', attributes['response.headers.ratelimitResetRequests']
+        assert_equal '104', attributes['response.headers.ratelimitRemainingTokens']
+        assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
       end
     end
   end
