@@ -33,7 +33,9 @@ module NewRelic
         end
 
         def attribute_name_exceptions
-          # TODO: `merge` accepts *args once <Ruby 2.5 is dropped
+          # TODO: OLD RUBIES < 2.6
+          # Hash#merge accepts multiple arguments in 2.6, so we can reduce this
+          # to a single Hash#merge call with two arguments at that point
           LlmEvent::ATTRIBUTE_NAME_EXCEPTIONS.merge(ResponseHeaders::ATTRIBUTE_NAME_EXCEPTIONS).merge(ATTRIBUTE_NAME_EXCEPTIONS)
         end
 

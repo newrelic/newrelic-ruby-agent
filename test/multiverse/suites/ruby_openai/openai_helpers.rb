@@ -4,8 +4,6 @@
 
 module OpenAIHelpers
   class ChatResponse
-    # TODO: Build OpenAI version comparison helper
-
     def body(return_value: false)
       if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0') || return_value
         {'id' => 'chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq',
@@ -43,7 +41,7 @@ module OpenAIHelpers
 
   def embeddings_params
     {
-      model: 'text-embedding-ada-002', # Required.
+      model: 'text-embedding-ada-002',
       input: 'The food was delicious and the waiter...'
     }
   end
@@ -56,8 +54,8 @@ module OpenAIHelpers
 
   def chat_params
     {
-      model: 'gpt-3.5-turbo', # Required.
-      messages: [ # Required.
+      model: 'gpt-3.5-turbo',
+      messages: [
         {'role' => 'system', 'content': 'You are a helpful assistant.'},
         {'role': 'user', 'content' => 'Who won the world series in 2020?'},
         {'role': 'assistant', 'content': 'The Los Angeles Dodgers won the World Series in 2020.'},
@@ -104,8 +102,8 @@ module OpenAIHelpers
     }
   end
 
-  # ruby-openai uses Faraday to make requests to the OpenAI API
-  # by stubbing the connection, we can avoid making HTTP requests
+  # ruby-openai uses HTTP clients (Faraday, HTTParty) to make requests to the
+  # OpenAI API. By stubbing the connection, we avoid making HTTP requests.
   def faraday_connection
     faraday_connection = Faraday.new
     def faraday_connection.post(*args); ChatResponse.new; end
@@ -136,11 +134,11 @@ module OpenAIHelpers
   end
 
   def embedding_segment(txn)
-    txn.segments.find { |s| s.name == 'Llm/embedding/OpenAI/embeddings' }
+    txn.segments.find { |s| s.name == 'Llm/embedding/openAI/embeddings' }
   end
 
   def chat_completion_segment(txn)
-    txn.segments.find { |s| s.name == 'Llm/completion/OpenAI/chat' }
+    txn.segments.find { |s| s.name == 'Llm/completion/openAI/chat' }
   end
 
   def raise_segment_error(&blk)

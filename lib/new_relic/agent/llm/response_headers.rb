@@ -37,7 +37,7 @@ module NewRelic
         def populate_openai_response_headers(headers)
           # Embedding, ChatCompletionSummary, and ChatCompletionMessage all need
           # request_id, so it's defined in LlmEvent. ChatCompletionMessage
-          # adds the attribute via ChatCompletionSummary
+          # adds the attribute via ChatCompletionSummary.
           self.request_id = headers[X_REQUEST_ID]&.first
           self.response_organization = headers[OPENAI_ORGANIZATION]&.first
           self.llm_version = headers[OPENAI_VERSION]&.first

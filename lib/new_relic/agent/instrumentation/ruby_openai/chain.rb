@@ -19,7 +19,7 @@ module NewRelic::Agent::Instrumentation
           end
         end
 
-        # In versions 3.0.3 - 3.7.0 json_post is a class method
+        # In versions below 4.0.0 json_post is a class method
         # on OpenAI::Client
         class << self
           alias_method(:json_post_without_new_relic, :json_post)

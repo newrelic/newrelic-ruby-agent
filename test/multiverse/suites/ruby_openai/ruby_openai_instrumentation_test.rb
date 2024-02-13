@@ -9,7 +9,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
   def setup
     @aggregator = NewRelic::Agent.agent.custom_event_aggregator
-    NewRelic::Agent.drop_buffered_data
   end
 
   def teardown
@@ -70,8 +69,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     assert_equal 1, summary_events.length
 
-    # summary_event = summary_events[0]
-    # assert it has all the required attributes?
+    # TODO: Write tests that validate the event has the correct attributes
   end
 
   def test_chat_completion_records_message_events
@@ -84,7 +82,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
     assert_equal 5, message_events.length
-    # assert the events have the right attributes?
+    # TODO: Write tests that validate the event has the correct attributes
   end
 
   def test_segment_error_captured_if_raised
@@ -92,7 +90,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       client.chat(parameters: chat_params)
     end
 
-    assert_segment_noticed_error(txn, /Llm.*OpenAI\/.*/, RuntimeError.name, /deception/i)
+    assert_segment_noticed_error(txn, /Llm.*openAI\/.*/, RuntimeError.name, /deception/i)
   end
 
   def test_segment_summary_event_sets_error_true_if_raised
@@ -103,7 +101,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     segment = chat_completion_segment(txn)
 
     refute_nil segment.llm_event
-    assert segment.llm_event.error
+    assert_truthy segment.llm_event.error
   end
 
   def test_chat_completion_returns_chat_completion_body
@@ -176,25 +174,20 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     end
   end
 
-  # Flaky test. Depending on the order the tests are run, the
-  # conversation_id attribute from previous tests may be included on the
-  # events generated here.
-  # def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
-  #   @aggregator.reset!
-  #   in_transaction do |txn|
-  #     txn.attributes.custom_attributes.clear # flaky test, make sure the attributes are always empty
-  #     NewRelic::Agent.add_custom_attributes({unique: 'attr'})
-  #     stub_post_request do
-  #       client.chat(parameters: chat_params)
-  #     end
-  #   end
+  def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
+    in_transaction do |txn|
+      NewRelic::Agent.add_custom_attributes({unique: 'attr'})
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
 
-  #   _, events = @aggregator.harvest!
+    _, events = @aggregator.harvest!
 
-  #   events.each do |event|
-  #     refute event[1]['conversation_id']
-  #   end
-  # end
+    events.each do |event|
+      refute event[1]['conversation_id']
+    end
+  end
 
   def test_openai_embedding_segment_name
     txn = in_transaction do
@@ -236,7 +229,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     segment = embedding_segment(txn)
 
     refute_nil segment.llm_event
-    assert segment.llm_event.error
+    assert_truthy segment.llm_event.error
   end
 
   def test_set_llm_agent_attribute_on_embedding_transaction

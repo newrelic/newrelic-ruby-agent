@@ -12,6 +12,9 @@ module NewRelic
           response_model vendor ingest_source]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
         AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
+        # Some attributes have names that can't be written as symbols used for metaprogramming.
+        # The ATTRIBUTE_NAME_EXCEPTIONS hash should use the symbolized version of the name as the key
+        # and the string version expected by the UI as the value.
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
         LLM_AGENT_ATTRIBUTE_DESTINATIONS = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
           NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
@@ -64,7 +67,7 @@ module NewRelic
         # Some attribute names include periods, which aren't valid values for
         # Ruby method names. This method returns a Hash with the key as the
         # Ruby symbolized version of the attribute and the value as the
-        # period-delimited string expected upstream
+        # period-delimited string expected upstream.
         def attribute_name_exceptions
           ATTRIBUTE_NAME_EXCEPTIONS
         end
