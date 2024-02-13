@@ -189,9 +189,8 @@ module NewRelic::Agent::Instrumentation
     def cohere_command_attributes(body, response_body)
       summary_attributes = {}
 
-      # binding.irb
       summary_attributes[:request_max_tokens] = body['max_tokens']
-      summary_attributes[:response_number_of_messages] = 0
+      summary_attributes[:response_number_of_messages] = 1 + response_body['generations'].length
       summary_attributes[:request_temperature] = body['temperature']
       summary_attributes[:response_usage_prompt_tokens] = 0 # todo need from headers
       summary_attributes[:response_usage_completion_tokens] = 0 # todo  need from headers
@@ -200,17 +199,16 @@ module NewRelic::Agent::Instrumentation
       
       messages_attributes = []
 
-
-      response_body['generations'][0]['id'] # todo do we need this? response id? different from the one in the response header
-
+      # response_body['generations'][0]['id'] # todo do we need this? response id? different from the one in the response header
+      # response_body['id']
       messages_attributes << {
         content: body['prompt'],
         role: 'user',
       }
 
-      response_body['results'].each do |result|
+      response_body['generations'].each do |result|
         messages_attributes << {
-          content: result['outputText'],
+          content: result['text'],
           role: 'assistant',
           is_response: true
         }
