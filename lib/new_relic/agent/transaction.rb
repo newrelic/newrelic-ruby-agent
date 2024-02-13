@@ -59,6 +59,7 @@ module NewRelic
 
 
       attr_accessor :aws_request_id
+      attr_accessor :response_headers
       # A Time instance used for calculating the apdex score, which
       # might end up being @start, or it might be further upstream if
       # we can find a request header for the queue entry time
@@ -243,6 +244,7 @@ module NewRelic
         @ignore_apdex = options.fetch(:ignore_apdex, false)
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
+        @response_headers = []
 
         @sampled = nil
         @priority = nil

@@ -213,6 +213,7 @@ module NewRelic::Agent::Instrumentation
           is_response: true
         }
       end
+      binding.irb
 
       [summary_attributes, messages_attributes]
     end

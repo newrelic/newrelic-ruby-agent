@@ -37,6 +37,7 @@ module NewRelic
             # do this differently
             # binding.irb
             NewRelic::Agent::Tracer.current_transaction.aws_request_id = wrapped_response['x-amzn-requestid'] if NewRelic::Agent::Tracer.current_transaction
+            NewRelic::Agent::Tracer.current_transaction.response_headers << wrapped_response.to_hash if NewRelic::Agent::Tracer.current_transaction
 
             response
           ensure
