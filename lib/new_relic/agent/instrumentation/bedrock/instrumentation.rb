@@ -16,7 +16,7 @@ module NewRelic::Agent::Instrumentation
     ensure
       segment&.finish
       create_llm_events(segment, params, options, response)
-      binding.irb
+      # binding.irb
     end
 
     ##################################################################
@@ -32,7 +32,7 @@ module NewRelic::Agent::Instrumentation
       summary_event = NewRelic::Agent::Llm::ChatCompletionSummary.new(shared)
       @nr_events << summary_event
       summary_event.id = NewRelic::Agent::GuidGenerator.generate_guid
-      summary_event.api_key_last_four_digits = config&.credentials&.access_key_id[-4..-1]
+      # summary_event.api_key_last_four_digits = config&.credentials&.access_key_id[-4..-1] # todo maybe dont do this
       summary_event.request_max_tokens = attributes[:request_max_tokens]
       summary_event.response_number_of_messages = attributes[:response_number_of_messages]
       summary_event.request_model = shared[:response_model]
@@ -65,10 +65,6 @@ module NewRelic::Agent::Instrumentation
     ##################################################################
 
     def create_llm_events(segment, params, options, response)
-      puts params[:model_id]
-      puts 'params: ' + params.to_s
-      puts 'options' + options.to_s
-      puts 'result' + response.to_s
 
       ###################
 
@@ -78,6 +74,14 @@ module NewRelic::Agent::Instrumentation
 
       model = params[:model_id]
 
+
+      puts model
+      puts 'params: ' + params.to_s
+      puts 'body: ' + body.to_s
+      puts 'options:' + options.to_s
+      puts 'response_body:' + response_body.to_s
+
+
       shared_attributes = create_shared_attributes(model)
 
       all_attributes = if model.start_with?('amazon.titan-text-')
@@ -85,7 +89,7 @@ module NewRelic::Agent::Instrumentation
       elsif model.start_with?('anthropic.claude-')
         anthropic_attributes(body, response_body)
       elsif model.start_with?('cohere.command-')
-        # cohere_command_attributes(params, options, result)
+        cohere_command_attributes(body, response_body)
       elsif model.start_with?('meta.llama2-')
         # llama2_attributes(params, options, result)
       elsif model.start_with?('ai21.j2-')
@@ -105,12 +109,13 @@ module NewRelic::Agent::Instrumentation
       # log something
       puts 'oop'
       puts e
+      puts e.backtrace
     end
 
     def create_shared_attributes(model)
       shared_attributes = {}
 
-      shared_attributes[:request_id] = NewRelic::Agent::Tracer.current_transaction&.aws_request_id 
+      shared_attributes[:request_id] = NewRelic::Agent::Tracer.current_transaction&.aws_request_id # todo better
       shared_attributes[:response_model] = model
       shared_attributes[:vendor] = 'bedrock'
 
@@ -153,43 +158,71 @@ module NewRelic::Agent::Instrumentation
       [summary_attributes, messages_attributes]
     end
 
-    def anthropic_attributes(params, options, result)
+    def anthropic_attributes(body, response_body)
       summary_attributes = {}
 
-      # summary_attributes[:request_max_tokens] = body['textGenerationConfig']['maxTokenCount']
-      # summary_attributes[:response_number_of_messages] = 1 + response_body['results'].length
-      # summary_attributes[:request_temperature] = body['textGenerationConfig']['temperature']
-      # summary_attributes[:response_usage_prompt_tokens] = response_body['inputTextTokenCount']
-      # # do we add all tokens from responses together?
-      # summary_attributes[:response_usage_total_tokens] = response_body['inputTextTokenCount'] + response_body['results'][0]['tokenCount']
-      # summary_attributes[:response_usage_completion_tokens] = response_body['results'][0]['tokenCount']
-      # summary_attributes[:response_choices_finish_reason] = response_body['results'][0]['completionReason']
+      summary_attributes[:request_max_tokens] = body['max_tokens_to_sample']
+      summary_attributes[:response_number_of_messages] = 0
+      summary_attributes[:request_temperature] = body['temperature']
+      summary_attributes[:response_usage_prompt_tokens] = 0 # todo need from headers
+      summary_attributes[:response_usage_completion_tokens] = 0 # todo  need from headers
+      summary_attributes[:response_usage_total_tokens] =  summary_attributes[:response_usage_prompt_tokens] + summary_attributes[:response_usage_completion_tokens]
+      summary_attributes[:response_choices_finish_reason] = response_body['stop_reason']
       
       messages_attributes = []
 
-      # messages_attributes << {
-      #   content: body['inputText'],
-      #   role: 'user',
-      # }
+      messages_attributes << {
+        content: body['prompt'],
+        role: 'user',
+      }
 
-      # response_body['results'].each do |result|
-      #   messages_attributes << {
-      #     content: result['outputText'],
-      #     role: 'assistant',
-      #     is_response: true
-      #   }
-      # end
+      messages_attributes << {
+        content: result['completion'],
+        role: 'assistant',
+        is_response: true
+      }
+
 
       [summary_attributes, messages_attributes]
     end
 
-    def cohere_command_attributes(params, options, result)
+    def cohere_command_attributes(body, response_body)
+      summary_attributes = {}
+
+      # binding.irb
+      summary_attributes[:request_max_tokens] = body['max_tokens']
+      summary_attributes[:response_number_of_messages] = 0
+      summary_attributes[:request_temperature] = body['temperature']
+      summary_attributes[:response_usage_prompt_tokens] = 0 # todo need from headers
+      summary_attributes[:response_usage_completion_tokens] = 0 # todo  need from headers
+      summary_attributes[:response_usage_total_tokens] =  summary_attributes[:response_usage_prompt_tokens] + summary_attributes[:response_usage_completion_tokens]
+      summary_attributes[:response_choices_finish_reason] = response_body['generations'][0]['finish_reason']
+      
+      messages_attributes = []
+
+
+      response_body['generations'][0]['id'] # todo do we need this? response id? different from the one in the response header
+
+      messages_attributes << {
+        content: body['prompt'],
+        role: 'user',
+      }
+
+      response_body['results'].each do |result|
+        messages_attributes << {
+          content: result['outputText'],
+          role: 'assistant',
+          is_response: true
+        }
+      end
+
+      [summary_attributes, messages_attributes]
     end
 
-    def llama2_attributes(params, options, result)
+    def llama2_attributes(body, response_body)
     end
 
-    def jurassic_attributes(params, options, result)
+    def jurassic_attributes(body, response_body)
     end
 
     # Embedding:
@@ -197,10 +230,10 @@ module NewRelic::Agent::Instrumentation
     # input api_key_last_four_digits request_model
     # response_organization response_usage_total_tokens
     # response_usage_prompt_tokens duration error
-    def titan_embed_attributes(params, options, result)
+    def titan_embed_attributes(body, response_body)
     end
 
-    def cohere_embed_attributes(params, options, result)
+    def cohere_embed_attributes(body, response_body)
     end
   end
 end
