@@ -167,9 +167,15 @@ module NewRelic::Agent::Instrumentation
 
     def finish(segment, event)
       segment&.finish
-      event&.error = true if segment_noticed_error?(segment)
-      event&.duration = segment&.duration
-      event&.record
+
+      return unless event
+
+      if segment
+        event.error = true if segment_noticed_error?(segment)
+        event.duration = segment.duration
+      end
+
+      event.record
     end
   end
 end
