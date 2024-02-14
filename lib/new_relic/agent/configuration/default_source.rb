@@ -1577,6 +1577,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of `Net::HTTP` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.ruby_openai' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),
           :documentation_default => 'auto',

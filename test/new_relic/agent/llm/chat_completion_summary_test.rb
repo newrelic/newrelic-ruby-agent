@@ -6,6 +6,10 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class ChatCompletionSummaryTest < Minitest::Test
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::ChatCompletionSummary.ancestors, NewRelic::Agent::Llm::LlmEvent
       assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
@@ -64,7 +68,7 @@ module NewRelic::Agent::Llm
         summary.response_number_of_messages = 5
         summary.request_model = 'gpt-4-turbo-preview'
         summary.response_model = 'gpt-4'
-        summary.response_organization = '98338'
+        summary.response_organization = 'newrelic-org-abc123'
         summary.response_usage_total_tokens = 20
         summary.response_usage_prompt_tokens = '24'
         summary.response_usage_completion_tokens = '26'
@@ -94,25 +98,25 @@ module NewRelic::Agent::Llm
         assert_equal txn.trace_id, attributes['trace_id']
         assert_equal 'sk-0713', attributes['api_key_last_four_digits']
         assert_equal 500, attributes['request_max_tokens']
-        assert_equal 5, attributes['response_number_of_messages']
-        assert_equal 'gpt-4-turbo-preview', attributes['request_model']
-        assert_equal 'gpt-4', attributes['response_model']
-        assert_equal '98338', attributes['response_organization']
-        assert_equal 20, attributes['response_usage_total_tokens']
-        assert_equal '24', attributes['response_usage_prompt_tokens']
-        assert_equal '26', attributes['response_usage_completion_tokens']
-        assert_equal 'stop', attributes['response_choices_finish_reason']
+        assert_equal 5, attributes['response.number_of_messages']
+        assert_equal 'gpt-4-turbo-preview', attributes['request.model']
+        assert_equal 'gpt-4', attributes['response.model']
+        assert_equal 'newrelic-org-abc123', attributes['response.organization']
+        assert_equal 20, attributes['response.usage.total_tokens']
+        assert_equal '24', attributes['response.usage.prompt_tokens']
+        assert_equal '26', attributes['response.usage.completion_tokens']
+        assert_equal 'stop', attributes['response.choices.finish_reason']
         assert_equal 'OpenAI', attributes['vendor']
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal '500', attributes['duration']
         assert_equal 'true', attributes['error']
-        assert_equal '2022-01-01', attributes['llm_version']
-        assert_equal '100', attributes['rate_limit_requests']
-        assert_equal '101', attributes['rate_limit_tokens']
-        assert_equal '102', attributes['rate_limit_reset_tokens']
-        assert_equal '103', attributes['rate_limit_reset_requests']
-        assert_equal '104', attributes['rate_limit_remaining_tokens']
-        assert_equal '105', attributes['rate_limit_remaining_requests']
+        assert_equal '2022-01-01', attributes['response.headers.llm_version']
+        assert_equal '100', attributes['response.headers.ratelimitLimitRequests']
+        assert_equal '101', attributes['response.headers.ratelimitLimitTokens']
+        assert_equal '102', attributes['response.headers.ratelimitResetTokens']
+        assert_equal '103', attributes['response.headers.ratelimitResetRequests']
+        assert_equal '104', attributes['response.headers.ratelimitRemainingTokens']
+        assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
       end
     end
   end
