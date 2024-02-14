@@ -19,8 +19,9 @@ module NewRelic
             :'elasticsearch.obfuscate_queries' => true,
             :'transaction_tracer.record_redis_arguments' => false,
 
+            :'ai_monitoring.enabled' => false,
             :'custom_insights_events.enabled' => false,
-            :'strip_exception_messages.enabled' => true
+            :'strip_exception_messages.enabled' => true,
           })
         end
 

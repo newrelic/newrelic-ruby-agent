@@ -364,7 +364,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => true,
+          :allowed_from_server => false,
           :description => 'If `false`, all LLM (OpenAI, Bedrock) instrumentation will be disabled and no metrics, events, or spans will be sent. If `high_security` mode is enabled, no LLM events will be sent.'
         },
         # this is only set via server side config
