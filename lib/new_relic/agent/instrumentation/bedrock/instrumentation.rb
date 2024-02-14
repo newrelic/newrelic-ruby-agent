@@ -5,13 +5,11 @@
 module NewRelic::Agent::Instrumentation
   module Bedrock
     def invoke_model_with_new_relic(params, options)
-      # add instrumentation content here
-      puts '&' * 100
-      puts 'invoke_model_with_new_relic'
-      @nr_events = []
+      @nr_events = [] # tmp
 
       NewRelic::Agent.record_metric("Supportability/Ruby/ML/Bedrock/#{Aws::BedrockRuntime::GEM_VERSION}", 0.0)
       NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
+
       segment = NewRelic::Agent::Tracer.start_segment(name: 'Llm/completion or embed/Bedrock/invoke_model')
       segment.llm_event ||= {}
 
@@ -19,7 +17,7 @@ module NewRelic::Agent::Instrumentation
     ensure
       segment&.finish
       create_llm_events(segment, params, options, response)
-      # binding.irb
+      #   binding.irb
     end
 
     ##################################################################

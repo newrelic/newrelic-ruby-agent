@@ -57,7 +57,6 @@ module NewRelic
       # A Time instance for the start time, never nil
       attr_accessor :start_time
 
-
       attr_accessor :aws_request_id
       attr_accessor :response_headers
       # A Time instance used for calculating the apdex score, which
