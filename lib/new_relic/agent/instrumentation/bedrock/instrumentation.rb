@@ -23,10 +23,6 @@ module NewRelic::Agent::Instrumentation
 
     ##################################################################
 
-    def is_embed_model?(model)
-      model.start_with?('amazon.titan-embed-', 'cohere.embed-')
-    end
-
     def create_llm_events(segment, params, response)
       model, body, response_body = json_parse_params(params, response)
       shared_attributes = create_shared_attributes(model, segment)
@@ -41,6 +37,10 @@ module NewRelic::Agent::Instrumentation
       puts 'oop'
       puts e
       puts e.backtrace
+    end
+
+    def is_embed_model?(model)
+      model.start_with?('amazon.titan-embed-', 'cohere.embed-')
     end
 
     ##################################################################
@@ -108,13 +108,13 @@ module NewRelic::Agent::Instrumentation
     ##################################################################
 
     def create_embed_completion_events(model, body, response_body, shared_attributes, segment)
-      ###
+      embed_attributes = if model.start_with?('amazon.titan-embed-')
+        titan_embed_attributes(params, options, result)
+      elsif model.start_with?('cohere.embed-')
+        cohere_embed_attributes(params, options, result)
+      end
 
-      # elsif model.start_with?('amazon.titan-embed-')
-      #   titan_embed_attributes(params, options, result)
-      # elsif model.start_with?('cohere.embed-')
-      #   cohere_embed_attributes(params, options, result)
-      # end
+
     end
 
     ##################################################################
