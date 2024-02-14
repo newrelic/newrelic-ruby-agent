@@ -74,16 +74,16 @@ module NewRelic::Agent::Instrumentation
 
       summary_event.id = NewRelic::Agent::GuidGenerator.generate_guid
       # summary_event.api_key_last_four_digits = config&.credentials&.access_key_id[-4..-1] # todo maybe dont do this
-      summary_event.request_max_tokens = attributes[:request_max_tokens]
-      summary_event.response_number_of_messages = attributes[:response_number_of_messages]
       summary_event.request_model = shared[:response_model]
-
+      summary_event.response_number_of_messages = attributes[:response_number_of_messages]
+      summary_event.request_temperature = attributes[:request_temperature]
+      
+      summary_event.request_max_tokens = attributes[:request_max_tokens]
       summary_event.response_usage_prompt_tokens = segment&.llm_event&.[](:response_usage_prompt_tokens)&.to_i
       summary_event.response_usage_completion_tokens = segment&.llm_event&.[](:response_usage_completion_tokens)&.to_i
       summary_event.response_usage_total_tokens = summary_event.response_usage_prompt_tokens + summary_event.response_usage_completion_tokens
 
       summary_event.response_choices_finish_reason = attributes[:response_choices_finish_reason]
-      summary_event.request_temperature = attributes[:request_temperature]
       summary_event.duration = segment&.duration
       summary_event.error = true if segment&.noticed_error
 
