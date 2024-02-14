@@ -35,6 +35,8 @@ module NewRelic
 
             if openai_parent?(segment)
               populate_openai_response_headers(wrapped_response, segment.parent)
+            elsif bedrock_parent?(segment)
+              populate_bedrock_response_headers(wrapped_response, segment.parent)
             end
 
             segment.process_response_headers(wrapped_response)
@@ -53,6 +55,16 @@ module NewRelic
           return unless parent.instance_variable_defined?(:@llm_event)
 
           parent.llm_event.populate_openai_response_headers(response.to_hash)
+        end
+
+        def bedrock_parent?(segment)
+          segment&.parent&.name&.match?(/Llm\/.*\/Bedrock\/.*/)
+        end
+
+        def populate_bedrock_response_headers(response, parent)
+          return unless parent.instance_variable_defined?(:@llm_event)
+
+          NewRelic::Agent::Llm::ResponseHeaders.populate_bedrock_response_headers(parent, response.to_hash)
         end
       end
     end

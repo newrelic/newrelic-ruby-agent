@@ -48,6 +48,12 @@ module NewRelic
           self.rate_limit_reset_requests = headers[X_RATELIMIT_RESET_REQUESTS]&.first
           self.rate_limit_reset_tokens = headers[X_RATELIMIT_RESET_TOKENS]&.first
         end
+
+        def self.populate_bedrock_response_headers(segment, headers)
+          segment.llm_event[:request_id] = headers['x-amzn-requestid']&.first
+          segment.llm_event[:response_usage_prompt_tokens] = headers['x-amzn-bedrock-input-token-count']&.first
+          segment.llm_event[:response_usage_completion_tokens] = headers['x-amzn-bedrock-output-token-count']&.first
+        end
       end
     end
   end
