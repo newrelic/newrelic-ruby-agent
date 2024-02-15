@@ -13,7 +13,8 @@ DependencyDetection.defer do
 
   depends_on do
     NewRelic::Agent.config[:'ai_monitoring.enabled'] != false &&
-    # maybe add DT check here eventually?
+      NewRelic::Agent.config[:'instrumentation.ruby_openai'] != 'disabled' &&
+      # maybe add DT check here eventually?
       defined?(OpenAI) && defined?(OpenAI::Client) &&
       OPENAI_VERSION >= Gem::Version.new('3.4.0')
   end
