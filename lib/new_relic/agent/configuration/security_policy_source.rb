@@ -147,6 +147,15 @@ module NewRelic
               permitted_fn: nil
             }
           ],
+          'ai_monitoring' => [
+            {
+              option: :'ai_monitoring.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
+              disabled_value: false,
+              permitted_fn: nil
+            }
+          ],
           'allow_raw_exception_messages' => [
             {
               option: :'strip_exception_messages.enabled',
@@ -202,6 +211,7 @@ module NewRelic
         COLON_COLON = '::'.freeze
 
         def build_overrides(security_policies)
+          binding.irb
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
             SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
