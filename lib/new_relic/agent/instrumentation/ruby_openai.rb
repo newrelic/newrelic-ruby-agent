@@ -12,9 +12,9 @@ DependencyDetection.defer do
   OPENAI_VERSION = Gem::Version.new(OpenAI::VERSION) if defined?(OpenAI)
 
   depends_on do
-    # add a config check for ai_monitoring.enabled
+    NewRelic::Agent.config[:'ai_monitoring.enabled'] != false &&
     # maybe add DT check here eventually?
-    defined?(OpenAI) && defined?(OpenAI::Client) &&
+      defined?(OpenAI) && defined?(OpenAI::Client) &&
       OPENAI_VERSION >= Gem::Version.new('3.4.0')
   end
 

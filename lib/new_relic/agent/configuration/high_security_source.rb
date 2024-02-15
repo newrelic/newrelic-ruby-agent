@@ -21,7 +21,7 @@ module NewRelic
 
             :'ai_monitoring.enabled' => false,
             :'custom_insights_events.enabled' => false,
-            :'strip_exception_messages.enabled' => true,
+            :'strip_exception_messages.enabled' => true
           })
         end
 
