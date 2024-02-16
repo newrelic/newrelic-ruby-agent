@@ -10,6 +10,7 @@ if RUBY_VERSION >= '2.6.0'
   # For a reason I do not yet understand, without limiting 'bson' to < 5.0
   # the CI installs mongo 1.3.1 instead of the current 2.19.3 for this nil
   # version test.
+  # Issue #2447
   gemfile <<~RB
     gem 'mongo'
     gem 'bson', '< 5.0'
