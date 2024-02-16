@@ -35,6 +35,8 @@ module NewRelic
           end
         end
 
+        # The Language Security Policy Source gives customers the ability to
+        # configure high security mode settings.
         # The keys of the security settings map are the names of security
         # policies received from the server. They map to multiple configuration
         # options in the local config. There is a hash of metadata that
