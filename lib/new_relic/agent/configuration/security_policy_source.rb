@@ -211,7 +211,6 @@ module NewRelic
         COLON_COLON = '::'.freeze
 
         def build_overrides(security_policies)
-          binding.irb
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
             SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
