@@ -52,15 +52,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def nr_cluster_name
-      return @nr_cluster_name if @nr_cluster_name
-      return if nr_hosts.empty?
-
-      NewRelic::Agent.disable_all_tracing do
-        @nr_cluster_name ||= perform_request('GET', '/').body['cluster_name']
-      end
-    rescue StandardError => e
-      NewRelic::Agent.logger.error('Failed to get cluster name for elasticsearch', e)
-      nil
+      "#{PRODUCT_NAME}Cluster"
     end
 
     def nr_hosts
