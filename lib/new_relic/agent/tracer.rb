@@ -40,6 +40,34 @@ module NewRelic
           state.current_transaction
         end
 
+        # Some info on new API
+        # Must be called from within a transaction
+        #
+        # @api public
+        #
+        def record_llm_feedback_event(linking_metadata:,
+          rating:,
+          conversation_id: nil,
+          category: nil,
+          message: nil,
+          options: {}) # should customers be able to attach anything they want?
+
+          # anything we want to remove from the metadata hash or add before sending it up?
+
+          return unless NewRelic::Agent::Tracer.current_trace_id # need to be in a current txn
+
+          linking_metadata.merge(options)
+          linking_metadata.update(
+            "rating": rating,
+            "conversation_id": conversation_id,
+            "category": category,
+            "message": message,
+            "ingest_source": "Ruby"
+          )
+
+          NewRelic::Agent.record_custom_event('LlmFeedbackMessage', linking_metadata)
+        end
+
         # Returns the trace_id of the current_transaction, or +nil+ if
         # none exists.
         #
