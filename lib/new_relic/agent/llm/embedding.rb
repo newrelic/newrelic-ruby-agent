@@ -42,23 +42,19 @@ module NewRelic
 
         def error_attributes(exception)
           attrs = {}
-
-          if exception.respond_to?(:response)
-            attrs[ERROR_ATTRIBUTE_STATUS_CODE] = exception.response.dig(:status)
-
-            attrs[ERROR_ATTRIBUTE_CODE] = exception.response.dig(
-              :body,
-              LlmEvent::ERROR_STRING,
-              LlmEvent::CODE_STRING
-            )
-            attrs[ERROR_ATTRIBUTE_PARAM] = exception.response.dig(
-              :body,
-              LlmEvent::ERROR_STRING,
-              LlmEvent::PARAM_STRING
-            )
-          end
-
           attrs[ERROR_EMBEDDING_ID] = id
+
+          error_attributes_from_response(exception, attrs)
+        end
+
+        private
+
+        def error_attributes_from_response(exception, attrs)
+          return attrs unless exception.respond_to?(:response)
+
+          attrs[ERROR_ATTRIBUTE_STATUS_CODE] = exception.response.dig(:status)
+          attrs[ERROR_ATTRIBUTE_CODE] = exception.response.dig(:body, ERROR_STRING, CODE_STRING)
+          attrs[ERROR_ATTRIBUTE_PARAM] = exception.response.dig(:body, ERROR_STRING, PARAM_STRING)
 
           attrs
         end
