@@ -216,6 +216,10 @@ module NewRelic
       def notice_segment_error(segment, exception, options = {})
         return if skip_notice_error?(exception)
 
+        if segment.llm_event
+          options.merge!(segment.llm_event.error_attributes(exception))
+        end
+
         segment.set_noticed_error(create_noticed_error(exception, options))
         exception
       rescue => e

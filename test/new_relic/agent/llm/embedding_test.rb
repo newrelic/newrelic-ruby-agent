@@ -95,5 +95,66 @@ module NewRelic::Agent::Llm
         assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
       end
     end
+
+    def test_error_attributes
+      event = NewRelic::Agent::Llm::Embedding.new
+      expected =
+        {
+          'http.statusCode' => 400,
+          'error.code' => nil,
+          'error.param' => nil,
+          'embedding_id' => event.id
+        }
+      exception = MockFaradayBadResponseError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    def test_error_attributes_for_irregular_exception
+      event = NewRelic::Agent::Llm::Embedding.new
+      expected = {'embedding_id' => event.id}
+      exception = StandardError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    class MockFaradayBadResponseError
+      # Return value from an OpenAI embeddings request without a model parameter
+      # Recorded 21 Feb 2024
+      def response
+        {
+          :status => 400,
+          :headers =>
+          {'date' => 'Wed, 21 Feb 2024 23:50:19 GMT',
+           'content-type' => 'application/json; charset=utf-8',
+           'content-length' => '167',
+           'connection' => 'keep-alive',
+           'vary' => 'Origin',
+           'x-request-id' => 'req_e123',
+           'strict-transport-security' => 'max-age=15724800; includeSubDomains',
+           'cf-cache-status' => 'DYNAMIC',
+           'set-cookie' => 'unused',
+           'server' => 'cloudflare',
+           'cf-ray' => 'unused',
+           'alt-svc' => 'unused'},
+          :body =>
+          {'error' =>
+            {'message' => 'you must provide a model parameter',
+             'type' => 'invalid_request_error',
+             'param' => nil,
+             'code' => nil}},
+          :request =>
+          {:method => :post,
+           :url => '#<URI::HTTPS https://api.openai.com/v1/embeddings>', # this is an instance of a class, not a string, in the real response
+           :url_path => '/v1/embeddings',
+           :params => nil,
+           :headers =>
+            {'Content-Type' => 'application/json',
+             'Authorization' => 'Bearer sk-123',
+             'OpenAI-Organization' => nil},
+           :body => '{"input":"The food was delicious and the waiter..."}'}
+        }
+      end
+    end
   end
 end

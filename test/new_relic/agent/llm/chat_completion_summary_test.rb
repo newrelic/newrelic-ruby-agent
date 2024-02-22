@@ -119,5 +119,68 @@ module NewRelic::Agent::Llm
         assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
       end
     end
+
+    def test_error_attributes
+      event = NewRelic::Agent::Llm::ChatCompletionSummary.new
+      expected =
+        {
+          'http.statusCode' => 400,
+          'error.code' => nil,
+          'error.param' => nil,
+          'completion_id' => event.id
+        }
+      exception = MockFaradayBadResponseError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    def test_error_attributes_for_irregular_exception
+      event = NewRelic::Agent::Llm::ChatCompletionSummary.new
+      expected = {'completion_id' => event.id}
+      exception = StandardError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    class MockFaradayBadResponseError < StandardError
+      # Return value from an OpenAI chat completions request without a model parameter
+      # Recorded 21 Feb 2024
+      def response
+        {
+          :status => 400,
+          :headers =>
+            {'date' => 'Wed, 21 Feb 2024 23:52:49 GMT',
+             'content-type' => 'application/json; charset=utf-8',
+             'content-length' => '167',
+             'connection' => 'keep-alive',
+             'vary' => 'Origin',
+             'x-request-id' => 'req_123',
+             'strict-transport-security' => 'max-age=15724800; includeSubDomains',
+             'cf-cache-status' => 'DYNAMIC',
+             'set-cookie' =>
+            'unused',
+             'server' => 'cloudflare',
+             'cf-ray' => '8592e7bafe24c4b6-SEA',
+             'alt-svc' => 'h3=":443"; ma=86400'},
+          :body =>
+          {'error' =>
+            {'message' => 'you must provide a model parameter',
+             'type' => 'invalid_request_error',
+             'param' => nil,
+             'code' => nil}},
+          :request =>
+          {:method => :post,
+           :url => '#<URI::HTTPS https://api.openai.com/v1/chat/completions>', # this is an instance of a class, not a string, in the real response
+           :url_path => '/v1/chat/completions',
+           :params => nil,
+           :headers =>
+            {'Content-Type' => 'application/json',
+             'Authorization' => 'Bearer sk-123',
+             'OpenAI-Organization' => nil},
+           :body =>
+            '{"messages":[{"role":"system","content":"You are a helpful assistant."},{"role":"user","content":"Who won the world series in 2020?"},{"role":"assistant","content":"The Los Angeles Dodgers won the World Series in 2020."},{"role":"user","content":"Where was it played?"}],"temperature":0.7}'}
+        }
+      end
+    end
   end
 end

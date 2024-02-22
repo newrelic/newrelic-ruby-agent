@@ -16,6 +16,7 @@ module NewRelic
           response_usage_total_tokens: 'response.usage.total_tokens',
           response_usage_prompt_tokens: 'response.usage.prompt_tokens'
         }
+        ERROR_EMBEDDING_ID = 'embedding_id'
         EVENT_NAME = 'LlmEmbedding'
 
         attr_accessor(*ATTRIBUTES)
@@ -37,6 +38,29 @@ module NewRelic
 
         def event_name
           EVENT_NAME
+        end
+
+        def error_attributes(exception)
+          attrs = {}
+
+          if exception.respond_to?(:response)
+            attrs[ERROR_ATTRIBUTE_STATUS_CODE] = exception.response.dig(:status)
+
+            attrs[ERROR_ATTRIBUTE_CODE] = exception.response.dig(
+              :body,
+              LlmEvent::ERROR_STRING,
+              LlmEvent::CODE_STRING
+            )
+            attrs[ERROR_ATTRIBUTE_PARAM] = exception.response.dig(
+              :body,
+              LlmEvent::ERROR_STRING,
+              LlmEvent::PARAM_STRING
+            )
+          end
+
+          attrs[ERROR_EMBEDDING_ID] = id
+
+          attrs
         end
       end
     end

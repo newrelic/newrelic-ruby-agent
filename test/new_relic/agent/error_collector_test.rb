@@ -615,6 +615,25 @@ module NewRelic::Agent
         assert_nothing_harvested_for_segment_errors
       end
 
+      def test_segment_error_with_llm_event_adds_attributes
+        expected_error_attributes = {'embedding_id' => 123}
+        with_segment do |segment|
+          segment.llm_event = NewRelic::Agent::Llm::Embedding.new(id: 123)
+          @error_collector.notice_segment_error(segment, StandardError.new)
+
+          assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
+        end
+      end
+
+      def test_segment_error_without_llm_event
+        with_segment do |segment|
+          @error_collector.notice_segment_error(segment, StandardError.new)
+
+          assert_nil segment.llm_event
+          assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
+        end
+      end
+
       def test_build_customer_callback_hash
         custom_attributes = {billie_eilish: :bored}
         agent_attributes = {'http.statusCode': :bleachers__dont_take_the_money}
