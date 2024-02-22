@@ -19,6 +19,12 @@ module NewRelic
         INGEST_SOURCE = 'Ruby'
         LLM = :llm
         CUSTOM_ATTRIBUTE_CONVERSATION_ID = 'llm.conversation_id'
+        ERROR_ATTRIBUTE_STATUS_CODE = 'http.statusCode'
+        ERROR_ATTRIBUTE_CODE = 'error.code'
+        ERROR_ATTRIBUTE_PARAM = 'error.param'
+        ERROR_STRING = 'error'
+        CODE_STRING = 'code'
+        PARAM_STRING = 'param'
 
         attr_accessor(*ATTRIBUTES)
 
@@ -71,6 +77,11 @@ module NewRelic
 
         def record
           NewRelic::Agent.record_custom_event(event_name, event_attributes)
+        end
+
+        # Subclasses that add attributes to noticed errors will override this method
+        def error_attributes(exception)
+          NewRelic::EMPTY_HASH
         end
 
         private

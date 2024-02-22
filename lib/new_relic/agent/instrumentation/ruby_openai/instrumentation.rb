@@ -33,7 +33,7 @@ module NewRelic::Agent::Instrumentation
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-        # TODO: Remove !response.include?('error) when we drop support for versions below 4.0.0
+        # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
         add_embeddings_response_params(response, event) if response && !response.include?('error')
 
         response
@@ -51,7 +51,7 @@ module NewRelic::Agent::Instrumentation
 
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-        # TODO: Remove !response.include?('error) when we drop support for versions below 4.0.0
+        # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
         if response && !response.include?('error')
           add_chat_completion_response_params(parameters, response, event)
           messages = update_chat_completion_messages(messages, response, event)
