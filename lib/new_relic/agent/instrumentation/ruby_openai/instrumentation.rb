@@ -77,13 +77,37 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-      NewRelic::Agent::Llm::Embedding.new(
+      event = NewRelic::Agent::Llm::Embedding.new(
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
         api_key_last_four_digits: parse_api_key,
         request_model: parameters[:model] || parameters['model']
       )
+      add_llm_custom_attributes(event) if llm_custom_attributes
+    end
+
+    def llm_custom_attributes
+      binding.irb
+      NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes.select { |k,v| k.to_s.match(/llm.*/)}
+    end
+
+    def add_llm_custom_attributes(event)
+      attributes = transform_custom_attributes(llm_custom_attributes)
+      # attributes = llm_custom_attributes
+      binding.irb
+      attributes.map {|k,v| event.instance_variable_set("@#{k}".to_sym, v)}
+      binding.irb
+      event
+    end
+
+    def transform_custom_attributes(attributes)
+      binding.irb
+      # new = attributes.map {|k,v| 
+
+      attributes.each { |k, v| attributes[k.gsub('.', '_')] = v}
+
+      new
     end
 
     def add_chat_completion_response_params(parameters, response, event)
