@@ -81,7 +81,7 @@ module NewRelic
 
         # Subclasses that add attributes to noticed errors will override this method
         def error_attributes(exception)
-          {}
+          NewRelic::EMPTY_HASH
         end
 
         private
