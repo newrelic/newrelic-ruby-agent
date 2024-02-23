@@ -12,12 +12,12 @@ module NewRelic::Agent::Llm
 
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::Embedding.ancestors, NewRelic::Agent::Llm::LlmEvent
-      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
+      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :trace_id
 
       in_transaction do |txn|
         event = NewRelic::Agent::Llm::Embedding.new
 
-        assert_equal txn.guid, event.transaction_id
+        assert_equal txn.trace_id, event.trace_id
       end
     end
 
@@ -48,7 +48,6 @@ module NewRelic::Agent::Llm
       in_transaction do |txn|
         embedding = NewRelic::Agent::Llm::Embedding.new(input: 'Bonjour', request_model: 'text-embedding-ada-002', id: 123)
         embedding.request_id = '789'
-        embedding.api_key_last_four_digits = 'sk-0126'
         embedding.response_model = 'text-embedding-3-large'
         embedding.response_organization = 'newrelic-org-abc123'
         embedding.response_usage_total_tokens = '20'
@@ -73,10 +72,8 @@ module NewRelic::Agent::Llm
         assert_equal 123, attributes['id']
         assert_equal '789', attributes['request_id']
         assert_equal txn.current_segment.guid, attributes['span_id']
-        assert_equal txn.guid, attributes['transaction_id']
         assert_equal txn.trace_id, attributes['trace_id']
         assert_equal 'Bonjour', attributes['input']
-        assert_equal 'sk-0126', attributes['api_key_last_four_digits']
         assert_equal 'text-embedding-ada-002', attributes['request.model']
         assert_equal 'text-embedding-3-large', attributes['response.model']
         assert_equal 'newrelic-org-abc123', attributes['response.organization']
