@@ -8,12 +8,29 @@ require 'new_relic/base64'
 module NewRelic
   module Agent
     class ServerlessHandler
-      VERSION = 1 # TODO
-      METADATA_VERSION = 2 # TODO
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
-      NAMED_PIPE = '/tmp/newrelic-telemetry'
+      METADATA_VERSION = 2 # TODO
       METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results]
+      NAMED_PIPE = '/tmp/newrelic-telemetry'
+      TRANSACTION_NAME = 'lambda_function'
+      VERSION = 1 # TODO
+
+      def lambda_handler(hash = {})
+        # TODO: debug
+        puts "LAMBDA HANDLER: event = #{hash[:event]}"
+        puts "LAMBDA HANDLER: context = #{hash[:context]}"
+        puts "LAMBDA HANDLER: method_name = #{hash[:method_name]}"
+
+        # TODO: cold start detection
+
+        # TODO: supportability metric
+
+        # TODO: category and name
+        NewRelic::Agent::Tracer.in_transaction(category: :other, name: TRANSACTION_NAME) do
+          send(hash[:method_name], hash[:event], hash[:context])
+        end
+      end
 
       def write(method, payload)
         return if METHOD_BLOCKLIST.include?(method)
