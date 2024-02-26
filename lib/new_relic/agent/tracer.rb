@@ -40,34 +40,6 @@ module NewRelic
           state.current_transaction
         end
 
-        # Some info on new API
-        # Must be called from within a transaction
-        #
-        # @api public
-        #
-        def record_llm_feedback_event(linking_metadata:,
-          rating:,
-          conversation_id: nil,
-          category: nil,
-          message: nil,
-          options: {}) # should customers be able to attach anything they want?
-
-          # anything we want to remove from the metadata hash or add before sending it up?
-
-          return unless NewRelic::Agent::Tracer.current_trace_id # need to be in a current txn
-
-          linking_metadata.merge(options)
-          linking_metadata.update(
-            "rating": rating,
-            "conversation_id": conversation_id,
-            "category": category,
-            "message": message,
-            "ingest_source": "Ruby"
-          )
-
-          NewRelic::Agent.record_custom_event('LlmFeedbackMessage', linking_metadata)
-        end
-
         # Returns the trace_id of the current_transaction, or +nil+ if
         # none exists.
         #
@@ -413,6 +385,45 @@ module NewRelic
           raise
         rescue => exception
           log_error('start_datastore_segment', exception)
+        end
+
+        # Records user feedback events for LLM applications.
+        #
+        # @param [String] ID of the trace where the chat completion(s) related
+        #   to the feedback occurred.
+        #
+        # @param [String or Integer] Rating provided by an end user
+        #   (ex: “Good/Bad”, “1-10”).
+        #
+        # @param [optional, String] Category of the feedback as provided by the
+        #   end user (ex: “informative”, “inaccurate”).
+        #
+        # @param start_time [optional, String] Freeform text feedback from an
+        #   end user.
+        #
+        # @param [optional, Hash] Set of key-value pairs to store any other
+        #   desired data to submit with the feedback event.
+        #
+        # @api public
+        def record_llm_feedback_event(trace_id:,
+          rating:,
+          category: nil,
+          message: nil,
+          metadata: {})
+
+          return unless NewRelic::Agent::Tracer.current_trace_id
+
+          feedback_message_event = {
+            'trace_id': trace_id,
+            'rating': rating,
+            'category': category,
+            'message': message,
+            'metadata': metadata,
+            'id': NewRelic::Agent::GuidGenerator.generate_guid,
+            'ingest_source': 'Ruby'
+          }
+
+          NewRelic::Agent.record_custom_event('LlmFeedbackMessage', feedback_message_event)
         end
 
         # This method should only be used by Tracer for access to the
