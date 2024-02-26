@@ -8,9 +8,8 @@ module NewRelic
       class Embedding < LlmEvent
         include ResponseHeaders
 
-        ATTRIBUTES = %i[input api_key_last_four_digits request_model
-          response_usage_total_tokens response_usage_prompt_tokens duration
-          error]
+        ATTRIBUTES = %i[input request_model response_usage_total_tokens
+          response_usage_prompt_tokens duration error]
         ATTRIBUTE_NAME_EXCEPTIONS = {
           request_model: 'request.model',
           response_usage_total_tokens: 'response.usage.total_tokens',

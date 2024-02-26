@@ -8,10 +8,10 @@ module NewRelic
       class LlmEvent
         # Every subclass must define its own ATTRIBUTES constant, an array of symbols representing
         # that class's unique attributes
-        ATTRIBUTES = %i[id request_id span_id transaction_id trace_id
-          response_model vendor ingest_source]
+        ATTRIBUTES = %i[id request_id span_id trace_id response_model vendor
+          ingest_source]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
-        AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
+        AGENT_DEFINED_ATTRIBUTES = %i[span_id trace_id ingest_source]
         # Some attributes have names that can't be written as symbols used for metaprogramming.
         # The ATTRIBUTE_NAME_EXCEPTIONS hash should use the symbolized version of the name as the key
         # and the string version expected by the UI as the value.
@@ -44,7 +44,6 @@ module NewRelic
 
           @id = id || NewRelic::Agent::GuidGenerator.generate_guid
           @span_id = NewRelic::Agent::Tracer.current_span_id
-          @transaction_id = NewRelic::Agent::Tracer.current_transaction&.guid
           @trace_id = NewRelic::Agent::Tracer.current_trace_id
           @ingest_source = INGEST_SOURCE
         end

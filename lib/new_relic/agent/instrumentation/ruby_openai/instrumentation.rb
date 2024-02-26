@@ -69,7 +69,6 @@ module NewRelic::Agent::Instrumentation
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         conversation_id: conversation_id,
-        api_key_last_four_digits: parse_api_key,
         request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
         request_model: parameters[:model] || parameters['model'],
         temperature: parameters[:temperature] || parameters['temperature']
@@ -81,7 +80,6 @@ module NewRelic::Agent::Instrumentation
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
-        api_key_last_four_digits: parse_api_key,
         request_model: parameters[:model] || parameters['model']
       )
     end
@@ -100,10 +98,6 @@ module NewRelic::Agent::Instrumentation
       event.response_model = response['model']
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
-    end
-
-    def parse_api_key
-      'sk-' + headers['Authorization'][-4..-1]
     end
 
     # The customer must call add_custom_attributes with llm.conversation_id
