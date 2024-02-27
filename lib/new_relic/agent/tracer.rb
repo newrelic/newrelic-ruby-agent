@@ -410,7 +410,7 @@ module NewRelic
           category: nil,
           message: nil,
           metadata: {})
-
+          # Requires DT for trace_id, but tested DT off and still get trace_id?
           return unless NewRelic::Agent::Tracer.current_trace_id
 
           feedback_message_event = {
@@ -424,6 +424,10 @@ module NewRelic
           }
 
           NewRelic::Agent.record_custom_event('LlmFeedbackMessage', feedback_message_event)
+        rescue ArgumentError
+          raise
+        rescue => exception
+          log_error('record_llm_feedback_event', exception)
         end
 
         # This method should only be used by Tracer for access to the
