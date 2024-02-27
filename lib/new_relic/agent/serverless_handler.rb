@@ -8,26 +8,24 @@ require 'new_relic/base64'
 module NewRelic
   module Agent
     class ServerlessHandler
+      COLD_START_ATTRIBUTE = 'aws.lambda.coldStart'
+      COLD_START_DESTINATIONS = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+        NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
       METADATA_VERSION = 2 # TODO
       METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results]
       NAMED_PIPE = '/tmp/newrelic-telemetry'
+      SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       TRANSACTION_NAME = 'lambda_function'
       VERSION = 1 # TODO
 
       def lambda_handler(hash = {})
-        # TODO: debug
-        puts "LAMBDA HANDLER: event = #{hash[:event]}"
-        puts "LAMBDA HANDLER: context = #{hash[:context]}"
-        puts "LAMBDA HANDLER: method_name = #{hash[:method_name]}"
-
-        # TODO: cold start detection
-
-        # TODO: supportability metric
+        NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
         # TODO: category and name
         NewRelic::Agent::Tracer.in_transaction(category: :other, name: TRANSACTION_NAME) do
+          notice_cold_start
           send(hash[:method_name], hash[:event], hash[:context])
         end
       end
@@ -63,23 +61,21 @@ module NewRelic
 
         @use_named_pipe = File.exist?(NAMED_PIPE) && File.writable?(NAMED_PIPE)
       end
+
+      def notice_cold_start
+        return unless cold?
+
+        NewRelic::Agent::Tracer.current_transaction&.add_agent_attribute(COLD_START_ATTRIBUTE,
+          true,
+          COLD_START_DESTINATIONS)
+      end
+
+      def cold?
+        return @cold if defined?(@cold)
+
+        @cold = false
+        true
+      end
     end
   end
 end
-
-__END__
-
-        # COLD_START_RECORDED is initialized to "False" when the container
-        # first starts up, and will remain that way until the below lines
-        # of code are encountered during the first transaction after the cold
-        # start. We record this occurence on the transaction so that an
-        # attribute is created, and then set COLD_START_RECORDED to False so
-        # that the attribute is not created again during future invocations of
-        # this container.
-
-        global COLD_START_RECORDED
-        if COLD_START_RECORDED is False:
-            transaction._add_agent_attribute('aws.lambda.coldStart', True)
-            COLD_START_RECORDED = True
-
-
