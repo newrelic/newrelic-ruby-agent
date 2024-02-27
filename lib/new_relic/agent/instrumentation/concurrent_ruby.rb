@@ -10,8 +10,9 @@ DependencyDetection.defer do
   named :'concurrent_ruby'
 
   depends_on do
-    defined?(Concurrent) &&
-      Gem::Version.new(Concurrent::VERSION) >= Gem::Version.new('1.1.5')
+    defined?(::Concurrent) &&
+      defined?(::Concurrent::VERSION) &&
+      Gem::Version.new(::Concurrent::VERSION) >= Gem::Version.new('1.1.5')
   end
 
   executes do
