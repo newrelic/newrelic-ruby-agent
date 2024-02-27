@@ -11,13 +11,13 @@ module NewRelic::Agent::Llm
     end
 
     def test_agent_defined_attributes_set
-      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
+      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :trace_id
 
       in_transaction do |txn|
-        event = NewRelic::Agent::Llm::LlmEvent.new(transaction_id: 'fake')
+        event = NewRelic::Agent::Llm::LlmEvent.new(trace_id: 'fake')
 
-        refute_equal 'fake', event.transaction_id
-        assert_equal txn.guid, event.transaction_id
+        refute_equal 'fake', event.trace_id
+        assert_equal txn.trace_id, event.trace_id
       end
     end
 
@@ -88,6 +88,10 @@ module NewRelic::Agent::Llm
 
       assert_truthy harvest_transaction_events![1][0][2][:llm]
       assert_equal NewRelic::TestHelpers::Exceptions::TestError, exceptions.keys[0].class
+    end
+
+    def test_error_attributes
+      assert_equal NewRelic::EMPTY_HASH, NewRelic::Agent::Llm::LlmEvent.new.error_attributes(StandardError.new)
     end
   end
 end

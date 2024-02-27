@@ -12,12 +12,12 @@ module NewRelic::Agent::Llm
 
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::ChatCompletionSummary.ancestors, NewRelic::Agent::Llm::LlmEvent
-      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
+      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :trace_id
 
       in_transaction do |txn|
         event = NewRelic::Agent::Llm::ChatCompletionSummary.new
 
-        assert_equal txn.guid, event.transaction_id
+        assert_equal txn.trace_id, event.trace_id
       end
     end
 
@@ -58,17 +58,17 @@ module NewRelic::Agent::Llm
       in_transaction do |txn|
         summary = NewRelic::Agent::Llm::ChatCompletionSummary.new(
           id: 123,
-          request_model: 'gpt-4-turbo-preview',
-          api_key_last_four_digits: 'sk-0713'
+          request_model: 'gpt-4-turbo-preview'
         )
         summary.request_id = '789'
         summary.conversation_id = 456
         summary.response_usage_total_tokens = 20
+        summary.request_temperature = 0.7
         summary.request_max_tokens = 500
-        summary.response_number_of_messages = 5
         summary.request_model = 'gpt-4-turbo-preview'
         summary.response_model = 'gpt-4'
         summary.response_organization = 'newrelic-org-abc123'
+        summary.response_number_of_messages = 5
         summary.response_usage_total_tokens = 20
         summary.response_usage_prompt_tokens = '24'
         summary.response_usage_completion_tokens = '26'
@@ -91,12 +91,11 @@ module NewRelic::Agent::Llm
         assert_equal 'LlmChatCompletionSummary', type['type']
 
         assert_equal 123, attributes['id']
-        assert_equal 456, attributes['conversation_id']
         assert_equal '789', attributes['request_id']
+        assert_equal 456, attributes['conversation_id'] # needs to be removed, see #2437
         assert_equal txn.current_segment.guid, attributes['span_id']
-        assert_equal txn.guid, attributes['transaction_id']
         assert_equal txn.trace_id, attributes['trace_id']
-        assert_equal 'sk-0713', attributes['api_key_last_four_digits']
+        assert_equal 0.7, attributes['request.temperature'] # rubocop:disable Minitest/AssertInDelta
         assert_equal 500, attributes['request_max_tokens']
         assert_equal 5, attributes['response.number_of_messages']
         assert_equal 'gpt-4-turbo-preview', attributes['request.model']
@@ -117,6 +116,69 @@ module NewRelic::Agent::Llm
         assert_equal '103', attributes['response.headers.ratelimitResetRequests']
         assert_equal '104', attributes['response.headers.ratelimitRemainingTokens']
         assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
+      end
+    end
+
+    def test_error_attributes
+      event = NewRelic::Agent::Llm::ChatCompletionSummary.new
+      expected =
+        {
+          'http.statusCode' => 400,
+          'error.code' => nil,
+          'error.param' => nil,
+          'completion_id' => event.id
+        }
+      exception = MockFaradayBadResponseError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    def test_error_attributes_for_irregular_exception
+      event = NewRelic::Agent::Llm::ChatCompletionSummary.new
+      expected = {'completion_id' => event.id}
+      exception = StandardError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    class MockFaradayBadResponseError < StandardError
+      # Return value from an OpenAI chat completions request without a model parameter
+      # Recorded 21 Feb 2024
+      def response
+        {
+          :status => 400,
+          :headers =>
+            {'date' => 'Wed, 21 Feb 2024 23:52:49 GMT',
+             'content-type' => 'application/json; charset=utf-8',
+             'content-length' => '167',
+             'connection' => 'keep-alive',
+             'vary' => 'Origin',
+             'x-request-id' => 'req_123',
+             'strict-transport-security' => 'max-age=15724800; includeSubDomains',
+             'cf-cache-status' => 'DYNAMIC',
+             'set-cookie' =>
+            'unused',
+             'server' => 'cloudflare',
+             'cf-ray' => '8592e7bafe24c4b6-SEA',
+             'alt-svc' => 'h3=":443"; ma=86400'},
+          :body =>
+          {'error' =>
+            {'message' => 'you must provide a model parameter',
+             'type' => 'invalid_request_error',
+             'param' => nil,
+             'code' => nil}},
+          :request =>
+          {:method => :post,
+           :url => '#<URI::HTTPS https://api.openai.com/v1/chat/completions>', # this is an instance of a class, not a string, in the real response
+           :url_path => '/v1/chat/completions',
+           :params => nil,
+           :headers =>
+            {'Content-Type' => 'application/json',
+             'Authorization' => 'Bearer sk-123',
+             'OpenAI-Organization' => nil},
+           :body =>
+            '{"messages":[{"role":"system","content":"You are a helpful assistant."},{"role":"user","content":"Who won the world series in 2020?"},{"role":"assistant","content":"The Los Angeles Dodgers won the World Series in 2020."},{"role":"user","content":"Where was it played?"}],"temperature":0.7}'}
+        }
       end
     end
   end

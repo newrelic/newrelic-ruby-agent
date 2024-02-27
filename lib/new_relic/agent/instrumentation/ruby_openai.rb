@@ -10,7 +10,7 @@ DependencyDetection.defer do
   named :'ruby_openai'
 
   depends_on do
-    NewRelic::Agent.config[:'ai_monitoring.enabled'] != false &&
+    NewRelic::Agent.config[:'ai_monitoring.enabled'] &&
       defined?(OpenAI) && defined?(OpenAI::Client) &&
       Gem::Version.new(OpenAI::VERSION) >= Gem::Version.new('3.4.0')
   end

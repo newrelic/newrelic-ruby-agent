@@ -12,12 +12,12 @@ module NewRelic::Agent::Llm
 
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::ChatCompletionMessage.ancestors, NewRelic::Agent::Llm::LlmEvent
-      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
+      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :trace_id
 
       in_transaction do |txn|
         event = NewRelic::Agent::Llm::ChatCompletionMessage.new
 
-        assert_equal txn.guid, event.transaction_id
+        assert_equal txn.trace_id, event.trace_id
       end
     end
 
@@ -75,10 +75,9 @@ module NewRelic::Agent::Llm
         assert_equal 'LlmChatCompletionMessage', type['type']
 
         assert_equal 7, attributes['id']
-        assert_equal 25, attributes['conversation_id']
         assert_equal '789', attributes['request_id']
+        assert_equal 25, attributes['conversation_id'] # needs to be removed, see #2437
         assert_equal txn.current_segment.guid, attributes['span_id']
-        assert_equal txn.guid, attributes['transaction_id']
         assert_equal txn.trace_id, attributes['trace_id']
         assert_equal 'gpt-4', attributes['response.model']
         assert_equal 'OpenAI', attributes['vendor']
