@@ -390,7 +390,7 @@ module NewRelic
 
     LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
 
-    # Records user feedback events for LLM applications. This API must pass 
+    # Records user feedback events for LLM applications. This API must pass
     # the current trace id as a parameter, which can be obtained using:
     #
     #   NewRelic::Agent::Tracer.current_trace_id
@@ -432,7 +432,6 @@ module NewRelic
     rescue ArgumentError
       raise
     rescue => exception
-      binding.irb
       log_error('record_llm_feedback_event', exception)
     end
 

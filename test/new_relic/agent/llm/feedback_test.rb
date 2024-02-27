@@ -43,8 +43,7 @@ module NewRelic::Agent::Llm
     end
 
     def test_record_llm_feedback_event_invalid_param
-      assert_raises(ArgumentError) { NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890',
-        rating: 5, food: 'blueberry') }
+      assert_raises(ArgumentError) { NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5, food: 'blueberry') }
     end
 
     # def test_record_llm_feedback_event_rescues_exception
