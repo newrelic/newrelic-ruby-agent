@@ -10,10 +10,9 @@ module NewRelic::Agent::Llm
       NewRelic::Agent.drop_buffered_data
     end
 
-    def test_record_llm_feedback_event_required_attributes
+    def test_record_llm_feedback_event_records_required_attributes
       in_transaction do |txn|
-        NewRelic::Agent::Tracer.record_llm_feedback_event(trace_id: '01234567890', rating: 5)
-
+        NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5)
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
         type, attributes = events[0]
 
@@ -25,24 +24,45 @@ module NewRelic::Agent::Llm
       end
     end
 
-    # def test_record_llm_feedback_event_raises_not_in_transaction
-    # end
-
     def test_record_llm_feedback_event_records_optional_attributes
       in_transaction do |txn|
-        NewRelic::Agent::Tracer.record_llm_feedback_event(trace_id: '01234567890', rating: 5,
-          message: 'Looks good!', metadata: {"pop"=> 'tart'})
-
+        NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5,
+          category: 'Helpful', message: 'Looks good!', metadata: {'pop' => 'tart', 'toaster' => 'strudel'})
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
         type, attributes = events[0]
 
+        assert_equal 'Helpful', attributes['category']
         assert_equal 'Looks good!', attributes['message']
-        assert_equal 'tart', attributes['metadata.pop']
+        assert_equal 'tart', attributes['pop']
+        assert_equal 'strudel', attributes['toaster']
       end
     end
 
     def test_record_llm_feedback_event_raises_missing_required_parameter
-      assert_raises(ArgumentError) { NewRelic::Agent::Tracer.record_llm_feedback_event(trace_id: '01234567890')}
+      assert_raises(ArgumentError) { NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890') }
     end
+
+    def test_record_llm_feedback_event_invalid_param
+      assert_raises(ArgumentError) { NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890',
+        rating: 5, food: 'blueberry') }
+    end
+
+    # def test_record_llm_feedback_event_rescues_exception
+    #   NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
+    #     NewRelic::Agent.stub(:record_llm_feedback_event, Exception) do
+    #       binding.irb
+    #       NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5)
+
+    #     end
+    #     assert_logged(/record_llm_feedback_event/)
+    #   end
+    # end
+
+    # def assert_logged(expected)
+    #   found = NewRelic::Agent.logger.messages.any? { |m| m[1][0].match?(expected) }
+    #   binding.irb
+
+    #   assert(found, "Didn't see log message: '#{expected}'")
+    # end
   end
 end

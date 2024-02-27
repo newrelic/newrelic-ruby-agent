@@ -387,49 +387,6 @@ module NewRelic
           log_error('start_datastore_segment', exception)
         end
 
-        # Records user feedback events for LLM applications.
-        #
-        # @param [String] ID of the trace where the chat completion(s) related
-        #   to the feedback occurred.
-        #
-        # @param [String or Integer] Rating provided by an end user
-        #   (ex: “Good/Bad”, “1-10”).
-        #
-        # @param [optional, String] Category of the feedback as provided by the
-        #   end user (ex: “informative”, “inaccurate”).
-        #
-        # @param start_time [optional, String] Freeform text feedback from an
-        #   end user.
-        #
-        # @param [optional, Hash] Set of key-value pairs to store any other
-        #   desired data to submit with the feedback event.
-        #
-        # @api public
-        def record_llm_feedback_event(trace_id:,
-          rating:,
-          category: nil,
-          message: nil,
-          metadata: {})
-          # Requires DT for trace_id, but tested DT off and still get trace_id?
-          return unless NewRelic::Agent::Tracer.current_trace_id
-
-          feedback_message_event = {
-            'trace_id': trace_id,
-            'rating': rating,
-            'category': category,
-            'message': message,
-            'metadata': metadata,
-            'id': NewRelic::Agent::GuidGenerator.generate_guid,
-            'ingest_source': 'Ruby'
-          }
-
-          NewRelic::Agent.record_custom_event('LlmFeedbackMessage', feedback_message_event)
-        rescue ArgumentError
-          raise
-        rescue => exception
-          log_error('record_llm_feedback_event', exception)
-        end
-
         # This method should only be used by Tracer for access to the
         # current thread's state or to provide read-only accessors for other threads
         #
