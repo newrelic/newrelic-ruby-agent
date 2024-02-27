@@ -222,6 +222,32 @@ if defined?(Rack::Test)
       assert_equal '0', headers['Content-Length']
     end
 
+    # introduce an exception in the middle of #traced_call and verify that
+    # we did not crash but instead carried on with a response
+    def test_traced_call_method_cannot_crash_the_observed_application
+      NewRelic::Agent.stub :browser_timing_header, -> { raise 'kaboom' } do
+        result = get('/')
+
+        assert result
+      end
+    end
+
+    # give #should_instrument? a bogus int hash value guaranteed to raise an
+    # exception when `#match?` is called on it, and ensure that the error
+    # is caught and a boolean value still returned
+    def test_should_instrument_method_cannot_crash_the_observed_application
+      phony_logger = Minitest::Mock.new
+      phony_logger.expect :error, nil, [/applicability/]
+      NewRelic::Agent.stub :logger, phony_logger do
+        should = app.should_instrument?({}, 200, {'Content-Type' => 1138})
+
+        refute(should, 'Expected a #should_instrument? to handle errors and produce a false result')
+      end
+      phony_logger.verify
+    end
+
+    private
+
     def headers_from_request(headers, content)
       content = Array(content) if content
 

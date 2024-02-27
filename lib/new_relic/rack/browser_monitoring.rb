@@ -23,8 +23,8 @@ module NewRelic
       CONTENT_TYPE = 'Content-Type'.freeze
       CONTENT_DISPOSITION = 'Content-Disposition'.freeze
       CONTENT_LENGTH = 'Content-Length'.freeze
-      ATTACHMENT = 'attachment'.freeze
-      TEXT_HTML = 'text/html'.freeze
+      ATTACHMENT = /attachment/.freeze
+      TEXT_HTML = %r{text/html}.freeze
 
       BODY_START = '<body'.freeze
       HEAD_START = '<head'.freeze
@@ -56,6 +56,9 @@ module NewRelic
         else
           result
         end
+      rescue StandardError => e
+        NewRelic::Agent.logger.error("RUM instrumentation traced call failed on exception: #{e.class} - #{e.message}")
+        result
       end
 
       def should_instrument?(env, status, headers)
@@ -65,6 +68,10 @@ module NewRelic
           html?(headers) &&
           !attachment?(headers) &&
           !streaming?(env, headers)
+      rescue StandardError => e
+        NewRelic::Agent.logger.error('RUM instrumentation applicability check failed on exception:' \
+                                     "#{e.class} - #{e.message}")
+        false
       end
 
       private
@@ -100,11 +107,11 @@ module NewRelic
 
       def html?(headers)
         # needs else branch coverage
-        headers[CONTENT_TYPE] && headers[CONTENT_TYPE].include?(TEXT_HTML) # rubocop:disable Style/SafeNavigation
+        headers[CONTENT_TYPE]&.match?(TEXT_HTML)
       end
 
       def attachment?(headers)
-        headers[CONTENT_DISPOSITION]&.include?(ATTACHMENT)
+        headers[CONTENT_DISPOSITION]&.match?(ATTACHMENT)
       end
 
       def streaming?(env, headers)
