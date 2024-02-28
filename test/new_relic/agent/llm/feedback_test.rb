@@ -46,22 +46,20 @@ module NewRelic::Agent::Llm
       assert_raises(ArgumentError) { NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5, food: 'blueberry') }
     end
 
-    # def test_record_llm_feedback_event_rescues_exception
-    #   NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
-    #     NewRelic::Agent.stub(:record_llm_feedback_event, Exception) do
-    #       binding.irb
-    #       NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5)
+    def test_record_llm_feedback_event_rescues_exception
+      NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
+        NewRelic::Agent.stub(:record_custom_event, proc { |*_args| raise 'kaboom' }) do
+          NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5)
 
-    #     end
-    #     assert_logged(/record_llm_feedback_event/)
-    #   end
-    # end
+        end
+        assert_logged(/record_llm_feedback_event/)
+      end
+    end
 
-    # def assert_logged(expected)
-    #   found = NewRelic::Agent.logger.messages.any? { |m| m[1][0].match?(expected) }
-    #   binding.irb
+    def assert_logged(expected)
+      found = NewRelic::Agent.logger.messages.any? { |m| m[1][0].match?(expected) }
 
-    #   assert(found, "Didn't see log message: '#{expected}'")
-    # end
+      assert(found, "Didn't see log message: '#{expected}'")
+    end
   end
 end

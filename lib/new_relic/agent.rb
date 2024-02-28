@@ -432,7 +432,7 @@ module NewRelic
     rescue ArgumentError
       raise
     rescue => exception
-      log_error('record_llm_feedback_event', exception)
+      NewRelic::Agent.logger.error('record_llm_feedback_event', exception)
     end
 
     # @!endgroup
