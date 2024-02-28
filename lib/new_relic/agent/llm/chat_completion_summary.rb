@@ -8,7 +8,6 @@ module NewRelic
   module Agent
     module Llm
       class ChatCompletionSummary < LlmEvent
-        include ChatCompletion
         include ResponseHeaders
 
         ATTRIBUTES = %i[request_max_tokens response_number_of_messages
@@ -30,7 +29,7 @@ module NewRelic
         attr_accessor(*ATTRIBUTES)
 
         def attributes
-          LlmEvent::ATTRIBUTES + ChatCompletion::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
+          LlmEvent::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
         end
 
         def attribute_name_exceptions
