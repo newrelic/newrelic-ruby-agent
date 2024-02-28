@@ -50,10 +50,10 @@ module NewRelic::Agent::Llm
       event = NewRelic::Agent::Llm::LlmEvent.new(id: 123)
       event.vendor = 'OpenAI'
       event.response_model = 'gpt-4'
-      event.metadata = {'Marathon' => 26.2, 'Ultra Marathon' => 'Ouch'}
+      event.metadata = {'Marathon' => '26.2', 'Ultra Marathon' => 'Ouch'}
       result = event.event_attributes
 
-      assert_equal(26.2, result['Marathon'])
+      assert_equal('26.2', result['Marathon'])
       assert_equal('Ouch', result['Ultra Marathon'])
     end
 
