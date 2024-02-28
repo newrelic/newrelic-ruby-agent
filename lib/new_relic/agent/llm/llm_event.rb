@@ -55,7 +55,7 @@ module NewRelic
           attributes_hash = attributes.each_with_object({}) do |attr, hash|
             hash[replace_attr_with_string(attr)] = instance_variable_get(:"@#{attr}")
           end
-          attributes_hash.merge!(metadata)
+          attributes_hash.merge!(metadata) if !metadata.empty?
         end
 
         # Subclasses define an attributes method to concatenate attributes
@@ -77,7 +77,6 @@ module NewRelic
         end
 
         def record
-          binding.irb
           NewRelic::Agent.record_custom_event(event_name, event_attributes)
         end
 
