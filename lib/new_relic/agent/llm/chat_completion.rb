@@ -6,8 +6,6 @@ module NewRelic
   module Agent
     module Llm
       module ChatCompletion
-        ATTRIBUTES = %i[conversation_id]
-
         attr_accessor(*ATTRIBUTES)
       end
     end

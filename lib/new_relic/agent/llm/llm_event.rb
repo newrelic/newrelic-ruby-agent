@@ -18,7 +18,6 @@ module NewRelic
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
         INGEST_SOURCE = 'Ruby'
         LLM = :llm
-        CUSTOM_ATTRIBUTE_CONVERSATION_ID = 'llm.conversation_id'
 
         attr_accessor(*ATTRIBUTES)
 

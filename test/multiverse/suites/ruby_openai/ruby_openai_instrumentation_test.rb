@@ -130,57 +130,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
 
-  def test_conversation_id_added_to_summary_events
-    conversation_id = '12345'
-    in_transaction do
-      NewRelic::Agent.add_custom_attributes({'llm.conversation_id' => conversation_id})
-      stub_post_request do
-        client.chat(parameters: chat_params)
-      end
-    end
-
-    _, events = @aggregator.harvest!
-    summary_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
-
-    assert_equal conversation_id, summary_event[1]['conversation_id']
-  end
-
-  def test_conversation_id_added_to_message_events
-    conversation_id = '12345'
-
-    in_transaction do
-      NewRelic::Agent.add_custom_attributes({'llm.conversation_id' => conversation_id})
-      stub_post_request do
-        client.chat(parameters: chat_params)
-      end
-    end
-
-    _, events = @aggregator.harvest!
-    message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
-
-    message_events.each do |event|
-      assert_equal conversation_id, event[1]['conversation_id']
-    end
-  end
-
-  # Flaky test. Depending on the order the tests are run, the
-  # conversation_id attribute from previous tests may be included on the
-  # events generated here.
-  # def test_conversation_id_not_on_event_if_not_present_in_custom_attributes
-  #   in_transaction do |txn|
-  #     NewRelic::Agent.add_custom_attributes({unique: 'attr'})
-  #     stub_post_request do
-  #       client.chat(parameters: chat_params)
-  #     end
-  #   end
-
-  #   _, events = @aggregator.harvest!
-
-  #   events.each do |event|
-  #     refute event[1]['conversation_id']
-  #   end
-  # end
-
   def test_openai_embedding_segment_name
     txn = in_transaction do
       stub_post_request do
