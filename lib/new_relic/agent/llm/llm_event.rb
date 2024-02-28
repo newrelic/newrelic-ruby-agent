@@ -27,6 +27,7 @@ module NewRelic
         PARAM_STRING = 'param'
 
         attr_accessor(*ATTRIBUTES)
+        attr_accessor :metadata
 
         def self.set_llm_agent_attribute_on_transaction
           NewRelic::Agent::Transaction.add_agent_attribute(LLM, true, NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
@@ -51,9 +52,10 @@ module NewRelic
         # All subclasses use event_attributes to get a full hash of all
         # attributes and their values
         def event_attributes
-          attributes.each_with_object({}) do |attr, hash|
+          attributes_hash = attributes.each_with_object({}) do |attr, hash|
             hash[replace_attr_with_string(attr)] = instance_variable_get(:"@#{attr}")
           end
+          attributes_hash.merge!(metadata)
         end
 
         # Subclasses define an attributes method to concatenate attributes
@@ -75,6 +77,7 @@ module NewRelic
         end
 
         def record
+          binding.irb
           NewRelic::Agent.record_custom_event(event_name, event_attributes)
         end
 

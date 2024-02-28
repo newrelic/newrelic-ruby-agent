@@ -30,6 +30,7 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
+      event.metadata = llm_custom_attributes
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -46,6 +47,7 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: CHAT_COMPLETIONS_SEGMENT_NAME)
       record_openai_metric
       event = create_chat_completion_summary(parameters)
+      event.metadata = llm_custom_attributes
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
 
@@ -76,36 +78,12 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-      event = NewRelic::Agent::Llm::Embedding.new(
+      NewRelic::Agent::Llm::Embedding.new(
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model']
       )
-      add_llm_custom_attributes(event) if llm_custom_attributes
-    end
-
-    def llm_custom_attributes
-      binding.irb
-      NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes.select { |k,v| k.to_s.match(/llm.*/)}
-    end
-
-    def add_llm_custom_attributes(event)
-      attributes = transform_custom_attributes(llm_custom_attributes)
-      # attributes = llm_custom_attributes
-      binding.irb
-      attributes.map {|k,v| event.instance_variable_set("@#{k}".to_sym, v)}
-      binding.irb
-      event
-    end
-
-    def transform_custom_attributes(attributes)
-      binding.irb
-      # new = attributes.map {|k,v| 
-
-      attributes.each { |k, v| attributes[k.gsub('.', '_')] = v}
-
-      new
     end
 
     def add_chat_completion_response_params(parameters, response, event)
@@ -169,6 +147,10 @@ module NewRelic::Agent::Instrumentation
         message.request_id = summary.request_id
         message.response_model = response['model']
       end
+    end
+
+    def llm_custom_attributes
+      NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes.select { |k,v| k.to_s.match(/llm.*/)}
     end
 
     def record_openai_metric
