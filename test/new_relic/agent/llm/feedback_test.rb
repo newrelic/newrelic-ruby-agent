@@ -50,8 +50,8 @@ module NewRelic::Agent::Llm
       NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
         NewRelic::Agent.stub(:record_custom_event, proc { |*_args| raise 'kaboom' }) do
           NewRelic::Agent.record_llm_feedback_event(trace_id: '01234567890', rating: 5)
-
         end
+
         assert_logged(/record_llm_feedback_event/)
       end
     end
