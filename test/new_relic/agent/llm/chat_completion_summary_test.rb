@@ -29,16 +29,6 @@ module NewRelic::Agent::Llm
       assert_equal 123, event.id
     end
 
-    def test_included_module_attributes_list_can_be_assigned_on_init
-      assert_includes NewRelic::Agent::Llm::ChatCompletionSummary.ancestors, NewRelic::Agent::Llm::ChatCompletion
-      assert_includes NewRelic::Agent::Llm::ChatCompletion::ATTRIBUTES, :conversation_id
-
-      conversation_id = '123abc'
-      event = NewRelic::Agent::Llm::ChatCompletionSummary.new(conversation_id: conversation_id)
-
-      assert_equal conversation_id, event.conversation_id
-    end
-
     def test_attributes_constant_values_can_be_passed_as_args_and_set_on_init
       assert_includes NewRelic::Agent::Llm::ChatCompletionSummary::ATTRIBUTES, :request_model
       request_model = 'gpt-4-turbo-preview'
@@ -61,7 +51,6 @@ module NewRelic::Agent::Llm
           request_model: 'gpt-4-turbo-preview'
         )
         summary.request_id = '789'
-        summary.conversation_id = 456
         summary.response_usage_total_tokens = 20
         summary.request_temperature = 0.7
         summary.request_max_tokens = 500
@@ -92,7 +81,6 @@ module NewRelic::Agent::Llm
 
         assert_equal 123, attributes['id']
         assert_equal '789', attributes['request_id']
-        assert_equal 456, attributes['conversation_id'] # needs to be removed, see #2437
         assert_equal txn.current_segment.guid, attributes['span_id']
         assert_equal txn.trace_id, attributes['trace_id']
         assert_equal 0.7, attributes['request.temperature'] # rubocop:disable Minitest/AssertInDelta

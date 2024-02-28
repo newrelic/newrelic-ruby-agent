@@ -66,9 +66,7 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_summary(parameters)
       NewRelic::Agent::Llm::ChatCompletionSummary.new(
-        # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
-        conversation_id: conversation_id,
         request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
         request_model: parameters[:model] || parameters['model'],
         temperature: parameters[:temperature] || parameters['temperature']
@@ -77,7 +75,6 @@ module NewRelic::Agent::Instrumentation
 
     def create_embeddings_event(parameters)
       NewRelic::Agent::Llm::Embedding.new(
-        # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model']
@@ -98,14 +95,6 @@ module NewRelic::Agent::Instrumentation
       event.response_model = response['model']
       event.response_usage_total_tokens = response['usage']['total_tokens']
       event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
-    end
-
-    # The customer must call add_custom_attributes with llm.conversation_id
-    # before the transaction starts. Otherwise, the conversation_id will be nil.
-    def conversation_id
-      return @nr_conversation_id if @nr_conversation_id
-
-      @nr_conversation_id ||= NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes[NewRelic::Agent::Llm::LlmEvent::CUSTOM_ATTRIBUTE_CONVERSATION_ID]
     end
 
     def create_chat_completion_messages(parameters, summary_id)
@@ -139,9 +128,7 @@ module NewRelic::Agent::Instrumentation
       response_id = response['id'] || NewRelic::Agent::GuidGenerator.generate_guid
 
       messages.each do |message|
-        # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         message.id = "#{response_id}-#{message.sequence}"
-        message.conversation_id = conversation_id
         message.request_id = summary.request_id
         message.response_model = response['model']
       end
