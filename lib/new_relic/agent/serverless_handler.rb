@@ -11,35 +11,30 @@ module NewRelic
       COLD_START_ATTRIBUTE = 'aws.lambda.coldStart'
       COLD_START_DESTINATIONS = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS
+      EXECUTION_ENVIRONMENT = "AWS_Lambda_ruby#{RUBY_VERSION.rpartition('.').first}".freeze
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
-      METADATA_VERSION = 2 # TODO
+      METADATA_VERSION = 2 # internal to New Relic's cross-agent specs
       METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results]
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       TRANSACTION_NAME = 'lambda_function'
-      VERSION = 1 # TODO
+      VERSION = 1 # internal to New Relic's cross-agent specs
 
       def lambda_handler(hash = {})
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
-        # TODO: category and name
-        NewRelic::Agent::Tracer.in_transaction(category: :other, name: TRANSACTION_NAME) do
+        parse_context(hash[:context])
+
+        NewRelic::Agent::Tracer.in_transaction(category: :other, name: function_name) do
           notice_cold_start
+          associate_transaction_with_context(hash[:context])
           send(hash[:method_name], hash[:event], hash[:context])
         end
       end
 
       def write(method, payload)
         return if METHOD_BLOCKLIST.include?(method)
-
-        metadata = {arn: 'AWS_LAMBDA_FUNCTION_ARN', # TODO
-                    protocol_version: NewRelic::Agent::NewRelicService::PROTOCOL_VERSION,
-                    function_version: '15', # TODO
-                    execution_environment: 'AWS_Lambda_ruby3.2', # TODO
-                    agent_version: NewRelic::VERSION::STRING,
-                    metadata_version: METADATA_VERSION,
-                    agent_language: LANGUAGE}
 
         json = NewRelic::Agent.agent.service.marshaller.dump(payload)
         gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
@@ -48,6 +43,31 @@ module NewRelic
         array = [VERSION, LAMBDA_MARKER, metadata, base64_encoded]
 
         write_output(::JSON.dump(array))
+      end
+
+      private
+
+      def metadata
+        {arn: @function_arn,
+         protocol_version: NewRelic::Agent::NewRelicService::PROTOCOL_VERSION,
+         function_version: @function_version,
+         execution_environment: EXECUTION_ENVIRONMENT,
+         agent_version: NewRelic::VERSION::STRING,
+         metadata_version: METADATA_VERSION,
+         agent_language: LANGUAGE}.reject { |_k, v| v.nil? }
+      end
+
+      def parse_context(context)
+        @function_arn = nil
+        @function_version = nil
+        return unless contenxt && context.respond_to?(:function_arn) && context.respond_to(:function_version)
+
+        @function_arn = context.function_arn
+        @function_version = context.function_version
+      end
+
+      def function_name
+        ENV.fetch(LAMBDA_ENVIRONMENT_VARIABLE, TRANSACTION_NAME)
       end
 
       def write_output(string)
