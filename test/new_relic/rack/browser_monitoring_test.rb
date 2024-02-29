@@ -239,7 +239,7 @@ if defined?(Rack::Test)
     def test_html_check_works_with_symbol_based_values
       headers = {NewRelic::Rack::BrowserMonitoring::CONTENT_TYPE => :'text/html'}
 
-      assert app.html?(headers)
+      assert app.send(:html?, headers)
     end
 
     private
