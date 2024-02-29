@@ -146,6 +146,7 @@ module NewRelic::Agent::Instrumentation
         message.conversation_id = conversation_id
         message.request_id = summary.request_id
         message.response_model = response['model']
+        message.metadata = llm_custom_attributes
       end
     end
 

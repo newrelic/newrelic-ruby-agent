@@ -130,10 +130,12 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
 
-  def test_conversation_id_added_to_summary_events
-    conversation_id = '12345'
+  def test_llm_custom_attributes_added_to_summary_events
     in_transaction do
-      NewRelic::Agent.add_custom_attributes({'llm.conversation_id' => conversation_id})
+      NewRelic::Agent.add_custom_attributes({
+        'llm.conversation_id' => '1993',
+        'llm.JurassicPark' => 'Steven Spielberg',
+        'trex' => 'carnivore' })
       stub_post_request do
         client.chat(parameters: chat_params)
       end
@@ -142,24 +144,46 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     summary_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
 
-    assert_equal conversation_id, summary_event[1]['conversation_id']
+    assert_equal '1993', summary_event[1]['llm.conversation_id']
+    assert_equal 'Steven Spielberg', summary_event[1]['llm.JurassicPark']
+    refute summary_event[1]['trex']
   end
 
-  def test_conversation_id_added_to_message_events
-    conversation_id = '12345'
-
+  def test_llm_custom_attributes_added_to_embedding_events
     in_transaction do
-      NewRelic::Agent.add_custom_attributes({'llm.conversation_id' => conversation_id})
+      NewRelic::Agent.add_custom_attributes({
+        'llm.conversation_id' => '1997',
+        'llm.TheLostWorld' => 'Steven Spielberg',
+        'triceratops' => 'herbivore' })
+      stub_post_request do
+        client.embeddings(parameters: chat_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    assert_equal '1997', embedding_event[1]['llm.conversation_id']
+    assert_equal 'Steven Spielberg', embedding_event[1]['llm.TheLostWorld']
+    refute embedding_event[1]['fruit']
+  end
+
+  def test_llm_custom_attributes_added_to_message_events
+    in_transaction do
+      NewRelic::Agent.add_custom_attributes({
+        'llm.conversation_id' => '2001',
+        'llm.JurassicParkIII' => 'Joe Johnston',
+        'Pterosaur' => 'Can fly — scary!' })
       stub_post_request do
         client.chat(parameters: chat_params)
       end
     end
-
     _, events = @aggregator.harvest!
     message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
     message_events.each do |event|
-      assert_equal conversation_id, event[1]['conversation_id']
+      assert_equal '2001', event[1]['llm.conversation_id']
+      assert_equal 'Joe Johnston', event[1]['llm.JurassicParkIII']
+      refute event[1]['Pterosaur']
     end
   end
 
