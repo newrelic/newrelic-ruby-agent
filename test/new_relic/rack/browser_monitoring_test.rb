@@ -222,16 +222,6 @@ if defined?(Rack::Test)
       assert_equal '0', headers['Content-Length']
     end
 
-    # introduce an exception in the middle of #traced_call and verify that
-    # we did not crash but instead carried on with a response
-    def test_traced_call_method_cannot_crash_the_observed_application
-      NewRelic::Agent.stub :browser_timing_header, -> { raise 'kaboom' } do
-        result = get('/')
-
-        assert result
-      end
-    end
-
     # give #should_instrument? a bogus int hash value guaranteed to raise an
     # exception when `#match?` is called on it, and ensure that the error
     # is caught and a boolean value still returned
@@ -244,6 +234,12 @@ if defined?(Rack::Test)
         refute(should, 'Expected a #should_instrument? to handle errors and produce a false result')
       end
       phony_logger.verify
+    end
+
+    def test_html_check_works_with_symbol_based_values
+      headers = {NewRelic::Rack::BrowserMonitoring::CONTENT_TYPE => :'text/html'}
+
+      assert app.html?(headers)
     end
 
     private

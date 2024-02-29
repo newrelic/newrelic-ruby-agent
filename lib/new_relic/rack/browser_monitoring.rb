@@ -56,9 +56,6 @@ module NewRelic
         else
           result
         end
-      rescue StandardError => e
-        NewRelic::Agent.logger.error("RUM instrumentation traced call failed on exception: #{e.class} - #{e.message}")
-        result
       end
 
       def should_instrument?(env, status, headers)
