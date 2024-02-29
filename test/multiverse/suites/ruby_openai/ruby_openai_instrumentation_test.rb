@@ -135,7 +135,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       NewRelic::Agent.add_custom_attributes({
         'llm.conversation_id' => '1993',
         'llm.JurassicPark' => 'Steven Spielberg',
-        'trex' => 'carnivore' })
+        'trex' => 'carnivore'
+      })
       stub_post_request do
         client.chat(parameters: chat_params)
       end
@@ -154,7 +155,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       NewRelic::Agent.add_custom_attributes({
         'llm.conversation_id' => '1997',
         'llm.TheLostWorld' => 'Steven Spielberg',
-        'triceratops' => 'herbivore' })
+        'triceratops' => 'herbivore'
+      })
       stub_post_request do
         client.embeddings(parameters: chat_params)
       end
@@ -172,7 +174,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       NewRelic::Agent.add_custom_attributes({
         'llm.conversation_id' => '2001',
         'llm.JurassicParkIII' => 'Joe Johnston',
-        'Pterosaur' => 'Can fly — scary!' })
+        'Pterosaur' => 'Can fly — scary!'
+      })
       stub_post_request do
         client.chat(parameters: chat_params)
       end
