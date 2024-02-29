@@ -367,6 +367,23 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `false`, all LLM (OpenAI) instrumentation will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
+        :'ai_monitoring.record_content.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+          If `false`, LLM (OpenAI) instrumentation will not capture input and output content on LLM events.
+
+          The attributes to be excluded from specific events:
+            * `content` from LlmChatCompletionMessage
+            * `input` from LlmEmbedding
+            * `input` from LlmTool
+            * `output` from LlmTool
+            * `request.query from` LlmVectorSearch
+            * `page_content` from LlmVectorSearchResult
+        DESCRIPTION
+        },
         # this is only set via server side config
         :apdex_t => {
           :default => 0.5,
