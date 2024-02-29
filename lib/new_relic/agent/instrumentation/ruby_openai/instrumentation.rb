@@ -151,7 +151,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def llm_custom_attributes
-      NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes.select { |k, v| k.to_s.match(/llm.*/) }
+      NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes.select { |k| k.to_s.match(/llm.*/) }
     end
 
     def record_openai_metric
