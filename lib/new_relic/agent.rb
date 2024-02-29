@@ -106,6 +106,7 @@ module NewRelic
 
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
+    LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
 
     attr_reader :error_group_callback
 
@@ -387,8 +388,6 @@ module NewRelic
 
       nil
     end
-
-    LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
 
     # Records user feedback events for LLM applications. This API must pass
     # the current trace id as a parameter, which can be obtained using:
