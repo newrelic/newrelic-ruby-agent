@@ -48,8 +48,7 @@ module NewRelic::Agent::Llm
         trace_id: @trace_id,
         rating: 5,
         food: 'blueberry'
-        )
-      }
+      )}
     end
 
     def test_record_llm_feedback_event_rescues_exception
