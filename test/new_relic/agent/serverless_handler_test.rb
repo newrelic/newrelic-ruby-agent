@@ -13,7 +13,7 @@ require_relative '../../test_helper'
 # integration style testing of the wrapping of the customer function is
 # already conducted in the newrelic-lambda-layers repo.
 def customer_lambda_function(_event, _context)
-  { statusCode: 200, body: 'Running just as fast as we can'.chars.shuffle.join('.') }
+  {statusCode: 200, body: 'Running just as fast as we can'.chars.shuffle.join('.')}
 end
 
 module NewRelic::Agent
