@@ -18,7 +18,7 @@ module NewRelic
       METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results]
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
-      TRANSACTION_NAME = 'lambda_function'
+      FUNCTION_NAME = 'lambda_function'
       VERSION = 1 # internal to New Relic's cross-agent specs
 
       def lambda_handler(hash = {})
@@ -28,7 +28,6 @@ module NewRelic
 
         NewRelic::Agent::Tracer.in_transaction(category: :other, name: function_name) do
           notice_cold_start
-          associate_transaction_with_context(hash[:context])
           send(hash[:method_name], hash[:event], hash[:context])
         end
       end
@@ -60,14 +59,15 @@ module NewRelic
       def parse_context(context)
         @function_arn = nil
         @function_version = nil
-        return unless contenxt && context.respond_to?(:function_arn) && context.respond_to(:function_version)
+        return unless context
+        return unless context.respond_to?(:function_arn) && context.respond_to?(:function_version)
 
         @function_arn = context.function_arn
         @function_version = context.function_version
       end
 
       def function_name
-        ENV.fetch(LAMBDA_ENVIRONMENT_VARIABLE, TRANSACTION_NAME)
+        ENV.fetch(LAMBDA_ENVIRONMENT_VARIABLE, FUNCTION_NAME)
       end
 
       def write_output(string)
@@ -83,9 +83,9 @@ module NewRelic
       end
 
       def notice_cold_start
-        return unless cold?
+        return unless cold? && NewRelic::Agent::Tracer.current_transaction
 
-        NewRelic::Agent::Tracer.current_transaction&.add_agent_attribute(COLD_START_ATTRIBUTE,
+        NewRelic::Agent::Tracer.current_transaction.add_agent_attribute(COLD_START_ATTRIBUTE,
           true,
           COLD_START_DESTINATIONS)
       end
