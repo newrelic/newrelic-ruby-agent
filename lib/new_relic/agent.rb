@@ -398,7 +398,7 @@ module NewRelic
     #   to the feedback occurred.
     #
     # @param [String or Integer] Rating provided by an end user
-    #   (ex: “Good", Bad”, 1, 2, 5, 8, 10).
+    #   (ex: “Good", "Bad”, 1, 2, 5, 8, 10).
     #
     # @param [optional, String] Category of the feedback as provided by the
     #   end user (ex: “informative”, “inaccurate”).
