@@ -21,7 +21,7 @@ module NewRelic
       FUNCTION_NAME = 'lambda_function'
       VERSION = 1 # internal to New Relic's cross-agent specs
 
-      def lambda_handler(hash = {})
+      def invoke_lambda_function_with_new_relic(hash = {})
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
         parse_context(hash[:context])

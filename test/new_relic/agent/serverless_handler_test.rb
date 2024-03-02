@@ -30,7 +30,7 @@ module NewRelic::Agent
         context.expect :function_arn, function_arn
         context.expect :function_version, function_version
 
-        handler.lambda_handler(method_name: :customer_lambda_function, event: event, context: context)
+        handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function, event: event, context: context)
       end
 
       # unit style
