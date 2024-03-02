@@ -21,14 +21,14 @@ module NewRelic
       FUNCTION_NAME = 'lambda_function'
       VERSION = 1 # internal to New Relic's cross-agent specs
 
-      def invoke_lambda_function_with_new_relic(hash = {})
+      def invoke_lambda_function_with_new_relic(event:, context:, method_name:)
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
-        parse_context(hash[:context])
+        parse_context(context)
 
         NewRelic::Agent::Tracer.in_transaction(category: :other, name: function_name) do
           notice_cold_start
-          send(hash[:method_name], hash[:event], hash[:context])
+          send(method_name, event: event, context: context)
         end
       end
 

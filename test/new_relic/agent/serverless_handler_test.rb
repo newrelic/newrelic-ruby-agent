@@ -12,7 +12,7 @@ require_relative '../../test_helper'
 # any namespace, so define this tester function here. NOTE that full
 # integration style testing of the wrapping of the customer function is
 # already conducted in the newrelic-lambda-layers repo.
-def customer_lambda_function(_event, _context)
+def customer_lambda_function(event:, context:)
   {statusCode: 200, body: 'Running just as fast as we can'.chars.shuffle.join('.')}
 end
 
