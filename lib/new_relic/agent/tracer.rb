@@ -392,11 +392,11 @@ module NewRelic
         #
         # If ever exposed, this requires additional synchronization
         def state_for(thread)
-          state = thread[:newrelic_tracer_state]
+          state = ThreadLocalStorage.get(thread, :newrelic_tracer_state)
 
           if state.nil?
             state = Tracer::State.new
-            thread[:newrelic_tracer_state] = state
+            ThreadLocalStorage.set(thread, :newrelic_tracer_state, state)
           end
 
           state
@@ -405,7 +405,7 @@ module NewRelic
         alias_method :tl_state_for, :state_for
 
         def clear_state
-          Thread.current[:newrelic_tracer_state] = nil
+          ThreadLocalStorage[:newrelic_tracer_state] = nil
         end
 
         alias_method :tl_clear, :clear_state
@@ -420,12 +420,12 @@ module NewRelic
 
         def thread_block_with_current_transaction(segment_name: nil, parent: nil, &block)
           parent ||= current_segment
-          current_txn = ::Thread.current[:newrelic_tracer_state]&.current_transaction if ::Thread.current[:newrelic_tracer_state]&.is_execution_traced?
+          current_txn = ThreadLocalStorage[:newrelic_tracer_state]&.current_transaction if ThreadLocalStorage[:newrelic_tracer_state]&.is_execution_traced?
           proc do |*args|
             begin
               if current_txn && !current_txn.finished?
                 NewRelic::Agent::Tracer.state.current_transaction = current_txn
-                ::Thread.current[:newrelic_thread_span_parent] = parent
+                ThreadLocalStorage[:newrelic_thread_span_parent] = parent
                 current_txn.async = true
                 segment_name = "#{segment_name}/Thread#{::Thread.current.object_id}/Fiber#{::Fiber.current.object_id}" if NewRelic::Agent.config[:'thread_ids_enabled']
                 segment = NewRelic::Agent::Tracer.start_segment(name: segment_name, parent: parent) if segment_name

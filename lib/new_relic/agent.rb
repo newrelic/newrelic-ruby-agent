@@ -31,6 +31,7 @@ module NewRelic
     require 'new_relic/noticed_error'
     require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
+    require 'new_relic/thread_local_storage'
 
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
