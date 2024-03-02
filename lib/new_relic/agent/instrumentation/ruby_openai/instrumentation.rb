@@ -10,6 +10,7 @@ module NewRelic::Agent::Instrumentation
     CHAT_COMPLETIONS_PATH = '/chat/completions'
     EMBEDDINGS_SEGMENT_NAME = 'Llm/embedding/OpenAI/embeddings'
     CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
+    CONTENT_ENABLED = NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
 
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH
@@ -76,12 +77,15 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-      NewRelic::Agent::Llm::Embedding.new(
+     event = NewRelic::Agent::Llm::Embedding.new(
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model']
       )
+      event.remove_instance_variable(:@input) if !CONTENT_ENABLED
+
+      event
     end
 
     def add_chat_completion_response_params(parameters, response, event)
@@ -109,7 +113,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_chat_completion_messages(parameters, summary_id)
-      (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
+      message = (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
         NewRelic::Agent::Llm::ChatCompletionMessage.new(
           content: message[:content] || message['content'],
           role: message[:role] || message['role'],
@@ -118,6 +122,9 @@ module NewRelic::Agent::Instrumentation
           vendor: VENDOR,
           is_response: true
         )
+        message.remove_instance_variable(:@content) if !CONTENT_ENABLED
+
+        message
       end
     end
 

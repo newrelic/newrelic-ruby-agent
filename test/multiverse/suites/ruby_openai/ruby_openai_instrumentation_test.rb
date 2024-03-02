@@ -233,4 +233,20 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
+
+  def test_embeddings_drop_input_when_record_content_disabled
+    with_config('ai_monitoring.record_content.enabled': false) do
+      in_transaction do
+        stub_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    binding.irb
+    
+  end
+
+  def test_messages_drop_content_when_record_content_disabled
+
+  end
 end
