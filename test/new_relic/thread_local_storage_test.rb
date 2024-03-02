@@ -29,6 +29,8 @@ class NewRelic::ThreadLocalStorageTest < Minitest::Test
   def test_new_thread
     NewRelic::ThreadLocalStorage[:new_thread] = :parent
     thread = Thread.new do
+      Thread.current.abort_on_exception = true
+
       assert_nil NewRelic::ThreadLocalStorage[:new_thread]
       NewRelic::ThreadLocalStorage[:new_thread] = :child
       sleep
@@ -38,5 +40,31 @@ class NewRelic::ThreadLocalStorageTest < Minitest::Test
     assert_equal(:parent, NewRelic::ThreadLocalStorage[:new_thread])
     assert_equal(:child, NewRelic::ThreadLocalStorage.get(thread, :new_thread))
     thread.exit
+  end
+
+  def test_new_fiber_without_thread_local_tracer_state_flag
+    with_config(:thread_local_tracer_state => false) do
+      NewRelic::ThreadLocalStorage[:new_fiber_no_flag] = 1
+      fiber = Fiber.new do
+        assert_nil NewRelic::ThreadLocalStorage[:new_fiber_no_flag]
+        NewRelic::ThreadLocalStorage[:new_fiber_no_flag] = 2
+      end
+      fiber.resume
+
+      assert_equal(1, NewRelic::ThreadLocalStorage[:new_fiber_no_flag])
+    end
+  end
+
+  def test_new_fiber_with_thread_local_tracer_state_flag
+    with_config(:thread_local_tracer_state => true) do
+      NewRelic::ThreadLocalStorage[:new_fiber_with_flag] = 1
+      fiber = Fiber.new do
+        assert_equal(1, NewRelic::ThreadLocalStorage[:new_fiber_with_flag])
+        NewRelic::ThreadLocalStorage[:new_fiber_with_flag] = 2
+      end
+      fiber.resume
+
+      assert_equal(2, NewRelic::ThreadLocalStorage[:new_fiber_with_flag])
+    end
   end
 end

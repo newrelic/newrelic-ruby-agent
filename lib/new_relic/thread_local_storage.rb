@@ -5,11 +5,19 @@
 module NewRelic
   module ThreadLocalStorage
     def self.get(thread, key)
-      thread[key]
+      if Agent.config[:thread_local_tracer_state]
+        thread.thread_variable_get(key)
+      else
+        thread[key]
+      end
     end
 
     def self.set(thread, key, value)
-      thread[key] = value
+      if Agent.config[:thread_local_tracer_state]
+        thread.thread_variable_set(key, value)
+      else
+        thread[key] = value
+      end
     end
 
     def self.[](key)
