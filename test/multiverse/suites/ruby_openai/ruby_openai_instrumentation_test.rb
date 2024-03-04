@@ -223,4 +223,14 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     refute_nil segment.llm_event
     assert_truthy segment.llm_event.error
   end
+
+  def test_set_llm_agent_attribute_on_embedding_transaction
+    in_transaction do |txn|
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    assert_truthy harvest_transaction_events![1][0][2][:llm]
+  end
 end
