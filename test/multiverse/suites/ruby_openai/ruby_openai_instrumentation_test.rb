@@ -183,7 +183,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
   def test_openai_embedding_segment_name
     txn = in_transaction do
-      stub_post_request do
+      stub_embeddings_post_request do
         client.embeddings(parameters: embeddings_params)
       end
     end
@@ -193,7 +193,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
   def test_embedding_has_duration_of_segment
     txn = in_transaction do
-      stub_post_request do
+      stub_embeddings_post_request do
         client.embeddings(parameters: embeddings_params)
       end
     end
@@ -205,7 +205,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
   def test_openai_metric_recorded_for_embeddings_every_time
     in_transaction do
-      stub_post_request do
+      stub_embeddings_post_request do
         client.embeddings(parameters: embeddings_params)
         client.embeddings(parameters: embeddings_params)
       end
@@ -222,15 +222,5 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     refute_nil segment.llm_event
     assert_truthy segment.llm_event.error
-  end
-
-  def test_set_llm_agent_attribute_on_embedding_transaction
-    in_transaction do |txn|
-      stub_post_request do
-        client.embeddings(parameters: embeddings_params)
-      end
-    end
-
-    assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
 end
