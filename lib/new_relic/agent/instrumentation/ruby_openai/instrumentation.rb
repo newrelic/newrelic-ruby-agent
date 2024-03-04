@@ -31,6 +31,7 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
+      event.remove_instance_variable(:@input) if !CONTENT_ENABLED
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -49,7 +50,7 @@ module NewRelic::Agent::Instrumentation
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
-
+      messages.remove_instance_variable(:@input) if !CONTENT_ENABLED
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
@@ -77,15 +78,12 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-     event = NewRelic::Agent::Llm::Embedding.new(
+     NewRelic::Agent::Llm::Embedding.new(
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model']
       )
-      event.remove_instance_variable(:@input) if !CONTENT_ENABLED
-
-      event
     end
 
     def add_chat_completion_response_params(parameters, response, event)
@@ -113,7 +111,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_chat_completion_messages(parameters, summary_id)
-      message = (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
+      (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
         NewRelic::Agent::Llm::ChatCompletionMessage.new(
           content: message[:content] || message['content'],
           role: message[:role] || message['role'],
@@ -122,9 +120,6 @@ module NewRelic::Agent::Instrumentation
           vendor: VENDOR,
           is_response: true
         )
-        message.remove_instance_variable(:@content) if !CONTENT_ENABLED
-
-        message
       end
     end
 
