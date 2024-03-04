@@ -30,7 +30,6 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
-      event.metadata = llm_custom_attributes
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -47,7 +46,6 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: CHAT_COMPLETIONS_SEGMENT_NAME)
       record_openai_metric
       event = create_chat_completion_summary(parameters)
-      event.metadata = llm_custom_attributes
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
 
@@ -73,7 +71,8 @@ module NewRelic::Agent::Instrumentation
         conversation_id: conversation_id,
         request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
         request_model: parameters[:model] || parameters['model'],
-        temperature: parameters[:temperature] || parameters['temperature']
+        temperature: parameters[:temperature] || parameters['temperature'],
+        metadata: llm_custom_attributes
       )
     end
 
@@ -82,7 +81,8 @@ module NewRelic::Agent::Instrumentation
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
-        request_model: parameters[:model] || parameters['model']
+        request_model: parameters[:model] || parameters['model'],
+        metadata: llm_custom_attributes
       )
     end
 
@@ -151,7 +151,9 @@ module NewRelic::Agent::Instrumentation
     end
 
     def llm_custom_attributes
-      NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes.select { |k| k.to_s.match(/llm.*/) }
+      attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
+
+      attributes.transform_keys! { |key| key[4..-1] } if !attributes.nil?
     end
 
     def record_openai_metric
