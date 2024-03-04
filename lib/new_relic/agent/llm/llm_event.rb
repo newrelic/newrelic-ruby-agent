@@ -54,7 +54,7 @@ module NewRelic
           attributes_hash = attributes.each_with_object({}) do |attr, hash|
             hash[replace_attr_with_string(attr)] = instance_variable_get(:"@#{attr}")
           end
-          attributes_hash.merge!(metadata) && attributes_hash.delete(:metadata)
+          attributes_hash.merge!(metadata) && attributes_hash.delete(:metadata) if !metadata.nil?
 
           attributes_hash
         end
