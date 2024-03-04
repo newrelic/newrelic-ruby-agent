@@ -153,7 +153,7 @@ module NewRelic::Agent::Instrumentation
     def llm_custom_attributes
       attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
 
-      attributes.transform_keys! { |key| key[4..-1] } if !attributes.nil?
+      attributes&.transform_keys! { |key| key[4..-1] }
     end
 
     def record_openai_metric
