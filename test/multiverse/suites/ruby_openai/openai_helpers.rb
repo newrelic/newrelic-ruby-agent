@@ -124,13 +124,6 @@ module OpenAIHelpers
     faraday_connection
   end
 
-  def faraday_embeddings_connection
-    faraday_connection = Faraday.new
-    def faraday_connection.post(*args); EmbeddingsResponse.new; end
-
-    faraday_connection
-  end
-
   def error_faraday_connection
     faraday_connection = Faraday.new
     def faraday_connection.post(*args); raise 'deception'; end
@@ -208,7 +201,7 @@ module OpenAIHelpers
         yield
       end
     else
-      connection_client.stub(:conn, faraday_embeddings_connection) do
+      connection_client.stub(:conn, faraday_connection) do
         yield
       end
     end

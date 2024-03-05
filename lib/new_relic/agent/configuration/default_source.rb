@@ -373,16 +373,16 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-          If `false`, LLM (OpenAI) instrumentation will not capture input and output content on specific LLM events.
+            If `false`, LLM (OpenAI) instrumentation will not capture input and output content on specific LLM events.
 
-          The excluded attributes include:
-            * `content` from LlmChatCompletionMessage events
-            * `input` from LlmEmbedding events
-            * `input` from LlmTool events
-            * `output` from LlmTool events
-            * `request.query from` LlmVectorSearch events
-            * `page_content` from LlmVectorSearchResult events
-        DESCRIPTION
+            The excluded attributes include:
+              * `content` from LlmChatCompletionMessage events
+              * `input` from LlmEmbedding events
+              * `input` from LlmTool events
+              * `output` from LlmTool events
+              * `request.query from` LlmVectorSearch events
+              * `page_content` from LlmVectorSearchResult events
+          DESCRIPTION
         },
         # this is only set via server side config
         :apdex_t => {

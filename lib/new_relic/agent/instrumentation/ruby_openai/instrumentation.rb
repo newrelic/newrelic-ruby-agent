@@ -77,7 +77,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-     NewRelic::Agent::Llm::Embedding.new(
+      NewRelic::Agent::Llm::Embedding.new(
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
@@ -153,7 +153,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def remove_content(messages)
-      messages.each do | message| message.remove_instance_variable(:@content) ; end
+      messages.each { |message| message.remove_instance_variable(:@content) }
     end
 
     def record_openai_metric
