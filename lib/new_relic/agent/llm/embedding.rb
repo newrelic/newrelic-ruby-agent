@@ -10,7 +10,7 @@ module NewRelic
 
         ATTRIBUTES = %i[input request_model duration error]
         ATTRIBUTE_NAME_EXCEPTIONS = {
-          request_model: 'request.model',
+          request_model: 'request.model'
         }
         ERROR_EMBEDDING_ID = 'embedding_id'
         EVENT_NAME = 'LlmEmbedding'
