@@ -46,6 +46,7 @@ module NewRelic
       :recording_web_transaction?,
       :require_test_helper,
       :set_error_group_callback,
+      :set_llm_token_count_callback,
       :set_segment_callback,
       :set_sql_obfuscator,
       :set_transaction_name,

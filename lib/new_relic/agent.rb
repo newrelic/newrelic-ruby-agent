@@ -109,9 +109,11 @@ module NewRelic
     LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
 
     attr_reader :error_group_callback
+    attr_reader :llm_token_count_callback
 
     @agent = nil
     @error_group_callback = nil
+    @llm_token_count_callback = nil
     @logger = nil
     @tracer_lock = Mutex.new
     @tracer_queue = []
@@ -432,6 +434,42 @@ module NewRelic
       raise
     rescue => exception
       NewRelic::Agent.logger.error('record_llm_feedback_event', exception)
+    end
+
+    # @!endgroup
+
+    # @!group LLM callbacks
+
+    # Set a callback proc for calculating `token_count` attributes for
+    # LlmEmbedding and LlmChatCompletionMessage events
+    #
+    # @param callback_proc [Proc] the callback proc
+    #
+    # Typically this method should be called only once to set a callback for
+    # use with all LLM token calculations. If it is called multiple times, each
+    # new callback will replace the old one.
+    #
+    # The proc will be called with a single hash as its input argument and
+    # must return an Integer representing the number of tokens used for that
+    # particular prompt, completion message, or embedding. Values less than or
+    # equal to 0 will not be attached to an event.
+    #
+    # The hash has the following keys:
+    #
+    # :model => [String] The name of the LLM model
+    # :content => [String] The message content or prompt
+    #
+    # @api public
+    #
+    def set_llm_token_count_callback(callback_proc)
+      unless callback_proc.is_a?(Proc)
+        NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
+                                     "got #{callback_proc.class}")
+        return
+      end
+
+      record_api_supportability_metric(:set_llm_token_count_callback)
+      @llm_token_count_callback = callback_proc
     end
 
     # @!endgroup
