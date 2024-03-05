@@ -55,6 +55,7 @@ module NewRelic::Agent::Llm
 
       assert_equal('26.2', result['Marathon'])
       assert_equal('Ouch', result['Ultra Marathon'])
+      assert_equal('OpenAI', result[:vendor])
     end
 
     def test_record_does_not_create_an_event
