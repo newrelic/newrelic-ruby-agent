@@ -30,7 +30,7 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
-      event.remove_instance_variable(:@input) if !record_content_enabled?
+      event = remove_input(event) if !record_content_enabled?
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -154,6 +154,14 @@ module NewRelic::Agent::Instrumentation
 
     def remove_content(messages)
       messages.each { |message| message.remove_instance_variable(:@content) }
+
+      messages
+    end
+
+    def remove_input(event)
+      event.remove_instance_variable(:@input)
+
+      event
     end
 
     def record_openai_metric
