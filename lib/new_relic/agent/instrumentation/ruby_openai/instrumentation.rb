@@ -93,6 +93,7 @@ module NewRelic::Agent::Instrumentation
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
+      event.token_count = response.dig('usage', 'prompt_tokens') || NewRelic::Agent.llm_token_count_callback.call({model: event.response_model, content: event.input})
     end
 
     # The customer must call add_custom_attributes with llm.conversation_id
@@ -110,8 +111,7 @@ module NewRelic::Agent::Instrumentation
           role: message[:role] || message['role'],
           sequence: index,
           completion_id: summary_id,
-          vendor: VENDOR,
-          is_response: true
+          vendor: VENDOR
         )
       end
     end
@@ -139,7 +139,20 @@ module NewRelic::Agent::Instrumentation
         message.conversation_id = conversation_id
         message.request_id = summary.request_id
         message.response_model = response['model']
+        message.token_count = calculate_message_token_count(message, response)
       end
+    end
+
+    def calculate_message_token_count(message, response)
+      token_count = if message.is_response
+        response.dig('usage', 'completion_tokens')
+      else
+        response.dig('usage', 'prompt_tokens')
+      end
+
+      return NewRelic::Agent.llm_token_count_callback.call({model: response['model'], content: message.content}) if token_count.nil?
+
+      token_count
     end
 
     def record_openai_metric
@@ -152,6 +165,14 @@ module NewRelic::Agent::Instrumentation
 
     def nr_supportability_metric
       @nr_supportability_metric ||= "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
+    end
+
+    def llm_token_count_callback
+      NewRelic::Agent.llm_token_count_callback
+    end
+
+    def build_llm_token_count_callback_hash(model, content)
+      { model: model, content: content }
     end
 
     def finish(segment, event)

@@ -225,12 +225,38 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_set_llm_agent_attribute_on_embedding_transaction
-    in_transaction do |txn|
+    in_transaction do
       stub_embeddings_post_request do
         client.embeddings(parameters: embeddings_params)
       end
     end
 
     assert_truthy harvest_transaction_events![1][0][2][:llm]
+  end
+
+  def test_token_count_recorded_from_usage_object_when_present_on_embeddings
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    assert_equal EmbeddingsResponse.new.body['usage']['prompt_tokens'], embedding_event[1]['token_count']
+  end
+
+  def test_token_count_recorded_from_callback_when_usage_is_missing_on_embeddings
+    # how to stub the missing usage??
+  end
+
+  def test_token_count_recorded_when_message_not_response_and_usage_present
+  end
+
+  def test_token_count_recorded_when_message_is_response_and_usage_present
+  end
+
+  def test_token_count_recorded_from_callback_when_token_count_nil
   end
 end
