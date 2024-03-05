@@ -235,18 +235,31 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_embeddings_drop_input_when_record_content_disabled
-    with_config('ai_monitoring.record_content.enabled': false) do
+    with_config(:'ai_monitoring.record_content.enabled' => false) do
       in_transaction do
-        stub_post_request do
+        stub_embeddings_post_request do
           client.embeddings(parameters: embeddings_params)
         end
       end
     end
-    binding.irb
-    
+    _, events = @aggregator.harvest!
+
+    refute events[0][1]['input']
   end
 
   def test_messages_drop_content_when_record_content_disabled
+    with_config(:'ai_monitoring.record_content.enabled' => false) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+      _, events = @aggregator.harvest!
+      message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
+      message_events.each do |event|
+        refute message_events[0][1]['content']
+      end
+    end
   end
 end

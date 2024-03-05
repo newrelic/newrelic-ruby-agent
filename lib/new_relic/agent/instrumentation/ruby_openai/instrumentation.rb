@@ -10,7 +10,6 @@ module NewRelic::Agent::Instrumentation
     CHAT_COMPLETIONS_PATH = '/chat/completions'
     EMBEDDINGS_SEGMENT_NAME = 'Llm/embedding/OpenAI/embeddings'
     CHAT_COMPLETIONS_SEGMENT_NAME = 'Llm/completion/OpenAI/chat'
-    CONTENT_ENABLED = NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
 
     def json_post_with_new_relic(path:, parameters:)
       return yield unless path == EMBEDDINGS_PATH || path == CHAT_COMPLETIONS_PATH
@@ -31,7 +30,7 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
-      event.remove_instance_variable(:@input) if !CONTENT_ENABLED
+      event.remove_instance_variable(:@input) if !record_content_enabled?
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -50,7 +49,7 @@ module NewRelic::Agent::Instrumentation
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
-      messages.remove_instance_variable(:@input) if !CONTENT_ENABLED
+      messages = remove_content(messages) if !record_content_enabled?
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
@@ -147,6 +146,14 @@ module NewRelic::Agent::Instrumentation
         message.request_id = summary.request_id
         message.response_model = response['model']
       end
+    end
+
+    def record_content_enabled?
+      NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
+    end
+
+    def remove_content(messages)
+      messages.each do | message| message.remove_instance_variable(:@content) ; end
     end
 
     def record_openai_metric
