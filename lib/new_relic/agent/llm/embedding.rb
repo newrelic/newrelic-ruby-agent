@@ -8,7 +8,7 @@ module NewRelic
       class Embedding < LlmEvent
         include ResponseHeaders
 
-        ATTRIBUTES = %i[input request_model duration error]
+        ATTRIBUTES = %i[input request_model token_count duration error]
         ATTRIBUTE_NAME_EXCEPTIONS = {
           request_model: 'request.model'
         }

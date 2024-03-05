@@ -53,6 +53,7 @@ module NewRelic::Agent::Llm
         embedding.vendor = 'OpenAI'
         embedding.duration = '500'
         embedding.error = 'true'
+        embedding.token_count = 10
         embedding.llm_version = '2022-01-01'
         embedding.rate_limit_requests = '100'
         embedding.rate_limit_tokens = '101'
@@ -79,6 +80,7 @@ module NewRelic::Agent::Llm
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal '500', attributes['duration']
         assert_equal 'true', attributes['error']
+        assert_equal 10, attributes['token_count']
         assert_equal '2022-01-01', attributes['response.headers.llm_version']
         assert_equal '100', attributes['response.headers.ratelimitLimitRequests']
         assert_equal '101', attributes['response.headers.ratelimitLimitTokens']

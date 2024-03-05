@@ -67,6 +67,7 @@ module NewRelic::Agent::Llm
         message.role = 'system'
         message.completion_id = 123
         message.is_response = 'true'
+        message.token_count = 10
 
         message.record
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
@@ -87,6 +88,7 @@ module NewRelic::Agent::Llm
         assert_equal 2, attributes['sequence']
         assert_equal 123, attributes['completion_id']
         assert_equal 'true', attributes['is_response']
+        assert_equal 10, attributes['token_count']
       end
     end
   end

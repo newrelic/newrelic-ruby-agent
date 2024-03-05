@@ -8,7 +8,8 @@ module NewRelic
       class ChatCompletionMessage < LlmEvent
         include ChatCompletion
 
-        ATTRIBUTES = %i[content role sequence completion_id is_response]
+        ATTRIBUTES = %i[content role sequence completion_id token_count
+          is_response]
         EVENT_NAME = 'LlmChatCompletionMessage'
 
         attr_accessor(*ATTRIBUTES)
