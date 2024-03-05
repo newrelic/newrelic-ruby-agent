@@ -378,10 +378,6 @@ module NewRelic
             The excluded attributes include:
               * `content` from LlmChatCompletionMessage events
               * `input` from LlmEmbedding events
-              * `input` from LlmTool events
-              * `output` from LlmTool events
-              * `request.query from` LlmVectorSearch events
-              * `page_content` from LlmVectorSearchResult events
           DESCRIPTION
         },
         # this is only set via server side config
