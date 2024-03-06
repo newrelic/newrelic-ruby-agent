@@ -262,4 +262,33 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
   end
+
+  def test_embeddings_include_input_when_record_content_enabled
+    with_config(:'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    assert_truthy events[0][1]['input']
+  end
+
+  def test_messages_include_content_when_record_content_enabled
+    with_config(:'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+      _, events = @aggregator.harvest!
+      message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+      message_events.each do |event|
+        assert_truthy message_events[0][1]['content']
+      end
+    end
+  end
 end

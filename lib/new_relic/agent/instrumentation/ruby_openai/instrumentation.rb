@@ -30,7 +30,7 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
-      event = remove_input(event) if !record_content_enabled?
+      remove_input(event) if !record_content_enabled?
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -49,7 +49,7 @@ module NewRelic::Agent::Instrumentation
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
-      messages = remove_content(messages) if !record_content_enabled?
+      remove_content(messages) if !record_content_enabled?
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
@@ -154,14 +154,10 @@ module NewRelic::Agent::Instrumentation
 
     def remove_content(messages)
       messages.each { |message| message.remove_instance_variable(:@content) }
-
-      messages
     end
 
     def remove_input(event)
       event.remove_instance_variable(:@input)
-
-      event
     end
 
     def record_openai_metric
