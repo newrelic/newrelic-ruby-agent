@@ -50,8 +50,6 @@ module NewRelic::Agent::Llm
         embedding.request_id = '789'
         embedding.response_model = 'text-embedding-3-large'
         embedding.response_organization = 'newrelic-org-abc123'
-        embedding.response_usage_total_tokens = '20'
-        embedding.response_usage_prompt_tokens = '24'
         embedding.vendor = 'OpenAI'
         embedding.duration = '500'
         embedding.error = 'true'
@@ -77,8 +75,6 @@ module NewRelic::Agent::Llm
         assert_equal 'text-embedding-ada-002', attributes['request.model']
         assert_equal 'text-embedding-3-large', attributes['response.model']
         assert_equal 'newrelic-org-abc123', attributes['response.organization']
-        assert_equal '20', attributes['response.usage.total_tokens']
-        assert_equal '24', attributes['response.usage.prompt_tokens']
         assert_equal 'OpenAI', attributes['vendor']
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal '500', attributes['duration']

@@ -69,7 +69,8 @@ module NewRelic::Agent::Instrumentation
         vendor: VENDOR,
         request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
         request_model: parameters[:model] || parameters['model'],
-        temperature: parameters[:temperature] || parameters['temperature']
+        temperature: parameters[:temperature] || parameters['temperature'],
+        metadata: llm_custom_attributes
       )
     end
 
@@ -77,7 +78,8 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent::Llm::Embedding.new(
         vendor: VENDOR,
         input: parameters[:input] || parameters['input'],
-        request_model: parameters[:model] || parameters['model']
+        request_model: parameters[:model] || parameters['model'],
+        metadata: llm_custom_attributes
       )
     end
 
@@ -85,16 +87,11 @@ module NewRelic::Agent::Instrumentation
       event.response_number_of_messages = (parameters[:messages] || parameters['messages']).size + response['choices'].size
       # The response hash always returns keys as strings, so we don't need to run an || check here
       event.response_model = response['model']
-      event.response_usage_total_tokens = response['usage']['total_tokens']
-      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
-      event.response_usage_completion_tokens = response['usage']['completion_tokens']
       event.response_choices_finish_reason = response['choices'][0]['finish_reason']
     end
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
-      event.response_usage_total_tokens = response['usage']['total_tokens']
-      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
     end
 
     def create_chat_completion_messages(parameters, summary_id)
@@ -131,7 +128,14 @@ module NewRelic::Agent::Instrumentation
         message.id = "#{response_id}-#{message.sequence}"
         message.request_id = summary.request_id
         message.response_model = response['model']
+        message.metadata = llm_custom_attributes
       end
+    end
+
+    def llm_custom_attributes
+      attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
+
+      attributes&.transform_keys! { |key| key[4..-1] }
     end
 
     def record_openai_metric
