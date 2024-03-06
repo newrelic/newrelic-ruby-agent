@@ -445,7 +445,7 @@ module NewRelic
     #
     # @param callback_proc [Proc] the callback proc
     #
-    # Typically this method should be called only once to set a callback for
+    # This method should be called only once to set a callback for
     # use with all LLM token calculations. If it is called multiple times, each
     # new callback will replace the old one.
     #
