@@ -36,6 +36,8 @@ module NewRelic::Agent
       # unit style
 
       def test_named_pipe_check_true
+        skip_unless_minitest5_or_above
+
         File.stub :exist?, true, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
           File.stub :writable?, true, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
             assert_predicate handler, :use_named_pipe?
@@ -44,6 +46,8 @@ module NewRelic::Agent
       end
 
       def test_named_pipe_check_false
+        skip_unless_minitest5_or_above
+
         File.stub :exist?, false, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
           File.stub :writable?, false, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
             refute_predicate handler, :use_named_pipe?
@@ -52,6 +56,8 @@ module NewRelic::Agent
       end
 
       def test_named_pipe_check_result_is_memoized
+        skip_unless_minitest5_or_above
+
         h = handler
         # memoized to true when writable
         File.stub :exist?, true, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
