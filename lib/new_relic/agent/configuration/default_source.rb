@@ -373,7 +373,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `false`, LLM (OpenAI) instrumentation will not capture input and output content on specific LLM events.
+            If `false`, LLM (OpenAI only for now) instrumentation will not capture input and output content on specific LLM events.
 
             The excluded attributes include:
               * `content` from LlmChatCompletionMessage events
