@@ -43,6 +43,7 @@ module NewRelic
       :process_response_metadata,
       :record_custom_event,
       :record_metric,
+      :record_llm_feedback_event,
       :recording_web_transaction?,
       :require_test_helper,
       :set_error_group_callback,

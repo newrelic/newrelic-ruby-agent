@@ -417,6 +417,7 @@ module NewRelic
       message: nil,
       metadata: NewRelic::EMPTY_HASH)
 
+      record_api_supportability_metric(:record_llm_feedback_event)
       feedback_message_event = {
         'trace_id': trace_id,
         'rating': rating,
