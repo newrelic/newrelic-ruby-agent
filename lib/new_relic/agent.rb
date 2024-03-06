@@ -419,6 +419,7 @@ module NewRelic
       message: nil,
       metadata: NewRelic::EMPTY_HASH)
 
+      record_api_supportability_metric(:record_llm_feedback_event)
       feedback_message_event = {
         'trace_id': trace_id,
         'rating': rating,
@@ -445,7 +446,7 @@ module NewRelic
     #
     # @param callback_proc [Proc] the callback proc
     #
-    # Typically this method should be called only once to set a callback for
+    # This method should be called only once to set a callback for
     # use with all LLM token calculations. If it is called multiple times, each
     # new callback will replace the old one.
     #
