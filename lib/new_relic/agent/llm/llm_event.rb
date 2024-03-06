@@ -18,7 +18,6 @@ module NewRelic
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
         INGEST_SOURCE = 'Ruby'
         LLM = :llm
-        CUSTOM_ATTRIBUTE_CONVERSATION_ID = 'llm.conversation_id'
         ERROR_ATTRIBUTE_STATUS_CODE = 'http.statusCode'
         ERROR_ATTRIBUTE_CODE = 'error.code'
         ERROR_ATTRIBUTE_PARAM = 'error.param'
