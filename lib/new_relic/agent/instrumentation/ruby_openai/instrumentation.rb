@@ -135,21 +135,21 @@ module NewRelic::Agent::Instrumentation
 
     def calculate_message_token_count(message, response, parameters)
       # message is response
-        # more than one message in response
-          # use the callback
-        # one message in response
-          # use the usage object
+      # more than one message in response
+      # use the callback
+      # one message in response
+      # use the usage object
       # message is request
-        # more than one message in request
-          # use the callback
-        # one message in request
-          # use the usage object
+      # more than one message in request
+      # use the callback
+      # one message in request
+      # use the usage object
 
-          request_message_length = (parameters['messages']|| parameters[:messages]).length
+      request_message_length = (parameters['messages'] || parameters[:messages]).length
 
-          response_message_length = response['choices'].length
+      response_message_length = response['choices'].length
 
-          return NewRelic::Agent.llm_token_count_callback&.call({ model: response['model'], content: message.content }) unless message.is_response && (request_message_length > 1)
+      return NewRelic::Agent.llm_token_count_callback&.call({model: response['model'], content: message.content}) unless message.is_response && (request_message_length > 1)
 
       token_count = if message.is_response
         response.dig('usage', 'completion_tokens')
@@ -185,7 +185,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def build_llm_token_count_callback_hash(model, content)
-      { model: model, content: content }
+      {model: model, content: content}
     end
 
     def finish(segment, event)
