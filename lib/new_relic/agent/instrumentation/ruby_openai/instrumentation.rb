@@ -88,16 +88,11 @@ module NewRelic::Agent::Instrumentation
       event.response_number_of_messages = (parameters[:messages] || parameters['messages']).size + response['choices'].size
       # The response hash always returns keys as strings, so we don't need to run an || check here
       event.response_model = response['model']
-      event.response_usage_total_tokens = response['usage']['total_tokens']
-      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
-      event.response_usage_completion_tokens = response['usage']['completion_tokens']
       event.response_choices_finish_reason = response['choices'][0]['finish_reason']
     end
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
-      event.response_usage_total_tokens = response['usage']['total_tokens']
-      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
     end
 
     # The customer must call add_custom_attributes with llm.conversation_id
