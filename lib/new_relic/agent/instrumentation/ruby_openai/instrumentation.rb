@@ -148,7 +148,6 @@ module NewRelic::Agent::Instrumentation
           request_message_length = (parameters['messages']|| parameters[:messages]).length
 
           response_message_length = response['choices'].length
-          binding.irb
 
           return NewRelic::Agent.llm_token_count_callback&.call({ model: response['model'], content: message.content }) unless message.is_response && (request_message_length > 1)
 
