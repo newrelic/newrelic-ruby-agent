@@ -30,7 +30,6 @@ module NewRelic::Agent::Instrumentation
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
       record_openai_metric
       event = create_embeddings_event(parameters)
-      remove_input(event) if !record_content_enabled?
       segment.llm_event = event
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
@@ -49,7 +48,6 @@ module NewRelic::Agent::Instrumentation
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
-      remove_content(messages) if !record_content_enabled?
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
@@ -77,12 +75,14 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-      NewRelic::Agent::Llm::Embedding.new(
+      event = NewRelic::Agent::Llm::Embedding.new(
         # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
-        input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model']
       )
+      add_input(event, (parameters[:input] || parameters['input']))
+
+      event
     end
 
     def add_chat_completion_response_params(parameters, response, event)
@@ -111,14 +111,16 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_messages(parameters, summary_id)
       (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
-        NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: message[:content] || message['content'],
+       msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: message[:role] || message['role'],
           sequence: index,
           completion_id: summary_id,
           vendor: VENDOR,
           is_response: true
         )
+        add_content(msg, (message[:content] || message['content']))
+
+        msg
       end
     end
 
@@ -152,12 +154,12 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
     end
 
-    def remove_content(messages)
-      messages.each { |message| message.remove_instance_variable(:@content) }
+    def add_content(message, content)
+      message.content = content if record_content_enabled?
     end
 
-    def remove_input(event)
-      event.remove_instance_variable(:@input)
+    def add_input(event, input)
+      event.input = input if record_content_enabled?
     end
 
     def record_openai_metric
