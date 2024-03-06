@@ -129,7 +129,7 @@ module NewRelic
             NewRelic::Agent.disable_all_tracing do
               serverless if NewRelic::Agent.config[:'serverless_mode.enabled']
               connect(connection_options)
-              if ready?
+              if NewRelic::Agent.instance.ready?
                 create_and_run_event_loop
                 # never reaches here unless there is a problem or
                 # the agent is exiting

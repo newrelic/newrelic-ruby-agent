@@ -11,7 +11,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
   def test_deferred_work_connects
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
-    self.stubs(:connected?).returns(true)
+    NewRelic::Agent.instance.stubs(:ready?).returns(true)
     self.expects(:create_and_run_event_loop)
     deferred_work!('connection_options')
   end
@@ -19,7 +19,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
   def test_deferred_work_connect_failed
     self.expects(:catch_errors).yields
     self.expects(:connect).with('connection_options')
-    self.stubs(:connected?).returns(false)
+    NewRelic::Agent.instance.stubs(:ready?).returns(false)
     deferred_work!('connection_options')
   end
 
