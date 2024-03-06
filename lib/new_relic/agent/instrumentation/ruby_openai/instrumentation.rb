@@ -111,7 +111,7 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_messages(parameters, summary_id)
       (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
-       msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
+        msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: message[:role] || message['role'],
           sequence: index,
           completion_id: summary_id,
