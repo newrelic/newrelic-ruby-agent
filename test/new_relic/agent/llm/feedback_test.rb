@@ -63,6 +63,15 @@ module NewRelic::Agent::Llm
       end
     end
 
+    def test_feedback_api_supportability_metric_recorded
+      in_transaction do |txn|
+        NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5)
+        NewRelic::Agent.agent.custom_event_aggregator.harvest!
+      end
+
+      assert_metrics_recorded('Supportability/API/record_llm_feedback_event')
+    end
+
     def assert_logged(expected)
       found = NewRelic::Agent.logger.messages.any? { |m| m[1][0].match?(expected) }
 
