@@ -720,7 +720,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated at the beginning and end.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,

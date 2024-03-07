@@ -222,6 +222,28 @@ if defined?(Rack::Test)
       assert_equal '0', headers['Content-Length']
     end
 
+    # give #should_instrument? a bogus int hash value guaranteed to raise an
+    # exception when `#match?` is called on it, and ensure that the error
+    # is caught and a boolean value still returned
+    def test_should_instrument_method_cannot_crash_the_observed_application
+      phony_logger = Minitest::Mock.new
+      phony_logger.expect :error, nil, [/applicability/]
+      NewRelic::Agent.stub :logger, phony_logger do
+        should = app.should_instrument?({}, 200, {'Content-Type' => 1138})
+
+        refute(should, 'Expected a #should_instrument? to handle errors and produce a false result')
+      end
+      phony_logger.verify
+    end
+
+    def test_html_check_works_with_symbol_based_values
+      headers = {NewRelic::Rack::BrowserMonitoring::CONTENT_TYPE => :'text/html'}
+
+      assert app.send(:html?, headers)
+    end
+
+    private
+
     def headers_from_request(headers, content)
       content = Array(content) if content
 
