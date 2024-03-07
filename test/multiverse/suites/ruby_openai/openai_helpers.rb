@@ -31,6 +31,19 @@ module OpenAIHelpers
     end
   end
 
+  class EmbeddingsResponse
+    def body(return_value: false)
+      {'object' => 'list',
+       'data' => [{
+         'object' => 'embedding',
+         'index' => 0,
+         'embedding' => [0.002297497, 1, -0.016932933, 0.018126108, -0.014432343, -0.0030051514] # A real embeddings response includes dozens more vector points.
+       }],
+       'model' => 'text-embedding-ada-002',
+       'usage' => {'prompt_tokens' => 8, 'total_tokens' => 8}}
+    end
+  end
+
   def client
     @client ||= OpenAI::Client.new(access_token: 'FAKE_ACCESS_TOKEN')
   end
@@ -134,11 +147,11 @@ module OpenAIHelpers
   end
 
   def embedding_segment(txn)
-    txn.segments.find { |s| s.name == 'Llm/embedding/openAI/embeddings' }
+    txn.segments.find { |s| s.name == 'Llm/embedding/OpenAI/embeddings' }
   end
 
   def chat_completion_segment(txn)
-    txn.segments.find { |s| s.name == 'Llm/completion/openAI/chat' }
+    txn.segments.find { |s| s.name == 'Llm/completion/OpenAI/chat' }
   end
 
   def raise_segment_error(&blk)
@@ -173,6 +186,18 @@ module OpenAIHelpers
   def stub_error_post_request(&blk)
     if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
       HTTParty.stub(:post, ChatResponse.new.error_response(return_value: true)) do
+        yield
+      end
+    else
+      connection_client.stub(:conn, faraday_connection) do
+        yield
+      end
+    end
+  end
+
+  def stub_embeddings_post_request(&blk)
+    if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
+      HTTParty.stub(:post, EmbeddingsResponse.new.body(return_value: true)) do
         yield
       end
     else

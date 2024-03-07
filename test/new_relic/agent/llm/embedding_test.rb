@@ -12,12 +12,12 @@ module NewRelic::Agent::Llm
 
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::Embedding.ancestors, NewRelic::Agent::Llm::LlmEvent
-      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
+      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :trace_id
 
       in_transaction do |txn|
         event = NewRelic::Agent::Llm::Embedding.new
 
-        assert_equal txn.guid, event.transaction_id
+        assert_equal txn.trace_id, event.trace_id
       end
     end
 
@@ -48,11 +48,8 @@ module NewRelic::Agent::Llm
       in_transaction do |txn|
         embedding = NewRelic::Agent::Llm::Embedding.new(input: 'Bonjour', request_model: 'text-embedding-ada-002', id: 123)
         embedding.request_id = '789'
-        embedding.api_key_last_four_digits = 'sk-0126'
         embedding.response_model = 'text-embedding-3-large'
         embedding.response_organization = 'newrelic-org-abc123'
-        embedding.response_usage_total_tokens = '20'
-        embedding.response_usage_prompt_tokens = '24'
         embedding.vendor = 'OpenAI'
         embedding.duration = '500'
         embedding.error = 'true'
@@ -73,15 +70,11 @@ module NewRelic::Agent::Llm
         assert_equal 123, attributes['id']
         assert_equal '789', attributes['request_id']
         assert_equal txn.current_segment.guid, attributes['span_id']
-        assert_equal txn.guid, attributes['transaction_id']
         assert_equal txn.trace_id, attributes['trace_id']
         assert_equal 'Bonjour', attributes['input']
-        assert_equal 'sk-0126', attributes['api_key_last_four_digits']
         assert_equal 'text-embedding-ada-002', attributes['request.model']
         assert_equal 'text-embedding-3-large', attributes['response.model']
         assert_equal 'newrelic-org-abc123', attributes['response.organization']
-        assert_equal '20', attributes['response.usage.total_tokens']
-        assert_equal '24', attributes['response.usage.prompt_tokens']
         assert_equal 'OpenAI', attributes['vendor']
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal '500', attributes['duration']
@@ -93,6 +86,67 @@ module NewRelic::Agent::Llm
         assert_equal '103', attributes['response.headers.ratelimitResetRequests']
         assert_equal '104', attributes['response.headers.ratelimitRemainingTokens']
         assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
+      end
+    end
+
+    def test_error_attributes
+      event = NewRelic::Agent::Llm::Embedding.new
+      expected =
+        {
+          'http.statusCode' => 400,
+          'error.code' => nil,
+          'error.param' => nil,
+          'embedding_id' => event.id
+        }
+      exception = MockFaradayBadResponseError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    def test_error_attributes_for_irregular_exception
+      event = NewRelic::Agent::Llm::Embedding.new
+      expected = {'embedding_id' => event.id}
+      exception = StandardError.new
+
+      assert_equal expected, event.error_attributes(exception)
+    end
+
+    class MockFaradayBadResponseError
+      # Return value from an OpenAI embeddings request without a model parameter
+      # Recorded 21 Feb 2024
+      def response
+        {
+          :status => 400,
+          :headers =>
+          {'date' => 'Wed, 21 Feb 2024 23:50:19 GMT',
+           'content-type' => 'application/json; charset=utf-8',
+           'content-length' => '167',
+           'connection' => 'keep-alive',
+           'vary' => 'Origin',
+           'x-request-id' => 'req_e123',
+           'strict-transport-security' => 'max-age=15724800; includeSubDomains',
+           'cf-cache-status' => 'DYNAMIC',
+           'set-cookie' => 'unused',
+           'server' => 'cloudflare',
+           'cf-ray' => 'unused',
+           'alt-svc' => 'unused'},
+          :body =>
+          {'error' =>
+            {'message' => 'you must provide a model parameter',
+             'type' => 'invalid_request_error',
+             'param' => nil,
+             'code' => nil}},
+          :request =>
+          {:method => :post,
+           :url => '#<URI::HTTPS https://api.openai.com/v1/embeddings>', # this is an instance of a class, not a string, in the real response
+           :url_path => '/v1/embeddings',
+           :params => nil,
+           :headers =>
+            {'Content-Type' => 'application/json',
+             'Authorization' => 'Bearer sk-123',
+             'OpenAI-Organization' => nil},
+           :body => '{"input":"The food was delicious and the waiter..."}'}
+        }
       end
     end
   end

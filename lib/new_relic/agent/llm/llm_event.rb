@@ -8,17 +8,22 @@ module NewRelic
       class LlmEvent
         # Every subclass must define its own ATTRIBUTES constant, an array of symbols representing
         # that class's unique attributes
-        ATTRIBUTES = %i[id request_id span_id transaction_id trace_id
-          response_model vendor ingest_source]
+        ATTRIBUTES = %i[id request_id span_id trace_id response_model vendor
+          ingest_source metadata]
         # These attributes should not be passed as arguments to initialize and will be set by the agent
-        AGENT_DEFINED_ATTRIBUTES = %i[span_id transaction_id trace_id ingest_source]
+        AGENT_DEFINED_ATTRIBUTES = %i[span_id trace_id ingest_source]
         # Some attributes have names that can't be written as symbols used for metaprogramming.
         # The ATTRIBUTE_NAME_EXCEPTIONS hash should use the symbolized version of the name as the key
         # and the string version expected by the UI as the value.
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
         INGEST_SOURCE = 'Ruby'
         LLM = :llm
-        CUSTOM_ATTRIBUTE_CONVERSATION_ID = 'llm.conversation_id'
+        ERROR_ATTRIBUTE_STATUS_CODE = 'http.statusCode'
+        ERROR_ATTRIBUTE_CODE = 'error.code'
+        ERROR_ATTRIBUTE_PARAM = 'error.param'
+        ERROR_STRING = 'error'
+        CODE_STRING = 'code'
+        PARAM_STRING = 'param'
 
         attr_accessor(*ATTRIBUTES)
 
@@ -38,7 +43,6 @@ module NewRelic
 
           @id = id || NewRelic::Agent::GuidGenerator.generate_guid
           @span_id = NewRelic::Agent::Tracer.current_span_id
-          @transaction_id = NewRelic::Agent::Tracer.current_transaction&.guid
           @trace_id = NewRelic::Agent::Tracer.current_trace_id
           @ingest_source = INGEST_SOURCE
         end
@@ -46,9 +50,12 @@ module NewRelic
         # All subclasses use event_attributes to get a full hash of all
         # attributes and their values
         def event_attributes
-          attributes.each_with_object({}) do |attr, hash|
+          attributes_hash = attributes.each_with_object({}) do |attr, hash|
             hash[replace_attr_with_string(attr)] = instance_variable_get(:"@#{attr}")
           end
+          attributes_hash.merge!(metadata) && attributes_hash.delete(:metadata) if !metadata.nil?
+
+          attributes_hash
         end
 
         # Subclasses define an attributes method to concatenate attributes
@@ -72,6 +79,11 @@ module NewRelic
         def record
           # if an attribute has nil, will it be included?
           NewRelic::Agent.record_custom_event(event_name, event_attributes)
+        end
+
+        # Subclasses that add attributes to noticed errors will override this method
+        def error_attributes(exception)
+          NewRelic::EMPTY_HASH
         end
 
         private

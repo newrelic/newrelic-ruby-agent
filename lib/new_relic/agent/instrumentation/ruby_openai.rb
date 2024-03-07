@@ -9,18 +9,15 @@ require_relative 'ruby_openai/prepend'
 DependencyDetection.defer do
   named :'ruby_openai'
 
-  OPENAI_VERSION = Gem::Version.new(OpenAI::VERSION) if defined?(OpenAI)
-
   depends_on do
-    # add a config check for ai_monitoring.enabled
-    # maybe add DT check here eventually?
-    defined?(OpenAI) && defined?(OpenAI::Client) &&
-      OPENAI_VERSION >= Gem::Version.new('3.4.0')
+    NewRelic::Agent.config[:'ai_monitoring.enabled'] &&
+      defined?(OpenAI) && defined?(OpenAI::Client) &&
+      Gem::Version.new(OpenAI::VERSION) >= Gem::Version.new('3.4.0')
   end
 
   executes do
     if use_prepend?
-      if OPENAI_VERSION >= Gem::Version.new('5.0.0')
+      if Gem::Version.new(OpenAI::VERSION) >= Gem::Version.new('5.0.0')
         prepend_instrument OpenAI::Client,
           NewRelic::Agent::Instrumentation::OpenAI::Prepend,
           NewRelic::Agent::Instrumentation::OpenAI::VENDOR

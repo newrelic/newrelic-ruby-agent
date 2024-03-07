@@ -7,6 +7,7 @@ module NewRelic
     module Instrumentation
       module NetHTTP
         INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+        OPENAI_SEGMENT_PATTERN = %r{Llm/.*/OpenAI/.*}.freeze
 
         def request_with_tracing(request)
           NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
@@ -48,7 +49,7 @@ module NewRelic
         end
 
         def openai_parent?(segment)
-          segment&.parent&.name&.match?(/Llm\/.*\/OpenAI\/.*/)
+          segment&.parent&.name&.match?(OPENAI_SEGMENT_PATTERN)
         end
 
         def populate_openai_response_headers(response, parent)
