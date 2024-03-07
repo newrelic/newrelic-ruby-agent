@@ -258,7 +258,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
       message_events.each do |event|
-        refute message_events[0][1]['content']
+        refute event[1]['content']
       end
     end
   end
@@ -287,7 +287,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
       message_events.each do |event|
-        assert_truthy message_events[0][1]['content']
+        assert_truthy event[1]['content']
       end
     end
   end
