@@ -48,6 +48,7 @@ module NewRelic::Agent::Instrumentation
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
+
       begin
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
@@ -126,14 +127,16 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_response_messages(response, sequence_origin, summary_id)
       response['choices'].map.with_index(sequence_origin) do |choice, index|
-        NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: choice['message']['content'],
+        msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: choice['message']['role'],
           sequence: index,
           completion_id: summary_id,
           vendor: VENDOR,
           is_response: true
         )
+        add_content(msg, (choice['message']['content']))
+
+        msg
       end
     end
 
