@@ -1817,7 +1817,7 @@ module NewRelic
           :transform => proc { |bool|
             ENV.key?(NewRelic::Agent::ServerlessHandler::LAMBDA_ENVIRONMENT_VARIABLE) || bool
           },
-          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short lived ' \
+          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
                           'serverless functions.'
         },
         # Sidekiq
