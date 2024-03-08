@@ -75,12 +75,14 @@ module NewRelic::Agent::Instrumentation
     end
 
     def create_embeddings_event(parameters)
-      NewRelic::Agent::Llm::Embedding.new(
+      event = NewRelic::Agent::Llm::Embedding.new(
         vendor: VENDOR,
-        input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model'],
         metadata: llm_custom_attributes
       )
+      add_input(event, (parameters[:input] || parameters['input']))
+
+      event
     end
 
     def add_chat_completion_response_params(parameters, response, event)
@@ -96,27 +98,31 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_messages(parameters, summary_id)
       (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
-        NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: message[:content] || message['content'],
+        msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: message[:role] || message['role'],
           sequence: index,
           completion_id: summary_id,
           vendor: VENDOR,
           is_response: true
         )
+        add_content(msg, (message[:content] || message['content']))
+
+        msg
       end
     end
 
     def create_chat_completion_response_messages(response, sequence_origin, summary_id)
       response['choices'].map.with_index(sequence_origin) do |choice, index|
-        NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: choice['message']['content'],
+        msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: choice['message']['role'],
           sequence: index,
           completion_id: summary_id,
           vendor: VENDOR,
           is_response: true
         )
+        add_content(msg, choice['message']['content'])
+
+        msg
       end
     end
 
@@ -130,6 +136,18 @@ module NewRelic::Agent::Instrumentation
         message.response_model = response['model']
         message.metadata = llm_custom_attributes
       end
+    end
+
+    def record_content_enabled?
+      NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
+    end
+
+    def add_content(message, content)
+      message.content = content if record_content_enabled?
+    end
+
+    def add_input(event, input)
+      event.input = input if record_content_enabled?
     end
 
     def llm_custom_attributes
