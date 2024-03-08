@@ -77,7 +77,8 @@ module NewRelic::Agent::Instrumentation
     def create_embeddings_event(parameters)
       event = NewRelic::Agent::Llm::Embedding.new(
         vendor: VENDOR,
-        request_model: parameters[:model] || parameters['model']
+        request_model: parameters[:model] || parameters['model'],
+        metadata: llm_custom_attributes
       )
       add_input(event, (parameters[:input] || parameters['input']))
 
@@ -147,7 +148,8 @@ module NewRelic::Agent::Instrumentation
 
     def add_input(event, input)
       event.input = input if record_content_enabled?
-      
+    end
+
     def llm_custom_attributes
       attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
 
