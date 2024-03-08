@@ -54,7 +54,7 @@ module NewRelic::Agent::Instrumentation
         # TODO: Remove !response.include?('error') when we drop support for versions below 4.0.0
         if response && !response.include?('error')
           add_chat_completion_response_params(parameters, response, event)
-          messages = update_chat_completion_messages(messages, response, event, parameters)
+          messages = update_chat_completion_messages(messages, response, event)
         end
 
         response
@@ -92,7 +92,7 @@ module NewRelic::Agent::Instrumentation
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
-      event.token_count = response.dig('usage', 'prompt_tokens') || NewRelic::Agent.llm_token_count_callback&.call({model: event.request_model, content: event.input})
+      event.token_count = calculate_token_count(event.request_model, event.input)
     end
 
     def create_chat_completion_messages(parameters, summary_id)
@@ -120,7 +120,7 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def update_chat_completion_messages(messages, response, summary, parameters)
+    def update_chat_completion_messages(messages, response, summary)
       messages += create_chat_completion_response_messages(response, messages.size, summary.id)
       response_id = response['id'] || NewRelic::Agent::GuidGenerator.generate_guid
 
@@ -129,37 +129,19 @@ module NewRelic::Agent::Instrumentation
         message.request_id = summary.request_id
         message.response_model = response['model']
         message.metadata = llm_custom_attributes
-        message.token_count = calculate_message_token_count(message, response, parameters)
+
+        model = message.is_response ? message.response_model : summary.request_model
+
+        message.token_count = calculate_token_count(model, message.content)
       end
     end
 
-    def calculate_message_token_count(message, response, parameters)
-      # message is response
-      # more than one message in response
-      # use the callback
-      # one message in response
-      # use the usage object
-      # message is request
-      # more than one message in request
-      # use the callback
-      # one message in request
-      # use the usage object
+    def calculate_token_count(model, content)
+      # return unless NewRelic::Agent.config['ai_monitoring.record_content.enabled']
+      return unless NewRelic::Agent.llm_token_count_callback
 
-      request_message_length = (parameters['messages'] || parameters[:messages]).length
-
-      response_message_length = response['choices'].length
-
-      return NewRelic::Agent.llm_token_count_callback&.call({model: response['model'], content: message.content}) unless message.is_response && (request_message_length > 1)
-
-      token_count = if message.is_response
-        response.dig('usage', 'completion_tokens')
-      else
-        response.dig('usage', 'prompt_tokens')
-      end
-
-      return NewRelic::Agent.llm_token_count_callback&.call({model: response['model'], content: message.content}) if token_count.nil?
-
-      token_count.to_i
+      count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
+      return count unless count.is_a?(Integer) && count <= 0
     end
 
     def llm_custom_attributes
@@ -178,14 +160,6 @@ module NewRelic::Agent::Instrumentation
 
     def nr_supportability_metric
       @nr_supportability_metric ||= "Supportability/Ruby/ML/OpenAI/#{::OpenAI::VERSION}"
-    end
-
-    def llm_token_count_callback
-      NewRelic::Agent.llm_token_count_callback
-    end
-
-    def build_llm_token_count_callback_hash(model, content)
-      {model: model, content: content}
     end
 
     def finish(segment, event)

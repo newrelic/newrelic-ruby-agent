@@ -246,7 +246,9 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     assert_truthy harvest_transaction_events![1][0][2][:llm]
   end
 
-  def test_token_count_recorded_from_usage_object_when_present_on_embeddings
+  def test_embeddings_token_count_assigned_by_callback_if_present
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 7734 })
+
     in_transaction do
       stub_embeddings_post_request do
         client.embeddings(parameters: embeddings_params)
@@ -256,69 +258,73 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
-    assert_equal EmbeddingsResponse.new.body['usage']['prompt_tokens'], embedding_event[1]['token_count']
-  end
-
-  def test_token_count_nil_when_usage_is_missing_on_embeddings_and_no_callback_defined
-    mock_response = {'model' => 'gpt-2001'}
-    mock_event = NewRelic::Agent::Llm::Embedding.new(request_model: 'gpt-2004', input: 'what does my dog want?')
-    add_embeddings_response_params(mock_response, mock_event)
-
-    assert_nil mock_event.token_count
-  end
-
-  def test_token_count_assigned_by_callback_when_usage_is_missing_and_callback_defined
-    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 7734 })
-
-    mock_response = {'model' => 'gpt-2001'}
-    mock_event = NewRelic::Agent::Llm::Embedding.new(request_model: 'gpt-2004', input: 'what does my dog want?')
-    add_embeddings_response_params(mock_response, mock_event)
-
-    assert_equal 7734, mock_event.token_count
+    assert_equal 7734, embedding_event[1]['token_count']
 
     NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback)
   end
 
-  def test_token_count_when_message_not_response_and_usage_present_and_only_one_request_message
-    message = NewRelic::Agent::Llm::ChatCompletionMessage.new(content: 'pineapple strawberry')
-    response = {'usage' => {'prompt_tokens' => 123456, 'completion_tokens' => 654321}, 'model' => 'gpt-2001'}
-    parameters = {'messages' => ['one']}
+  def test_embeddings_token_count_attribute_absent_if_callback_returns_nil
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| nil })
 
-    result = calculate_message_token_count(message, response, parameters)
-
-    assert_equal 123456, result
-  end
-
-  def test_token_count_when_message_not_response_and_usage_present_and_only_one_request_message_and_messages_params_symbol
-    message = NewRelic::Agent::Llm::ChatCompletionMessage.new(content: 'pineapple strawberry')
-    response = {'usage' => {'prompt_tokens' => 123456, 'completion_tokens' => 654321}, 'model' => 'gpt-2001'}
-    parameters = {:messages => ['one']}
-
-    calculate_message_token_count(message, response, parameters)
-
-    assert_equal 123456, message.token_count
-  end
-
-  def test_token_count_when_message_not_response_and_usage_present_and_multiple_request_messages_but_no_callback
     in_transaction do
-      stub_post_request do
-        result = client.chat(parameters: chat_params)
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
       end
     end
 
     _, events = @aggregator.harvest!
-    chat_completion_messages = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
-    not_response_messages = chat_completion_messages.find { |event| !event[1].key?('is_response') }
+    refute embedding_event[1].key?('token_count')
 
-    not_response_messages.each do |msg|
-      assert_nil msg.token_count
+    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback)
+  end
+
+  def test_embeddings_token_count_attribute_absent_if_callback_returns_zero
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 0 })
+
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
     end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    refute embedding_event[1].key?('token_count')
+
+    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback)
   end
 
-  def test_token_count_when_message_is_response_and_usage_present
+  def test_embeddings_token_count_attribute_absent_if_no_callback_available
+    assert_nil NewRelic::Agent.llm_token_count_callback
+
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    refute embedding_event[1].key?('token_count')
   end
 
-  def test_token_count_from_callback_when_token_count_nil
+  def test_chat_completion_message_token_count_assigned_by_callback_if_present
+
+  end
+
+  def test_chat_completion_message_token_count_attribute_absent_if_callback_returns_nil
+
+  end
+
+  def test_chat_completion_message_token_count_attribute_absent_if_callback_returns_zero
+
+  end
+
+  def test_chat_completion_message_token_count_attribute_absent_if_no_callback_available
+
   end
 end
