@@ -66,18 +66,16 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_summary(parameters)
       NewRelic::Agent::Llm::ChatCompletionSummary.new(
-        # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
-        conversation_id: conversation_id,
         request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
         request_model: parameters[:model] || parameters['model'],
-        temperature: parameters[:temperature] || parameters['temperature']
+        temperature: parameters[:temperature] || parameters['temperature'],
+        metadata: llm_custom_attributes
       )
     end
 
     def create_embeddings_event(parameters)
       event = NewRelic::Agent::Llm::Embedding.new(
-        # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         vendor: VENDOR,
         request_model: parameters[:model] || parameters['model']
       )
@@ -90,24 +88,11 @@ module NewRelic::Agent::Instrumentation
       event.response_number_of_messages = (parameters[:messages] || parameters['messages']).size + response['choices'].size
       # The response hash always returns keys as strings, so we don't need to run an || check here
       event.response_model = response['model']
-      event.response_usage_total_tokens = response['usage']['total_tokens']
-      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
-      event.response_usage_completion_tokens = response['usage']['completion_tokens']
       event.response_choices_finish_reason = response['choices'][0]['finish_reason']
     end
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
-      event.response_usage_total_tokens = response['usage']['total_tokens']
-      event.response_usage_prompt_tokens = response['usage']['prompt_tokens']
-    end
-
-    # The customer must call add_custom_attributes with llm.conversation_id
-    # before the transaction starts. Otherwise, the conversation_id will be nil.
-    def conversation_id
-      return @nr_conversation_id if @nr_conversation_id
-
-      @nr_conversation_id ||= NewRelic::Agent::Tracer.current_transaction.attributes.custom_attributes[NewRelic::Agent::Llm::LlmEvent::CUSTOM_ATTRIBUTE_CONVERSATION_ID]
     end
 
     def create_chat_completion_messages(parameters, summary_id)
@@ -145,11 +130,10 @@ module NewRelic::Agent::Instrumentation
       response_id = response['id'] || NewRelic::Agent::GuidGenerator.generate_guid
 
       messages.each do |message|
-        # TODO: POST-GA: Add metadata from add_custom_attributes if prefixed with 'llm.', except conversation_id
         message.id = "#{response_id}-#{message.sequence}"
-        message.conversation_id = conversation_id
         message.request_id = summary.request_id
         message.response_model = response['model']
+        message.metadata = llm_custom_attributes
       end
     end
 
@@ -163,6 +147,11 @@ module NewRelic::Agent::Instrumentation
 
     def add_input(event, input)
       event.input = input if record_content_enabled?
+      
+    def llm_custom_attributes
+      attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
+
+      attributes&.transform_keys! { |key| key[4..-1] }
     end
 
     def record_openai_metric

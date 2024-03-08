@@ -8,19 +8,14 @@ module NewRelic
   module Agent
     module Llm
       class ChatCompletionSummary < LlmEvent
-        include ChatCompletion
         include ResponseHeaders
 
         ATTRIBUTES = %i[request_max_tokens response_number_of_messages
-          request_model response_usage_total_tokens response_usage_prompt_tokens
-          response_usage_completion_tokens response_choices_finish_reason
-          request_temperature duration error]
+          request_model response_choices_finish_reason request_temperature
+          duration error]
         ATTRIBUTE_NAME_EXCEPTIONS = {
           response_number_of_messages: 'response.number_of_messages',
           request_model: 'request.model',
-          response_usage_total_tokens: 'response.usage.total_tokens',
-          response_usage_prompt_tokens: 'response.usage.prompt_tokens',
-          response_usage_completion_tokens: 'response.usage.completion_tokens',
           response_choices_finish_reason: 'response.choices.finish_reason',
           request_temperature: 'request.temperature'
         }
@@ -30,7 +25,7 @@ module NewRelic
         attr_accessor(*ATTRIBUTES)
 
         def attributes
-          LlmEvent::ATTRIBUTES + ChatCompletion::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
+          LlmEvent::ATTRIBUTES + ResponseHeaders::ATTRIBUTES + ATTRIBUTES
         end
 
         def attribute_name_exceptions

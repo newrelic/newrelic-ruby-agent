@@ -46,6 +46,18 @@ module NewRelic::Agent::Llm
       assert_equal('gpt-4', result['response.model'])
     end
 
+    def test_event_attributes_adds_custom_attributes
+      event = NewRelic::Agent::Llm::LlmEvent.new(id: 123)
+      event.vendor = 'OpenAI'
+      event.response_model = 'gpt-4'
+      event.metadata = {'Marathon' => '26.2', 'Ultra Marathon' => 'Ouch'}
+      result = event.event_attributes
+
+      assert_equal('26.2', result['Marathon'])
+      assert_equal('Ouch', result['Ultra Marathon'])
+      assert_equal('OpenAI', result[:vendor])
+    end
+
     def test_record_does_not_create_an_event
       event = NewRelic::Agent::Llm::LlmEvent.new
       event.record
