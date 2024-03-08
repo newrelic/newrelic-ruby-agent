@@ -134,7 +134,7 @@ module NewRelic::Agent::Instrumentation
           vendor: VENDOR,
           is_response: true
         )
-        add_content(msg, (choice['message']['content']))
+        add_content(msg, choice['message']['content'])
 
         msg
       end
