@@ -6,7 +6,7 @@ Version <dev> hardens the browser agent insertion logic to better proactively an
 
 - **Feature: Store tracer state on thread-level**
 
-  A new configuration option, `thread_local_tracer_state`, stores New Relic's tracer state on the thread-level, as opposed to the default fiber-level storage. This configuration is turned off by default. Thanks to community member [@markiz](https://github.com/markiz) who contributed the idea, code, configuration option, and tests for this new feature! [PR#2475](https://github.com/newrelic/newrelic-ruby-agent/pull/2475).
+  A new configuration option, `thread_local_tracer_state`, stores New Relic's tracer state on the thread-level, as opposed to the default fiber-level storage. This configuration is turned off by default. Our thanks go to community member [@markiz](https://github.com/markiz) who contributed the idea, code, configuration option, and tests for this new feature! [PR#2475](https://github.com/newrelic/newrelic-ruby-agent/pull/2475).
 
 - **Bugfix: Harden the browser agent insertion logic**
 
