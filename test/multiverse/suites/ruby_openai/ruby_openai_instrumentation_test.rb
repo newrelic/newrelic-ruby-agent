@@ -6,12 +6,9 @@ require_relative 'openai_helpers'
 
 class RubyOpenAIInstrumentationTest < Minitest::Test
   include OpenAIHelpers
-  # some of the private methods are too difficult to stub
-  # we can test them directly by including the module
-  include NewRelic::Agent::Instrumentation::OpenAI
-
   def setup
     @aggregator = NewRelic::Agent.agent.custom_event_aggregator
+    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback) if NewRelic::Agent.instance_variable_defined?(:@llm_token_count_callback)
   end
 
   def teardown
@@ -259,8 +256,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
     assert_equal 7734, embedding_event[1]['token_count']
-
-    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback)
   end
 
   def test_embeddings_token_count_attribute_absent_if_callback_returns_nil
@@ -276,8 +271,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
     refute embedding_event[1].key?('token_count')
-
-    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback)
   end
 
   def test_embeddings_token_count_attribute_absent_if_callback_returns_zero
@@ -293,8 +286,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
     refute embedding_event[1].key?('token_count')
-
-    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback)
   end
 
   def test_embeddings_token_count_attribute_absent_if_no_callback_available
@@ -313,18 +304,72 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_chat_completion_message_token_count_assigned_by_callback_if_present
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 7734 })
 
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      assert_equal 7734, message[1]['token_count']
+    end
   end
 
   def test_chat_completion_message_token_count_attribute_absent_if_callback_returns_nil
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| nil })
 
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      refute message[1].key?('token_count')
+    end
   end
 
   def test_chat_completion_message_token_count_attribute_absent_if_callback_returns_zero
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 0 })
 
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      refute message[1].key?('token_count')
+    end
   end
 
   def test_chat_completion_message_token_count_attribute_absent_if_no_callback_available
+    assert_nil NewRelic::Agent.llm_token_count_callback
 
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    refute_empty messages
+
+    messages.each do |message|
+      refute message[1].key?('token_count')
+    end
   end
 end
