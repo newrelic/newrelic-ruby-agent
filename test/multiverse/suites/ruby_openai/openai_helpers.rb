@@ -41,10 +41,9 @@ module OpenAIHelpers
            'embedding' => [0.002297497, 1, -0.016932933, 0.018126108, -0.014432343, -0.0030051514] # A real embeddings response includes dozens more vector points.
          }],
          'model' => 'text-embedding-ada-002',
-         'usage' => {'prompt_tokens' => 8, 'total_tokens' => 8}
-        }
+         'usage' => {'prompt_tokens' => 8, 'total_tokens' => 8}}
       else
-        "{\"object\":\"list\",\"data\":[{\"object\":\"embedding\",\"index\":0,\"embedding\":[0.002297497,1,-0.016932933,0.018126108,-0.014432343,-0.0030051514]}],\"model\":\"text-embedding-ada-002\",\"usage\":{\"prompt_tokens\":8,\"total_tokens\":8}}"
+        '{"object":"list","data":[{"object":"embedding","index":0,"embedding":[0.002297497,1,-0.016932933,0.018126108,-0.014432343,-0.0030051514]}],"model":"text-embedding-ada-002","usage":{"prompt_tokens":8,"total_tokens":8}}'
       end
     end
   end
