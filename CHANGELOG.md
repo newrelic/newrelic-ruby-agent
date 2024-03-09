@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> hardens the browser agent insertion logic to better proactively anticipate errors.
+Version <dev> introduces the option to store tracer state on the thread-level and hardens the browser agent insertion logic to better proactively anticipate errors.
 
 - **Feature: Store tracer state on thread-level**
 
