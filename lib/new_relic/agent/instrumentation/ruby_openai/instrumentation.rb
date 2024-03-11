@@ -147,7 +147,7 @@ module NewRelic::Agent::Instrumentation
       return unless NewRelic::Agent.llm_token_count_callback
 
       count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
-      return count if count.is_a?(Integer) && count > 0
+      count if count.is_a?(Integer) && count > 0
     end
 
     def record_content_enabled?
