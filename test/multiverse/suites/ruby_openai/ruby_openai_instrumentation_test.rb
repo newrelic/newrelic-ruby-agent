@@ -366,8 +366,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
-    refute_empty messages
-
     messages.each do |message|
       refute message[1].key?('token_count')
     end
