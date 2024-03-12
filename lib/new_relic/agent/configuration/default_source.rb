@@ -1818,7 +1818,8 @@ module NewRelic
             ENV.key?(NewRelic::Agent::ServerlessHandler::LAMBDA_ENVIRONMENT_VARIABLE) || bool
           },
           :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
-                          'serverless functions.'
+                          'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
+                          "option is not intended for use without New Relic's Ruby Lambda layer offering."
         },
         # Sidekiq
         :'sidekiq.args.include' => {
