@@ -18,7 +18,7 @@ module NewRelic::Agent::Instrumentation
     ensure
       segment&.finish
       create_llm_events(segment, params, response)
-      binding.irb
+      # binding.irb
     end
 
     ##################################################################
@@ -28,7 +28,7 @@ module NewRelic::Agent::Instrumentation
       shared_attributes = create_shared_attributes(model, segment)
 
       if is_embed_model?(model)
-        create_embed_completion_events(model, body, response_body, shared_attributes, segment)
+        create_embed_event(model, body, response_body, shared_attributes, segment)
       else
         create_chat_completion_events(model, body, response_body, shared_attributes, segment)
       end
@@ -73,15 +73,14 @@ module NewRelic::Agent::Instrumentation
       @nr_events << summary_event # TODO: tmp
 
       summary_event.id = NewRelic::Agent::GuidGenerator.generate_guid
-      # summary_event.api_key_last_four_digits = config&.credentials&.access_key_id[-4..-1] # todo maybe dont do this
       summary_event.request_model = shared[:response_model]
       summary_event.response_number_of_messages = attributes[:response_number_of_messages]
       summary_event.request_temperature = attributes[:request_temperature]
-      
+
       summary_event.request_max_tokens = attributes[:request_max_tokens]
-      summary_event.response_usage_prompt_tokens = segment&.llm_event&.[](:response_usage_prompt_tokens)&.to_i
-      summary_event.response_usage_completion_tokens = segment&.llm_event&.[](:response_usage_completion_tokens)&.to_i
-      summary_event.response_usage_total_tokens = summary_event.response_usage_prompt_tokens + summary_event.response_usage_completion_tokens
+      # summary_event.response_usage_prompt_tokens = segment&.llm_event&.[](:response_usage_prompt_tokens)&.to_i
+      # summary_event.response_usage_completion_tokens = segment&.llm_event&.[](:response_usage_completion_tokens)&.to_i
+      # summary_event.response_usage_total_tokens = summary_event.response_usage_prompt_tokens + summary_event.response_usage_completion_tokens
 
       summary_event.response_choices_finish_reason = attributes[:response_choices_finish_reason]
       summary_event.duration = segment&.duration
@@ -101,20 +100,31 @@ module NewRelic::Agent::Instrumentation
       message_event.content = attributes[:content]
       message_event.role = attributes[:role]
       message_event.is_response = attributes[:is_response] if attributes[:is_response]
+      # token count from callback
 
       message_event.record
     end
 
     ##################################################################
 
-    def create_embed_completion_events(model, body, response_body, shared_attributes, segment)
+    def create_embed_event(model, body, response_body, shared_attributes, segment)
       embed_attributes = if model.start_with?('amazon.titan-embed-')
-        titan_embed_attributes(params, options, result)
+        titan_embed_attributes(body, response_body)
       elsif model.start_with?('cohere.embed-')
-        cohere_embed_attributes(params, options, result)
+        cohere_embed_attributes(body, response_body)
       end
 
+      embed_event = NewRelic::Agent::Llm::Embedding.new(shared_attributes)
 
+      @nr_events << embed_event # TODO: tmp
+
+      embed_event.input = embed_attributes[:input]
+      embed_event.request_model = shared_attributes[:response_model]
+      embed_event.duration = segment&.duration
+      embed_event.error = true if segment&.noticed_error
+      # also token count from callback
+
+      embed_event.record
     end
 
     ##################################################################
@@ -125,9 +135,7 @@ module NewRelic::Agent::Instrumentation
       shared_attributes[:request_id] = segment&.llm_event&.[](:request_id)
       shared_attributes[:response_model] = model
       shared_attributes[:vendor] = 'bedrock'
-
-      conversation_id = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.[]('llm.conversation_id')
-      shared_attributes[:conversation_id] = conversation_id if conversation_id
+      shared_attributes[:metadata] = llm_custom_attributes
 
       shared_attributes
     end
@@ -139,6 +147,12 @@ module NewRelic::Agent::Instrumentation
       response.body.rewind # put the response back
 
       return model, body, response_body
+    end
+
+    def llm_custom_attributes
+      attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
+
+      attributes&.transform_keys! { |key| key[4..-1] }
     end
 
     ##################################################################
