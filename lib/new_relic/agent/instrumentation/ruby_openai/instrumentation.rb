@@ -143,7 +143,6 @@ module NewRelic::Agent::Instrumentation
     end
 
     def calculate_token_count(model, content)
-      return unless record_content_enabled?
       return unless NewRelic::Agent.llm_token_count_callback
 
       count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
