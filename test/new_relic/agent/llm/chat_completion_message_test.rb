@@ -54,6 +54,7 @@ module NewRelic::Agent::Llm
         message.response_model = 'gpt-4'
         message.vendor = 'OpenAI'
         message.role = 'system'
+        message.completion_id = 123
         message.is_response = 'true'
         message.token_count = 10
 
@@ -73,6 +74,7 @@ module NewRelic::Agent::Llm
         assert_equal 'Red-Tailed Hawk', attributes['content']
         assert_equal 'system', attributes['role']
         assert_equal 2, attributes['sequence']
+        assert_equal 123, attributes['completion_id']
         assert_equal 'true', attributes['is_response']
         assert_equal 10, attributes['token_count']
       end
