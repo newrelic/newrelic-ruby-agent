@@ -34,6 +34,7 @@ module NewRelic
         def initialize
           reset_to_defaults
           @callbacks = Hash.new { |hash, key| hash[key] = [] }
+          @lock = Mutex.new
         end
 
         def add_config_for_testing(source, level = 0)
@@ -364,9 +365,11 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
-          preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
-          new_cache
-          preserved.each { |k, v| @cache[k] = v }
+          @lock.synchronize do
+            preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+            new_cache
+            preserved.each { |k, v| @cache[k] = v }
+          end
 
           @cache
         end

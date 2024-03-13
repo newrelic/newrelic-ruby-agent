@@ -1,5 +1,17 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> introduces the option to store tracer state on the thread-level and hardens the browser agent insertion logic to better proactively anticipate errors.
+
+- **Feature: Store tracer state on thread-level**
+
+  A new configuration option, `thread_local_tracer_state`, stores New Relic's tracer state on the thread-level, as opposed to the default fiber-level storage. This configuration is turned off by default. Our thanks go to community member [@markiz](https://github.com/markiz) who contributed the idea, code, configuration option, and tests for this new feature! [PR#2475](https://github.com/newrelic/newrelic-ruby-agent/pull/2475).
+
+- **Bugfix: Harden the browser agent insertion logic**
+
+  With [Issue#2462](https://github.com/newrelic/newrelic-ruby-agent/issues/2462), community member [@miry](https://github.com/miry) explained that it was possible for an HTTP response headers hash to have symbols for values. Not only would these symbols prevent the inclusion of the New Relic browser agent tag in the response body, but more importantly they would cause an exception that would bubble up to the monitored web application itself. With [PR#2465](https://github.com/newrelic/newrelic-ruby-agent/pull/2465) symbol based values are now supported and all other potential future exceptions are now handled. Additionally, the refactor to support symbols has been shown through benchmarking to give the processing of string and mixed type hashes a slight speed boost too.
+
 
 ## v9.7.1
 

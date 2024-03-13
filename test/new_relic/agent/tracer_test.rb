@@ -17,6 +17,16 @@ module NewRelic
         refute_nil state
       end
 
+      def test_tracer_state_in_fiber_with_thread_local_tracer_state
+        with_config(:thread_local_tracer_state => true) do
+          state = Tracer.state
+          fiber = Fiber.new do
+            assert_equal Tracer.state, state
+          end
+          fiber.resume
+        end
+      end
+
       def test_current_transaction_with_transaction
         in_transaction do |txn|
           assert_equal txn, Tracer.current_transaction
