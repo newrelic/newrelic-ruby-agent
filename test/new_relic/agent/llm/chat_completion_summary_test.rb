@@ -62,15 +62,15 @@ module NewRelic::Agent::Llm
         summary.duration = '500'
         summary.error = 'true'
         summary.llm_version = '2022-01-01'
-        summary.rate_limit_requests = 100
-        summary.rate_limit_tokens = 101
-        summary.rate_limit_reset_tokens = '102'
-        summary.rate_limit_reset_requests = '103'
-        summary.rate_limit_remaining_tokens = 104
-        summary.rate_limit_remaining_requests = 105
-        summary.rate_limit_limit_tokens_usage_based = '106'
-        summary.rate_limit_reset_tokens_usage_based = 107
-        summary.rate_limit_remaining_tokens_usage_based = 108
+        summary.ratelimit_limit_requests = 100
+        summary.ratelimit_limit_tokens = 101
+        summary.ratelimit_reset_tokens = '102'
+        summary.ratelimit_reset_requests = '103'
+        summary.ratelimit_remaining_tokens = 104
+        summary.ratelimit_remaining_requests = 105
+        summary.ratelimit_limit_tokens_usage_based = '106'
+        summary.ratelimit_reset_tokens_usage_based = 107
+        summary.ratelimit_remaining_tokens_usage_based = 108
 
         summary.record
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!

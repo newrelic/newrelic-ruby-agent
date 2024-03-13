@@ -54,15 +54,15 @@ module NewRelic::Agent::Llm
         embedding.duration = '500'
         embedding.error = 'true'
         embedding.llm_version = '2022-01-01'
-        embedding.rate_limit_requests = 100
-        embedding.rate_limit_tokens = 101
-        embedding.rate_limit_reset_tokens = '102'
-        embedding.rate_limit_reset_requests = '103'
-        embedding.rate_limit_remaining_tokens = 104
-        embedding.rate_limit_remaining_requests = 105
-        embedding.rate_limit_limit_tokens_usage_based = '106'
-        embedding.rate_limit_reset_tokens_usage_based = 107
-        embedding.rate_limit_remaining_tokens_usage_based = 108
+        embedding.ratelimit_limit_requests = 100
+        embedding.ratelimit_limit_tokens = 101
+        embedding.ratelimit_reset_tokens = '102'
+        embedding.ratelimit_reset_requests = '103'
+        embedding.ratelimit_remaining_tokens = 104
+        embedding.ratelimit_remaining_requests = 105
+        embedding.ratelimit_limit_tokens_usage_based = '106'
+        embedding.ratelimit_reset_tokens_usage_based = 107
+        embedding.ratelimit_remaining_tokens_usage_based = 108
 
         embedding.record
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!

@@ -51,15 +51,15 @@ module NewRelic::Agent::Llm
       event.populate_openai_response_headers(openai_response_headers_hash)
 
       assert_equal '2020-10-01', event.llm_version
-      assert_equal 200, event.rate_limit_requests
-      assert_equal 150000, event.rate_limit_tokens
-      assert_equal 199, event.rate_limit_remaining_requests
-      assert_equal 149990, event.rate_limit_remaining_tokens
-      assert_equal '7m12s', event.rate_limit_reset_requests
-      assert_equal '4ms', event.rate_limit_reset_tokens
-      assert_equal '4', event.rate_limit_limit_tokens_usage_based
-      assert_equal 2, event.rate_limit_reset_tokens_usage_based
-      assert_equal 1, event.rate_limit_remaining_tokens_usage_based
+      assert_equal 200, event.ratelimit_limit_requests
+      assert_equal 150000, event.ratelimit_limit_tokens
+      assert_equal 199, event.ratelimit_remaining_requests
+      assert_equal 149990, event.ratelimit_remaining_tokens
+      assert_equal '7m12s', event.ratelimit_reset_requests
+      assert_equal '4ms', event.ratelimit_reset_tokens
+      assert_equal '4', event.ratelimit_limit_tokens_usage_based
+      assert_equal 2, event.ratelimit_reset_tokens_usage_based
+      assert_equal 1, event.ratelimit_remaining_tokens_usage_based
     end
   end
 end
