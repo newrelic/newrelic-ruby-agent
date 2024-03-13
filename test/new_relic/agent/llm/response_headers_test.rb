@@ -31,6 +31,10 @@ module NewRelic::Agent::Llm
        "x-ratelimit-remaining-tokens" => ["149990"],
        "x-ratelimit-reset-requests" => ["7m12s"],
        "x-ratelimit-reset-tokens" => ["4ms"],
+       # The following *-tokens-usage-based entries are best guesses to fulfill the spec. We haven't been able to create a request that returns these headers.
+       "x-ratelimit-limit-tokens-usage-based" => ["4"],
+       "x-ratelimit-reset-tokens-usage-based" => ["2"],
+       "x-ratelimit-remaining-tokens-usage-based" => ["1"],
        "x-request-id" => ["123abc456"],
        "cf-cache-status" => ["DYNAMIC"],
        "set-cookie" =>
@@ -53,6 +57,9 @@ module NewRelic::Agent::Llm
       assert_equal '149990', event.rate_limit_remaining_tokens
       assert_equal '7m12s', event.rate_limit_reset_requests
       assert_equal '4ms', event.rate_limit_reset_tokens
+      assert_equal '4', event.rate_limit_limit_tokens_usage_based
+      assert_equal '2', event.rate_limit_reset_tokens_usage_based
+      assert_equal '1', event.rate_limit_remaining_tokens_usage_based
     end
   end
 end

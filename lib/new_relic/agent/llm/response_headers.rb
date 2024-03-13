@@ -9,7 +9,10 @@ module NewRelic
         ATTRIBUTES = %i[response_organization llm_version rate_limit_requests
           rate_limit_tokens rate_limit_remaining_requests
           rate_limit_remaining_tokens rate_limit_reset_requests
-          rate_limit_reset_tokens]
+          rate_limit_reset_tokens rate_limit_limit_tokens_usage_based
+          rate_limit_reset_tokens_usage_based
+          rate_limit_remaining_tokens_usage_based]
+
         ATTRIBUTE_NAME_EXCEPTIONS = {
           response_organization: 'response.organization',
           llm_version: 'response.headers.llm_version',
@@ -18,7 +21,10 @@ module NewRelic
           rate_limit_remaining_requests: 'response.headers.ratelimitRemainingRequests',
           rate_limit_remaining_tokens: 'response.headers.ratelimitRemainingTokens',
           rate_limit_reset_requests: 'response.headers.ratelimitResetRequests',
-          rate_limit_reset_tokens: 'response.headers.ratelimitResetTokens'
+          rate_limit_reset_tokens: 'response.headers.ratelimitResetTokens',
+          rate_limit_limit_tokens_usage_based: 'response.headers.ratelimitLimitTokensUsageBased',
+          rate_limit_reset_tokens_usage_based: 'response.headers.ratelimitResetTokensUsageBased',
+          rate_limit_remaining_tokens_usage_based: 'response.headers.ratelimitRemainingTokensUsageBased'
         }
 
         OPENAI_ORGANIZATION = 'openai-organization'
@@ -29,6 +35,9 @@ module NewRelic
         X_RATELIMIT_REMAINING_TOKENS = 'x-ratelimit-remaining-tokens'
         X_RATELIMIT_RESET_REQUESTS = 'x-ratelimit-reset-requests'
         X_RATELIMIT_RESET_TOKENS = 'x-ratelimit-reset-tokens'
+        X_RATELIMIT_LIMIT_TOKENS_USAGE_BASED = 'x-ratelimit-limit-tokens-usage-based'
+        X_RATELIMIT_RESET_TOKENS_USAGE_BASED = 'x-ratelimit-reset-tokens-usage-based'
+        X_RATELIMIT_REMAINING_TOKENS_USAGE_BASED = 'x-ratelimit-remaining-tokens-usage-based'
         X_REQUEST_ID = 'x-request-id'
 
         attr_accessor(*ATTRIBUTES)
@@ -43,10 +52,27 @@ module NewRelic
           self.llm_version = headers[OPENAI_VERSION]&.first
           self.rate_limit_requests = headers[X_RATELIMIT_LIMIT_REQUESTS]&.first
           self.rate_limit_tokens = headers[X_RATELIMIT_LIMIT_TOKENS]&.first
+          remaining_headers(headers)
+          reset_headers(headers)
+          tokens_usage_based_headers(headers)
+        end
+
+        private
+
+        def remaining_headers(headers)
           self.rate_limit_remaining_requests = headers[X_RATELIMIT_REMAINING_REQUESTS]&.first
           self.rate_limit_remaining_tokens = headers[X_RATELIMIT_REMAINING_TOKENS]&.first
+        end
+
+        def reset_headers(headers)
           self.rate_limit_reset_requests = headers[X_RATELIMIT_RESET_REQUESTS]&.first
           self.rate_limit_reset_tokens = headers[X_RATELIMIT_RESET_TOKENS]&.first
+        end
+
+        def tokens_usage_based_headers(headers)
+          self.rate_limit_limit_tokens_usage_based = headers[X_RATELIMIT_LIMIT_TOKENS_USAGE_BASED]&.first
+          self.rate_limit_reset_tokens_usage_based = headers[X_RATELIMIT_RESET_TOKENS_USAGE_BASED]&.first
+          self.rate_limit_remaining_tokens_usage_based = headers[X_RATELIMIT_REMAINING_TOKENS_USAGE_BASED]&.first
         end
       end
     end
