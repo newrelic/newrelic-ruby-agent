@@ -70,8 +70,8 @@ module NewRelic
         end
 
         def tokens_usage_based_headers(headers)
-          self.ratelimit_limit_tokens_usage_based = headers[X_RATELIMIT_LIMIT_TOKENS_USAGE_BASED]&.first
-          self.ratelimit_reset_tokens_usage_based = headers[X_RATELIMIT_RESET_TOKENS_USAGE_BASED]&.first&.to_i
+          self.ratelimit_limit_tokens_usage_based = headers[X_RATELIMIT_LIMIT_TOKENS_USAGE_BASED]&.first&.to_i
+          self.ratelimit_reset_tokens_usage_based = headers[X_RATELIMIT_RESET_TOKENS_USAGE_BASED]&.first
           self.ratelimit_remaining_tokens_usage_based = headers[X_RATELIMIT_REMAINING_TOKENS_USAGE_BASED]&.first&.to_i
         end
       end

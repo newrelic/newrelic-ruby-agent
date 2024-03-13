@@ -62,15 +62,15 @@ module NewRelic::Agent::Llm
         summary.duration = '500'
         summary.error = 'true'
         summary.llm_version = '2022-01-01'
-        summary.ratelimit_limit_requests = 100
-        summary.ratelimit_limit_tokens = 101
-        summary.ratelimit_reset_tokens = '102'
-        summary.ratelimit_reset_requests = '103'
-        summary.ratelimit_remaining_tokens = 104
-        summary.ratelimit_remaining_requests = 105
-        summary.ratelimit_limit_tokens_usage_based = '106'
-        summary.ratelimit_reset_tokens_usage_based = 107
-        summary.ratelimit_remaining_tokens_usage_based = 108
+        summary.ratelimit_limit_requests = 200
+        summary.ratelimit_limit_tokens = 40000
+        summary.ratelimit_reset_tokens = '180ms'
+        summary.ratelimit_reset_requests = '11m32.334s'
+        summary.ratelimit_remaining_tokens = 39880
+        summary.ratelimit_remaining_requests = 198
+        summary.ratelimit_limit_tokens_usage_based = 40000
+        summary.ratelimit_reset_tokens_usage_based = '180ms'
+        summary.ratelimit_remaining_tokens_usage_based = 39880
 
         summary.record
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
@@ -94,15 +94,15 @@ module NewRelic::Agent::Llm
         assert_equal '500', attributes['duration']
         assert_equal 'true', attributes['error']
         assert_equal '2022-01-01', attributes['response.headers.llm_version']
-        assert_equal 100, attributes['response.headers.ratelimitLimitRequests']
-        assert_equal 101, attributes['response.headers.ratelimitLimitTokens']
-        assert_equal '102', attributes['response.headers.ratelimitResetTokens']
-        assert_equal '103', attributes['response.headers.ratelimitResetRequests']
-        assert_equal 104, attributes['response.headers.ratelimitRemainingTokens']
-        assert_equal 105, attributes['response.headers.ratelimitRemainingRequests']
-        assert_equal '106', attributes['response.headers.ratelimitLimitTokensUsageBased']
-        assert_equal 107, attributes['response.headers.ratelimitResetTokensUsageBased']
-        assert_equal 108, attributes['response.headers.ratelimitRemainingTokensUsageBased']
+        assert_equal 200, attributes['response.headers.ratelimitLimitRequests']
+        assert_equal 40000, attributes['response.headers.ratelimitLimitTokens']
+        assert_equal '180ms', attributes['response.headers.ratelimitResetTokens']
+        assert_equal '11m32.334s', attributes['response.headers.ratelimitResetRequests']
+        assert_equal 39880, attributes['response.headers.ratelimitRemainingTokens']
+        assert_equal 198, attributes['response.headers.ratelimitRemainingRequests']
+        assert_equal 40000, attributes['response.headers.ratelimitLimitTokensUsageBased']
+        assert_equal '180ms', attributes['response.headers.ratelimitResetTokensUsageBased']
+        assert_equal 39880, attributes['response.headers.ratelimitRemainingTokensUsageBased']
       end
     end
 
