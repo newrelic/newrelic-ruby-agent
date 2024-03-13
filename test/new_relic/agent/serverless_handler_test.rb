@@ -2,35 +2,105 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'logger'
 require 'stringio'
 require 'tempfile'
 require 'zlib'
 
 require_relative '../../test_helper'
 
-# The customer's original lambda function that we wrap lives outside
-# any namespace, so define this tester function here. NOTE that full
-# integration style testing of the wrapping of the customer function is
-# already conducted in the newrelic-lambda-layers repo.
+# The customer's original lambda function that we wrap may live outside
+# any namespace.
 def customer_lambda_function(event:, context:)
-  {statusCode: 200, body: 'Running just as fast as we can'.chars.shuffle.join('.')}
+  raise 'Kaboom!' if event.fetch(:simulate_exception, false)
+
+  Logger.new(StringIO.new).info 'Lots of loggers languidly logging lore' if event.fetch(:simulate_logging, false)
+
+  {statusCode: 200, body: 'Running just as fast as we can'}
 end
 
+# The customer's original lambda function may live within a namespace
+module Willows
+  class Wind
+    def self.customer_lambda_function(event:, context:)
+      {statusCode: 200, body: 'messing about in boats'}
+    end
+  end
+end
+
+# NOTE: additional integration style testing of the wrapping of the
+# customer function is also conducted in the newrelic-lambda-layers repo.
 module NewRelic::Agent
   class ServerlessHandler
     class ServerlessHandlerTest < Minitest::Test
+      def setup
+        NewRelic::Agent.agent.serverless
+
+        # config_hash = {:'serverless_mode.enabled' => true}
+        # @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
+        # NewRelic::Agent.config.add_config_for_testing(@test_config, true)
+      end
+
+      def teardown
+        NewRelic::Agent.agent.disconnect
+        # NewRelic::Agent.config.remove_config(@test_config)
+      end
+
       # integration style
 
       def test_the_complete_handoff_from_the_nr_lambda_layer
-        function_arn = 'Resident Alien'
-        function_version = '1138'
+        context = testing_context
+        output = with_output do
+          result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {Opossum: :Virginia},
+            context: context)
 
-        event = {Opossum: :Virginia}
-        context = Minitest::Mock.new
-        context.expect :function_arn, function_arn
-        context.expect :function_version, function_version
+          assert_equal 'Running just as fast as we can', result[:body]
+        end
+        context.verify
 
-        handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function, event: event, context: context)
+        assert_equal 1, output.size
+        assert_match(/"aws\.lambda.coldStart":true/, output.first)
+      end
+
+      def test_rescued_errors_are_noticed
+        output = with_output do
+          assert_raises RuntimeError do
+            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: {simulate_exception: true},
+              context: testing_context)
+          end
+        end
+
+        assert_equal 1, output.size
+        assert_match 'Kaboom', output.first
+      end
+
+      def test_log_events_and_reported
+        output = with_output do
+          handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {simulate_logging: true},
+            context: testing_context)
+        end
+
+        assert_equal 1, output.size
+        assert_match 'languidly', output.first
+      end
+
+      def test_customer_function_lives_within_a_namespace
+        context = testing_context
+        output = with_output do
+          result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {Toad: :Hall},
+            context: context,
+            namespace: 'Willows::Wind')
+
+          assert_equal 'messing about in boats', result[:body]
+        end
+        context.verify
+
+        assert_equal 1, output.size
+        assert_match(/"aws\.lambda.coldStart":true/, output.first)
       end
 
       # unit style
@@ -163,26 +233,14 @@ module NewRelic::Agent
 
       def test_write
         temp = Tempfile.new('lambda_named_pipe')
-
         payload = 'little red bear'
         encoded = NewRelic::Base64.encode64(
           NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(payload)
         )
+        data = with_output { handler.write(:br_2049, payload) }
 
-        NewRelic::Agent::ServerlessHandler.stub_const(:NAMED_PIPE, temp.path) do
-          handler.write(:br_2049, payload)
-        end
-
-        data = File.read(temp)
-        parsed = data.split(',').last
-        parsed.gsub!(/"|(?:\]\n)|\\n/, '')
-        decoded = NewRelic::Base64.decode64(parsed)
-        unzipped = Zlib::GzipReader.new(StringIO.new(decoded)).read
-
-        assert_match(/#{payload}/, unzipped)
-      ensure
-        temp.close
-        temp.unlink
+        assert_equal 1, data.size
+        assert_match(/#{payload}/, data.first)
       end
 
       def test_write_short_circuits_for_non_serverless_appropriate_methods
@@ -199,6 +257,35 @@ module NewRelic::Agent
 
       def handler
         NewRelic::Agent::ServerlessHandler.new
+      end
+
+      def testing_context
+        function_arn = 'Resident Alien'
+        function_version = '1138'
+        context = Minitest::Mock.new
+        context.expect :function_arn, function_arn
+        context.expect :function_version, function_version
+      end
+
+      def with_output(&block)
+        temp = Tempfile.new('lambda_named_pipe')
+        NewRelic::Agent::ServerlessHandler.stub_const(:NAMED_PIPE, temp.path) do
+          yield
+        end
+        lines = File.read(temp).chomp.split("\n")
+
+        lines.each_with_object([]) do |line, arr|
+          next unless line.start_with?('[') && line.end_with?(']')
+
+          parsed = line.split(',').last
+          parsed.gsub!(/"|(?:\]\n)|\\n/, '')
+          decoded = NewRelic::Base64.decode64(parsed)
+          unzipped = Zlib::GzipReader.new(StringIO.new(decoded)).read
+          arr.push(unzipped)
+        end
+      ensure
+        temp.close
+        temp.unlink
       end
     end
   end

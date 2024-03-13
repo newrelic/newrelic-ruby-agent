@@ -1253,6 +1253,7 @@ Style/MethodCallWithArgsParentheses:
     - fail
     - gem
     - include
+    - info
     - print
     - puts
     - pp

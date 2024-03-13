@@ -21,15 +21,18 @@ module NewRelic
       FUNCTION_NAME = 'lambda_function'
       VERSION = 1 # internal to New Relic's cross-agent specs
 
-      def invoke_lambda_function_with_new_relic(event:, context:, method_name:)
+      def invoke_lambda_function_with_new_relic(event:, context:, method_name:, namespace: nil)
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
         parse_context(context)
 
         NewRelic::Agent::Tracer.in_transaction(category: :other, name: function_name) do
           notice_cold_start
-          send(method_name, event: event, context: context)
+
+          NewRelic::LanguageSupport.constantize(namespace).send(method_name, event: event, context: context)
         end
+      ensure
+        harvest!
       end
 
       def write(method, payload)
@@ -45,6 +48,12 @@ module NewRelic
       end
 
       private
+
+      def harvest!
+        NewRelic::Agent.instance.harvest_and_send_analytic_event_data
+        NewRelic::Agent.instance.harvest_and_send_custom_event_data
+        NewRelic::Agent.instance.harvest_and_send_data_types
+      end
 
       def metadata
         {arn: @function_arn,
