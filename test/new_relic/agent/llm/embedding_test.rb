@@ -54,12 +54,15 @@ module NewRelic::Agent::Llm
         embedding.duration = '500'
         embedding.error = 'true'
         embedding.llm_version = '2022-01-01'
-        embedding.rate_limit_requests = '100'
-        embedding.rate_limit_tokens = '101'
+        embedding.rate_limit_requests = 100
+        embedding.rate_limit_tokens = 101
         embedding.rate_limit_reset_tokens = '102'
         embedding.rate_limit_reset_requests = '103'
-        embedding.rate_limit_remaining_tokens = '104'
-        embedding.rate_limit_remaining_requests = '105'
+        embedding.rate_limit_remaining_tokens = 104
+        embedding.rate_limit_remaining_requests = 105
+        embedding.rate_limit_limit_tokens_usage_based = '106'
+        embedding.rate_limit_reset_tokens_usage_based = 107
+        embedding.rate_limit_remaining_tokens_usage_based = 108
 
         embedding.record
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
@@ -80,12 +83,15 @@ module NewRelic::Agent::Llm
         assert_equal '500', attributes['duration']
         assert_equal 'true', attributes['error']
         assert_equal '2022-01-01', attributes['response.headers.llm_version']
-        assert_equal '100', attributes['response.headers.ratelimitLimitRequests']
-        assert_equal '101', attributes['response.headers.ratelimitLimitTokens']
+        assert_equal 100, attributes['response.headers.ratelimitLimitRequests']
+        assert_equal 101, attributes['response.headers.ratelimitLimitTokens']
         assert_equal '102', attributes['response.headers.ratelimitResetTokens']
         assert_equal '103', attributes['response.headers.ratelimitResetRequests']
-        assert_equal '104', attributes['response.headers.ratelimitRemainingTokens']
-        assert_equal '105', attributes['response.headers.ratelimitRemainingRequests']
+        assert_equal 104, attributes['response.headers.ratelimitRemainingTokens']
+        assert_equal 105, attributes['response.headers.ratelimitRemainingRequests']
+        assert_equal '106', attributes['response.headers.ratelimitLimitTokensUsageBased']
+        assert_equal 107, attributes['response.headers.ratelimitResetTokensUsageBased']
+        assert_equal 108, attributes['response.headers.ratelimitRemainingTokensUsageBased']
       end
     end
 
