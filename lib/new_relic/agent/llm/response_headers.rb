@@ -50,8 +50,8 @@ module NewRelic
           self.request_id = headers[X_REQUEST_ID]&.first
           self.response_organization = headers[OPENAI_ORGANIZATION]&.first
           self.llm_version = headers[OPENAI_VERSION]&.first
-          self.ratelimit_limit_requests = headers[X_RATELIMIT_LIMIT_REQUESTS]&.first&.to_i
-          self.ratelimit_limit_tokens = headers[X_RATELIMIT_LIMIT_TOKENS]&.first&.to_i
+          self.ratelimit_limit_requests = headers[X_RATELIMIT_LIMIT_REQUESTS]&.first.to_i
+          self.ratelimit_limit_tokens = headers[X_RATELIMIT_LIMIT_TOKENS]&.first.to_i
           remaining_headers(headers)
           reset_headers(headers)
           tokens_usage_based_headers(headers)
@@ -60,8 +60,8 @@ module NewRelic
         private
 
         def remaining_headers(headers)
-          self.ratelimit_remaining_requests = headers[X_RATELIMIT_REMAINING_REQUESTS]&.first&.to_i
-          self.ratelimit_remaining_tokens = headers[X_RATELIMIT_REMAINING_TOKENS]&.first&.to_i
+          self.ratelimit_remaining_requests = headers[X_RATELIMIT_REMAINING_REQUESTS]&.first.to_i
+          self.ratelimit_remaining_tokens = headers[X_RATELIMIT_REMAINING_TOKENS]&.first.to_i
         end
 
         def reset_headers(headers)
@@ -70,9 +70,9 @@ module NewRelic
         end
 
         def tokens_usage_based_headers(headers)
-          self.ratelimit_limit_tokens_usage_based = headers[X_RATELIMIT_LIMIT_TOKENS_USAGE_BASED]&.first&.to_i
+          self.ratelimit_limit_tokens_usage_based = headers[X_RATELIMIT_LIMIT_TOKENS_USAGE_BASED]&.first.to_i
           self.ratelimit_reset_tokens_usage_based = headers[X_RATELIMIT_RESET_TOKENS_USAGE_BASED]&.first
-          self.ratelimit_remaining_tokens_usage_based = headers[X_RATELIMIT_REMAINING_TOKENS_USAGE_BASED]&.first&.to_i
+          self.ratelimit_remaining_tokens_usage_based = headers[X_RATELIMIT_REMAINING_TOKENS_USAGE_BASED]&.first.to_i
         end
       end
     end
