@@ -57,7 +57,7 @@ class RakeInstrumentationTest < Minitest::Test
     NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
       error = RuntimeError.new('expected')
       # produce the exception we want to have the method rescue
-      NewRelic::Agent.stub :config, -> { raise error } do
+      NewRelic::Agent.stub :instance, -> { raise error } do
         logger = MiniTest::Mock.new
         NewRelic::Agent.stub :logger, logger do
           logger.expect :error, nil, [/^Exception/, error]

@@ -1,14 +1,15 @@
-#!/usr/bin/ruby
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 module NewRelic
-  module VERSION # :nodoc:
-    MAJOR = 9
-    MINOR = 7
-    TINY = 1
+  module Agent
+    module Llm
+      module ChatCompletion
+        ATTRIBUTES = %i[conversation_id]
 
-    STRING = "#{MAJOR}.#{MINOR}.#{TINY}"
+        attr_accessor(*ATTRIBUTES)
+      end
+    end
   end
 end

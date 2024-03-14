@@ -82,7 +82,7 @@ class Instrumentation < Thor
     insert_into_file(
       DEFAULT_SOURCE_LOCATION,
       config_block(name.downcase),
-      after: ":description => 'Controls auto-instrumentation of bunny at start-up.  May be one of [auto|prepend|chain|disabled].'
+      after: ":description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },\n"
     )
   end

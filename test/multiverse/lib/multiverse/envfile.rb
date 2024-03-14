@@ -22,6 +22,7 @@ module Multiverse
         #       to see if this behavior persists. Remove the gsub if not.
         # With Ruby 3.3.0-preview2, eval() yields '(eval ...' as the String value
         # when __FILE__ is used so swap out __FILE__ for the known agent root path
+        # Related to Issue #2430
         @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
