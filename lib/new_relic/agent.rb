@@ -31,6 +31,7 @@ module NewRelic
     require 'new_relic/noticed_error'
     require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
+    require 'new_relic/thread_local_storage'
 
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
@@ -62,6 +63,7 @@ module NewRelic
     require 'new_relic/agent/attribute_processing'
     require 'new_relic/agent/linking_metadata'
     require 'new_relic/agent/local_log_decorator'
+    require 'new_relic/agent/llm'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 

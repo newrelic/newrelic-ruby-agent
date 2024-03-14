@@ -554,6 +554,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'When set to `true`, forces a synchronous connection to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
         },
+        :thread_local_tracer_state => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, tracer state storage is thread-local, otherwise, fiber-local'
+        },
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
@@ -720,7 +727,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated at the beginning and end.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,

@@ -704,6 +704,9 @@ common: &default_settings
   # the New Relic agent has time to report.
   # sync_startup: false
 
+  # If true, tracer state storage is thread-local, otherwise, fiber-local
+  # thread_local_tracer_state: false
+
   # If true, enables use of the thread profiler.
   # thread_profiler.enabled: false
 

@@ -57,7 +57,8 @@
   {"input":"SELECT * /* a */ FROM alpha",                            "operation":"select", "table":"alpha"},
   {"input":"SELECT * FROM /* a */ alpha",                            "operation":"select", "table":"alpha"},
   {"input":"/* X */ SELECT /* Y */ foo/**/ FROM /**/alpha/**/",      "operation":"select", "table":"alpha"},
-  
+  {"input":"/* insert */ SELECT * FROM alpha",                       "operation":"select", "table":"alpha"},
+
   {"input":"mystoredprocedure'123'",                                 "operation":"other", "table":null},
   {"input":"mystoredprocedure\t'123'",                               "operation":"other", "table":null},
   {"input":"mystoredprocedure\r'123'",                               "operation":"other", "table":null},

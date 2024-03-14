@@ -1,23 +1,37 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
 
-## dev 
+Version <dev> introduces the option to store tracer state on the thread-level and hardens the browser agent insertion logic to better proactively anticipate errors.
 
-Version <dev> adds maximum size limits to custom event attributes.
+- **Feature: Store tracer state on thread-level**
+
+  A new configuration option, `thread_local_tracer_state`, stores New Relic's tracer state on the thread-level, as opposed to the default fiber-level storage. This configuration is turned off by default. Our thanks go to community member [@markiz](https://github.com/markiz) who contributed the idea, code, configuration option, and tests for this new feature! [PR#2475](https://github.com/newrelic/newrelic-ruby-agent/pull/2475).
+
+- **Bugfix: Harden the browser agent insertion logic**
+
+  With [Issue#2462](https://github.com/newrelic/newrelic-ruby-agent/issues/2462), community member [@miry](https://github.com/miry) explained that it was possible for an HTTP response headers hash to have symbols for values. Not only would these symbols prevent the inclusion of the New Relic browser agent tag in the response body, but more importantly they would cause an exception that would bubble up to the monitored web application itself. With [PR#2465](https://github.com/newrelic/newrelic-ruby-agent/pull/2465) symbol based values are now supported and all other potential future exceptions are now handled. Additionally, the refactor to support symbols has been shown through benchmarking to give the processing of string and mixed type hashes a slight speed boost too.
+
+
+## v9.7.1
+
+Version 9.7.1 fixes a ViewComponent instrumentation bug and enforces maximum size limits for custom event attributes.
+
+- **Bugfix: Stop suppressing ViewComponent errors**
+
+  Previously, the agent suppressed ViewComponent render errors. The agent now reports these errors and allows them to raise. Thank you [@mjacobus](https://github.com/mjacobus) for reporting this bug and providing a fix! [PR#2410](https://github.com/newrelic/newrelic-ruby-agent/pull/2410)
 
 - **Bugfix: Enforce maximum size limits for custom event attributes**
 
   Previously, the agent would allow custom event attributes to be any size. This would lead to the New Relic backend dropping attributes larger than the maximum size. Now, the agent will truncate custom event attribute values to 4095 characters, attribute names to 255 characters, and the total count of attributes to 64. [PR#2401](https://github.com/newrelic/newrelic-ruby-agent/pull/2401)
 
-
 ## v9.7.0
-
 
 Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint used to access the cluster name for Elasticsearch instrumentation, removes the creation of the Ruby/Thread and Ruby/Fiber spans, and adds support for Falcon.
 
 - **Feature: ViewComponent instrumentation**
 
-  [ViewComponent](https://viewcomponent.org/) is a now an instrumented framework. The agent currently supports Roda versions 2.0.0+. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
+  [ViewComponent](https://viewcomponent.org/) is a now an instrumented library. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
 
 - **Feature: Use root path to access Elasticsearch cluster name**
 
