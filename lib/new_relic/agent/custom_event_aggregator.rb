@@ -17,6 +17,10 @@ module NewRelic
       MAX_ATTRIBUTE_COUNT = 64
       MAX_ATTRIBUTE_SIZE = 4095
       MAX_NAME_SIZE = 255
+      EXEMPT_EMBEDDING = 'LlmEmbedding'
+      INPUT = 'input'
+      EXEMPT_CHAT_MESSAGE = 'LlmChatCompletionMessage'
+      CONTENT = 'content'
 
       named :CustomEventAggregator
       capacity_key :'custom_insights_events.max_samples_stored'
@@ -52,11 +56,11 @@ module NewRelic
           {TYPE => type,
            TIMESTAMP => Process.clock_gettime(Process::CLOCK_REALTIME).to_i,
            PRIORITY => priority},
-          create_custom_event_attributes(attributes)
+          create_custom_event_attributes(type, attributes)
         ]
       end
 
-      def create_custom_event_attributes(attributes)
+      def create_custom_event_attributes(type, attributes)
         result = AttributeProcessing.flatten_and_coerce(attributes)
 
         if result.size > MAX_ATTRIBUTE_COUNT
@@ -70,13 +74,17 @@ module NewRelic
             key = key[0, MAX_NAME_SIZE]
           end
 
-          # value is limited to 4095
+          # value is limited to 4095 expect for LLM content-related events
           if val.is_a?(String) && val.length > MAX_ATTRIBUTE_SIZE
-            val = val[0, MAX_ATTRIBUTE_SIZE]
+            val = val[0, MAX_ATTRIBUTE_SIZE] unless llm_exempt_event_attribute?(type, key)
           end
 
           new_result[key] = val
         end
+      end
+
+      def llm_exempt_event_attribute? (type, key)
+        (type == EXEMPT_EMBEDDING && key == INPUT) || (type == EXEMPT_CHAT_MESSAGE && key == CONTENT)
       end
 
       def after_initialize
