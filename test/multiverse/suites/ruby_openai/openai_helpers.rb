@@ -33,14 +33,18 @@ module OpenAIHelpers
 
   class EmbeddingsResponse
     def body(return_value: false)
-      {'object' => 'list',
-       'data' => [{
-         'object' => 'embedding',
-         'index' => 0,
-         'embedding' => [0.002297497, 1, -0.016932933, 0.018126108, -0.014432343, -0.0030051514] # A real embeddings response includes dozens more vector points.
-       }],
-       'model' => 'text-embedding-ada-002',
-       'usage' => {'prompt_tokens' => 8, 'total_tokens' => 8}}
+      if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0') || return_value
+        {'object' => 'list',
+         'data' => [{
+           'object' => 'embedding',
+           'index' => 0,
+           'embedding' => [0.002297497, 1, -0.016932933, 0.018126108, -0.014432343, -0.0030051514] # A real embeddings response includes dozens more vector points.
+         }],
+         'model' => 'text-embedding-ada-002',
+         'usage' => {'prompt_tokens' => 8, 'total_tokens' => 8}}
+      else
+        '{"object":"list","data":[{"object":"embedding","index":0,"embedding":[0.002297497,1,-0.016932933,0.018126108,-0.014432343,-0.0030051514]}],"model":"text-embedding-ada-002","usage":{"prompt_tokens":8,"total_tokens":8}}'
+      end
     end
   end
 
@@ -124,6 +128,13 @@ module OpenAIHelpers
     faraday_connection
   end
 
+  def embedding_faraday_connection
+    faraday_connection = Faraday.new
+    def faraday_connection.post(*args); EmbeddingsResponse.new; end
+
+    faraday_connection
+  end
+
   def error_faraday_connection
     faraday_connection = Faraday.new
     def faraday_connection.post(*args); raise 'deception'; end
@@ -201,7 +212,7 @@ module OpenAIHelpers
         yield
       end
     else
-      connection_client.stub(:conn, faraday_connection) do
+      connection_client.stub(:conn, embedding_faraday_connection) do
         yield
       end
     end

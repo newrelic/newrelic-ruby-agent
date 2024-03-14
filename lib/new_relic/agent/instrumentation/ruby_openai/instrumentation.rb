@@ -94,6 +94,7 @@ module NewRelic::Agent::Instrumentation
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
+      event.token_count = calculate_token_count(event.request_model, event.input)
     end
 
     def create_chat_completion_messages(parameters, summary_id)
@@ -102,8 +103,7 @@ module NewRelic::Agent::Instrumentation
           role: message[:role] || message['role'],
           sequence: index,
           completion_id: summary_id,
-          vendor: VENDOR,
-          is_response: true
+          vendor: VENDOR
         )
         add_content(msg, (message[:content] || message['content']))
 
@@ -135,7 +135,18 @@ module NewRelic::Agent::Instrumentation
         message.request_id = summary.request_id
         message.response_model = response['model']
         message.metadata = llm_custom_attributes
+
+        model = message.is_response ? message.response_model : summary.request_model
+
+        message.token_count = calculate_token_count(model, message.content)
       end
+    end
+
+    def calculate_token_count(model, content)
+      return unless NewRelic::Agent.llm_token_count_callback
+
+      count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
+      count if count.is_a?(Integer) && count > 0
     end
 
     def record_content_enabled?
