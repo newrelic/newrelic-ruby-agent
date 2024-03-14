@@ -36,7 +36,7 @@ module NewRelic
         # setting up the worker thread and the exit handler to shut
         # down the agent
         def check_config_and_start_agent
-          return unless monitoring? && license_key_requirement_satisfied?
+          return unless monitoring? && has_correct_license_key?
           return if using_forking_dispatcher?
 
           setup_and_start_agent
@@ -124,6 +124,8 @@ module NewRelic
         # Warn the user if they have configured their agent not to
         # send data, that way we can see this clearly in the log file
         def monitoring?
+          return false if Agent.config[:'serverless_mode.enabled']
+
           if Agent.config[:monitor_mode]
             true
           else
@@ -146,9 +148,7 @@ module NewRelic
           end
         end
 
-        def license_key_requirement_satisfied?
-          return true if Agent.config[:'serverless_mode.enabled']
-
+        def has_correct_license_key?
           has_license_key? && correct_license_length
         end
 

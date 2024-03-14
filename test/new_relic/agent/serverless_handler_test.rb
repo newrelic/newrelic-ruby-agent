@@ -34,16 +34,13 @@ module NewRelic::Agent
   class ServerlessHandler
     class ServerlessHandlerTest < Minitest::Test
       def setup
-        NewRelic::Agent.agent.serverless
-
-        # config_hash = {:'serverless_mode.enabled' => true}
-        # @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
-        # NewRelic::Agent.config.add_config_for_testing(@test_config, true)
+        config_hash = {:'serverless_mode.enabled' => true}
+        @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
+        NewRelic::Agent.config.add_config_for_testing(@test_config, true)
       end
 
       def teardown
-        NewRelic::Agent.agent.disconnect
-        # NewRelic::Agent.config.remove_config(@test_config)
+        NewRelic::Agent.config.remove_config(@test_config)
       end
 
       # integration style
@@ -60,7 +57,7 @@ module NewRelic::Agent
         context.verify
 
         assert_equal 1, output.size
-        assert_match(/"aws\.lambda.coldStart":true/, output.first)
+        assert_match(/lambda_function/, output.first)
       end
 
       def test_rescued_errors_are_noticed
@@ -73,7 +70,7 @@ module NewRelic::Agent
         end
 
         assert_equal 1, output.size
-        assert_match 'Kaboom', output.first
+        assert_match 'Errors/lambda_function', output.first
       end
 
       def test_log_events_and_reported
@@ -100,7 +97,7 @@ module NewRelic::Agent
         context.verify
 
         assert_equal 1, output.size
-        assert_match(/"aws\.lambda.coldStart":true/, output.first)
+        assert_match(/lambda_function/, output.first)
       end
 
       # unit style

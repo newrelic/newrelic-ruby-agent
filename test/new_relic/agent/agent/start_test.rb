@@ -48,13 +48,13 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_check_config_and_start_agent_incorrect_key
     self.expects(:monitoring?).returns(true)
-    self.expects(:license_key_requirement_satisfied?).returns(false)
+    self.expects(:has_correct_license_key?).returns(false)
     check_config_and_start_agent
   end
 
   def test_check_config_and_start_agent_forking
     self.expects(:monitoring?).returns(true)
-    self.expects(:license_key_requirement_satisfied?).returns(true)
+    self.expects(:has_correct_license_key?).returns(true)
     self.expects(:using_forking_dispatcher?).returns(true)
     check_config_and_start_agent
   end
@@ -166,13 +166,13 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     self.expects(:has_license_key?).returns(true)
     self.expects(:correct_license_length).returns(true)
 
-    assert_predicate self, :license_key_requirement_satisfied?
+    assert_predicate self, :has_correct_license_key?
   end
 
   def test_has_correct_license_key_negative
     self.expects(:has_license_key?).returns(false)
 
-    refute_predicate self, :license_key_requirement_satisfied?
+    refute_predicate self, :has_correct_license_key?
   end
 
   def test_correct_license_length_positive

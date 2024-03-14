@@ -27,23 +27,15 @@ module NewRelic
           @connect_state == :disconnected
         end
 
-        def serverless
-          @connect_state = :serverless
-        end
-
         def serverless?
-          @connect_state == :serverless
-        end
-
-        def ready?
-          connected? || serverless?
+          Agent.config[:'serverless_mode.enabled']
         end
 
         # Don't connect if we're already connected, if we're in serverless mode,
         # or if we tried to connect and were rejected with prejudice because of
         # a license issue, unless we're forced to by force_reconnect.
         def should_connect?(force = false)
-          force || (!ready? && !disconnected?)
+          force || (!connected? && !disconnected?)
         end
 
         # Per the spec at
@@ -151,7 +143,7 @@ module NewRelic
         end
 
         def wait_on_connect(timeout)
-          return if ready?
+          return if connected?
 
           @waited_on_connect = true
           NewRelic::Agent.logger.debug('Waiting on connect to complete.')
@@ -160,7 +152,7 @@ module NewRelic
             @wait_on_connect_condition.wait(@wait_on_connect_mutex, timeout)
           end
 
-          unless ready?
+          unless connected?
             raise WaitOnConnectTimeout, "Agent was unable to connect in #{timeout} seconds."
           end
         end

@@ -35,7 +35,7 @@ module NewRelic
 
       class << self
         def for_transaction(transaction)
-          return nil unless Agent.instance.ready?
+          return nil unless Agent.instance.connected?
 
           payload = new
           payload.version = VERSION
