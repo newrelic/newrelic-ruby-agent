@@ -83,7 +83,7 @@ module NewRelic
         end
       end
 
-      def llm_exempt_event_attribute? (type, key)
+      def llm_exempt_event_attribute?(type, key)
         (type == EXEMPT_EMBEDDING && key == INPUT) || (type == EXEMPT_CHAT_MESSAGE && key == CONTENT)
       end
 

@@ -98,8 +98,8 @@ module NewRelic::Agent
     end
 
     def test_does_not_truncates_llm_embedding_input_attribute
-      params = { 'input' => 'a' * 5000 }
-      expected = { 'input' => 'a' * 5000 }
+      params = {'input' => 'a' * 5000}
+      expected = {'input' => 'a' * 5000}
 
       @aggregator.record(:LlmEmbedding, params)
       actual = @aggregator.harvest![1].first[1]
@@ -108,8 +108,8 @@ module NewRelic::Agent
     end
 
     def test_does_not_truncates_llm_chat_message_content_attribute
-      params = { 'content' => 'a' * 5000 }
-      expected = { 'content' => 'a' * 5000 }
+      params = {'content' => 'a' * 5000}
+      expected = {'content' => 'a' * 5000}
 
       @aggregator.record(:LlmChatCompletionMessage, params)
       actual = @aggregator.harvest![1].first[1]
