@@ -5,9 +5,13 @@
 module NewRelic::Agent::Instrumentation
   module ActiveSupportBroadcastLogger
     def record_one_broadcast_with_new_relic(*args)
-      broadcasts[1..-1].each { |broadcasted_logger| broadcasted_logger.instance_variable_set(:@skip_instrumenting, true) }
-      yield
-      broadcasts.each { |broadcasted_logger| broadcasted_logger.instance_variable_set(:@skip_instrumenting, false) }
+      if broadcasts && broadcasts[1..-1]
+        broadcasts[1..-1].each { |broadcasted_logger| broadcasted_logger.instance_variable_set(:@skip_instrumenting, true) }
+        yield
+        broadcasts.each { |broadcasted_logger| broadcasted_logger.instance_variable_set(:@skip_instrumenting, false) }
+      else
+        ::NewRelic::Agent.record_custom_event('NR Error - record_one_broadcast_with_new_relic - nil broadcasts', {})
+      end
     end
   end
 end
