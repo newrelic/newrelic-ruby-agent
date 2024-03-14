@@ -17,9 +17,7 @@ module NewRelic
       MAX_ATTRIBUTE_COUNT = 64
       MAX_ATTRIBUTE_SIZE = 4095
       MAX_NAME_SIZE = 255
-      EXEMPT_EMBEDDING = 'LlmEmbedding'
       INPUT = 'input'
-      EXEMPT_CHAT_MESSAGE = 'LlmChatCompletionMessage'
       CONTENT = 'content'
 
       named :CustomEventAggregator
@@ -84,7 +82,8 @@ module NewRelic
       end
 
       def llm_exempt_event_attribute?(type, key)
-        (type == EXEMPT_EMBEDDING && key == INPUT) || (type == EXEMPT_CHAT_MESSAGE && key == CONTENT)
+        (type == NewRelic::Agent::Llm::Embedding::EVENT_NAME && key == INPUT) ||
+          (type == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME && key == CONTENT)
       end
 
       def after_initialize
