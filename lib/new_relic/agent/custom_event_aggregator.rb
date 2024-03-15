@@ -72,7 +72,7 @@ module NewRelic
 
           # value is limited to 4095 except for LLM content-related events
           if val.is_a?(String) && val.length > MAX_ATTRIBUTE_SIZE
-            val = val[0, MAX_ATTRIBUTE_SIZE] unless NewRelic::Agent::LLM.llm_exempt_event_attribute?(type, key)
+            val = val[0, MAX_ATTRIBUTE_SIZE] unless NewRelic::Agent::LLM.exempt_event_attribute?(type, key)
           end
 
           new_result[key] = val

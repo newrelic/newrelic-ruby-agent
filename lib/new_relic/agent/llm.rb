@@ -14,13 +14,13 @@ module NewRelic
       INPUT = 'input'
       CONTENT = 'content'
 
-      def self.llm_instrumentation_enabled?
+      def self.instrumentation_enabled?
         NewRelic::Agent.config[:'ai_monitoring.enabled']
       end
 
       # LLM content-related attributes are exempt from the 4095 byte limit
-      def self.llm_exempt_event_attribute?(type, key)
-        return false unless llm_instrumentation_enabled?
+      def self.exempt_event_attribute?(type, key)
+        return false unless instrumentation_enabled?
 
         (type == NewRelic::Agent::Llm::Embedding::EVENT_NAME && key == INPUT) ||
           (type == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME && key == CONTENT)
