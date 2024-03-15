@@ -34,7 +34,7 @@ module NewRelic
 
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
 
-            if openai_parent?(segment)
+            if openai && openai_parent?(segment)
               populate_openai_response_headers(wrapped_response, segment.parent)
             end
 
@@ -44,6 +44,10 @@ module NewRelic
           ensure
             segment&.finish
           end
+        end
+
+        def openai
+          @openai ||= %i[prepend chain].include?(NewRelic::Agent.config[:'instrumentation.ruby_openai']) && NewRelic::Agent.config[:'ai_monitoring.enabled']
         end
 
         def openai_parent?(segment)
