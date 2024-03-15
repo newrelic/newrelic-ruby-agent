@@ -97,7 +97,7 @@ module NewRelic::Agent
       assert_equal(expected, actual)
     end
 
-    def test_does_not_truncates_llm_embedding_input_attribute
+    def test_does_not_truncate_llm_embedding_input_attribute
       params = {'input' => 'a' * 5000}
       expected = {'input' => 'a' * 5000}
 
@@ -107,7 +107,7 @@ module NewRelic::Agent
       assert_equal(expected, actual)
     end
 
-    def test_does_not_truncates_llm_chat_message_content_attribute
+    def test_does_not_truncate_llm_chat_message_content_attribute
       params = {'content' => 'a' * 5000}
       expected = {'content' => 'a' * 5000}
 
