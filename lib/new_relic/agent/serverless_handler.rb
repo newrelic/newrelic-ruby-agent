@@ -21,6 +21,10 @@ module NewRelic
       FUNCTION_NAME = 'lambda_function'
       VERSION = 1 # internal to New Relic's cross-agent specs
 
+      def self.env_var_set?
+        ENV.key?(LAMBDA_ENVIRONMENT_VARIABLE)
+      end
+
       def invoke_lambda_function_with_new_relic(event:, context:, method_name:, namespace: nil)
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 

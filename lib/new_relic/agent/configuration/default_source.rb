@@ -1821,9 +1821,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :transform => proc { |bool|
-            ENV.key?(NewRelic::Agent::ServerlessHandler::LAMBDA_ENVIRONMENT_VARIABLE) || bool
-          },
+          :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
           :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
                           'serverless functions.'
         },
