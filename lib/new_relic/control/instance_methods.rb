@@ -76,6 +76,7 @@ module NewRelic
       end
 
       def determine_env(options)
+        options[:env] = :serverless if local_env.discovered_dispatcher == :serverless
         env = options[:env] || self.env
         env = env.to_s
 

@@ -554,7 +554,7 @@ module NewRelic
       # enough to be worth compressing, and handles any errors the
       # server may return
       def invoke_remote(method, payload = [], options = {})
-        return NewRelic::Agent.agent.serverless_handler.write(method, payload) if NewRelic::Agent.agent.serverless?
+        return NewRelic::Agent.agent.serverless_handler.store_payload(method, payload) if NewRelic::Agent.agent.serverless?
 
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         request_send_ts, response_check_ts = nil

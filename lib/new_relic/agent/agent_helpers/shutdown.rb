@@ -25,11 +25,7 @@ module NewRelic
         def untraced_graceful_disconnect
           begin
             NewRelic::Agent.disable_all_tracing do
-              if serverless?
-                serverless_shutdown
-              else
-                graceful_disconnect
-              end
+              graceful_disconnect
             end
           rescue => e
             ::NewRelic::Agent.logger.error(e)
@@ -48,7 +44,8 @@ module NewRelic
             begin
               @service.request_timeout = 10
 
-              notify_and_transmit
+              @events.notify(:before_shutdown)
+              transmit_data_types
               shutdown_service
 
               ::NewRelic::Agent.logger.debug('Graceful disconnect complete')
@@ -68,20 +65,6 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("This agent connected from parent process #{@connected_pid}--not sending " \
               'shutdown')
           end
-        end
-
-        def notify_and_transmit
-          @events.notify(:before_shutdown)
-          transmit_data_types
-        end
-
-        def serverless_shutdown
-          notify_and_transmit
-          shutdown_service
-
-          ::NewRelic::Agent.logger.debug('Serverless shutdown complete')
-        rescue => e
-          ::NewRelic::Agent.logger.debug("Error during serverless shutdown #{e.class.name}: #{e.message}")
         end
       end
     end

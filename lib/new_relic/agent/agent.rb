@@ -240,7 +240,7 @@ module NewRelic
 
         def install_pipe_service(channel_id)
           @service = PipeService.new(channel_id)
-          if ready?
+          if connected?
             @connected_pid = Process.pid
           else
             ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
@@ -311,7 +311,7 @@ module NewRelic
         end
 
         def flush_pipe_data # used only by resque
-          if ready? && @service.is_a?(PipeService)
+          if connected? && @service.is_a?(PipeService)
             transmit_data_types
           end
         end

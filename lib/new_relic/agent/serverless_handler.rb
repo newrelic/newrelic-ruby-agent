@@ -15,36 +15,49 @@ module NewRelic
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
       METADATA_VERSION = 2 # internal to New Relic's cross-agent specs
-      METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results]
+      METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results].freeze
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'
-      VERSION = 1 # internal to New Relic's cross-agent specs
+      VERSION = 2 # internal to New Relic's cross-agent specs
 
-      def invoke_lambda_function_with_new_relic(event:, context:, method_name:)
+      def self.env_var_set?
+        ENV.key?(LAMBDA_ENVIRONMENT_VARIABLE)
+      end
+
+      def initialize
+        @payloads = {}
+      end
+
+      def invoke_lambda_function_with_new_relic(event:, context:, method_name:, namespace: nil)
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
         parse_context(context)
 
         NewRelic::Agent::Tracer.in_transaction(category: :other, name: function_name) do
           notice_cold_start
-          send(method_name, event: event, context: context)
+
+          NewRelic::LanguageSupport.constantize(namespace).send(method_name, event: event, context: context)
         end
+      ensure
+        harvest!
+        write_output
+        reset!
       end
 
-      def write(method, payload)
+      def store_payload(method, payload)
         return if METHOD_BLOCKLIST.include?(method)
 
-        json = NewRelic::Agent.agent.service.marshaller.dump(payload)
-        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
-        base64_encoded = NewRelic::Base64.encode64(gzipped)
-
-        array = [VERSION, LAMBDA_MARKER, metadata, base64_encoded]
-
-        write_output(::JSON.dump(array))
+        @payloads[method] = payload
       end
 
       private
+
+      def harvest!
+        NewRelic::Agent.instance.harvest_and_send_analytic_event_data
+        NewRelic::Agent.instance.harvest_and_send_custom_event_data
+        NewRelic::Agent.instance.harvest_and_send_data_types
+      end
 
       def metadata
         {arn: @function_arn,
@@ -70,7 +83,13 @@ module NewRelic
         ENV.fetch(LAMBDA_ENVIRONMENT_VARIABLE, FUNCTION_NAME)
       end
 
-      def write_output(string)
+      def write_output
+        json = NewRelic::Agent.agent.service.marshaller.dump(@payloads)
+        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
+        base64_encoded = NewRelic::Base64.encode64(gzipped)
+        array = [VERSION, LAMBDA_MARKER, metadata, base64_encoded]
+        string = ::JSON.dump(array)
+
         return puts string unless use_named_pipe?
 
         File.open(NAMED_PIPE, 'w') { |f| f.puts string }
@@ -95,6 +114,10 @@ module NewRelic
 
         @cold = false
         true
+      end
+
+      def reset!
+        @payloads.replace({})
       end
     end
   end
