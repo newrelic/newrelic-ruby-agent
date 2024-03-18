@@ -17,3 +17,5 @@ development:
     stack_trace_threshold: 0.5
     transaction_threshold: 1.0
   capture_params: false
+  #AI Monitoring is disabled by default. We want to enabled it for testing
+  ai_monitoring.enabled: true 

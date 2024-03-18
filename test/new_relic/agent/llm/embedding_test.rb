@@ -84,7 +84,7 @@ module NewRelic::Agent::Llm
         assert_equal '500', attributes['duration']
         assert_equal 'true', attributes['error']
         assert_equal 10, attributes['token_count']
-        assert_equal '2022-01-01', attributes['response.headers.llm_version']
+        assert_equal '2022-01-01', attributes['response.headers.llmVersion']
         assert_equal 200, attributes['response.headers.ratelimitLimitRequests']
         assert_equal 40000, attributes['response.headers.ratelimitLimitTokens']
         assert_equal '180ms', attributes['response.headers.ratelimitResetTokens']
