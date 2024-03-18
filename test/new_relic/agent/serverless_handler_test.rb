@@ -12,9 +12,8 @@ require_relative '../../test_helper'
 # The customer's original lambda function that we wrap may live outside
 # any namespace.
 def customer_lambda_function(event:, context:)
-  raise 'Kaboom!' if event.fetch(:simulate_exception, false)
-
   Logger.new(StringIO.new).info 'Lots of loggers languidly logging lore' if event.fetch(:simulate_logging, false)
+  raise 'Kaboom!' if event.fetch(:simulate_exception, false)
 
   {statusCode: 200, body: 'Running just as fast as we can'}
 end
@@ -37,6 +36,7 @@ module NewRelic::Agent
         config_hash = {:'serverless_mode.enabled' => true}
         @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
         NewRelic::Agent.config.add_config_for_testing(@test_config, true)
+        handler.send(:reset!)
       end
 
       def teardown
@@ -56,8 +56,8 @@ module NewRelic::Agent
         end
         context.verify
 
-        assert_equal 1, output.size
-        assert_match(/lambda_function/, output.first)
+        assert_equal 4, output.last['metric_data'].size
+        assert_match(/lambda_function/, output.to_s)
       end
 
       def test_rescued_errors_are_noticed
@@ -69,8 +69,7 @@ module NewRelic::Agent
           end
         end
 
-        assert_equal 1, output.size
-        assert_match 'Errors/lambda_function', output.first
+        assert_equal 'Kaboom!', output.last['error_event_data'].last.first.first['error.message']
       end
 
       def test_log_events_and_reported
@@ -80,8 +79,20 @@ module NewRelic::Agent
             context: testing_context)
         end
 
-        assert_equal 1, output.size
-        assert_match 'languidly', output.first
+        assert_match 'languidly', output.last['log_event_data'].first['logs'].first['message']
+      end
+
+      def test_errors_and_logs_at_the_same_time_man
+        output = with_output do
+          assert_raises RuntimeError do
+            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: {simulate_exception: true, simulate_logging: true},
+              context: testing_context)
+          end
+        end
+
+        assert_equal 1, output.last['error_data'].last.size
+        assert_equal 1, output.last['log_event_data'].first['logs'].size
       end
 
       def test_customer_function_lives_within_a_namespace
@@ -96,8 +107,8 @@ module NewRelic::Agent
         end
         context.verify
 
-        assert_equal 1, output.size
-        assert_match(/lambda_function/, output.first)
+        assert_equal 4, output.last['metric_data'].size
+        assert_match(/lambda_function/, output.to_s)
       end
 
       # unit style
@@ -117,7 +128,7 @@ module NewRelic::Agent
 
         File.stub :exist?, false, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
           File.stub :writable?, false, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
-            refute_predicate handler, :use_named_pipe?
+            refute_predicate fresh_handler, :use_named_pipe?
           end
         end
       end
@@ -125,7 +136,7 @@ module NewRelic::Agent
       def test_named_pipe_check_result_is_memoized
         skip_unless_minitest5_or_above
 
-        h = handler
+        h = fresh_handler
         # memoized to true when writable
         File.stub :exist?, true, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
           File.stub :writable?, true, [NewRelic::Agent::ServerlessHandler::NAMED_PIPE] do
@@ -141,7 +152,7 @@ module NewRelic::Agent
       end
 
       def test_cold_is_true_only_for_the_first_check
-        h = handler
+        h = fresh_handler
 
         assert_predicate h, :cold?
         refute_predicate h, :cold?
@@ -167,34 +178,31 @@ module NewRelic::Agent
       end
 
       def test_output_hits_stdout_in_the_absence_of_a_named_pipe
-        h = handler
+        h = fresh_handler
         def h.use_named_pipe?; false; end
 
-        string = 'blackcurrant'
-
-        assert_output(/#{string}/) do
-          h.send(:write_output, string)
+        assert_output(/NR_LAMBDA_MONITORING/) do
+          h.send(:write_output)
         end
       end
 
       def test_output_hits_the_named_pipe_when_available
         temp = Tempfile.new('lambda_named_pipe')
-        string = 'rooibos'
 
         NewRelic::Agent::ServerlessHandler.stub_const(:NAMED_PIPE, temp.path) do
-          handler.send(:write_output, string)
+          handler.send(:write_output)
         end
 
         output = File.read(temp).chomp
 
-        assert_equal string, output
+        assert_match(/NR_LAMBDA_MONITORING/, output)
       ensure
         temp.close
         temp.unlink
       end
 
       def test_handle_a_nil_context
-        h = handler
+        h = fresh_handler
         h.send(:parse_context, nil)
 
         assert_nil h.instance_variable_get(:@function_arn)
@@ -202,7 +210,7 @@ module NewRelic::Agent
       end
 
       def test_handle_a_context_that_does_not_respond_to_arn_and_method_calls
-        h = handler
+        h = fresh_handler
         h.send(:parse_context, :bogus_context)
 
         assert_nil h.instance_variable_get(:@function_arn)
@@ -210,7 +218,7 @@ module NewRelic::Agent
       end
 
       def test_notice_cold_start_only_does_work_when_cold
-        h = handler
+        h = fresh_handler
         def h.cold?; false; end
 
         NewRelic::Agent::Tracer.stub :current_transaction, -> { raise 'kaboom' } do
@@ -220,7 +228,7 @@ module NewRelic::Agent
       end
 
       def test_notice_cold_start_only_does_work_with_a_current_transaction_present
-        h = handler
+        h = fresh_handler
         def h.cold?; true; end
 
         NewRelic::Agent::Tracer.stub :current_transaction, nil do
@@ -228,31 +236,28 @@ module NewRelic::Agent
         end
       end
 
-      def test_write
-        temp = Tempfile.new('lambda_named_pipe')
+      def test_store_payload
+        method = :br_2049
         payload = 'little red bear'
-        encoded = NewRelic::Base64.encode64(
-          NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(payload)
-        )
-        data = with_output { handler.write(:br_2049, payload) }
+        handler.store_payload(method, payload)
 
-        assert_equal 1, data.size
-        assert_match(/#{payload}/, data.first)
+        assert_equal payload, handler.instance_variable_get(:@payloads)[method]
       end
 
-      def test_write_short_circuits_for_non_serverless_appropriate_methods
+      def test_store_payload_short_circuits_for_non_serverless_appropriate_methods
         blocked_method = NewRelic::Agent::ServerlessHandler::METHOD_BLOCKLIST.sample
+        handler.store_payload(blocked_method, 'hoovering')
 
-        h = handler
-        # guarantee the write doesn't actually take place
-        def h.write_output; raise 'kaboom'; end
-
-        assert_nil h.write(blocked_method, 'hoovering')
+        assert_empty handler.instance_variable_get(:@payloads)
       end
 
       private
 
       def handler
+        NewRelic::Agent.agent.serverless_handler
+      end
+
+      def fresh_handler
         NewRelic::Agent::ServerlessHandler.new
       end
 
@@ -269,17 +274,12 @@ module NewRelic::Agent
         NewRelic::Agent::ServerlessHandler.stub_const(:NAMED_PIPE, temp.path) do
           yield
         end
-        lines = File.read(temp).chomp.split("\n")
-
-        lines.each_with_object([]) do |line, arr|
-          next unless line.start_with?('[') && line.end_with?(']')
-
-          parsed = line.split(',').last
-          parsed.gsub!(/"|(?:\]\n)|\\n/, '')
-          decoded = NewRelic::Base64.decode64(parsed)
-          unzipped = Zlib::GzipReader.new(StringIO.new(decoded)).read
-          arr.push(unzipped)
-        end
+        json = File.read(temp).chomp
+        array = JSON.parse(json)
+        decoded = NewRelic::Base64.decode64(array.last)
+        unzipped = Zlib::GzipReader.new(StringIO.new(decoded)).read
+        array[-1] = JSON.parse(unzipped)
+        array
       ensure
         temp.close
         temp.unlink
