@@ -15,7 +15,7 @@ module NewRelic
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
       METADATA_VERSION = 2 # internal to New Relic's cross-agent specs
-      METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results]
+      METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results].freeze
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'
