@@ -15,7 +15,7 @@ module NewRelic
 
         ATTRIBUTE_NAME_EXCEPTIONS = {
           response_organization: 'response.organization',
-          llm_version: 'response.headers.llm_version',
+          llm_version: 'response.headers.llmVersion',
           ratelimit_limit_requests: 'response.headers.ratelimitLimitRequests',
           ratelimit_limit_tokens: 'response.headers.ratelimitLimitTokens',
           ratelimit_remaining_requests: 'response.headers.ratelimitRemainingRequests',
