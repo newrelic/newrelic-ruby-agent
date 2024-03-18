@@ -67,9 +67,9 @@ module NewRelic::Agent::Instrumentation
     def create_chat_completion_summary(parameters)
       NewRelic::Agent::Llm::ChatCompletionSummary.new(
         vendor: VENDOR,
-        request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
+        request_max_tokens: (parameters[:max_tokens] || parameters['max_tokens'])&.to_i,
         request_model: parameters[:model] || parameters['model'],
-        temperature: parameters[:temperature] || parameters['temperature'],
+        temperature: (parameters[:temperature] || parameters['temperature'])&.to_f,
         metadata: llm_custom_attributes
       )
     end
