@@ -7,7 +7,6 @@ module NewRelic
     module Instrumentation
       module NetHTTP
         INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
-        OPENAI_SEGMENT_PATTERN = %r{Llm/.*/OpenAI/.*}.freeze
 
         def request_with_tracing(request)
           NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
