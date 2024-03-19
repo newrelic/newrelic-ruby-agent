@@ -19,7 +19,7 @@ module NewRelic
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'
-      VERSION = 2 # internal to New Relic's cross-agent specs
+      VERSION = 1 # internal to New Relic's cross-agent specs
 
       def self.env_var_set?
         ENV.key?(LAMBDA_ENVIRONMENT_VARIABLE)
@@ -84,10 +84,11 @@ module NewRelic
       end
 
       def write_output
-        json = NewRelic::Agent.agent.service.marshaller.dump(@payloads)
+        content = {'metadata' => metadata, 'data' => @payloads}
+        json = NewRelic::Agent.agent.service.marshaller.dump(content)
         gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
         base64_encoded = NewRelic::Base64.encode64(gzipped)
-        array = [VERSION, LAMBDA_MARKER, metadata, base64_encoded]
+        array = [VERSION, LAMBDA_MARKER, base64_encoded]
         string = ::JSON.dump(array)
 
         return puts string unless use_named_pipe?
