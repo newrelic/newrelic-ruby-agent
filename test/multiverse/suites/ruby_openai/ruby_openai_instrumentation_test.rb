@@ -6,7 +6,7 @@ require_relative 'openai_helpers'
 
 class RubyOpenAIInstrumentationTest < Minitest::Test
   include OpenAIHelpers
-  def setup
+  def setup # ai_monitoring.enabled is false by default. We've enabled it in this suite's newrelic.yml for testing
     @aggregator = NewRelic::Agent.agent.custom_event_aggregator
     NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback) if NewRelic::Agent.instance_variable_defined?(:@llm_token_count_callback)
   end
@@ -145,8 +145,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     summary_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
 
-    assert_equal '1993', summary_event[1]['conversation_id']
-    assert_equal 'Steven Spielberg', summary_event[1]['JurassicPark']
+    assert_equal '1993', summary_event[1]['llm.conversation_id']
+    assert_equal 'Steven Spielberg', summary_event[1]['llm.JurassicPark']
     refute summary_event[1]['trex']
   end
 
@@ -164,8 +164,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
-    assert_equal '1997', embedding_event[1]['conversation_id']
-    assert_equal 'Steven Spielberg', embedding_event[1]['TheLostWorld']
+    assert_equal '1997', embedding_event[1]['llm.conversation_id']
+    assert_equal 'Steven Spielberg', embedding_event[1]['llm.TheLostWorld']
     refute embedding_event[1]['fruit']
   end
 
@@ -184,8 +184,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
     message_events.each do |event|
-      assert_equal '2001', event[1]['conversation_id']
-      assert_equal 'Joe Johnston', event[1]['JurassicParkIII']
+      assert_equal '2001', event[1]['llm.conversation_id']
+      assert_equal 'Joe Johnston', event[1]['llm.JurassicParkIII']
       refute event[1]['Pterosaur']
     end
   end

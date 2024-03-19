@@ -16,6 +16,7 @@ module NewRelic::Agent::Instrumentation
 
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
       NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
+      record_openai_metric
 
       if path == EMBEDDINGS_PATH
         embeddings_instrumentation(parameters) { yield }
@@ -28,7 +29,6 @@ module NewRelic::Agent::Instrumentation
 
     def embeddings_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
-      record_openai_metric
       event = create_embeddings_event(parameters)
       segment.llm_event = event
       begin
@@ -44,7 +44,6 @@ module NewRelic::Agent::Instrumentation
 
     def chat_completions_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(name: CHAT_COMPLETIONS_SEGMENT_NAME)
-      record_openai_metric
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
@@ -162,9 +161,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def llm_custom_attributes
-      attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
-
-      attributes&.transform_keys! { |key| key[4..-1] }
+      NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
     end
 
     def record_openai_metric

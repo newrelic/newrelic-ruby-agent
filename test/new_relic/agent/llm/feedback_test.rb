@@ -12,7 +12,7 @@ module NewRelic::Agent::Llm
     end
 
     def test_record_llm_feedback_event_records_required_attributes
-      in_transaction do |txn|
+      in_transaction do
         NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5)
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
         type, attributes = events[0]
@@ -26,7 +26,7 @@ module NewRelic::Agent::Llm
     end
 
     def test_record_llm_feedback_event_records_optional_attributes
-      in_transaction do |txn|
+      in_transaction do
         NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5,
           category: 'Helpful', message: 'Looks good!', metadata: {'pop' => 'tart', 'toaster' => 'strudel'})
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
@@ -64,12 +64,24 @@ module NewRelic::Agent::Llm
     end
 
     def test_feedback_api_supportability_metric_recorded
-      in_transaction do |txn|
+      in_transaction do
         NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5)
         NewRelic::Agent.agent.custom_event_aggregator.harvest!
       end
 
       assert_metrics_recorded('Supportability/API/record_llm_feedback_event')
+    end
+
+    def test_record_llm_feedback_event_requires_distributed_tracing
+      with_config(:'distributed_tracing.enabled' => false) do
+        in_transaction do
+          NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5)
+          _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
+          type, attributes = events[0]
+
+          assert_nil attributes
+        end
+      end
     end
 
     def assert_logged(expected)

@@ -361,11 +361,11 @@ module NewRelic
           DESCRIPTION
         },
         :'ai_monitoring.enabled' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `false`, all LLM (OpenAI only for now) instrumentation will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
+          :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
         },
         :'ai_monitoring.record_content.enabled' => {
           :default => true,
@@ -373,7 +373,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `false`, LLM (OpenAI only for now) instrumentation will not capture input and output content on specific LLM events.
+            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
             The excluded attributes include:
               * `content` from LlmChatCompletionMessage events
