@@ -38,7 +38,7 @@ module NewRelic
       end
 
       def harvest_thread_enabled?
-        !NewRelic::Agent.config[:disable_harvest_thread]
+        !NewRelic::Agent.config[:disable_harvest_thread] && !NewRelic::Agent.config[:'serverless_mode.enabled']
       end
 
       def restart_harvest_thread
