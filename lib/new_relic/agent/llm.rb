@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'llm/llm_event'
+require_relative 'llm/token_count'
 require_relative 'llm/chat_completion_message'
 require_relative 'llm/chat_completion_summary'
 require_relative 'llm/embedding'

@@ -5,8 +5,6 @@
 module NewRelic::Agent::Instrumentation
   module Bedrock
     def invoke_model_with_new_relic(params, options)
-      @nr_events = [] # tmp
-
       NewRelic::Agent.record_metric("Supportability/Ruby/ML/Bedrock/#{Aws::BedrockRuntime::GEM_VERSION}", 0.0)
       NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
 
@@ -18,7 +16,6 @@ module NewRelic::Agent::Instrumentation
     ensure
       segment&.finish
       create_llm_events(segment, params, response)
-      # binding.irb
     end
 
     ##################################################################
@@ -33,7 +30,7 @@ module NewRelic::Agent::Instrumentation
         create_chat_completion_events(model, body, response_body, shared_attributes, segment)
       end
     rescue => e
-      # log something
+      # todo: log something
       puts 'oop'
       puts e
       puts e.backtrace
@@ -70,18 +67,11 @@ module NewRelic::Agent::Instrumentation
     def create_chat_completion_summary_event(shared, attributes, segment)
       summary_event = NewRelic::Agent::Llm::ChatCompletionSummary.new(shared)
 
-      @nr_events << summary_event # TODO: tmp
-
       summary_event.id = NewRelic::Agent::GuidGenerator.generate_guid
       summary_event.request_model = shared[:response_model]
       summary_event.response_number_of_messages = attributes[:response_number_of_messages]
       summary_event.request_temperature = attributes[:request_temperature]
-
       summary_event.request_max_tokens = attributes[:request_max_tokens]
-      # summary_event.response_usage_prompt_tokens = segment&.llm_event&.[](:response_usage_prompt_tokens)&.to_i
-      # summary_event.response_usage_completion_tokens = segment&.llm_event&.[](:response_usage_completion_tokens)&.to_i
-      # summary_event.response_usage_total_tokens = summary_event.response_usage_prompt_tokens + summary_event.response_usage_completion_tokens
-
       summary_event.response_choices_finish_reason = attributes[:response_choices_finish_reason]
       summary_event.duration = segment&.duration
       summary_event.error = true if segment&.noticed_error
@@ -93,45 +83,34 @@ module NewRelic::Agent::Instrumentation
 
     def create_chat_completion_message_event(index, completion_id, shared, attributes)
       message_event = NewRelic::Agent::Llm::ChatCompletionMessage.new(shared)
-      @nr_events << message_event # TODO: tmp
       message_event.id = "#{shared[:request_id]}-#{index}"
       message_event.completion_id = completion_id
       message_event.sequence = index
-      message_event.content = attributes[:content]
+      message_event.content = attributes[:content] if NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
       message_event.role = attributes[:role]
       message_event.is_response = attributes[:is_response] if attributes[:is_response]
-      message_event.token_count = get_token_count(shared[:response_model], message_event.content)
+      message_event.call_token_count_callback(shared[:response_model], message_event.content)
 
       message_event.record
-    end
-
-    def get_token_count(model, content)
-      return unless NewRelic::Agent.llm_token_count_callback
-
-      count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
-      count if count.is_a?(Integer) && count > 0
     end
 
     ##################################################################
 
     def create_embed_event(model, body, response_body, shared_attributes, segment)
       embed_attributes = if model.start_with?('amazon.titan-embed-')
-        # titan_embed_attributes(body, response_body)
         {input: body['inputText']}
       elsif model.start_with?('cohere.embed-')
-        {input: body['text']}
+        {input: body['texts']&.join(' ')}
       end
 
       embed_event = NewRelic::Agent::Llm::Embedding.new(shared_attributes)
 
-      embed_event.input = embed_attributes[:input]
+      embed_event.input = embed_attributes[:input] if NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
       embed_event.request_model = shared_attributes[:response_model]
       embed_event.duration = segment&.duration
       embed_event.error = true if segment&.noticed_error
 
-      embed_event.token_count = get_token_count(model, embed_event.input)
-
-      @nr_events << embed_event # TODO: tmp
+      embed_event.call_token_count_callback(model, embed_event.input)
 
       embed_event.record
     end

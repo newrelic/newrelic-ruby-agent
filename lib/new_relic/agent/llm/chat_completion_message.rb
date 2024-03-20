@@ -6,6 +6,8 @@ module NewRelic
   module Agent
     module Llm
       class ChatCompletionMessage < LlmEvent
+        include TokenCount
+
         ATTRIBUTES = %i[content role sequence completion_id token_count
           is_response]
         EVENT_NAME = 'LlmChatCompletionMessage'
