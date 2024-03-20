@@ -35,7 +35,7 @@ module NewRelic::Agent
 
       def build_distributed_trace_header(env = {})
         begin
-          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+          NewRelic::Agent.instance.stubs(:connected?).returns(true)
           with_config(distributed_tracing_enabled) do
             in_transaction('referring_txn') do |txn|
               payload = txn.distributed_tracer.create_distributed_trace_payload

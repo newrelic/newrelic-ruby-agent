@@ -128,7 +128,7 @@ module NewRelic
           catch_errors do
             NewRelic::Agent.disable_all_tracing do
               connect(connection_options)
-              if connected?
+              if NewRelic::Agent.instance.connected?
                 create_and_run_event_loop
                 # never reaches here unless there is a problem or
                 # the agent is exiting

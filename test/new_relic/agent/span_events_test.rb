@@ -27,7 +27,7 @@ module NewRelic
       end
 
       def test_span_ids_passed_in_payload_when_span_events_enabled
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        NewRelic::Agent.instance.stubs(:connected?).returns(true)
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
         payload = nil
         external_segment = nil
@@ -44,7 +44,7 @@ module NewRelic
       end
 
       def test_parent_span_id_propagated_cross_process
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        NewRelic::Agent.instance.stubs(:connected?).returns(true)
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
         payload = nil
         external_segment = nil

@@ -22,7 +22,7 @@ module NewRelic::Agent
           :primary_application_id => '46954',
           :trusted_account_key => 'trust_this!'
         }
-        DistributedTracePayload.stubs(:connected?).returns(true)
+        Agent.instance.stubs(:connected?).returns(true)
 
         Agent.config.add_config_for_testing(@config)
         @events.notify(:initial_configuration_complete)

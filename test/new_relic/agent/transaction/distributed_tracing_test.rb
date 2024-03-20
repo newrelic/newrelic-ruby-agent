@@ -20,7 +20,7 @@ module NewRelic
             :primary_application_id => '46954',
             :trusted_account_key => 'trust_this!'
           }
-          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+          NewRelic::Agent.instance.stubs(:connected?).returns(true)
           NewRelic::Agent.config.add_config_for_testing(@config)
         end
 
@@ -56,7 +56,7 @@ module NewRelic
 
           payload = 'definitely not nil'
 
-          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(false)
+          NewRelic::Agent.instance.stubs(:connected?).returns(false)
 
           in_transaction('test_txn') do |t|
             payload = t.distributed_tracer.create_distributed_trace_payload

@@ -53,6 +53,8 @@ module NewRelic
         protected
 
         def validate_config_file_path(path)
+          return if NewRelic::Agent.config[:'serverless_mode.enabled']
+
           expanded_path = File.expand_path(path)
 
           if path.empty? || !File.exist?(expanded_path)

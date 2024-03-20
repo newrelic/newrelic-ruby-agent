@@ -60,6 +60,7 @@ module NewRelic
 
     def discover_dispatcher
       dispatchers = %w[
+        serverless
         passenger
         torquebox
         trinidad
@@ -196,6 +197,12 @@ module NewRelic
       return unless defined?(::PhusionPassenger)
 
       @discovered_dispatcher = :passenger
+    end
+
+    def check_for_serverless
+      return unless NewRelic::Agent.config[:'serverless_mode.enabled']
+
+      @discovered_dispatcher = :serverless
     end
 
     public
