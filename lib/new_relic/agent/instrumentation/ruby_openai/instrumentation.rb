@@ -16,6 +16,7 @@ module NewRelic::Agent::Instrumentation
 
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
       NewRelic::Agent::Llm::LlmEvent.set_llm_agent_attribute_on_transaction
+      record_openai_metric
 
       if path == EMBEDDINGS_PATH
         embeddings_instrumentation(parameters) { yield }
@@ -28,7 +29,6 @@ module NewRelic::Agent::Instrumentation
 
     def embeddings_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(name: EMBEDDINGS_SEGMENT_NAME)
-      record_openai_metric
       event = create_embeddings_event(parameters)
       segment.llm_event = event
       begin
@@ -44,7 +44,6 @@ module NewRelic::Agent::Instrumentation
 
     def chat_completions_instrumentation(parameters)
       segment = NewRelic::Agent::Tracer.start_segment(name: CHAT_COMPLETIONS_SEGMENT_NAME)
-      record_openai_metric
       event = create_chat_completion_summary(parameters)
       segment.llm_event = event
       messages = create_chat_completion_messages(parameters, event.id)
@@ -67,20 +66,22 @@ module NewRelic::Agent::Instrumentation
     def create_chat_completion_summary(parameters)
       NewRelic::Agent::Llm::ChatCompletionSummary.new(
         vendor: VENDOR,
-        request_max_tokens: parameters[:max_tokens] || parameters['max_tokens'],
+        request_max_tokens: (parameters[:max_tokens] || parameters['max_tokens'])&.to_i,
         request_model: parameters[:model] || parameters['model'],
-        temperature: parameters[:temperature] || parameters['temperature'],
+        temperature: (parameters[:temperature] || parameters['temperature'])&.to_f,
         metadata: llm_custom_attributes
       )
     end
 
     def create_embeddings_event(parameters)
-      NewRelic::Agent::Llm::Embedding.new(
+      event = NewRelic::Agent::Llm::Embedding.new(
         vendor: VENDOR,
-        input: parameters[:input] || parameters['input'],
         request_model: parameters[:model] || parameters['model'],
         metadata: llm_custom_attributes
       )
+      add_input(event, (parameters[:input] || parameters['input']))
+
+      event
     end
 
     def add_chat_completion_response_params(parameters, response, event)
@@ -92,31 +93,35 @@ module NewRelic::Agent::Instrumentation
 
     def add_embeddings_response_params(response, event)
       event.response_model = response['model']
+      event.token_count = calculate_token_count(event.request_model, event.input)
     end
 
     def create_chat_completion_messages(parameters, summary_id)
       (parameters[:messages] || parameters['messages']).map.with_index do |message, index|
-        NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: message[:content] || message['content'],
+        msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: message[:role] || message['role'],
           sequence: index,
           completion_id: summary_id,
-          vendor: VENDOR,
-          is_response: true
+          vendor: VENDOR
         )
+        add_content(msg, (message[:content] || message['content']))
+
+        msg
       end
     end
 
     def create_chat_completion_response_messages(response, sequence_origin, summary_id)
       response['choices'].map.with_index(sequence_origin) do |choice, index|
-        NewRelic::Agent::Llm::ChatCompletionMessage.new(
-          content: choice['message']['content'],
+        msg = NewRelic::Agent::Llm::ChatCompletionMessage.new(
           role: choice['message']['role'],
           sequence: index,
           completion_id: summary_id,
           vendor: VENDOR,
           is_response: true
         )
+        add_content(msg, choice['message']['content'])
+
+        msg
       end
     end
 
@@ -129,13 +134,34 @@ module NewRelic::Agent::Instrumentation
         message.request_id = summary.request_id
         message.response_model = response['model']
         message.metadata = llm_custom_attributes
+
+        model = message.is_response ? message.response_model : summary.request_model
+
+        message.token_count = calculate_token_count(model, message.content)
       end
     end
 
-    def llm_custom_attributes
-      attributes = NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
+    def calculate_token_count(model, content)
+      return unless NewRelic::Agent.llm_token_count_callback
 
-      attributes&.transform_keys! { |key| key[4..-1] }
+      count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
+      count if count.is_a?(Integer) && count > 0
+    end
+
+    def record_content_enabled?
+      NewRelic::Agent.config[:'ai_monitoring.record_content.enabled']
+    end
+
+    def add_content(message, content)
+      message.content = content if record_content_enabled?
+    end
+
+    def add_input(event, input)
+      event.input = input if record_content_enabled?
+    end
+
+    def llm_custom_attributes
+      NewRelic::Agent::Tracer.current_transaction&.attributes&.custom_attributes&.select { |k| k.to_s.match(/llm.*/) }
     end
 
     def record_openai_metric

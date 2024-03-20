@@ -17,7 +17,6 @@ module NewRelic
         # and the string version expected by the UI as the value.
         ATTRIBUTE_NAME_EXCEPTIONS = {response_model: 'response.model'}
         INGEST_SOURCE = 'Ruby'
-        LLM = :llm
         ERROR_ATTRIBUTE_STATUS_CODE = 'http.statusCode'
         ERROR_ATTRIBUTE_CODE = 'error.code'
         ERROR_ATTRIBUTE_PARAM = 'error.param'
@@ -28,7 +27,7 @@ module NewRelic
         attr_accessor(*ATTRIBUTES)
 
         def self.set_llm_agent_attribute_on_transaction
-          NewRelic::Agent::Transaction.add_agent_attribute(LLM, true, NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+          NewRelic::Agent::Transaction.add_agent_attribute(:llm, true, NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
         end
 
         # This initialize method is used for all subclasses.

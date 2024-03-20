@@ -7,7 +7,6 @@ module NewRelic
     module Instrumentation
       module NetHTTP
         INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
-        OPENAI_SEGMENT_PATTERN = %r{Llm/.*/OpenAI/.*}.freeze
 
         def request_with_tracing(request)
           NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
@@ -34,10 +33,8 @@ module NewRelic
 
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
 
-            if openai_parent?(segment)
-              populate_openai_response_headers(wrapped_response, segment.parent)
-            elsif bedrock_parent?(segment)
-              populate_bedrock_response_headers(wrapped_response, segment.parent)
+            if NewRelic::Agent::LLM.openai_parent?(segment)
+              NewRelic::Agent::LLM.populate_openai_response_headers(wrapped_response, segment.parent)
             end
 
             segment.process_response_headers(wrapped_response)
@@ -46,16 +43,6 @@ module NewRelic
           ensure
             segment&.finish
           end
-        end
-
-        def openai_parent?(segment)
-          segment&.parent&.name&.match?(OPENAI_SEGMENT_PATTERN)
-        end
-
-        def populate_openai_response_headers(response, parent)
-          return unless parent.instance_variable_defined?(:@llm_event)
-
-          parent.llm_event.populate_openai_response_headers(response.to_hash)
         end
 
         def bedrock_parent?(segment)

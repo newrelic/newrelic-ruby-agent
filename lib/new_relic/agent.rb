@@ -31,6 +31,7 @@ module NewRelic
     require 'new_relic/noticed_error'
     require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
+    require 'new_relic/thread_local_storage'
 
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
@@ -420,6 +421,10 @@ module NewRelic
       metadata: NewRelic::EMPTY_HASH)
 
       record_api_supportability_metric(:record_llm_feedback_event)
+      unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+        return NewRelic::Agent.logger.error('Distributed tracing must be enabled to record LLM feedback')
+      end
+
       feedback_message_event = {
         'trace_id': trace_id,
         'rating': rating,

@@ -6,9 +6,9 @@ require_relative 'openai_helpers'
 
 class RubyOpenAIInstrumentationTest < Minitest::Test
   include OpenAIHelpers
-
-  def setup
+  def setup # ai_monitoring.enabled is false by default. We've enabled it in this suite's newrelic.yml for testing
     @aggregator = NewRelic::Agent.agent.custom_event_aggregator
+    NewRelic::Agent.remove_instance_variable(:@llm_token_count_callback) if NewRelic::Agent.instance_variable_defined?(:@llm_token_count_callback)
   end
 
   def teardown
@@ -145,8 +145,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     summary_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
 
-    assert_equal '1993', summary_event[1]['conversation_id']
-    assert_equal 'Steven Spielberg', summary_event[1]['JurassicPark']
+    assert_equal '1993', summary_event[1]['llm.conversation_id']
+    assert_equal 'Steven Spielberg', summary_event[1]['llm.JurassicPark']
     refute summary_event[1]['trex']
   end
 
@@ -164,8 +164,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
 
-    assert_equal '1997', embedding_event[1]['conversation_id']
-    assert_equal 'Steven Spielberg', embedding_event[1]['TheLostWorld']
+    assert_equal '1997', embedding_event[1]['llm.conversation_id']
+    assert_equal 'Steven Spielberg', embedding_event[1]['llm.TheLostWorld']
     refute embedding_event[1]['fruit']
   end
 
@@ -184,8 +184,8 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
     message_events.each do |event|
-      assert_equal '2001', event[1]['conversation_id']
-      assert_equal 'Joe Johnston', event[1]['JurassicParkIII']
+      assert_equal '2001', event[1]['llm.conversation_id']
+      assert_equal 'Joe Johnston', event[1]['llm.JurassicParkIII']
       refute event[1]['Pterosaur']
     end
   end
@@ -234,12 +234,198 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
   end
 
   def test_set_llm_agent_attribute_on_embedding_transaction
-    in_transaction do |txn|
+    in_transaction do
       stub_embeddings_post_request do
         client.embeddings(parameters: embeddings_params)
       end
     end
 
     assert_truthy harvest_transaction_events![1][0][2][:llm]
+  end
+
+  def test_embeddings_token_count_assigned_by_callback_if_present
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 7734 })
+
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    assert_equal 7734, embedding_event[1]['token_count']
+  end
+
+  def test_embeddings_token_count_attribute_absent_if_callback_returns_nil
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| nil })
+
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    refute embedding_event[1].key?('token_count')
+  end
+
+  def test_embeddings_token_count_attribute_absent_if_callback_returns_zero
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 0 })
+
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    refute embedding_event[1].key?('token_count')
+  end
+
+  def test_embeddings_token_count_attribute_absent_if_no_callback_available
+    assert_nil NewRelic::Agent.llm_token_count_callback
+
+    in_transaction do
+      stub_embeddings_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+
+    refute embedding_event[1].key?('token_count')
+  end
+
+  def test_chat_completion_message_token_count_assigned_by_callback_if_present
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 7734 })
+
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      assert_equal 7734, message[1]['token_count']
+    end
+  end
+
+  def test_chat_completion_message_token_count_attribute_absent_if_callback_returns_nil
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| nil })
+
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      refute message[1].key?('token_count')
+    end
+  end
+
+  def test_chat_completion_message_token_count_attribute_absent_if_callback_returns_zero
+    NewRelic::Agent.set_llm_token_count_callback(proc { |hash| 0 })
+
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      refute message[1].key?('token_count')
+    end
+  end
+
+  def test_chat_completion_message_token_count_attribute_absent_if_no_callback_available
+    assert_nil NewRelic::Agent.llm_token_count_callback
+
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+
+    _, events = @aggregator.harvest!
+    messages = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    messages.each do |message|
+      refute message[1].key?('token_count')
+    end
+  end
+
+  def test_embeddings_drop_input_when_record_content_disabled
+    with_config(:'ai_monitoring.record_content.enabled' => false) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    refute events[0][1]['input']
+  end
+
+  def test_messages_drop_content_when_record_content_disabled
+    with_config(:'ai_monitoring.record_content.enabled' => false) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+      _, events = @aggregator.harvest!
+      message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+      message_events.each do |event|
+        refute event[1]['content']
+      end
+    end
+  end
+
+  def test_embeddings_include_input_when_record_content_enabled
+    with_config(:'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_embeddings_post_request do
+          client.embeddings(parameters: embeddings_params)
+        end
+      end
+    end
+    _, events = @aggregator.harvest!
+
+    assert_truthy events[0][1]['input']
+  end
+
+  def test_messages_include_content_when_record_content_enabled
+    with_config(:'ai_monitoring.record_content.enabled' => true) do
+      in_transaction do
+        stub_post_request do
+          client.chat(parameters: chat_params)
+        end
+      end
+      _, events = @aggregator.harvest!
+      message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+      message_events.each do |event|
+        assert_truthy event[1]['content']
+      end
+    end
   end
 end
