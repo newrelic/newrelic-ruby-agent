@@ -10,7 +10,7 @@ DependencyDetection.defer do
   named :bedrock
 
   depends_on do
-    defined?(Aws::Bedrock::Client) && NewRelic::Agent.config[:'ai_monitoring.enabled'] != false
+    defined?(Aws::BedrockRuntime::Client) && NewRelic::Agent.config[:'ai_monitoring.enabled'] != false
   end
 
   executes do

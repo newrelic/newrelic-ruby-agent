@@ -100,29 +100,38 @@ module NewRelic::Agent::Instrumentation
       message_event.content = attributes[:content]
       message_event.role = attributes[:role]
       message_event.is_response = attributes[:is_response] if attributes[:is_response]
-      # token count from callback
+      message_event.token_count = get_token_count(shared[:response_model], message_event.content)
 
       message_event.record
+    end
+
+    def get_token_count(model, content)
+      return unless NewRelic::Agent.llm_token_count_callback
+
+      count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
+      count if count.is_a?(Integer) && count > 0
     end
 
     ##################################################################
 
     def create_embed_event(model, body, response_body, shared_attributes, segment)
       embed_attributes = if model.start_with?('amazon.titan-embed-')
-        titan_embed_attributes(body, response_body)
+        # titan_embed_attributes(body, response_body)
+        {input: body['inputText']}
       elsif model.start_with?('cohere.embed-')
-        cohere_embed_attributes(body, response_body)
+        {input: body['text']}
       end
 
       embed_event = NewRelic::Agent::Llm::Embedding.new(shared_attributes)
-
-      @nr_events << embed_event # TODO: tmp
 
       embed_event.input = embed_attributes[:input]
       embed_event.request_model = shared_attributes[:response_model]
       embed_event.duration = segment&.duration
       embed_event.error = true if segment&.noticed_error
-      # also token count from callback
+
+      embed_event.token_count = get_token_count(model, embed_event.input)
+
+      @nr_events << embed_event # TODO: tmp
 
       embed_event.record
     end
@@ -283,18 +292,5 @@ module NewRelic::Agent::Instrumentation
 
       return summary_attributes, messages_attributes
     end
-
-    # Embedding:
-    # (only when model is amazon.titan-embed or cohere.embed)
-    # input api_key_last_four_digits request_model
-    # response_organization response_usage_total_tokens
-    # response_usage_prompt_tokens duration error
-    def titan_embed_attributes(body, response_body)
-    end
-
-    def cohere_embed_attributes(body, response_body)
-    end
-
-    ##################################################################
   end
 end
