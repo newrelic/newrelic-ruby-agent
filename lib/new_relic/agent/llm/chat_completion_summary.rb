@@ -44,8 +44,7 @@ module NewRelic
         end
 
         def error_attributes(exception)
-          attrs = {}
-          attrs[ERROR_COMPLETION_ID] = id
+          attrs = {ERROR_COMPLETION_ID => id}
 
           error_attributes_from_response(exception, attrs)
         end

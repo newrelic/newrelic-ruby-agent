@@ -87,9 +87,7 @@ module NewRelic
         private
 
         def replace_attr_with_string(attr)
-          return attribute_name_exceptions[attr] if attribute_name_exceptions.key?(attr)
-
-          attr
+          attribute_name_exceptions.fetch(attr, attr)
         end
       end
     end
