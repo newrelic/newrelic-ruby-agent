@@ -174,7 +174,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def segment_noticed_error?(segment)
-      segment&.instance_variable_get(:@noticed_error)
+      segment&.noticed_error
     end
 
     def nr_supportability_metric
