@@ -26,32 +26,32 @@ class NetHttpOpenAITest < Minitest::Test
 
   def test_openai_false_when_ruby_openai_auto
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :auto, :'ai_monitoring.enabled' => true}) do
-      refute NewRelic::Agent::LLM.openai?
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_false_when_ruby_openai_disabled
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :disabled, :'ai_monitoring.enabled' => true}) do
-      refute NewRelic::Agent::LLM.openai?
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_false_when_ruby_openai_unsatisfied
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :unsatisfied, :'ai_monitoring.enabled' => true}) do
-      refute NewRelic::Agent::LLM.openai?
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_false_when_ai_monitoring_disabled
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :prepend, :'ai_monitoring.enabled' => false}) do
-      refute NewRelic::Agent::LLM.openai?
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_value_memoized # could probs be a better test
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :prepend, :'ai_monitoring.enabled' => true}) do
       refute NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
-      assert NewRelic::Agent::LLM.openai?
+      assert_predicate(NewRelic::Agent::LLM, :openai?)
       assert NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
     end
   end
