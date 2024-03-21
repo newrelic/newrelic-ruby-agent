@@ -433,7 +433,7 @@ module NewRelic
         'id': NewRelic::Agent::GuidGenerator.generate_guid,
         'ingest_source': NewRelic::Agent::Llm::LlmEvent::INGEST_SOURCE
       }
-      feedback_message_event.merge!(metadata) if !metadata.empty?
+      feedback_message_event.merge!(metadata) unless metadata.empty?
 
       NewRelic::Agent.record_custom_event(LLM_FEEDBACK_MESSAGE, feedback_message_event)
     rescue ArgumentError
