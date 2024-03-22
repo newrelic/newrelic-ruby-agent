@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> introduces the option to store tracer state on the thread-level and hardens the browser agent insertion logic to better proactively anticipate errors.
+Version <dev> introduces the option to store tracer state on the thread-level, hardens the browser agent insertion logic to better proactively anticipate errors, and prevents excpetions from being raised in the Active Support Broadcast logger instrumentation.
 
 - **Feature: Add instrumentation for ruby-openai**
 
