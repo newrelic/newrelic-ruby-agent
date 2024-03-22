@@ -32,7 +32,13 @@ module NewRelic
             end
 
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
+
+            if NewRelic::Agent::LLM.openai_parent?(segment)
+              NewRelic::Agent::LLM.populate_openai_response_headers(wrapped_response, segment.parent)
+            end
+
             segment.process_response_headers(wrapped_response)
+
             response
           ensure
             segment&.finish

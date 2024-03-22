@@ -6,14 +6,18 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class ChatCompletionMessageTest < Minitest::Test
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def test_attributes_assigned_by_parent_present
       assert_includes NewRelic::Agent::Llm::ChatCompletionMessage.ancestors, NewRelic::Agent::Llm::LlmEvent
-      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :transaction_id
+      assert_includes NewRelic::Agent::Llm::LlmEvent::AGENT_DEFINED_ATTRIBUTES, :trace_id
 
       in_transaction do |txn|
         event = NewRelic::Agent::Llm::ChatCompletionMessage.new
 
-        assert_equal txn.guid, event.transaction_id
+        assert_equal txn.trace_id, event.trace_id
       end
     end
 
@@ -23,16 +27,6 @@ module NewRelic::Agent::Llm
       event = NewRelic::Agent::Llm::ChatCompletionMessage.new(id: 123)
 
       assert_equal 123, event.id
-    end
-
-    def test_included_module_attributes_list_can_be_assigned_on_init
-      assert_includes NewRelic::Agent::Llm::ChatCompletionMessage.ancestors, NewRelic::Agent::Llm::ChatCompletion
-      assert_includes NewRelic::Agent::Llm::ChatCompletion::ATTRIBUTES, :conversation_id
-
-      conversation_id = '123abc'
-      event = NewRelic::Agent::Llm::ChatCompletionMessage.new(conversation_id: conversation_id)
-
-      assert_equal conversation_id, event.conversation_id
     end
 
     def test_attributes_constant_values_can_be_passed_as_args_and_set_on_init
@@ -56,13 +50,13 @@ module NewRelic::Agent::Llm
           id: 7, content: 'Red-Tailed Hawk'
         )
         message.sequence = 2
-        message.conversation_id = 25
         message.request_id = '789'
         message.response_model = 'gpt-4'
         message.vendor = 'OpenAI'
         message.role = 'system'
         message.completion_id = 123
         message.is_response = 'true'
+        message.token_count = 10
 
         message.record
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
@@ -71,12 +65,10 @@ module NewRelic::Agent::Llm
         assert_equal 'LlmChatCompletionMessage', type['type']
 
         assert_equal 7, attributes['id']
-        assert_equal 25, attributes['conversation_id']
         assert_equal '789', attributes['request_id']
         assert_equal txn.current_segment.guid, attributes['span_id']
-        assert_equal txn.guid, attributes['transaction_id']
         assert_equal txn.trace_id, attributes['trace_id']
-        assert_equal 'gpt-4', attributes['response_model']
+        assert_equal 'gpt-4', attributes['response.model']
         assert_equal 'OpenAI', attributes['vendor']
         assert_equal 'Ruby', attributes['ingest_source']
         assert_equal 'Red-Tailed Hawk', attributes['content']
@@ -84,6 +76,7 @@ module NewRelic::Agent::Llm
         assert_equal 2, attributes['sequence']
         assert_equal 123, attributes['completion_id']
         assert_equal 'true', attributes['is_response']
+        assert_equal 10, attributes['token_count']
       end
     end
   end

@@ -1,0 +1,20 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+RUBY_OPENAI_VERSIONS = [
+  [nil, 2.6], # 6.0.0 returns the body, whereas older versions return body.to_json
+  ['5.0.0', 2.6], # json_post moves from a class method to an instance method
+  ['4.3.2', 2.6], # Faraday replaces HTTParty
+  ['3.4.0', 2.6] # OpenAI::Client#chat method added
+]
+
+def gem_list(version = nil)
+  <<~RB
+    gem 'ruby-openai'#{version}
+  RB
+end
+
+create_gemfiles(RUBY_OPENAI_VERSIONS)

@@ -6,6 +6,10 @@ require_relative '../../../test_helper'
 
 module NewRelic::Agent::Llm
   class ResponseHeadersTest < Minitest::Test
+    def setup
+      NewRelic::Agent.drop_buffered_data
+    end
+
     def openai_response_headers_hash
       # Response headers from a real OpenAI request
       # rubocop:disable Style/StringLiterals, Style/WordArray
@@ -27,6 +31,10 @@ module NewRelic::Agent::Llm
        "x-ratelimit-remaining-tokens" => ["149990"],
        "x-ratelimit-reset-requests" => ["7m12s"],
        "x-ratelimit-reset-tokens" => ["4ms"],
+       # The following *-tokens-usage-based entries are best guesses to fulfill the spec. We haven't been able to create a request that returns these headers.
+       "x-ratelimit-limit-tokens-usage-based" => ["40000"],
+       "x-ratelimit-reset-tokens-usage-based" => ["180ms"],
+       "x-ratelimit-remaining-tokens-usage-based" => ["39880"],
        "x-request-id" => ["123abc456"],
        "cf-cache-status" => ["DYNAMIC"],
        "set-cookie" =>
@@ -43,12 +51,15 @@ module NewRelic::Agent::Llm
       event.populate_openai_response_headers(openai_response_headers_hash)
 
       assert_equal '2020-10-01', event.llm_version
-      assert_equal '200', event.rate_limit_requests
-      assert_equal '150000', event.rate_limit_tokens
-      assert_equal '199', event.rate_limit_remaining_requests
-      assert_equal '149990', event.rate_limit_remaining_tokens
-      assert_equal '7m12s', event.rate_limit_reset_requests
-      assert_equal '4ms', event.rate_limit_reset_tokens
+      assert_equal 200, event.ratelimit_limit_requests
+      assert_equal 150000, event.ratelimit_limit_tokens
+      assert_equal 199, event.ratelimit_remaining_requests
+      assert_equal 149990, event.ratelimit_remaining_tokens
+      assert_equal '7m12s', event.ratelimit_reset_requests
+      assert_equal '4ms', event.ratelimit_reset_tokens
+      assert_equal 40000, event.ratelimit_limit_tokens_usage_based
+      assert_equal '180ms', event.ratelimit_reset_tokens_usage_based
+      assert_equal 39880, event.ratelimit_remaining_tokens_usage_based
     end
   end
 end
