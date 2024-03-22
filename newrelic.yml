@@ -33,6 +33,18 @@ common: &default_settings
   # - a.third.event
   # active_support_custom_events_names: []
 
+  # If false, all LLM instrumentation (OpenAI only for now) will be disabled and no
+  # metrics, events, or spans will be sent. AI Monitoring is automatically disabled
+  # if high_security mode is enabled.
+  # ai_monitoring.enabled: false
+
+  # If false, LLM instrumentation (OpenAI only for now) will not capture input and
+  # output content on specific LLM events.
+  # The excluded attributes include:
+  # * content from LlmChatCompletionMessage events
+  # * input from LlmEmbedding events
+  # ai_monitoring.record_content.enabled: true
+
   # If true, enables capture of all HTTP request headers for all destinations.
   # allow_all_headers: false
 
@@ -324,7 +336,8 @@ common: &default_settings
   # error_collector.ignore_status_codes: ""
 
   # Defines the maximum number of frames in an error backtrace. Backtraces over this
-  # amount are truncated at the beginning and end.
+  # amount are truncated in the middle, preserving the beginning and the end of the
+  # stack trace.
   # error_collector.max_backtrace_frames: 50
 
   # Defines the maximum number of TransactionError events reported per harvest
@@ -508,6 +521,10 @@ common: &default_settings
   # Controls auto-instrumentation of Roda at start-up. May be one of: auto, prepend,
   # chain, disabled.
   # instrumentation.roda: auto
+
+  # Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of:
+  # auto, prepend, chain, disabled.
+  # instrumentation.ruby_openai: auto
 
   # Controls auto-instrumentation of Sinatra at start-up. May be one of: auto,
   # prepend, chain, disabled.

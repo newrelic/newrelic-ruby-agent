@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.8.0
 
-Version <dev> introduces instrumentation for ruby-openai, adds the option to store tracer state on the thread-level, hardens the browser agent insertion logic to better proactively anticipate errors, and prevents excpetions from being raised in the Active Support Broadcast logger instrumentation.
+Version 9.8.0 introduces instrumentation for ruby-openai, adds the option to store tracer state on the thread-level, hardens the browser agent insertion logic to better proactively anticipate errors, and prevents excpetions from being raised in the Active Support Broadcast logger instrumentation.
 
 - **Feature: Add instrumentation for ruby-openai**
 
