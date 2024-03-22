@@ -17,6 +17,7 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
+      # TODO: Remove condition when we drop support for versions below 5.0.0
       if Gem::Version.new(OpenAI::VERSION) >= Gem::Version.new('5.0.0')
         prepend_instrument OpenAI::Client,
           NewRelic::Agent::Instrumentation::OpenAI::Prepend,

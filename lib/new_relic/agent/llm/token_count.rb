@@ -8,9 +8,11 @@ module NewRelic
       module TokenCount
         def call_token_count_callback(model, content)
           return unless NewRelic::Agent.llm_token_count_callback
-          
+
           count = NewRelic::Agent.llm_token_count_callback.call({model: model, content: content})
           self.token_count = count if count.is_a?(Integer) && count > 0
+        rescue => e
+          NewRelic::Agent.logger.warn("Error calculating token count using the provided proc. Error: #{e}")
         end
       end
     end

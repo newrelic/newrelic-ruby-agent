@@ -4,6 +4,20 @@
 
 Version <dev> introduces the option to store tracer state on the thread-level and hardens the browser agent insertion logic to better proactively anticipate errors.
 
+- **Feature: Add instrumentation for ruby-openai**
+
+  Instrumentation has been added for the [ruby-openai](https://github.com/alexrudall/ruby-openai) gem, supporting versions 3.4.0 and higher [(PR#2442)](https://github.com/newrelic/newrelic-ruby-agent/pull/2442). While ruby-openai instrumentation is enabled by default, the configuration option `ai_monitoring.enabled` is disabled by default and controls all AI monitoring. `ai_monitoring.enabled` must be set to `true` in order to receive ruby-openai instrumentation. High-Security Mode must be disabled in order to receive AI monitoring.
+
+  Calls to embedding and chat completion endpoints are automatically traced. These events can be enhanced with the introduction of two new APIs. Custom attributes can also be added to LLM events using the API `NewRelic::Agent.add_custom_attributes`, but they must be prefixed with `llm.`. For example, `NewRelic::Agent.add_custom_attributes({'llm.user_id': user_id})`.
+
+- **Feature: Add AI monitoring APIs**
+
+  This version introduces two new APIs that allow users to record additional information on LLM events:
+  * `NewRelic::Agent.record_llm_feedback_event` - Records user feedback events.
+  * `NewRelic::Agent.set_llm_token_count_callback` - Sets a callback proc for calculating `token_count` attributes for embedding and chat completion message events.
+  
+  Visit [RubyDoc](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/) for more information on each of these APIs.
+
 - **Feature: Store tracer state on thread-level**
 
   A new configuration option, `thread_local_tracer_state`, stores New Relic's tracer state on the thread-level, as opposed to the default fiber-level storage. This configuration is turned off by default. Our thanks go to community member [@markiz](https://github.com/markiz) who contributed the idea, code, configuration option, and tests for this new feature! [PR#2475](https://github.com/newrelic/newrelic-ruby-agent/pull/2475).

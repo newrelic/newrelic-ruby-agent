@@ -11,7 +11,7 @@ module NewRelic
           ratelimit_remaining_tokens ratelimit_reset_requests
           ratelimit_reset_tokens ratelimit_limit_tokens_usage_based
           ratelimit_reset_tokens_usage_based
-          ratelimit_remaining_tokens_usage_based]
+          ratelimit_remaining_tokens_usage_based].freeze
 
         ATTRIBUTE_NAME_EXCEPTIONS = {
           response_organization: 'response.organization',
@@ -25,7 +25,7 @@ module NewRelic
           ratelimit_limit_tokens_usage_based: 'response.headers.ratelimitLimitTokensUsageBased',
           ratelimit_reset_tokens_usage_based: 'response.headers.ratelimitResetTokensUsageBased',
           ratelimit_remaining_tokens_usage_based: 'response.headers.ratelimitRemainingTokensUsageBased'
-        }
+        }.freeze
 
         OPENAI_ORGANIZATION = 'openai-organization'
         OPENAI_VERSION = 'openai-version'

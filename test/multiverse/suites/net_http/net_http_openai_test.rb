@@ -9,49 +9,54 @@ class NetHttpOpenAITest < Minitest::Test
     NewRelic::Agent::LLM.remove_instance_variable(:@openai) if NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
   end
 
+  # Mocha used in test_populate_openai_response_headers_with_llm_event_calls_llm_method
+  def teardown
+    mocha_teardown
+  end
+
   def test_openai_true_when_ruby_openai_prepend_and_ai_monitoring_enabled
     # with_config doesn't work because the value for
     # instrumentation.ruby_openai will be overriden during
     # dependency detection.
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :prepend, :'ai_monitoring.enabled' => true}) do
-      assert_truthy NewRelic::Agent::LLM.openai
+      assert_truthy NewRelic::Agent::LLM.openai?
     end
   end
 
   def test_openai_true_when_ruby_openai_chain_and_ai_monitoring_enabled
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :chain, :'ai_monitoring.enabled' => true}) do
-      assert_truthy NewRelic::Agent::LLM.openai
+      assert_truthy NewRelic::Agent::LLM.openai?
     end
   end
 
   def test_openai_false_when_ruby_openai_auto
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :auto, :'ai_monitoring.enabled' => true}) do
-      refute NewRelic::Agent::LLM.openai
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_false_when_ruby_openai_disabled
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :disabled, :'ai_monitoring.enabled' => true}) do
-      refute NewRelic::Agent::LLM.openai
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_false_when_ruby_openai_unsatisfied
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :unsatisfied, :'ai_monitoring.enabled' => true}) do
-      refute NewRelic::Agent::LLM.openai
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_false_when_ai_monitoring_disabled
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :prepend, :'ai_monitoring.enabled' => false}) do
-      refute NewRelic::Agent::LLM.openai
+      refute_predicate(NewRelic::Agent::LLM, :openai?)
     end
   end
 
   def test_openai_value_memoized # could probs be a better test
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :prepend, :'ai_monitoring.enabled' => true}) do
       refute NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
-      assert NewRelic::Agent::LLM.openai
+      assert_predicate(NewRelic::Agent::LLM, :openai?)
       assert NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
     end
   end
@@ -114,12 +119,10 @@ class NetHttpOpenAITest < Minitest::Test
     NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :auto, :'ai_monitoring.enabled' => true}) do
       response = {}
       parent = NewRelic::Agent::Transaction::AbstractSegment.new('Llm/embedding/OpenAI/embeddings')
-      mock_llm_event = Minitest::Mock.new
-      mock_llm_event.expect :populate_openai_response_headers, nil, [{}]
+      mock_llm_event = NewRelic::Agent::Llm::Embedding.new
+      mock_llm_event.expects(:populate_openai_response_headers).with(response)
       parent.llm_event = mock_llm_event
-
       NewRelic::Agent::LLM.populate_openai_response_headers(response, parent)
-      mock_llm_event.verify
     end
   end
 end
