@@ -11,6 +11,7 @@ module NewRelic::Agent::Instrumentation
       segment_name = "Llm/#{is_embed_model?(params[:model_id]) ? 'Embedding' : 'Completion'}/Bedrock/invoke_model"
       segment = NewRelic::Agent::Tracer.start_segment(name: segment_name)
       segment.llm_event = {} if segment
+      # error attributes stuff wont work with above
 
       response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
     ensure

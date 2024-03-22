@@ -11,5 +11,8 @@ class BedrockInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
-  # Add tests here
+
+
+
+
 end
