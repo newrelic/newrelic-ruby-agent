@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
         yield
         broadcasts.each { |broadcasted_logger| broadcasted_logger.instance_variable_set(:@skip_instrumenting, false) }
       else
-        ::NewRelic::Agent.record_custom_event('NR Error - record_one_broadcast_with_new_relic - nil broadcasts', {})
+        NewRelic::Agent.logger.error('Error recording broadcasted logger')
       end
     end
   end
