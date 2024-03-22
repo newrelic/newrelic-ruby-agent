@@ -56,7 +56,7 @@ module NewRelic::Agent
         end
         context.verify
 
-        assert_equal 4, output.last['metric_data'].size
+        assert_equal 4, output.last['data']['metric_data'].size
         assert_match(/lambda_function/, output.to_s)
       end
 
@@ -69,30 +69,7 @@ module NewRelic::Agent
           end
         end
 
-        assert_equal 'Kaboom!', output.last['error_event_data'].last.first.first['error.message']
-      end
-
-      def test_log_events_and_reported
-        output = with_output do
-          handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
-            event: {simulate_logging: true},
-            context: testing_context)
-        end
-
-        assert_match 'languidly', output.last['log_event_data'].first['logs'].first['message']
-      end
-
-      def test_errors_and_logs_at_the_same_time_man
-        output = with_output do
-          assert_raises RuntimeError do
-            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
-              event: {simulate_exception: true, simulate_logging: true},
-              context: testing_context)
-          end
-        end
-
-        assert_equal 1, output.last['error_data'].last.size
-        assert_equal 1, output.last['log_event_data'].first['logs'].size
+        assert_equal 'Kaboom!', output.last['data']['error_event_data'].last.first.first['error.message']
       end
 
       def test_customer_function_lives_within_a_namespace
@@ -107,7 +84,7 @@ module NewRelic::Agent
         end
         context.verify
 
-        assert_equal 4, output.last['metric_data'].size
+        assert_equal 4, output.last['data']['metric_data'].size
         assert_match(/lambda_function/, output.to_s)
       end
 

@@ -15,11 +15,12 @@ module NewRelic
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
       METADATA_VERSION = 2 # internal to New Relic's cross-agent specs
-      METHOD_BLOCKLIST = %i[connect preconnect shutdown profile_data get_agent_commands agent_command_results].freeze
+      METHOD_BLOCKLIST = %i[agent_command_results connect get_agent_commands log_event_data preconnect profile_data
+        shutdown].freeze
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'
-      VERSION = 2 # internal to New Relic's cross-agent specs
+      VERSION = 1 # internal to New Relic's cross-agent specs
 
       def self.env_var_set?
         ENV.key?(LAMBDA_ENVIRONMENT_VARIABLE)
@@ -64,9 +65,7 @@ module NewRelic
          protocol_version: NewRelic::Agent::NewRelicService::PROTOCOL_VERSION,
          function_version: @function_version,
          execution_environment: EXECUTION_ENVIRONMENT,
-         agent_version: NewRelic::VERSION::STRING,
-         metadata_version: METADATA_VERSION,
-         agent_language: LANGUAGE}.reject { |_k, v| v.nil? }
+         agent_version: NewRelic::VERSION::STRING}.reject { |_k, v| v.nil? }
       end
 
       def parse_context(context)
@@ -84,10 +83,11 @@ module NewRelic
       end
 
       def write_output
-        json = NewRelic::Agent.agent.service.marshaller.dump(@payloads)
+        payload_hash = {'metadata' => metadata, 'data' => @payloads}
+        json = NewRelic::Agent.agent.service.marshaller.dump(payload_hash)
         gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
         base64_encoded = NewRelic::Base64.encode64(gzipped)
-        array = [VERSION, LAMBDA_MARKER, metadata, base64_encoded]
+        array = [VERSION, LAMBDA_MARKER, base64_encoded]
         string = ::JSON.dump(array)
 
         return puts string unless use_named_pipe?
