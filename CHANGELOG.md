@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> introduces the option to store tracer state on the thread-level and hardens the browser agent insertion logic to better proactively anticipate errors.
+Version <dev> introduces the option to store tracer state on the thread-level, hardens the browser agent insertion logic to better proactively anticipate errors, and prevents excpetions from being raised in the Active Support Broadcast logger instrumentation.
 
 - **Feature: Add instrumentation for ruby-openai**
 
@@ -25,6 +25,10 @@ Version <dev> introduces the option to store tracer state on the thread-level an
 - **Bugfix: Harden the browser agent insertion logic**
 
   With [Issue#2462](https://github.com/newrelic/newrelic-ruby-agent/issues/2462), community member [@miry](https://github.com/miry) explained that it was possible for an HTTP response headers hash to have symbols for values. Not only would these symbols prevent the inclusion of the New Relic browser agent tag in the response body, but more importantly they would cause an exception that would bubble up to the monitored web application itself. With [PR#2465](https://github.com/newrelic/newrelic-ruby-agent/pull/2465) symbol based values are now supported and all other potential future exceptions are now handled. Additionally, the refactor to support symbols has been shown through benchmarking to give the processing of string and mixed type hashes a slight speed boost too.
+
+- **Bugfix: Prevent Exception in Active Support Broadcast logger instrumentation**
+
+  Previously, in certain situations the agent could cause an exception to be raised when attempting to interact with a broadcast log event. This has been fixed. Thanks to [@nathan-appere](https://github.com/nathan-appere) for reporting this issue and providing a fix! [PR#2510](https://github.com/newrelic/newrelic-ruby-agent/pull/2510)
 
 
 ## v9.7.1
