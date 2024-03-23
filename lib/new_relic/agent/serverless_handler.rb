@@ -8,13 +8,14 @@ require 'new_relic/base64'
 module NewRelic
   module Agent
     class ServerlessHandler
-      COLD_START_ATTRIBUTE = 'aws.lambda.coldStart'
-      COLD_START_DESTINATIONS = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+      ATTRIBUTE_ARN = 'aws.lambda.arn'
+      ATTRIBUTE_COLD_START = 'aws.lambda.coldStart'
+      ATTRIBUTE_REQUEST_ID = 'aws.requestId'
+      AGENT_ATTRIBUTE_DESTINATIONS = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS
       EXECUTION_ENVIRONMENT = "AWS_Lambda_ruby#{RUBY_VERSION.rpartition('.').first}".freeze
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
-      METADATA_VERSION = 2 # internal to New Relic's cross-agent specs
       METHOD_BLOCKLIST = %i[agent_command_results connect get_agent_commands log_event_data preconnect profile_data
         shutdown].freeze
       NAMED_PIPE = '/tmp/newrelic-telemetry'
@@ -27,16 +28,17 @@ module NewRelic
       end
 
       def initialize
+        @context = nil
         @payloads = {}
       end
 
       def invoke_lambda_function_with_new_relic(event:, context:, method_name:, namespace: nil)
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
-        parse_context(context)
+        @context = context
 
         NewRelic::Agent::Tracer.in_transaction(category: :other, name: function_name) do
-          notice_cold_start
+          add_agent_attributes
 
           NewRelic::LanguageSupport.constantize(namespace).send(method_name, event: event, context: context)
         end
@@ -61,21 +63,11 @@ module NewRelic
       end
 
       def metadata
-        {arn: @function_arn,
+        {arn: @context.invoked_function_arn,
          protocol_version: NewRelic::Agent::NewRelicService::PROTOCOL_VERSION,
-         function_version: @function_version,
+         function_version: @context.function_version,
          execution_environment: EXECUTION_ENVIRONMENT,
-         agent_version: NewRelic::VERSION::STRING}.reject { |_k, v| v.nil? }
-      end
-
-      def parse_context(context)
-        @function_arn = nil
-        @function_version = nil
-        return unless context
-        return unless context.respond_to?(:function_arn) && context.respond_to?(:function_version)
-
-        @function_arn = context.function_arn
-        @function_version = context.function_version
+         agent_version: NewRelic::VERSION::STRING}
       end
 
       def function_name
@@ -101,12 +93,16 @@ module NewRelic
         @use_named_pipe = File.exist?(NAMED_PIPE) && File.writable?(NAMED_PIPE)
       end
 
-      def notice_cold_start
-        return unless cold? && NewRelic::Agent::Tracer.current_transaction
+      def add_agent_attributes
+        return unless NewRelic::Agent::Tracer.current_transaction
 
-        NewRelic::Agent::Tracer.current_transaction.add_agent_attribute(COLD_START_ATTRIBUTE,
-          true,
-          COLD_START_DESTINATIONS)
+        add_agent_attribute(ATTRIBUTE_COLD_START, true) if cold?
+        add_agent_attribute(ATTRIBUTE_ARN, @context.invoked_function_arn)
+        add_agent_attribute(ATTRIBUTE_REQUEST_ID, @context.aws_request_id)
+      end
+
+      def add_agent_attribute(attribute, value)
+        NewRelic::Agent::Tracer.current_transaction.add_agent_attribute(attribute, value, AGENT_ATTRIBUTE_DESTINATIONS)
       end
 
       def cold?
@@ -117,6 +113,7 @@ module NewRelic
       end
 
       def reset!
+        @context = nil
         @payloads.replace({})
       end
     end

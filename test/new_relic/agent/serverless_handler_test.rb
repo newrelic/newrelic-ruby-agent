@@ -88,6 +88,22 @@ module NewRelic::Agent
         assert_match(/lambda_function/, output.to_s)
       end
 
+      def test_agent_attributes_are_present
+        context = testing_context
+        output = with_output do
+          result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {},
+            context: context)
+
+          assert_equal 'Running just as fast as we can', result[:body]
+        end
+        context.verify
+        agent_attributes_hash = output.last['data']['analytic_event_data'].last.last.last
+
+        assert agent_attributes_hash.key?('aws.lambda.arn')
+        assert agent_attributes_hash.key?('aws.requestId')
+      end
+
       # unit style
 
       def test_named_pipe_check_true
@@ -167,6 +183,7 @@ module NewRelic::Agent
         temp = Tempfile.new('lambda_named_pipe')
 
         NewRelic::Agent::ServerlessHandler.stub_const(:NAMED_PIPE, temp.path) do
+          handler.instance_variable_set(:@context, testing_context)
           handler.send(:write_output)
         end
 
@@ -176,41 +193,6 @@ module NewRelic::Agent
       ensure
         temp.close
         temp.unlink
-      end
-
-      def test_handle_a_nil_context
-        h = fresh_handler
-        h.send(:parse_context, nil)
-
-        assert_nil h.instance_variable_get(:@function_arn)
-        assert_nil h.instance_variable_get(:@function_method)
-      end
-
-      def test_handle_a_context_that_does_not_respond_to_arn_and_method_calls
-        h = fresh_handler
-        h.send(:parse_context, :bogus_context)
-
-        assert_nil h.instance_variable_get(:@function_arn)
-        assert_nil h.instance_variable_get(:@function_method)
-      end
-
-      def test_notice_cold_start_only_does_work_when_cold
-        h = fresh_handler
-        def h.cold?; false; end
-
-        NewRelic::Agent::Tracer.stub :current_transaction, -> { raise 'kaboom' } do
-          # because cold is false, the raise won't be reached
-          h.send(:notice_cold_start)
-        end
-      end
-
-      def test_notice_cold_start_only_does_work_with_a_current_transaction_present
-        h = fresh_handler
-        def h.cold?; true; end
-
-        NewRelic::Agent::Tracer.stub :current_transaction, nil do
-          h.send(:notice_cold_start)
-        end
       end
 
       def test_store_payload
@@ -228,6 +210,10 @@ module NewRelic::Agent
         assert_empty handler.instance_variable_get(:@payloads)
       end
 
+      def test_agent_attributes_arent_set_without_a_transaction
+        refute fresh_handler.send(:add_agent_attributes)
+      end
+
       private
 
       def handler
@@ -235,15 +221,20 @@ module NewRelic::Agent
       end
 
       def fresh_handler
-        NewRelic::Agent::ServerlessHandler.new
+        h = NewRelic::Agent::ServerlessHandler.new
+        h.instance_variable_set(:@context, testing_context)
+        h
       end
 
       def testing_context
-        function_arn = 'Resident Alien'
+        invoked_function_arn = 'Resident Alien'
         function_version = '1138'
+        aws_request_id = 'microkelvin'
         context = Minitest::Mock.new
-        context.expect :function_arn, function_arn
+        context.expect :invoked_function_arn, invoked_function_arn
+        context.expect :invoked_function_arn, invoked_function_arn
         context.expect :function_version, function_version
+        context.expect :aws_request_id, aws_request_id
       end
 
       def with_output(&block)
