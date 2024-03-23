@@ -84,7 +84,10 @@ module NewRelic
 
         return puts string unless use_named_pipe?
 
-        File.open(NAMED_PIPE, 'w') { |f| f.puts string }
+        File.write(NAMED_PIPE, string)
+
+        NewRelic::Agent.logger.debug "Wrote serverless payload to #{NAMED_PIPE}\n" \
+          "BEGIN PAYLOAD>>>\n#{string}\n<<<END PAYLOAD"
       end
 
       def use_named_pipe?
