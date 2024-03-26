@@ -360,6 +360,26 @@ module NewRelic
               - a.third.event
           DESCRIPTION
         },
+        :'ai_monitoring.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
+        },
+        :'ai_monitoring.record_content.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
+
+            The excluded attributes include:
+              * `content` from LlmChatCompletionMessage events
+              * `input` from LlmEmbedding events
+          DESCRIPTION
+        },
         # this is only set via server side config
         :apdex_t => {
           :default => 0.5,
@@ -554,6 +574,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'When set to `true`, forces a synchronous connection to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
         },
+        :thread_local_tracer_state => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, tracer state storage is thread-local, otherwise, fiber-local'
+        },
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
@@ -720,7 +747,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated at the beginning and end.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
@@ -1569,6 +1596,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of `Net::HTTP` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.ruby_openai' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),

@@ -52,11 +52,11 @@ module NewRelic
           {TYPE => type,
            TIMESTAMP => Process.clock_gettime(Process::CLOCK_REALTIME).to_i,
            PRIORITY => priority},
-          create_custom_event_attributes(attributes)
+          create_custom_event_attributes(type, attributes)
         ]
       end
 
-      def create_custom_event_attributes(attributes)
+      def create_custom_event_attributes(type, attributes)
         result = AttributeProcessing.flatten_and_coerce(attributes)
 
         if result.size > MAX_ATTRIBUTE_COUNT
@@ -70,9 +70,9 @@ module NewRelic
             key = key[0, MAX_NAME_SIZE]
           end
 
-          # value is limited to 4095
+          # value is limited to 4095 except for LLM content-related events
           if val.is_a?(String) && val.length > MAX_ATTRIBUTE_SIZE
-            val = val[0, MAX_ATTRIBUTE_SIZE]
+            val = val[0, MAX_ATTRIBUTE_SIZE] unless NewRelic::Agent::LLM.exempt_event_attribute?(type, key)
           end
 
           new_result[key] = val

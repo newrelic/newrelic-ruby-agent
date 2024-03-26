@@ -3,6 +3,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}  # Ensure that only one instance of this workflow is running per Pull Request
+  cancel-in-progress: true  # Cancel any previous runs of this workflow
+
 jobs:
   run_rubocop:
     runs-on: ubuntu-22.04
@@ -185,7 +189,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.4.10, 3.3.0]
 
     steps:
