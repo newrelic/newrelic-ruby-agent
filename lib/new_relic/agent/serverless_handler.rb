@@ -54,6 +54,32 @@ module NewRelic
         @payloads[method] = payload
       end
 
+      def metric_data(stats_hash)
+        payload = [nil,
+          stats_hash.started_at,
+          (stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)),
+          []]
+        stats_hash.each do |metric_spec, stats|
+          next if stats.is_reset?
+
+          hash = {name: metric_spec.name}
+          hash[:scope] = metric_spec.scope unless metric_spec.scope.empty?
+
+          payload.last.push([hash, [
+            stats.call_count,
+            stats.total_call_time,
+            stats.total_exclusive_time,
+            stats.min_call_time,
+            stats.max_call_time,
+            stats.sum_of_squares
+          ]])
+        end
+
+        return if payload.last.empty?
+
+        store_payload(:metric_data, payload)
+      end
+
       private
 
       def harvest!

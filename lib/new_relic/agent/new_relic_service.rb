@@ -143,6 +143,10 @@ module NewRelic
       end
 
       def metric_data(stats_hash)
+        # The serverless payload parser wants a different format (so do the
+        # agent specs)
+        return NewRelic::Agent.agent.serverless_handler.metric_data(stats_hash) if NewRelic::Agent.agent.serverless?
+
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)

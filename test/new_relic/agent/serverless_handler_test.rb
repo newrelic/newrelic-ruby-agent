@@ -104,6 +104,32 @@ module NewRelic::Agent
         assert agent_attributes_hash.key?('aws.requestId')
       end
 
+      def test_metric_data_adheres_to_the_agent_specs
+        output = with_output do
+          handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {},
+            context: testing_context)
+        end
+        metric_data = output.last['data']['metric_data']
+
+        assert_kind_of Array, metric_data
+        assert_equal 4, metric_data.size
+        refute metric_data.first # agent run id
+        assert_kind_of Float, metric_data[1] # start time
+        assert_kind_of Float, metric_data[2] # stop time
+        assert_kind_of Array, metric_data.last # array of metrics arrays
+        refute metric_data.last.any? { |metric| metric.first.key?('scope') && metric.first['scope'].empty? },
+          "Did not expect to find any metrics with a nil 'scope' value!"
+
+        single_metric = metric_data.last.first
+
+        assert_kind_of Array, single_metric
+        assert_equal 2, single_metric.size
+        assert_kind_of Hash, single_metric.first
+        assert_kind_of Array, single_metric.last
+        assert_equal 6, single_metric.last.size
+      end
+
       # unit style
 
       def test_named_pipe_check_true
