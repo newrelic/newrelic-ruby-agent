@@ -28,6 +28,31 @@ module NewRelic
         assert_in_delta(0.1, intrinsics['duration'])
         assert_equal 80, intrinsics['port']
         assert_equal @span_id, intrinsics['spanId']
+        assert_equal mocked_transaction_id, intrinsics['guid']
+      end
+
+      def test_event_includes_expected_intrinsics_without_dt
+        with_config(:'distributed_tracing.enabled' => false) do
+          intrinsics, *_ = create_event
+
+          assert_equal 'TransactionError', intrinsics['type']
+          assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
+          assert_equal 'RuntimeError', intrinsics['error.class']
+          assert_equal 'Big Controller!', intrinsics['error.message']
+          refute intrinsics['error.expected']
+          assert_equal 'Controller/blogs/index', intrinsics['transactionName']
+          assert_in_delta(0.1, intrinsics['duration'])
+          assert_equal 80, intrinsics['port']
+          assert_equal @span_id, intrinsics['spanId']
+          assert_equal mocked_transaction_id, intrinsics['guid']
+        end
+      end
+
+      def test_event_excludes_the_txn_guid_txn_when_a_txn_is_not_in_scope
+        intrinsics, *_ = create_event_without_a_transaction
+
+        assert_equal 'TransactionError', intrinsics['type']
+        refute intrinsics.key?('guid')
       end
 
       def test_event_includes_expected_errors
@@ -119,11 +144,21 @@ module NewRelic
         }.update(options)
       end
 
+      def mocked_transaction_id
+        1138
+      end
+
       def create_noticed_error(options = {})
         exception = options.delete(:exception) || RuntimeError.new('Big Controller!')
         expected = options.fetch(:expected, false)
         txn_name = 'Controller/blogs/index'
-        noticed_error = NewRelic::NoticedError.new(txn_name, exception)
+        mock_transaction = Minitest::Mock.new
+        mock_transaction.expect :guid, mocked_transaction_id
+        noticed_error = nil
+        NewRelic::Agent::Tracer.stub :current_transaction, mock_transaction do
+          noticed_error = NewRelic::NoticedError.new(txn_name, exception)
+        end
+        mock_transaction.verify
         noticed_error.request_uri = 'http://site.com/blogs'
         noticed_error.request_port = 80
         noticed_error.expected = expected
@@ -132,6 +167,17 @@ module NewRelic
         noticed_error.attributes_from_notice_error.merge!(options)
 
         noticed_error
+      end
+
+      def create_event_without_a_transaction
+        payload = generate_payload
+        error = create_noticed_error_without_a_transaction
+        TransactionErrorPrimitive.create(error, payload, @span_id)
+      end
+
+      def create_noticed_error_without_a_transaction
+        exception = RuntimeError.new('Progressive trance halted')
+        NewRelic::NoticedError.new(nil, exception)
       end
     end
   end
