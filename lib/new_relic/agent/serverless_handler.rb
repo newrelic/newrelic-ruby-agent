@@ -78,7 +78,7 @@ module NewRelic
         payload_hash = {'metadata' => metadata, 'data' => @payloads}
         json = NewRelic::Agent.agent.service.marshaller.dump(payload_hash)
         gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
-        base64_encoded = NewRelic::Base64.encode64(gzipped)
+        base64_encoded = NewRelic::Base64.strict_encode64(gzipped)
         array = [VERSION, LAMBDA_MARKER, base64_encoded]
         string = ::JSON.dump(array)
 
