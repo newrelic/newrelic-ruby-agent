@@ -205,7 +205,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     _, events = @aggregator.harvest!
     embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
     attributes = embedding_event[1]
-  
+
     # 'token_count' is assigned via a callback API and tested in
     # test_embeddings_token_count_assigned_by_callback_if_present
 
