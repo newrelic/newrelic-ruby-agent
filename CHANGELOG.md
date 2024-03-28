@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds the request_temperatue attribute to chat completions in ruby-openai instrumentation.
+Version <dev> adds the request_temperature attribute to chat completions in ruby-openai instrumentation.
 
 - **Bugfix: Add request_temperature to ruby-openai chat completions**
 
