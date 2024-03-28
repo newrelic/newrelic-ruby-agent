@@ -137,4 +137,39 @@ module NetHttpTestCases
       'External/[::1]/Net::HTTP/GET' => {:call_count => 1}
     )
   end
+
+  class OpenAITestError < StandardError; end
+
+  def test_does_not_attempt_to_populate_response_headers_without_openai
+    segment = Minitest::Mock.new
+
+    NewRelic::Agent::LLM.stub(:openai_parent?, false, segment) do
+      # raise if populate_openai_response_headers is called
+      NewRelic::Agent::LLM.stub(:populate_openai_response_headers, -> { raise OpenAITestError.new }) do
+        in_transaction do
+          get_response
+        end
+      end
+    end
+  end
+
+  def test_attempts_to_populate_response_headers_with_openai
+    segment = Minitest::Mock.new
+    wrapped_response = Minitest::Mock.new
+    mock_proc = proc { |*_args| raise OpenAITestError }
+    result = nil
+    expected_result = 'expected_result'
+
+    NewRelic::Agent::LLM.stub(:openai_parent?, true, segment) do
+      result = NewRelic::Agent::LLM.stub(:populate_openai_response_headers, mock_proc) do
+        in_transaction do
+          get_response
+        rescue OpenAITestError
+          expected_result
+        end
+      end
+    end
+
+    assert_equal expected_result, result
+  end
 end
