@@ -162,10 +162,12 @@ module NetHttpTestCases
 
     NewRelic::Agent::LLM.stub(:openai_parent?, true, segment) do
       result = NewRelic::Agent::LLM.stub(:populate_openai_response_headers, mock_proc) do
-        in_transaction do
-          get_response
+        begin
+          in_transaction do
+            get_response
+          end
         rescue OpenAITestError
-          expected_result
+          return expected_result
         end
       end
     end
