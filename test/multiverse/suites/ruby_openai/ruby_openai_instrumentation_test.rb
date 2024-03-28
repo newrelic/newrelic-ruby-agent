@@ -80,16 +80,16 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     summary_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
     attributes = summary_events[0][1]
 
-    assert attributes['id']
-    assert attributes['span_id']
-    assert attributes['trace_id']
-    assert attributes['response.model']
-    assert attributes['vendor']
-    assert attributes['ingest_source']
+    refute_empty attributes['id']
+    refute_empty attributes['span_id']
+    refute_empty attributes['trace_id']
+    refute_empty attributes['response.model']
+    refute_empty attributes['vendor']
+    refute_empty attributes['ingest_source']
+    refute_empty attributes['request.model']
+    refute_empty attributes['response.choices.finish_reason']
     assert attributes['request_max_tokens']
     assert attributes['response.number_of_messages']
-    assert attributes['request.model']
-    assert attributes['response.choices.finish_reason']
     assert attributes['request.temperature']
     assert attributes['duration']
   end
@@ -118,16 +118,16 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     message_events.each do |event|
       attributes = event[1]
 
-      assert attributes['id']
-      assert attributes['span_id']
-      assert attributes['trace_id']
-      assert attributes['response.model']
-      assert attributes['vendor']
-      assert attributes['ingest_source']
-      assert attributes['content']
-      assert attributes['role']
+      refute_empty attributes['id']
+      refute_empty attributes['span_id']
+      refute_empty attributes['trace_id']
+      refute_empty attributes['response.model']
+      refute_empty attributes['vendor']
+      refute_empty attributes['ingest_source']
+      refute_empty attributes['content']
+      refute_empty attributes['role']
+      refute_empty attributes['completion_id']
       assert attributes['sequence']
-      assert attributes['completion_id']
     end
   end
 
@@ -211,14 +211,14 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
 
     # 'error' is only assigned in the presence of an error and tested in
     # test_embedding_event_sets_error_true_if_raised
-    assert attributes['id']
-    assert attributes['span_id']
-    assert attributes['trace_id']
-    assert attributes['response.model']
-    assert attributes['vendor']
-    assert attributes['ingest_source']
-    assert attributes['input']
-    assert attributes['request.model']
+
+    refute_empty attributes['span_id']
+    refute_empty attributes['trace_id']
+    refute_empty attributes['response.model']
+    refute_empty attributes['vendor']
+    refute_empty attributes['ingest_source']
+    refute_empty attributes['input']
+    refute_empty attributes['request.model']
     assert attributes['duration']
   end
 
