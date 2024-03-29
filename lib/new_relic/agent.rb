@@ -625,7 +625,7 @@ module NewRelic
         return
       end
 
-      if NewRelic::Agent.agent.serverless?
+      if NewRelic::Agent.agent&.serverless?
         ::NewRelic::Agent.logger.warn('Custom attributes are not supported in serverless mode')
         return
       end
