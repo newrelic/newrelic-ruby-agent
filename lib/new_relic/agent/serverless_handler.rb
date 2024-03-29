@@ -16,7 +16,7 @@ module NewRelic
       EXECUTION_ENVIRONMENT = "AWS_Lambda_ruby#{RUBY_VERSION.rpartition('.').first}".freeze
       LAMBDA_MARKER = 'NR_LAMBDA_MONITORING'
       LAMBDA_ENVIRONMENT_VARIABLE = 'AWS_LAMBDA_FUNCTION_NAME'
-      METHOD_BLOCKLIST = %i[agent_command_results connect get_agent_commands log_event_data preconnect profile_data
+      METHOD_BLOCKLIST = %i[agent_command_results connect get_agent_commands preconnect profile_data
         shutdown].freeze
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
@@ -78,6 +78,10 @@ module NewRelic
         return if payload.last.empty?
 
         store_payload(:metric_data, payload)
+      end
+
+      def error_data(errors)
+        store_payload(:error_data, errors.map(&:to_collector_array))
       end
 
       private

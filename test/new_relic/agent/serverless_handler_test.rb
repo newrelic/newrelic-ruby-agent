@@ -72,6 +72,16 @@ module NewRelic::Agent
         assert_equal 'Kaboom!', output.last['data']['error_event_data'].last.first.first['error.message']
       end
 
+      def test_log_events_are_reported
+        output = with_output do
+          handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {simulate_logging: true},
+            context: testing_context)
+        end
+
+        assert_match 'languidly', output.last['data']['log_event_data'].first['logs'].first['message']
+      end
+
       def test_customer_function_lives_within_a_namespace
         context = testing_context
         output = with_output do
