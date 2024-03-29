@@ -69,10 +69,15 @@ module NewRelic::Agent
           end
         end
 
+        errors = output.last['error_data'].last
+
+        assert_equal 1, errors.size
+        assert_equal 'lambda_function', errors.first[1]
+        assert_equal 'Kaboom!', errors.first[2]
         assert_equal 'Kaboom!', output.last['error_event_data'].last.first.first['error.message']
       end
 
-      def test_log_events_and_reported
+      def test_log_events_are_reported
         output = with_output do
           handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
             event: {simulate_logging: true},
@@ -80,19 +85,6 @@ module NewRelic::Agent
         end
 
         assert_match 'languidly', output.last['log_event_data'].first['logs'].first['message']
-      end
-
-      def test_errors_and_logs_at_the_same_time_man
-        output = with_output do
-          assert_raises RuntimeError do
-            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
-              event: {simulate_exception: true, simulate_logging: true},
-              context: testing_context)
-          end
-        end
-
-        assert_equal 1, output.last['error_data'].last.size
-        assert_equal 1, output.last['log_event_data'].first['logs'].size
       end
 
       def test_customer_function_lives_within_a_namespace
@@ -109,6 +101,65 @@ module NewRelic::Agent
 
         assert_equal 4, output.last['metric_data'].size
         assert_match(/lambda_function/, output.to_s)
+      end
+
+      def test_agent_attributes_are_present
+        context = testing_context
+        output = with_output do
+          result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {},
+            context: context)
+
+          assert_equal 'Running just as fast as we can', result[:body]
+        end
+        context.verify
+        agent_attributes_hash = output.last['analytic_event_data'].last.last.last
+
+        assert agent_attributes_hash.key?('aws.lambda.arn')
+        assert agent_attributes_hash.key?('aws.requestId')
+      end
+
+      def test_metric_data_adheres_to_the_agent_specs
+        output = with_output do
+          handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+            event: {},
+            context: testing_context)
+        end
+        metric_data = output.last['metric_data']
+
+        assert_kind_of Array, metric_data
+        assert_equal 4, metric_data.size
+        refute metric_data.first # agent run id
+        assert_kind_of Float, metric_data[1] # start time
+        assert_kind_of Float, metric_data[2] # stop time
+        assert_kind_of Array, metric_data.last # array of metrics arrays
+        refute metric_data.last.any? { |metric| metric.first.key?('scope') && metric.first['scope'].empty? },
+          "Did not expect to find any metrics with a nil 'scope' value!"
+
+        single_metric = metric_data.last.first
+
+        assert_kind_of Array, single_metric
+        assert_equal 2, single_metric.size
+        assert_kind_of Hash, single_metric.first
+        assert_kind_of Array, single_metric.last
+        assert_equal 6, single_metric.last.size
+      end
+
+      def test_support_for_payload_format_v1
+        NewRelic::Agent::ServerlessHandler.stub_const(:PAYLOAD_VERSION, 1) do
+          output = with_output do
+            result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: {por_que_no: :los_dos},
+              context: testing_context)
+
+            assert_equal 'Running just as fast as we can', result[:body]
+          end
+
+          assert_equal 1, output.first, "Expected to find a payload version of '1', got #{output.first}"
+          assert output.last.key?('metadata'), "Expected a v1 payload format with a 'metadata' key!"
+          assert_equal 4, output.last['data']['metric_data'].size
+          assert_match(/lambda_function/, output.to_s)
+        end
       end
 
       # unit style
@@ -190,6 +241,7 @@ module NewRelic::Agent
         temp = Tempfile.new('lambda_named_pipe')
 
         NewRelic::Agent::ServerlessHandler.stub_const(:NAMED_PIPE, temp.path) do
+          handler.instance_variable_set(:@context, testing_context)
           handler.send(:write_output)
         end
 
@@ -199,41 +251,6 @@ module NewRelic::Agent
       ensure
         temp.close
         temp.unlink
-      end
-
-      def test_handle_a_nil_context
-        h = fresh_handler
-        h.send(:parse_context, nil)
-
-        assert_nil h.instance_variable_get(:@function_arn)
-        assert_nil h.instance_variable_get(:@function_method)
-      end
-
-      def test_handle_a_context_that_does_not_respond_to_arn_and_method_calls
-        h = fresh_handler
-        h.send(:parse_context, :bogus_context)
-
-        assert_nil h.instance_variable_get(:@function_arn)
-        assert_nil h.instance_variable_get(:@function_method)
-      end
-
-      def test_notice_cold_start_only_does_work_when_cold
-        h = fresh_handler
-        def h.cold?; false; end
-
-        NewRelic::Agent::Tracer.stub :current_transaction, -> { raise 'kaboom' } do
-          # because cold is false, the raise won't be reached
-          h.send(:notice_cold_start)
-        end
-      end
-
-      def test_notice_cold_start_only_does_work_with_a_current_transaction_present
-        h = fresh_handler
-        def h.cold?; true; end
-
-        NewRelic::Agent::Tracer.stub :current_transaction, nil do
-          h.send(:notice_cold_start)
-        end
       end
 
       def test_store_payload
@@ -251,6 +268,27 @@ module NewRelic::Agent
         assert_empty handler.instance_variable_get(:@payloads)
       end
 
+      def test_agent_attributes_arent_set_without_a_transaction
+        refute fresh_handler.send(:add_agent_attributes)
+      end
+
+      def test_custom_attributes_arent_supported_when_serverless
+        skip_unless_minitest5_or_above
+
+        attrs = {cool_id: 'James', server: 'less', current_time: Time.now.to_s}
+        tl_current_mock = Minitest::Mock.new
+        tl_current_mock.expect :add_custom_attributes, -> { attribute_set_attempted = true }, [attrs]
+
+        attribute_set_attempted = false
+        in_transaction do
+          Transaction.stub :tl_current, tl_current_mock do
+            ::NewRelic::Agent.add_custom_attributes(attrs)
+          end
+        end
+
+        refute attribute_set_attempted
+      end
+
       private
 
       def handler
@@ -258,15 +296,20 @@ module NewRelic::Agent
       end
 
       def fresh_handler
-        NewRelic::Agent::ServerlessHandler.new
+        h = NewRelic::Agent::ServerlessHandler.new
+        h.instance_variable_set(:@context, testing_context)
+        h
       end
 
       def testing_context
-        function_arn = 'Resident Alien'
+        invoked_function_arn = 'Resident Alien'
         function_version = '1138'
+        aws_request_id = 'microkelvin'
         context = Minitest::Mock.new
-        context.expect :function_arn, function_arn
+        context.expect :invoked_function_arn, invoked_function_arn
+        context.expect :invoked_function_arn, invoked_function_arn
         context.expect :function_version, function_version
+        context.expect :aws_request_id, aws_request_id
       end
 
       def with_output(&block)

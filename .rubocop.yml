@@ -1249,6 +1249,7 @@ Style/MethodCallWithArgsParentheses:
     - add_dependency
     - add_development_dependency
     - catch
+    - debug
     - expect
     - fail
     - gem

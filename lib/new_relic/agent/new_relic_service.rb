@@ -143,6 +143,9 @@ module NewRelic
       end
 
       def metric_data(stats_hash)
+        # let the serverless handler handle serialization
+        return NewRelic::Agent.agent.serverless_handler.metric_data(stats_hash) if NewRelic::Agent.agent.serverless?
+
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
@@ -154,6 +157,9 @@ module NewRelic
       end
 
       def error_data(unsent_errors)
+        # let the serverless handler handle serialization
+        return NewRelic::Agent.agent.serverless_handler.error_data(unsent_errors) if NewRelic::Agent.agent.serverless?
+
         invoke_remote(:error_data, [@agent_id, unsent_errors],
           :item_count => unsent_errors.size)
       end
