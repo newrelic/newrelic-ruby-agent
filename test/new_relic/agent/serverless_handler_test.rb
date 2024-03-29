@@ -56,7 +56,7 @@ module NewRelic::Agent
         end
         context.verify
 
-        assert_equal 4, output.last['data']['metric_data'].size
+        assert_equal 4, output.last['metric_data'].size
         assert_match(/lambda_function/, output.to_s)
       end
 
@@ -69,12 +69,12 @@ module NewRelic::Agent
           end
         end
 
-        errors = output.last['data']['error_data'].last
+        errors = output.last['error_data'].last
 
         assert_equal 1, errors.size
         assert_equal 'lambda_function', errors.first[1]
         assert_equal 'Kaboom!', errors.first[2]
-        assert_equal 'Kaboom!', output.last['data']['error_event_data'].last.first.first['error.message']
+        assert_equal 'Kaboom!', output.last['error_event_data'].last.first.first['error.message']
       end
 
       def test_log_events_are_reported
@@ -84,7 +84,7 @@ module NewRelic::Agent
             context: testing_context)
         end
 
-        assert_match 'languidly', output.last['data']['log_event_data'].first['logs'].first['message']
+        assert_match 'languidly', output.last['log_event_data'].first['logs'].first['message']
       end
 
       def test_customer_function_lives_within_a_namespace
@@ -99,7 +99,7 @@ module NewRelic::Agent
         end
         context.verify
 
-        assert_equal 4, output.last['data']['metric_data'].size
+        assert_equal 4, output.last['metric_data'].size
         assert_match(/lambda_function/, output.to_s)
       end
 
@@ -113,7 +113,7 @@ module NewRelic::Agent
           assert_equal 'Running just as fast as we can', result[:body]
         end
         context.verify
-        agent_attributes_hash = output.last['data']['analytic_event_data'].last.last.last
+        agent_attributes_hash = output.last['analytic_event_data'].last.last.last
 
         assert agent_attributes_hash.key?('aws.lambda.arn')
         assert agent_attributes_hash.key?('aws.requestId')
@@ -125,7 +125,7 @@ module NewRelic::Agent
             event: {},
             context: testing_context)
         end
-        metric_data = output.last['data']['metric_data']
+        metric_data = output.last['metric_data']
 
         assert_kind_of Array, metric_data
         assert_equal 4, metric_data.size
@@ -143,6 +143,23 @@ module NewRelic::Agent
         assert_kind_of Hash, single_metric.first
         assert_kind_of Array, single_metric.last
         assert_equal 6, single_metric.last.size
+      end
+
+      def test_support_for_payload_format_v1
+        NewRelic::Agent::ServerlessHandler.stub_const(:PAYLOAD_VERSION, 1) do
+          output = with_output do
+            result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: {por_que_no: :los_dos},
+              context: testing_context)
+
+            assert_equal 'Running just as fast as we can', result[:body]
+          end
+
+          assert_equal 1, output.first, "Expected to find a payload version of '1', got #{output.first}"
+          assert output.last.key?('metadata'), "Expected a v1 payload format with a 'metadata' key!"
+          assert_equal 4, output.last['data']['metric_data'].size
+          assert_match(/lambda_function/, output.to_s)
+        end
       end
 
       # unit style

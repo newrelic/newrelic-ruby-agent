@@ -21,7 +21,7 @@ module NewRelic
       NAMED_PIPE = '/tmp/newrelic-telemetry'
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'
-      VERSION = 1 # internal to New Relic's cross-agent specs
+      PAYLOAD_VERSION = ENV.fetch('NEW_RELIC_SERVERLESS_PAYLOAD_VERSION', 2)
 
       def self.env_var_set?
         ENV.key?(LAMBDA_ENVIRONMENT_VARIABLE)
@@ -105,12 +105,7 @@ module NewRelic
       end
 
       def write_output
-        payload_hash = {'metadata' => metadata, 'data' => @payloads}
-        json = NewRelic::Agent.agent.service.marshaller.dump(payload_hash)
-        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
-        base64_encoded = NewRelic::Base64.strict_encode64(gzipped)
-        array = [VERSION, LAMBDA_MARKER, base64_encoded]
-        string = ::JSON.dump(array)
+        string = PAYLOAD_VERSION == 1 ? payload_v1 : payload_v2
 
         return puts string unless use_named_pipe?
 
@@ -118,6 +113,23 @@ module NewRelic
 
         NewRelic::Agent.logger.debug "Wrote serverless payload to #{NAMED_PIPE}\n" \
           "BEGIN PAYLOAD>>>\n#{string}\n<<<END PAYLOAD"
+      end
+
+      def payload_v1
+        payload_hash = {'metadata' => metadata, 'data' => @payloads}
+        json = NewRelic::Agent.agent.service.marshaller.dump(payload_hash)
+        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
+        base64_encoded = NewRelic::Base64.strict_encode64(gzipped)
+        array = [PAYLOAD_VERSION, LAMBDA_MARKER, base64_encoded]
+        ::JSON.dump(array)
+      end
+
+      def payload_v2
+        json = NewRelic::Agent.agent.service.marshaller.dump(@payloads)
+        gzipped = NewRelic::Agent::NewRelicService::Encoders::Compressed::Gzip.encode(json)
+        base64_encoded = NewRelic::Base64.strict_encode64(gzipped)
+        array = [PAYLOAD_VERSION, LAMBDA_MARKER, metadata, base64_encoded]
+        ::JSON.dump(array)
       end
 
       def use_named_pipe?
