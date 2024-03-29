@@ -138,40 +138,27 @@ module NetHttpTestCases
     )
   end
 
-  class OpenAITestError < StandardError; end
-
   def test_does_not_attempt_to_populate_response_headers_without_openai
-    segment = Minitest::Mock.new
-
-    NewRelic::Agent::LLM.stub(:openai_parent?, false, segment) do
-      # raise if populate_openai_response_headers is called
-      NewRelic::Agent::LLM.stub(:populate_openai_response_headers, -> { raise OpenAITestError.new }) do
+    populate_was_called = false
+    NewRelic::Agent::LLM.stub(:openai_parent?, false) do
+      NewRelic::Agent::LLM.stub(:populate_openai_response_headers, proc { |_h| populate_was_called = true }) do
         in_transaction do
           get_response
         end
       end
     end
+
+    refute populate_was_called
   end
 
   def test_attempts_to_populate_response_headers_with_openai
-    segment = Minitest::Mock.new
-    wrapped_response = Minitest::Mock.new
-    mock_proc = proc { |*_args| raise OpenAITestError }
-    result = nil
-    expected_result = 'expected_result'
-
-    NewRelic::Agent::LLM.stub(:openai_parent?, true, segment) do
-      result = NewRelic::Agent::LLM.stub(:populate_openai_response_headers, mock_proc) do
-        begin
-          in_transaction do
-            get_response
-          end
-        rescue OpenAITestError
-          return expected_result
-        end
+    populate_was_called = false
+    NewRelic::Agent::LLM.stub(:openai_parent?, true) do
+      NewRelic::Agent::LLM.stub(:populate_openai_response_headers, proc { |_h| populate_was_called = true }) do
+        in_transaction { get_response }
       end
     end
 
-    assert_equal expected_result, result
+    assert populate_was_called
   end
 end
