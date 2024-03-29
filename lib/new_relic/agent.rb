@@ -620,16 +620,19 @@ module NewRelic
     def add_custom_attributes(params) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:add_custom_attributes)
 
-      if params.is_a?(Hash)
-        Transaction.tl_current&.add_custom_attributes(params)
-
-        segment = ::NewRelic::Agent::Tracer.current_segment
-        if segment
-          add_new_segment_attributes(params, segment)
-        end
-      else
+      unless params.is_a?(Hash)
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
+        return
       end
+
+      if NewRelic::Agent.agent.serverless?
+        ::NewRelic::Agent.logger.warn('Custom attributes are not supported in serverless mode')
+        return
+      end
+
+      Transaction.tl_current&.add_custom_attributes(params)
+      segment = ::NewRelic::Agent::Tracer.current_segment
+      add_new_segment_attributes(params, segment) if segment
     end
 
     def add_new_segment_attributes(params, segment)

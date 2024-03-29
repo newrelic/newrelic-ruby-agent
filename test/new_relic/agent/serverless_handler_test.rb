@@ -255,6 +255,23 @@ module NewRelic::Agent
         refute fresh_handler.send(:add_agent_attributes)
       end
 
+      def test_custom_attributes_arent_supported_when_serverless
+        skip_unless_minitest5_or_above
+
+        attrs = {cool_id: 'James', server: 'less', current_time: Time.now.to_s}
+        tl_current_mock = Minitest::Mock.new
+        tl_current_mock.expect :add_custom_attributes, -> { attribute_set_attempted = true }, [attrs]
+
+        attribute_set_attempted = false
+        in_transaction do
+          Transaction.stub :tl_current, tl_current_mock do
+            ::NewRelic::Agent.add_custom_attributes(attrs)
+          end
+        end
+
+        refute attribute_set_attempted
+      end
+
       private
 
       def handler
