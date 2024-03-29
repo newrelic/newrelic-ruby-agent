@@ -68,7 +68,7 @@ module NewRelic::Agent::Instrumentation
         vendor: VENDOR,
         request_max_tokens: (parameters[:max_tokens] || parameters['max_tokens'])&.to_i,
         request_model: parameters[:model] || parameters['model'],
-        temperature: (parameters[:temperature] || parameters['temperature'])&.to_f,
+        request_temperature: (parameters[:temperature] || parameters['temperature'])&.to_f,
         metadata: llm_custom_attributes
       )
     end
@@ -128,7 +128,6 @@ module NewRelic::Agent::Instrumentation
     def update_chat_completion_messages(messages, response, summary)
       messages += create_chat_completion_response_messages(response, messages.size, summary.id)
       response_id = response['id'] || NewRelic::Agent::GuidGenerator.generate_guid
-
       messages.each do |message|
         message.id = "#{response_id}-#{message.sequence}"
         message.request_id = summary.request_id

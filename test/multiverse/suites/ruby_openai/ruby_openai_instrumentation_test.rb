@@ -68,8 +68,30 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     summary_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
 
     assert_equal 1, summary_events.length
+  end
 
-    # TODO: Write tests that validate the event has the correct attributes
+  def test_chat_completion_events_assign_all_attributes
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+    summary_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionSummary::EVENT_NAME }
+    attributes = summary_events[0][1]
+
+    refute_empty attributes['id']
+    refute_empty attributes['span_id']
+    refute_empty attributes['trace_id']
+    assert_equal 'gpt-3.5-turbo-0613', attributes['response.model']
+    refute_empty attributes['vendor']
+    refute_empty attributes['ingest_source']
+    refute_empty attributes['request.model']
+    refute_empty attributes['response.choices.finish_reason']
+    assert attributes['request_max_tokens']
+    assert attributes['response.number_of_messages']
+    assert attributes['request.temperature']
+    assert attributes['duration']
   end
 
   def test_chat_completion_records_message_events
@@ -82,7 +104,31 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
 
     assert_equal 5, message_events.length
-    # TODO: Write tests that validate the event has the correct attributes
+  end
+
+  def test_message_events_assign_all_attributes
+    in_transaction do
+      stub_post_request do
+        client.chat(parameters: chat_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+    message_events = events.filter { |event| event[0]['type'] == NewRelic::Agent::Llm::ChatCompletionMessage::EVENT_NAME }
+
+    message_events.each do |event|
+      attributes = event[1]
+
+      refute_empty attributes['id']
+      refute_empty attributes['span_id']
+      refute_empty attributes['trace_id']
+      refute_empty attributes['response.model']
+      refute_empty attributes['vendor']
+      refute_empty attributes['ingest_source']
+      refute_empty attributes['content']
+      refute_empty attributes['role']
+      refute_empty attributes['completion_id']
+      assert attributes['sequence']
+    end
   end
 
   def test_segment_error_captured_if_raised
@@ -150,6 +196,32 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     refute summary_event[1]['trex']
   end
 
+  def test_embedding_events_assign_all_attributes
+    in_transaction do
+      stub_post_request do
+        client.embeddings(parameters: embeddings_params)
+      end
+    end
+    _, events = @aggregator.harvest!
+    embedding_event = events.find { |event| event[0]['type'] == NewRelic::Agent::Llm::Embedding::EVENT_NAME }
+    attributes = embedding_event[1]
+
+    # 'token_count' is assigned via a callback API and tested in
+    # test_embeddings_token_count_assigned_by_callback_if_present
+
+    # 'error' is only assigned in the presence of an error and tested in
+    # test_embedding_event_sets_error_true_if_raised
+
+    refute_empty attributes['span_id']
+    refute_empty attributes['trace_id']
+    refute_empty attributes['response.model']
+    refute_empty attributes['vendor']
+    refute_empty attributes['ingest_source']
+    refute_empty attributes['input']
+    refute_empty attributes['request.model']
+    assert attributes['duration']
+  end
+
   def test_llm_custom_attributes_added_to_embedding_events
     in_transaction do
       NewRelic::Agent.add_custom_attributes({
@@ -158,7 +230,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
         'triceratops' => 'herbivore'
       })
       stub_post_request do
-        client.embeddings(parameters: chat_params)
+        client.embeddings(parameters: embeddings_params)
       end
     end
     _, events = @aggregator.harvest!

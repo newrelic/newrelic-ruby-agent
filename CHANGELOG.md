@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+
+- **Bugfix: Add 'request.temperature' to ruby-openai chat completion summaries**
+
+  Previously, the agent was not reporting the `request.temperature` attribute on `LlmChatCompletionSummary` events through ruby-openai instrumentation. We are now reporting this attribute.
+
 ## v9.8.0
 
 Version 9.8.0 introduces instrumentation for ruby-openai, adds the option to store tracer state on the thread-level, hardens the browser agent insertion logic to better proactively anticipate errors, and prevents excpetions from being raised in the Active Support Broadcast logger instrumentation.
