@@ -11,11 +11,6 @@ module NewRelic
         NewRelic::Agent::LLM.remove_instance_variable(:@openai) if NewRelic::Agent::LLM.instance_variable_defined?(:@openai)
       end
 
-      # Mocha used in test_populate_openai_response_headers_with_llm_event_calls_llm_method
-      def teardown
-        mocha_teardown
-      end
-
       def test_openai_true_when_ruby_openai_prepend_and_ai_monitoring_enabled
         # with_config doesn't work because the value for
         # instrumentation.ruby_openai will be overriden during
@@ -119,12 +114,14 @@ module NewRelic
 
       def test_populate_openai_response_headers_with_llm_event_calls_llm_method
         NewRelic::Agent.stub(:config, {:'instrumentation.ruby_openai' => :auto, :'ai_monitoring.enabled' => true}) do
-          response = {}
+          request_id = 'PIR8SH1P'
+          response = {'x-request-id' => [request_id]}
           parent = NewRelic::Agent::Transaction::AbstractSegment.new('Llm/embedding/OpenAI/embeddings')
           mock_llm_event = NewRelic::Agent::Llm::Embedding.new
-          mock_llm_event.expects(:populate_openai_response_headers).with(response)
           parent.llm_event = mock_llm_event
           NewRelic::Agent::LLM.populate_openai_response_headers(response, parent)
+
+          assert_equal request_id, mock_llm_event.request_id
         end
       end
     end
