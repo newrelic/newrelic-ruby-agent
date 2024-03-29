@@ -69,6 +69,11 @@ module NewRelic::Agent
           end
         end
 
+        errors = output.last['data']['error_data'].last
+
+        assert_equal 1, errors.size
+        assert_equal 'lambda_function', errors.first[1]
+        assert_equal 'Kaboom!', errors.first[2]
         assert_equal 'Kaboom!', output.last['data']['error_event_data'].last.first.first['error.message']
       end
 

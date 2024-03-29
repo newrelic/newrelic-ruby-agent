@@ -81,7 +81,7 @@ module NewRelic
       end
 
       def error_data(errors)
-        store_payload([nil, :error_data, errors.map(&:to_collector_array)])
+        store_payload(:error_data, [nil, errors.map(&:to_collector_array)])
       end
 
       private
