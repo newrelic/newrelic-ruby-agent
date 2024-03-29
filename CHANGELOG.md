@@ -2,11 +2,11 @@
 
 ## dev
 
-Version <dev> adds the request_temperature attribute to chat completions in ruby-openai instrumentation.
+Version <dev> adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
 
-- **Bugfix: Add request_temperature to ruby-openai chat completions**
+- **Bugfix: Add 'request.temperature' to ruby-openai chat completion summaries**
 
-  Previously, the agent was not reporting the `request_temperature` attribute on chat completion events through ruby-openai instrumentation. We are now reporting this attribute.
+  Previously, the agent was not reporting the `request.temperature` attribute on `LlmChatCompletionSummary` events through ruby-openai instrumentation. We are now reporting this attribute.
 
 ## v9.8.0
 

@@ -83,7 +83,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     refute_empty attributes['id']
     refute_empty attributes['span_id']
     refute_empty attributes['trace_id']
-    refute_empty attributes['response.model']
+    assert_equal 'gpt-3.5-turbo-0613', attributes['response.model']
     refute_empty attributes['vendor']
     refute_empty attributes['ingest_source']
     refute_empty attributes['request.model']
