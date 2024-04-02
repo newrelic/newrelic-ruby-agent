@@ -289,6 +289,24 @@ module NewRelic::Agent
         refute attribute_set_attempted
       end
 
+      def test_metadata_for_payload_v1
+        NewRelic::Agent::ServerlessHandler.stub_const(:PAYLOAD_VERSION, 1) do
+          metadata = fresh_handler.send(:metadata)
+
+          assert_kind_of Integer, metadata[:protocol_version]
+          assert_nil metadata[:metadata_version]
+          assert_nil metadata[:agent_language]
+        end
+      end
+
+      def test_metadata_for_payload_v2
+        metadata = fresh_handler.send(:metadata)
+
+        assert_kind_of Integer, metadata[:protocol_version]
+        assert_kind_of Integer, metadata[:metadata_version]
+        refute_empty metadata[:agent_language]
+      end
+
       private
 
       def handler

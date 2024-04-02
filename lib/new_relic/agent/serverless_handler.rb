@@ -93,11 +93,16 @@ module NewRelic
       end
 
       def metadata
-        {arn: @context.invoked_function_arn,
-         protocol_version: NewRelic::Agent::NewRelicService::PROTOCOL_VERSION,
-         function_version: @context.function_version,
-         execution_environment: EXECUTION_ENVIRONMENT,
-         agent_version: NewRelic::VERSION::STRING}
+        m = {arn: @context.invoked_function_arn,
+             protocol_version: NewRelic::Agent::NewRelicService::PROTOCOL_VERSION,
+             function_version: @context.function_version,
+             execution_environment: EXECUTION_ENVIRONMENT,
+             agent_version: NewRelic::VERSION::STRING}
+        if PAYLOAD_VERSION >= 2
+          m[:metadata_version] = PAYLOAD_VERSION
+          m[:agent_language] = NewRelic::LANGUAGE
+        end
+        m
       end
 
       def function_name
