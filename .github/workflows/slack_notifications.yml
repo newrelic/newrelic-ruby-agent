@@ -22,6 +22,7 @@ jobs:
             bunny
             dalli
             delayed_job
+            elasticsearch
             excon
             http
             httpclient
@@ -35,7 +36,10 @@ jobs:
             rake
             redis
             resque
-            unicorn"
+            roda
+            ruby-openai
+            unicorn
+            view_component"
 
   cve_notifications:
     runs-on: ubuntu-22.04
