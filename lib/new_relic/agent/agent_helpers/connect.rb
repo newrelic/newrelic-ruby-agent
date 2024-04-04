@@ -67,7 +67,7 @@ module NewRelic
         # application and the server load
         def handle_license_error(error)
           ::NewRelic::Agent.logger.error(error.message,
-            'Visit NewRelic.com to obtain a valid license key, or to upgrade your account.')
+            'Visit newrelic.com to obtain a valid license key, or to upgrade your account.')
           disconnect
         end
 
