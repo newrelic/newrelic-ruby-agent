@@ -1824,7 +1824,7 @@ module NewRelic
           :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
           :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
                           'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
-                          "option is not intended for use without New Relic's Ruby Lambda layer offering."
+                          "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
         },
         # Sidekiq
         :'sidekiq.args.include' => {
