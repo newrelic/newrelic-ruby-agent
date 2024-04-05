@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+Version <dev> adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation and provides support for Elasticsearch 8.13.0.
+
+- **Bugfix: Resolve ArgumentError on elasticsearch 8.13.0**
+
+  Elasticsearch 8.13.0 added an argument, opts, to the `perform_request` method instrumented by the Ruby agent. This raised an ArgumentError when 8.13.0 was used with the agent. Now, the agent can handle the new argument and other arguments that may be added in the future. We thank [@randypuro](https://github.com/randypuro) for bringing this to our attention. [Issue#2541](https://github.com/newrelic/newrelic-ruby-agent/issues/2541) [PR#2543](https://github.com/newrelic/newrelic-ruby-agent/pull/2543)
 
 - **Bugfix: Add 'request.temperature' to ruby-openai chat completion summaries**
 
@@ -21,9 +25,10 @@ Version 9.8.0 introduces instrumentation for ruby-openai, adds the option to sto
 - **Feature: Add AI monitoring APIs**
 
   This version introduces two new APIs that allow users to record additional information on LLM events:
-  * `NewRelic::Agent.record_llm_feedback_event` - Records user feedback events.
-  * `NewRelic::Agent.set_llm_token_count_callback` - Sets a callback proc for calculating `token_count` attributes for embedding and chat completion message events.
-  
+
+  - `NewRelic::Agent.record_llm_feedback_event` - Records user feedback events.
+  - `NewRelic::Agent.set_llm_token_count_callback` - Sets a callback proc for calculating `token_count` attributes for embedding and chat completion message events.
+
   Visit [RubyDoc](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/) for more information on each of these APIs.
 
 - **Feature: Store tracer state on thread-level**
@@ -37,7 +42,6 @@ Version 9.8.0 introduces instrumentation for ruby-openai, adds the option to sto
 - **Bugfix: Prevent Exception in Active Support Broadcast logger instrumentation**
 
   Previously, in certain situations the agent could cause an exception to be raised when attempting to interact with a broadcast log event. This has been fixed. Thanks to [@nathan-appere](https://github.com/nathan-appere) for reporting this issue and providing a fix! [PR#2510](https://github.com/newrelic/newrelic-ruby-agent/pull/2510)
-
 
 ## v9.7.1
 
@@ -57,7 +61,7 @@ Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint use
 
 - **Feature: ViewComponent instrumentation**
 
-  [ViewComponent](https://viewcomponent.org/) is a now an instrumented library. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
+  [ViewComponent](https://viewcomponent.org/) is a now an instrumented library. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367)
 
 - **Feature: Use root path to access Elasticsearch cluster name**
 
@@ -107,7 +111,7 @@ Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 
 - **Feature: Update events with additional synthetics attributes when available**
 
-  The agent will now record additional synthetics attributes on synthetics events if these attributes are available.  [PR#2203](https://github.com/newrelic/newrelic-ruby-agent/pull/2203)
+  The agent will now record additional synthetics attributes on synthetics events if these attributes are available. [PR#2203](https://github.com/newrelic/newrelic-ruby-agent/pull/2203)
 
 - **Feature: Declare a gem dependency on the Ruby Base 64 gem 'base64'**
 
@@ -116,6 +120,7 @@ Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 - **Feature: Add Roda support for the newrelic_ignore\* family of methods**
 
   The agent can now selectively disable instrumentation for particular requests within Roda applications. Supported methods include:
+
   - `newrelic_ignore`: ignore a given route.
   - `newrelic_ignore_apdex`: exclude a given route from consideration in overall Apdex calculations.
   - `newrelic_ignore_enduser`: prevent automatic injection of the page load timing JavaScript when a route is rendered.
@@ -127,11 +132,13 @@ Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
   For improved compatibility with OpenTelemetry's semantic conventions, the agent's datastore (for databases) and external request (for HTTP clients) segments have been updated with additional attributes.
 
   Datastore segments now offer 3 additional attributes:
+
   - `db.system`: The database system. For Ruby we use the database adapter name here.
   - `server.address`: The database host.
   - `server.port`: The database port.
 
   External request segments now offer 3 additional attributes:
+
   - `http.request.method`: The HTTP method (ex: 'GET')
   - `server.address`: The target host.
   - `server.port`: The target port.
@@ -149,11 +156,11 @@ Version 9.6.0 adds instrumentation for Async::HTTP, Ethon, and HTTPX, adds the a
 - **Community: Resolve technical debt**
 
   We also received some great contributions from community members to resolve some outstanding technical debt issues. Thank you for your contributions!
-    * Add and Replace SLASH and ROOT constants: [PR#2256](https://github.com/newrelic/newrelic-ruby-agent/pull/2256) [chahmedejaz](https://github.com/chahmedejaz)
-    * Remove pry as a dev dependency: PR#2665, PR#2273, AlajeBash (profile no longer active)
-    * Replace "start up" with "start-up": [PR#2249](https://github.com/newrelic/newrelic-ruby-agent/pull/2249) [chahmedejaz](https://github.com/chahmedejaz)
-    * Remove unused variables in test suites: [PR#2250](https://github.com/newrelic/newrelic-ruby-agent/pull/2250)
 
+  - Add and Replace SLASH and ROOT constants: [PR#2256](https://github.com/newrelic/newrelic-ruby-agent/pull/2256) [chahmedejaz](https://github.com/chahmedejaz)
+  - Remove pry as a dev dependency: PR#2665, PR#2273, AlajeBash (profile no longer active)
+  - Replace "start up" with "start-up": [PR#2249](https://github.com/newrelic/newrelic-ruby-agent/pull/2249) [chahmedejaz](https://github.com/chahmedejaz)
+  - Remove unused variables in test suites: [PR#2250](https://github.com/newrelic/newrelic-ruby-agent/pull/2250)
 
 ## v9.5.0
 
@@ -208,7 +215,6 @@ Version 9.5.0 introduces Stripe instrumentation, allows the agent to record addi
 
   Previously, `NewRelic::Rack::AgentHooks.needed?` incorrectly used inverted logic. This has now been resolved, allowing AgentHooks to be installed when `disable_middleware_instrumentation` is set to true. [PR#2175](https://github.com/newrelic/newrelic-ruby-agent/pull/2175)
 
-
 ## v9.4.2
 
 Version 9.4.2 of the agent re-addresses the 9.4.0 issue of `NoMethodError` seen when using the `uppy-s3_multipart` gem.
@@ -238,11 +244,12 @@ Version 9.4.0 of the agent adds [Roda](https://roda.jeremyevans.net/) instrument
   A new `allow_all_headers` configuration option brings parity with the [Node.js agent](https://docs.newrelic.com/docs/release-notes/agent-release-notes/nodejs-release-notes/node-agent-270/) to capture all HTTP request headers.
 
   This configuration option:
-    * Defaults to `false`
-    * Is not compatible with high security mode
-    * Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above)
-    * Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
-    * Captures the additional headers as attributes prefixed with `request.headers.`
+
+  - Defaults to `false`
+  - Is not compatible with high security mode
+  - Requires Rack version 2 or higher (as does Ruby on Rails version 5 and above)
+  - Respects all existing behavior for the `attributes.include` and `attributes.exclude` [configuration options](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#attributes)
+  - Captures the additional headers as attributes prefixed with `request.headers.`
 
   This work was done in response to a feature request submitted by community member [@jamesarosen](https://github.com/jamesarosen). Thank you very much, @jamesarosen! [Issue#1029](https://github.com/newrelic/newrelic-ruby-agent/issues/1029)
 
@@ -276,8 +283,8 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
   Previously, all log events, regardless of their level, were forwarded to New Relic when log forwarding was enabled. Now, you may specify the lowest log level you'd like forwarded to New Relic.
 
-  | Configuration name          | Default | Behavior                                               | Valid values |
-  | --------------------------- | ------- | ------------------------------------------------------ | ------ |
+  | Configuration name                         | Default | Behavior                                                     | Valid values                                         |
+  | ------------------------------------------ | ------- | ------------------------------------------------------------ | ---------------------------------------------------- |
   | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
 
   This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
@@ -286,10 +293,9 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
   You can now add custom attributes to log events forwarded to New Relic! You can pass these attributes using an API and/or a configuration option.
 
-  | Configuration name          | Default | Behavior                                               |
-  | --------------------------- | ------- | ------------------------------------------------------ |
-  | `application_logging.forwarding.custom_attributes` | `{}` | A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2" |
-
+  | Configuration name                                 | Default | Behavior                                                                                                                                                                                                |
+  | -------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `application_logging.forwarding.custom_attributes` | `{}`    | A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2" |
 
   Call the API using `NewRelic::Agent.add_custom_log_attributes` and passing your attributes as a hash. For example, you could call: `NewRelic::Agent.add_custom_log_attributes(dyno: ENV['DYNO'], pod_name: ENV['POD_NAME'])`, to add the attributes `dyno` and `pod_name` to your log events.
 
@@ -300,8 +306,9 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 - **Feature: Instrument transmit_subscription-related Action Cable actions**
 
   This change subscribes the agent to the Active Support notifications for:
-    * `transmit_subscription_confirmation.action_cable`
-    * `transmit_subscription_rejection.action_cable`
+
+  - `transmit_subscription_confirmation.action_cable`
+  - `transmit_subscription_rejection.action_cable`
 
 - **Bugfix: Removed unwanted files from being included in file_list in gemspec**
 
@@ -325,7 +332,7 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
 ## v9.2.2
 
-  Version 9.2.2 of the agent fixes a bug with the `Transaction#finished?` method.
+Version 9.2.2 of the agent fixes a bug with the `Transaction#finished?` method.
 
 - **Bugfix: Transaction#finished? no longer throws a NoMethodError when initial_segment is nil**
 
@@ -333,22 +340,19 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
 ## v9.2.1
 
-  Version 9.2.1 fixes a bug causing the agent to continue storing data on finished transactions, and a bug preventing errors from being expected.
+Version 9.2.1 fixes a bug causing the agent to continue storing data on finished transactions, and a bug preventing errors from being expected.
 
 - **Bugfix: Finished transactions continue to store data on different threads**
 
   Previously, when a new thread was spawned the agent would continue using the current transaction to record data on, even if this transaction had finished already in a different thread. Now the agent will only use the current transaction in the new thread if it is not yet finished. Thank you to [@fcheung](https://github.com/fcheung) for reporting this bug and providing us with an extremely helpful reproduction to debug. [PR#1969](https://github.com/newrelic/newrelic-ruby-agent/pull/1969)
 
-
 - **Bugfix: Expected Errors passed to notice_error are expected again**
 
   A bug was introduced in 9.1.0 that caused to agent not to mark errors as expected if the error was passed in to `notice_error` using the `expected: true` parameter. This has been fixed and errors will now be marked as expected, as expected. Thank you very much to [@eiskrenkov](https://github.com/eiskrenkov) for finding this bug and contributing a fix for it! [PR#1954](https://github.com/newrelic/newrelic-ruby-agent/pull/1954)
 
-
-
 ## v9.2.0
 
-  Version 9.2.0 of the agent introduces some performance improvements for working with high numbers of nested actions, and deprecates instrumentation for the `memcached` and `memcache-client` gems (with `dalli` still being supported).
+Version 9.2.0 of the agent introduces some performance improvements for working with high numbers of nested actions, and deprecates instrumentation for the `memcached` and `memcache-client` gems (with `dalli` still being supported).
 
 - **Feature: Enhance performance for handling high numbers of nested actions**
 
@@ -366,7 +370,7 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
 ## v9.1.0
 
-  Version 9.1.0 of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timestream data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
+Version 9.1.0 of the agent delivers support for two new [errors inbox](https://docs.newrelic.com/docs/errors-inbox/errors-inbox/) features: error fingerprinting and user tracking, identifies the Amazon Timestream data store, removes Distributed Tracing warnings from agent logs when using Sidekiq, fixes bugs, and is tested against the recently released JRuby 9.4.2.0.
 
 - **Feature: Error fingerprinting - supply your own errors inbox group names**
 
@@ -374,8 +378,8 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
   The customer defined proc will be expected to receive exactly one input argument, a hash. The hash contains the following:
 
-  |  Key                 | Value                                                                        |
-  | ---------------------| ---------------------------------------------------------------------------- |
+  | Key                  | Value                                                                        |
+  | -------------------- | ---------------------------------------------------------------------------- |
   | `:error`             | The Ruby error class instance. Offers `#class`, `#message`, and `#backtrace` |
   | `:customAttributes`  | Any customer defined custom attributes for the current transaction           |
   | `:'request.uri'`     | The current request URI if available                                         |
@@ -421,58 +425,53 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
   The agent is now actively being tested against JRuby 9.4.2.0. NOTE that this release does not contain any non-CI related changes for JRuby. Old agent versions are still expected to work with newer JRubies and the newest agent version is still expected to work with older JRubies.
 
-
 ## v9.0.0
 
-  Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables Thread tracing by default, adds Fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
-
+Version 9.0.0 of the agent removes several deprecated configuration options and API methods, enables Thread tracing by default, adds Fiber instrumentation, removes support for Ruby versions 2.2 and 2.3, removes instrumentation for several deprecated gems, changes how the API method `set_transaction_name` works, and updates `rails_defer_initialization` to be an environment variable only configuration option.
 
 - **Remove deprecated configuration options**
 
   The following configuration options have been removed and will no longer work. Please update all configs to use the replacements listed below. [PR#1782](https://github.com/newrelic/newrelic-ruby-agent/pull/1782)
 
-  |  Removed                                  | Replacement                               | `newrelic.yml` example                                                              |
-  | ----------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
-  | `analytics_events.capture_attributes`     | `transaction_events.attributes.enabled`   | `transaction_events.attributes.enabled: false`                                      |
-  | `browser_monitoring.capture_attributes`   | `browser_monitoring.attributes.enabled`   | `browser_monitoring.attributes.enabled: false`                                      |
-  | `error_collector.capture_attributes`      | `error_collector.attributes.enabled`      | `error_collector.attributes.enabled: false`                                         |
-  | `resque.capture_params`                   | `attributes.include`                      | `attributes.include: ['job.resque.args.*']`                                         |
-  | `sidekiq.capture_params`                  | `attributes.include`                      | `attributes.include: ['job.sidekiq.args.*']`                                        |
-  | `transaction_tracer.capture_attributes`   | `transaction_tracer.attributes.enabled`   | `transaction_tracer.attributes.enabled: false`                                      |
-  | `error_collector.ignore_errors`           | `error_collector.ignore_classes`          | `error_collector.ignore_classes: ['ActionController::RoutingError', 'CustomError']` |
-  | `analytics_events.enabled`                | `transaction_events.enabled`              | `transaction_events.enabled: false`                                                 |
-  | `analytics_events.max_samples_stored`     | `transaction_events.max_samples_stored`   | `transaction_events.max_samples_stored: 1200`                                       |
-  | `disable_database_instrumentation`        | `disable_sequel_instrumentation`          | `disable_sequel_instrumentation: true`                                              |
-  | `disable_bunny`                           | `instrumentation.bunny`                   | `instrumentation.bunny: disabled`                                                   |
-  | `disable_curb`                            | `instrumentation.curb`                    | `instrumentation.curb: disabled`                                                    |
-  | `disable_dj`                              | `instrumentation.delayed_job`             | `instrumentation.delayed_job: disabled`                                             |
-  | `disable_excon`                           | `instrumentation.excon`                   | `instrumentation.excon: disabled`                                                   |
-  | `disable_grape`                           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
-  | `disable_grape_instrumentation`           | `instrumentation.grape`                   | `instrumentation.grape: disabled`                                                   |
-  | `disable_httpclient`                      | `instrumentation.httpclient`              | `instrumentation.httpcient: disabled`                                               |
-  | `disable_httprb`                          | `instrumentation.httprb`                  | `instrumentation.httprb: disabled`                                                  |
-  | `disable_dalli`                           | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
-  | `disable_dalli_cas_client`                | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
-  | `disable_memcache_client`                 | `instrumentation.memcache-client`         | `instrumentation.memcache-client: disabled`                                         |
-  | `disable_memcache_instrumentation`        | `instrumentation.memcache`                | `instrumentation.memcache: disabled`                                                |
-  | `disable_memcached`                       | `instrumentation.memcached`               | `instrumentation.memcached: disabled`                                               |
-  | `disable_mongo`                           | `instrumentation.mongo`                   | `instrumentation.mongo: disabled`                                                   |
-  | `disable_net_http`                        | `instrumentation.net_http`                | `instrumentation.net_http: disabled`                                                |
-  | `prepend_net_instrumentation`             | `instrumentation.net_http`                | `instrumentation.net_http: prepend`                                                 |
-  | `disable_puma_rack`                       | `instrumentation.puma_rack`               | `instrumentation.puma_rack: disabled`                                               |
-  | `disable_puma_rack_urlmap`                | `instrumentation.puma_rack_urlmap`        | `instrumentation.puma_rack_urlmap: disabled`                                        |
-  | `disable_rack`                            | `instrumentation.rack`                    | `instrumentation.rack: disabled`                                                    |
-  | `disable_rack_urlmap`                     | `instrumentation.rack_urlmap`             | `instrumentation.rack_urlmap: disabled`                                             |
-  | `disable_redis`                           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
-  | `disable_redis_instrumentation`           | `instrumentation.redis`                   | `instrumentation.redis: disabled`                                                   |
-  | `disable_resque`                          | `instrumentation.resque`                  | `instrumentation.resque: disabled`                                                  |
-  | `disable_sinatra`                         | `instrumentation.sinatra`                 | `instrumentation.sinatra: disabled`                                                 |
-  | `disable_rake`                            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
-  | `disable_rake_instrumentation`            | `instrumentation.rake`                    | `instrumentation.rake: disabled`                                                    |
-  | `disable_typhoeus`                        | `instrumentation.typhoeus`                | `instrumentation.typhoeus: disabled`                                                |
-
-
-
+  | Removed                                 | Replacement                             | `newrelic.yml` example                                                              |
+  | --------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------- |
+  | `analytics_events.capture_attributes`   | `transaction_events.attributes.enabled` | `transaction_events.attributes.enabled: false`                                      |
+  | `browser_monitoring.capture_attributes` | `browser_monitoring.attributes.enabled` | `browser_monitoring.attributes.enabled: false`                                      |
+  | `error_collector.capture_attributes`    | `error_collector.attributes.enabled`    | `error_collector.attributes.enabled: false`                                         |
+  | `resque.capture_params`                 | `attributes.include`                    | `attributes.include: ['job.resque.args.*']`                                         |
+  | `sidekiq.capture_params`                | `attributes.include`                    | `attributes.include: ['job.sidekiq.args.*']`                                        |
+  | `transaction_tracer.capture_attributes` | `transaction_tracer.attributes.enabled` | `transaction_tracer.attributes.enabled: false`                                      |
+  | `error_collector.ignore_errors`         | `error_collector.ignore_classes`        | `error_collector.ignore_classes: ['ActionController::RoutingError', 'CustomError']` |
+  | `analytics_events.enabled`              | `transaction_events.enabled`            | `transaction_events.enabled: false`                                                 |
+  | `analytics_events.max_samples_stored`   | `transaction_events.max_samples_stored` | `transaction_events.max_samples_stored: 1200`                                       |
+  | `disable_database_instrumentation`      | `disable_sequel_instrumentation`        | `disable_sequel_instrumentation: true`                                              |
+  | `disable_bunny`                         | `instrumentation.bunny`                 | `instrumentation.bunny: disabled`                                                   |
+  | `disable_curb`                          | `instrumentation.curb`                  | `instrumentation.curb: disabled`                                                    |
+  | `disable_dj`                            | `instrumentation.delayed_job`           | `instrumentation.delayed_job: disabled`                                             |
+  | `disable_excon`                         | `instrumentation.excon`                 | `instrumentation.excon: disabled`                                                   |
+  | `disable_grape`                         | `instrumentation.grape`                 | `instrumentation.grape: disabled`                                                   |
+  | `disable_grape_instrumentation`         | `instrumentation.grape`                 | `instrumentation.grape: disabled`                                                   |
+  | `disable_httpclient`                    | `instrumentation.httpclient`            | `instrumentation.httpcient: disabled`                                               |
+  | `disable_httprb`                        | `instrumentation.httprb`                | `instrumentation.httprb: disabled`                                                  |
+  | `disable_dalli`                         | `instrumentation.memcache`              | `instrumentation.memcache: disabled`                                                |
+  | `disable_dalli_cas_client`              | `instrumentation.memcache`              | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcache_client`               | `instrumentation.memcache-client`       | `instrumentation.memcache-client: disabled`                                         |
+  | `disable_memcache_instrumentation`      | `instrumentation.memcache`              | `instrumentation.memcache: disabled`                                                |
+  | `disable_memcached`                     | `instrumentation.memcached`             | `instrumentation.memcached: disabled`                                               |
+  | `disable_mongo`                         | `instrumentation.mongo`                 | `instrumentation.mongo: disabled`                                                   |
+  | `disable_net_http`                      | `instrumentation.net_http`              | `instrumentation.net_http: disabled`                                                |
+  | `prepend_net_instrumentation`           | `instrumentation.net_http`              | `instrumentation.net_http: prepend`                                                 |
+  | `disable_puma_rack`                     | `instrumentation.puma_rack`             | `instrumentation.puma_rack: disabled`                                               |
+  | `disable_puma_rack_urlmap`              | `instrumentation.puma_rack_urlmap`      | `instrumentation.puma_rack_urlmap: disabled`                                        |
+  | `disable_rack`                          | `instrumentation.rack`                  | `instrumentation.rack: disabled`                                                    |
+  | `disable_rack_urlmap`                   | `instrumentation.rack_urlmap`           | `instrumentation.rack_urlmap: disabled`                                             |
+  | `disable_redis`                         | `instrumentation.redis`                 | `instrumentation.redis: disabled`                                                   |
+  | `disable_redis_instrumentation`         | `instrumentation.redis`                 | `instrumentation.redis: disabled`                                                   |
+  | `disable_resque`                        | `instrumentation.resque`                | `instrumentation.resque: disabled`                                                  |
+  | `disable_sinatra`                       | `instrumentation.sinatra`               | `instrumentation.sinatra: disabled`                                                 |
+  | `disable_rake`                          | `instrumentation.rake`                  | `instrumentation.rake: disabled`                                                    |
+  | `disable_rake_instrumentation`          | `instrumentation.rake`                  | `instrumentation.rake: disabled`                                                    |
+  | `disable_typhoeus`                      | `instrumentation.typhoeus`              | `instrumentation.typhoeus: disabled`                                                |
 
 - **Enable Thread instrumentation by default**
 
@@ -484,7 +483,6 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
   `Fiber` instances are now automatically instrumented similarly to `Thread` instances. This can be [configured](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#instrumentation-fiber) using `instrumentation.fiber`. [PR#1802](https://github.com/newrelic/newrelic-ruby-agent/pull/1802)
 
-
 - **Removed support for Ruby 2.2 and 2.3**
 
   Ruby 2.2 and 2.3 are no longer supported by the Ruby agent. To continue using the latest Ruby Agent version, please update to Ruby 2.4.0 or above. [PR#1778](https://github.com/newrelic/newrelic-ruby-agent/pull/1778)
@@ -492,31 +490,31 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 - **Removed deprecated instrumentation**
 
   Instrumentation for the following gems had been previously deprecated and has now been removed. [PR#1788](https://github.com/newrelic/newrelic-ruby-agent/pull/1788)
-    - Acts As Solr
-    - Authlogic
-    - DataMapper
-    - Rainbows
-    - Sunspot
+
+  - Acts As Solr
+  - Authlogic
+  - DataMapper
+  - Rainbows
+  - Sunspot
 
   Versions of the following technologies had been previously deprecated and are no longer supported.
 
-    - Passenger: 2.2.x - 4.0.x
-    - Puma: 2.0.x
-    - Grape: 0.2.0
-    - Padrino: 0.14.x
-    - Rails: 3.2.x
-    - Sinatra: 1.4.x, 1.5.x
-    - Mongo: 1.8.x - 2.3.x
-    - Sequel: 3.37.x, 4.0.x
-    - Delayed_Job: 2.0.x - 4.0.x
-    - Sidekiq: 4.2.x
-    - Excon: below 0.55.0
-    - HttpClient: 2.2.0 - 2.8.0
-    - HttpRb: 0.9.9 - 2.2.1
-    - Typhoeus: 0.5.3 - 1.2.x
-    - Bunny: 2.0.x - 2.6.x
-    - ActiveMerchant: 1.25.0 - 1.64.x
-
+  - Passenger: 2.2.x - 4.0.x
+  - Puma: 2.0.x
+  - Grape: 0.2.0
+  - Padrino: 0.14.x
+  - Rails: 3.2.x
+  - Sinatra: 1.4.x, 1.5.x
+  - Mongo: 1.8.x - 2.3.x
+  - Sequel: 3.37.x, 4.0.x
+  - Delayed_Job: 2.0.x - 4.0.x
+  - Sidekiq: 4.2.x
+  - Excon: below 0.55.0
+  - HttpClient: 2.2.0 - 2.8.0
+  - HttpRb: 0.9.9 - 2.2.1
+  - Typhoeus: 0.5.3 - 1.2.x
+  - Bunny: 2.0.x - 2.6.x
+  - ActiveMerchant: 1.25.0 - 1.64.x
 
 - **Updated API method `set_transaction_name`**
 
@@ -538,7 +536,6 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
 
   Community member [@fchatterji](https://github.com/fchatterji) helped standardize how we reference `NewRelic` throughout our codebase [PR#1795](https://github.com/newrelic/newrelic-ruby-agent/pull/1795) and updated our README's community header [PR#1815](https://github.com/newrelic/newrelic-ruby-agent/pull/1815). Thanks fchatterji!
 
-
 - **Bugfix: Allow rails initialization to be deferred by environment variable**
 
   The Ruby agent may force some Rails libraries to load on agent initialization, preventing some settings defined in `config/initializers` from being applied. Changing the initialization process to run after `config/initializers`, however, may break the configuration for other gems (ex. Roadie Rails).
@@ -546,7 +543,6 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
   For those having troubles with agent initialization and Rails initializers, you can now pass the environment variable `NEW_RELIC_DEFER_RAILS_INITIALIZATION=true` to make the agent initialize after `config/initializers` are run. This config option can only be set using an environment variable and can't be set using YAML. [PR#1791](https://github.com/newrelic/newrelic-ruby-agent/pull/1791)
 
   Thanks to [@jdelStrother](https://github.com/jdelStrother) for bringing this issue to our attention and testing our fixes along the way. [Issue#662](https://github.com/newrelic/newrelic-ruby-agent/issues/662)
-
 
 ## 8.16.0
 
@@ -571,10 +567,10 @@ Version 8.16.0 introduces more Ruby on Rails instrumentation (especially for Rai
   | --------------------------- | ------- | ------------------------------------------------------ |
   | `disable_action_cable`      | `false` | If `true`, disables Action Cable instrumentation.      |
   | `disable_action_controller` | `false` | If `true`, disables Action Controller instrumentation. |
-  | `disable_action_mailbox` | `false` | If `true`, disables Action Mailbox instrumentation. |
-  | `disable_action_mailer` | `false` | If `true`, disables Action Mailer instrumentation. |
-  | `disable_activejob` | `false` | If `true`, disables Active Job instrumentation. |
-  | `disable_active_support` | `false` | If `true`, disables Active Support instrumentation. |
+  | `disable_action_mailbox`    | `false` | If `true`, disables Action Mailbox instrumentation.    |
+  | `disable_action_mailer`     | `false` | If `true`, disables Action Mailer instrumentation.     |
+  | `disable_activejob`         | `false` | If `true`, disables Active Job instrumentation.        |
+  | `disable_active_support`    | `false` | If `true`, disables Active Support instrumentation.    |
 
 ## 8.15.0
 
@@ -3829,7 +3825,7 @@ traces from in the Transaction Trace drill-down.
 - High security mode V2
 
 The Ruby agent now supports V2 of New Relic's high security mode. To enable
-it, you must add 'high\_security: true' to your newrelic.yml file, _and_ enable
+it, you must add 'high*security: true' to your newrelic.yml file, \_and* enable
 high security mode through the New Relic web interface. The local agent
 setting must be in agreement with the server-side setting, or the agent will
 shut down and no data will be collected.
