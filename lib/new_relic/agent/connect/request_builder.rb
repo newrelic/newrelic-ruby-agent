@@ -24,7 +24,7 @@ module NewRelic
             :host => local_host,
             :display_host => Agent.config[:'process_host.display_name'],
             :app_name => Agent.config[:app_name],
-            :language => 'ruby',
+            :language => LANGUAGE,
             :labels => Agent.config.parsed_labels,
             :agent_version => NewRelic::VERSION::STRING,
             :environment => @environment_report,

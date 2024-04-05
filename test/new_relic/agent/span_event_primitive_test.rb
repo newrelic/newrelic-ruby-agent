@@ -93,7 +93,7 @@ module NewRelic
         def test_root_span_gets_dt_parent_attributes
           NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
           NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
-          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+          NewRelic::Agent::instance.stubs(:connected?).returns(true)
 
           @config = {
             :'distributed_tracing.enabled' => true,

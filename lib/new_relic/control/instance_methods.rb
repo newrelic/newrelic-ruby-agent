@@ -76,6 +76,7 @@ module NewRelic
       end
 
       def determine_env(options)
+        options[:env] = :serverless if local_env.discovered_dispatcher == :serverless
         env = options[:env] || self.env
         env = env.to_s
 
@@ -95,6 +96,12 @@ module NewRelic
       def configure_agent(env, options)
         manual = Agent::Configuration::ManualSource.new(options)
         Agent.config.replace_or_add_config(manual)
+
+        # if manual config sees serverless mode enabled, then the proc
+        # must have returned 'true'. don't bother with YAML and high security
+        # in a serverless context
+        return if Agent.config[:'serverless_mode.enabled']
+
         yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
         log_yaml_source_failures(yaml_source) if yaml_source.failed?
         Agent.config.replace_or_add_config(yaml_source)

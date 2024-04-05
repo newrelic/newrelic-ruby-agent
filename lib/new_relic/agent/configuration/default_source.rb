@@ -1844,6 +1844,17 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
         },
+        # Serverless
+        :'serverless_mode.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
+          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
+                          'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
+                          "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
+        },
         # Sidekiq
         :'sidekiq.args.include' => {
           default: NewRelic::EMPTY_ARRAY,

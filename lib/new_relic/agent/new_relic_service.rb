@@ -143,6 +143,9 @@ module NewRelic
       end
 
       def metric_data(stats_hash)
+        # let the serverless handler handle serialization
+        return NewRelic::Agent.agent.serverless_handler.metric_data(stats_hash) if NewRelic::Agent.agent.serverless?
+
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
@@ -154,6 +157,9 @@ module NewRelic
       end
 
       def error_data(unsent_errors)
+        # let the serverless handler handle serialization
+        return NewRelic::Agent.agent.serverless_handler.error_data(unsent_errors) if NewRelic::Agent.agent.serverless?
+
         invoke_remote(:error_data, [@agent_id, unsent_errors],
           :item_count => unsent_errors.size)
       end
@@ -554,6 +560,8 @@ module NewRelic
       # enough to be worth compressing, and handles any errors the
       # server may return
       def invoke_remote(method, payload = [], options = {})
+        return NewRelic::Agent.agent.serverless_handler.store_payload(method, payload) if NewRelic::Agent.agent.serverless?
+
         start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         request_send_ts, response_check_ts = nil
         data, encoding, size, serialize_finish_ts = marshal_payload(method, payload, options)
@@ -561,8 +569,10 @@ module NewRelic
         response, request_send_ts, response_check_ts = invoke_remote_send_request(method, payload, data, encoding)
         @marshaller.load(decompress_response(response))
       ensure
-        record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
-        record_size_supportability_metrics(method, size, options[:item_count]) if size
+        unless NewRelic::Agent.agent.serverless?
+          record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
+          record_size_supportability_metrics(method, size, options[:item_count]) if size
+        end
       end
 
       def handle_serialization_error(method, e)

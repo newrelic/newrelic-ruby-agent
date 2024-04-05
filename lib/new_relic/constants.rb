@@ -11,6 +11,8 @@ module NewRelic
   EMPTY_HASH = {}.freeze
   EMPTY_STR = ''
 
+  LANGUAGE = 'ruby'
+
   HTTP = 'HTTP'
   HTTPS = 'HTTPS'
   UNKNOWN = 'Unknown'

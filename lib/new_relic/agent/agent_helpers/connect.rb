@@ -27,9 +27,13 @@ module NewRelic
           @connect_state == :disconnected
         end
 
-        # Don't connect if we're already connected, or if we tried to connect
-        # and were rejected with prejudice because of a license issue, unless
-        # we're forced to by force_reconnect.
+        def serverless?
+          Agent.config[:'serverless_mode.enabled']
+        end
+
+        # Don't connect if we're already connected, if we're in serverless mode,
+        # or if we tried to connect and were rejected with prejudice because of
+        # a license issue, unless we're forced to by force_reconnect.
         def should_connect?(force = false)
           force || (!connected? && !disconnected?)
         end
@@ -62,10 +66,8 @@ module NewRelic
         # no longer try to connect to the server, saving the
         # application and the server load
         def handle_license_error(error)
-          ::NewRelic::Agent.logger.error( \
-            error.message, \
-            'Visit NewRelic.com to obtain a valid license key, or to upgrade your account.'
-          )
+          ::NewRelic::Agent.logger.error(error.message,
+            'Visit newrelic.com to obtain a valid license key, or to upgrade your account.')
           disconnect
         end
 
@@ -94,7 +96,7 @@ module NewRelic
         # connects, then configures the agent using the response from
         # the connect service
         def connect_to_server
-          request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new( \
+          request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(
             @service,
             Agent.config,
             event_harvest_config,
