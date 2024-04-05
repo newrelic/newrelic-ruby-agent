@@ -10,7 +10,7 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     mem_limit: 1g
   elasticsearch8:
-    image: elasticsearch:8.4.2
+    image: elasticsearch:8.13.0
     ports:
       - "9250:9250"
     environment:
