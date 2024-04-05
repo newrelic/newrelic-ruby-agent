@@ -333,6 +333,16 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     end
   end
 
+  def test_transaction_guid_is_present_with_in_a_transaction_and_without_dt
+    with_config(:'distribute_tracing.enabled' => false) do
+      in_transaction do |txn|
+        error = NewRelic::NoticedError.new(@path, StandardError.new)
+
+        assert_equal txn.guid, error.transaction_id, 'Expected the transaction_id reader to yield the transaction id'
+      end
+    end
+  end
+
   def test_transaction_guid_is_absent_when_not_in_a_transaction
     error = NewRelic::NoticedError.new(@path, StandardError.new)
 
@@ -345,6 +355,17 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
       assert_equal 6, array.size
       assert_equal txn.guid, array.last, 'Expected the last error array item to be the correct transaction GUID'
+    end
+  end
+
+  def test_transaction_guid_present_in_json_array_without_dt
+    with_config(:'distribute_tracing.enabled' => false) do
+      in_transaction do |txn|
+        array = NewRelic::NoticedError.new(@path, StandardError.new).to_collector_array
+
+        assert_equal 6, array.size
+        assert_equal txn.guid, array.last, 'Expected the last error array item to be the correct transaction GUID'
+      end
     end
   end
 
