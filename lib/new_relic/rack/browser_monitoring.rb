@@ -38,7 +38,12 @@ module NewRelic
         result = @app.call(env)
         (status, headers, response) = result
 
-        js_to_inject = NewRelic::Agent.browser_timing_header
+        csp_nonce = nil
+        if defined?(Rails)
+          csp_nonce = env['action_dispatch.content_security_policy_nonce']
+        end
+
+        js_to_inject = NewRelic::Agent.browser_timing_header(csp_nonce)
         if (js_to_inject != NewRelic::EMPTY_STR) && should_instrument?(env, status, headers)
           response_string = autoinstrument_source(response, js_to_inject)
           if headers.key?(CONTENT_LENGTH)
