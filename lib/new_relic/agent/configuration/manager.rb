@@ -138,7 +138,11 @@ module NewRelic
         end
 
         def evaluate_and_apply_transformations(key, value)
-          apply_transformations(key, evaluate_procs(value))
+          evaluated = evaluate_procs(value)
+          default = enforce_allowlist(key, evaluated)
+          return default if default
+
+          apply_transformations(key, evaluated)
         end
 
         def apply_transformations(key, value)
@@ -154,8 +158,21 @@ module NewRelic
           end
         end
 
+        def enforce_allowlist(key, value)
+          return unless allowlist = default_source.allowlist_for(key)
+          return if allowlist.include?(value)
+
+          default = default_source.default_for(key)
+          ::NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
+          default
+        end
+
         def transform_from_default(key)
-          ::NewRelic::Agent::Configuration::DefaultSource.transform_for(key)
+          default_source.transform_for(key)
+        end
+
+        def default_source
+          ::NewRelic::Agent::Configuration::DefaultSource
         end
 
         def register_callback(key, &proc)
