@@ -10,7 +10,11 @@ module NewRelic::Agent::Instrumentation
     OPERATION = 'perform_request'
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
-    def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil)
+    # We need the positional arguments `params` and `body`
+    # to capture the nosql statement
+    # *args protects the instrumented method if new arguments are added to
+    # perform_request
+    def perform_request_with_tracing(_method, _path, params = {}, body = nil, _headers = nil, *_args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
@@ -22,6 +26,7 @@ module NewRelic::Agent::Instrumentation
         port_path_or_id: nr_hosts[:port],
         database_name: nr_cluster_name
       )
+
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
