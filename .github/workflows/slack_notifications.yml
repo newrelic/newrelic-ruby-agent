@@ -28,10 +28,6 @@ jobs:
             httpclient
             mongo
             puma
-            sidekiq
-            sinatra
-            stripe
-            tilt
             rack
             rails
             rake
@@ -39,6 +35,10 @@ jobs:
             resque
             roda
             ruby-openai
+            sidekiq
+            sinatra
+            stripe
+            tilt
             unicorn
             view_component"
 
