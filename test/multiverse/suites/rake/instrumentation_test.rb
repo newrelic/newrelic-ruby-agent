@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'ostruct'
 require_relative '../../../../lib/new_relic/agent/instrumentation/rake/instrumentation'
 
 class RakeInstrumentationTest < Minitest::Test

@@ -3,8 +3,9 @@
 # frozen_string_literal: true
 
 require 'json'
-require 'stripe'
 require 'net/http'
+require 'ostruct'
+require 'stripe'
 
 class StripeInstrumentation < Minitest::Test
   API_KEY = '123456789'
