@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+Version <dev> adds support for Elasticsearch 8.13.0 and the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+
+- **Feature: Add support for Elasticsearch 8.13.0**
+
+  Elasticsearch 8.13.0 increased the number of arguments used in the method the agent instruments, `Elastic::Transport::Client#perform_request`. Now, the agent supports a variable number of arguments for the instrumented method to prevent future `ArgumentError`s.
 
 - **Bugfix: Add 'request.temperature' to ruby-openai chat completion summaries**
 
@@ -23,7 +27,7 @@ Version 9.8.0 introduces instrumentation for ruby-openai, adds the option to sto
   This version introduces two new APIs that allow users to record additional information on LLM events:
   * `NewRelic::Agent.record_llm_feedback_event` - Records user feedback events.
   * `NewRelic::Agent.set_llm_token_count_callback` - Sets a callback proc for calculating `token_count` attributes for embedding and chat completion message events.
-  
+
   Visit [RubyDoc](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/) for more information on each of these APIs.
 
 - **Feature: Store tracer state on thread-level**
@@ -57,7 +61,7 @@ Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint use
 
 - **Feature: ViewComponent instrumentation**
 
-  [ViewComponent](https://viewcomponent.org/) is a now an instrumented library. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
+  [ViewComponent](https://viewcomponent.org/) is a now an instrumented library. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367)
 
 - **Feature: Use root path to access Elasticsearch cluster name**
 
