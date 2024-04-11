@@ -30,6 +30,7 @@ jobs:
             puma
             sidekiq
             sinatra
+            stripe
             tilt
             rack
             rails
