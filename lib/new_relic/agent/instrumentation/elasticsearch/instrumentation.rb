@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
     # to capture the nosql statement
     # *args protects the instrumented method if new arguments are added to
     # perform_request
-    def perform_request_with_tracing(method, path, params = {}, body = nil, headers = nil, *args)
+    def perform_request_with_tracing(_method, _path, params = {}, body = nil, _headers = nil, *_args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
