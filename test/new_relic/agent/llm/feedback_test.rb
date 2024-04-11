@@ -30,7 +30,7 @@ module NewRelic::Agent::Llm
         NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5,
           category: 'Helpful', message: 'Looks good!', metadata: {'pop' => 'tart', 'toaster' => 'strudel'})
         _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
-        type, attributes = events[0]
+        _, attributes = events[0]
 
         assert_equal 'Helpful', attributes['category']
         assert_equal 'Looks good!', attributes['message']
@@ -77,7 +77,7 @@ module NewRelic::Agent::Llm
         in_transaction do
           NewRelic::Agent.record_llm_feedback_event(trace_id: @trace_id, rating: 5)
           _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
-          type, attributes = events[0]
+          _, attributes = events[0]
 
           assert_nil attributes
         end

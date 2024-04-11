@@ -276,10 +276,10 @@ module NewRelic::Agent
         skip_unless_minitest5_or_above
 
         attrs = {cool_id: 'James', server: 'less', current_time: Time.now.to_s}
+        attribute_set_attempted = false
         tl_current_mock = Minitest::Mock.new
         tl_current_mock.expect :add_custom_attributes, -> { attribute_set_attempted = true }, [attrs]
 
-        attribute_set_attempted = false
         in_transaction do
           Transaction.stub :tl_current, tl_current_mock do
             ::NewRelic::Agent.add_custom_attributes(attrs)
