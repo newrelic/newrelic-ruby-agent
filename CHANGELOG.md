@@ -2,11 +2,11 @@
 
 ## dev
 
-Version <dev> adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation and provides support for Elasticsearch 8.13.0.
+Version <dev> adds support for Elasticsearch 8.13.0 and the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
 
-- **Bugfix: Resolve ArgumentError on elasticsearch 8.13.0**
+- **Feature: Add support for Elasticsearch 8.13.0**
 
-  Elasticsearch 8.13.0 added an argument, opts, to the `perform_request` method instrumented by the Ruby agent. This raised an ArgumentError when 8.13.0 was used with the agent. Now, the agent can handle the new argument and other arguments that may be added in the future. We thank [@randypuro](https://github.com/randypuro) for bringing this to our attention. [Issue#2541](https://github.com/newrelic/newrelic-ruby-agent/issues/2541) [PR#2543](https://github.com/newrelic/newrelic-ruby-agent/pull/2543)
+  Elasticsearch 8.13.0 increased the number of arguments used in the method the agent instruments, `Elastic::Transport::Client#perform_request`. Now, the agent supports a variable number of arguments for the instrumented method to prevent future `ArgumentError`s.
 
 - **Bugfix: Add 'request.temperature' to ruby-openai chat completion summaries**
 
