@@ -144,6 +144,10 @@ common: &default_settings
   # (sometimes referred to as real user monitoring or RUM).
   # browser_monitoring.auto_instrument: true
 
+  # If true, enables injection of Content Security Policy Nonce in browser monitoring scripts
+  # https://content-security-policy.com/nonce/
+  # browser_monitoring.content_security_policy_nonce: true
+
   # Manual override for the path to your local CA bundle. This CA bundle will be
   # used to validate the SSL certificate presented by New Relic's data collection
   # service.
