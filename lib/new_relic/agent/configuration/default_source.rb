@@ -52,9 +52,24 @@ module NewRelic
           result
         end
 
+        def self.default_settings(key)
+          ::NewRelic::Agent::Configuration::DEFAULTS[key]
+        end
+
+        def self.value_from_defaults(key, subkey)
+          default_settings(key)&.send(:[], subkey)
+        end
+
+        def self.allowlist_for(key)
+          value_from_defaults(key, :allowlist)
+        end
+
+        def self.default_for(key)
+          value_from_defaults(key, :default)
+        end
+
         def self.transform_for(key)
-          default_settings = ::NewRelic::Agent::Configuration::DEFAULTS[key]
-          default_settings[:transform] if default_settings
+          value_from_defaults(key, :transform)
         end
 
         def self.config_search_paths # rubocop:disable Metrics/AbcSize
@@ -800,6 +815,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :allowlist => %w[debug info warn error fatal unknown DEBUG INFO WARN ERROR FATAL UNKNOWN],
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
@@ -2263,6 +2279,7 @@ module NewRelic
           :public => true,
           :type => Symbol,
           :allowed_from_server => false,
+          :allowlist => %i[none low medium high],
           :external => :infinite_tracing,
           :description => <<~DESC
             Configure the compression level for data sent to the trace observer.

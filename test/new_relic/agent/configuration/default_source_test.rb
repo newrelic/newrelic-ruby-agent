@@ -273,6 +273,24 @@ module NewRelic::Agent::Configuration
       assert_raises(ArgumentError) { DefaultSource.convert_to_hash(value) }
     end
 
+    def test_allowlist_permits_valid_values
+      valid_value = 'info'
+      key = :'application_logging.forwarding.log_level'
+
+      with_config(key => valid_value) do
+        assert_equal valid_value, NewRelic::Agent.config[key]
+      end
+    end
+
+    def test_allowlist_blocks_invalid_values_and_uses_a_default
+      key = :'application_logging.forwarding.log_level'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+
+      with_config(key => 'bogus') do
+        assert_equal default, NewRelic::Agent.config[key]
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 

@@ -455,20 +455,11 @@ module NewRelic::Agent
     end
 
     def test_sets_minimum_log_level_to_debug_when_not_within_default_severities
+      # NOTE: a default string value is applied by the allowlist in the
+      #       DefaultSource hash which is then converted to an upcased symbol
+      #       via `configured_log_level_constant`.
       with_config(LogEventAggregator::LOG_LEVEL_KEY => 'milkshake') do
-        assert_equal :DEBUG, @aggregator.send(:minimum_log_level)
-      end
-    end
-
-    def test_logs_error_when_log_level_not_within_default_severities
-      logger = MiniTest::Mock.new
-      logger.expect :log_once, nil, [:error, /Invalid application_logging.forwarding.log_level/]
-
-      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'milkshake') do
-        NewRelic::Agent.stub :logger, logger do
-          @aggregator.send(:minimum_log_level)
-          logger.verify
-        end
+        assert_equal :DEBUG, @aggregator.send(:configured_log_level_constant)
       end
     end
 
@@ -480,7 +471,7 @@ module NewRelic::Agent
 
     def test_sets_minimum_log_level_when_config_capitalized
       with_config(LogEventAggregator::LOG_LEVEL_KEY => 'INFO') do
-        assert_equal(:INFO, @aggregator.send(:minimum_log_level))
+        assert_equal(:INFO, @aggregator.send(:configured_log_level_constant))
       end
     end
 
