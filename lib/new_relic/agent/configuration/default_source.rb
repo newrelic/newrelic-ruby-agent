@@ -815,7 +815,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :allowlist => %w[debug info warn error fatal unknown],
+          :allowlist => %w[debug info warn error fatal unknown DEBUG INFO WARN ERROR FATAL UNKNOWN],
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
