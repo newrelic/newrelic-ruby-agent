@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> adds support for Elasticsearch 8.13.0 and the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+Version <dev> introduces support for AWS Lambda serverless function observability, adds support for Elasticsearch 8.13.0, and adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+
+- **Feature: Serverless Mode for AWS Lambda**
+
+  The Ruby agent is now capable of operating in a quick and light serverless mode suitable for observing AWS Lambda function invocations. For serverless use, the agent is delivered by a New Relic Lambda [layer](https://github.com/newrelic/newrelic-lambda-layers) that can be associated with a Lambda function. All reported data will appear in New Relic's dedicated serverless UI views. Only AWS based Lambda functions are supported for now, though support for other cloud hosted serverless offerings may be added in future depending on Ruby customer demand. The serverless functionality is only intended for use with the official New Relic Ruby layers for Lambda. Any existing workflows that involve the manual use of the Ruby agent in an AWS Lambda context without a New Relic layer should not be impacted.
 
 - **Feature: Add support for Elasticsearch 8.13.0**
 
