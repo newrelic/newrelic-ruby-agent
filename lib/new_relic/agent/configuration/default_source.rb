@@ -1569,6 +1569,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.logstasher' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the logstasher library at start-up. May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.memcache' => {
           :default => 'auto',
           :public => true,

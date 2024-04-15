@@ -1,0 +1,26 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+require_relative 'logstasher/instrumentation'
+require_relative 'logstasher/chain'
+require_relative 'logstasher/prepend'
+
+DependencyDetection.defer do
+  named :logstasher
+
+  depends_on do
+    defined?(Logstasher) &&
+      NewRelic::Agent.config[:'application_logging.enabled']
+  end
+
+  executes do
+    NewRelic::Agent.logger.info('Installing logstasher instrumentation')
+
+    if use_prepend?
+      prepend_instrument Logstasher, NewRelic::Agent::Instrumentation::Logstasher::Prepend
+    else
+      chain_instrument NewRelic::Agent::Instrumentation::Logstasher::Chain
+    end
+  end
+end
