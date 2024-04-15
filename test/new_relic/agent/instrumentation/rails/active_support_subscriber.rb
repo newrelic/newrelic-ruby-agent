@@ -84,7 +84,7 @@ module NewRelic
 
         def test_key_recorded_as_attribute_on_traces
           key = 'blades'
-          txn = in_transaction('test') do
+          in_transaction('test') do
             generate_event('cache_read.active_support', key: key, hit: false)
           end
 
@@ -95,7 +95,7 @@ module NewRelic
         end
 
         def test_hit_recorded_as_attribute_on_traces
-          txn = in_transaction('test') do
+          in_transaction('test') do
             generate_event('cache_read.active_support', DEFAULT_PARAMS.merge(hit: false))
           end
 
@@ -107,7 +107,7 @@ module NewRelic
         end
 
         def test_super_operation_recorded_as_attribute_on_traces
-          txn = in_transaction('test') do
+          in_transaction('test') do
             generate_event('cache_read.active_support', DEFAULT_PARAMS.merge(super_operation: nil))
           end
 
