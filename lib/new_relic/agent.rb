@@ -31,6 +31,7 @@ module NewRelic
     require 'new_relic/noticed_error'
     require 'new_relic/agent/noticeable_error'
     require 'new_relic/supportability_helper'
+    require 'new_relic/thread_local_storage'
 
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
@@ -62,6 +63,7 @@ module NewRelic
     require 'new_relic/agent/attribute_processing'
     require 'new_relic/agent/linking_metadata'
     require 'new_relic/agent/local_log_decorator'
+    require 'new_relic/agent/llm'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -105,11 +107,14 @@ module NewRelic
 
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
+    LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
 
     attr_reader :error_group_callback
+    attr_reader :llm_token_count_callback
 
     @agent = nil
     @error_group_callback = nil
+    @llm_token_count_callback = nil
     @logger = nil
     @tracer_lock = Mutex.new
     @tracer_queue = []
@@ -387,6 +392,92 @@ module NewRelic
       nil
     end
 
+    # Records user feedback events for LLM applications. This API must pass
+    # the current trace id as a parameter, which can be obtained using:
+    #
+    #   NewRelic::Agent::Tracer.current_trace_id
+    #
+    # @param [String] ID of the trace where the chat completion(s) related
+    #   to the feedback occurred.
+    #
+    # @param [String or Integer] Rating provided by an end user
+    #   (ex: “Good", "Bad”, 1, 2, 5, 8, 10).
+    #
+    # @param [optional, String] Category of the feedback as provided by the
+    #   end user (ex: “informative”, “inaccurate”).
+    #
+    # @param start_time [optional, String] Freeform text feedback from an
+    #   end user.
+    #
+    # @param [optional, Hash] Set of key-value pairs to store any other
+    #   desired data to submit with the feedback event.
+    #
+    # @api public
+    #
+    def record_llm_feedback_event(trace_id:,
+      rating:,
+      category: nil,
+      message: nil,
+      metadata: NewRelic::EMPTY_HASH)
+
+      record_api_supportability_metric(:record_llm_feedback_event)
+      unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+        return NewRelic::Agent.logger.error('Distributed tracing must be enabled to record LLM feedback')
+      end
+
+      feedback_message_event = {
+        'trace_id': trace_id,
+        'rating': rating,
+        'category': category,
+        'message': message,
+        'id': NewRelic::Agent::GuidGenerator.generate_guid,
+        'ingest_source': NewRelic::Agent::Llm::LlmEvent::INGEST_SOURCE
+      }
+      feedback_message_event.merge!(metadata) unless metadata.empty?
+
+      NewRelic::Agent.record_custom_event(LLM_FEEDBACK_MESSAGE, feedback_message_event)
+    rescue ArgumentError
+      raise
+    rescue => exception
+      NewRelic::Agent.logger.error('record_llm_feedback_event', exception)
+    end
+
+    # @!endgroup
+
+    # @!group LLM callbacks
+
+    # Set a callback proc for calculating `token_count` attributes for
+    # LlmEmbedding and LlmChatCompletionMessage events
+    #
+    # @param callback_proc [Proc] the callback proc
+    #
+    # This method should be called only once to set a callback for
+    # use with all LLM token calculations. If it is called multiple times, each
+    # new callback will replace the old one.
+    #
+    # The proc will be called with a single hash as its input argument and
+    # must return an Integer representing the number of tokens used for that
+    # particular prompt, completion message, or embedding. Values less than or
+    # equal to 0 will not be attached to an event.
+    #
+    # The hash has the following keys:
+    #
+    # :model => [String] The name of the LLM model
+    # :content => [String] The message content or prompt
+    #
+    # @api public
+    #
+    def set_llm_token_count_callback(callback_proc)
+      unless callback_proc.is_a?(Proc)
+        NewRelic::Agent.logger.error("#{self}.#{__method__}: expected an argument of type Proc, " \
+                                     "got #{callback_proc.class}")
+        return
+      end
+
+      record_api_supportability_metric(:set_llm_token_count_callback)
+      @llm_token_count_callback = callback_proc
+    end
+
     # @!endgroup
 
     # @!group Manual agent configuration and startup/shutdown
@@ -618,16 +709,19 @@ module NewRelic
     def add_custom_attributes(params) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:add_custom_attributes)
 
-      if params.is_a?(Hash)
-        Transaction.tl_current&.add_custom_attributes(params)
-
-        segment = ::NewRelic::Agent::Tracer.current_segment
-        if segment
-          add_new_segment_attributes(params, segment)
-        end
-      else
+      unless params.is_a?(Hash)
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
+        return
       end
+
+      if NewRelic::Agent.agent&.serverless?
+        ::NewRelic::Agent.logger.warn('Custom attributes are not supported in serverless mode')
+        return
+      end
+
+      Transaction.tl_current&.add_custom_attributes(params)
+      segment = ::NewRelic::Agent::Tracer.current_segment
+      add_new_segment_attributes(params, segment) if segment
     end
 
     def add_new_segment_attributes(params, segment)

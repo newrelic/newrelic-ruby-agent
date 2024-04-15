@@ -4,6 +4,7 @@
 
 require 'httpx'
 require 'newrelic_rpm'
+require 'ostruct'
 require 'http_client_test_cases'
 require 'uri'
 require_relative '../../../../lib/new_relic/agent/http_clients/httpx_wrappers'

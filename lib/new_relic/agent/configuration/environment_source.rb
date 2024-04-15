@@ -99,7 +99,7 @@ module NewRelic
             elsif !value.nil?
               self[config_key] = true
             end
-          else
+          elsif !serverless?
             ::NewRelic::Agent.logger.info("#{environment_key} does not have a corresponding configuration setting (#{config_key} does not exist).")
             ::NewRelic::Agent.logger.info('Run `rake newrelic:config:docs` or visit https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration to see a list of available configuration settings.')
             self[config_key] = value
@@ -113,6 +113,14 @@ module NewRelic
 
         def collect_new_relic_environment_variable_keys
           ENV.keys.select { |key| key.match(SUPPORTED_PREFIXES) }
+        end
+
+        # we can't rely on the :'serverless_mode.enabled' config parameter being
+        # set yet to signify serverless mode given that we're in the midst of
+        # building the config but we can always rely on the env var being set
+        # by the Lambda layer
+        def serverless?
+          NewRelic::Agent::ServerlessHandler.env_var_set?
         end
       end
     end

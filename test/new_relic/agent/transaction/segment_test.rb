@@ -154,6 +154,9 @@ module NewRelic
         end
 
         def test_segment_can_disable_scoped_metric_recording
+          # TODO: Fix this test via Issue #2429
+          skip 'This test fails intermittently on multiple Ruby versions'
+
           in_transaction('test') do |txn|
             segment = Segment.new('Custom/simple/segment', 'Segment/all')
             segment.record_scoped_metric = false

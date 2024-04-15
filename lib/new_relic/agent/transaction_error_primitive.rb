@@ -16,26 +16,27 @@ module NewRelic
     module TransactionErrorPrimitive
       extend self
 
-      SAMPLE_TYPE = 'TransactionError'.freeze
-      TYPE_KEY = 'type'.freeze
-      ERROR_CLASS_KEY = 'error.class'.freeze
-      ERROR_MESSAGE_KEY = 'error.message'.freeze
-      ERROR_EXPECTED_KEY = 'error.expected'.freeze
-      TIMESTAMP_KEY = 'timestamp'.freeze
-      PORT_KEY = 'port'.freeze
-      NAME_KEY = 'transactionName'.freeze
-      DURATION_KEY = 'duration'.freeze
-      SAMPLED_KEY = 'sampled'.freeze
-      GUID_KEY = 'nr.transactionGuid'.freeze
-      REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
-      SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'.freeze
-      SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'.freeze
-      SYNTHETICS_MONITOR_ID_KEY = 'nr.syntheticsMonitorId'.freeze
+      SAMPLE_TYPE = 'TransactionError'
+      TYPE_KEY = 'type'
+      ERROR_CLASS_KEY = 'error.class'
+      ERROR_MESSAGE_KEY = 'error.message'
+      ERROR_EXPECTED_KEY = 'error.expected'
+      TIMESTAMP_KEY = 'timestamp'
+      PORT_KEY = 'port'
+      NAME_KEY = 'transactionName'
+      DURATION_KEY = 'duration'
+      SAMPLED_KEY = 'sampled'
+      CAT_GUID_KEY = 'nr.transactionGuid'
+      CAT_REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
+      SYNTHETICS_RESOURCE_ID_KEY = 'nr.syntheticsResourceId'
+      SYNTHETICS_JOB_ID_KEY = 'nr.syntheticsJobId'
+      SYNTHETICS_MONITOR_ID_KEY = 'nr.syntheticsMonitorId'
       SYNTHETICS_TYPE_KEY = 'nr.syntheticsType'
       SYNTHETICS_INITIATOR_KEY = 'nr.syntheticsInitiator'
       SYNTHETICS_KEY_PREFIX = 'nr.synthetics'
-      PRIORITY_KEY = 'priority'.freeze
-      SPAN_ID_KEY = 'spanId'.freeze
+      PRIORITY_KEY = 'priority'
+      SPAN_ID_KEY = 'spanId'
+      GUID_KEY = 'guid'
 
       SYNTHETICS_PAYLOAD_EXPECTED = [:synthetics_resource_id, :synthetics_job_id, :synthetics_monitor_id, :synthetics_type, :synthetics_initiator]
 
@@ -57,7 +58,10 @@ module NewRelic
         }
 
         attrs[SPAN_ID_KEY] = span_id if span_id
+        # don't use safe navigation - leave off keys with missing values
+        # instead of using nil
         attrs[PORT_KEY] = noticed_error.request_port if noticed_error.request_port
+        attrs[GUID_KEY] = noticed_error.transaction_id if noticed_error.transaction_id
 
         if payload
           attrs[NAME_KEY] = payload[:name]
@@ -93,8 +97,8 @@ module NewRelic
       end
 
       def append_cat(payload, sample)
-        sample[GUID_KEY] = payload[:guid] if payload[:guid]
-        sample[REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
+        sample[CAT_GUID_KEY] = payload[:guid] if payload[:guid]
+        sample[CAT_REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
       end
     end
   end

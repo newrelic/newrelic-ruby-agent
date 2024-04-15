@@ -35,7 +35,7 @@ module NewRelic
 
       class << self
         def for_transaction(transaction)
-          return nil unless connected?
+          return nil unless Agent.instance.connected?
 
           payload = new
           payload.version = VERSION
@@ -100,10 +100,6 @@ module NewRelic
           if Agent.config[:'span_events.enabled'] && transaction.current_segment
             transaction.current_segment.guid
           end
-        end
-
-        def connected?
-          Agent.instance.connected?
         end
       end
 

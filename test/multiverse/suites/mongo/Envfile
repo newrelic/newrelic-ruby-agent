@@ -2,12 +2,18 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
 
 if RUBY_VERSION >= '2.6.0'
+  # TODO: bson 5.0 was released 13 Feb 2024
+  # It is not compatible with Mongo::Connection.new on mongo 1.3.1.
+  # For a reason I do not yet understand, without limiting 'bson' to < 5.0
+  # the CI installs mongo 1.3.1 instead of the current 2.19.3 for this nil
+  # version test.
+  # Issue #2447
   gemfile <<~RB
     gem 'mongo'
-    gem 'bson'
+    gem 'bson', '< 5.0'
   RB
 end
 
@@ -16,7 +22,7 @@ end
 # appear in these lists
 
 # Mongo versions to test with Ruby 2.6+
-MONGO_VERSIONS_RUBY26 = ['2.17.0']
+MONGO_VERSIONS_RUBY26 = ['2.17.4', '2.18.3']
 
 # Mongo versions to test with Ruby 2.5+
 MONGO_VERSIONS_RUBY25 = ['2.15.1', '2.12.0']
@@ -69,7 +75,7 @@ end
 mongo_versions.each do |mongo_version|
   next if mongo_version.start_with?('1.') && installed_mongo_server_version > MAX_SERVER_VERSION_FOR_1X_GEMS
 
-  if Gem::Version.new(mongo_version) >= Gem::Version.new("2.12.0")
+  if Gem::Version.new(mongo_version) >= Gem::Version.new('2.12.0')
     gemfile <<~RB
       gem 'mongo', '~> #{mongo_version}'
       gem 'bson', '~> 4.14'

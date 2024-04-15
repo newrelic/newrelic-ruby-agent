@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'ostruct'
 require_relative '../../../../lib/new_relic/agent/instrumentation/rake/instrumentation'
 
 class RakeInstrumentationTest < Minitest::Test
@@ -57,7 +58,7 @@ class RakeInstrumentationTest < Minitest::Test
     NewRelic::Agent::Instrumentation::Rake.stub :should_trace?, true, [instance.name] do
       error = RuntimeError.new('expected')
       # produce the exception we want to have the method rescue
-      NewRelic::Agent.stub :config, -> { raise error } do
+      NewRelic::Agent.stub :instance, -> { raise error } do
         logger = MiniTest::Mock.new
         NewRelic::Agent.stub :logger, logger do
           logger.expect :error, nil, [/^Exception/, error]

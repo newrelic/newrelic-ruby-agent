@@ -34,6 +34,7 @@ module NewRelic
         def initialize
           reset_to_defaults
           @callbacks = Hash.new { |hash, key| hash[key] = [] }
+          @lock = Mutex.new
         end
 
         def add_config_for_testing(source, level = 0)
@@ -137,7 +138,11 @@ module NewRelic
         end
 
         def evaluate_and_apply_transformations(key, value)
-          apply_transformations(key, evaluate_procs(value))
+          evaluated = evaluate_procs(value)
+          default = enforce_allowlist(key, evaluated)
+          return default if default
+
+          apply_transformations(key, evaluated)
         end
 
         def apply_transformations(key, value)
@@ -145,7 +150,7 @@ module NewRelic
             begin
               transform.call(value)
             rescue => e
-              ::NewRelic::Agent.logger.error("Error applying transformation for #{key}, pre-transform value was: #{value}.", e)
+              NewRelic::Agent.logger.error("Error applying transformation for #{key}, pre-transform value was: #{value}.", e)
               raise e
             end
           else
@@ -153,8 +158,21 @@ module NewRelic
           end
         end
 
+        def enforce_allowlist(key, value)
+          return unless allowlist = default_source.allowlist_for(key)
+          return if allowlist.include?(value)
+
+          default = default_source.default_for(key)
+          NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
+          default
+        end
+
         def transform_from_default(key)
-          ::NewRelic::Agent::Configuration::DefaultSource.transform_for(key)
+          default_source.transform_for(key)
+        end
+
+        def default_source
+          NewRelic::Agent::Configuration::DefaultSource
         end
 
         def register_callback(key, &proc)
@@ -213,7 +231,7 @@ module NewRelic
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
               rescue => e
-                ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
+                NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
                 thawed_layer[k] = nil
               end
               thawed_layer.delete(:config)
@@ -364,9 +382,11 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
-          preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
-          new_cache
-          preserved.each { |k, v| @cache[k] = v }
+          @lock.synchronize do
+            preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
+            new_cache
+            preserved.each { |k, v| @cache[k] = v }
+          end
 
           @cache
         end
@@ -380,7 +400,7 @@ module NewRelic
           # is expensive enough that we don't want to do it unless we're
           # actually going to be logging the message based on our current log
           # level, so use a `do` block.
-          ::NewRelic::Agent.logger.debug do
+          NewRelic::Agent.logger.debug do
             hash = flattened.delete_if { |k, _h| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
             "Updating config (#{direction}) from #{source.class}. Results: #{hash.inspect}"
           end

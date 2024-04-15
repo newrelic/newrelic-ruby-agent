@@ -247,21 +247,6 @@ module NewRelic
         message.byteslice(0...MAX_BYTES)
       end
 
-      def minimum_log_level
-        if Logger::Severity.constants.include?(configured_log_level_constant)
-          configured_log_level_constant
-        else
-          NewRelic::Agent.logger.log_once(
-            :error,
-            'Invalid application_logging.forwarding.log_level ' \
-            "'#{NewRelic::Agent.config[LOG_LEVEL_KEY]}' specified! " \
-            "Must be one of #{Logger::Severity.constants.join('|')}. " \
-            "Using default level of 'debug'"
-          )
-          :DEBUG
-        end
-      end
-
       def configured_log_level_constant
         format_log_level_constant(NewRelic::Agent.config[LOG_LEVEL_KEY])
       end
@@ -275,7 +260,7 @@ module NewRelic
         # always record custom log levels
         return false unless Logger::Severity.constants.include?(severity_constant)
 
-        Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(minimum_log_level)
+        Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(configured_log_level_constant)
       end
     end
   end

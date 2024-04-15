@@ -60,21 +60,22 @@ module NewRelic
 
     def discover_dispatcher
       dispatchers = %w[
+        serverless
+        puma
+        sidekiq
+        falcon
+        delayed_job
+        unicorn
         passenger
+        resque
         torquebox
         trinidad
         glassfish
-        resque
-        sidekiq
-        delayed_job
-        puma
         thin
         mongrel
         litespeed
-        unicorn
         webrick
         fastcgi
-        falcon
       ]
       while dispatchers.any? && @discovered_dispatcher.nil?
         send('check_for_' + (dispatchers.shift))
@@ -196,6 +197,12 @@ module NewRelic
       return unless defined?(::PhusionPassenger)
 
       @discovered_dispatcher = :passenger
+    end
+
+    def check_for_serverless
+      return unless NewRelic::Agent.config[:'serverless_mode.enabled']
+
+      @discovered_dispatcher = :serverless
     end
 
     public

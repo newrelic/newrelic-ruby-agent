@@ -20,7 +20,7 @@ module NewRelic::Agent
           :trusted_account_key => '190',
           :disable_harvest_thread => true
         }
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        NewRelic::Agent.instance.stubs(:connected?).returns(true)
         NewRelic::Agent.config.add_config_for_testing(@config)
         reset_buffers_and_caches
       end

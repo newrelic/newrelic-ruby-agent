@@ -22,20 +22,25 @@ jobs:
             bunny
             dalli
             delayed_job
+            elasticsearch
             excon
             http
             httpclient
             mongo
             puma
-            sidekiq
-            sinatra
-            tilt
             rack
             rails
             rake
             redis
             resque
-            unicorn"
+            roda
+            ruby-openai
+            sidekiq
+            sinatra
+            stripe
+            tilt
+            unicorn
+            view_component"
 
   cve_notifications:
     runs-on: ubuntu-22.04

@@ -133,7 +133,8 @@ module NewRelic
       end
 
       def wants_stdout?
-        ::NewRelic::Agent.config[:log_file_path].casecmp(NewRelic::STANDARD_OUT) == 0
+        ::NewRelic::Agent.config[:log_file_path].casecmp(NewRelic::STANDARD_OUT) == 0 ||
+          ::NewRelic::Agent.config[:'serverless_mode.enabled']
       end
 
       def find_or_create_file_path(path_setting, root)

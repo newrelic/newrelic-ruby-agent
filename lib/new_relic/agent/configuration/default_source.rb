@@ -52,9 +52,24 @@ module NewRelic
           result
         end
 
+        def self.default_settings(key)
+          ::NewRelic::Agent::Configuration::DEFAULTS[key]
+        end
+
+        def self.value_from_defaults(key, subkey)
+          default_settings(key)&.send(:[], subkey)
+        end
+
+        def self.allowlist_for(key)
+          value_from_defaults(key, :allowlist)
+        end
+
+        def self.default_for(key)
+          value_from_defaults(key, :default)
+        end
+
         def self.transform_for(key)
-          default_settings = ::NewRelic::Agent::Configuration::DEFAULTS[key]
-          default_settings[:transform] if default_settings
+          value_from_defaults(key, :transform)
         end
 
         def self.config_search_paths
@@ -360,6 +375,26 @@ module NewRelic
               - a.third.event
           DESCRIPTION
         },
+        :'ai_monitoring.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `false`, all LLM instrumentation (OpenAI only for now) will be disabled and no metrics, events, or spans will be sent. AI Monitoring is automatically disabled if `high_security` mode is enabled.'
+        },
+        :'ai_monitoring.record_content.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => <<~DESCRIPTION
+            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
+
+            The excluded attributes include:
+              * `content` from LlmChatCompletionMessage events
+              * `input` from LlmEmbedding events
+          DESCRIPTION
+        },
         # this is only set via server side config
         :apdex_t => {
           :default => 0.5,
@@ -554,6 +589,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'When set to `true`, forces a synchronous connection to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
         },
+        :thread_local_tracer_state => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, tracer state storage is thread-local, otherwise, fiber-local'
+        },
         :timeout => {
           :default => 2 * 60, # 2 minutes
           :public => true,
@@ -720,7 +762,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated at the beginning and end.'
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated in the middle, preserving the beginning and the end of the stack trace.'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
@@ -773,6 +815,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :allowlist => %w[debug info warn error fatal unknown DEBUG INFO WARN ERROR FATAL UNKNOWN],
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
@@ -1570,6 +1613,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of `Net::HTTP` at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.ruby_openai' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),
           :documentation_default => 'auto',
@@ -1807,6 +1859,17 @@ module NewRelic
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
+        },
+        # Serverless
+        :'serverless_mode.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
+          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
+                          'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
+                          "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
         },
         # Sidekiq
         :'sidekiq.args.include' => {
@@ -2216,6 +2279,7 @@ module NewRelic
           :public => true,
           :type => Symbol,
           :allowed_from_server => false,
+          :allowlist => %i[none low medium high],
           :external => :infinite_tracing,
           :description => <<~DESC
             Configure the compression level for data sent to the trace observer.

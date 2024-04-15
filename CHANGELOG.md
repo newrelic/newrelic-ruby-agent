@@ -1,13 +1,67 @@
 # New Relic Ruby Agent Release Notes
 
-## v9.7.0
+## dev
 
+Version <dev> adds support for Elasticsearch 8.13.0 and the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+
+- **Feature: Add support for Elasticsearch 8.13.0**
+
+  Elasticsearch 8.13.0 increased the number of arguments used in the method the agent instruments, `Elastic::Transport::Client#perform_request`. Now, the agent supports a variable number of arguments for the instrumented method to prevent future `ArgumentError`s.
+
+- **Bugfix: Add 'request.temperature' to ruby-openai chat completion summaries**
+
+  Previously, the agent was not reporting the `request.temperature` attribute on `LlmChatCompletionSummary` events through ruby-openai instrumentation. We are now reporting this attribute.
+
+## v9.8.0
+
+Version 9.8.0 introduces instrumentation for ruby-openai, adds the option to store tracer state on the thread-level, hardens the browser agent insertion logic to better proactively anticipate errors, and prevents excpetions from being raised in the Active Support Broadcast logger instrumentation.
+
+- **Feature: Add instrumentation for ruby-openai**
+
+  Instrumentation has been added for the [ruby-openai](https://github.com/alexrudall/ruby-openai) gem, supporting versions 3.4.0 and higher [(PR#2442)](https://github.com/newrelic/newrelic-ruby-agent/pull/2442). While ruby-openai instrumentation is enabled by default, the configuration option `ai_monitoring.enabled` is disabled by default and controls all AI monitoring. `ai_monitoring.enabled` must be set to `true` in order to receive ruby-openai instrumentation. High-Security Mode must be disabled in order to receive AI monitoring.
+
+  Calls to embedding and chat completion endpoints are automatically traced. These events can be enhanced with the introduction of two new APIs. Custom attributes can also be added to LLM events using the API `NewRelic::Agent.add_custom_attributes`, but they must be prefixed with `llm.`. For example, `NewRelic::Agent.add_custom_attributes({'llm.user_id': user_id})`.
+
+- **Feature: Add AI monitoring APIs**
+
+  This version introduces two new APIs that allow users to record additional information on LLM events:
+  * `NewRelic::Agent.record_llm_feedback_event` - Records user feedback events.
+  * `NewRelic::Agent.set_llm_token_count_callback` - Sets a callback proc for calculating `token_count` attributes for embedding and chat completion message events.
+
+  Visit [RubyDoc](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/) for more information on each of these APIs.
+
+- **Feature: Store tracer state on thread-level**
+
+  A new configuration option, `thread_local_tracer_state`, stores New Relic's tracer state on the thread-level, as opposed to the default fiber-level storage. This configuration is turned off by default. Our thanks go to community member [@markiz](https://github.com/markiz) who contributed the idea, code, configuration option, and tests for this new feature! [PR#2475](https://github.com/newrelic/newrelic-ruby-agent/pull/2475).
+
+- **Bugfix: Harden the browser agent insertion logic**
+
+  With [Issue#2462](https://github.com/newrelic/newrelic-ruby-agent/issues/2462), community member [@miry](https://github.com/miry) explained that it was possible for an HTTP response headers hash to have symbols for values. Not only would these symbols prevent the inclusion of the New Relic browser agent tag in the response body, but more importantly they would cause an exception that would bubble up to the monitored web application itself. With [PR#2465](https://github.com/newrelic/newrelic-ruby-agent/pull/2465) symbol based values are now supported and all other potential future exceptions are now handled. Additionally, the refactor to support symbols has been shown through benchmarking to give the processing of string and mixed type hashes a slight speed boost too.
+
+- **Bugfix: Prevent Exception in Active Support Broadcast logger instrumentation**
+
+  Previously, in certain situations the agent could cause an exception to be raised when attempting to interact with a broadcast log event. This has been fixed. Thanks to [@nathan-appere](https://github.com/nathan-appere) for reporting this issue and providing a fix! [PR#2510](https://github.com/newrelic/newrelic-ruby-agent/pull/2510)
+
+
+## v9.7.1
+
+Version 9.7.1 fixes a ViewComponent instrumentation bug and enforces maximum size limits for custom event attributes.
+
+- **Bugfix: Stop suppressing ViewComponent errors**
+
+  Previously, the agent suppressed ViewComponent render errors. The agent now reports these errors and allows them to raise. Thank you [@mjacobus](https://github.com/mjacobus) for reporting this bug and providing a fix! [PR#2410](https://github.com/newrelic/newrelic-ruby-agent/pull/2410)
+
+- **Bugfix: Enforce maximum size limits for custom event attributes**
+
+  Previously, the agent would allow custom event attributes to be any size. This would lead to the New Relic backend dropping attributes larger than the maximum size. Now, the agent will truncate custom event attribute values to 4095 characters, attribute names to 255 characters, and the total count of attributes to 64. [PR#2401](https://github.com/newrelic/newrelic-ruby-agent/pull/2401)
+
+## v9.7.0
 
 Version 9.7.0 introduces ViewComponent instrumentation, changes the endpoint used to access the cluster name for Elasticsearch instrumentation, removes the creation of the Ruby/Thread and Ruby/Fiber spans, and adds support for Falcon.
 
 - **Feature: ViewComponent instrumentation**
 
-  [ViewComponent](https://viewcomponent.org/) is a now an instrumented framework. The agent currently supports Roda versions 2.0.0+. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367) 
+  [ViewComponent](https://viewcomponent.org/) is a now an instrumented library. [PR#2367](https://github.com/newrelic/newrelic-ruby-agent/pull/2367)
 
 - **Feature: Use root path to access Elasticsearch cluster name**
 

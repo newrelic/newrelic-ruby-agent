@@ -124,6 +124,8 @@ module NewRelic
         # Warn the user if they have configured their agent not to
         # send data, that way we can see this clearly in the log file
         def monitoring?
+          return false if Agent.config[:'serverless_mode.enabled']
+
           if Agent.config[:monitor_mode]
             true
           else
@@ -146,7 +148,6 @@ module NewRelic
           end
         end
 
-        # A correct license key exists and is of the proper length
         def has_correct_license_key?
           has_license_key? && correct_license_length
         end

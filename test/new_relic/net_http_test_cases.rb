@@ -137,4 +137,28 @@ module NetHttpTestCases
       'External/[::1]/Net::HTTP/GET' => {:call_count => 1}
     )
   end
+
+  def test_does_not_attempt_to_populate_response_headers_without_openai
+    populate_was_called = false
+    NewRelic::Agent::LLM.stub(:openai_parent?, false) do
+      NewRelic::Agent::LLM.stub(:populate_openai_response_headers, proc { |_h| populate_was_called = true }) do
+        in_transaction do
+          get_response
+        end
+      end
+    end
+
+    refute populate_was_called
+  end
+
+  def test_attempts_to_populate_response_headers_with_openai
+    populate_was_called = false
+    NewRelic::Agent::LLM.stub(:openai_parent?, true) do
+      NewRelic::Agent::LLM.stub(:populate_openai_response_headers, proc { |_h| populate_was_called = true }) do
+        in_transaction { get_response }
+      end
+    end
+
+    assert populate_was_called
+  end
 end

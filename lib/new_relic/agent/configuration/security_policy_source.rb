@@ -7,6 +7,8 @@ require 'new_relic/agent/configuration/dotted_hash'
 module NewRelic
   module Agent
     module Configuration
+      # The Language Security Policy Source gives customers the ability to
+      # configure high security mode settings.
       class SecurityPolicySource < DottedHash
         class << self
           def enabled?(option)
@@ -144,6 +146,15 @@ module NewRelic
               supported: true,
               enabled_fn: method(:not_empty?),
               disabled_value: [],
+              permitted_fn: nil
+            }
+          ],
+          'ai_monitoring' => [
+            {
+              option: :'ai_monitoring.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
+              disabled_value: false,
               permitted_fn: nil
             }
           ],
