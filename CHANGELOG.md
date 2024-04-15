@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.9.0
 
-Version <dev> introduces support for AWS Lambda serverless function observability, adds support for Elasticsearch 8.13.0, and adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
+Version 9.9.0 introduces support for AWS Lambda serverless function observability, adds support for Elasticsearch 8.13.0, and adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
 
 - **Feature: Serverless Mode for AWS Lambda**
 
