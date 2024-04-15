@@ -2500,6 +2500,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
+          :allowlist => %w[IAST RASP],
           :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported',
           :dynamic_name => true
         },
@@ -2544,6 +2545,15 @@ module NewRelic
           :external => true,
           :allowed_from_server => false,
           :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
+        },
+        :'security.request.body_limit' => {
+          :default => 300,
+          :allow_nil => true,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => false,
+          :description => 'Defines the request body limit to process in security events(In KB). The default value is 300KB.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
