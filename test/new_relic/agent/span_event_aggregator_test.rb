@@ -80,15 +80,17 @@ module NewRelic
       include NewRelic::CommonAggregatorTests
 
       def test_supportability_metrics_for_span_events
-        with_config(aggregator.class.capacity_key => 5) do
-          12.times { generate_event }
+        seen = 25_000
+        captured = 10_000
+        with_config(aggregator.class.capacity_key => captured) do
+          seen.times { generate_event }
         end
 
-        assert_equal 5, last_events.size
+        assert_equal captured, last_events.size
 
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => {call_count: 12}})
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => {call_count: 5}})
-        assert_metrics_recorded({'Supportability/SpanEvent/Discarded' => {call_count: 7}})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => {call_count: seen}})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => {call_count: captured}})
+        assert_metrics_recorded({'Supportability/SpanEvent/Discarded' => {call_count: (seen - captured)}})
       end
     end
   end
