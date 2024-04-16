@@ -769,10 +769,10 @@ module NewRelic
         :'browser_monitoring.content_security_policy_nonce' => {
           :default => value_of(:'rum.enabled'),
           :documentation_default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables injection of Content Security Policy Nonce in browser monitoring scripts. https://content-security-policy.com/nonce/'
+          :description => 'If `true`, enables auto-injection of [Content Security Policy Nonce](https://content-security-policy.com/nonce/) in browser monitoring scripts. For now, auto-injection only works with Rails 5.2+.'
         },
         # Transaction events
         :'transaction_events.enabled' => {
