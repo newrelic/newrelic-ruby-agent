@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
       - uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
         with:
           ruby-version: '3.2'
@@ -41,7 +41,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -204,7 +204,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -282,7 +282,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # tag v3.5.0
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1

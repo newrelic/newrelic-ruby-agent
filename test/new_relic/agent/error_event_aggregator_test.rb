@@ -89,6 +89,26 @@ module NewRelic
         assert_equal 80, intrinsics['port']
       end
 
+      def test_TransactionError_has_a_transaction_id
+        in_transaction do |txn|
+          generate_error
+          intrinsics, *_ = last_error_event
+
+          assert_equal txn.guid, intrinsics['guid']
+        end
+      end
+
+      def test_TransactionError_has_a_transaction_id_without_dt
+        with_config(:'distributed_tracing.enabled' => false) do
+          in_transaction do |txn|
+            generate_error
+            intrinsics, *_ = last_error_event
+
+            assert_equal txn.guid, intrinsics['guid']
+          end
+        end
+      end
+
       def test_errors_not_noticed_when_disabled
         with_server_source(:'error_collector.capture_events' => false) do
           generate_error

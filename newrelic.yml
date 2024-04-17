@@ -629,6 +629,12 @@ common: &default_settings
   # before shutting down.
   # send_data_on_exit: true
 
+  # If true, the agent will operate in a streamlined mode suitable for use with
+  # short-lived serverless functions. NOTE: Only AWS Lambda functions are supported
+  # currently and this option is not intended for use without New Relic's Ruby
+  # Lambda layer offering.
+  # serverless_mode.enabled: false
+
   # An array of strings that will collectively serve as a denylist for filtering
   # which Sidekiq job arguments get reported to New Relic. To capture any Sidekiq
   # arguments, 'job.sidekiq.args.*' must be added to the separate

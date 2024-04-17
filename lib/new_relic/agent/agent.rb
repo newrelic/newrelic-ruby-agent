@@ -34,6 +34,7 @@ require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
+require 'new_relic/agent/serverless_handler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
 
@@ -96,6 +97,7 @@ module NewRelic
         @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
+        @serverless_handler = ServerlessHandler.new
       end
 
       def init_event_handlers
@@ -172,6 +174,7 @@ module NewRelic
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
+        attr_reader :serverless_handler
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
@@ -307,7 +310,7 @@ module NewRelic
           @stats_engine = StatsEngine.new
         end
 
-        def flush_pipe_data
+        def flush_pipe_data # used only by resque
           if connected? && @service.is_a?(PipeService)
             transmit_data_types
           end
