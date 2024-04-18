@@ -20,6 +20,7 @@ if defined?(Rack::Test)
     class TestApp
       @@doc = nil
       @@next_response = nil
+      @@use_nonce = false
 
       def self.doc=(other)
         @@doc = other
@@ -33,7 +34,20 @@ if defined?(Rack::Test)
         @@next_response
       end
 
+      def self.enable_nonce
+        @@use_nonce = true
+      end
+
+      def self.disable_nonce
+        @@use_nonce = false
+      end
+
+      def self.canned_nonce
+        @@canned_nonce ||= SecureRandom.base64
+      end
+
       def call(env)
+        apply_nonce(env)
         advance_process_time(0.1)
         @@doc ||= <<~EOL
           <html>
@@ -51,6 +65,13 @@ if defined?(Rack::Test)
         @@next_response = nil
 
         [200, {'Content-Type' => 'text/html'}, response]
+      end
+
+      def apply_nonce(env)
+        return unless @@use_nonce
+        return unless defined?(ActionDispatch::ContentSecurityPolicy::Request)
+
+        env[ActionDispatch::ContentSecurityPolicy::Request::NONCE] = self.class.canned_nonce
       end
     end
 
@@ -79,6 +100,17 @@ if defined?(Rack::Test)
       TestApp.doc = nil
       NewRelic::Agent.config.remove_config(@config)
       NewRelic::Agent.agent.transaction_sampler.reset!
+    end
+
+    def setup_nonce
+      TestApp.enable_nonce
+      # framework can be tricky via with_config, so manually hack into the cache instead
+      NewRelic::Agent.config.instance_variable_get(:@cache)[:'browser_monitoring.content_security_policy_nonce'] = true
+      NewRelic::Agent.config.instance_variable_get(:@cache)[:framework] = :rails_notifications
+    end
+
+    def teardown_nonce
+      TestApp.disable_nonce
     end
 
     def test_make_sure_header_is_set
@@ -120,6 +152,24 @@ if defined?(Rack::Test)
       get('/')
 
       assert last_request.env.key?(NewRelic::Rack::BrowserMonitoring::ALREADY_INSTRUMENTED_KEY)
+    end
+
+    def test_with_nonce
+      setup_nonce
+
+      get('/')
+
+      assert_match(/nonce="#{TestApp.canned_nonce}"/, last_response.body,
+        "Expected the response body to contain a nonce value of #{TestApp.canned_nonce}, got: #{last_response.body}")
+    ensure
+      teardown_nonce
+    end
+
+    def test_without_nonce
+      get('/')
+
+      refute_match(/nonce="/, last_response.body,
+        "Expected the response body not to contain a nonce, got: #{last_response.body}")
     end
 
     # RUM header auto-insertion testing
