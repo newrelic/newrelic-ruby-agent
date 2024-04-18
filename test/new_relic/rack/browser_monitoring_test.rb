@@ -164,7 +164,7 @@ if defined?(Rack::Test)
       assert_match(/nonce="#{TestApp.canned_nonce}"/, last_response.body,
         "Expected the response body to contain a nonce value of #{TestApp.canned_nonce}, got: #{last_response.body}")
     ensure
-      teardown_nonce
+      teardown_nonce unless defined?(Rails)
     end
 
     def test_without_nonce
