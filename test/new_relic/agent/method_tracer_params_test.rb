@@ -28,6 +28,8 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   end
 
   class UntracedMethods
+    include NewRelic::Agent::MethodTracer
+
     def expect_deprecation_warnings?
       RUBY_VERSION >= '2.7.0' && RUBY_VERSION < '3.0.0'
     end
@@ -68,8 +70,6 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   end
 
   class TracedMethods < UntracedMethods
-    include NewRelic::Agent::MethodTracer
-
     add_method_tracer :no_args
     add_method_tracer :last_arg_expects_a_hash
     add_method_tracer :last_arg_is_a_keyword
