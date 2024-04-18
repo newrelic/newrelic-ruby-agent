@@ -161,14 +161,16 @@ if defined?(Rack::Test)
     def test_with_nonce
       skip 'We currently only test nonce when a Rails constant is defined' unless defined?(TestApp.nonce_constant)
 
-      setup_nonce
+      begin
+        setup_nonce
 
-      get('/')
+        get('/')
 
-      assert_match(/nonce="#{Regexp.escape(TestApp.canned_nonce)}"/m, last_response.body,
-        "Expected the response body to contain a nonce value of #{TestApp.canned_nonce}, got: #{last_response.body}")
-    ensure
-      teardown_nonce unless defined?(Rails)
+        assert_match(/nonce="#{Regexp.escape(TestApp.canned_nonce)}"/m, last_response.body,
+          "Expected the response body to contain a nonce value of #{TestApp.canned_nonce}, got: #{last_response.body}")
+      ensure
+        teardown_nonce
+      end
     end
 
     def test_without_nonce
