@@ -543,12 +543,12 @@ end
 def with_config(config_hash, at_start = true)
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
   NewRelic::Agent.config.add_config_for_testing(config, at_start)
-  NewRelic::Agent.instance.refresh_attribute_filter
+  NewRelic::Agent&.instance.refresh_attribute_filter
   begin
     yield
   ensure
     NewRelic::Agent.config.remove_config(config)
-    NewRelic::Agent.instance.refresh_attribute_filter
+    NewRelic::Agent&.instance.refresh_attribute_filter
   end
 end
 
