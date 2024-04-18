@@ -61,6 +61,7 @@ module NewRelic
       def nonce(env)
         return unless NewRelic::Agent.config[:'browser_monitoring.content_security_policy_nonce']
         return unless NewRelic::Agent.config[:framework] == :rails_notifications
+        return unless defined?(ActionDispatch::ContentSecurityPolicy::Request)
 
         env[ActionDispatch::ContentSecurityPolicy::Request::NONCE]
       end

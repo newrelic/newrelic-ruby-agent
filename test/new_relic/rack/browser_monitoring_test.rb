@@ -155,6 +155,8 @@ if defined?(Rack::Test)
     end
 
     def test_with_nonce
+      skip 'We currently only test nonce with Rails' unless defined?(Rails)
+
       setup_nonce
 
       get('/')
@@ -166,6 +168,8 @@ if defined?(Rack::Test)
     end
 
     def test_without_nonce
+      skip 'We currently only test nonce with Rails' unless defined?(Rails)
+
       get('/')
 
       refute_match(/nonce="/, last_response.body,
