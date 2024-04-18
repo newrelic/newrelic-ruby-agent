@@ -50,6 +50,11 @@ if defined?(Rack::Test)
         ActionDispatch::ContentSecurityPolicy::Request::NONCE
       end
 
+      def self.skip_nonce?
+        # norails envs have ActionDispatch, so also check for Rails
+        !defined?(nonce_constant) || !defined?(Rails)
+      end
+
       def call(env)
         apply_nonce(env)
         advance_process_time(0.1)
@@ -159,7 +164,7 @@ if defined?(Rack::Test)
     end
 
     def test_with_nonce
-      skip 'We currently only test nonce when a Rails constant is defined' unless defined?(TestApp.nonce_constant)
+      skip 'We currently only test nonce when a Rails constant is defined' if TestApp.skip_nonce?
 
       begin
         setup_nonce
@@ -174,7 +179,7 @@ if defined?(Rack::Test)
     end
 
     def test_without_nonce
-      skip 'We currently only test nonce when a Rails constant is defined' unless defined?(TestApp.nonce_constant)
+      skip 'We currently only test nonce when a Rails constant is defined' if TestApp.skip_nonce?
 
       get('/')
 
