@@ -51,8 +51,7 @@ if defined?(Rack::Test)
       end
 
       def self.skip_nonce?
-        # norails envs have ActionDispatch, so also check for Rails
-        !defined?(nonce_constant) || !defined?(Rails)
+        !defined?(Rails) || "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}".to_f < 5.2
       end
 
       def call(env)
@@ -78,7 +77,7 @@ if defined?(Rack::Test)
 
       def apply_nonce(env)
         return unless @@use_nonce
-        return unless defined?(ActionDispatch::ContentSecurityPolicy::Request)
+        return unless defined?(self.class.nonce_constant)
 
         env[self.class.nonce_constant] = self.class.canned_nonce
       end
