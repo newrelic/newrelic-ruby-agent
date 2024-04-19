@@ -46,6 +46,14 @@ if defined?(Rack::Test)
         @@canned_nonce ||= SecureRandom.base64
       end
 
+      def self.nonce_constant
+        ActionDispatch::ContentSecurityPolicy::Request::NONCE
+      end
+
+      def self.skip_nonce?
+        !defined?(Rails) || "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}".to_f < 5.2
+      end
+
       def call(env)
         apply_nonce(env)
         advance_process_time(0.1)
@@ -69,9 +77,9 @@ if defined?(Rack::Test)
 
       def apply_nonce(env)
         return unless @@use_nonce
-        return unless defined?(ActionDispatch::ContentSecurityPolicy::Request)
+        return unless defined?(self.class.nonce_constant)
 
-        env[ActionDispatch::ContentSecurityPolicy::Request::NONCE] = self.class.canned_nonce
+        env[self.class.nonce_constant] = self.class.canned_nonce
       end
     end
 
@@ -155,20 +163,22 @@ if defined?(Rack::Test)
     end
 
     def test_with_nonce
-      skip 'We currently only test nonce with Rails' unless defined?(Rails)
+      skip 'We currently only test nonce when a Rails constant is defined' if TestApp.skip_nonce?
 
-      setup_nonce
+      begin
+        setup_nonce
 
-      get('/')
+        get('/')
 
-      assert_match(/nonce="#{TestApp.canned_nonce}"/, last_response.body,
-        "Expected the response body to contain a nonce value of #{TestApp.canned_nonce}, got: #{last_response.body}")
-    ensure
-      teardown_nonce unless defined?(Rails)
+        assert_match(/nonce="#{Regexp.escape(TestApp.canned_nonce)}"/m, last_response.body,
+          "Expected the response body to contain a nonce value of #{TestApp.canned_nonce}, got: #{last_response.body}")
+      ensure
+        teardown_nonce
+      end
     end
 
     def test_without_nonce
-      skip 'We currently only test nonce with Rails' unless defined?(Rails)
+      skip 'We currently only test nonce when a Rails constant is defined' if TestApp.skip_nonce?
 
       get('/')
 
