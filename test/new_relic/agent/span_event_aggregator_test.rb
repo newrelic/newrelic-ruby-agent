@@ -80,15 +80,24 @@ module NewRelic
       include NewRelic::CommonAggregatorTests
 
       def test_supportability_metrics_for_span_events
-        with_config(aggregator.class.capacity_key => 5) do
-          12.times { generate_event }
-        end
+        # NOTE: with_config won't work here, as the underlying capacity value
+        #       ends up inside of a cached callback, so we'll directly alter
+        #       the aggregator buffer's capacity and revert the change
+        #       afterwards in an ensure block
+        original_capacity = aggregator.instance_variable_get(:@buffer).capacity
 
-        assert_equal 5, last_events.size
+        seen = 25_000
+        captured = 10_000
+        aggregator.instance_variable_get(:@buffer).capacity = captured
 
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => {call_count: 12}})
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => {call_count: 5}})
-        assert_metrics_recorded({'Supportability/SpanEvent/Discarded' => {call_count: 7}})
+        seen.times { generate_event }
+
+        assert_equal captured, last_events.size
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => {call_count: seen}})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => {call_count: captured}})
+        assert_metrics_recorded({'Supportability/SpanEvent/Discarded' => {call_count: (seen - captured)}})
+      ensure
+        aggregator.instance_variable_get(:@buffer).capacity = original_capacity
       end
     end
   end
