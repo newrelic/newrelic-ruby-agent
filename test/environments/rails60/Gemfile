@@ -25,7 +25,7 @@ platforms :ruby, :rbx do
   elsif RUBY_VERSION < '2.7'
     gem 'sqlite3', '~> 1.5.4'
   else
-    gem 'sqlite3'
+    gem 'sqlite3', '< 2'
   end
 end
 
