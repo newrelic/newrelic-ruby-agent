@@ -9,8 +9,8 @@ suite_condition('async-http needs native C extensions') do
 end
 
 ASYNC_HTTP_VERSIONS = [
-  [nil, 2.5],
-  ['0.59.0', 2.5]
+  [nil, 3.0],
+  ['0.60.2', 2.5]
 ]
 
 def gem_list(async_http_version = nil)
