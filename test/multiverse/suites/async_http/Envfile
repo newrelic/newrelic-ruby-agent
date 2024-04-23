@@ -14,12 +14,8 @@ ASYNC_HTTP_VERSIONS = [
 ]
 
 def gem_list(async_http_version = nil)
-  # async-pool v0.5 appears to have inadvertently broken Ruby v2 compatibility
-  # despite not declaring a dependency on Ruby v3. For Ruby v2 runs, make sure
-  # to lock things to an older async-pool.
   <<~GEM_LIST
     gem 'async-http'#{async_http_version}
-    #{"gem 'async-pool', '0.4'"} if RUBY_VERSION.start_with?('2.') 
     gem 'rack'
   GEM_LIST
 end
