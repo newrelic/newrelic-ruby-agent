@@ -8,9 +8,9 @@ jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@af848b40be8bb463a751551a1180d74782ba8a72 # tag v1.162.0
+      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
         with:
-          ruby-version: 3.2
+          ruby-version: 3.3
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
       - run: gem install httparty
       - name: Check for outdated gems
@@ -45,9 +45,9 @@ jobs:
   cve_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@af848b40be8bb463a751551a1180d74782ba8a72 # tag v1.162.0
+      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
         with:
-          ruby-version: 3.2
+          ruby-version: 3.3
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
       - run: gem install httparty
       - run: gem install feedjira
