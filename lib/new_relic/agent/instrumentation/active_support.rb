@@ -7,6 +7,8 @@ require 'new_relic/agent/instrumentation/active_support_subscriber'
 DependencyDetection.defer do
   named :active_support
 
+  EVENT_NAMES_PARAMETER = :'instrumentation.active_support_notifications.active_support_events'
+
   depends_on do
     !NewRelic::Agent.config[:disable_active_support]
   end
@@ -21,7 +23,8 @@ DependencyDetection.defer do
   end
 
   executes do
-    ActiveSupport::Notifications.subscribe(/\.active_support$/,
+    event_names = NewRelic::Agent.config[EVENT_NAMES_PARAMETER].map { |n| Regexp.escape(n) }.join('|')
+    ActiveSupport::Notifications.subscribe(/\A(?:#{event_names})\z/,
       NewRelic::Agent::Instrumentation::ActiveSupportSubscriber.new)
   end
 end
