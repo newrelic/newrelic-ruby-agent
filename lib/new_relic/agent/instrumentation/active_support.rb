@@ -18,6 +18,10 @@ DependencyDetection.defer do
       !NewRelic::Agent::Instrumentation::ActiveSupportSubscriber.subscribed?
   end
 
+  depends_on do
+    !NewRelic::Agent.config[EVENT_NAMES_PARAMETER].empty?
+  end
+
   executes do
     NewRelic::Agent.logger.info('Installing ActiveSupport instrumentation')
   end
