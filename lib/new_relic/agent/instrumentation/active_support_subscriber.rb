@@ -31,8 +31,20 @@ module NewRelic
 
         def metric_name(name, payload)
           store = payload[:store]
-          method = EVENT_NAME_TO_METHOD_NAME.fetch(name, name.delete_prefix('cache_').delete_suffix('.active_support'))
+          method = method_name(name)
           "Ruby/ActiveSupport#{"/#{store}" if store}/#{method}"
+        end
+
+        def method_name(name)
+          # TODO: OLD RUBIES - remove the <= 2.4 path once 2.5+ is required
+          if RUBY_VERSION.to_f <= 2.4
+            # String#delete_prefix requires Ruby 2.5+
+            # rubocop:disable Performance/DeleteSuffix
+            EVENT_NAME_TO_METHOD_NAME.fetch(name, name.sub(/\Acache_/, '').sub(/\.active_support\z/, ''))
+            # rubocop:enable Performance/DeleteSuffix
+          else
+            EVENT_NAME_TO_METHOD_NAME.fetch(name, name.delete_prefix('cache_').delete_suffix('.active_support'))
+          end
         end
       end
     end
