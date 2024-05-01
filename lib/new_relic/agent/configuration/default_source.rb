@@ -1427,6 +1427,11 @@ module NewRelic
             on caching. Any event name not included in this list will be ignored by the agent. Provide complete event
             names such as 'cache_fetch_hit.active_support'. Do not provide asterisks or regex patterns, and do not
             escape any characters with backslashes.
+
+            For a complete list of all possible Active Support event names, see the
+            [list of caching names](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-—-caching)
+            and the [list of messages names](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-—-messages)
+            from the official Rails documentation.
           ACTIVE_SUPPORT_EVENTS
         },
         :'instrumentation.active_support_broadcast_logger' => {
