@@ -111,6 +111,17 @@ module NewRelic
       end
 
       # Neither ignored nor expected errors impact apdex.
+      #
+      # Ignored errors are checked via `#error_is_ignored?`
+      # Expected errors are checked in 2 separate ways:
+      #   1. The presence of an `expected: true` attribute key/value pair in the
+      #      options hash, which will be set if that key/value pair was used in
+      #      the `notice_error` public API.
+      #   2. By calling `#expected?` which in turn calls `ErrorFilter#expected?`
+      #      which checks for 3 things:
+      #        - A match for user defined HTTP status codes to expect
+      #        - A match for user defined error classes to expect
+      #        - A match for user defined error messages to expect
       # Errors can be expected either at notice time or via
       # :'error_collector.exepcted_status_codes'.
       def error_affects_apdex?(error, options)
