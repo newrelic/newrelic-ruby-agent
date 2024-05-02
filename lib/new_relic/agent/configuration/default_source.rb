@@ -1429,8 +1429,8 @@ module NewRelic
             escape any characters with backslashes.
 
             For a complete list of all possible Active Support event names, see the
-            [list of caching names](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-—-caching)
-            and the [list of messages names](https://guides.rubyonrails.org/active_support_instrumentation.html#active-support-—-messages)
+            [list of caching names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-caching)
+            and the [list of messages names](https://edgeguides.rubyonrails.org/active_support_instrumentation.html#active-support-messages)
             from the official Rails documentation.
           ACTIVE_SUPPORT_EVENTS
         },
