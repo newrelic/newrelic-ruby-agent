@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> fixes a bug that would cause an error and a correspondong expected HTTP status code to negatively impact a transaction's Apdex.
+Version <dev> fixes a bug that would cause an error and a corresponding expected HTTP status code to negatively impact a transaction's Apdex.
 
 - **Bugfix: Expected HTTP status code / error class / error message based errors won't impact Apdex
 
