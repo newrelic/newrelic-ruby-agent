@@ -119,9 +119,9 @@ module NewRelic
       #      the `notice_error` public API.
       #   2. By calling `#expected?` which in turn calls `ErrorFilter#expected?`
       #      which checks for 3 things:
-      #        - A match for user defined HTTP status codes to expect
-      #        - A match for user defined error classes to expect
-      #        - A match for user defined error messages to expect
+      #        - A match for user-defined HTTP status codes to expect
+      #        - A match for user-defined error classes to expect
+      #        - A match for user-defined error messages to expect
       def error_affects_apdex?(error, options)
         return false if error_is_ignored?(error)
         return false if options[:expected]
