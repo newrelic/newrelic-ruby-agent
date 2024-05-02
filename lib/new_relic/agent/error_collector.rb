@@ -110,6 +110,20 @@ module NewRelic
         false
       end
 
+      # Neither ignored nor expected errors impact apdex.
+      # Errors can be expected either at notice time or via
+      # :'error_collector.exepcted_status_codes'.
+      def error_affects_apdex?(error, options)
+        return false if error_is_ignored?(error)
+        return false if options[:expected]
+
+        !expected?(error, ::NewRelic::Agent::Tracer.state.current_transaction&.http_response_code)
+      rescue => e
+        NewRelic::Agent.logger.error("Could not determine if error '#{error}' should impact Apdex - " \
+                                     "#{e.class}: #{e.message}. Defaulting to 'true' (it should impact Apdex).")
+        true
+      end
+
       # Calling instance_variable_set on a wrapped Java object in JRuby will
       # generate a warning unless that object's class has already been marked
       # as persistent, so we skip tagging of exception objects that are actually
