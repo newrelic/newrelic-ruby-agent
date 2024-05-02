@@ -122,8 +122,6 @@ module NewRelic
       #        - A match for user defined HTTP status codes to expect
       #        - A match for user defined error classes to expect
       #        - A match for user defined error messages to expect
-      # Errors can be expected either at notice time or via
-      # :'error_collector.exepcted_status_codes'.
       def error_affects_apdex?(error, options)
         return false if error_is_ignored?(error)
         return false if options[:expected]
