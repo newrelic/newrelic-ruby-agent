@@ -4,7 +4,7 @@
 
 Version <dev> fixes a bug that would cause an error and a corresponding expected HTTP status code to negatively impact a transaction's Apdex.
 
-- **Bugfix: Expected HTTP status code / error class / error message based errors won't impact Apdex
+- **Bugfix: Expected errors related to HTTP status code, class, and message won't impact Apdex
 
   The agent is supposed to prevent observed application errors from negatively impacting Apdex if the errors are to be either ignored or expected. There are 2 ways for the agent to expect an error: via the `notice_error` API receiving an `expected: true` argument or via a matches made against the configuration file based user defined lists for expected HTTP status codes (`:'error_collector.expected_status_codes'`), expected error classes (`:'error_collector.expected_classes'`), or expected error messages (`:'error_collector.expected_messages'`). Previously only errors expected via the `notice_error` API were correctly prevented from impacting Apdex and the configuration parameter based expected errors were incorrectly impacting Apdex. This behavior has been fixed and now both types of expected errors will correctly not impact Apdex. Thanks very much to [@florianpilz](https://github.com/florianpilz) for bringing this issue to our attention. [PR#2619](https://github.com/newrelic/newrelic-ruby-agent/pull/2619)
 
