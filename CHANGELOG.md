@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> fixes a bug that would cause an expected error to negatively impact a transaction's Apdex.
+
+- **Bugfix: Expected errors related to HTTP status code, class, and message won't impact Apdex
+
+  The agent is supposed to prevent observed application errors from negatively impacting Apdex if the errors are either ignored or expected. There are two ways for the agent to expect an error: via the `notice_error` API receiving an `expected: true` argument or via matches made against user-configured lists for expected HTTP status codes (`:'error_collector.expected_status_codes'`), expected error classes (`:'error_collector.expected_classes'`), or expected error messages (`:'error_collector.expected_messages'`). Previously, only errors expected via the `notice_error` API were correctly prevented from impacting Apdex. Expected errors set by configuration incorrectly impacted Apdex. This behavior has been fixed and now both types of expected errors will correctly not impact Apdex. Thanks very much to [@florianpilz](https://github.com/florianpilz) for bringing this issue to our attention. [PR#2619](https://github.com/newrelic/newrelic-ruby-agent/pull/2619)
+
+
 ## v9.9.0
 
 Version 9.9.0 introduces support for AWS Lambda serverless function observability, adds support for Elasticsearch 8.13.0, and adds the 'request.temperature' attribute to chat completion summaries in ruby-openai instrumentation.
