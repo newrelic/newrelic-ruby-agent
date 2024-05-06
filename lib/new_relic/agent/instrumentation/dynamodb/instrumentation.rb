@@ -16,12 +16,12 @@ module NewRelic::Agent::Instrumentation
         product: PRODUCT,
         operation: method_name,
         host: config&.endpoint&.host || DEFAULT_HOST,
-        port_path_or_id: config&.endpoint&.port
+        port_path_or_id: config&.endpoint&.port,
+        collection: args[0][:table_name]
       )
 
       arn = get_arn(args[0])
       segment.add_agent_attribute('cloud.resource_id', arn) if arn
-      segment.add_agent_attribute('tableName', args[0][:table_name]) if args[0][:table_name]
 
       @nr_captured_request = nil # clear request just in case
       begin
