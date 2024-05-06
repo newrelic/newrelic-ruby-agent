@@ -4,54 +4,44 @@
 
 module NewRelic::Agent::Instrumentation
   module Dynamodb
-    PRODUCT = 'dynamodb'
+    PRODUCT = 'DynamoDB'
     DEFAULT_HOST = 'dynamodb.amazonaws.com'
 
-    def build_request_with_new_relic(*args)
+    def instrument_method_with_new_relic(method_name, *args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       NewRelic::Agent.record_instrumentation_invocation(PRODUCT)
 
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT,
-        operation: args[0].to_s,
+        operation: method_name,
         host: config&.endpoint&.host || DEFAULT_HOST,
         port_path_or_id: config&.endpoint&.port
       )
 
-      arn = get_arn(args[1])
-      segment.add_agent_attribute('', arn) if arn
+      arn = get_arn(args[0])
+      segment.add_agent_attribute('cloud.resource_id', arn) if arn
 
+      @nr_captured_request = nil # clear request just in case
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
+        segment.add_agent_attribute('aws.operation', method_name)
+        segment.add_agent_attribute('aws.requestId', @nr_captured_request&.context&.http_response&.headers&.[]('x-amzn-requestid'))
+        segment.add_agent_attribute('aws.region', config&.region)
         segment&.finish
+        binding.irb
       end
     end
 
+    def build_request_with_new_relic(*args)
+      @nr_captured_request = yield
+    end
+
     def get_arn(params)
-      table_name = params[:table_name]
+      return unless params[:table_name]
 
-      # table_name will be most common, but if that doesn't work
-      # there are a couple of other keys in the params that can include either an arn or the table name
-      if table_name.nil?
-        param_arn = params[:backup_arn] ||
-          params[:resource_arn] ||
-          params[:export_arn] ||
-          params[:import_arn] ||
-          params[:table_arn] ||
-          params[:source_table_arn]
-
-        return param_arn if param_arn
-
-        table_name = params[:global_table_name] ||
-          params[:target_table_name] ||
-          params[:table_creation_parameters]&.[](:table_name)
-      end
-
-      return unless table_name
-
-      NewRelic::Agent::Aws.create_arn(PRODUCT, "table/#{table_name}", config)
+      NewRelic::Agent::Aws.create_arn(PRODUCT.downcase, "table/#{params[:table_name]}", config)
     end
   end
 end

@@ -6,6 +6,19 @@ module NewRelic::Agent::Instrumentation
   module Dynamodb::Prepend
     include NewRelic::Agent::Instrumentation::Dynamodb
 
+    %w[create_table
+      delete_item
+      delete_table
+      get_item
+      put_item
+      query
+      scan
+      update_item].each do |method_name|
+        define_method(method_name) do |*args|
+          instrument_method_with_new_relic(method_name, *args) { super(*args) }
+        end
+      end
+
     def build_request(*args)
       build_request_with_new_relic(*args) { super }
     end
