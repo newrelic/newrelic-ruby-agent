@@ -30,7 +30,7 @@ module NewRelic::Agent::Instrumentation
         segment.add_agent_attribute('aws.requestId', @nr_captured_request&.context&.http_response&.headers&.[]('x-amzn-requestid'))
         segment.add_agent_attribute('aws.region', config&.region)
         segment&.finish
-        binding.irb
+        # binding.irb
       end
     end
 
