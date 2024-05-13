@@ -228,7 +228,9 @@ def assert_metrics_recorded(expected)
   expected.each do |specish, expected_attrs|
     expected_spec = metric_spec_from_specish(specish)
     actual_stats = NewRelic::Agent.instance.stats_engine.to_h[expected_spec]
-    if !actual_stats
+    if actual_stats
+      assert(actual_stats)
+    else
       all_specs = NewRelic::Agent.instance.stats_engine.to_h.keys.sort
       matches = all_specs.select { |spec| spec.name == expected_spec.name }
       matches.map! { |m| "  #{m.inspect}" }

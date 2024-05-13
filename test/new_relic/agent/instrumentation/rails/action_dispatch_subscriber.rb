@@ -83,7 +83,6 @@ module NewRelic::Agent::Instrumentation
       skip_unless_minitest5_or_above
 
       exception_object = StandardError.new
-      noticed = false
       segment = MiniTest::Mock.new
       segment.expect :notice_error, nil, [exception_object]
       SUBSCRIBER.stub(:pop_segment, segment, [ID]) do

@@ -780,6 +780,15 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If `true`, enables [auto-injection](/docs/browser/new-relic-browser/installation-configuration/adding-apps-new-relic-browser#select-apm-app) of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
+        # CSP nonce
+        :'browser_monitoring.content_security_policy_nonce' => {
+          :default => value_of(:'rum.enabled'),
+          :documentation_default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables auto-injection of [Content Security Policy Nonce](https://content-security-policy.com/nonce/) in browser monitoring scripts. For now, auto-injection only works with Rails 5.2+.'
+        },
         # Transaction events
         :'transaction_events.enabled' => {
           :default => true,
@@ -1069,7 +1078,9 @@ module NewRelic
             Rails::Command::GenerateCommand
             Rails::Command::InitializersCommand
             Rails::Command::NotesCommand
+            Rails::Command::RakeCommand
             Rails::Command::RoutesCommand
+            Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand
             Rails::Console
             Rails::DBConsole].join(','),
