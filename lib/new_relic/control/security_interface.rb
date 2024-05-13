@@ -36,6 +36,9 @@ module NewRelic
           @agent_started = true
         else
           Agent.logger.info('New Relic Security is completely disabled by one of the user provided config `security.agent.enabled`, `security.enabled`, or `high_security`. Not loading security capabilities.')
+          Agent.logger.info("high_security = #{Agent.config[:high_security]}")
+          Agent.logger.info("security.enabled = #{Agent.config[:'security.enabled']}")
+          Agent.logger.info("security.agent.enabled = #{Agent.config[:'security.agent.enabled']}")
         end
       rescue LoadError
         Agent.logger.info('New Relic security agent not found - skipping')
