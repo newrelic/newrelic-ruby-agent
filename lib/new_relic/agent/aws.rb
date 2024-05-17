@@ -13,19 +13,15 @@ module NewRelic
 
         "arn:aws:#{service}:#{region}:#{account_id}:#{resource}"
       rescue => e
-        # log something prbly
+        NewRelic::Agent.logger.debug("Failed to create ARN: #{e}")
       end
 
       def self.convert_access_key_to_account_id(access_key)
         decoded_key = Integer(decode_to_hex(access_key[4..-1]), 16)
         mask = Integer('7fffffffff80', 16)
         (decoded_key & mask) >> 7
-      rescue => e
-        # log something prbly
       end
 
-      # ############################
-      # helper methods for convert_access_key_to_account_id
       def self.decode_to_hex(access_key)
         bytes = access_key.delete('=').each_char.map { |c| CHARACTERS.index(c) }
 
