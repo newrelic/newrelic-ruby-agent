@@ -1455,7 +1455,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the dynamodb library at start-up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.fiber' => {
           :default => 'auto',
