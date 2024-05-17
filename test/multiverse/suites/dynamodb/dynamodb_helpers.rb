@@ -2,9 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-instrumentation_methods :chain, :prepend
+module DynamodbHelpers
 
-gemfile <<~RB
-  gem 'aws-sdk-dynamodb'
-  gem 'nokogiri'
-RB
+
+
+end
