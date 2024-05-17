@@ -48,7 +48,22 @@ class DynamodbInstrumentationTest < Minitest::Test
     client = create_client
 
     in_transaction do |txn|
-
+      client.create_table({
+        attribute_definitions: [
+          {
+            attribute_name: 'attr_name',
+            attribute_type: 'S'
+          }
+        ],
+        key_schema: [
+          {
+            attribute_name: 'attr_name',
+            key_type: 'HASH'
+          }
+        ],
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
@@ -58,7 +73,15 @@ class DynamodbInstrumentationTest < Minitest::Test
   def test_delete_item_table_name_operation
     client = create_client
     in_transaction do |txn|
-
+      client.delete_item({
+        key: {
+          'key_name' => {
+            s: 'key_value'
+          }
+        },
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
@@ -68,7 +91,10 @@ class DynamodbInstrumentationTest < Minitest::Test
   def test_delete_table_table_name_operation
     client = create_client
     in_transaction do |txn|
-
+      client.delete_table({
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
@@ -78,7 +104,15 @@ class DynamodbInstrumentationTest < Minitest::Test
   def test_get_item_table_name_operation
     client = create_client
     in_transaction do |txn|
-
+      client.get_item({
+        key: {
+          'key_name' => {
+            s: 'key_value'
+          }
+        },
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
@@ -88,7 +122,15 @@ class DynamodbInstrumentationTest < Minitest::Test
   def test_put_item_table_name_operation
     client = create_client
     in_transaction do |txn|
-
+      client.put_item({
+        item: {
+          'key_name' => {
+            s: 'key_value'
+          }
+        },
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
@@ -96,9 +138,7 @@ class DynamodbInstrumentationTest < Minitest::Test
   end
 
   def test_query_table_name_operation
-    client = Aws::DynamoDB::Client.new(
-      region: 'us-east-2'
-    )
+    client = create_client
 
     in_transaction do |txn|
       client.query({
@@ -115,17 +155,36 @@ class DynamodbInstrumentationTest < Minitest::Test
   def test_scan_table_name_operation
     client = create_client
     in_transaction do |txn|
-
+      client.scan({
+        expression_attribute_names: {
+          '#KN' => 'AlbumTitle'
+        },
+        filter_expression: 'key_name = :a',
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
-    assert_equal 'scan_table', @segment.operation
+    assert_equal 'scan', @segment.operation
   end
 
   def test_update_item_table_name_operation
     client = create_client
     in_transaction do |txn|
-
+      client.update_item({
+        key: {
+          'key_name' => 'value1'
+        },
+        attribute_updates: {
+          'key_name' => {
+            value: 'value2',
+            action: 'ADD'
+          }
+        },
+        table_name: 'test-table'
+      })
+      @segment = txn.segments[1]
     end
 
     assert_equal 'test-table', @segment.collection
