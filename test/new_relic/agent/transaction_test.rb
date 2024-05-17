@@ -324,10 +324,13 @@ module NewRelic::Agent
 
       with_ignore_error_filter(filter) do
         txn_name = 'Controller/whatever'
+
+        # this one doesn't impact Apdex
         in_web_transaction(txn_name) do
           Transaction.notice_error(SillyError.new)
         end
 
+        # this one does impact Apdex
         in_web_transaction(txn_name) do
           Transaction.notice_error(RuntimeError.new)
         end
@@ -336,6 +339,49 @@ module NewRelic::Agent
       assert_metrics_recorded(
         'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
         'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
+      )
+    end
+
+    def test_noticed_errors_that_are_expected_do_not_impact_apdex
+      txn_name = 'Controller/BigDweebEnergy'
+      # this one doesn't impact Apdex
+      in_web_transaction(txn_name) do
+        Transaction.notice_error(RuntimeError.new, expected: true)
+      end
+
+      # this one does impact Apdex
+      in_web_transaction(txn_name) do
+        Transaction.notice_error(RuntimeError.new)
+      end
+
+      assert_metrics_recorded(
+        txn_name => {},
+        'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+        'Apdex/BigDweebEnergy' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
+      )
+    end
+
+    def test_expected_status_code_based_errors_do_not_impact_apdex
+      expected_status_code = 418
+      txn_name = 'Controller/BillAmend'
+
+      with_config(:'error_collector.expected_status_codes' => "11,38,#{expected_status_code}") do
+        # this one doesn't impact Apdex
+        in_web_transaction(txn_name) do |txn|
+          txn.http_response_code = expected_status_code
+          Transaction.notice_error(RuntimeError.new)
+        end
+
+        # this one does impact Apdex
+        in_web_transaction(txn_name) do
+          Transaction.notice_error(RuntimeError.new)
+        end
+      end
+
+      assert_metrics_recorded(
+        txn_name => {},
+        'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+        'Apdex/BillAmend' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
       )
     end
 
