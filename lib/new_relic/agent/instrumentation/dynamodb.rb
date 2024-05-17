@@ -10,11 +10,7 @@ DependencyDetection.defer do
   named :dynamodb
 
   depends_on do
-    # The class that needs to be defined to prepend/chain onto. This can be used
-    # to determine whether the library is installed.
     defined?(Aws::DynamoDB::Client)
-    # Add any additional requirements to verify whether this instrumentation
-    # should be installed
   end
 
   executes do
