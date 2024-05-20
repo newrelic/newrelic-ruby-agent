@@ -13,7 +13,7 @@ module NewRelic
 
         "arn:aws:#{service}:#{region}:#{account_id}:#{resource}"
       rescue => e
-        NewRelic::Agent.logger.debug("Failed to create ARN: #{e}")
+        NewRelic::Agent.logger.warn("Failed to create ARN: #{e}")
       end
 
       def self.convert_access_key_to_account_id(access_key)
