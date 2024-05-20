@@ -151,6 +151,35 @@ module NewRelic
           end
         end
 
+        def test_includes_agent_attributes_in_datastore
+          in_transaction do |txn|
+            NewRelic::Agent::Tracer.start_datastore_segment(
+              product: 'PRODUCT',
+              operation: 'method_name',
+              host: 'DEFAULT_HOST',
+              port_path_or_id: 'port'
+            )
+            txn.current_segment.add_agent_attribute('bing', 2)
+            _, _, agent_attrs = SpanEventPrimitive.for_datastore_segment(txn.current_segment)
+
+            assert_equal 2, agent_attrs['bing']
+          end
+        end
+
+        def test_includes_agent_attributes_in_external
+          in_transaction do |txn|
+            NewRelic::Agent::Tracer.start_external_request_segment(
+              library: 'Net::HTTP',
+              uri: 'https://docs.newrelic.com',
+              procedure: 'GET'
+            )
+            txn.current_segment.add_agent_attribute('bing', 2)
+            _, _, agent_attrs = SpanEventPrimitive.for_external_request_segment(txn.current_segment)
+
+            assert_equal 2, agent_attrs['bing']
+          end
+        end
+
         def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
           with_config('span_events.attributes.enabled' => false) do
             with_segment do |segment|
