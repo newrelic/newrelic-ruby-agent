@@ -29,18 +29,19 @@ class DynamodbInstrumentationTest < Minitest::Test
         expression_attribute_values: {':v1' => 'value'},
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal NewRelic::Agent::Transaction::DatastoreSegment, @segment.class
-    assert_equal 'query', @segment.operation
-    assert_equal 'DynamoDB', @segment.product
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'dynamodb.us-east-2.amazonaws.com', @segment.host
-    assert_equal 'us-east-2', @segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)['aws.region']
-    assert_equal 'query', @segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)['aws.operation']
-    assert_equal '1234321', @segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)['aws.requestId']
-    assert_equal 'test-arn', @segment.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)['cloud.resource_id']
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'datastore', span[0]['category']
+    assert_equal 'Datastore/statement/DynamoDB/test-table/query', span[0]['name']
+
+    assert_equal 'dynamodb.us-east-2.amazonaws.com', span[2]['peer.hostname']
+    assert_equal 'us-east-2', span[2]['aws.region']
+    assert_equal 'query', span[2]['aws.operation']
+    assert_equal '1234321', span[2]['aws.requestId']
+    assert_equal 'test-arn', span[2]['cloud.resource_id']
   end
 
   def test_create_table_table_name_operation
@@ -62,11 +63,12 @@ class DynamodbInstrumentationTest < Minitest::Test
         ],
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'create_table', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/create_table', span[0]['name']
   end
 
   def test_delete_item_table_name_operation
@@ -80,11 +82,12 @@ class DynamodbInstrumentationTest < Minitest::Test
         },
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'delete_item', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/delete_item', span[0]['name']
   end
 
   def test_delete_table_table_name_operation
@@ -93,11 +96,12 @@ class DynamodbInstrumentationTest < Minitest::Test
       client.delete_table({
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'delete_table', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/delete_table', span[0]['name']
   end
 
   def test_get_item_table_name_operation
@@ -111,11 +115,12 @@ class DynamodbInstrumentationTest < Minitest::Test
         },
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'get_item', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/get_item', span[0]['name']
   end
 
   def test_put_item_table_name_operation
@@ -129,11 +134,12 @@ class DynamodbInstrumentationTest < Minitest::Test
         },
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'put_item', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/put_item', span[0]['name']
   end
 
   def test_query_table_name_operation
@@ -144,11 +150,12 @@ class DynamodbInstrumentationTest < Minitest::Test
         expression_attribute_values: {':v1' => 'value'},
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'query', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/query', span[0]['name']
   end
 
   def test_scan_table_name_operation
@@ -161,11 +168,12 @@ class DynamodbInstrumentationTest < Minitest::Test
         filter_expression: 'key_name = :a',
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'scan', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/scan', span[0]['name']
   end
 
   def test_update_item_table_name_operation
@@ -183,10 +191,11 @@ class DynamodbInstrumentationTest < Minitest::Test
         },
         table_name: 'test-table'
       })
-      @segment = txn.segments[1]
     end
 
-    assert_equal 'test-table', @segment.collection
-    assert_equal 'update_item', @segment.operation
+    spans = harvest_span_events!
+    span = spans[1][0]
+
+    assert_equal 'Datastore/statement/DynamoDB/test-table/update_item', span[0]['name']
   end
 end
