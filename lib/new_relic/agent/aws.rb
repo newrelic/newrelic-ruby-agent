@@ -6,6 +6,7 @@ module NewRelic
   module Agent
     module Aws
       CHARACTERS = %w[A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 2 3 4 5 6 7]
+      HEX_MASK = '7fffffffff80'
 
       def self.create_arn(service, resource, config)
         region = config.region
@@ -18,7 +19,7 @@ module NewRelic
 
       def self.convert_access_key_to_account_id(access_key)
         decoded_key = Integer(decode_to_hex(access_key[4..-1]), 16)
-        mask = Integer('7fffffffff80', 16)
+        mask = Integer(HEX_MASK, 16)
         (decoded_key & mask) >> 7
       end
 
