@@ -11,7 +11,7 @@ ACTIVE_SUPPORT_VERSIONS = [
   ['7.1.0', 2.7]
 ]
 
-unshift_rails_edge(ACTIVE_SUPPORT_VERSIONS)
+# unshift_rails_edge(ACTIVE_SUPPORT_VERSIONS)
 
 def gem_list(activesupport_version = nil)
   <<-RB
