@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Aws
-      CHARACTERS = %w[A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 2 3 4 5 6 7]
+      CHARACTERS = %w[A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 2 3 4 5 6 7].freeze
 
       def self.create_arn(service, resource, config)
         region = config.region
