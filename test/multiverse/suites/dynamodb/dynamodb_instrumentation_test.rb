@@ -2,7 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'dynamodb_helpers'
 require 'aws-sdk-dynamodb'
 
 class DynamodbInstrumentationTest < Minitest::Test
