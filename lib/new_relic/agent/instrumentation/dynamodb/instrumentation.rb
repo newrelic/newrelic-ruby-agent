@@ -21,15 +21,15 @@ module NewRelic::Agent::Instrumentation
       )
 
       arn = get_arn(args[0])
-      segment.add_agent_attribute('cloud.resource_id', arn) if arn
+      segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
       @nr_captured_request = nil # clear request just in case
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
-        segment.add_agent_attribute('aws.operation', method_name)
-        segment.add_agent_attribute('aws.requestId', @nr_captured_request&.context&.http_response&.headers&.[]('x-amzn-requestid'))
-        segment.add_agent_attribute('aws.region', config&.region)
+        segment&.add_agent_attribute('aws.operation', method_name)
+        segment&.add_agent_attribute('aws.requestId', @nr_captured_request&.context&.http_response&.headers&.[]('x-amzn-requestid'))
+        segment&.add_agent_attribute('aws.region', config&.region)
         segment&.finish
       end
     end
