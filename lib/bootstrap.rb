@@ -2,12 +2,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# This file is designed to bootstrap a `Bundler.require` based Ruby app (such as
-# a Ruby on Rails app) so that the app can be instrumented and observed by the
+# This file is designed to bootstrap a `Bundler.require`-based Ruby app (such as
+# a Ruby on Rails app) so the app can be instrumented and observed by the
 # New Relic Ruby agent without the agent being added to the app as a dependency.
 #
 # Given a production-ready Ruby app that optionally has a pre-packaged "frozen"
-# or "deployment" based gem bundle, the New Relic Ruby agent can be introduced
+# or "deployment"–gem bundle, the New Relic Ruby agent can be introduced
 # to the app without modifying the app and keeping all of the app's content
 # read-only.
 #
