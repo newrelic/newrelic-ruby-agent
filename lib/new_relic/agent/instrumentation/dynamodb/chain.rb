@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module Dynamodb::Chain
+  module DynamoDB::Chain
     def self.instrument!
       ::Aws::DynamoDB::Client.class_eval do
-        include NewRelic::Agent::Instrumentation::Dynamodb
+        include NewRelic::Agent::Instrumentation::DynamoDB
 
         %w[create_table
           delete_item

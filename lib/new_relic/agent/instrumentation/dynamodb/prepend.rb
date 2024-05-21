@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module Dynamodb::Prepend
-    include NewRelic::Agent::Instrumentation::Dynamodb
+  module DynamoDB::Prepend
+    include NewRelic::Agent::Instrumentation::DynamoDB
 
     %w[create_table
       delete_item

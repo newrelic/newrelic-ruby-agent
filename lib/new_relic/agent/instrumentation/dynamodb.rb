@@ -14,12 +14,12 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing dynamodb instrumentation')
+    NewRelic::Agent.logger.info('Installing DynamoDB instrumentation')
 
     if use_prepend?
-      prepend_instrument Aws::DynamoDB::Client, NewRelic::Agent::Instrumentation::Dynamodb::Prepend
+      prepend_instrument Aws::DynamoDB::Client, NewRelic::Agent::Instrumentation::DynamoDB::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Dynamodb::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::DynamoDB::Chain
     end
   end
 end

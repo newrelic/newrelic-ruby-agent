@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module Dynamodb
+  module DynamoDB
     PRODUCT = 'DynamoDB'
     DEFAULT_HOST = 'dynamodb.amazonaws.com'
 
