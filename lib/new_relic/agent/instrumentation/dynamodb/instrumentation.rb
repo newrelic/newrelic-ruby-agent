@@ -4,6 +4,17 @@
 
 module NewRelic::Agent::Instrumentation
   module DynamoDB
+    INSTRUMENTED_METHODS = %w[
+      create_table
+      delete_item
+      delete_table
+      get_item
+      put_item
+      query
+      scan
+      update_item
+    ].freeze
+
     PRODUCT = 'DynamoDB'
     DEFAULT_HOST = 'dynamodb.amazonaws.com'
 

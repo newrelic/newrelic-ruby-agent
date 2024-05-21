@@ -8,14 +8,7 @@ module NewRelic::Agent::Instrumentation
       ::Aws::DynamoDB::Client.class_eval do
         include NewRelic::Agent::Instrumentation::DynamoDB
 
-        %w[create_table
-          delete_item
-          delete_table
-          get_item
-          put_item
-          query
-          scan
-          update_item].each do |method_name|
+        INSTRUMENTED_METHODS.each do |method_name|
           alias_method("#{method_name}_without_new_relic".to_sym, method_name.to_sym)
 
           define_method(method_name) do |*args|
