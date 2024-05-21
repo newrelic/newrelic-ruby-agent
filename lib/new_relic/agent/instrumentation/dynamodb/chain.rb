@@ -8,7 +8,7 @@ module NewRelic::Agent::Instrumentation
       ::Aws::DynamoDB::Client.class_eval do
         include NewRelic::Agent::Instrumentation::DynamoDB
 
-        INSTRUMENTED_METHODS.each do |method_name|
+        NewRelic::Agent::Instrumentation::DynamoDB::INSTRUMENTED_METHODS.each do |method_name|
           alias_method("#{method_name}_without_new_relic".to_sym, method_name.to_sym)
 
           define_method(method_name) do |*args|
