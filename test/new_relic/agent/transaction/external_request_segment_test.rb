@@ -932,21 +932,6 @@ module NewRelic::Agent
         end
       end
 
-      def test_record_agent_attributes_defaults_to_false
-        segment = NewRelic::Agent::Transaction::ExternalRequestSegment.new('Shoes', 'http://shoesrb.com/', 'GET')
-
-        refute_predicate segment, :record_agent_attributes?
-      end
-
-      def test_record_agent_attributes_can_be_enabled
-        segment = NewRelic::Agent::Transaction::ExternalRequestSegment.new('Hpricot',
-          'https://rubygems.org/gems/hpricot/',
-          'GET')
-        segment.record_agent_attributes = true
-
-        assert_predicate segment, :record_agent_attributes?
-      end
-
       def cat_config
         {
           :cross_process_id => '269975#22824',

@@ -79,17 +79,13 @@ module NewRelic
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[SERVER_ADDRESS_KEY] = segment.uri.host
         intrinsics[SERVER_PORT_KEY] = segment.uri.port
-        agent_attributes = error_attributes(segment) || {}
+        agent_attributes = {}
 
         if allowed?(HTTP_URL_KEY)
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        if segment.respond_to?(:record_agent_attributes?) && segment.record_agent_attributes?
-          agent_attributes.merge!(agent_attributes(segment))
-        end
-
-        [intrinsics, custom_attributes(segment), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       def for_datastore_segment(segment) # rubocop:disable Metrics/AbcSize
@@ -99,7 +95,7 @@ module NewRelic
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
-        agent_attributes = error_attributes(segment) || {}
+        agent_attributes = {}
 
         if segment.database_name && allowed?(DB_INSTANCE_KEY)
           agent_attributes[DB_INSTANCE_KEY] = truncate(segment.database_name)
@@ -123,7 +119,7 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
-        [intrinsics, custom_attributes(segment), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
       end
 
       private
