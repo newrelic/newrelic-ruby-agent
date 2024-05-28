@@ -18,9 +18,9 @@ Version <dev> introduces a new feature to automatically apply nonces from the Ra
 
   Older agent versions that are still supported by New Relic can update to the new list of denylisted constants by having the following line added to the `newrelic.yml` configuration file:
 
-    ```yaml
+  ```yaml
     autostart.denylisted_constants: "Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole"
-    ```
+  ```
 
 ## v9.9.0
 
