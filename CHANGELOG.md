@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> introduces a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
+Version <dev> introduces instrumentation for DynamoDB, adds a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
+
+- **Feature: Add instrumentation for DynamoDB**
+  
+    The agent has added instrumentation for the aws-sdk-dynamodb gem. The agent will now record datastore spans for DynamoDB client calls made with the aws-sdk-dynamodb gem.  [PR#2642](https://github.com/newrelic/newrelic-ruby-agent/pull/2642)
 
 - **Feature: Automatically apply nonces from the Rails content security policy**
 
