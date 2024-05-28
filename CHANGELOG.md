@@ -8,19 +8,19 @@ Version <dev> introduces a new feature to automatically apply nonces from the Ra
 
   To auto-inject browser monitoring with the New Relic Ruby agent, you either need to set your content security policy to 'unsafe-inline' or provide a nonce. Previously, the only way to provide a nonce was by using the [`NewRelic::Agent.browser_timing_header`](https://rubydoc.info/gems/newrelic_rpm/NewRelic/Agent#browser_timing_header-instance_method) API. Now, when a Rails application uses [the content security policy configuration to add a nonce](https://guides.rubyonrails.org/security.html#adding-a-nonce), the nonce will be automatically applied to the browser agent. A new configuration option, [`browser_monitoring.content_security_policy_nonce`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#browser_monitoring-content_security_policy_nonce), toggles this feature. It is on by default. Thank you [@baldarn](https://github.com/baldarn) for submitting this feature! [PR#2544](https://github.com/newrelic/newrelic-ruby-agent/pull/2544)
 
-- **Bugfix: Expected errors related to HTTP status code, class, and message won't impact Apdex
+- **Bugfix: Expected errors related to HTTP status code, class, and message won't impact Apdex**
 
   The agent is supposed to prevent observed application errors from negatively impacting Apdex if the errors are either ignored or expected. There are two ways for the agent to expect an error: via the `notice_error` API receiving an `expected: true` argument or via matches made against user-configured lists for expected HTTP status codes (`:'error_collector.expected_status_codes'`), expected error classes (`:'error_collector.expected_classes'`), or expected error messages (`:'error_collector.expected_messages'`). Previously, only errors expected via the `notice_error` API were correctly prevented from impacting Apdex. Expected errors set by configuration incorrectly impacted Apdex. This behavior has been fixed and now both types of expected errors will correctly not impact Apdex. Thanks very much to [@florianpilz](https://github.com/florianpilz) for bringing this issue to our attention. [PR#2619](https://github.com/newrelic/newrelic-ruby-agent/pull/2619)
 
-- **Bugfix: Do not start the agent automatically when `rails runner` or `rails db` commands are ran
+- **Bugfix: Do not start the agent automatically when `rails runner` or `rails db` commands are ran**
 
-[PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239) taught the agent how to recognize `bin/rails` based contexts that it should not automatically start up in. But `bin/rails runner` and `bin/rails db` commands would still see the agent start automatically. Those 2 contexts will now no longer see the agent start automatically. Thank you to [@jdelStrother](https://github.com/jdelStrother) for both bringing the `bin/rails` context to our attention and for letting us know about the `bin/rails runner` and `bin/rails db` outliers that still needed fixing. [PR#2623](https://github.com/newrelic/newrelic-ruby-agent/pull/2623)
+  [PR#2239](https://github.com/newrelic/newrelic-ruby-agent/pull/2239) taught the agent how to recognize `bin/rails` based contexts that it should not automatically start up in. But `bin/rails runner` and `bin/rails db` commands would still see the agent start automatically. Those 2 contexts will now no longer see the agent start automatically. Thank you to [@jdelStrother](https://github.com/jdelStrother) for both bringing the `bin/rails` context to our attention and for letting us know about the `bin/rails runner` and `bin/rails db` outliers that still needed fixing. [PR#2623](https://github.com/newrelic/newrelic-ruby-agent/pull/2623)
 
-Older agent versions that are still supported by New Relic can update to the new list of denylisted constants by having the following line added to the `newrelic.yml` configuration file:
+  Older agent versions that are still supported by New Relic can update to the new list of denylisted constants by having the following line added to the `newrelic.yml` configuration file:
 
-    ```yaml
+  ```yaml
     autostart.denylisted_constants: "Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole"
-    ```
+  ```
 
 ## v9.9.0
 
