@@ -114,7 +114,7 @@ common: &default_settings
   # Specify a list of constants that should prevent the agent from starting
   # automatically. Separate individual constants with a comma ,. For example,
   # "Rails::Console,UninstrumentedBackgroundJob".
-  # autostart.denylisted_constants: Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RoutesCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole
+  # autostart.denylisted_constants: Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole
 
   # Defines a comma-delimited list of executables that the agent should not
   # instrument. For example, "rake,my_ruby_script.rb".
@@ -143,6 +143,10 @@ common: &default_settings
   # If true, enables auto-injection of the JavaScript header for page load timing
   # (sometimes referred to as real user monitoring or RUM).
   # browser_monitoring.auto_instrument: true
+
+  # If true, enables auto-injection of Content Security Policy Nonce in browser
+  # monitoring scripts. For now, auto-injection only works with Rails 5.2+.
+  # browser_monitoring.content_security_policy_nonce: false
 
   # Manual override for the path to your local CA bundle. This CA bundle will be
   # used to validate the SSL certificate presented by New Relic's data collection
@@ -403,10 +407,6 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.bunny: auto
 
-  # Controls auto-instrumentation of DynamoDb at start-up.
-  # May be one of [auto|prepend|chain|disabled]
-  # instrumentation.dynamodb: auto
-
   # Controls auto-instrumentation of the concurrent-ruby library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.concurrent_ruby: auto
@@ -418,6 +418,10 @@ common: &default_settings
   # Controls auto-instrumentation of Delayed Job at start-up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.delayed_job: auto
+
+  # Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May
+  # be one of [auto|prepend|chain|disabled].
+  # instrumentation.dynamodb: auto
 
   # Controls auto-instrumentation of the elasticsearch library at start-up. May be
   # one of: auto, prepend, chain, disabled.
