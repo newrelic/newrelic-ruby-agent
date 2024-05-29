@@ -394,7 +394,7 @@ module NewRelic
                 * `content` from LlmChatCompletionMessage events
                 * `input` from LlmEmbedding events
 
-              This is an optional security setting if you don't want to record sensitive data sent to and received from your LLMs.
+              This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
           DESCRIPTION
         },
         # this is only set via server side config
