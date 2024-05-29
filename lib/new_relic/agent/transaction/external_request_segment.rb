@@ -23,7 +23,6 @@ module NewRelic
         MISSING_STATUS_CODE = 'MissingHTTPStatusCode'
 
         attr_reader :library, :uri, :procedure, :http_status_code
-        attr_writer :record_agent_attributes
 
         def initialize(library, uri, procedure, start_time = nil) # :nodoc:
           @library = library
@@ -32,7 +31,6 @@ module NewRelic
           @host_header = nil
           @app_data = nil
           @http_status_code = nil
-          @record_agent_attributes = false
           super(nil, nil, start_time)
         end
 
@@ -42,14 +40,6 @@ module NewRelic
 
         def host # :nodoc:
           @host_header || uri.host
-        end
-
-        # By default external request segments only have errors and the http
-        # url recorded as agent attributes. To have all the agent attributes
-        # recorded, use the attr_writer like so `segment.record_agent_attributes = true`
-        # See: SpanEventPrimitive#for_external_request_segment
-        def record_agent_attributes?
-          @record_agent_attributes
         end
 
         # This method adds New Relic request headers to a given request made to an

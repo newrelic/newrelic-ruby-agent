@@ -134,5 +134,5 @@ task :console do
   require 'pry' if ENV['ENABLE_PRY']
   require 'newrelic_rpm'
   ARGV.clear
-  Pry.start
+  ENV['ENABLE_PRY'] ? Pry.start : binding.irb # rubocop:disable Lint/Debugger
 end

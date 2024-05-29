@@ -14,7 +14,7 @@ RAILS_VERSIONS = [
   ['4.2.0', 2.4, 2.4]
 ]
 
-unshift_rails_edge(RAILS_VERSIONS)
+# unshift_rails_edge(RAILS_VERSIONS)
 
 def gem_list(rails_version = nil)
   # earlier thor errors, uncertain if they persist

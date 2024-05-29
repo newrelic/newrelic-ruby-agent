@@ -16,9 +16,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.3'
       - run: bundle
       - run: rubocop
 
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1]
 
     steps:
       - name: Configure git
@@ -50,7 +50,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -72,17 +72,17 @@ jobs:
               "2.7.8": {
                 "rails": "norails,rails61,rails60,rails70"
               },
-              "3.0.6": {
+              "3.0.7": {
                 "rails": "norails,rails61,rails60,rails70"
               },
-              "3.1.4": {
-                "rails": "norails,rails61,rails70,railsedge"
+              "3.1.5": {
+                "rails": "norails,rails61,rails70"
               },
-              "3.2.2": {
-                "rails": "norails,rails61,rails70,railsedge"
+              "3.2.4": {
+                "rails": "norails,rails61,rails70"
               },
-              "3.3.0": {
-                "rails": "norails,rails61,rails70,railsedge"
+              "3.3.1": {
+                "rails": "norails,rails61,rails70"
               }
             }
 
@@ -200,7 +200,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -213,7 +213,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -278,14 +278,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.0.6, 3.1.4, 3.2.2, 3.3.0]
+        ruby-version: [2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@360dc864d5da99d54fcb8e9148c14a84b90d3e88 # tag v1.165.1
+        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
         with:
           ruby-version: ${{ matrix.ruby-version }}
 

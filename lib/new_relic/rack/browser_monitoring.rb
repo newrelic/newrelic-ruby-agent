@@ -38,7 +38,7 @@ module NewRelic
         result = @app.call(env)
         (status, headers, response) = result
 
-        js_to_inject = NewRelic::Agent.browser_timing_header
+        js_to_inject = NewRelic::Agent.browser_timing_header(nonce(env))
         if (js_to_inject != NewRelic::EMPTY_STR) && should_instrument?(env, status, headers)
           response_string = autoinstrument_source(response, js_to_inject)
           if headers.key?(CONTENT_LENGTH)
@@ -56,6 +56,14 @@ module NewRelic
         else
           result
         end
+      end
+
+      def nonce(env)
+        return unless NewRelic::Agent.config[:'browser_monitoring.content_security_policy_nonce']
+        return unless NewRelic::Agent.config[:framework] == :rails_notifications
+        return unless defined?(ActionDispatch::ContentSecurityPolicy::Request)
+
+        env[ActionDispatch::ContentSecurityPolicy::Request::NONCE]
       end
 
       def should_instrument?(env, status, headers)

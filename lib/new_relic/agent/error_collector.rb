@@ -110,6 +110,29 @@ module NewRelic
         false
       end
 
+      # Neither ignored nor expected errors impact apdex.
+      #
+      # Ignored errors are checked via `#error_is_ignored?`
+      # Expected errors are checked in 2 separate ways:
+      #   1. The presence of an `expected: true` attribute key/value pair in the
+      #      options hash, which will be set if that key/value pair was used in
+      #      the `notice_error` public API.
+      #   2. By calling `#expected?` which in turn calls `ErrorFilter#expected?`
+      #      which checks for 3 things:
+      #        - A match for user-defined HTTP status codes to expect
+      #        - A match for user-defined error classes to expect
+      #        - A match for user-defined error messages to expect
+      def error_affects_apdex?(error, options)
+        return false if error_is_ignored?(error)
+        return false if options[:expected]
+
+        !expected?(error, ::NewRelic::Agent::Tracer.state.current_transaction&.http_response_code)
+      rescue => e
+        NewRelic::Agent.logger.error("Could not determine if error '#{error}' should impact Apdex - " \
+                                     "#{e.class}: #{e.message}. Defaulting to 'true' (it should impact Apdex).")
+        true
+      end
+
       # Calling instance_variable_set on a wrapped Java object in JRuby will
       # generate a warning unless that object's class has already been marked
       # as persistent, so we skip tagging of exception objects that are actually
