@@ -69,7 +69,7 @@ module Format
 
   def format_description(value)
     description = ''
-    description += '**DEPRECATED** ' if value[:deprecated]
+    description += '<DoNotTranslate>**DEPRECATED**</DoNotTranslate>' if value[:deprecated]
     description += value[:description]
     description
   end

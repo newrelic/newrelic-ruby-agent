@@ -390,9 +390,11 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
-            The excluded attributes include:
-              * `content` from LlmChatCompletionMessage events
-              * `input` from LlmEmbedding events
+              The excluded attributes include:
+                * `content` from LlmChatCompletionMessage events
+                * `input` from LlmEmbedding events
+
+              This is an optional security setting if you don't want to record sensitive data sent to and received from your LLMs.
           DESCRIPTION
         },
         # this is only set via server side config
@@ -477,12 +479,9 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Forces the exit handler that sends all cached data to collector ' \
-            'before shutting down to be installed regardless of detecting scenarios where it generally should not be. ' \
-            'Known use-case for this option is where Sinatra is running as an embedded service within another framework ' \
-            'and the agent is detecting the Sinatra app and skipping the `at_exit` handler as a result. Sinatra classically ' \
-            'runs the entire application in an `at_exit` block and would otherwise misbehave if the agent\'s `at_exit` handler ' \
-            'was also installed in those circumstances. Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
+          :description => <<~DESC
+            Forces the exit handler that sends all cached data to collector before shutting down to be installed regardless of detecting scenarios where it generally should not be. Known use-case for this option is where Sinatra is running as an embedded service within another framework and the agent is detecting the Sinatra app and skipping the `at_exit` handler as a result. Sinatra classically runs the entire application in an `at_exit` block and would otherwise misbehave if the Agent's `at_exit` handler was also installed in those circumstances. Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting."
+          DESC
         },
         :high_security => {
           :default => false,
@@ -1457,7 +1456,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.fiber' => {
           :default => 'auto',
@@ -1507,7 +1506,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of ethon at start up. May be one of [auto|prepend|chain|disabled]'
+          :description => 'Controls auto-instrumentation of ethon at start up. May be one of `auto`, `prepend`, `chain`, `disabled`'
         },
         :'instrumentation.excon' => {
           :default => 'enabled',
@@ -1577,7 +1576,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of httpx at start up. May be one of [auto|prepend|chain|disabled]'
+          :description => 'Controls auto-instrumentation of httpx at start up. May be one of `auto`, `prepend`, `chain`, `disabled`'
         },
         :'instrumentation.logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
@@ -1639,7 +1638,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`. Defaults to `disabled` in high security mode.'
         },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),
@@ -1982,7 +1981,11 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
+          :description => <<~DESC
+            * Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
+              * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
+              This ensures that the agent captures the maximum amount of distributed traces.
+          DESC
         },
         # Strip exception messages
         :'strip_exception_messages.enabled' => {
