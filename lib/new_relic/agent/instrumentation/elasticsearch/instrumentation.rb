@@ -88,8 +88,8 @@ module NewRelic::Agent::Instrumentation
     private
 
     def nr_operation
-      operation_index = caller_locations.index { |line| line.to_s.match?(OPERATION_PATTERN) }
-      return unless operation_index && caller_locations[operation_index].to_s =~ INSTANCE_METHOD_PATTERN
+      location = caller_locations.detect { |loc| loc.to_s.match?(OPERATION_PATTERN) }
+      return unless location && location.to_s =~ INSTANCE_METHOD_PATTERN
 
       Regexp.last_match(1)
     end
