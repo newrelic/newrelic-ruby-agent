@@ -54,7 +54,7 @@ module NewRelic::Agent::Instrumentation
     #
     #   index
 
-    INSTANCE_METHOD_PATTERN = /:in (?:`|')(?:.+#)([^']+)'\z/.freeze
+    INSTANCE_METHOD_PATTERN = /:in (?:`|')(?:.+#)?([^']+)'\z/.freeze
 
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
