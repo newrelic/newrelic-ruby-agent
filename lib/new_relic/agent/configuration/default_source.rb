@@ -782,7 +782,7 @@ module NewRelic
         # CSP nonce
         :'browser_monitoring.content_security_policy_nonce' => {
           :default => value_of(:'rum.enabled'),
-          :documentation_default => false,
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
