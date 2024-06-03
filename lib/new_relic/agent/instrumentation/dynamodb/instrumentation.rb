@@ -49,10 +49,14 @@ module NewRelic::Agent::Instrumentation
       @nr_captured_request = yield
     end
 
-    def get_arn(params)
-      return unless params[:table_name]
+    def nr_account_id
+      @nr_account_id ||= NewRelic::Agent::Aws.get_account_id(config)
+    end
 
-      NewRelic::Agent::Aws.create_arn(PRODUCT.downcase, "table/#{params[:table_name]}", config)
+    def get_arn(params)
+      return unless params[:table_name] && nr_account_id
+
+      NewRelic::Agent::Aws.create_arn(PRODUCT.downcase, "table/#{params[:table_name]}", config&.region, nr_account_id)
     end
   end
 end

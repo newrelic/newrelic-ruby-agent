@@ -8,16 +8,17 @@ module NewRelic
       CHARACTERS = %w[A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 2 3 4 5 6 7].freeze
       HEX_MASK = '7fffffffff80'
 
-      def self.create_arn(service, resource, config)
-        access_key_id = config&.credentials&.credentials&.access_key_id if config&.credentials&.credentials&.respond_to?(:access_key_id)
-        return unless access_key_id
-
-        region = config.region
-        account_id = NewRelic::Agent::Aws.convert_access_key_to_account_id(access_key_id)
-
+      def self.create_arn(service, resource, region, account_id)
         "arn:aws:#{service}:#{region}:#{account_id}:#{resource}"
       rescue => e
         NewRelic::Agent.logger.warn("Failed to create ARN: #{e}")
+      end
+
+      def self.get_account_id(config)
+        access_key_id = config&.credentials&.credentials&.access_key_id if config&.credentials&.credentials&.respond_to?(:access_key_id)
+        return unless access_key_id
+
+        NewRelic::Agent::Aws.convert_access_key_to_account_id(access_key_id)
       end
 
       def self.convert_access_key_to_account_id(access_key)
