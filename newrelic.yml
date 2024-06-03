@@ -43,6 +43,8 @@ common: &default_settings
   # The excluded attributes include:
   # * content from LlmChatCompletionMessage events
   # * input from LlmEmbedding events
+  # This is an optional security setting to prevent recording sensitive data sent to
+  # and received from your LLMs.
   # ai_monitoring.record_content.enabled: true
 
   # If true, enables capture of all HTTP request headers for all destinations.
@@ -146,7 +148,7 @@ common: &default_settings
 
   # If true, enables auto-injection of Content Security Policy Nonce in browser
   # monitoring scripts. For now, auto-injection only works with Rails 5.2+.
-  # browser_monitoring.content_security_policy_nonce: false
+  # browser_monitoring.content_security_policy_nonce: true
 
   # Manual override for the path to your local CA bundle. This CA bundle will be
   # used to validate the SSL certificate presented by New Relic's data collection
@@ -358,8 +360,8 @@ common: &default_settings
   # embedded service within another framework and the agent is detecting the Sinatra
   # app and skipping the at_exit handler as a result. Sinatra classically runs the
   # entire application in an at_exit block and would otherwise misbehave if the
-  # agent's at_exit handler was also installed in those circumstances. Note:
-  # send_data_on_exit should also be set to true in  tandem with this setting.
+  # Agent's at_exit handler was also installed in those circumstances. Note:
+  # send_data_on_exit should also be set to true in  tandem with this setting."
   # force_install_exit_handler: false
 
   # Ordinarily the agent reports dyno names with a trailing dot and process ID (for
@@ -420,15 +422,15 @@ common: &default_settings
   # instrumentation.delayed_job: auto
 
   # Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May
-  # be one of [auto|prepend|chain|disabled].
+  # be one of auto, prepend, chain, disabled.
   # instrumentation.dynamodb: auto
 
   # Controls auto-instrumentation of the elasticsearch library at start-up. May be
   # one of: auto, prepend, chain, disabled.
   # instrumentation.elasticsearch: auto
 
-  # Controls auto-instrumentation of ethon at start up. May be one of
-  # [auto|prepend|chain|disabled]
+  # Controls auto-instrumentation of ethon at start up. May be one of auto, prepend,
+  # chain, disabled
   # instrumentation.ethon: auto
 
   # Controls auto-instrumentation of Excon at start-up. May be one of: enabled,
@@ -468,8 +470,8 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.httprb: auto
 
-  # Controls auto-instrumentation of httpx at start up. May be one of
-  # [auto|prepend|chain|disabled]
+  # Controls auto-instrumentation of httpx at start up. May be one of auto, prepend,
+  # chain, disabled
   # instrumentation.httpx: auto
 
   # Controls auto-instrumentation of Ruby standard library Logger at start-up. May
@@ -531,7 +533,7 @@ common: &default_settings
   # instrumentation.roda: auto
 
   # Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of:
-  # auto, prepend, chain, disabled.
+  # auto, prepend, chain, disabled. Defaults to disabled in high security mode.
   # instrumentation.ruby_openai: auto
 
   # Controls auto-instrumentation of Sinatra at start-up. May be one of: auto,
@@ -695,8 +697,10 @@ common: &default_settings
   # If true, enables span event sampling.
   # span_events.enabled: true
 
-  # Defines the maximum number of span events reported from a single harvest. Any
-  # Integer between 1 and 10000 is valid.
+  # * Defines the maximum number of span events reported from a single harvest. Any
+  # Integer between 1 and 10000 is valid.'
+  # * When configuring the agent for AI monitoring, set to max value 10000.  This
+  # ensures that the agent captures the maximum amount of distributed traces.
   # span_events.max_samples_stored: 2000
 
   # Sets the maximum number of span events to buffer when streaming to the trace

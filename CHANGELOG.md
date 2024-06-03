@@ -1,10 +1,10 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.10.1
 
 - **Bugfix: Incompatibility with Bootstrap**
 
-Version <dev> fixes an incompatibility between the agent and the [Bootstrap](https://github.com/twbs/bootstrap-rubygem) gem caused by agent v9.10.0's introduction of a `lib/bootstrap.rb` file. Thank you to [@dorner](https://github.com/dorner) for reporting the bug and identifying the 'bootstrap' name collision as the root cause. [BUG#2675](https://github.com/newrelic/newrelic-ruby-agent/issues/2675) [PR#2676](https://github.com/newrelic/newrelic-ruby-agent/pull/2676)
+Version 9.10.1 fixes an incompatibility between the agent and the [Bootstrap](https://github.com/twbs/bootstrap-rubygem) gem caused by agent v9.10.0's introduction of a `lib/bootstrap.rb` file. Thank you to [@dorner](https://github.com/dorner) for reporting the bug and identifying the 'bootstrap' name collision as the root cause. [BUG#2675](https://github.com/newrelic/newrelic-ruby-agent/issues/2675) [PR#2676](https://github.com/newrelic/newrelic-ruby-agent/pull/2676)
 
 ## v9.10.0
 
