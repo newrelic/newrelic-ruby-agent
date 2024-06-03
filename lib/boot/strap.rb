@@ -27,7 +27,7 @@
 #   - Next, use the "RUBYOPT" environment variable to require ("-r") this
 #     file (note that the ".rb" extension is dropped):
 #       ```
-#       export RUBYOPT="-r /newrelic/lib/bootstrap"
+#       export RUBYOPT="-r /newrelic/lib/boot/strap"
 #       ```
 #    - Add your New Relic license key as an environment variable.
 #       ```
@@ -50,7 +50,7 @@ module NRBundlerPatch
   end
 
   def require_newrelic
-    lib = File.dirname(__FILE__)
+    lib = File.expand_path('../..', __FILE__)
     $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
     Kernel.require NR_AGENT_GEM
   end
@@ -65,40 +65,36 @@ class NRBundlerPatcher
     check_for_rubyopt
     check_for_bundler
     Bundler::Runtime.prepend(NRBundlerPatch)
+  rescue StandardError => e
+    Kernel.warn "New Relic entrypoint at #{__FILE__} encountered an issue:\n  #{e.message}"
   end
 
   private
 
   def self.check_for_require
-    warn_and_exit "#{__FILE__} is meant to be required, not invoked directly" if $PROGRAM_NAME == __FILE__
+    raise "#{__FILE__} is meant to be required, not invoked directly" if $PROGRAM_NAME == __FILE__
   end
 
   def self.check_for_rubyopt
     unless ENV[RUBYOPT].to_s.match?("-r #{__FILE__.rpartition('.').first}")
-      warn_and_exit "#{__FILE__} is meant to be required via the RUBYOPT env var"
+      raise "#{__FILE__} is meant to be required via the RUBYOPT env var"
     end
   end
 
   def self.check_for_bundler
     require_bundler
 
-    warn_and_exit 'Required Ruby Bundler class Bundler::Runtime not defined!' unless defined?(Bundler::Runtime)
+    raise 'Required Ruby Bundler class Bundler::Runtime not defined!' unless defined?(Bundler::Runtime)
 
     unless Bundler::Runtime.method_defined?(:require)
-      warn_and_exit "The active Ruby Bundler instance doesn't offer Bundler::Runtime#require"
+      raise "The active Ruby Bundler instance doesn't offer Bundler::Runtime#require"
     end
   end
 
   def self.require_bundler
     require BUNDLER
   rescue LoadError => e
-    warn_and_exit "Required Ruby library '#{BUNDLER}' could not be required - #{e}"
-  end
-
-  def self.warn_and_exit(msg)
-    warn "New Relic entrypoint at #{__FILE__} encountered an issue:\n\t#{msg}"
-
-    exit 1
+    raise "Required Ruby library '#{BUNDLER}' could not be required - #{e}"
   end
 end
 
