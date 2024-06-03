@@ -15,7 +15,7 @@ module NewRelic
       end
 
       def self.get_account_id(config)
-        access_key_id = config&.credentials&.credentials&.access_key_id if config&.credentials&.credentials&.respond_to?(:access_key_id)
+        access_key_id = config.credentials.credentials.access_key_id if config&.credentials&.credentials&.respond_to?(:access_key_id)
         return unless access_key_id
 
         NewRelic::Agent::Aws.convert_access_key_to_account_id(access_key_id)
