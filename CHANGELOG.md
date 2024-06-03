@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.10.1
+
+- **Bugfix: Incompatibility with Bootstrap**
+
+Version 9.10.1 fixes an incompatibility between the agent and the [Bootstrap](https://github.com/twbs/bootstrap-rubygem) gem caused by agent v9.10.0's introduction of a `lib/bootstrap.rb` file. Thank you to [@dorner](https://github.com/dorner) for reporting the bug and identifying the 'bootstrap' name collision as the root cause. [BUG#2675](https://github.com/newrelic/newrelic-ruby-agent/issues/2675) [PR#2676](https://github.com/newrelic/newrelic-ruby-agent/pull/2676)
+
 ## v9.10.0
 
 Version 9.10.0 introduces instrumentation for DynamoDB, adds a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
