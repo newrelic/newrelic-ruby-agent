@@ -481,11 +481,11 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESC
             The exit handler that sends all cached data to the collector before shutting down is forcibly installed. \
-            This is true even when it detects scenarios where it generally should not be. The known use-case for this \
-            option is when Sinatra runs as an embedded service within another framework, the agent detects the Sinatra \
+            This is true even when it detects scenarios where it generally should not be. The known use case for this \
+            option is when Sinatra runs as an embedded service within another framework. The agent detects the Sinatra \
             app and skips the `at_exit` handler as a result. Sinatra classically runs the entire application in an \
             `at_exit` block and would otherwise misbehave if the agent's `at_exit` handler was also installed in those \
-            circumstances. Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.
+            circumstances. Note: `send_data_on_exit` should also be set to `true` in tandem with this setting.
           DESC
         },
         :high_security => {
