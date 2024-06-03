@@ -28,7 +28,7 @@ jobs:
               bundle lock --gemfile "$dir/Gemfile"
             fi
           done
-      - id: Sanity check
+      - id: Sanitycheck
         run: |
           ls -l Gemfile.lock
           ls -l infinite_tracing/Gemfile.lock
