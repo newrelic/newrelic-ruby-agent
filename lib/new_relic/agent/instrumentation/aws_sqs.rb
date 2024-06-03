@@ -2,9 +2,9 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'awssqs/instrumentation'
-require_relative 'awssqs/chain'
-require_relative 'awssqs/prepend'
+require_relative 'aws_sqs/instrumentation'
+require_relative 'aws_sqs/chain'
+require_relative 'aws_sqs/prepend'
 
 DependencyDetection.defer do
   named :aws_sqs
