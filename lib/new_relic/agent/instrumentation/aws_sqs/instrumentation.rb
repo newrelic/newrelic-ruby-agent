@@ -9,15 +9,15 @@ module NewRelic::Agent::Instrumentation
       begin
         queue_name = get_queue_name(args[0])
         segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-          action: 'Produce',
+          action: :produce,
           library: 'SQS',
-          destination_type: 'Queue',
+          destination_type: :queue,
           destination_name: queue_name
         )
         segment&.add_agent_attribute('messaging.system', 'aws_sqs')
         segment&.add_agent_attribute('cloud.region', config&.region)
         segment&.add_agent_attribute('cloud.account.id', get_account_id(args[0]))
-        # segment&.add_agent_attribute('messaging.destination.name', queue_name)
+        segment&.add_agent_attribute('messaging.destination.name', queue_name)
       rescue => e
         NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client#send_message ', e)
       end
@@ -33,14 +33,15 @@ module NewRelic::Agent::Instrumentation
       begin
         queue_name = get_queue_name(args[0])
         segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-          action: 'Produce',
+          action: :produce,
           library: 'SQS',
-          destination_type: 'Queue',
+          destination_type: :queue,
           destination_name: queue_name
         )
         segment&.add_agent_attribute('messaging.system', 'aws_sqs')
         segment&.add_agent_attribute('cloud.region', config&.region)
         segment&.add_agent_attribute('cloud.account.id', get_account_id(args[0]))
+        segment&.add_agent_attribute('messaging.destination.name', queue_name)
       rescue => e
         NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client#send_message ', e)
       end
@@ -56,14 +57,15 @@ module NewRelic::Agent::Instrumentation
       begin
         queue_name = get_queue_name(args[0])
         segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-          action: 'Consume',
+          action: :consume,
           library: 'SQS',
-          destination_type: 'Queue',
+          destination_type: :queue,
           destination_name: queue_name
         )
         segment&.add_agent_attribute('messaging.system', 'aws_sqs')
         segment&.add_agent_attribute('cloud.region', config&.region)
         segment&.add_agent_attribute('cloud.account.id', get_account_id(args[0]))
+        segment&.add_agent_attribute('messaging.destination.name', queue_name)
       rescue => e
         NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client#send_message ', e)
       end

@@ -10,14 +10,14 @@ DependencyDetection.defer do
   named :aws_sqs
 
   depends_on do
-    defined?(::Aws::SQS::Client)
+    defined?(Aws::SQS::Client)
   end
 
   executes do
-    ::NewRelic::Agent.logger.info('Installing aws-sdk-sqs instrumentation')
+    NewRelic::Agent.logger.info('Installing aws-sdk-sqs instrumentation')
 
     if use_prepend?
-      prepend_instrument ::Aws::SQS::Client, NewRelic::Agent::Instrumentation::AwsSqs::Prepend
+      prepend_instrument Aws::SQS::Client, NewRelic::Agent::Instrumentation::AwsSqs::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::AwsSqs::Chain
     end
