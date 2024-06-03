@@ -1450,6 +1450,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.aws_sqs' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the aws-sdk-sqs library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.dynamodb' => {
           :default => 'auto',
           :public => true,
