@@ -46,12 +46,12 @@ class AwssqsInstrumentationTest < Minitest::Test
         queue_url: 'https://sqs.us-east-2.amazonaws.com/123456789/itsatestqueuewow',
         entries: [
           {
-            id: "msq1", 
-            message_body: "wow 1", 
+            id: 'msq1',
+            message_body: 'wow 1'
           },
           {
-            id: "msq2", 
-            message_body: "wow 2", 
+            id: 'msq2',
+            message_body: 'wow 2'
           }
         ]
       })
@@ -67,6 +67,7 @@ class AwssqsInstrumentationTest < Minitest::Test
     assert_equal '123456789', span[2]['cloud.account.id']
     assert_equal 'itsatestqueuewow', span[2]['messaging.destination.name']
   end
+
   def test_all_attributes_added_to_segment_receive_message
     client = create_client
 
