@@ -9,6 +9,7 @@ class AwsTest < Minitest::Test
     config = mock
     config.stubs(:region).returns('us-test-region-1')
     mock_credentials = mock
+    mock_credentials.stubs(:credentials).returns(mock_credentials)
     mock_credentials.stubs(:access_key_id).returns('AKIAIOSFODNN7EXAMPLE') # this is a fake access key id from aws docs
     config.stubs(:credentials).returns(mock_credentials)
 

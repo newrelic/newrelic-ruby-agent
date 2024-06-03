@@ -9,8 +9,11 @@ module NewRelic
       HEX_MASK = '7fffffffff80'
 
       def self.create_arn(service, resource, config)
+        access_key_id = config&.credentials&.credentials&.access_key_id if config&.credentials&.credentials&.respond_to?(:access_key_id)
+        return unless access_key_id
+
         region = config.region
-        account_id = NewRelic::Agent::Aws.convert_access_key_to_account_id(config.credentials.access_key_id)
+        account_id = NewRelic::Agent::Aws.convert_access_key_to_account_id(access_key_id)
 
         "arn:aws:#{service}:#{region}:#{account_id}:#{resource}"
       rescue => e
