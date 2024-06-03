@@ -8,12 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  run_rubocop:
-    runs-on: ubuntu-22.04
+  mufasa_ruby:
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
-      - run: bundle
-      - run: rubocop
+      - name: Ensure that a Gemfile.lock file exists for each Gemfile file
+        run: |
+          echo "Ensuring that Gemfile.lock files exist..."
+          for gemfile in $(find . -name Gemfile -not -path './test/**' -not -path './spec/**'); do
+            dir=${gemfile%/*}
+            echo "Found Gemfile at $dir"
+            if [[ -e "$dir/Gemfile.lock" ]]; then
+              echo "Found Gemfile.lock at $dir"
+            else
+              echo "No Gemfile.lock found at $dir - generating one..."
+              bundle lock --gemfile "$dir/Gemfile"
+            fi
+          done
+      - id: (TESTING) Sanity check of generated Gemfile.lock files
+        run: |
+          ls -l Gemfile.lock
+          ls -l infinite_tracing/Gemfile.lock
+
