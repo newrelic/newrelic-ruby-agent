@@ -1,0 +1,19 @@
+name: PR Continuous Integration
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - ci_tester
+  workflow_dispatch:
+
+jobs:
+  run_rubocop:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        with:
+          ruby-version: '3.3'
+      - run: bundle
+      - run: rubocop
