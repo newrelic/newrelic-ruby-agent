@@ -21,8 +21,14 @@ def gem_list(typhoeus_version = nil)
     gem 'typhoeus'#{typhoeus_version}
     gem 'ethon' if RUBY_PLATFORM == 'java'
     gem 'rack'
-
+    gem 'ffi'#{ffi_version}
   RB
+end
+
+# ffi version 1.17.0+ requires rubygems >= 3.3.22
+# The highest version compatible with Ruby 2.5/2.6 is 3.0.6
+def ffi_version
+   ", '< 1.17.0'" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7')
 end
 
 create_gemfiles(TYPHOEUS_VERSIONS)
