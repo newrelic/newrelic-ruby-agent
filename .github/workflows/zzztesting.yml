@@ -17,7 +17,5 @@ jobs:
   demo:
     runs-on: ubuntu-22.04
     needs: [shared_values]
-    env:
-      THEKEY: ${{ needs.shared_values.outputs.thekey }}
     steps:
-      - run: echo "THEKEY's value is $THEKEY"
+      - run: echo "THEKEY's value is ${{ needs.shared_values.outputs.thekey }}"
