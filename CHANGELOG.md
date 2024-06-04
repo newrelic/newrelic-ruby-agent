@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+<dev>
+
+Version <dev> reverts a change to the default value of `autostart.denylisted_constants`.
+
+- **Bugfix: Revert changes to `autostart.denylisted_constants`**
+
+  The default value for the `autostart.denylisted_constants` configuration was changed in 9.10.0 to include `Rails::Command::RunnerCommand` and `Rails::Command::RakeCommand`. This prevented the agent from starting in a background job environment for some users. Rather than include `RunnerCommand` and `RakeCommand` in the default, we encourage users who do not want the agent to run in these contexts to add these constants to the configuration. Thank you [@edariedl](https://github.com/edariedl) for reporting this issue. [BUG#2677](https://github.com/newrelic/newrelic-ruby-agent/issues/2677)
+
 ## v9.10.1
 
 - **Bugfix: Incompatibility with Bootstrap**
@@ -11,7 +19,7 @@ Version 9.10.1 fixes an incompatibility between the agent and the [Bootstrap](ht
 Version 9.10.0 introduces instrumentation for DynamoDB, adds a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
 
 - **Feature: Add instrumentation for DynamoDB**
-  
+
     The agent has added instrumentation for the aws-sdk-dynamodb gem. The agent will now record datastore spans for DynamoDB client calls made with the aws-sdk-dynamodb gem.  [PR#2642](https://github.com/newrelic/newrelic-ruby-agent/pull/2642)
 
 - **Feature: Automatically apply nonces from the Rails content security policy**
