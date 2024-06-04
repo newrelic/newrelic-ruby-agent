@@ -122,7 +122,7 @@ class Instrumentation < Thor
   end
 
   def snake_name(name)
-    name.downcase.gsub('-', '_')
+    name.downcase.tr('-', '_')
   end
 end
 
