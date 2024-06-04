@@ -15,4 +15,4 @@ jobs:
   use_vars:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo "thekey's value is ${{vars.thekey}}"
+      - run: echo "thekey's value is ${{jobs.set_vars.env.thekey}}"
