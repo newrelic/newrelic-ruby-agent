@@ -10,9 +10,9 @@ jobs:
   set_vars:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo "thekey=theval" >> $GITHUB_ENV
+      - run: echo "THEKEY=theval" >> $GITHUB_ENV
 
   use_vars:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo "thekey's value is ${{jobs.set_vars.env.thekey}}"
+      - run: echo "THEKEY's value is $THEKEY"
