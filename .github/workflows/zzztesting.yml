@@ -7,12 +7,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  set_vars:
+  shared_values:
     runs-on: ubuntu-22.04
     steps:
       - run: echo "THEKEY=theval" >> $GITHUB_ENV
+    outputs:
+      thekey: $THEKEY
 
-  use_vars:
+  demo:
     runs-on: ubuntu-22.04
+    needs: [shared_values]
+    env:
+      THEKEY: ${{ needs.shared_values.outputs.thekey }}
     steps:
       - run: echo "THEKEY's value is $THEKEY"
