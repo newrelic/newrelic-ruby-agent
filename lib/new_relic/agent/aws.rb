@@ -19,6 +19,8 @@ module NewRelic
         return unless access_key_id
 
         NewRelic::Agent::Aws.convert_access_key_to_account_id(access_key_id)
+      rescue => e
+        NewRelic::Agent.logger.debug("Failed to create account id: #{e}")
       end
 
       def self.convert_access_key_to_account_id(access_key)
