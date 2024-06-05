@@ -357,3 +357,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 93.5
+          failedThresholdBranch: 50
