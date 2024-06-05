@@ -50,7 +50,9 @@ module NewRelic::Agent::Instrumentation
     end
 
     def nr_account_id
-      @nr_account_id ||= NewRelic::Agent::Aws.get_account_id(config)
+      return @nr_account_id if defined?(@nr_account_id)
+
+      @nr_account_id = NewRelic::Agent::Aws.get_account_id(config)
     end
 
     def get_arn(params)
