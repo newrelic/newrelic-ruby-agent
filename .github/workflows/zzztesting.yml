@@ -10,9 +10,10 @@ jobs:
   shared_values:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo "THEKEY=theval" >> $GITHUB_ENV
+      - id: step1
+        run: echo "THEKEY=theval" >> $GITHUB_OUTPUT
     outputs:
-      thekey: $THEKEY
+      thekey: ${{ steps.step1.outputs.THEKEY }}
 
   demo:
     runs-on: ubuntu-22.04
