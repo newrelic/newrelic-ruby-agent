@@ -7,16 +7,29 @@ on:
   workflow_dispatch:
 
 jobs:
+  # shared_values:
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - id: step1
+  #       run: echo "THEKEY=theval" >> $GITHUB_OUTPUT
+  #   outputs:
+  #     thekey: ${{ steps.step1.outputs.THEKEY }}
+
   shared_values:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - id: step1
-        run: echo "THEKEY=theval" >> $GITHUB_OUTPUT
+      - id: gather
+        run: |
+          curl -O https://raw.githubusercontent.com/newrelic/newrelic-ruby-agent/dev/.github/workflows/scripts/gather_action_versions.sh
+          ./gather_action_versions.sh
     outputs:
-      thekey: ${{ steps.step1.outputs.THEKEY }}
+      setup_ruby_sha: ${{ steps.gather.outputs.SETUP_RUBY_SHA }}
+      checkout_sha: ${{ steps.gather.outputs.CHECKOUT_SHA }}
 
   demo:
     runs-on: ubuntu-22.04
     needs: [shared_values]
     steps:
-      - run: echo "THEKEY's value is ${{ needs.shared_values.outputs.thekey }}"
+      - uses: actions/checkout@${{ needs.shared_values.outputs.checkout_sha }}
+      - uses: ruby/setup-ruby@${{ needs.shared_values.outputs.setup_ruby_sha }}
+      - run: ruby -v
