@@ -30,6 +30,14 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [shared_values]
     steps:
-      - uses: actions/checkout@${{ needs.shared_values.outputs.checkout_sha }}
-      - uses: ruby/setup-ruby@${{ needs.shared_values.outputs.setup_ruby_sha }}
+      - id: step1
+        run: |
+          echo CHECKOUT=9bb56186c3b09b4f86b1c65136769dd318469633 >> $GITHUB_OUTPUT
+          echo SETUP=943103cae7d3f1bb1e4951d5fcc7928b40e4b742 >> $GITHUB_OUTPUT
+      - uses: actions/checkout@${{ steps.step1.outputs.CHECKOUT }}
+      - uses: ruby/setup-ruby@${{ steps.step1.outputs.SETUP }}
       - run: ruby -v
+
+
+      # - uses: actions/checkout@${{ needs.shared_values.outputs.checkout_sha }}
+      # - uses: ruby/setup-ruby@${{ needs.shared_values.outputs.setup_ruby_sha }}
