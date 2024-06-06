@@ -1,16 +1,22 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.10.1
+
+- **Bugfix: Incompatibility with Bootstrap**
+
+Version 9.10.1 fixes an incompatibility between the agent and the [Bootstrap](https://github.com/twbs/bootstrap-rubygem) gem caused by agent v9.10.0's introduction of a `lib/bootstrap.rb` file. Thank you to [@dorner](https://github.com/dorner) for reporting the bug and identifying the 'bootstrap' name collision as the root cause. [BUG#2675](https://github.com/newrelic/newrelic-ruby-agent/issues/2675) [PR#2676](https://github.com/newrelic/newrelic-ruby-agent/pull/2676)
+
 ## v9.10.0
 
 Version 9.10.0 introduces instrumentation for DynamoDB, adds a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
 
 - **Feature: Add instrumentation for DynamoDB**
-
+  
     The agent has added instrumentation for the aws-sdk-dynamodb gem. The agent will now record datastore spans for DynamoDB client calls made with the aws-sdk-dynamodb gem.  [PR#2642](https://github.com/newrelic/newrelic-ruby-agent/pull/2642)
 
 - **Feature: Automatically apply nonces from the Rails content security policy**
 
-  To auto-inject browser monitoring with the New Relic Ruby agent, you either need to set your content security policy to 'unsafe-inline' or provide a nonce. Previously, the only way to provide a nonce was by using the [`NewRelic::Agent.browser_timing_header`](https://rubydoc.info/gems/newrelic_rpm/NewRelic/Agent#browser_timing_header-instance_method) API. Now, when a Rails application uses [the content security policy configuration to add a nonce](https://guides.rubyonrails.org/security.html#adding-a-nonce), the nonce can be automatically applied to the browser agent. A new configuration option, [`browser_monitoring.content_security_policy_nonce`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#browser_monitoring-content_security_policy_nonce), toggles this feature. It is off by default. Thank you [@baldarn](https://github.com/baldarn) for submitting this feature! [PR#2544](https://github.com/newrelic/newrelic-ruby-agent/pull/2544)
+  To auto-inject browser monitoring with the New Relic Ruby agent, you either need to set your content security policy to 'unsafe-inline' or provide a nonce. Previously, the only way to provide a nonce was by using the [`NewRelic::Agent.browser_timing_header`](https://rubydoc.info/gems/newrelic_rpm/NewRelic/Agent#browser_timing_header-instance_method) API. Now, when a Rails application uses [the content security policy configuration to add a nonce](https://guides.rubyonrails.org/security.html#adding-a-nonce), the nonce will be automatically applied to the browser agent. A new configuration option, [`browser_monitoring.content_security_policy_nonce`](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#browser_monitoring-content_security_policy_nonce), toggles this feature. It is on by default. Thank you [@baldarn](https://github.com/baldarn) for submitting this feature! [PR#2544](https://github.com/newrelic/newrelic-ruby-agent/pull/2544)
 
 - **Bugfix: Expected errors related to HTTP status code, class, and message won't impact Apdex**
 
