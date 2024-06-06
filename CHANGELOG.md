@@ -5,7 +5,8 @@
 Version <dev> fixes a bug related to the new DynamoDB instrumentation.
 
 - **Bugfix: DynamoDB instrumentation logging errors when trying to get account_id**
-  When trying to access data needed to add the account_id to the dynamodb span, the agent was encountering an error when certain credentials classes were in use. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2767](https://github.com/newrelic/newrelic-ruby-agent/pull/2681)
+
+    When trying to access data needed to add the `account_id` to the DynamoDB span, the agent encountered an error when certain credentials classes were used. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2864](https://github.com/newrelic/newrelic-ruby-agent/pull/2684)
 
 
 ## v9.10.1
