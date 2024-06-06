@@ -116,7 +116,7 @@ common: &default_settings
   # Specify a list of constants that should prevent the agent from starting
   # automatically. Separate individual constants with a comma ,. For example,
   # "Rails::Console,UninstrumentedBackgroundJob".
-  # autostart.denylisted_constants: Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole
+  # autostart.denylisted_constants: Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole
 
   # Defines a comma-delimited list of executables that the agent should not
   # instrument. For example, "rake,my_ruby_script.rb".
@@ -188,7 +188,9 @@ common: &default_settings
   # If true, the agent captures custom events.
   # custom_insights_events.enabled: true
 
-  # Specify a maximum number of custom events to buffer in memory at a time.
+  # * Specify a maximum number of custom events to buffer in memory at a time.'
+  # * When configuring the agent for AI monitoring, set to max value 100000. This
+  # ensures the agent captures the maximum amount of LLM events.
   # custom_insights_events.max_samples_stored: 3000
 
   # If false, the agent will not add database_name parameter to transaction or slow
@@ -354,14 +356,14 @@ common: &default_settings
   # requests.
   # exclude_newrelic_header: false
 
-  # Forces the exit handler that sends all cached data to collector before shutting
-  # down to be installed regardless of detecting scenarios where it generally should
-  # not be. Known use-case for this option is where Sinatra is running as an
-  # embedded service within another framework and the agent is detecting the Sinatra
-  # app and skipping the at_exit handler as a result. Sinatra classically runs the
+  # The exit handler that sends all cached data to the collector before shutting
+  # down is forcibly installed. This is true even when it detects scenarios where it
+  # generally should not be. The known use case for this option is when Sinatra runs
+  # as an embedded service within another framework. The agent detects the Sinatra
+  # app and skips the at_exit handler as a result. Sinatra classically runs the
   # entire application in an at_exit block and would otherwise misbehave if the
-  # Agent's at_exit handler was also installed in those circumstances. Note:
-  # send_data_on_exit should also be set to true in  tandem with this setting."
+  # agent's at_exit handler was also installed in those circumstances. Note:
+  # send_data_on_exit should also be set to true in tandem with this setting.
   # force_install_exit_handler: false
 
   # Ordinarily the agent reports dyno names with a trailing dot and process ID (for
@@ -699,8 +701,8 @@ common: &default_settings
 
   # * Defines the maximum number of span events reported from a single harvest. Any
   # Integer between 1 and 10000 is valid.'
-  # * When configuring the agent for AI monitoring, set to max value 10000.  This
-  # ensures that the agent captures the maximum amount of distributed traces.
+  # * When configuring the agent for AI monitoring, set to max value 10000.This
+  # ensures the agent captures the maximum amount of distributed traces.
   # span_events.max_samples_stored: 2000
 
   # Sets the maximum number of span events to buffer when streaming to the trace
