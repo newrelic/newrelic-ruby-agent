@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.10.2
 
-Version <dev> fixes a bug related to the new DynamoDB instrumentation and removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
+Version 9.10.2 fixes a bug related to the new DynamoDB instrumentation and removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
 
 - **Bugfix: DynamoDB instrumentation logging errors when trying to get account_id**
 
