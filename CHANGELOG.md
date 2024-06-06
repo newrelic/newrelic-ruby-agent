@@ -2,12 +2,21 @@
 
 ## dev
 
-Version <dev> fixes a bug related to the new DynamoDB instrumentation.
+Version <dev> fixes a bug related to the new DynamoDB instrumentation and removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
 
 - **Bugfix: DynamoDB instrumentation logging errors when trying to get account_id**
 
     When trying to access data needed to add the `account_id` to the DynamoDB span, the agent encountered an error when certain credentials classes were used. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2864](https://github.com/newrelic/newrelic-ruby-agent/pull/2684)
 
+- **Bugfix: Remove Rails::Command::RakeCommand from the default list of autostart.denylisted_constants**
+
+  The default value for the `autostart.denylisted_constants` configuration was changed in 9.10.0 to include `Rails::Command::RunnerCommand` and `Rails::Command::RakeCommand`. The inclusion of `Rails::Command::RakeCommand` prevented the agent from starting automatically when Solid Queue was started using `bin/rails solid_queue:start`. We recognize there are many commands nested within `Rails::Command::RakeCommand` and have decided to remove it from the default list. We encourage users who do not want the agent to run on `Rails::Command::RakeCommand` to add the constant to their configuration. This can be accomplished by adding the following to your `newrelic.yml` file:
+
+  ```yaml
+    autostart.denylisted_constants: "Rails::Command::ConsoleCommand,Rails::Command::CredentialsCommand,Rails::Command::Db::System::ChangeCommand,Rails::Command::DbConsoleCommand,Rails::Command::DestroyCommand,Rails::Command::DevCommand,Rails::Command::EncryptedCommand,Rails::Command::GenerateCommand,Rails::Command::InitializersCommand,Rails::Command::NotesCommand,Rails::Command::RakeCommand,Rails::Command::RoutesCommand,Rails::Command::RunnerCommand,Rails::Command::SecretsCommand,Rails::Console,Rails::DBConsole"
+  ```
+
+  Thank you, [@edariedl](https://github.com/edariedl), for reporting this issue. [Issue#2677](https://github.com/newrelic/newrelic-ruby-agent/issues/2677) [PR#2694](https://github.com/newrelic/newrelic-ruby-agent/pull/2694)
 
 ## v9.10.1
 
@@ -20,7 +29,7 @@ Version 9.10.1 fixes an incompatibility between the agent and the [Bootstrap](ht
 Version 9.10.0 introduces instrumentation for DynamoDB, adds a new feature to automatically apply nonces from the Rails content security policy, fixes a bug that would cause an expected error to negatively impact a transaction's Apdex, and fixes the agent's autostart logic so that by default `rails runner` and `rails db` commands will not cause the agent to start.
 
 - **Feature: Add instrumentation for DynamoDB**
-  
+
     The agent has added instrumentation for the aws-sdk-dynamodb gem. The agent will now record datastore spans for DynamoDB client calls made with the aws-sdk-dynamodb gem.  [PR#2642](https://github.com/newrelic/newrelic-ruby-agent/pull/2642)
 
 - **Feature: Automatically apply nonces from the Rails content security policy**
