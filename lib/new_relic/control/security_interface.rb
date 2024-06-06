@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'singleton'
+require 'timeout'
 
 module NewRelic
   class Control
@@ -15,6 +16,7 @@ module NewRelic
       SUPPORTABILITY_PREFIX_SECURITY_AGENT = 'Supportability/Ruby/SecurityAgent/Agent/Enabled/'
       ENABLED = 'enabled'
       DISABLED = 'disabled'
+      PREFLIGHT_TIMEOUT_SECS = 5
 
       def agent_started?
         (@agent_started ||= false) == true
@@ -30,6 +32,7 @@ module NewRelic
         record_supportability_metrics
 
         if Agent.config[:'security.agent.enabled'] && Agent.config[:'security.enabled'] && !Agent.config[:high_security]
+          preflight
           Agent.logger.info('Invoking New Relic security module')
           require 'newrelic_security'
 
@@ -57,6 +60,15 @@ module NewRelic
 
       def security_agent_metric(setting)
         NewRelic::Agent.record_metric_once(SUPPORTABILITY_PREFIX_SECURITY_AGENT + setting)
+      end
+    end
+
+    # preflight checks to perform before the security agent is initialized
+    def preflight
+      return unless ENV['OS'].to_s.match?('Windows') # preflight is currently only needed for Windows OSes
+
+      Timeout::timeout(PREFLIGHT_TIMEOUT_SECS) do
+        sleep 0.1 until NewRelic::Agent.agent.connected?
       end
     end
   end
