@@ -1083,6 +1083,7 @@ module NewRelic
             Rails::Command::InitializersCommand
             Rails::Command::NotesCommand
             Rails::Command::RoutesCommand
+            Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand
             Rails::Console
             Rails::DBConsole].join(','),
