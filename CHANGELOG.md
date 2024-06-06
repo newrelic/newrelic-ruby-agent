@@ -1,8 +1,12 @@
 # New Relic Ruby Agent Release Notes
 
-<dev>
+## dev
 
-Version <dev> removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
+Version <dev> fixes a bug related to the new DynamoDB instrumentation and removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
+
+- **Bugfix: DynamoDB instrumentation logging errors when trying to get account_id**
+
+    When trying to access data needed to add the `account_id` to the DynamoDB span, the agent encountered an error when certain credentials classes were used. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2864](https://github.com/newrelic/newrelic-ruby-agent/pull/2684)
 
 - **Bugfix: Remove Rails::Command::RakeCommand from the default list of autostart.denylisted_constants**
 
@@ -13,7 +17,6 @@ Version <dev> removes `Rails::Command::RakeCommand` from the default list of den
   ```
 
   Thank you, [@edariedl](https://github.com/edariedl), for reporting this issue. [Issue#2677](https://github.com/newrelic/newrelic-ruby-agent/issues/2677) [PR#2694](https://github.com/newrelic/newrelic-ruby-agent/pull/2694)
-
 
 ## v9.10.1
 

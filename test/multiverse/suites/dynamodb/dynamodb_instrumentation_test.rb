@@ -7,6 +7,8 @@ require 'aws-sdk-dynamodb'
 class DynamodbInstrumentationTest < Minitest::Test
   def setup
     Aws.config.update(stub_responses: true)
+    NewRelic::Agent::Aws.stubs(:create_arn).returns('test-arn')
+    NewRelic::Agent::Aws.stubs(:get_account_id).returns('123456789')
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
 
@@ -22,7 +24,6 @@ class DynamodbInstrumentationTest < Minitest::Test
   def test_all_attributes_added_to_segment
     client = create_client
     Seahorse::Client::Http::Response.any_instance.stubs(:headers).returns({'x-amzn-requestid' => '1234321'})
-    NewRelic::Agent::Aws.stubs(:create_arn).returns('test-arn')
 
     in_transaction do |txn|
       client.query({
