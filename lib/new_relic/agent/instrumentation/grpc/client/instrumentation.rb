@@ -50,7 +50,6 @@ module NewRelic
             attributes_hash.each do |attr, value|
               segment.add_agent_attribute(attr, value)
             end
-            segment.record_agent_attributes = true
           end
 
           def grpc_status_and_message_from_exception(exception)

@@ -23,6 +23,9 @@ can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-fra
 You can also monitor non-web applications. Refer to the "Other
 Environments" section below.
 
+We offer an AWS Lambda layer for instrumenting your serverless Ruby functions.
+Details can be found on our [getting started guide](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/).
+
 ## Installing and Using
 
 The latest released gem for the Ruby agent can be found at [RubyGems.org](https://rubygems.org/gems/newrelic_rpm)

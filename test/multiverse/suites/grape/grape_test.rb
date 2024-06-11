@@ -10,6 +10,8 @@ class GrapeTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers
 
+  TestRoute = Struct.new(:path, :request_method, :version)
+
   setup_and_teardown_agent
 
   unless ::Grape::VERSION == '0.1.5'
@@ -230,6 +232,21 @@ class GrapeTest < Minitest::Test
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       assert_equal(expected, actual)
+    end
+
+    def test_distinct_routes_make_for_distinct_txn_names
+      base_path = '/the/phantom/pain/'
+      version = 'V'
+      paths = %w[ocelot quiet]
+      controller_class = 'FultonSheep'
+
+      names = paths.each_with_object([]) do |path, arr|
+        route = TestRoute.new(base_path + path, 'POST', version)
+        arr << NewRelic::Agent::Instrumentation::Grape::Instrumentation.name_for_transaction(route, controller_class, nil)
+      end
+
+      assert_equal paths.size, names.uniq.size,
+        'Expected there to be one unique transaction name per unique full route path'
     end
 
     def assert_grape_metrics(expected_txn_name)
