@@ -19,9 +19,15 @@ def activesupport_version(grape_version)
   ", '< 7.1'" if grape_version&.include?('1.5')
 end
 
+# Grape v1.x expects Rack to deliver `rack/auth/digest/md5`, but Rack
+# stopped offering that class in Rack v3.1.0
+def rack_version(grape_version)
+  ", '~> 3.0.11'" if grape_version.to_s.sub(/^[^\d]+/, '').start_with?('1.')
+end
+
 def gem_list(grape_version = nil)
   <<~RB
-    gem 'rack'
+    gem 'rack'#{rack_version(grape_version)}
     gem 'rack-test', '>= 0.8.0'
     gem 'grape'#{grape_version}
 
