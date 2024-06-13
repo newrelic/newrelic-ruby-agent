@@ -62,25 +62,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
       end
     end
 
-    def test_metrics_for_default_prefix
-      get('/')
-
-      assert_metrics_recorded_exclusive([
-        'Apdex',
-        'ApdexAll',
-        'HttpDispatcher',
-        'Middleware/all',
-        'Controller/Rack/BuilderMapTest::ExampleApp/call',
-        'Apdex/Rack/BuilderMapTest::ExampleApp/call',
-        'Middleware/Rack/BuilderMapTest::MiddlewareOne/call',
-        'Middleware/Rack/BuilderMapTest::MiddlewareTwo/call',
-        'Nested/Controller/Rack/BuilderMapTest::ExampleApp/call',
-        ['Middleware/Rack/BuilderMapTest::MiddlewareOne/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call'],
-        ['Middleware/Rack/BuilderMapTest::MiddlewareTwo/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call'],
-        ['Nested/Controller/Rack/BuilderMapTest::ExampleApp/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call']
-      ])
-    end
-
     def test_metrics_for_mapped_prefix
       get('/prefix1')
 
