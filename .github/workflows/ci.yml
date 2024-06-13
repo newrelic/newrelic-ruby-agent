@@ -14,7 +14,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+      - uses: ruby/setup-ruby@943103cae7d3f1bb1e4951d5fcc7928b40e4b742 # tag v1.177.1
         with:
           ruby-version: '3.3'
       - run: bundle
@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@943103cae7d3f1bb1e4951d5fcc7928b40e4b742 # tag v1.177.1
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -204,7 +204,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@943103cae7d3f1bb1e4951d5fcc7928b40e4b742 # tag v1.177.1
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -297,7 +297,7 @@ jobs:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@943103cae7d3f1bb1e4951d5fcc7928b40e4b742 # tag v1.177.1
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -337,7 +337,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+      - uses: ruby/setup-ruby@943103cae7d3f1bb1e4951d5fcc7928b40e4b742 # tag v1.177.1
         with:
           ruby-version: '3.3'
       - run: bundle
