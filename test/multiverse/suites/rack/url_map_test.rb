@@ -71,7 +71,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
       end
     end
 
-    if defined?(Rack) && Rack::VERSION[1] >= 4
+    if defined?(Rack)
       def test_metrics_for_default_prefix
         get('/')
 

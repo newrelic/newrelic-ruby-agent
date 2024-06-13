@@ -58,33 +58,27 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           run(PrefixAppTwo.new)
         end
 
-        # Rack versions prior to 1.4 did not support combining map and run at the
-        # top-level in the same Rack::Builder.
-        if Rack::VERSION[1] >= 4
-          run(ExampleApp.new)
-        end
+        run(ExampleApp.new)
       end
     end
 
-    if Rack::VERSION[1] >= 4
-      def test_metrics_for_default_prefix
-        get('/')
+    def test_metrics_for_default_prefix
+      get('/')
 
-        assert_metrics_recorded_exclusive([
-          'Apdex',
-          'ApdexAll',
-          'HttpDispatcher',
-          'Middleware/all',
-          'Controller/Rack/BuilderMapTest::ExampleApp/call',
-          'Apdex/Rack/BuilderMapTest::ExampleApp/call',
-          'Middleware/Rack/BuilderMapTest::MiddlewareOne/call',
-          'Middleware/Rack/BuilderMapTest::MiddlewareTwo/call',
-          'Nested/Controller/Rack/BuilderMapTest::ExampleApp/call',
-          ['Middleware/Rack/BuilderMapTest::MiddlewareOne/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call'],
-          ['Middleware/Rack/BuilderMapTest::MiddlewareTwo/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call'],
-          ['Nested/Controller/Rack/BuilderMapTest::ExampleApp/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call']
-        ])
-      end
+      assert_metrics_recorded_exclusive([
+        'Apdex',
+        'ApdexAll',
+        'HttpDispatcher',
+        'Middleware/all',
+        'Controller/Rack/BuilderMapTest::ExampleApp/call',
+        'Apdex/Rack/BuilderMapTest::ExampleApp/call',
+        'Middleware/Rack/BuilderMapTest::MiddlewareOne/call',
+        'Middleware/Rack/BuilderMapTest::MiddlewareTwo/call',
+        'Nested/Controller/Rack/BuilderMapTest::ExampleApp/call',
+        ['Middleware/Rack/BuilderMapTest::MiddlewareOne/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call'],
+        ['Middleware/Rack/BuilderMapTest::MiddlewareTwo/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call'],
+        ['Nested/Controller/Rack/BuilderMapTest::ExampleApp/call', 'Controller/Rack/BuilderMapTest::ExampleApp/call']
+      ])
     end
 
     def test_metrics_for_mapped_prefix
