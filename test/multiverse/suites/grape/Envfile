@@ -19,13 +19,15 @@ def activesupport_version(grape_version)
   ", '< 7.1'" if grape_version&.include?('1.5')
 end
 
+# Grape v1.x expects Rack to deliver `rack/auth/digest/md5`, but Rack
+# stopped offering that class in Rack v3.1.0
+def rack_version(grape_version)
+  ", '~> 3.0.11'" if grape_version&.start_with('1.')
+end
+
 def gem_list(grape_version = nil)
-  # TODO: Grape <= v2.0 seems incompatible with Rack v3.1.0+ owing to the fact
-  #       that Grape expects Rack to deliver `rack/auth/digest/md5` and Rack
-  #       no longer offers that class. We should be able to constrain Rack for
-  #       only certain Grape versions once a Grape fix is in place.
   <<~RB
-    gem 'rack', '~> 3.0.11'
+    gem 'rack'#{rack_version(grape_version)}
     gem 'rack-test', '>= 0.8.0'
     gem 'grape'#{grape_version}
 
