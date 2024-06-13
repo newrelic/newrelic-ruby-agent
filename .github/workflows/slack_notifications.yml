@@ -24,6 +24,7 @@ jobs:
             delayed_job
             elasticsearch
             excon
+            grape
             http
             httpclient
             mongo
