@@ -19,12 +19,12 @@ def activesupport_version(grape_version)
   ", '< 7.1'" if grape_version&.include?('1.5')
 end
 
-# Grape v1.x expects Rack to deliver `rack/auth/digest/md5`, but Rack
-# stopped offering that class in Rack v3.1.0. Give Rack v3.0 to old
-# Grapes and old Rubies (for which a nil Grape version value will result in a
-# v1.x Grape version)
+# Grape v1.x relies on Rack to deliver `rack/auth/digest/md5`, but Rack versions
+# above 3.0 do not. Grape v2.x has no such reliance. If the Grape version in
+# play is nil (signifying "latest") and the Ruby version is not v2.x, go ahead
+# and permit the usage of the latest Rack. Otherwise, pin Rack to v3.0.
 def rack_version(grape_version)
-  ", '~> 3.0.11'" if grape_version.to_s.gsub(/[^\d]+/, '').start_with?('1.') || RUBY_VERSION.start_with?('2.')
+  ", '~> 3.0.11'" if grape_version || RUBY_VERSION.start_with?('2.')
 end
 
 def gem_list(grape_version = nil)
