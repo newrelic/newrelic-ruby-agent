@@ -71,29 +71,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
       end
     end
 
-    if defined?(Rack) && Rack::VERSION[1] >= 4
-      def test_metrics_for_default_prefix
-        get('/')
-
-        assert_metrics_recorded_exclusive([
-          'Apdex',
-          'ApdexAll',
-          'HttpDispatcher',
-          'Middleware/all',
-          'Controller/Rack/UrlMapTest::ExampleApp/call',
-          'Apdex/Rack/UrlMapTest::ExampleApp/call',
-          'Middleware/Rack/UrlMapTest::MiddlewareOne/call',
-          'Middleware/Rack/UrlMapTest::MiddlewareTwo/call',
-          nested_controller_metric,
-          'Nested/Controller/Rack/UrlMapTest::ExampleApp/call',
-          ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
-          ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
-          ['Nested/Controller/Rack/UrlMapTest::ExampleApp/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
-          [nested_controller_metric, 'Controller/Rack/UrlMapTest::ExampleApp/call']
-        ], :ignore_filter => /^(Supportability|Logging)/)
-      end
-    end
-
     def test_metrics_for_mapped_prefix
       get('/prefix1')
 

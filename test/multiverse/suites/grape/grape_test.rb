@@ -220,16 +220,23 @@ class GrapeTest < Minitest::Test
         'request.headers.host' => last_request.host,
         'request.method' => last_request.request_method
       }
+      actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       # Rack >= 2.1 changes how/when contentLength is computed and Grape >= 1.3 also changes to deal with this.
       # interactions with Rack < 2.1 and >= 2.1 differ on response.headers.contentLength calculations
       # so we remove it when it is zero since its not present in such cases.
+      #
+      # Rack >= 3.1 further changes things, so we also excuse an actual 0 value
+      # when it is in play
       if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('1.3.0')
-        if expected['response.headers.contentLength'] == 0
+        rack31_plus_and_zero = Rack.respond_to?(:release) &&
+          Gem::Version.new(Rack.release) >= Gem::Version.new('3.1.0') &&
+          actual['request.headers.contentLength'] == 0
+
+        if expected['response.headers.contentLength'] == 0 || rack31_plus_and_zero
           expected.delete('response.headers.contentLength')
         end
       end
-      actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       assert_equal(expected, actual)
     end
