@@ -13,8 +13,8 @@ actions/cache:
   :tag: v3.3.1
   :sha: 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
 nick-fields/retry:
-  :tag: v2.8.3
-  :sha: 943e742917ac94714d2f408a0e8320f2d1fcafcd
+  :tag: v3.0.0
+  :sha: 7152eba30c6575329ac0576536151aca5a72780e
 technote-space/workflow-conclusion-action:
   :tag: v3.0.3
   :sha: 45ce8e0eb155657ab8ccf346ade734257fd196a5
