@@ -237,7 +237,8 @@ module NewRelic
       end
 
       def notice_segment_error(segment, exception, options = {})
-        return if skip_notice_error?(exception)
+        status_code = process_http_status_code(exception, options)
+        return if skip_notice_error?(exception, status_code)
 
         options.merge!(segment.llm_event.error_attributes(exception)) if segment.llm_event
 
@@ -250,15 +251,13 @@ module NewRelic
 
       # See NewRelic::Agent.notice_error for options and commentary
       def notice_error(exception, options = {}, span_id = nil)
-        state = ::NewRelic::Agent::Tracer.state
-        transaction = state.current_transaction
-        status_code = transaction&.http_response_code
-
+        status_code = process_http_status_code(exception, options)
         return if skip_notice_error?(exception, status_code)
 
         tag_exception(exception)
 
-        if options[:expected] || @error_filter.expected?(exception, status_code)
+        state = ::NewRelic::Agent::Tracer.state
+        if options[:expected]
           increment_expected_error_count!(state, exception)
         else
           increment_error_count!(state, exception, options)
@@ -266,10 +265,8 @@ module NewRelic
 
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
-        transaction = state.current_transaction
-        payload = transaction&.payload
-        span_id ||= transaction&.current_segment ? transaction.current_segment.guid : nil
-        error_event_aggregator.record(noticed_error, payload, span_id)
+        span_id ||= state.current_transaction&.current_segment&.guid
+        error_event_aggregator.record(noticed_error, state.current_transaction&.payload, span_id)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
@@ -358,6 +355,13 @@ module NewRelic
 
       def error_group_callback
         NewRelic::Agent.error_group_callback
+      end
+
+      def process_http_status_code(exception, options)
+        status_code = ::NewRelic::Agent::Tracer.state.current_transaction&.http_response_code
+        options[:expected] = true if !options[:expected] && @error_filter.expected?(exception, status_code)
+
+        status_code
       end
     end
   end
