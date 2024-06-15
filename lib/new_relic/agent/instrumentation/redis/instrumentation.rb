@@ -9,14 +9,14 @@ module NewRelic::Agent::Instrumentation
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
     def connect_with_tracing
-      with_tracing(Constants::CONNECT, database: db) { yield }
+      with_tracing(Constants::CONNECT, database: _nr_db) { yield }
     end
 
     def call_with_tracing(command, &block)
       operation = command[0]
       statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
 
-      with_tracing(operation, statement: statement, database: db) { yield }
+      with_tracing(operation, statement: statement, database: _nr_db) { yield }
     end
 
     # Used for Redis 4.x and 3.x
@@ -24,22 +24,16 @@ module NewRelic::Agent::Instrumentation
       operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? Constants::MULTI_OPERATION : Constants::PIPELINE_OPERATION
       statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
 
-      with_tracing(operation, statement: statement, database: db) { yield }
+      with_tracing(operation, statement: statement, database: _nr_db) { yield }
     end
 
     # Used for Redis 5.x+
     def call_pipelined_with_tracing(pipeline)
-      db = begin
-        _nr_redis_client_config.db
-      rescue StandardError => e
-        NewRelic::Agent.logger.error("Failed to determine configured Redis db value: #{e.class} - #{e.message}")
-        nil
-      end
 
       operation = pipeline.flatten.include?('MULTI') ? Constants::MULTI_OPERATION : Constants::PIPELINE_OPERATION
       statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)
 
-      with_tracing(operation, statement: statement, database: db) { yield }
+      with_tracing(operation, statement: statement, database: _nr_db) { yield }
     end
 
     private
@@ -92,6 +86,18 @@ module NewRelic::Agent::Instrumentation
         raise 'Unable to locate the underlying Redis client configuration.' unless config
 
         config
+      end
+    end
+
+    def _nr_db
+      # db is a method on the Redis client in versions < 5.x
+      return db if respond_to?(:db)
+
+      db = begin
+        _nr_redis_client_config.db
+      rescue StandardError => e
+        NewRelic::Agent.logger.error("Failed to determine configured Redis db value: #{e.class} - #{e.message}")
+        nil
       end
     end
   end
