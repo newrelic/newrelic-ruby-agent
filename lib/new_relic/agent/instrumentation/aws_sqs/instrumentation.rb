@@ -70,10 +70,12 @@ module NewRelic::Agent::Instrumentation
     end
 
     def add_aws_attributes(segment, queue_name, params)
-      segment&.add_agent_attribute('messaging.system', 'aws_sqs')
-      segment&.add_agent_attribute('cloud.region', config&.region)
-      segment&.add_agent_attribute('cloud.account.id', get_account_id(params))
-      segment&.add_agent_attribute('messaging.destination.name', queue_name)
+      return unless segment
+
+      segment.add_agent_attribute('messaging.system', 'aws_sqs')
+      segment.add_agent_attribute('cloud.region', config&.region)
+      segment.add_agent_attribute('cloud.account.id', get_account_id(params))
+      segment.add_agent_attribute('messaging.destination.name', queue_name)
     end
 
     def get_queue_name(params)
