@@ -87,6 +87,4 @@ class AwssqsInstrumentationTest < Minitest::Test
     assert_equal '123456789', span[2]['cloud.account.id']
     assert_equal 'itsatestqueuewow', span[2]['messaging.destination.name']
   end
-
-  # Add tests here
 end
