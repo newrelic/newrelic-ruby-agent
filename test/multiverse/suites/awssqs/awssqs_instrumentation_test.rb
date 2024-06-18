@@ -96,7 +96,7 @@ class AwssqsInstrumentationTest < Minitest::Test
       in_transaction do |txn|
         begin
           client.send_message({
-            queue_url: 42 
+            queue_url: 42
           })
         rescue
           # will cause an error in the instrumentation, but also will make the sdk raise an error
