@@ -10,6 +10,7 @@ require 'stripe'
 class StripeInstrumentation < Minitest::Test
   API_KEY = '123456789'
   STRIPE_URL = 'Stripe/v1/customers/get'
+  DummyEvent = Struct.new(:path, :method)
 
   def setup
     Stripe.api_key = API_KEY
@@ -166,6 +167,27 @@ class StripeInstrumentation < Minitest::Test
 
       assert_logged(/Error starting New Relic Stripe segment/m)
     end
+  end
+
+  def test_metric_names_are_not_specific_enough_to_cause_a_cardinality_explosion
+    categories = %w[Trzy_kolory The_Apu_Trilogy The_Lord_of_the_Rings]
+    paths = ["/v1/#{categories[0]}/Niebieski",
+      "/v1/#{categories[0]}/Biały",
+      "/v1/#{categories[0]}/Czerwony",
+      "/v1/#{categories[1]}/Pather_Panchali",
+      "/v1/#{categories[1]}/Aparajito",
+      "/v1/#{categories[1]}/The_World_of_Apu",
+      "/v1/#{categories[2]}/The_Fellowship_of_the_Ring",
+      "/v1/#{categories[2]}/The_Two_Towers",
+      "/v1/#{categories[2]}/The_Return_of_the_King"]
+    method = 'get'
+
+    subscriber = NewRelic::Agent::Instrumentation::StripeSubscriber.new
+    expected = categories.map { |c| Array.new(3) { "Stripe/v1/#{c}/#{method}" } }.flatten
+    actual = paths.map { |p| subscriber.send(:metric_name, DummyEvent.new(p, method)) }
+
+    assert_equal expected, actual,
+      "Expected everything after the category in each path to be stripped away. Expected: #{expected} Actual: #{actual}"
   end
 
   def start_stripe_event

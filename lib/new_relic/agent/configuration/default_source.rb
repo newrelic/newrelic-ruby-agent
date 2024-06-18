@@ -1082,7 +1082,6 @@ module NewRelic
             Rails::Command::GenerateCommand
             Rails::Command::InitializersCommand
             Rails::Command::NotesCommand
-            Rails::Command::RakeCommand
             Rails::Command::RoutesCommand
             Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand

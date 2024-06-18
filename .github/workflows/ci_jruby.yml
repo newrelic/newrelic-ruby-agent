@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@cacc9f1c0b3f4eb8a16a6bb0ed10897b43b9de49 # tag v1.176.0
+        uses: ruby/setup-ruby@ff740bc00a01b3a50fffc55a1071b1060eeae9dc # tag v1.180.0
         with:
           ruby-version: jruby-9.4.7.0
 
@@ -24,7 +24,7 @@ jobs:
         run: bundle install
 
       - name: Run Unit Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 30
           max_attempts: 2
@@ -49,7 +49,7 @@ jobs:
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@cacc9f1c0b3f4eb8a16a6bb0ed10897b43b9de49 # tag v1.176.0
+        uses: ruby/setup-ruby@ff740bc00a01b3a50fffc55a1071b1060eeae9dc # tag v1.180.0
         with:
           ruby-version: jruby-9.4.7.0
 
@@ -57,7 +57,7 @@ jobs:
         run: bundle install
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 20
           max_attempts: 3
