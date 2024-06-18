@@ -9,6 +9,7 @@ class AwssqsInstrumentationTest < Minitest::Test
   end
 
   def teardown
+    harvest_span_events!
     mocha_teardown
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
@@ -86,5 +87,59 @@ class AwssqsInstrumentationTest < Minitest::Test
     assert_equal 'us-east-2', span[2]['cloud.region']
     assert_equal '123456789', span[2]['cloud.account.id']
     assert_equal 'itsatestqueuewow', span[2]['messaging.destination.name']
+  end
+
+  def test_error_send_message
+    client = create_client
+
+    log = with_array_logger(:info) do
+      in_transaction do |txn|
+        begin
+          client.send_message({
+            queue_url: 42 
+          })
+        rescue
+          # will cause an error in the instrumentation, but also will make the sdk raise an error
+        end
+      end
+    end
+
+    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client#send_message')
+  end
+
+  def test_error_send_message_batch
+    client = create_client
+
+    log = with_array_logger(:info) do
+      in_transaction do |txn|
+        begin
+          client.send_message_batch({
+            queue_url: 42
+          })
+        rescue
+          # will cause an error in the instrumentation, but also will make the sdk raise an error
+        end
+      end
+    end
+
+    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client#send_message_batch')
+  end
+
+  def test_error_receive_message
+    client = create_client
+
+    log = with_array_logger(:info) do
+      in_transaction do |txn|
+        begin
+          client.receive_message({
+            queue_url: 42
+          })
+        rescue
+          # will cause an error in the instrumentation, but also will make the sdk raise an error
+        end
+      end
+    end
+
+    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client#receive_message')
   end
 end
