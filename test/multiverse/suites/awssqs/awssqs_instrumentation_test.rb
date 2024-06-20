@@ -5,13 +5,11 @@
 class AwssqsInstrumentationTest < Minitest::Test
   def setup
     Aws.config.update(stub_responses: true)
-    @stats_engine = NewRelic::Agent.instance.stats_engine
   end
 
   def teardown
     harvest_span_events!
     mocha_teardown
-    NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
   def create_client
