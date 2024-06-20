@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.11.0
 
-Version <dev> introduces instrumentation for the aws-sdk-sqs gem, fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
+Version 9.11.0 introduces instrumentation for the aws-sdk-sqs gem, fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
 
 - **Feature: Add instrumentation for SQS**
 
