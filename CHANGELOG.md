@@ -1,12 +1,28 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.11.0
+
+Version 9.11.0 introduces instrumentation for the aws-sdk-sqs gem, fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
+
+- **Feature: Add instrumentation for SQS**
+
+    The agent has added instrumentation for the [aws-sdk-sqs gem](https://rubygems.org/gems/aws-sdk-sqs). The agent will now record message broker spans for SQS client calls made with the aws-sdk-sqs gem. [PR#2679](https://github.com/newrelic/newrelic-ruby-agent/pull/2679)
+
+- **Bugfix: HTTP status code based expected errors will now have an "expected" value of "true"**
+
+    Previously when an error was treated as expected by the agent as a result of a matching HTTP status code being found in the :'error_collector.expected_status_codes' configuration setting, the error would not appear with an "expected" attribute value of "true" in the errors in the errors inbox. [PR#2710](https://github.com/newrelic/newrelic-ruby-agent/pull/2710)
+
+- **Bugfix: Stripe metric names will no longer include full request paths to limit the unique name count**
+
+    The Stripe instrumentation introduced in agent version v9.5.0 produced instrumentation metric names that used the full Stripe request path. For any significant Stripe usage, this could quickly lead to very large number of distinct metric names. Now only the API version and the category part of the request path are included in the metric name which still includes the "Stripe" opener and method (ex: "get") closer. Thanks to [@jdelStrother](https://github.com/jdelStrother) and [@jsneedles](https://github.com/jsneedles) for bringing this issue to our attention and providing terrific information explaining the problem and potential paths to resolution. [PR#2716](https://github.com/newrelic/newrelic-ruby-agent/pull/2716)
+
 ## v9.10.2
 
 Version 9.10.2 fixes a bug related to the new DynamoDB instrumentation and removes `Rails::Command::RakeCommand` from the default list of denylisted constants.
 
 - **Bugfix: DynamoDB instrumentation logging errors when trying to get account_id**
 
-    When trying to access data needed to add the `account_id` to the DynamoDB span, the agent encountered an error when certain credentials classes were used. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2864](https://github.com/newrelic/newrelic-ruby-agent/pull/2684)
+    When trying to access data needed to add the `account_id` to the DynamoDB span, the agent encountered an error when certain credentials classes were used. This has been fixed. Thanks to [@kichik](https://github.com/kichik) for bringing this to our attention. [PR#2684](https://github.com/newrelic/newrelic-ruby-agent/pull/2684)
 
 - **Bugfix: Remove Rails::Command::RakeCommand from the default list of autostart.denylisted_constants**
 

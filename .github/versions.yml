@@ -1,0 +1,26 @@
+---
+# This file is consumed by lib/tasks/gha.rake
+ruby/setup-ruby:
+  :tag: v1.180.0
+  :sha: ff740bc00a01b3a50fffc55a1071b1060eeae9dc
+actions/checkout:
+  :tag: v4.1.2
+  :sha: 9bb56186c3b09b4f86b1c65136769dd318469633
+nga333/variable-mapper:
+  :tag: v0.3.0
+  :sha: 3681b75f5c6c00162721168fb91ab74925eaebcb
+actions/cache:
+  :tag: v3.3.1
+  :sha: 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
+nick-fields/retry:
+  :tag: v3.0.0
+  :sha: 7152eba30c6575329ac0576536151aca5a72780e
+technote-space/workflow-conclusion-action:
+  :tag: v3.0.3
+  :sha: 45ce8e0eb155657ab8ccf346ade734257fd196a5
+voxmedia/github-action-slack-notify-build:
+  :tag: v1.6.0
+  :sha: 3665186a8c1a022b28a1dbe0954e73aa9081ea9e
+Mercymeilya/last-workflow-status:
+  :tag: v0.3.3
+  :sha: 3418710aefe8556d73b6f173a0564d38bcfd9a43
