@@ -7,39 +7,36 @@ module NewRelic::Agent::Instrumentation
     MESSAGING_LIBRARY = 'SQS'
 
     def send_message_with_new_relic(*args)
-      segment = nil
-      begin
-        info = get_url_info(args[0])
-        segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-          action: :produce,
-          library: MESSAGING_LIBRARY,
-          destination_type: :queue,
-          destination_name: info[:queue_name]
-        )
-        add_aws_attributes(segment, info)
-      rescue => e
-        NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client#send_message ', e)
-      end
-      NewRelic::Agent::Tracer.capture_segment_error(segment) do
+      with_tracing(:produce, args) do
         yield
       end
-    ensure
-      segment&.finish
     end
 
     def send_message_batch_with_new_relic(*args)
+      with_tracing(:produce, args) do
+        yield
+      end
+    end
+
+    def receive_message_with_new_relic(*args)
+      with_tracing(:consume, args) do
+        yield
+      end
+    end
+
+    def with_tracing(action, params)
       segment = nil
       begin
-        info = get_url_info(args[0])
+        info = get_url_info(params[0])
         segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-          action: :produce,
+          action: action,
           library: MESSAGING_LIBRARY,
           destination_type: :queue,
           destination_name: info[:queue_name]
         )
         add_aws_attributes(segment, info)
       rescue => e
-        NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client#send_message_batch ', e)
+        NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client', e)
       end
       NewRelic::Agent::Tracer.capture_segment_error(segment) do
         yield
@@ -48,26 +45,7 @@ module NewRelic::Agent::Instrumentation
       segment&.finish
     end
 
-    def receive_message_with_new_relic(*args)
-      segment = nil
-      begin
-        info = get_url_info(args[0])
-        segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-          action: :consume,
-          library: MESSAGING_LIBRARY,
-          destination_type: :queue,
-          destination_name: info[:queue_name]
-        )
-        add_aws_attributes(segment, info)
-      rescue => e
-        NewRelic::Agent.logger.error('Error starting message broker segment in Aws::SQS::Client#receive_message ', e)
-      end
-      NewRelic::Agent::Tracer.capture_segment_error(segment) do
-        yield
-      end
-    ensure
-      segment&.finish
-    end
+    private
 
     def add_aws_attributes(segment, info)
       return unless segment

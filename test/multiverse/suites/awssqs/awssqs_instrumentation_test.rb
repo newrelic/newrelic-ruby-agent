@@ -102,42 +102,6 @@ class AwssqsInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client#send_message')
-  end
-
-  def test_error_send_message_batch
-    client = create_client
-
-    log = with_array_logger(:info) do
-      in_transaction do |txn|
-        begin
-          client.send_message_batch({
-            queue_url: 42
-          })
-        rescue
-          # will cause an error in the instrumentation, but also will make the sdk raise an error
-        end
-      end
-    end
-
-    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client#send_message_batch')
-  end
-
-  def test_error_receive_message
-    client = create_client
-
-    log = with_array_logger(:info) do
-      in_transaction do |txn|
-        begin
-          client.receive_message({
-            queue_url: 42
-          })
-        rescue
-          # will cause an error in the instrumentation, but also will make the sdk raise an error
-        end
-      end
-    end
-
-    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client#receive_message')
+    assert_log_contains(log, 'Error starting message broker segment in Aws::SQS::Client')
   end
 end
