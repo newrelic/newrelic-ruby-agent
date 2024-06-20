@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
+Version <dev> introduces instrumentation for the aws-sdk-sqs gem, fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
+
+- **Feature: Add instrumentation for SQS**
+
+    The agent has added instrumentation for the [aws-sdk-sqs gem](https://rubygems.org/gems/aws-sdk-sqs). The agent will now record message broker spans for SQS client calls made with the aws-sdk-sqs gem. [PR#2679](https://github.com/newrelic/newrelic-ruby-agent/pull/2679)
 
 - **Bugfix: HTTP status code based expected errors will now have an "expected" value of "true"**
 
