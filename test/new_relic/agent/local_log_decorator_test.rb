@@ -99,6 +99,33 @@ module NewRelic::Agent
           assert_includes decorated_message, '||'
         end
       end
+
+      def test_decorates_json_log_hashes
+        canned_hostname = 'blazkowicz'
+        hash = {'dennis' => 'gnasher'}
+
+        in_transaction do |txn|
+          expected = hash.merge({'entity.name' => @enabled_config[:app_name],
+                                 'entity.type' => 'SERVICE',
+                                 'hostname' => canned_hostname,
+                                 'entity.guid' => @enabled_config[:entity_guid],
+                                 'trace.id' => txn.trace_id,
+                                 'span.id' => txn.segments.first.guid})
+
+          NewRelic::Agent::Hostname.stub(:get, canned_hostname) do
+            LocalLogDecorator.decorate(hash)
+          end
+
+          assert_equal expected, hash, "Expected hash to be decorated. Wanted >>#{expected}<<, got >>#{hash}<<"
+        end
+      end
+
+      def test_returns_early_with_frozen_hashes
+        hash = {'dennis' => 'gnasher'}.freeze
+        expected = hash.dup
+        LocalLogDecorator.decorate(hash)
+        assert_equal expected, hash, 'Expected no errors and no hash modifications for a frozen hash'
+      end
     end
   end
 end
