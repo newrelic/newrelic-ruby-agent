@@ -4,15 +4,16 @@
 
 module NewRelic::Agent::Instrumentation
   module RedisClient
-    module Middleware
-      # This module is used to instrument Redis 5.x+
-      #
-      # It only instruments call_pipelined because connect and call are accessed
-      # too late in the stack to capture all errors
+    module ClusterMiddleware
       include NewRelic::Agent::Instrumentation::Redis
 
-      def call_pipelined(*args, &block)
-        call_pipelined_with_tracing(args[0]) { super }
+      # Can't access these in redis-clustering by prepending onto the same methods
+      def call(*args, &block)
+        call_with_tracing(args[0]) { super }
+      end
+
+      def connect(*args, &block)
+        connect_with_tracing { super }
       end
     end
   end
