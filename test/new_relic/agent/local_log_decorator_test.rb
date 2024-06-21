@@ -119,6 +119,13 @@ module NewRelic::Agent
           assert_equal expected, hash, "Expected hash to be decorated. Wanted >>#{expected}<<, got >>#{hash}<<"
         end
       end
+
+      def test_returns_early_with_frozen_hashes
+        hash = {'dennis' => 'gnasher'}.freeze
+        expected = hash.dup
+        LocalLogDecorator.decorate(hash)
+        assert_equal expected, hash, 'Expected no errors and no hash modifications for a frozen hash'
+      end
     end
   end
 end
