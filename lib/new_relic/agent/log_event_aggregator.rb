@@ -90,6 +90,42 @@ module NewRelic
         nil
       end
 
+      def record_json(log)
+        return unless enabled?
+
+        severity = log['level'] || 'UNKNOWN'
+
+        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
+          @counter_lock.synchronize do
+            @seen += 1
+            @seen_by_severity[severity] += 1
+          end
+        end
+
+        return if severity_too_low?(severity)
+        # The message key only exists if users manually add log statements
+        return if log.key?(:message) && (log.key?(:message).nil? || llog.key?(:message).empty?)
+        return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
+        return if @high_security
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+        message = get_json_message(log)
+
+        return txn.add_log_event(create_json_event(priority, message, severity, log)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_json_event(priority, message, severity, log)
+          end
+        end
+      rescue
+      end
+
+      def get_json_message(log)
+        log['message'] || ''
+      end
+
       def record_batch(txn, logs)
         # Ensure we have the same shared priority
         priority = LogPriority.priority_for(txn)
@@ -119,6 +155,35 @@ module NewRelic
           },
           event
         ]
+      end
+
+      def create_json_event(priority, formatted_message, severity, log)
+        formatted_message = truncate_message(formatted_message)
+
+        event = LinkingMetadata.append_trace_linking_metadata({
+          LEVEL_KEY => severity,
+          MESSAGE_KEY => formatted_message,
+          TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
+        })
+
+        add_json_event_attributes(event, log)
+
+        [
+          {
+            PrioritySampledBuffer::PRIORITY_KEY => priority
+          },
+          event
+        ]
+      end
+
+      def add_json_event_attributes(event, log)
+        # Delete attributes we've already reported
+        log.delete('message')
+        log.delete('level')
+        log.delete('@timestamp')
+        attributes = event['attributes'] = {}
+
+        event['attributes'].merge!(log)
       end
 
       def add_custom_attributes(custom_attributes)
@@ -167,7 +232,11 @@ module NewRelic
       end
 
       def enabled?
-        @enabled && @instrumentation_logger_enabled
+        @enabled && instrumentation_enabled?
+      end
+
+      def instrumentation_enabled?
+        NewRelic::Agent::Instrumentation::Logger.enabled? || NewRelic::Agent::Instrumentation::LogStasher.enabled?
       end
 
       private

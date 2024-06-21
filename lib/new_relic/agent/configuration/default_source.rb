@@ -1602,7 +1602,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the logstasher library at start-up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache' => {
           :default => 'auto',

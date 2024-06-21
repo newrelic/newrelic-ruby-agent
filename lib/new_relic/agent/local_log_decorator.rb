@@ -12,6 +12,7 @@ module NewRelic
         return message unless decorating_enabled?
 
         metadata = NewRelic::Agent.linking_metadata
+
         if message.is_a?(Hash)
           message.merge!(metadata) unless message.frozen?
           return

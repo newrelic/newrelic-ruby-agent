@@ -3,11 +3,23 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module Logstasher
+  module LogStasher
+    INSTRUMENTATION_NAME = 'LogStasher'
 
-    def build_logstash_event_with_new_relic(data,tags)
-      # add instrumentation content here
-      yield
+    def self.enabled?
+      NewRelic::Agent.config[:'instrumentation.logstasher'] != 'disabled'
+    end
+
+    def build_logstash_event_with_new_relic(data, tags)
+      data = yield
+
+      log = data.instance_variable_get(:@data)
+
+      ::NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+      ::NewRelic::Agent.agent.log_event_aggregator.record_json(log)
+      log = LocalLogDecorator.decorate(log)
+
+      log
     end
   end
 end

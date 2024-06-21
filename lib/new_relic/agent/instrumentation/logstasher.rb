@@ -10,17 +10,17 @@ DependencyDetection.defer do
   named :logstasher
 
   depends_on do
-    defined?(Logstasher) &&
+    defined?(LogStasher) &&
       NewRelic::Agent.config[:'application_logging.enabled']
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing logstasher instrumentation')
+    NewRelic::Agent.logger.info('Installing LogStasher instrumentation')
 
     if use_prepend?
-      prepend_instrument Logstasher, NewRelic::Agent::Instrumentation::Logstasher::Prepend
+      prepend_instrument LogStasher, NewRelic::Agent::Instrumentation::LogStasher::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Logstasher::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::LogStasher::Chain
     end
   end
 end

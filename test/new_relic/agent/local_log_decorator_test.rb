@@ -124,6 +124,7 @@ module NewRelic::Agent
         hash = {'dennis' => 'gnasher'}.freeze
         expected = hash.dup
         LocalLogDecorator.decorate(hash)
+
         assert_equal expected, hash, 'Expected no errors and no hash modifications for a frozen hash'
       end
     end
