@@ -92,7 +92,7 @@ module NewRelic::Agent::Instrumentation
       # db is a method on the Redis client in versions < 5.x
       return db if respond_to?(:db)
 
-      db = begin
+      begin
         _nr_redis_client_config.db
       rescue StandardError => e
         NewRelic::Agent.logger.error("Failed to determine configured Redis db value: #{e.class} - #{e.message}")
