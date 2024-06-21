@@ -12,6 +12,8 @@ module NewRelic
         return message unless decorating_enabled?
 
         metadata = NewRelic::Agent.linking_metadata
+        return message.merge!(metadata) if message.is_a?(Hash) && !message.frozen?
+
         formatted_metadata = " NR-LINKING|#{metadata[ENTITY_GUID_KEY]}|#{metadata[HOSTNAME_KEY]}|" \
                              "#{metadata[TRACE_ID_KEY]}|#{metadata[SPAN_ID_KEY]}|" \
                              "#{escape_entity_name(metadata[ENTITY_NAME_KEY])}|"
