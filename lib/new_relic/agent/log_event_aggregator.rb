@@ -177,13 +177,14 @@ module NewRelic
       end
 
       def add_json_event_attributes(event, log)
-        # Delete attributes we've already reported
-        log.delete('message')
-        log.delete('level')
-        log.delete('@timestamp')
+        log_copy = log.dup
+        # Delete previously reported attributes
+        log_copy.delete('message')
+        log_copy.delete('level')
+        log_copy.delete('@timestamp')
         attributes = event['attributes'] = {}
 
-        event['attributes'].merge!(log)
+        event['attributes'].merge!(log_copy)
       end
 
       def add_custom_attributes(custom_attributes)

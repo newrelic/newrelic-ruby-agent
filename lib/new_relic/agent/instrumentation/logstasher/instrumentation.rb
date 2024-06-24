@@ -12,14 +12,13 @@ module NewRelic::Agent::Instrumentation
 
     def build_logstash_event_with_new_relic(data, tags)
       data = yield
-
       log = data.instance_variable_get(:@data)
 
       ::NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
       ::NewRelic::Agent.agent.log_event_aggregator.record_json(log)
-      log = LocalLogDecorator.decorate(log)
+      ::NewRelic::Agent::LocalLogDecorator.decorate(log)
 
-      log
+      data
     end
   end
 end
