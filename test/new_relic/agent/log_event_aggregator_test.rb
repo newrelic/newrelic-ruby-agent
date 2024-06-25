@@ -14,7 +14,7 @@ module NewRelic::Agent
         'message' => 'A trex is near',
         'source' => '127.0.0.1',
         'tags' => ['log'],
-        '@timestamp' => '2024-06-24T23:53:54.626Z',
+        '@timestamp' => '2024-06-24T23:53:54.626Z'
       }
     end
 
@@ -25,9 +25,10 @@ module NewRelic::Agent
         :request_id => '01234-abcde-56789-fghij',
         'source' => '127.0.0.1',
         'tags' => [],
-        '@timestamp' => '2024-06-24T23:55:59.497Z',
+        '@timestamp' => '2024-06-24T23:55:59.497Z'
       }
     end
+
     def setup
       nr_freeze_process_time
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
