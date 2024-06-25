@@ -250,8 +250,8 @@ module NewRelic
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
 
-          record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY) if logger_enabled?
-          record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY) if logstasher_enabled?
+          record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
+          record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
