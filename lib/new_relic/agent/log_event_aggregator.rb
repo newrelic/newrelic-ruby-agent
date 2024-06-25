@@ -95,6 +95,7 @@ module NewRelic
         return unless enabled?
 
         severity = log['level'] || 'UNKNOWN'
+        return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
         if NewRelic::Agent.config[METRICS_ENABLED_KEY]
           @counter_lock.synchronize do
@@ -109,7 +110,7 @@ module NewRelic
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
-        message = get_json_message(log)
+        message = log['message'] || ''
 
         return txn.add_log_event(create_json_event(priority, message, severity, log)) if txn
 
@@ -119,10 +120,6 @@ module NewRelic
           end
         end
       rescue
-      end
-
-      def get_json_message(log)
-        log['message'] || ''
       end
 
       def record_batch(txn, logs)
