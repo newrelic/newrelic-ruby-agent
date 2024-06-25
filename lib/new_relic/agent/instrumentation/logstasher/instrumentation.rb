@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.config[:'instrumentation.logstasher'] != 'disabled'
     end
 
-    def build_logstash_event_with_new_relic(data, tags)
+    def build_logstash_event_with_new_relic(data, _tags)
       data = yield
       log = data.instance_variable_get(:@data)
 

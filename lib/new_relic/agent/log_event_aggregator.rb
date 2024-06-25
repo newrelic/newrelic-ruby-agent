@@ -20,7 +20,8 @@ module NewRelic
       DROPPED_METRIC = 'Logging/Forwarding/Dropped'.freeze
       SEEN_METRIC = 'Supportability/Logging/Forwarding/Seen'.freeze
       SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
-      OVERALL_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
+      LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
+      LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
@@ -103,8 +104,6 @@ module NewRelic
         end
 
         return if severity_too_low?(severity)
-        # The message key only exists if users manually add log statements
-        return if log.key?(:message) && (log.key?(:message).nil? || llog.key?(:message).empty?)
         return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
         return if @high_security
 
@@ -182,9 +181,8 @@ module NewRelic
         log_copy.delete('message')
         log_copy.delete('level')
         log_copy.delete('@timestamp')
-        attributes = event['attributes'] = {}
 
-        event['attributes'].merge!(log_copy)
+        event['attributes'] = log_copy
       end
 
       def add_custom_attributes(custom_attributes)
@@ -233,11 +231,15 @@ module NewRelic
       end
 
       def enabled?
-        @enabled && instrumentation_enabled?
+        @enabled && (logger_enabled? || logstasher_enabled?)
       end
 
-      def instrumentation_enabled?
-        NewRelic::Agent::Instrumentation::Logger.enabled? || NewRelic::Agent::Instrumentation::LogStasher.enabled?
+      def logger_enabled?
+        NewRelic::Agent::Instrumentation::Logger.enabled?
+      end
+
+      def logstasher_enabled?
+        NewRelic::Agent::Instrumentation::LogStasher.enabled?
       end
 
       private
@@ -248,7 +250,8 @@ module NewRelic
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
 
-          record_configuration_metric(OVERALL_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
+          record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY) if logger_enabled?
+          record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY) if logstasher_enabled?
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)

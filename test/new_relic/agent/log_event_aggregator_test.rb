@@ -8,6 +8,31 @@ require 'new_relic/agent/log_event_aggregator'
 
 module NewRelic::Agent
   class LogEventAggregatorTest < Minitest::Test
+
+    def json_user_set_log_hash
+      {'level'=>:warn,
+      'message'=>'A trex is near',
+      'source'=>'127.0.0.1',
+      'tags'=>['log'],
+      '@timestamp'=>'2024-06-24T23:53:54.626Z',
+      '@version'=>'1'}
+    end
+
+    def json_typical_log_hash
+      { :identifier=>'dinosaurs/_dinosaur.html.erb',
+      :layout=>nil,
+      :cache_hit=>nil,
+      :name=>'render_partial.action_view',
+      :transaction_id=>'123456789',
+      :allocations=>90,
+      :duration=>0.27,
+      :request_id=>'01234-abcde-56789-fghij',
+      'source'=>'127.0.0.1',
+      'tags'=>[],
+      '@timestamp'=>'2024-06-24T23:55:59.497Z',
+      '@version'=>'1'}
+    end
+
     def setup
       nr_freeze_process_time
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
@@ -57,6 +82,7 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1}
@@ -76,6 +102,7 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -337,6 +364,7 @@ module NewRelic::Agent
           'Logging/lines' => {:call_count => 9},
           'Logging/lines/DEBUG' => {:call_count => 9},
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -359,6 +387,7 @@ module NewRelic::Agent
         # All settings should report as disabled regardless of config option
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -384,6 +413,7 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -520,6 +550,59 @@ module NewRelic::Agent
 
         assert_equal(log_message, events.first.last['message'])
       end
+    end
+
+    # json_typical_log_hash
+
+    # LogStasher tests
+    def test_record_json_sets_severity_when_given_level
+      @aggregator.record_json(json_user_set_log_hash)
+      _, events = @aggregator.harvest!
+
+      assert_equal :warn, events[0][1]['level']
+      assert_metrics_recorded([
+        'Logging/lines/warn'
+      ])
+    end
+
+    def test_record_json_sets_severity_unknown_when_no_level
+      @aggregator.record_json(json_typical_log_hash)
+      _, events = @aggregator.harvest!
+
+      assert_equal 'UNKNOWN', events[0][1]['level']
+      assert_metrics_recorded([
+        'Logging/lines/UNKNOWN'
+      ])
+    end
+
+    def test_get_json_message_returns_message_when_avaliable
+      message = @aggregator.get_json_message(json_user_set_log_hash)
+
+      assert_equal 'A trex is near', message
+    end
+
+    def test_get_json_message_returns_empty_string_when_unavaliable
+      message = @aggregator.get_json_message(json_typical_log_hash)
+
+      assert_equal '', message
+    end
+
+    def test_add_json_event_attributes_records_attributes
+      @aggregator.record_json(json_user_set_log_hash)
+      _, events = @aggregator.harvest!
+
+      assert events[0][1]['attributes'].include?('source')
+      assert events[0][1]['attributes'].include?('tags')
+      assert events[0][1]['attributes'].include?('@version')
+    end
+
+    def test_add_json_event_attributes_deletes_already_recorded_attributes
+      @aggregator.record_json(json_user_set_log_hash)
+      _, events = @aggregator.harvest!
+
+      refute events[0][1]['attributes'].include?('message')
+      refute events[0][1]['attributes'].include?('level')
+      refute events[0][1]['attributes'].include?('@timestamp')
     end
   end
 end
