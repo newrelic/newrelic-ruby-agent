@@ -8,29 +8,28 @@ require 'new_relic/agent/log_event_aggregator'
 
 module NewRelic::Agent
   class LogEventAggregatorTest < Minitest::Test
-
     def json_user_set_log_hash
-      {'level'=>:warn,
-      'message'=>'A trex is near',
-      'source'=>'127.0.0.1',
-      'tags'=>['log'],
-      '@timestamp'=>'2024-06-24T23:53:54.626Z',
-      '@version'=>'1'}
+      {'level': :warn,
+       'message': 'A trex is near',
+       'source': '127.0.0.1',
+       'tags': ['log'],
+       '@timestamp': '2024-06-24T23:53:54.626Z',
+       '@version': '1'}
     end
 
     def json_typical_log_hash
-      { :identifier=>'dinosaurs/_dinosaur.html.erb',
-      :layout=>nil,
-      :cache_hit=>nil,
-      :name=>'render_partial.action_view',
-      :transaction_id=>'123456789',
-      :allocations=>90,
-      :duration=>0.27,
-      :request_id=>'01234-abcde-56789-fghij',
-      'source'=>'127.0.0.1',
-      'tags'=>[],
-      '@timestamp'=>'2024-06-24T23:55:59.497Z',
-      '@version'=>'1'}
+      {identifier: 'dinosaurs/_dinosaur.html.erb',
+       layout: nil,
+       cache_hit: nil,
+       name: 'render_partial.action_view',
+       transaction_id: '123456789',
+       allocations: 90,
+       duration: 0.27,
+       request_id: '01234-abcde-56789-fghij',
+       'source': '127.0.0.1',
+       'tags': [],
+       '@timestamp': '2024-06-24T23:55:59.497Z',
+       '@version': '1'}
     end
 
     def setup
@@ -591,18 +590,18 @@ module NewRelic::Agent
       @aggregator.record_json(json_user_set_log_hash)
       _, events = @aggregator.harvest!
 
-      assert events[0][1]['attributes'].include?('source')
-      assert events[0][1]['attributes'].include?('tags')
-      assert events[0][1]['attributes'].include?('@version')
+      assert_includes(events[0][1]['attributes'], 'source')
+      assert_includes(events[0][1]['attributes'], 'tags')
+      assert_includes(events[0][1]['attributes'], '@version')
     end
 
     def test_add_json_event_attributes_deletes_already_recorded_attributes
       @aggregator.record_json(json_user_set_log_hash)
       _, events = @aggregator.harvest!
 
-      refute events[0][1]['attributes'].include?('message')
-      refute events[0][1]['attributes'].include?('level')
-      refute events[0][1]['attributes'].include?('@timestamp')
+      refute_includes(events[0][1]['attributes'], 'message')
+      refute_includes(events[0][1]['attributes'], 'level')
+      refute_includes(events[0][1]['attributes'], '@timestamp')
     end
   end
 end
