@@ -10,7 +10,8 @@ DependencyDetection.defer do
   named :elasticsearch
 
   depends_on do
-    defined?(Elasticsearch)
+    defined?(Elasticsearch) &&
+      Gem::Version.create(Elasticsearch::VERSION) >= Gem::Version.create('7.0.0')
   end
 
   executes do
