@@ -5,8 +5,7 @@
 instrumentation_methods :chain, :prepend
 
 logstasher_versions = [
-  [nil, 2.4],
-  ['0.7.0', 2.4]
+  [nil, 2.6]
 ]
 
 def gem_list(logstasher_versions = nil)
