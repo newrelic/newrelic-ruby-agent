@@ -29,7 +29,8 @@ class LogStasherInstrumentationTest < Minitest::Test
   def setup
     @written = StringIO.new
 
-    # 
+    # Give LogStasher's setup method a new place to write logs to, as well as
+    # skip a config check, controller_monkey_patch, that otherwise causes an error
     LogStasher.setup(OpenStruct.new(logger_path: @written, controller_monkey_patch: false))
 
     # required for build_logstasher_event method
@@ -47,7 +48,7 @@ class LogStasherInstrumentationTest < Minitest::Test
 
   def test_level_is_recorded
     in_transaction do
-      LogStasher.build_logstash_event({"level"=>:info, "message"=>"hi there"}, ['log'])
+      LogStasher.build_logstash_event({'level' => :info, 'message' => 'hi there'}, ['log'])
     end
     _, events = @aggregator.harvest!
 
@@ -96,7 +97,7 @@ class LogStasherInstrumentationTest < Minitest::Test
     assert logfile.key?('hostname')
   end
 
-  def test_log_decorating_enabled_records_new_relic_metrics
+  def test_log_decorating_records_new_relic_metrics
     with_config(:'application_logging.local_decorating.enabled' => false) do
       LogStasher.warn('yikes')
     end
