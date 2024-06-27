@@ -103,6 +103,7 @@ class Instrumentation < Thor
     <<-CONFIG
         :'instrumentation.#{snake_name}' => {
           :default => 'auto',
+          :documentation_default => 'auto'
           :public => true,
           :type => String,
           :dynamic_name => true,

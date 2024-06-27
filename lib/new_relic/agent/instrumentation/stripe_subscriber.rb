@@ -10,6 +10,7 @@ module NewRelic
         EVENT_ATTRIBUTES = %i[http_status method num_retries path request_id].freeze
         ATTRIBUTE_NAMESPACE = 'stripe.user_data'
         ATTRIBUTE_FILTER_TYPES = %i[include exclude].freeze
+        PATH_PORTION_PATTERN = %r{^/([^/]+/[^/]+)(?:/|\z)}.freeze
 
         def start_segment(event)
           return unless is_execution_traced?
@@ -39,7 +40,27 @@ module NewRelic
         end
 
         def metric_name(event)
-          "Stripe#{event.path}/#{event.method}"
+          # Grab only the first 2 items from the slash (/) delimited event path.
+          # These items are the API version string and the category. Grabbing
+          # any more of the path will result in unique method names that will
+          # easily grow to be too numerous to sort through in the UI and
+          # possibly even violate default New Relic metric count thresholds.
+          # See newrelic/newrelic-ruby-agent#2654 and
+          # newrelic/newrelic-ruby-agent#2709 for more details.
+          #
+          # In Ruby v3.4 benchmarks, using regex to get at the first two path
+          # elements was seen as more performant than using String#split.
+          #
+          # Regex legend:
+          #
+          # ^ = starts with
+          # / = a literal '/'
+          # () = capture
+          # (?:) = don't capture
+          # [^/]+ = 1 or more characters that are not '/'
+          # /|\z = a literal '/' OR the end of the string
+          path_portion = event.path =~ PATH_PORTION_PATTERN ? Regexp.last_match(1) : NewRelic::UNKNOWN
+          "Stripe/#{path_portion}/#{event.method}"
         end
 
         def add_stripe_attributes(segment, event)
