@@ -4,6 +4,16 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<~RB
-  gem 'logstasher'
-RB
+logstasher_versions = [
+  [nil, 2.4],
+  ['0.7.0', 2.4]
+]
+
+def gem_list(logstasher_versions = nil)
+  <<~RB
+    gem 'logstasher'#{logstasher_versions}
+    gem 'activesupport', '7.0.8.4'
+  RB
+end
+
+create_gemfiles(logstasher_versions)

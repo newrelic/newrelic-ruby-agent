@@ -91,7 +91,7 @@ module NewRelic
         nil
       end
 
-      def record_json(log)
+      def record_logstasher_event(log)
         return unless enabled?
 
         severity = log['level'] || 'UNKNOWN'

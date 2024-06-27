@@ -15,7 +15,7 @@ module NewRelic::Agent::Instrumentation
       log = logstasher_event.instance_variable_get(:@data)
 
       ::NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
-      ::NewRelic::Agent.agent.log_event_aggregator.record_json(log)
+      ::NewRelic::Agent.agent.log_event_aggregator.record_logstasher_event(log)
       ::NewRelic::Agent::LocalLogDecorator.decorate(log)
 
       logstasher_event

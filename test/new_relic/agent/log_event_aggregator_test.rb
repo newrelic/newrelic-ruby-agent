@@ -8,27 +8,6 @@ require 'new_relic/agent/log_event_aggregator'
 
 module NewRelic::Agent
   class LogEventAggregatorTest < Minitest::Test
-    def json_user_set_log_hash
-      {
-        'level' => :warn,
-        'message' => 'A trex is near',
-        'source' => '127.0.0.1',
-        'tags' => ['log'],
-        '@timestamp' => '2024-06-24T23:53:54.626Z'
-      }
-    end
-
-    def json_log_hash
-      {
-        :identifier => 'dinosaurs/_dinosaur.html.erb',
-        :name => 'render_partial.action_view',
-        :request_id => '01234-abcde-56789-fghij',
-        'source' => '127.0.0.1',
-        'tags' => [],
-        '@timestamp' => '2024-06-24T23:55:59.497Z'
-      }
-    end
-
     def setup
       nr_freeze_process_time
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
@@ -548,11 +527,8 @@ module NewRelic::Agent
       end
     end
 
-    # json_typical_log_hash
-
-    # LogStasher tests
     def test_record_json_sets_severity_when_given_level
-      @aggregator.record_json(json_user_set_log_hash)
+      @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'yikes!'})
       _, events = @aggregator.harvest!
 
       assert_equal :warn, events[0][1]['level']
@@ -562,7 +538,7 @@ module NewRelic::Agent
     end
 
     def test_record_json_sets_severity_unknown_when_no_level
-      @aggregator.record_json(json_log_hash)
+      @aggregator.record_logstasher_event({'message' => 'hello there'})
       _, events = @aggregator.harvest!
 
       assert_equal 'UNKNOWN', events[0][1]['level']
@@ -572,35 +548,35 @@ module NewRelic::Agent
     end
 
     def test_record_json_does_not_record_if_message_is_nil
-      @aggregator.record_json({'level' => :info, 'message' => nil})
+      @aggregator.record_logstasher_event({'level' => :info, 'message' => nil})
       _, events = @aggregator.harvest!
 
       assert_empty events
     end
 
     def test_record_json_does_not_record_if_message_empty_string
-      @aggregator.record_json({'level' => :info, 'message' => ''})
+      @aggregator.record_logstasher_event({'level' => :info, 'message' => ''})
       _, events = @aggregator.harvest!
 
       assert_empty events
     end
 
     def test_record_json_returns_message_when_avaliable
-      @aggregator.record_json({'level' => :warn, 'message' => 'A trex is near'})
+      @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'A trex is near'})
       _, events = @aggregator.harvest!
 
       assert_equal 'A trex is near', events[0][1]['message']
     end
 
     def test_record_json_returns_empty_string_when_unavaliable
-      @aggregator.record_json(json_log_hash)
+      @aggregator.record_logstasher_event({'level' => :info})
       _, events = @aggregator.harvest!
 
       assert_equal '', events[0][1]['message']
     end
 
     def test_add_json_event_attributes_records_attributes
-      @aggregator.record_json(json_user_set_log_hash)
+      @aggregator.record_logstasher_event({'source' => '127.0.0.1', 'tags' => ['log']})
       _, events = @aggregator.harvest!
 
       assert_includes(events[0][1]['attributes'], 'source')
@@ -608,7 +584,7 @@ module NewRelic::Agent
     end
 
     def test_add_json_event_attributes_deletes_already_recorded_attributes
-      @aggregator.record_json(json_user_set_log_hash)
+      @aggregator.record_logstasher_event({'message' => 'bye', 'level' => :info, '@timestamp' => 'now'})
       _, events = @aggregator.harvest!
 
       refute_includes(events[0][1]['attributes'], 'message')
