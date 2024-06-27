@@ -2,29 +2,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'ostruct'
+
 class LogStasherInstrumentationTest < Minitest::Test
   include MultiverseHelpers
-
-  def json_user_set_log_hash
-    {
-      'level' => :warn,
-      'message' => 'A trex is near',
-      'source' => '127.0.0.1',
-      'tags' => ['log'],
-      '@timestamp' => '2024-06-24T23:53:54.626Z'
-    }
-  end
-
-  def json_log_hash
-    {
-      :identifier => 'dinosaurs/_dinosaur.html.erb',
-      :name => 'render_partial.action_view',
-      :request_id => '01234-abcde-56789-fghij',
-      'source' => '127.0.0.1',
-      'tags' => [],
-      '@timestamp' => '2024-06-24T23:55:59.497Z'
-    }
-  end
 
   def setup
     @written = StringIO.new
@@ -44,6 +25,17 @@ class LogStasherInstrumentationTest < Minitest::Test
   def teardown
     NewRelic::Agent.instance.stats_engine.reset!
     NewRelic::Agent.instance.log_event_aggregator.reset!
+  end
+
+  def json_log_hash
+    {
+      :identifier => 'dinosaurs/_dinosaur.html.erb',
+      :name => 'render_partial.action_view',
+      :request_id => '01234-abcde-56789-fghij',
+      'source' => '127.0.0.1',
+      'tags' => [],
+      '@timestamp' => '2024-06-24T23:55:59.497Z'
+    }
   end
 
   def test_level_is_recorded
