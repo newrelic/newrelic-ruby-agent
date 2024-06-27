@@ -246,7 +246,6 @@ module NewRelic
       def register_for_done_configuring(events)
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
-
           record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
