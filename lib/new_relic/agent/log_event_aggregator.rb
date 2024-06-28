@@ -92,7 +92,7 @@ module NewRelic
       end
 
       def record_logstasher_event(log)
-        return unless enabled?
+        return unless logstasher_enabled?
 
         severity = log['level'] || 'UNKNOWN'
         return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
@@ -112,11 +112,11 @@ module NewRelic
         priority = LogPriority.priority_for(txn)
         message = log['message'] || ''
 
-        return txn.add_log_event(create_json_event(priority, message, severity, log)) if txn
+        return txn.add_log_event(create_logstasher_event(priority, message, severity, log)) if txn
 
         @lock.synchronize do
           @buffer.append(priority: priority) do
-            create_json_event(priority, message, severity, log)
+            create_logstasher_event(priority, message, severity, log)
           end
         end
       rescue
@@ -153,7 +153,7 @@ module NewRelic
         ]
       end
 
-      def create_json_event(priority, formatted_message, severity, log)
+      def create_logstasher_event(priority, formatted_message, severity, log)
         formatted_message = truncate_message(formatted_message)
 
         event = LinkingMetadata.append_trace_linking_metadata({
@@ -227,16 +227,12 @@ module NewRelic
         super
       end
 
-      def enabled?
-        @enabled && (logger_enabled? || logstasher_enabled?)
-      end
-
       def logger_enabled?
-        NewRelic::Agent::Instrumentation::Logger.enabled?
+        @enabled && @instrumentation_logger_enabled
       end
 
       def logstasher_enabled?
-        NewRelic::Agent::Instrumentation::LogStasher.enabled?
+        @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
       end
 
       private

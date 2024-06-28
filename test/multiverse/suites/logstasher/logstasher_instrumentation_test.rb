@@ -100,6 +100,15 @@ class LogStasherInstrumentationTest < Minitest::Test
     refute logfile.key?('hostname')
   end
 
+  def test_no_instrumentation_when_disabled
+    with_config(:'instrumentation.logstasher' => 'disabled') do
+      LogStasher.warn('yikes')
+    end
+    _, events = @aggregator.harvest!
+
+    assert events.empty?
+  end
+
   def test_enabled_returns_false_when_disabled
     with_config(:'instrumentation.logstasher' => 'disabled') do
       refute_predicate NewRelic::Agent::Instrumentation::LogStasher, :enabled?
