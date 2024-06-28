@@ -59,7 +59,7 @@ module NewRelic
       end
 
       def record(formatted_message, severity)
-        return unless enabled?
+        return unless logger_enabled?
 
         severity = 'UNKNOWN' if severity.nil? || severity.empty?
 

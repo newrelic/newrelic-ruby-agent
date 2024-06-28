@@ -605,7 +605,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_records_logstasher_when_metrics_enabled
+    def test_records_customer_metrics_when_enabled_logstasher
       with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
         2.times { @aggregator.record_logstasher_event({'message' => 'metrics enabled', 'level' => :debug}) }
         @aggregator.harvest!
@@ -615,6 +615,35 @@ module NewRelic::Agent
         'Logging/lines' => {:call_count => 2},
         'Logging/lines/debug' => {:call_count => 2}
       })
+    end
+
+    def test_doesnt_record_customer_metrics_when_overall_disabled_and_metrics_enabled_logstasher
+      with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false,
+        LogEventAggregator::METRICS_ENABLED_KEY => true
+      ) do
+        NewRelic::Agent.config.notify_server_source_added
+
+        @aggregator.record_logstasher_event({'message' => 'overall disabled, metrics enabled', 'level' => :debug})
+        @aggregator.harvest!
+      end
+
+      assert_metrics_not_recorded([
+        'Logging/lines',
+        'Logging/lines/debug'
+      ])
+    end
+
+    def test_doesnt_record_customer_metrics_when_disabled_logstasher
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => false) do
+        @aggregator.record_logstasher_event({'message' => 'metrics disabled', 'level' => :warn})
+        @aggregator.harvest!
+      end
+
+      assert_metrics_not_recorded([
+        'Logging/lines',
+        'Logging/lines/warn'
+      ])
     end
 
     def test_high_security_mode_logstasher
