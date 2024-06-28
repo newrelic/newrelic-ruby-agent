@@ -594,8 +594,7 @@ module NewRelic::Agent
 
     def test_logstasher_disabled_in_high_security_mode
       with_config(:high_security => true,
-        LogEventAggregator::OVERALL_ENABLED_KEY => false
-      ) do
+        LogEventAggregator::OVERALL_ENABLED_KEY => false) do
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 

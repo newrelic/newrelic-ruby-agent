@@ -106,7 +106,7 @@ class LogStasherInstrumentationTest < Minitest::Test
     end
     _, events = @aggregator.harvest!
 
-    assert events.empty?
+    assert_empty(events)
   end
 
   def test_enabled_returns_false_when_disabled
