@@ -605,6 +605,18 @@ module NewRelic::Agent
       end
     end
 
+    def test_records_logstasher_when_metrics_enabled
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
+        2.times { @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :debug}) }
+        @aggregator.harvest!
+      end
+
+      assert_metrics_recorded({
+        'Logging/lines' => {:call_count => 2},
+        'Logging/lines/debug' => {:call_count => 2}
+      })
+    end
+
     def test_high_security_mode_logstasher
       with_config(CAPACITY_KEY => 5, :high_security => true) do
         # Refresh the high security setting on this notification
