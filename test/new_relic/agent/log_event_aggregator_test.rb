@@ -669,9 +669,18 @@ module NewRelic::Agent
       end
     end
 
-    def test_record_logstasger_exits_if_forwarding_disabled
+    def test_record_logstasher_exits_if_forwarding_disabled
       with_config(LogEventAggregator::FORWARDING_ENABLED_KEY => false) do
         @aggregator.record_logstasher_event({'message' => 'forwarding disabled', 'level' => :info})
+        _, results = @aggregator.harvest!
+
+        assert_empty results
+      end
+    end
+
+    def test_nil_when_record_logstasher_errors
+      @aggregator.stub :severity_too_low?,-> { raise 'kaboom' } do
+        @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'A trex is near'})
         _, results = @aggregator.harvest!
 
         assert_empty results
