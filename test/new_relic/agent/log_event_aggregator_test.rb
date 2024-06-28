@@ -679,7 +679,7 @@ module NewRelic::Agent
     end
 
     def test_nil_when_record_logstasher_errors
-      @aggregator.stub :severity_too_low?,-> { raise 'kaboom' } do
+      @aggregator.stub(:severity_too_low?, -> { raise 'kaboom' }) do
         @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'A trex is near'})
         _, results = @aggregator.harvest!
 
