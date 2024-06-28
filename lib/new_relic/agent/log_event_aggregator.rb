@@ -93,9 +93,9 @@ module NewRelic
 
       def record_logstasher_event(log)
         return unless logstasher_enabled?
+        return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
         severity = log['level'] || 'UNKNOWN'
-        return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
         if NewRelic::Agent.config[METRICS_ENABLED_KEY]
           @counter_lock.synchronize do
