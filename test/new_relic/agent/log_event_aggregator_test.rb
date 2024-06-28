@@ -607,7 +607,7 @@ module NewRelic::Agent
 
     def test_records_logstasher_when_metrics_enabled
       with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
-        2.times { @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :debug}) }
+        2.times { @aggregator.record_logstasher_event({'message' => 'metrics enabled', 'level' => :debug}) }
         @aggregator.harvest!
       end
 
