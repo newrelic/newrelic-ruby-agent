@@ -15,6 +15,7 @@ module NewRelic::Agent
 
       @enabled_config = {
         :'instrumentation.logger' => 'auto',
+        :'instrumentation.logstasher' => 'auto',
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true
       }
@@ -592,26 +593,27 @@ module NewRelic::Agent
       refute_includes(events[0][1]['attributes'], '@timestamp')
     end
 
-    def test_logstasher_disabled_in_high_security_mode
-      with_config(:high_security => true,
-        LogEventAggregator::OVERALL_ENABLED_KEY => false) do
-        # We refresh the high security setting on this notification
+    def test_logstasher_forwarding_disabled
+      with_config(:'application_logging.forwarding.enabled' => false) do
+        # Refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 
-        9.times { @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :info}) }
-        _, items = @aggregator.harvest!
+        @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :info})
+        _, events = @aggregator.harvest!
 
-        # Never aggregate logs
-        assert_empty items
+        assert_empty events
+      end
+    end
 
-        assert_metrics_recorded_exclusive({
-          'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
-          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
-          'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
-        },
-          :ignore_filter => %r{^Supportability/API/})
+    def test_high_security_mode_logstasher
+      with_config(CAPACITY_KEY => 5, :high_security => true) do
+        # Refresh the high security setting on this notification
+        NewRelic::Agent.config.notify_server_source_added
+
+        @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :info})
+        _, events = @aggregator.harvest!
+
+        assert_empty events
       end
     end
 
@@ -619,7 +621,7 @@ module NewRelic::Agent
       with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
         assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
 
-        @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :debug})
+        @aggregator.record_logstasher_event({'message' => 'severity below config', 'level' => :debug})
         _, events = @aggregator.harvest!
 
         assert_empty events
@@ -631,7 +633,7 @@ module NewRelic::Agent
         @aggregator.record_logstasher_event({'message' => 'forwarding disabled', 'level' => :info})
         _, results = @aggregator.harvest!
 
-        assert_empty(results)
+        assert_empty results
       end
     end
   end

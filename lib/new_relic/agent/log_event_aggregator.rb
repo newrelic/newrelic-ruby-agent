@@ -120,6 +120,7 @@ module NewRelic
           end
         end
       rescue
+        nil
       end
 
       def record_batch(txn, logs)
