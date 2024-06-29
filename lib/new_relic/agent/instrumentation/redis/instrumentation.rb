@@ -38,8 +38,6 @@ module NewRelic::Agent::Instrumentation
     private
 
     def with_tracing(operation, statement: nil, database: nil)
-      puts "WALUIGI - OPERATION: #{operation}"
-      puts "WALUIGI - CLIENT CONFIG: #{client.config.inspect}"
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
