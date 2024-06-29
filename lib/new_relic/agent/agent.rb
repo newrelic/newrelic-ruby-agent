@@ -37,6 +37,7 @@ require 'new_relic/agent/adaptive_sampler'
 require 'new_relic/agent/serverless_handler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
+require 'new_relic/agent/flame_graph_writer'
 
 require 'new_relic/agent/agent_helpers/connect'
 require 'new_relic/agent/agent_helpers/harvest'
@@ -111,6 +112,7 @@ module NewRelic
         @custom_event_aggregator = CustomEventAggregator.new(@events)
         @span_event_aggregator = SpanEventAggregator.new(@events)
         @log_event_aggregator = LogEventAggregator.new(@events)
+        @flame_graph_writer = FlameGraphWriter.new
       end
 
       def setup_attribute_filter
@@ -175,6 +177,7 @@ module NewRelic
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
         attr_reader :serverless_handler
+        attr_reader :flame_graph_writer
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator

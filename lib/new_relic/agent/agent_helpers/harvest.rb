@@ -107,6 +107,7 @@ module NewRelic
           harvest_and_send_timeslice_data
           harvest_and_send_span_event_data
           harvest_and_send_log_event_data
+          NewRelic::Agent.agent.flame_graph_writer.write
         end
 
         def send_data_to_endpoint(endpoint, payload, container)

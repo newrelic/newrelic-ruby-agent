@@ -537,6 +537,8 @@ module NewRelic
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
+        NewRelic::Agent.agent.flame_graph_writer.store(self)
+
         commit!(initial_segment.name) unless @ignore_this_transaction
       rescue => e
         NewRelic::Agent.logger.error('Exception during Transaction#finish', e)
