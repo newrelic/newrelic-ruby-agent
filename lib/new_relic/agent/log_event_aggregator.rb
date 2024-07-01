@@ -85,7 +85,7 @@ module NewRelic
         return unless logstasher_enabled?
         return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
-        severity = log['level'] || 'UNKNOWN'
+        severity = log['level'] ? log['level'].to_s.upcase : 'UNKNOWN'
         increment_event_counters(severity)
 
         return unless monitoring_conditions_met?(severity)

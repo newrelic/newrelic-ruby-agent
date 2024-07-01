@@ -532,9 +532,9 @@ module NewRelic::Agent
       @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'yikes!'})
       _, events = @aggregator.harvest!
 
-      assert_equal :warn, events[0][1]['level']
+      assert_equal 'WARN', events[0][1]['level']
       assert_metrics_recorded([
-        'Logging/lines/warn'
+        'Logging/lines/WARN'
       ])
     end
 
@@ -613,7 +613,7 @@ module NewRelic::Agent
 
       assert_metrics_recorded({
         'Logging/lines' => {:call_count => 2},
-        'Logging/lines/debug' => {:call_count => 2}
+        'Logging/lines/DEBUG' => {:call_count => 2}
       })
     end
 
@@ -630,7 +630,7 @@ module NewRelic::Agent
 
       assert_metrics_not_recorded([
         'Logging/lines',
-        'Logging/lines/debug'
+        'Logging/lines/DEBUG'
       ])
     end
 
@@ -642,7 +642,7 @@ module NewRelic::Agent
 
       assert_metrics_not_recorded([
         'Logging/lines',
-        'Logging/lines/warn'
+        'Logging/lines/WARN'
       ])
     end
 

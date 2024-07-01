@@ -44,8 +44,8 @@ class LogStasherInstrumentationTest < Minitest::Test
     end
     _, events = @aggregator.harvest!
 
-    assert_equal :info, events[0][1]['level']
-    assert_metrics_recorded(%w[Logging/lines/info])
+    assert_equal "INFO", events[0][1]['level']
+    assert_metrics_recorded(%w[Logging/lines/INFO])
   end
 
   def test_logs_without_levels_are_unknown
