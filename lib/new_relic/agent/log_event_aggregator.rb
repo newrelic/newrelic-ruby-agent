@@ -64,10 +64,8 @@ module NewRelic
         severity = 'UNKNOWN' if severity.nil? || severity.empty?
         increment_event_counters(severity)
 
-        return if severity_too_low?(severity)
         return if formatted_message.nil? || formatted_message.empty?
-        return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
-        return if @high_security
+        return unless monitoring_conditions_met?(severity)
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
@@ -83,15 +81,6 @@ module NewRelic
         nil
       end
 
-      def increment_event_counters(severity)
-        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
-          @counter_lock.synchronize do
-            @seen += 1
-            @seen_by_severity[severity] += 1
-          end
-        end
-      end
-
       def record_logstasher_event(log)
         return unless logstasher_enabled?
         return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
@@ -99,9 +88,7 @@ module NewRelic
         severity = log['level'] || 'UNKNOWN'
         increment_event_counters(severity)
 
-        return if severity_too_low?(severity)
-        return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
-        return if @high_security
+        return unless monitoring_conditions_met?(severity)
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
@@ -116,6 +103,19 @@ module NewRelic
         end
       rescue
         nil
+      end
+
+      def monitoring_conditions_met?(severity)
+        !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
+      end
+
+      def increment_event_counters(severity)
+        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
+          @counter_lock.synchronize do
+            @seen += 1
+            @seen_by_severity[severity] += 1
+          end
+        end
       end
 
       def record_batch(txn, logs)
