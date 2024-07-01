@@ -92,13 +92,12 @@ module NewRelic
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
-        message = log['message'] || ''
 
-        return txn.add_log_event(create_logstasher_event(priority, message, severity, log)) if txn
+        return txn.add_log_event(create_logstasher_event(priority, severity, log)) if txn
 
         @lock.synchronize do
           @buffer.append(priority: priority) do
-            create_logstasher_event(priority, message, severity, log)
+            create_logstasher_event(priority, severity, log)
           end
         end
       rescue
@@ -133,11 +132,13 @@ module NewRelic
       end
 
       def add_event_metadata(formatted_message, severity)
-        LinkingMetadata.append_trace_linking_metadata({
+        metadata = {
           LEVEL_KEY => severity,
-          MESSAGE_KEY => formatted_message,
           TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
-        })
+        }
+        metadata[MESSAGE_KEY] = formatted_message unless formatted_message.nil?
+
+        LinkingMetadata.append_trace_linking_metadata(metadata)
       end
 
       def create_prioritized_event(priority, event)
@@ -156,8 +157,8 @@ module NewRelic
         create_prioritized_event(priority, event)
       end
 
-      def create_logstasher_event(priority, formatted_message, severity, log)
-        formatted_message = truncate_message(formatted_message)
+      def create_logstasher_event(priority, severity, log)
+        formatted_message = log['message'] ? truncate_message(log['message']) :  nil
         event = add_event_metadata(formatted_message, severity)
         add_json_event_attributes(event, log)
 

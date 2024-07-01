@@ -44,7 +44,7 @@ class LogStasherInstrumentationTest < Minitest::Test
     end
     _, events = @aggregator.harvest!
 
-    assert_equal "INFO", events[0][1]['level']
+    assert_equal 'INFO', events[0][1]['level']
     assert_metrics_recorded(%w[Logging/lines/INFO])
   end
 
@@ -58,13 +58,13 @@ class LogStasherInstrumentationTest < Minitest::Test
     assert_metrics_recorded(%w[Logging/lines/UNKNOWN])
   end
 
-  def test_logs_without_messages_are_empty_strings
+  def test_logs_without_messages_are_not_added
     in_transaction do
       LogStasher.build_logstash_event(json_log_hash, ['log'])
     end
     _, events = @aggregator.harvest!
 
-    assert_equal '', events[0][1]['message']
+    refute events[0][1]['message']
   end
 
   def test_attributes_added_to_payload

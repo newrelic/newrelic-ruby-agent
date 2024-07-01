@@ -569,11 +569,11 @@ module NewRelic::Agent
       assert_equal 'A trex is near', events[0][1]['message']
     end
 
-    def test_record_json_returns_empty_string_when_unavaliable
+    def test_create_logstasher_event_do_not_message_when_not_given
       @aggregator.record_logstasher_event({'level' => :info})
       _, events = @aggregator.harvest!
 
-      assert_equal '', events[0][1]['message']
+      refute events[0][1]['message']
     end
 
     def test_add_json_event_attributes_records_attributes
