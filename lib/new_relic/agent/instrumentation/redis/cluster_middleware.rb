@@ -7,7 +7,6 @@ module NewRelic::Agent::Instrumentation
     module ClusterMiddleware
       include NewRelic::Agent::Instrumentation::Redis
 
-      # Can't access these in redis-clustering by prepending onto the same methods
       def call(*args, &block)
         call_with_tracing(args[0]) { super }
       end

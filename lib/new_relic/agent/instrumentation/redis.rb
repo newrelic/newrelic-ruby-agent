@@ -35,8 +35,7 @@ DependencyDetection.defer do
     if NewRelic::Agent::Instrumentation::Redis::Constants::HAS_REDIS_CLIENT
       RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
 
-      if defined?(Redis::Cluster)
-        puts "REDIS CLUSTER DEFINED!"
+      if defined?(Redis::Cluster::Client)
         RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::ClusterMiddleware)
       end
     elsif use_prepend?
