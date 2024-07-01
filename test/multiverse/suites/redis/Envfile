@@ -4,11 +4,6 @@
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<~RB
-  gem 'rack'
-  gem 'redis-clustering'
-RB
-
 REDIS_VERSIONS = [
   [nil, 2.5],
   ['4.8.0', 2.4],
@@ -24,3 +19,12 @@ def gem_list(redis_version = nil)
 end
 
 create_gemfiles(REDIS_VERSIONS)
+
+# We do not spin up a full Redis cluster in the testing environment, which
+# limits our ability to run unit tests on the redis-clustering behavior.
+# Since the testing capability is limited, only test the latest version of the
+# redis-clustering gem.
+gemfile <<~RB
+  gem 'rack'
+  gem 'redis-clustering'
+RB
