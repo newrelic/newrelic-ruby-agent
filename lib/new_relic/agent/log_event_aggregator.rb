@@ -62,13 +62,7 @@ module NewRelic
         return unless logger_enabled?
 
         severity = 'UNKNOWN' if severity.nil? || severity.empty?
-
-        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
-          @counter_lock.synchronize do
-            @seen += 1
-            @seen_by_severity[severity] += 1
-          end
-        end
+        increment_event_counters(severity)
 
         return if severity_too_low?(severity)
         return if formatted_message.nil? || formatted_message.empty?
@@ -78,17 +72,24 @@ module NewRelic
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
 
-        if txn
-          return txn.add_log_event(create_event(priority, formatted_message, severity))
-        else
-          return @lock.synchronize do
-            @buffer.append(priority: priority) do
-              create_event(priority, formatted_message, severity)
-            end
+        return txn.add_log_event(create_event(priority, formatted_message, severity)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_event(priority, formatted_message, severity)
           end
         end
       rescue
         nil
+      end
+
+      def increment_event_counters(severity)
+        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
+          @counter_lock.synchronize do
+            @seen += 1
+            @seen_by_severity[severity] += 1
+          end
+        end
       end
 
       def record_logstasher_event(log)
@@ -96,13 +97,7 @@ module NewRelic
         return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
         severity = log['level'] || 'UNKNOWN'
-
-        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
-          @counter_lock.synchronize do
-            @seen += 1
-            @seen_by_severity[severity] += 1
-          end
-        end
+        increment_event_counters(severity)
 
         return if severity_too_low?(severity)
         return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
@@ -137,15 +132,15 @@ module NewRelic
         end
       end
 
-      def create_event(priority, formatted_message, severity)
-        formatted_message = truncate_message(formatted_message)
-
-        event = LinkingMetadata.append_trace_linking_metadata({
+      def add_event_metadata(formatted_message, severity)
+        LinkingMetadata.append_trace_linking_metadata({
           LEVEL_KEY => severity,
           MESSAGE_KEY => formatted_message,
           TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
         })
+      end
 
+      def create_prioritized_event(priority, event)
         [
           {
             PrioritySampledBuffer::PRIORITY_KEY => priority
@@ -154,23 +149,19 @@ module NewRelic
         ]
       end
 
+      def create_event(priority, formatted_message, severity)
+        formatted_message = truncate_message(formatted_message)
+        event = add_event_metadata(formatted_message, severity)
+
+        create_prioritized_event(priority, event)
+      end
+
       def create_logstasher_event(priority, formatted_message, severity, log)
         formatted_message = truncate_message(formatted_message)
-
-        event = LinkingMetadata.append_trace_linking_metadata({
-          LEVEL_KEY => severity,
-          MESSAGE_KEY => formatted_message,
-          TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
-        })
-
+        event = add_event_metadata(formatted_message, severity)
         add_json_event_attributes(event, log)
 
-        [
-          {
-            PrioritySampledBuffer::PRIORITY_KEY => priority
-          },
-          event
-        ]
+        create_prioritized_event(priority, event)
       end
 
       def add_json_event_attributes(event, log)
