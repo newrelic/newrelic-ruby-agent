@@ -158,7 +158,7 @@ module NewRelic
       end
 
       def create_logstasher_event(priority, severity, log)
-        formatted_message = log['message'] ? truncate_message(log['message']) :  nil
+        formatted_message = log['message'] ? truncate_message(log['message']) : nil
         event = add_event_metadata(formatted_message, severity)
         add_json_event_attributes(event, log)
 

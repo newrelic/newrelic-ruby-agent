@@ -585,12 +585,19 @@ module NewRelic::Agent
     end
 
     def test_add_json_event_attributes_deletes_already_recorded_attributes
-      @aggregator.record_logstasher_event({'message' => 'bye', 'level' => :info, '@timestamp' => 'now'})
+      @aggregator.record_logstasher_event({'message' => 'bye', 'level' => :info, '@timestamp' => 'now', 'include_me' => 'random attribute'})
       _, events = @aggregator.harvest!
 
+      # The event's 'attributes' hash doesn't include already recorded attributes
       refute_includes(events[0][1]['attributes'], 'message')
       refute_includes(events[0][1]['attributes'], 'level')
       refute_includes(events[0][1]['attributes'], '@timestamp')
+      assert events[0][1]['attributes']['include_me']
+
+      # The event still includes necessary attributes
+      assert events[0][1]['message']
+      assert events[0][1]['level']
+      assert events[0][1]['timestamp']
     end
 
     def test_logstasher_forwarding_disabled_and_high_security_enabled
