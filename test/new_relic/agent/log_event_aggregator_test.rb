@@ -593,7 +593,7 @@ module NewRelic::Agent
       refute_includes(events[0][1]['attributes'], '@timestamp')
     end
 
-    def test_logstasher_forwarding_disabled
+    def test_logstasher_forwarding_disabled_and_high_security_enabled
       with_config(:'application_logging.forwarding.enabled' => false) do
         # Refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
