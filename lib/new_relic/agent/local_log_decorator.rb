@@ -12,6 +12,12 @@ module NewRelic
         return message unless decorating_enabled?
 
         metadata = NewRelic::Agent.linking_metadata
+
+        if message.is_a?(Hash)
+          message.merge!(metadata) unless message.frozen?
+          return
+        end
+
         formatted_metadata = " NR-LINKING|#{metadata[ENTITY_GUID_KEY]}|#{metadata[HOSTNAME_KEY]}|" \
                              "#{metadata[TRACE_ID_KEY]}|#{metadata[SPAN_ID_KEY]}|" \
                              "#{escape_entity_name(metadata[ENTITY_NAME_KEY])}|"
@@ -23,7 +29,8 @@ module NewRelic
 
       def decorating_enabled?
         NewRelic::Agent.config[:'application_logging.enabled'] &&
-          NewRelic::Agent::Instrumentation::Logger.enabled? &&
+          (NewRelic::Agent::Instrumentation::Logger.enabled? ||
+            NewRelic::Agent::Instrumentation::LogStasher.enabled?) &&
           NewRelic::Agent.config[:'application_logging.local_decorating.enabled']
       end
 
