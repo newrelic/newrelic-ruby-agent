@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## <dev>
+
+Version <dev> improves instrumentation for the `redis-clustering` gem.
+
+- **Feature: Add instrumentation for redis-clustering**
+
+  Version 5.x of the `redis` gem moved cluster behavior into a different gem, `redis-clustering`. This gem can access instrumentation registered through `RedisClient::Middleware`. Previously, the agent only instrumented the `call_pipelined` method through this approach, but now users of the `redis-clustering` gem will also have instrumentation registered for `connect` and `call` methods. In addition, the way the `database_name` attribute is set for Redis datastore spans is now compatible with all versions of Redis supported by the New Relic Ruby agent. Thank you, [@praveen-ks](https://github.com/praveen-ks) for bringing this to our attention. [Issue#2444](https://github.com/newrelic/newrelic-ruby-agent/issues/2444) [PR#2720](https://github.com/newrelic/newrelic-ruby-agent/pull/2720)
+
 ## v9.11.0
 
 Version 9.11.0 introduces instrumentation for the aws-sdk-sqs gem, fixes a bug related to expected errors not bearing a "true" value for the "expected" attribute if expected as a result of an HTTP status code match and changes the way Stripe instrumentation metrics are named to prevent high-cardinality issues.
