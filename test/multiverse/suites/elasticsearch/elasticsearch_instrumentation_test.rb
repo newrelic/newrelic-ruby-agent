@@ -2,6 +2,22 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+###
+#
+# NOTE: to locally mirror the hosted CI system, spin up an Elasticsearch v7
+#       Docker container mapped to local port 9200 and an Elasticsearch v8
+#       container mapped to local port 9250.
+#
+#       Step 1: define these shell aliases:
+#
+#         alias elastic8='docker run --rm --name elasticsearch -p 9250:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.enrollment.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.13.4'
+#
+#         alias elastic7='docker run --rm --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.16.2'
+#
+#       Step 2: run 'elastic7' in one terminal/shell and 'elastic8' in another
+#
+###
+
 require 'elasticsearch'
 require 'socket'
 

@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../test_helper'
+require_relative '../../test_helper'
 
 class NewRelicBootstrapTest < Minitest::Test
   class PhonyBundler
@@ -34,13 +34,10 @@ class NewRelicBootstrapTest < Minitest::Test
     opn = $PROGRAM_NAME
 
     $PROGRAM_NAME = bootstrap_file
-    msg = ''
-    NRBundlerPatcher.stub :warn_and_exit, proc { |m| msg = m } do
+
+    assert_raises(RuntimeError, 'meant to be required, not invoked') do
       NRBundlerPatcher.check_for_require
     end
-
-    assert_match(/meant to be required, not invoked/, msg,
-      'Expected check_for_require to complain when bootstrap is invoked directly')
   ensure
     $PROGRAM_NAME = opn
   end
@@ -61,13 +58,9 @@ class NewRelicBootstrapTest < Minitest::Test
     NRBundlerPatcher.stub :require_bundler, nil do
       Bundler.send(:remove_const, :Runtime)
 
-      msg = ''
-      NRBundlerPatcher.stub :warn_and_exit, proc { |m| msg = m; Bundler.send(:const_set, :Runtime, oruntime) } do
+      assert_raises(RuntimeError, 'class Bundler::Runtime not defined!') do
         NRBundlerPatcher.check_for_bundler
       end
-
-      assert_match(/class Bundler::Runtime not defined!/, msg,
-        'Expected check_for_bundler to complain if Bundler::Runtime is not defined')
     end
   ensure
     Bundler.send(:const_set, :Runtime, oruntime)
@@ -78,13 +71,9 @@ class NewRelicBootstrapTest < Minitest::Test
 
     NRBundlerPatcher.stub :require_bundler, nil do
       Bundler::Runtime.stub :method_defined?, false, [:require] do
-        msg = ''
-        NRBundlerPatcher.stub :warn_and_exit, proc { |m| msg = m } do
+        assert_raises(RuntimeError, "doesn't offer Bundler::Runtime#require") do
           NRBundlerPatcher.check_for_bundler
         end
-
-        assert_match(/doesn't offer Bundler::Runtime#require/, msg,
-          'Expected check_for_bundler to complain if Bundler::Runtime#require is not defined')
       end
     end
   end
@@ -93,26 +82,26 @@ class NewRelicBootstrapTest < Minitest::Test
     skip_unless_minitest5_or_above
 
     NRBundlerPatcher.stub :require, proc { |_gem| raise LoadError }, ['bundler'] do
-      msg = ''
-      NRBundlerPatcher.stub :warn_and_exit, proc { |m| msg = m } do
+      assert_raises(RuntimeError, 'could not be required') do
         NRBundlerPatcher.check_for_bundler
       end
-
-      assert_match(/could not be required/, msg,
-        'Expected require_bundler to complain if Bundler could not be required')
     end
   end
 
   private
 
-  # Load the bootstrap file and anticipate the `warn` and `exit` calls
-  # with assertions
+  # Load the bootstrap file and anticipate the `warn` call
   def require_bootstrap
-    assert_raises SystemExit do
-      assert_output(/New Relic entrypoint/) do
-        require_relative '../../lib/bootstrap'
-      end
+    msg = ''
+    loaded = nil
+    Kernel.stub :warn, proc { |m| msg = m } do
+      loaded = require_relative '../../../lib/boot/strap'
     end
+
+    return unless loaded
+
+    assert_match(/New Relic entrypoint/, msg,
+      'Expected the initial requiring of boot/strap to generate a warning')
   end
 
   # Have the patcher patch our phony Bundler instead of the real one
@@ -129,6 +118,6 @@ class NewRelicBootstrapTest < Minitest::Test
   end
 
   def bootstrap_file
-    @bootstrap_file ||= File.expand_path('../../../lib/bootstrap.rb', __FILE__)
+    @bootstrap_file ||= File.expand_path('../../../../lib/boot/strap.rb', __FILE__)
   end
 end

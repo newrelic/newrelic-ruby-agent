@@ -13,7 +13,14 @@ def gem_list(ethon_version = nil)
   <<~GEM_LIST
     gem 'ethon'#{ethon_version}
     gem 'rack'
+    gem 'ffi'#{ffi_version}
   GEM_LIST
+end
+
+# ffi version 1.17.0+ requires rubygems >= 3.3.22
+# The highest version compatible with Ruby 2.5/2.6 is 3.0.6
+def ffi_version
+   ", '< 1.17.0'" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7')
 end
 
 create_gemfiles(ETHON_VERSIONS)

@@ -31,15 +31,16 @@ class Instrumentation < Thor
 
   def scaffold(name)
     @name = name
+    @snake_name = snake_name(@name)
     @method = options[:method] if options[:method]
     @args = options[:args] if options[:args]
     @class_name = ::NewRelic::LanguageSupport.camelize(name)
-    base_path = "#{INSTRUMENTATION_ROOT}#{name.downcase}"
+    base_path = "#{INSTRUMENTATION_ROOT}#{@snake_name}"
 
     empty_directory(base_path)
     create_instrumentation_files(base_path)
-    append_to_default_source(name)
-    append_to_newrelic_yml(name)
+    append_to_default_source(@name, @snake_name)
+    # append_to_newrelic_yml(@name, @snake_name) # This is now done on release, we don't need it anymore, but leaving it to be sure.
     create_tests(name)
   end
 
@@ -69,52 +70,60 @@ class Instrumentation < Thor
   def create_tests(name)
     @name = name
     @instrumentation_method_global_erb_snippet = '<%= $instrumentation_method %>'
-    base_path = "#{MULTIVERSE_SUITE_ROOT}#{@name.downcase}"
+    @snake_name = snake_name(@name)
+    base_path = "#{MULTIVERSE_SUITE_ROOT}#{@snake_name}"
     empty_directory(base_path)
     template('templates/Envfile.tt', "#{base_path}/Envfile")
-    template('templates/test.tt', "#{base_path}/#{@name.downcase}_instrumentation_test.rb")
+    template('templates/test.tt', "#{base_path}/#{@snake_name}_instrumentation_test.rb")
 
     empty_directory("#{base_path}/config")
     template('templates/newrelic.yml.tt', "#{base_path}/config/newrelic.yml")
   end
 
-  def append_to_default_source(name)
+  def append_to_default_source(name, snake_name)
     insert_into_file(
       DEFAULT_SOURCE_LOCATION,
-      config_block(name.downcase),
+      config_block(name, snake_name),
       after: ":description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },\n"
     )
   end
 
-  def append_to_newrelic_yml(name)
+  def append_to_newrelic_yml(name, snake_name)
     insert_into_file(
       NEWRELIC_YML_LOCATION,
-      yaml_block(name),
+      yaml_block(name, snake_name),
       after: "# instrumentation.bunny: auto\n"
     )
   end
 
-  def config_block(name)
-    <<~CONFIG
-      :'instrumentation.#{name.downcase}' => {
-        :default => 'auto',
-        :public => true,
-        :type => String,
-        :dynamic_name => true,
-        :allowed_from_server => false,
-        :description => 'Controls auto-instrumentation of the #{name} library at start-up. May be one of [auto|prepend|chain|disabled].'
-      },
+  def config_block(name, snake_name)
+    # Don't change to <<~
+    # We want to preserve the whitespace so the config is correctly indented
+    <<-CONFIG
+        :'instrumentation.#{snake_name}' => {
+          :default => 'auto',
+          :documentation_default => 'auto'
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the #{name} library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
     CONFIG
   end
 
-  def yaml_block(name)
+  def yaml_block(name, snake_name)
     <<~HEREDOC
 
       # Controls auto-instrumentation of #{name} at start-up.
       # May be one of [auto|prepend|chain|disabled]
-      # instrumentation.#{name.downcase}: auto
+      # instrumentation.#{snake_name}: auto
     HEREDOC
+  end
+
+  def snake_name(name)
+    name.downcase.tr('-', '_')
   end
 end
 

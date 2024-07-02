@@ -105,8 +105,9 @@ module NewRelicYML
   def self.format_description(description)
     # remove leading and trailing whitespace
     description.strip!
-    # wrap text after 80 characters
-    description.gsub!(/(.{1,80})(\s+|\Z)/, "\\1\n")
+    # wrap text after 80 characters, assuming we're at one tabstop's (two
+    # spaces') level of indentation already
+    description.gsub!(/(.{1,78})(\s+|\Z)/, "\\1\n")
     # add hashtags to lines
     description = description.split("\n").map { |line| "  # #{line}" }.join("\n")
 

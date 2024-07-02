@@ -10,6 +10,13 @@ module Multiverse
     attr_reader :before, :after, :mode, :skip_message, :omit_collector
     attr_reader :instrumentation_permutations
 
+    RUBY34_PLUS_GEMS = <<~NON_BUILTIN_GEMS
+      gem 'base64'
+      gem 'bigdecimal'
+      gem 'mutex_m'
+      gem 'ostruct'
+    NON_BUILTIN_GEMS
+
     def initialize(file_path, options = {})
       self.file_path = file_path
       @instrumentation_permutations = ['chain']
@@ -61,7 +68,15 @@ module Multiverse
 
     def gemfile(content)
       content = strip_leading_spaces(content)
-      @gemfiles.push(content) unless content.nil? || content.empty?
+      return if content.nil? || content.empty?
+
+      @gemfiles.push(add_ruby34_plus_gems(content))
+    end
+
+    def add_ruby34_plus_gems(content)
+      return content unless RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
+
+      content + RUBY34_PLUS_GEMS
     end
 
     def ruby3_gem_sorted_set
