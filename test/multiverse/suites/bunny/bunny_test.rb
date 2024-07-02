@@ -356,7 +356,7 @@ class BunnyTest < Minitest::Test
     end
   end
 
-  def test_waluigi_publish_adds_attributes_to_span
+  def test_publish_adds_attributes_to_span
     NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
 
     with_queue do |queue|
