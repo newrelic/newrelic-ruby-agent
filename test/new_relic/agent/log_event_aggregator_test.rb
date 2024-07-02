@@ -576,7 +576,7 @@ module NewRelic::Agent
       refute events[0][1]['message']
     end
 
-    def test_add_json_event_attributes_records_attributes
+    def test_add_logstasher_event_attributes_records_attributes
       @aggregator.record_logstasher_event({'source' => '127.0.0.1', 'tags' => ['log']})
       _, events = @aggregator.harvest!
 
@@ -584,7 +584,7 @@ module NewRelic::Agent
       assert_includes(events[0][1]['attributes'], 'tags')
     end
 
-    def test_add_json_event_attributes_deletes_already_recorded_attributes
+    def test_add_add_logstasher_event_attributes_deletes_already_recorded_attributes
       @aggregator.record_logstasher_event({'message' => 'bye', 'level' => :info, '@timestamp' => 'now', 'include_me' => 'random attribute'})
       _, events = @aggregator.harvest!
 

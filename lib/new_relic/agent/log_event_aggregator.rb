@@ -109,7 +109,7 @@ module NewRelic
       end
 
       def determine_severity(log)
-        severity = log['level'] ? log['level'].to_s.upcase : 'UNKNOWN'
+        log['level'] ? log['level'].to_s.upcase : 'UNKNOWN'
       end
 
       def increment_event_counters(severity)
@@ -164,12 +164,12 @@ module NewRelic
       def create_logstasher_event(priority, severity, log)
         formatted_message = log['message'] ? truncate_message(log['message']) : nil
         event = add_event_metadata(formatted_message, severity)
-        add_json_event_attributes(event, log)
+        add_logstasher_event_attributes(event, log)
 
         create_prioritized_event(priority, event)
       end
 
-      def add_json_event_attributes(event, log)
+      def add_logstasher_event_attributes(event, log)
         log_copy = log.dup
         # Delete previously reported attributes
         log_copy.delete('message')
