@@ -23,7 +23,7 @@ create_gemfiles(REDIS_VERSIONS)
 # We do not spin up a full Redis cluster in the testing environment, which
 # limits our ability to run unit tests on the redis-clustering behavior.
 # Since the testing capability is limited, only test the latest version of the
-# redis-clustering gem.
+# redis-clustering gem, which itself requires Ruby v2.7+.
 if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7.0')
   gemfile <<~RB
     gem 'rack'
