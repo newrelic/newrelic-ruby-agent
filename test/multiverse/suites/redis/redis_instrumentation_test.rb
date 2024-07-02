@@ -59,6 +59,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_connect_tt_node_within_call_that_triggered_it
+      skip_for_redis_clustering_gem
+
       in_transaction do
         redis = Redis.new
         redis.get('foo')
@@ -277,6 +279,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
+      skip_for_redis_clustering_gem
+
       redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
@@ -309,6 +313,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
+      skip_for_redis_clustering_gem
+
       redis = Redis.new
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
@@ -327,6 +333,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
+      skip_for_redis_clustering_gem
+
       redis = Redis.new
       redis.send(client).stubs(:path).raises(StandardError.new)
       in_transaction do
@@ -347,6 +355,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_noticed_error_at_segment_and_txn_on_error
+      skip_for_redis_clustering_gem
+
       txn = nil
       begin
         in_transaction do |redis_txn|
@@ -362,6 +372,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_noticed_error_only_at_segment_on_error
+      skip_for_redis_clustering_gem
+
       txn = nil
       in_transaction do |redis_txn|
         begin
@@ -471,5 +483,9 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     def either_hostname
       [NewRelic::Agent::Hostname.get, 'redis']
     end
+  end
+
+  def skip_for_redis_clustering_gem
+    skip 'Incompatible with redis-clustering' if defined?(Redis::Cluster::Client)
   end
 end
