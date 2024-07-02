@@ -85,7 +85,7 @@ module NewRelic
         return unless logstasher_enabled?
         return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
-        severity = log['level'] ? log['level'].to_s.upcase : 'UNKNOWN'
+        severity = determine_severity(log)
         increment_event_counters(severity)
 
         return unless monitoring_conditions_met?(severity)
@@ -106,6 +106,10 @@ module NewRelic
 
       def monitoring_conditions_met?(severity)
         !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
+      end
+
+      def determine_severity(log)
+        severity = log['level'] ? log['level'].to_s.upcase : 'UNKNOWN'
       end
 
       def increment_event_counters(severity)
