@@ -357,8 +357,6 @@ class BunnyTest < Minitest::Test
   end
 
   def test_publish_adds_attributes_to_span
-    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
-
     with_queue do |queue|
       in_transaction('test_txn') do |txn|
         txn.stubs(:sampled?).returns(true)
