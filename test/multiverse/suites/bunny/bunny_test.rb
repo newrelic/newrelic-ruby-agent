@@ -15,6 +15,9 @@ class BunnyTest < Minitest::Test
   end
 
   def teardown
+    harvest_span_events!
+    mocha_teardown
+    NewRelic::Agent.instance.stats_engine.clear_stats
     @conn.close
   end
 
@@ -330,6 +333,44 @@ class BunnyTest < Minitest::Test
       end
 
       assert_empty NewRelic::Agent.logger.messages
+    end
+  end
+
+  def test_pop_adds_attributes_to_span
+    with_queue do |queue|
+      queue.publish('test_msg', routing_key: queue.name)
+      in_transaction('test_txn') do |txn|
+        txn.stubs(:sampled?).returns(true)
+
+        queue.pop
+      end
+      sleep 0.5
+      spans = harvest_span_events!
+
+      assert_equal 'rabbitmq', spans[1][0][2]['server.address']
+      assert_equal 5672, spans[1][0][2]['server.port']
+      assert_equal 'Default', spans[1][0][2]['messaging.destination_publish.name']
+      assert_equal queue.name, spans[1][0][2]['messaging.destination.name']
+      assert_equal queue.name, spans[1][0][2]['messaging.rabbitmq.destination.routing_key']
+      assert_equal queue.name, spans[1][0][2]['message.queueName']
+    end
+  end
+
+  def test_waluigi_publish_adds_attributes_to_span
+    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
+
+    with_queue do |queue|
+      in_transaction('test_txn') do |txn|
+        txn.stubs(:sampled?).returns(true)
+        queue.publish('test_msg', routing_key: queue.name)
+      end
+      sleep 0.5
+      spans = harvest_span_events!
+
+      assert_equal 'rabbitmq', spans[1][0][2]['server.address']
+      assert_equal 5672, spans[1][0][2]['server.port']
+      assert_equal 'Default', spans[1][0][2]['messaging.destination.name']
+      assert_equal queue.name, spans[1][0][2]['messaging.rabbitmq.destination.routing_key']
     end
   end
 
