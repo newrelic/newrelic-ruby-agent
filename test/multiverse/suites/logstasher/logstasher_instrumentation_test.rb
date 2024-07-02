@@ -78,7 +78,7 @@ class LogStasherInstrumentationTest < Minitest::Test
     assert events[0][1]['attributes'].key?('source')
   end
 
-  def test_log_decorating_enabled_records_new_relic_metrics
+  def test_log_decorating_enabled_records_service_linking_metadata
     with_config(:'application_logging.local_decorating.enabled' => true) do
       LogStasher.warn('yikes')
     end
@@ -89,7 +89,7 @@ class LogStasherInstrumentationTest < Minitest::Test
     assert logfile.key?('hostname')
   end
 
-  def test_log_decorating_records_new_relic_metrics
+  def test_log_decorating_disabled_doesnt_records_service_linking_metadata
     with_config(:'application_logging.local_decorating.enabled' => false) do
       LogStasher.warn('yikes')
     end
