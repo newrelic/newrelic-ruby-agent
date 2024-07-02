@@ -10,21 +10,20 @@ ENV['NRCONFIG'] = "#{ENV['HOME']}/scratch/flamegraph/newrelic.yml"
 require 'new_relic/agent'
 require 'tasks/newrelic'
 
-
 module Widget
   class Evaluator
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
     include ::NewRelic::Agent::MethodTracer
 
     def entrypoint
-      2.times { numbercrunch }
-      3.times { hotwire }
-      2.times { permutate }
+      numbercrunch
+      hotwire
+      permutate
     end
     add_transaction_tracer :entrypoint, category: :web
 
     def numbercrunch
-      2.times { loopdeloop }
+      loopdeloop
       sleep "0.#{rand(100..200)}".to_f
     end
     add_method_tracer :numbercrunch
@@ -40,14 +39,14 @@ module Widget
     add_method_tracer :hotwire
 
     def permutate
-      5.times { reverse }
+      reverse
       sleep "0.#{rand(100..200)}".to_f
     end
     add_method_tracer :permutate
 
     def reverse
-      4.times { flip }
-      2.times { steer }
+      flip
+      steer
       sleep "0.#{rand(100..200)}".to_f
     end
     add_method_tracer :reverse
@@ -61,19 +60,15 @@ module Widget
       sleep "0.#{rand(100..200)}".to_f
     end
     add_method_tracer :steer
-
-    def randomly
-      rand(1..10).times { yield }
-    end
   end
 end
 
 NewRelic::Agent.manual_start
 
-puts 'Observing Ruby...'
+puts 'Observing Ruby with the New Relic agent...'
 Widget::Evaluator.new.entrypoint
 
-puts 'Flame graphing...'
+puts 'Shutting down the agent...'
 NewRelic::Agent.shutdown
 
 svg = Dir.glob(File.join('flamegraphs', '*.svg')).first

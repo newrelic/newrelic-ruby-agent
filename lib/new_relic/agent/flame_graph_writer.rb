@@ -50,10 +50,10 @@ module NewRelic
       private
 
       def lines(txn)
-        txn.segments.each_with_object([]) do |segment, lines|
+        txn.segments.sort_by { |s| s.start_time }.each_with_object([]) do |segment, lines|
           next if segment.guid == txn.initial_segment.guid
 
-          lines << "#{chopped(txn.best_name)};#{chopped(segment.name)} (#{file_info(segment)}) #{segment.duration}"
+          lines << "#{segment.instance_variable_get(:@stack).reverse.join(';')} #{segment.duration}"
         end
       end
 

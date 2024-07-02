@@ -14,6 +14,7 @@ module NewRelic
         # object allocations. if allocations weren't important then we would
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics, :custom_transaction_attributes
+        attr_accessor :stack
 
         def initialize(name = nil, unscoped_metrics = nil, start_time = nil)
           @unscoped_metrics = unscoped_metrics

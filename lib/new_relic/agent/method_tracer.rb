@@ -308,6 +308,17 @@ module NewRelic
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
 
+              methods = [method_name.to_s]
+              lines = caller.select { |line| !line.start_with?('(eval') && line.match?(self.class.name) }
+              methods += lines.map { |l| $1 if l =~ /#{self.class.name}\#(\w+)/ }
+              methods.uniq!
+
+              # binding.irb
+
+              # NewRelic::Agent::Tracer.current_segment
+              # method_name
+              # self.class.name
+
               scoped_metric_eval, unscoped_metrics_eval = nil, []
 
               scoped_metric_eval = case scoped_metric
@@ -335,6 +346,7 @@ module NewRelic
                     metric: record_metrics,
                     internal: true,
                     code_information: code_information) do
+                    NewRelic::Agent::Tracer.current_segment.stack = methods
                     if unscoped_metrics_eval.empty?
                       super(*args, &block)
                     else

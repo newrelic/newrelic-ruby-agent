@@ -43,3 +43,7 @@ Brewfile.lock.json
 test/minitest/minitest_time_report
 gem_manifest_*.json
 yarn-error.log
+flamegraphs/
+speedscope*
+stackprof.dump
+stackprof.html

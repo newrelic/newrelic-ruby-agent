@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+rm -rf flamegraphs/ speedscope* stackprof.dump stackprof.html

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cmd="bundle exec ruby flamegraph.rb"
+echo $cmd
+$cmd

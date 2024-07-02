@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cmd="bundle exec ruby stackprof.rb"
+echo $cmd
+$cmd
