@@ -91,13 +91,11 @@ module NewRelic::Agent::Instrumentation
     def _nr_db
       # db is a method on the Redis client in versions < 5.x
       return db if respond_to?(:db)
-
-      begin
-        _nr_redis_client_config.db
-      rescue StandardError => e
-        NewRelic::Agent.logger.error("Failed to determine configured Redis db value: #{e.class} - #{e.message}")
-        nil
-      end
+      # db is accessible through the RedisClient::Config object in versions > 5.x
+      return _nr_redis_client_config.db if _nr_redis_client_config.respond_to?(:db)
+    rescue StandardError => e
+      NewRelic::Agent.logger.debug("Failed to determine configured Redis db value: #{e.class} - #{e.message}")
+      nil
     end
   end
 end
