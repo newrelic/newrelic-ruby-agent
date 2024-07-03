@@ -344,7 +344,6 @@ class BunnyTest < Minitest::Test
 
         queue.pop
       end
-      sleep 0.5
       spans = harvest_span_events!
 
       assert_equal @conn.hostname, spans[1][0][2]['server.address']
@@ -362,7 +361,6 @@ class BunnyTest < Minitest::Test
         txn.stubs(:sampled?).returns(true)
         queue.publish('test_msg', routing_key: queue.name)
       end
-      sleep 0.5
       spans = harvest_span_events!
 
       assert_equal @conn.hostname, spans[1][0][2]['server.address']
