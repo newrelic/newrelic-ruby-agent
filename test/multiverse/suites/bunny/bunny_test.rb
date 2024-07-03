@@ -347,7 +347,7 @@ class BunnyTest < Minitest::Test
       sleep 0.5
       spans = harvest_span_events!
 
-      assert_equal 'rabbitmq', spans[1][0][2]['server.address']
+      assert_equal @conn.hostname, spans[1][0][2]['server.address']
       assert_equal 5672, spans[1][0][2]['server.port']
       assert_equal 'Default', spans[1][0][2]['messaging.destination_publish.name']
       assert_equal queue.name, spans[1][0][2]['messaging.destination.name']
@@ -365,7 +365,7 @@ class BunnyTest < Minitest::Test
       sleep 0.5
       spans = harvest_span_events!
 
-      assert_equal 'rabbitmq', spans[1][0][2]['server.address']
+      assert_equal @conn.hostname, spans[1][0][2]['server.address']
       assert_equal 5672, spans[1][0][2]['server.port']
       assert_equal 'Default', spans[1][0][2]['messaging.destination.name']
       assert_equal queue.name, spans[1][0][2]['messaging.rabbitmq.destination.routing_key']
