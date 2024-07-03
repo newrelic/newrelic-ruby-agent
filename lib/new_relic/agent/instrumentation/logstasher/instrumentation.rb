@@ -4,7 +4,7 @@
 
 module NewRelic::Agent::Instrumentation
   module LogStasher
-    INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
+    INSTRUMENTATION_NAME = 'LogStasher'
 
     def self.enabled?
       NewRelic::Agent.config[:'instrumentation.logstasher'] != 'disabled'

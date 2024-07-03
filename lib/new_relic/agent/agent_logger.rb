@@ -7,6 +7,7 @@ require 'logger'
 require 'new_relic/agent/hostname'
 require 'new_relic/agent/log_once'
 require 'new_relic/agent/instrumentation/logger/instrumentation'
+require 'new_relic/agent/instrumentation/logstasher/instrumentation'
 
 module NewRelic
   module Agent

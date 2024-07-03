@@ -50,6 +50,7 @@ module NewRelic
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
+        @instrumentation_logstasher_enabled = NewRelic::Agent::Instrumentation::LogStasher.enabled?
         @attributes = NewRelic::Agent::LogEventAttributes.new
         register_for_done_configuring(events)
       end
@@ -229,7 +230,7 @@ module NewRelic
       end
 
       def logstasher_enabled?
-        @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
+        @enabled && @instrumentation_logstasher_enabled
       end
 
       private
