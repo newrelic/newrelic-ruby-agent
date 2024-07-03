@@ -73,8 +73,8 @@ class LogStasherInstrumentationTest < Minitest::Test
     end
     _, events = @aggregator.harvest!
 
-    assert events[0][1]['attributes'].key?(:identifier)
-    assert events[0][1]['attributes'].key?(:name)
+    assert events[0][1]['attributes'].key?('identifier')
+    assert events[0][1]['attributes'].key?('name')
     assert events[0][1]['attributes'].key?('source')
   end
 

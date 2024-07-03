@@ -176,7 +176,7 @@ module NewRelic
         log_copy.delete('level')
         log_copy.delete('@timestamp')
 
-        event['attributes'] = log_copy
+        event['attributes'] = log_copy.transform_keys(&:to_s)
       end
 
       def add_custom_attributes(custom_attributes)
