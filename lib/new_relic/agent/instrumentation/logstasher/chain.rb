@@ -10,9 +10,9 @@ module NewRelic::Agent::Instrumentation
 
         alias_method(:build_logstash_event_without_new_relic, :build_logstash_event)
 
-        def build_logstash_event(data, tags)
-          build_logstash_event_with_new_relic(data, tags) do
-            build_logstash_event_without_new_relic(data, tags)
+        def build_logstash_event(*args)
+          build_logstash_event_with_new_relic(*args) do
+            build_logstash_event_without_new_relic(*args)
           end
         end
       end

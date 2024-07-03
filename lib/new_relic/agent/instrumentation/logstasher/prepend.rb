@@ -6,8 +6,8 @@ module NewRelic::Agent::Instrumentation
   module LogStasher::Prepend
     include NewRelic::Agent::Instrumentation::LogStasher
 
-    def build_logstash_event(data, tags)
-      build_logstash_event_with_new_relic(data, tags) { super }
+    def build_logstash_event(*args)
+      build_logstash_event_with_new_relic(*args) { super }
     end
   end
 end
