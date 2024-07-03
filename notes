@@ -1,5 +1,6 @@
 https://www.brendangregg.com/flamegraphs.html
 https://github.com/oozou/ruby-prof-flamegraph
   -- ruby-prof itself isn't working with Ruby v3.3 and v3.4
-https://github.com/rubyatscale/singed
 https://github.com/tmm1/stackprof
+https://github.com/rubyatscale/singed (uses stackprof and speedscope)
+  -- https://github.com/jlfwong/speedscope
