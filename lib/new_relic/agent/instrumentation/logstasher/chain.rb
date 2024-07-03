@@ -5,7 +5,7 @@
 module NewRelic::Agent::Instrumentation
   module LogStasher::Chain
     def self.instrument!
-      ::LogStasher.class_eval do
+      ::LogStasher.singleton_class.class_eval do
         include NewRelic::Agent::Instrumentation::LogStasher
 
         alias_method(:build_logstash_event_without_new_relic, :build_logstash_event)
