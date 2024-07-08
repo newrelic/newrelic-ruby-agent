@@ -70,22 +70,22 @@ jobs:
                 "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               },
               "2.7.8": {
-                "rails": "norails,rails61,rails60,rails70"
+                "rails": "norails,rails61,rails60,rails70,rails71"
               },
               "3.0.7": {
-                "rails": "norails,rails61,rails60,rails70"
+                "rails": "norails,rails61,rails60,rails70,rails71"
               },
               "3.1.6": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,rails71"
               },
               "3.2.4": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,rails71"
               },
               "3.3.3": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,rails71"
               },
               "3.4.0-preview1": {
-                "rails": "norails,rails61,rails70"
+                "rails": "norails,rails61,rails70,rails71"
               }
             }
 
