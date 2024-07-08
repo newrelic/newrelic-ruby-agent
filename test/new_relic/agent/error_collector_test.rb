@@ -711,6 +711,25 @@ module NewRelic::Agent
         NewRelic::Agent.remove_instance_variable(:@error_group_callback)
       end
 
+      def test_noticed_errors_are_marked_as_expected_if_they_are_expected_conditionally
+        http_response_code = 404
+        noticed_error = nil
+
+        with_config(:'error_collector.expected_status_codes' => [http_response_code]) do
+          in_transaction do |txn|
+            txn.stub :http_response_code, http_response_code do
+              @error_collector.error_trace_aggregator.stub :add_to_error_queue, proc { |ne| noticed_error = ne } do
+                exception = StandardError.new
+                @error_collector.notice_error(exception)
+              end
+            end
+          end
+        end
+
+        assert noticed_error, 'Expected a noticed error to be created but could not find one'
+        assert noticed_error.expected, "Expected the noticed error's 'expected' value to be true"
+      end
+
       private
 
       # Segment errors utilize the error_collector's filtering for LASP

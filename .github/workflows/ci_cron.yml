@@ -16,7 +16,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+      - uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
         with:
           ruby-version: '3.3'
       - run: bundle
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.4, 3.3.3, 3.4.0-preview1]
 
     steps:
       - name: Configure git
@@ -50,7 +50,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -75,14 +75,17 @@ jobs:
               "3.0.7": {
                 "rails": "norails,rails61,rails60,rails70"
               },
-              "3.1.5": {
-                "rails": "norails,rails61,rails70,railsedge"
+              "3.1.6": {
+                "rails": "norails,rails61,rails70"
               },
               "3.2.4": {
-                "rails": "norails,rails61,rails70,railsedge"
+                "rails": "norails,rails61,rails70"
               },
-              "3.3.1": {
-                "rails": "norails,rails61,rails70,railsedge"
+              "3.3.3": {
+                "rails": "norails,rails61,rails70"
+              },
+              "3.4.0-preview1": {
+                "rails": "norails,rails61,rails70"
               }
             }
 
@@ -109,7 +112,7 @@ jobs:
           RAILS_VERSION: ${{ env.rails }}
 
       - name: Run Unit Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 30
           max_attempts: 2
@@ -200,7 +203,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.4, 3.3.3, 3.4.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -213,7 +216,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -240,7 +243,7 @@ jobs:
 
 
       - name: Wait for/Check Mysql
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 1
           max_attempts: 20
@@ -252,7 +255,7 @@ jobs:
 
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -278,14 +281,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.0.7, 3.1.5, 3.2.4, 3.3.1]
+        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.4, 3.3.3, 3.4.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@1198b074305f9356bd56dd4b311757cc0dab2f1c # tag v1.175.1
+        uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -293,7 +296,7 @@ jobs:
         run: bundle install
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # tag v2.8.3
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 15
           max_attempts: 2
@@ -314,7 +317,7 @@ jobs:
     if: always()
     steps:
       - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
-      - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # v1.6.0
+      - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # tag v1.6.0
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
@@ -336,7 +339,7 @@ jobs:
         id: last_status
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # v1.6.0
+      - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # tag v1.6.0
         if: ${{ env.WORKFLOW_CONCLUSION == 'success' && steps.last_status.outputs.last_status == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}

@@ -8,6 +8,54 @@ module NewRelic::Agent::Instrumentation
   module Elasticsearch
     PRODUCT_NAME = 'Elasticsearch'
     OPERATION = 'perform_request'
+
+    # Pattern to use with client caller location strings. Look for a location
+    # that contains '/lib/elasticsearch/api/' and is NOT followed by the
+    # string held in the OPERATION constant
+    OPERATION_PATTERN = %r{/lib/elasticsearch/api/(?!.+#{OPERATION})}.freeze
+
+    # Use the OPERATION_PATTERN pattern to find the appropriate caller location
+    # that will contain the client instance method (example: 'search') and
+    # return that method name.
+    #
+    # A Ruby caller location matching the OPERATION_PATTERN will contain an
+    # elasticsearch client instance method name (such as "search"), and that
+    # method name will be used as the operation name.
+    #
+    # With Ruby < 3.4 the method name is listed as:
+    #
+    #   `search'
+    #
+    # with an opening backtick and a closing single tick. And only the
+    # method name itself is listed.
+    #
+    # With Ruby 3.4+ the method name is listed as:
+    #
+    #   'Elasticsearch::API::Actions#search'
+    #
+    # with opening and closing single ticks and the class defining the
+    # instance method listed.
+    #
+    # (?:) = ?: prevents capturing
+    # (?:`|') = allow ` or '
+    # (?:.+#) = allow the class name and '#' prefix to exist but ignore it
+    # ([^']+)' = after the opening ` or ', capturing everything up to the
+    #            closing '.  [^']+ = one or more characters that are not '
+    #
+    # Example Ruby 3.3.1 input:
+    #
+    #   /Users/fallwith/.rubies/ruby-3.3.1/lib/ruby/gems/3.3.0/gems/elasticsearch-api-7.17.10/lib/elasticsearch/api/actions/index.rb:74:in `index'
+    #
+    # Example Ruby 3.4.0-preview1 input:
+    #
+    #   /Users/fallwith/.rubies/ruby-3.4.0-preview1/lib/ruby/gems/3.4.0+0/gems/elasticsearch-api-7.17.10/lib/elasticsearch/api/actions/index.rb:74:in 'Elasticsearch::API::Actions#index'
+    #
+    # Example output for both Rubies:
+    #
+    #   index
+
+    INSTANCE_METHOD_PATTERN = /:in (?:`|')(?:.+#)?([^']+)'\z/.freeze
+
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
     # We need the positional arguments `params` and `body`
@@ -40,13 +88,10 @@ module NewRelic::Agent::Instrumentation
     private
 
     def nr_operation
-      operation_index = caller_locations.index do |line|
-        string = line.to_s
-        string.include?('lib/elasticsearch/api') && !string.include?(OPERATION)
-      end
-      return nil unless operation_index
+      location = caller_locations.detect { |loc| loc.to_s.match?(OPERATION_PATTERN) }
+      return unless location && location.to_s =~ INSTANCE_METHOD_PATTERN
 
-      caller_locations[operation_index].to_s.split('`')[-1].gsub(/\W/, '')
+      Regexp.last_match(1)
     end
 
     def nr_reported_query(query)

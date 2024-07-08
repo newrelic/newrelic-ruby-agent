@@ -388,11 +388,14 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
+            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific
+              LLM events.
 
-            The excluded attributes include:
-              * `content` from LlmChatCompletionMessage events
-              * `input` from LlmEmbedding events
+              The excluded attributes include:
+                * `content` from LlmChatCompletionMessage events
+                * `input` from LlmEmbedding events
+
+            This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
           DESCRIPTION
         },
         # this is only set via server side config
@@ -438,10 +441,16 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
+            When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced
+              errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
                 <Callout variant="caution">
-                  When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+                  When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information.
+                    `Recommendation:` To filter secret information from request parameters, use the
+                    [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby)
+                    instead. For more information, see the
+                    <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute
+                    examples</a>.
                 </Callout>
           DESCRIPTION
         },
@@ -477,12 +486,16 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Forces the exit handler that sends all cached data to collector ' \
-            'before shutting down to be installed regardless of detecting scenarios where it generally should not be. ' \
-            'Known use-case for this option is where Sinatra is running as an embedded service within another framework ' \
-            'and the agent is detecting the Sinatra app and skipping the `at_exit` handler as a result. Sinatra classically ' \
-            'runs the entire application in an `at_exit` block and would otherwise misbehave if the agent\'s `at_exit` handler ' \
-            'was also installed in those circumstances. Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
+          :description => <<~DESC
+            The exit handler that sends all cached data to the collector before shutting down is forcibly installed.
+              This is true even when it detects scenarios where it generally should not be. The known use case for this
+              option is when Sinatra runs as an embedded service within another framework. The agent detects the Sinatra
+              app and skips the `at_exit` handler as a result. Sinatra classically runs the entire application in an
+              `at_exit` block and would otherwise misbehave if the agent's `at_exit` handler was also installed in those
+              circumstances.
+
+            **Note:** `send_data_on_exit` should also be set to `true` in tandem with this setting.
+          DESC
         },
         :high_security => {
           :default => false,
@@ -719,7 +732,9 @@ module NewRelic
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<~DESCRIPTION
-            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
+            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if
+              its error message contains one of the strings corresponding to it here, that error will be treated as
+              expected.
 
               <Callout variant="caution">
                 This option can't be set via environment variable.
@@ -742,7 +757,8 @@ module NewRelic
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<~DESCRIPTION
-            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
+            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if
+              its error message contains one of the strings corresponding to it here, that error will be ignored.
 
               <Callout variant="caution">
                 This option can't be set via environment variable.
@@ -783,7 +799,7 @@ module NewRelic
         # CSP nonce
         :'browser_monitoring.content_security_policy_nonce' => {
           :default => value_of(:'rum.enabled'),
-          :documentation_default => false,
+          :documentation_default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -828,11 +844,14 @@ module NewRelic
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
-            This is based on the integer values of Ruby's `Logger::Severity` constants: https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
+            This is based on the integer values of Ruby's `Logger::Severity` constants:
+              https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
 
-            The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
+            The intention is to forward logs with the level given to the configuration, as well as any logs with a
+              higher level of severity.
 
-            For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
+            For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to
+              "error" will only forward log events with the levels "error", "fatal", and "unknown".
 
             Valid values (ordered lowest to highest):
               * "debug"
@@ -1078,7 +1097,6 @@ module NewRelic
             Rails::Command::GenerateCommand
             Rails::Command::InitializersCommand
             Rails::Command::NotesCommand
-            Rails::Command::RakeCommand
             Rails::Command::RoutesCommand
             Rails::Command::RunnerCommand
             Rails::Command::SecretsCommand
@@ -1109,7 +1127,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => "If `true`, the agent will report source code level metrics for traced methods.\nsee: " \
+          :description => "If `true`, the agent will report source code level metrics for traced methods.\nSee: " \
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
         # Cross application tracer
@@ -1145,8 +1163,12 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Specify a maximum number of custom events to buffer in memory at a time.',
-          :dynamic_name => true
+          :dynamic_name => true,
+          :description => <<~DESC
+            * Specify a maximum number of custom events to buffer in memory at a time.
+            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
+            set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
+          DESC
         },
         # Datastore tracer
         :'datastore_tracer.database_name_reporting.enabled' => {
@@ -1283,10 +1305,12 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
+            If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are
+              installed via `Rack::Builder` or Rails).
 
               <Callout variant="important">
-                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+                When middleware instrumentation is disabled, if an application is using middleware that could alter the
+                  response code, the HTTP status code reported on the transaction may not reflect the altered value.
               </Callout>
           DESCRIPTION
         },
@@ -1324,12 +1348,20 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
+            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature
+              support such as
+              [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing),
+              [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and
+              [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
                 <Callout variant="important">
-                  Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+                  Cross application tracing is deprecated in favor of
+                    [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing).
+                    Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not
+                    required to support distributed tracing.
 
-                  To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+                  To continue using cross application tracing, update the following options in your `newrelic.yml`
+                    configuration file:
 
                   ```yaml
                   # newrelic.yml
@@ -1437,6 +1469,7 @@ module NewRelic
         },
         :'instrumentation.async_http' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1445,14 +1478,33 @@ module NewRelic
         },
         :'instrumentation.bunny' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.aws_sqs' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the aws-sdk-sqs library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.dynamodb' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the aws-sdk-dynamodb library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.fiber' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1461,6 +1513,7 @@ module NewRelic
         },
         :'instrumentation.concurrent_ruby' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1487,6 +1540,7 @@ module NewRelic
         },
         :'instrumentation.elasticsearch' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1495,11 +1549,12 @@ module NewRelic
         },
         :'instrumentation.ethon' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of ethon at start up. May be one of [auto|prepend|chain|disabled]'
+          :description => 'Controls auto-instrumentation of ethon at start up. May be one of `auto`, `prepend`, `chain`, `disabled`'
         },
         :'instrumentation.excon' => {
           :default => 'enabled',
@@ -1512,6 +1567,7 @@ module NewRelic
         },
         :'instrumentation.grape' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1569,7 +1625,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of httpx at start up. May be one of [auto|prepend|chain|disabled]'
+          :description => 'Controls auto-instrumentation of httpx at start up. May be one of `auto`, `prepend`, `chain`, `disabled`'
         },
         :'instrumentation.logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
@@ -1582,6 +1638,7 @@ module NewRelic
         },
         :'instrumentation.memcache' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1631,7 +1688,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the ruby-openai gem at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`. Defaults to `disabled` in high security mode.'
         },
         :'instrumentation.puma_rack' => {
           :default => value_of(:'instrumentation.rack'),
@@ -1675,6 +1732,7 @@ module NewRelic
         },
         :'instrumentation.rake' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1683,6 +1741,7 @@ module NewRelic
         },
         :'instrumentation.redis' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1700,6 +1759,7 @@ module NewRelic
         },
         :'instrumentation.roda' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1708,6 +1768,7 @@ module NewRelic
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1716,6 +1777,7 @@ module NewRelic
         },
         :'instrumentation.stripe' => {
           :default => 'enabled',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -1723,6 +1785,7 @@ module NewRelic
         },
         :'instrumentation.view_component' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1759,6 +1822,7 @@ module NewRelic
         },
         :'instrumentation.thread' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1781,6 +1845,7 @@ module NewRelic
         },
         :'instrumentation.tilt' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1878,9 +1943,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
-          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
-                          'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
-                          "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
+          :description => <<~DESC
+            If `true`, the agent will operate in a streamlined mode suitable for use with short-lived serverless
+              functions. NOTE: Only AWS Lambda functions are supported currently and this option is not intended for use
+              without
+              [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/)
+              offering.
+          DESC
         },
         # Sidekiq
         :'sidekiq.args.include' => {
@@ -1974,7 +2043,12 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
+          :description => <<~DESC
+            * Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and
+              `10000` is valid.
+            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max
+              value `10000`. This ensures the agent captures the maximum amount of distributed traces.
+          DESC
         },
         # Strip exception messages
         :'strip_exception_messages.enabled' => {

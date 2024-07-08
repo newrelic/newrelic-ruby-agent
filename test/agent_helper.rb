@@ -1039,3 +1039,7 @@ def first_call_for(subject)
 
   items.first
 end
+
+def ruby_version_float
+  RUBY_VERSION.split('.')[0..1].join('.').to_f
+end
