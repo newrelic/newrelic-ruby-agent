@@ -8,6 +8,7 @@ logstasher_versions = [
   [nil, 2.7]
 ]
 
+# Lock down activesupport version due to a logstasher test incompatiability with 7.1.
 def gem_list(logstasher_versions = nil)
   <<~RB
     gem 'logstasher'#{logstasher_versions}
