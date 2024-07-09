@@ -12,7 +12,7 @@ logstasher_versions = [
 def gem_list(logstasher_versions = nil)
   <<~RB
     gem 'logstasher'#{logstasher_versions}
-    gem 'activesupport', '~> 7.0.0'
+    gem 'activesupport', '< 7.1'
   RB
 end
 
