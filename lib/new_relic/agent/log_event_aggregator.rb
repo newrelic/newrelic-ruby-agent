@@ -116,11 +116,11 @@ module NewRelic
       end
 
       def increment_event_counters(severity)
-        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
-          @counter_lock.synchronize do
-            @seen += 1
-            @seen_by_severity[severity] += 1
-          end
+        return unless NewRelic::Agent.config[METRICS_ENABLED_KEY]
+        
+        @counter_lock.synchronize do
+          @seen += 1
+          @seen_by_severity[severity] += 1
         end
       end
 
