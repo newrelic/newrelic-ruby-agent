@@ -83,6 +83,9 @@ module NewRelic
 
       def record_logstasher_event(log)
         return unless logstasher_enabled?
+
+        # LogStasher logs do not inherently include a message key, so most logs are recorded.
+        # But when the key exists, we should not record the log if the message value is nil or empty.
         return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
 
         severity = determine_severity(log)
