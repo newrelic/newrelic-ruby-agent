@@ -8,7 +8,7 @@ jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@ff740bc00a01b3a50fffc55a1071b1060eeae9dc # tag v1.180.0
+      - uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
         with:
           ruby-version: 3.3
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
@@ -46,7 +46,7 @@ jobs:
   cve_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@ff740bc00a01b3a50fffc55a1071b1060eeae9dc # tag v1.180.0
+      - uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
         with:
           ruby-version: 3.3
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
