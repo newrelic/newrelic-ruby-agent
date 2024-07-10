@@ -2563,16 +2563,18 @@ module NewRelic
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         },
         # security agent
+        # HACK TO FORCE CSEC TO BE PRESENT FOR TESTING
         :'security.agent.enabled' => {
-          :default => false,
+          :default => true,
           :external => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
         },
+        # HACK TO FORCE CSEC TO BE PRESENT FOR TESTING
         :'security.enabled' => {
-          :default => false,
+          :default => true,
           :external => true,
           :public => true,
           :type => Boolean,
