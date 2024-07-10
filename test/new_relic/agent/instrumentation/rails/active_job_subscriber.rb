@@ -30,11 +30,6 @@ module NewRelic::Agent::Instrumentation
     ID = 71741
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActiveJobSubscriber.new
 
-    def setup
-      # https://github.com/rails/rails/issues/37270
-      (ActiveJob::Base.descendants << ActiveJob::Base).each { |b| b.disable_test_adapter rescue nil }
-    end
-
     def test_segment_naming_with_unknown_method
       assert_equal 'Ruby/ActiveJob/default/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {job: TestJob.new})
@@ -112,7 +107,12 @@ module NewRelic::Agent::Instrumentation
         segment = segments.detect { |s| s.name == "Ruby/ActiveJob/default/#{method}" }
 
         assert segment
-        assert_equal 'ActiveJob::QueueAdapters::AsyncAdapter', segment.params[:adapter].class.name
+
+        if defined?(Rails) && Rails.respond_to?(:version) && Gem::Version.new(Rails.version) >= Gem::Version.new('7.1')
+          assert_matches(/ActiveJob::QueueAdapters::(?:Test|Async)Adapter/, segment.params[:adapter].class.name)
+        else
+          assert_equal 'ActiveJob::QueueAdapters::AsyncAdapter', segment.params[:adapter].class.name
+        end
       end
     end
   end
