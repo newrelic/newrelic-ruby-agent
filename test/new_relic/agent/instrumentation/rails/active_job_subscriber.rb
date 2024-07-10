@@ -32,9 +32,7 @@ module NewRelic::Agent::Instrumentation
 
     def setup
       # https://github.com/rails/rails/issues/37270
-      (ActiveJob::Base.descendants << ActiveJob::Base).each do |b|
-        b.disable_test_adapter if b.respond_to?(:disable_test_adapter)
-      end
+      (ActiveJob::Base.descendants << ActiveJob::Base).each { |b| b.disable_test_adapter rescue nil }
     end
 
     def test_segment_naming_with_unknown_method
