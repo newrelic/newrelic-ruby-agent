@@ -102,6 +102,13 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_equal 'docker-cluster', @segment.database_name
   end
 
+  def test_cluster_name_not_captured_if_defined_but_nil
+    @client.instance_variable_set(:@nr_cluster_name, nil)
+    search
+
+    assert_nil @segment.database_name
+  end
+
   def test_nosql_statement_recorded_params_obfuscated
     with_config(:'elasticsearch.obfuscate_queries' => true) do
       txn = in_transaction do
