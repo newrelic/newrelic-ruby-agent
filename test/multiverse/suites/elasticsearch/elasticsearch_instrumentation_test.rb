@@ -102,9 +102,11 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_equal 'docker-cluster', @segment.database_name
   end
 
-  def test_cluster_name_not_captured_if_defined_but_nil
-    @client.instance_variable_set(:@nr_cluster_name, nil)
+  def test_cluster_name_doesnt_try_again_if_defined_but_nil
+    original = @client.instance_variable_get(:@transport).instance_variable_get(:@nr_cluster_name)
+    @client.instance_variable_get(:@transport).instance_variable_set(:@nr_cluster_name, nil)
     search
+    @client.instance_variable_get(:@transport).instance_variable_set(:@nr_cluster_name, original)
 
     assert_nil @segment.database_name
   end
