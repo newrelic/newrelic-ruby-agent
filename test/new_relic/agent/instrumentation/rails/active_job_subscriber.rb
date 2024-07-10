@@ -30,6 +30,11 @@ module NewRelic::Agent::Instrumentation
     ID = 71741
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActiveJobSubscriber.new
 
+    def setup
+      # https://github.com/rails/rails/issues/37270
+      (ActiveJob::Base.descendants << ActiveJob::Base).each(&:disable_test_adapter)
+    end
+
     def test_segment_naming_with_unknown_method
       assert_equal 'Ruby/ActiveJob/default/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {job: TestJob.new})
