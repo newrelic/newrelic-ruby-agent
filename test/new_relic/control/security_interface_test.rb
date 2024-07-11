@@ -30,6 +30,9 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     with_config('security.agent.enabled' => false, 'security.enabled' => true, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
+        logger.expect :info, nil, [/high_security = false/]
+        logger.expect :info, nil, [/security.enabled = true/]
+        logger.expect :info, nil, [/security.agent.enabled = false/]
 
         NewRelic::Control::SecurityInterface.instance.init_agent
       end
@@ -48,6 +51,9 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     with_config('security.agent.enabled' => true, 'security.enabled' => false, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
+        logger.expect :info, nil, [/high_security = false/]
+        logger.expect :info, nil, [/security.enabled = false/]
+        logger.expect :info, nil, [/security.agent.enabled = true/]
 
         NewRelic::Control::SecurityInterface.instance.init_agent
       end
@@ -64,6 +70,9 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     with_config('security.agent.enabled' => true, 'security.enabled' => true, 'high_security' => true) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
+        logger.expect :info, nil, [/high_security = true/]
+        logger.expect :info, nil, [/security.enabled = true/]
+        logger.expect :info, nil, [/security.agent.enabled = true/]
 
         NewRelic::Control::SecurityInterface.instance.init_agent
       end
