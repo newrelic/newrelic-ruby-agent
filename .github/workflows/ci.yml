@@ -63,7 +63,7 @@ jobs:
                 "rails": "norails,rails42,rails52"
               },
               "3.3.4": {
-                "rails": "norails,rails61,rails71"
+                "rails": "norails,rails61,rails72"
               }
             }
 
