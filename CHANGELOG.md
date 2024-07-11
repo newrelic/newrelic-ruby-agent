@@ -2,11 +2,16 @@
 
 ## <dev>
 
-Version <dev> improves instrumentation for the `redis-clustering` gem.
+Version <dev> improves instrumentation for the `redis-clustering` gem, and updates the elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
 
 - **Feature: Add instrumentation for redis-clustering**
 
   Version 5.x of the `redis` gem moved cluster behavior into a different gem, `redis-clustering`. This gem can access instrumentation registered through `RedisClient::Middleware`. Previously, the agent only instrumented the `call_pipelined` method through this approach, but now users of the `redis-clustering` gem will also have instrumentation registered for `connect` and `call` methods. In addition, the way the `database_name` attribute is set for Redis datastore spans is now compatible with all versions of Redis supported by the New Relic Ruby agent. Thank you, [@praveen-ks](https://github.com/praveen-ks) for bringing this to our attention. [Issue#2444](https://github.com/newrelic/newrelic-ruby-agent/issues/2444) [PR#2720](https://github.com/newrelic/newrelic-ruby-agent/pull/2720)
+
+- **Bugfix: Update Elasticsearch instrumentation to only attempt to get the cluster name once per client**
+
+  Previously, the agent would attempt to get the cluster name every time a call was made if it was not already captured. This could lead to a large number of failures if the cluster name could not be retrieved. Now, the agent will only attempt to get the cluster name once per client, even if it fails. Thank you, [@ascoppa](https://github.com/ascoppa) for bringing this to our attention. 
+
 
 ## v9.11.0
 
