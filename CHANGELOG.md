@@ -13,7 +13,7 @@ Version <dev> introduces instrumentation for the LogStasher gem, improves instru
 
 - **Bugfix: Update Elasticsearch instrumentation to only attempt to get the cluster name once per client**
 
-  Previously, the agent would attempt to get the cluster name every time a call was made if it was not already captured. This could lead to a large number of failures if the cluster name could not be retrieved. Now, the agent will only attempt to get the cluster name once per client, even if it fails. Thank you, [@ascoppa](https://github.com/ascoppa) for bringing this to our attention. 
+  Previously, the agent would attempt to get the cluster name every time a call was made if it was not already captured. This could lead to a large number of failures if the cluster name could not be retrieved. Now, the agent will only attempt to get the cluster name once per client, even if it fails. Thank you, [@ascoppa](https://github.com/ascoppa) for bringing this to our attention. [Issue#2730](https://github.com/newrelic/newrelic-ruby-agent/issues/2730) [PR#2743](https://github.com/newrelic/newrelic-ruby-agent/pull/2743)
 
 
 ## v9.11.0
