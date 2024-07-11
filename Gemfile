@@ -5,5 +5,5 @@
 source 'https://rubygems.org'
 gemspec name: 'newrelic_rpm'
 
-# HACK TO FORCE CSEC TO BE PRESENT FOR TESTING
-gem 'newrelic_security', github: 'newrelic/csec-ruby-agent'
+# HACK: TO FORCE CSEC TO BE PRESENT FOR TESTING
+gem 'newrelic_security', github: 'newrelic/csec-ruby-agent', branch: 'dev'
