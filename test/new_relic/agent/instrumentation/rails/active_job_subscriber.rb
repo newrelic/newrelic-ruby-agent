@@ -107,7 +107,12 @@ module NewRelic::Agent::Instrumentation
         segment = segments.detect { |s| s.name == "Ruby/ActiveJob/default/#{method}" }
 
         assert segment
-        assert_equal 'ActiveJob::QueueAdapters::AsyncAdapter', segment.params[:adapter].class.name
+
+        if defined?(Rails) && Rails.respond_to?(:version) && Gem::Version.new(Rails.version) >= Gem::Version.new('7.1')
+          assert_match(/ActiveJob::QueueAdapters::(?:Test|Async)Adapter/, segment.params[:adapter].class.name)
+        else
+          assert_equal 'ActiveJob::QueueAdapters::AsyncAdapter', segment.params[:adapter].class.name
+        end
       end
     end
   end

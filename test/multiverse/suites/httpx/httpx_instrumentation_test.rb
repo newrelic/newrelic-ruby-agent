@@ -33,7 +33,15 @@ class HTTPXInstrumentationTest < Minitest::Test
     request = Minitest::Mock.new
     request.expect :response, :the_response
     2.times { request.expect :hash, 1138 }
-    responses = {request => ::HTTPX::ErrorResponse.new(request, StandardError.new, {})}
+
+    error = if Gem::Version.new(::HTTPX::VERSION) >= Gem::Version.new('1.3.0')
+      request.expect :options, ::HTTPX::Options.new({})
+      ::HTTPX::ErrorResponse.new(request, StandardError.new)
+    else
+      ::HTTPX::ErrorResponse.new(request, StandardError.new, {})
+    end
+    responses = {request => error}
+
     segment = Minitest::Mock.new
     def segment.notice_error(_error); end
     def segment.process_response_headers(_wrappep); end
