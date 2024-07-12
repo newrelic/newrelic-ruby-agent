@@ -1,5 +1,9 @@
 # New Relic Infinite Tracing for Ruby Agent Release Notes #
 
+  ## v9.12.0
+
+  * Pin google-protobuf dependency to < 4.0 due to compatibility issues with version 4+.
+
   ## v8.9.0
 
   * **Bugfix: Infinite Tracing hung on connection restart**
