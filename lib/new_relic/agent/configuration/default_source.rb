@@ -2581,7 +2581,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
         },
-        # HACK TO FORCE CSEC TO BE PRESENT FOR TESTING
+        # HACK: TO FORCE CSEC TO BE PRESENT FOR TESTING
         :'security.enabled' => {
           :default => true,
           :external => true,
