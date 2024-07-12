@@ -32,15 +32,19 @@ DependencyDetection.defer do
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
 
-    subs = %w[send_file
-      send_data
-      send_stream
-      redirect_to
+    subs = %w[exist_fragment?
+      expire_fragment
       halted_callback
-      unpermitted_parameters]
+      read_fragment
+      redirect_to
+      send_data
+      send_file
+      send_stream
+      write_fragment
+      unpermitted_parameters].map { |s| Regexp.escape(s) }
 
     # have to double escape period because its going from string -> regex
     NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber \
-      .subscribe(Regexp.new("^(#{subs.join('|')})\\.action_controller$"))
+      .subscribe(Regexp.new("^(?:#{subs.join('|')})\\.action_controller$"))
   end
 end
