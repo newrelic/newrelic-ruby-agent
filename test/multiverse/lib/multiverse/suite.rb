@@ -287,7 +287,7 @@ module Multiverse
         f.puts "gem 'warning'"
 
         # HACK: TO FORCE CSEC TO BE PRESENT FOR TESTING
-        f.puts "gem 'newrelic_security', git: 'https://github.com/newrelic/csec-ruby-agent', branch: 'dev'"
+        f.puts "gem 'newrelic_security', git: 'https://github.com/newrelic/csec-ruby-agent', branch: 'dev', require: false"
 
         if debug
           f.puts "gem 'pry', '~> 0.14'" if ENV['ENABLE_PRY']
