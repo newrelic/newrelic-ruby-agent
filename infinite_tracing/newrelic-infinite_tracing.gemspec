@@ -73,6 +73,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
   s.add_dependency 'grpc', '~> 1.34'
+  s.add_dependency 'google-protobuf', '< 4.0'
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify'
