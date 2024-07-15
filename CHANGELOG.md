@@ -15,6 +15,10 @@ Version <dev> introduces instrumentation for the LogStasher gem, improves instru
 
   Previously, the agent would attempt to get the cluster name every time a call was made if it was not already captured. This could lead to a large number of failures if the cluster name could not be retrieved. Now, the agent will only attempt to get the cluster name once per client, even if it fails. Thank you, [@ascoppa](https://github.com/ascoppa) for bringing this to our attention. [Issue#2730](https://github.com/newrelic/newrelic-ruby-agent/issues/2730) [PR#2743](https://github.com/newrelic/newrelic-ruby-agent/pull/2743)
 
+- **Feature: Produce metrics for 4 additional Action Controller Rails notifications**
+
+  Four additional Action Controller related Rails notifications are now subscribed to by the agent to produce telemetry. These 4 are `exist_fragment?`, `expire_fragment`, `read_fragment`, and `write_fragment`. As with instrumentation for Action Controller itself, these notifications are enabled by default and can be disabled by setting `:disable_action_controller` to `true` in the agent's `newrelic.yml` configuration file. [PR#2745](https://github.com/newrelic/newrelic-ruby-agent/pull/2745)
+
 
 ## v9.11.0
 
