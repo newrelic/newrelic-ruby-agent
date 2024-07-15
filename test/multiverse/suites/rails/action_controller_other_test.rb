@@ -3,10 +3,11 @@
 # frozen_string_literal: true
 
 require './app'
-
 if defined?(ActionController::Live)
 
   class DataController < ApplicationController
+    CACHE_KEY = :the_key
+
     # send_file
     def send_test_file
       send_file(Rails.root + '../../../../README.md')
@@ -34,6 +35,26 @@ if defined?(ActionController::Live)
     # unpermitted_parameters
     def not_allowed
       params.permit(:only_this)
+    end
+
+    # exist_fragment?
+    def exist_fragment
+      fragment_exist?(CACHE_KEY)
+    end
+
+    # expire_fragment
+    def expire_test_fragment
+      expire_fragment(CACHE_KEY)
+    end
+
+    # read_fragment
+    def read_test_fragment
+      read_fragment(CACHE_KEY)
+    end
+
+    # write_fragment
+    def write_test_fragment
+      write_fragment(CACHE_KEY, 'fragment')
     end
   end
 
@@ -119,6 +140,66 @@ if defined?(ActionController::Live)
       assert_equal('DataController', tt_node.params[:controller]) if rails7
 
       assert_metrics_recorded(['Controller/data/not_allowed', segment_name])
+    end
+
+    def test_exist_fragment?
+      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+
+      get('/data/exist_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>exist_fragment?<<'
+      child = node.children.detect { |n| n.metric_name.include?('FileStore/exist') }
+
+      assert child, 'Could not find a >>Filestore/exist<< child of the ActionController node!'
+      assert_includes child.params[:key], DataController::CACHE_KEY,
+        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+    end
+
+    def test_expire_fragment
+      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+
+      get('/data/expire_test_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>expire_fragment<<'
+      child = node.children.detect { |n| n.metric_name.include?('FileStore/delete') }
+
+      assert child, 'Could not find a >>Filestore/delete<< child of the ActionController node!'
+      assert_includes child.params[:key], DataController::CACHE_KEY,
+        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+    end
+
+    def test_read_fragment
+      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+
+      get('/data/read_test_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>read_fragment<<'
+      child = node.children.detect { |n| n.metric_name.include?('FileStore/read') }
+
+      assert child, 'Could not find a >>Filestore/read<< child of the ActionController node!'
+      assert_includes child.params[:key], DataController::CACHE_KEY,
+        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+    end
+
+    def test_write_fragment
+      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+
+      get('/data/write_test_fragment')
+
+      node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
+
+      assert node, 'Could not find an >>ActionController<< metric while testing >>write_fragment<<'
+      child = node.children.detect { |n| n.metric_name.include?('FileStore/write') }
+
+      assert child, 'Could not find a >>Filestore/write<< child of the ActionController node!'
+      assert_includes child.params[:key], DataController::CACHE_KEY,
+        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
     end
 
     class TestClassActionController; end
