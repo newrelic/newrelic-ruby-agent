@@ -24,7 +24,7 @@ You can also monitor non-web applications. Refer to the "Other
 Environments" section below.
 
 We offer an AWS Lambda layer for instrumenting your serverless Ruby functions.
-Details can be found on our [getting started guide](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/).
+Details can be found on our [getting started guide](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/).
 
 ## Installing and Using
 
