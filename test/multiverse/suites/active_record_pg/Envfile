@@ -22,7 +22,7 @@ ACTIVERECORD_VERSIONS = [
   ['5.0.0', 2.4, 2.7]
 ]
 
-# unshift_rails_edge(ACTIVERECORD_VERSIONS)
+unshift_rails_edge(ACTIVERECORD_VERSIONS)
 
 def gem_list(activerecord_version = nil)
   <<~RB
