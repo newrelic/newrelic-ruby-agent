@@ -17,7 +17,7 @@ Version <dev> introduces instrumentation for the LogStasher gem, improves instru
 
 - **Feature: Produce metrics for 4 additional Action Controller Rails notifications**
 
-  Four additional Action Controller related Rails notifications are now subscribed to by the agent to produce metrics. These 4 are `exist_fragment?`, `expire_fragment`, `read_fragment`, and `write_fragment`. As with instrumentation for Action Controller itself, these notifications are enabled by default and can be disabled by setting `:disable_action_controller` to `true` in the agent's `newrelic.yml` configuration file. [PR#2745](https://github.com/newrelic/newrelic-ruby-agent/pull/2745)
+  Four additional Action Controller related Rails notifications are now subscribed to by the agent to produce telemetry. These 4 are `exist_fragment?`, `expire_fragment`, `read_fragment`, and `write_fragment`. As with instrumentation for Action Controller itself, these notifications are enabled by default and can be disabled by setting `:disable_action_controller` to `true` in the agent's `newrelic.yml` configuration file. [PR#2745](https://github.com/newrelic/newrelic-ruby-agent/pull/2745)
 
 
 ## v9.11.0
