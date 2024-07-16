@@ -78,7 +78,7 @@ if defined?(ActionController::Live)
     end
 
     def test_send_stream
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('7.2.0')
+      skip unless rails_version_at_least?('7.2')
       get('/data/send_test_stream')
 
       assert_metrics_recorded(['Controller/data/send_test_stream', 'Ruby/ActionController/send_stream'])
@@ -100,7 +100,7 @@ if defined?(ActionController::Live)
       get('/data/do_a_redirect')
 
       # payload does not include the request in rails < 6.1
-      rails61 = Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('6.1.0')
+      rails61 = rails_version_at_least?('6.1')
 
       segment_name = if rails61
         'Ruby/ActionController/data/redirect_to'
@@ -117,8 +117,8 @@ if defined?(ActionController::Live)
     end
 
     def test_unpermitted_parameters
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
       # unpermitted parameters is only available in rails 6.0+
+      skip unless rails_version_at_least?('6')
 
       get('/data/not_allowed', params: {this_is_a_param: 1})
 
@@ -143,14 +143,16 @@ if defined?(ActionController::Live)
     end
 
     def test_exist_fragment?
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+      skip unless rails_version_at_least?('6')
 
       get('/data/exist_fragment')
 
       node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
 
       assert node, 'Could not find an >>ActionController<< metric while testing >>exist_fragment?<<'
-      child = node.children.detect { |n| n.metric_name.include?('FileStore/exist') }
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/exist' : 'ActiveSupport/exist?'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/exist<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -158,14 +160,16 @@ if defined?(ActionController::Live)
     end
 
     def test_expire_fragment
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+      skip unless rails_version_at_least?('6')
 
       get('/data/expire_test_fragment')
 
       node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
 
       assert node, 'Could not find an >>ActionController<< metric while testing >>expire_fragment<<'
-      child = node.children.detect { |n| n.metric_name.include?('FileStore/delete') }
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/delete' : 'ActiveSupport/delete'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/delete<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -173,14 +177,16 @@ if defined?(ActionController::Live)
     end
 
     def test_read_fragment
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+      skip unless rails_version_at_least?('6')
 
       get('/data/read_test_fragment')
 
       node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
 
       assert node, 'Could not find an >>ActionController<< metric while testing >>read_fragment<<'
-      child = node.children.detect { |n| n.metric_name.include?('FileStore/read') }
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/read' : 'ActiveSupport/read'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/read<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -188,14 +194,16 @@ if defined?(ActionController::Live)
     end
 
     def test_write_fragment
-      skip if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.0.0')
+      skip unless rails_version_at_least?('6')
 
       get('/data/write_test_fragment')
 
       node = find_node_with_name_matching(last_transaction_trace, /ActionController/)
 
       assert node, 'Could not find an >>ActionController<< metric while testing >>write_fragment<<'
-      child = node.children.detect { |n| n.metric_name.include?('FileStore/write') }
+      child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/write' : 'ActiveSupport/write'
+      child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
+      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/write<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -222,6 +230,16 @@ if defined?(ActionController::Live)
         # make sure no error is raised
         NewRelic::Agent::Instrumentation::ActionControllerOtherSubscriber.new.controller_name_for_metric(payload)
       end
+    end
+
+    private
+
+    def rails_version
+      @rails_version ||= Gem::Version.new(Rails::VERSION::STRING)
+    end
+
+    def rails_version_at_least?(version_string)
+      rails_version >= Gem::Version.new(version_string)
     end
   end
 end
