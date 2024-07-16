@@ -20,18 +20,16 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
   def assert_supportability_metrics_enabled
     assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
-    assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
   end
 
   def test_initialization_short_circuits_when_the_security_agent_is_disabled
     reset_supportability_metrics
 
     logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => false, 'security.enabled' => true, 'high_security' => false) do
+    with_config('security.agent.enabled' => false, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
         logger.expect :info, nil, [/high_security = false/]
-        logger.expect :info, nil, [/security.enabled = true/]
         logger.expect :info, nil, [/security.agent.enabled = false/]
 
         NewRelic::Control::SecurityInterface.instance.init_agent
@@ -39,39 +37,16 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
       refute_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
       assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/disabled'
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/enabled'
-    end
-    logger.verify
-  end
-
-  def test_initialization_short_circuits_when_the_security_is_disabled
-    reset_supportability_metrics
-
-    logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => true, 'security.enabled' => false, 'high_security' => false) do
-      NewRelic::Agent.stub :logger, logger do
-        logger.expect :info, nil, [/Security is completely disabled/]
-        logger.expect :info, nil, [/high_security = false/]
-        logger.expect :info, nil, [/security.enabled = false/]
-        logger.expect :info, nil, [/security.agent.enabled = true/]
-
-        NewRelic::Control::SecurityInterface.instance.init_agent
-      end
-
-      refute_predicate NewRelic::Control::SecurityInterface.instance, :agent_started?
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Agent/Enabled/enabled'
-      assert_metrics_recorded 'Supportability/Ruby/SecurityAgent/Enabled/disabled'
     end
     logger.verify
   end
 
   def test_initialization_short_circuits_when_high_security_mode_is_enabled
     logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => true, 'security.enabled' => true, 'high_security' => true) do
+    with_config('security.agent.enabled' => true, 'high_security' => true) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Security is completely disabled/]
         logger.expect :info, nil, [/high_security = true/]
-        logger.expect :info, nil, [/security.enabled = true/]
         logger.expect :info, nil, [/security.agent.enabled = true/]
 
         NewRelic::Control::SecurityInterface.instance.init_agent
@@ -85,7 +60,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
   def test_initialization_short_circuits_if_the_agent_has_already_been_started
     reached = false
-    with_config('security.agent.enabled' => true, 'security.enabled' => true) do
+    with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :config, -> { reached = true } do
         NewRelic::Control::SecurityInterface.instance.instance_variable_set(:@agent_started, true)
         NewRelic::Control::SecurityInterface.instance.init_agent
@@ -97,7 +72,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
   def test_initialization_short_circuits_if_the_agent_has_been_told_to_wait
     reached = false
-    with_config('security.agent.enabled' => true, 'security.enabled' => true) do
+    with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :config, -> { reached = true } do
         NewRelic::Control::SecurityInterface.instance.instance_variable_set(:@wait, true)
         NewRelic::Control::SecurityInterface.instance.init_agent
@@ -112,7 +87,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
 
     required = false
     logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => true, 'security.enabled' => true) do
+    with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Invoking New Relic security/]
 
@@ -132,7 +107,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     skip_unless_minitest5_or_above
 
     logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => true, 'security.enabled' => true) do
+    with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Invoking New Relic security/]
         logger.expect :info, nil, [/security agent not found/]
@@ -153,7 +128,7 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
     skip_unless_minitest5_or_above
 
     logger = MiniTest::Mock.new
-    with_config('security.agent.enabled' => true, 'security.enabled' => true) do
+    with_config('security.agent.enabled' => true) do
       NewRelic::Agent.stub :logger, logger do
         logger.expect :info, nil, [/Invoking New Relic security/]
         logger.expect :error, nil, [/Exception in New Relic security module loading/]
