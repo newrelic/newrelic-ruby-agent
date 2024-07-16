@@ -1,0 +1,19 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+logstasher_versions = [
+  [nil, 2.7]
+]
+
+# Lock down activesupport version due to a logstasher test incompatiability with 7.1.
+def gem_list(logstasher_versions = nil)
+  <<~RB
+    gem 'logstasher'#{logstasher_versions}
+    gem 'activesupport', '< 7.1'
+  RB
+end
+
+create_gemfiles(logstasher_versions)

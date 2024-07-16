@@ -102,7 +102,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def nr_cluster_name
-      return @nr_cluster_name if @nr_cluster_name
+      return @nr_cluster_name if defined?(@nr_cluster_name)
       return if nr_hosts.empty?
 
       NewRelic::Agent.disable_all_tracing do

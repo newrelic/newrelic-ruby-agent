@@ -1636,6 +1636,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.logstasher' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.memcache' => {
           :default => 'auto',
           :documentation_default => 'auto',
@@ -1947,7 +1956,7 @@ module NewRelic
             If `true`, the agent will operate in a streamlined mode suitable for use with short-lived serverless
               functions. NOTE: Only AWS Lambda functions are supported currently and this option is not intended for use
               without
-              [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/)
+              [New Relic's Ruby Lambda layer based instrumentation](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/)
               offering.
           DESC
         },

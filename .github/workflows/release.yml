@@ -16,7 +16,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: ruby/setup-ruby@97e35c5302afcf3f5ac1df3fca9343d32536b286 # tag v1.184.0
+    - uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
       with:
         ruby-version: 3.3
 
