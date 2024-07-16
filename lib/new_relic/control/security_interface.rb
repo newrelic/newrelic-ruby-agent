@@ -29,15 +29,14 @@ module NewRelic
 
         record_supportability_metrics
 
-        if Agent.config[:'security.agent.enabled'] && Agent.config[:'security.enabled'] && !Agent.config[:high_security]
+        if Agent.config[:'security.agent.enabled'] && !Agent.config[:high_security]
           Agent.logger.info('Invoking New Relic security module')
           require 'newrelic_security'
 
           @agent_started = true
         else
-          Agent.logger.info('New Relic Security is completely disabled by one of the user provided config `security.agent.enabled`, `security.enabled`, or `high_security`. Not loading security capabilities.')
+          Agent.logger.info('New Relic Security is completely disabled by one of the user provided config `security.agent.enabled`, or `high_security`. Not loading security capabilities.')
           Agent.logger.info("high_security = #{Agent.config[:high_security]}")
-          Agent.logger.info("security.enabled = #{Agent.config[:'security.enabled']}")
           Agent.logger.info("security.agent.enabled = #{Agent.config[:'security.agent.enabled']}")
         end
       rescue LoadError
@@ -47,7 +46,6 @@ module NewRelic
       end
 
       def record_supportability_metrics
-        Agent.config[:'security.enabled'] ? security_metric(ENABLED) : security_metric(DISABLED)
         Agent.config[:'security.agent.enabled'] ? security_agent_metric(ENABLED) : security_agent_metric(DISABLED)
       end
 

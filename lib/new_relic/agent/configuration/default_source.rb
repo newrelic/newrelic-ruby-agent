@@ -1956,7 +1956,7 @@ module NewRelic
             If `true`, the agent will operate in a streamlined mode suitable for use with short-lived serverless
               functions. NOTE: Only AWS Lambda functions are supported currently and this option is not intended for use
               without
-              [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/)
+              [New Relic's Ruby Lambda layer based instrumentation](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/)
               offering.
           DESC
         },
