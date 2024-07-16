@@ -152,7 +152,6 @@ if defined?(ActionController::Live)
       assert node, 'Could not find an >>ActionController<< metric while testing >>exist_fragment?<<'
       child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/exist' : 'ActiveSupport/exist?'
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
-      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/exist<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -169,7 +168,6 @@ if defined?(ActionController::Live)
       assert node, 'Could not find an >>ActionController<< metric while testing >>expire_fragment<<'
       child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/delete' : 'ActiveSupport/delete'
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
-      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/delete<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -186,7 +184,6 @@ if defined?(ActionController::Live)
       assert node, 'Could not find an >>ActionController<< metric while testing >>read_fragment<<'
       child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/read' : 'ActiveSupport/read'
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
-      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/read<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
@@ -203,7 +200,6 @@ if defined?(ActionController::Live)
       assert node, 'Could not find an >>ActionController<< metric while testing >>write_fragment<<'
       child_metric_partial_name = rails_version_at_least?('6.1') ? 'FileStore/write' : 'ActiveSupport/write'
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
-      binding.irb unless child
 
       assert child, 'Could not find a >>Filestore/write<< child of the ActionController node!'
       assert_includes child.params[:key], DataController::CACHE_KEY,
