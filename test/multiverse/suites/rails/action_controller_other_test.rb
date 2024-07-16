@@ -154,8 +154,7 @@ if defined?(ActionController::Live)
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
 
       assert child, 'Could not find a >>Filestore/exist<< child of the ActionController node!'
-      assert_includes child.params[:key], DataController::CACHE_KEY,
-        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+      confirm_key_exists_in_params(child)
     end
 
     def test_expire_fragment
@@ -170,8 +169,7 @@ if defined?(ActionController::Live)
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
 
       assert child, 'Could not find a >>Filestore/delete<< child of the ActionController node!'
-      assert_includes child.params[:key], DataController::CACHE_KEY,
-        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+      confirm_key_exists_in_params(child)
     end
 
     def test_read_fragment
@@ -186,8 +184,7 @@ if defined?(ActionController::Live)
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
 
       assert child, 'Could not find a >>Filestore/read<< child of the ActionController node!'
-      assert_includes child.params[:key], DataController::CACHE_KEY,
-        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+      confirm_key_exists_in_params(child)
     end
 
     def test_write_fragment
@@ -202,8 +199,7 @@ if defined?(ActionController::Live)
       child = node.children.detect { |n| n.metric_name.include?(child_metric_partial_name) }
 
       assert child, 'Could not find a >>Filestore/write<< child of the ActionController node!'
-      assert_includes child.params[:key], DataController::CACHE_KEY,
-        "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+      confirm_key_exists_in_params(child)
     end
 
     class TestClassActionController; end
@@ -235,7 +231,19 @@ if defined?(ActionController::Live)
     end
 
     def rails_version_at_least?(version_string)
+      version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
       rails_version >= Gem::Version.new(version_string)
+    end
+
+    def confirm_key_exists_in_params(node)
+      assertion_failure = "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
+      # Rails v7.2+ stores the URI string, so look for the key on the end of it
+      if rails_version_at_least?('7.2.0.beta1')
+        assert_match(/#{CGI.escape("/#{DataController::CACHE_KEY}")}/, node.params[:key], assertion_failure)
+      # Rails < v7.2 stores the params in an array, so confirm it includes the key
+      else
+        assert_includes node.params[:key], DataController::CACHE_KEY, assertion_failure
+      end
     end
   end
 end
