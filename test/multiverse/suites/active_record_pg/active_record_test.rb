@@ -105,7 +105,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     in_web_transaction do
-        Order.jeffs.load
+      Order.jeffs.load
     end
 
     assert_activerecord_metrics(Order, 'find')
