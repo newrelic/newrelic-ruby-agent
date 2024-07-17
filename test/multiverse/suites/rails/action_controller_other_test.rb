@@ -228,15 +228,6 @@ if defined?(ActionController::Live)
 
     private
 
-    def rails_version
-      @rails_version ||= Gem::Version.new(Rails::VERSION::STRING)
-    end
-
-    def rails_version_at_least?(version_string)
-      version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
-      rails_version >= Gem::Version.new(version_string)
-    end
-
     def confirm_key_exists_in_params(node)
       assertion_failure = "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
       # Rails v7.2+ stores the URI string, so look for the key on the end of it

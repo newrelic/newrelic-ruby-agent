@@ -1043,3 +1043,12 @@ end
 def ruby_version_float
   RUBY_VERSION.split('.')[0..1].join('.').to_f
 end
+
+def rails_version
+  @rails_version ||= Gem::Version.new(Rails::VERSION::STRING)
+end
+
+def rails_version_at_least?(version_string)
+  version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
+  rails_version >= Gem::Version.new(version_string)
+end
