@@ -7,6 +7,7 @@ require 'new_relic/control/security_interface'
 
 class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   def setup
+    reset_supportability_metrics
     NewRelic::Agent.config.reset_to_defaults
     %i[@agent_started @wait].each do |variable|
       instance = NewRelic::Control::SecurityInterface.instance
@@ -24,8 +25,6 @@ class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   end
 
   def test_initialization_short_circuits_when_the_security_agent_is_disabled
-    reset_supportability_metrics
-
     logger = MiniTest::Mock.new
     with_config('security.agent.enabled' => false, 'high_security' => false) do
       NewRelic::Agent.stub :logger, logger do
