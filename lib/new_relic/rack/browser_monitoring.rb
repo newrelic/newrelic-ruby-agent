@@ -125,11 +125,7 @@ module NewRelic
         # With version v8.0+, Rails assumes that the web server will be using
         # Rack v3+ or an equally modern alternative and simply leaves the
         # streaming behavior up to them.
-        if Rails::VERSION::MAJOR >= 8
-          return true if headers['cache-control'] == 'no-cache' && !headers.key?(CONTENT_LENGTH)
-        else
-          return true if headers && headers['Transfer-Encoding'] == 'chunked'
-        end
+        return true if headers && headers['Transfer-Encoding'] == 'chunked'
 
         defined?(ActionController::Live) &&
           env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
