@@ -7,6 +7,7 @@ require 'new_relic/control/security_interface'
 
 class NewRelic::Control::SecurityInterfaceTest < Minitest::Test
   def setup
+    NewRelic::Agent.config.reset_to_defaults
     %i[@agent_started @wait].each do |variable|
       instance = NewRelic::Control::SecurityInterface.instance
       instance.remove_instance_variable(variable) if instance.instance_variable_defined?(variable)
