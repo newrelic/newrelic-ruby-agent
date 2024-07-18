@@ -42,6 +42,9 @@ if defined?(ActionController::Live)
     end
 
     def test_excludes_rum_instrumentation_when_streaming_with_action_stream_true
+      # Rails 8 stopped using the 'chunked' header value and defers all streaming responsibilities to Rack
+      skip if rails_version_at_least?('8.0.0.alpha')
+
       get('/undead/brain_stream', env: {'HTTP_VERSION' => 'HTTP/1.1'})
 
       assert_predicate(response, :ok?, 'Expected ActionController streaming response to be OK')

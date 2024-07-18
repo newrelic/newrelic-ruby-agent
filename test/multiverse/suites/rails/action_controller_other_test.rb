@@ -78,7 +78,9 @@ if defined?(ActionController::Live)
     end
 
     def test_send_stream
-      skip unless rails_version_at_least?('7.2')
+      # rails/rails@ed68af0 now defers all streaming behavior over to Rack (v3+) itself, so test
+      # only versions >= 7.2 and < 8.0
+      skip unless rails_version_at_least?('7.2') && !rails_version_at_least?('8.0.0.alpha')
       get('/data/send_test_stream')
 
       assert_metrics_recorded(['Controller/data/send_test_stream', 'Ruby/ActionController/send_stream'])
@@ -225,15 +227,6 @@ if defined?(ActionController::Live)
     end
 
     private
-
-    def rails_version
-      @rails_version ||= Gem::Version.new(Rails::VERSION::STRING)
-    end
-
-    def rails_version_at_least?(version_string)
-      version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
-      rails_version >= Gem::Version.new(version_string)
-    end
 
     def confirm_key_exists_in_params(node)
       assertion_failure = "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
