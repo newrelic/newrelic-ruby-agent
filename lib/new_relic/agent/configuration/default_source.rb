@@ -2594,7 +2594,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :allowlist => %w[IAST RASP],
+          :allowlist => %w[IAST],
           :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported',
           :dynamic_name => true
         },
@@ -2613,7 +2613,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables RCI detection'
+          :description => 'If `true`, enables RCI(Remote Code Injection) detection'
         },
         :'security.detection.rxss.enabled' => {
           :default => true,
@@ -2621,7 +2621,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables RXSS detection'
+          :description => 'If `true`, enables RXSS(Reflected Cross-site Scripting) detection'
         },
         :'security.detection.deserialization.enabled' => {
           :default => true,

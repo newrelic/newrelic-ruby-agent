@@ -49,10 +49,6 @@ module NewRelic
         Agent.config[:'security.agent.enabled'] ? security_agent_metric(ENABLED) : security_agent_metric(DISABLED)
       end
 
-      def security_metric(setting)
-        NewRelic::Agent.record_metric_once(SUPPORTABILITY_PREFIX_SECURITY + setting)
-      end
-
       def security_agent_metric(setting)
         NewRelic::Agent.record_metric_once(SUPPORTABILITY_PREFIX_SECURITY_AGENT + setting)
       end

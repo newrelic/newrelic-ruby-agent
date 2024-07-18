@@ -888,10 +888,10 @@ common: &default_settings
   # Defines the endpoint URL for posting security related data
   # security.validator_service_url: wss://csec.nr-data.net
 
-  # If `true`, enables RCI detection
+  # If `true`, enables RCI(Remote Code Injection) detection
   # security.detection.rci.enabled: true
 
-  # If `true`, enables RXSS detection
+  # If `true`, enables RXSS(Reflected Cross-site Scripting) detection
   # security.detection.rxss.enabled: true
 
   # If `true`, enables deserialization detection
