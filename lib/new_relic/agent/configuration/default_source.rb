@@ -2647,7 +2647,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => false,
-          :description => 'Defines the request body limit to process in security events(In KB). The default value is 300KB.'
+          :description => 'Defines the request body limit to process in security events (in KB). The default value is 300, for 300KB.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
