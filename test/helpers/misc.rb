@@ -131,6 +131,12 @@ def skip_unless_ci_cron
   skip 'This test only runs as part of the CI cron workflow'
 end
 
+def skip_unless_special_ci
+  return if ENV['SPECIAL_CI']
+
+  skip 'This test only runs as part of the special CI workflow'
+end
+
 def agent_root
   @agent_root ||= File.expand_path('../../..', __FILE__).freeze
 end
