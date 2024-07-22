@@ -2621,7 +2621,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables RXSS(Reflected Cross-site Scripting) detection'
+          :description => 'If `true`, enables RXSS (reflected cross-site scripting) detection'
         },
         :'security.detection.deserialization.enabled' => {
           :default => true,
