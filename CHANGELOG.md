@@ -9,7 +9,7 @@ Version <dev> adds support for the `newrelic_security` agent, introduces instrum
 
   The `newrelic_security` gem provides this feature for Ruby. It depends on `newrelic_rpm`. This is the first version of `newrelic_rpm` compatible with `newrelic_security`.
 
-  At this time, the security agent is intended for use only within a dedicated security testing environment with data that can tolerate modification or deletion. The security agent is available as a separate Ruby gem, newrelic_security. It is recommended that this separate gem only be introduced to a security testing environment by leveraging Bundler grouping like so:
+  At this time, the security agent is intended for use only within a dedicated security testing environment with data that can tolerate modification or deletion. The security agent is available as a separate Ruby gem, `newrelic_security`. It is recommended that this separate gem only be introduced to a security testing environment by leveraging Bundler grouping like so:
 
   ```ruby
     # Gemfile
