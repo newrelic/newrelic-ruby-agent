@@ -1,7 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## <dev>
-Version <dev> adds support for the `newrelic_security` agent, introduces instrumentation for the LogStasher gem, improves instrumentation for the `redis-clustering` gem, and updates the Elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
+## v9.12.0
+
+Version 9.12.0 adds support for the `newrelic_security` agent, introduces instrumentation for the LogStasher gem, improves instrumentation for the `redis-clustering` gem, and updates the Elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
 
 - **Feature: Add support for the newrelic_security agent**
 
