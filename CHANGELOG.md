@@ -1,7 +1,7 @@
 # New Relic Ruby Agent Release Notes
 
 ## <dev>
-Version <dev> introduces instrumentation for the LogStasher gem, improves instrumentation for the `redis-clustering` gem, and updates the Elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
+Version 9.12.0 introduces instrumentation for the LogStasher gem, improves instrumentation for the `redis-clustering` gem, and updates the Elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
 
 - **Feature: Add instrumentation for LogStasher**
   
