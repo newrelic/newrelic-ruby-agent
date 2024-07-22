@@ -2594,7 +2594,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :allowlist => %w[IAST],
+          :allowlist => %w[IAST RASP],
           :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported',
           :dynamic_name => true
         },
