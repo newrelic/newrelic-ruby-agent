@@ -2613,7 +2613,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables RCI(Remote Code Injection) detection'
+          :description => 'If `true`, enables RCI (remote code injection) detection'
         },
         :'security.detection.rxss.enabled' => {
           :default => true,
