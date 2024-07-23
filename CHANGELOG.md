@@ -18,7 +18,7 @@ Version 9.12.0 adds support for the `newrelic_security` agent, introduces instru
     gem 'newrelic-infinite_tracing'  # New Relic Infinite Tracing
 
     group :security do
-      gem 'newrelic_security'        # New Relic security agent
+      gem 'newrelic_security', require: false        # New Relic security agent
     end
   ```
 
