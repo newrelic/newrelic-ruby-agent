@@ -48,6 +48,12 @@ module NewRelic
                 correlation_id: opts[:correlation_id],
                 exchange_type: type
               )
+              if segment
+                segment.add_agent_attribute('server.address', channel&.connection&.hostname)
+                segment.add_agent_attribute('server.port', channel&.connection&.port)
+                segment.add_agent_attribute('messaging.destination.name', destination) # for produce, this is exchange name
+                segment.add_agent_attribute('messaging.rabbitmq.destination.routing_key', opts[:routing_key])
+              end
             rescue => e
               NewRelic::Agent.logger.error('Error starting message broker segment in Bunny::Exchange#publish', e)
               yield
@@ -94,6 +100,14 @@ module NewRelic
                 queue_name: name,
                 start_time: t0
               )
+              if segment
+                segment.add_agent_attribute('server.address', channel&.connection&.hostname)
+                segment.add_agent_attribute('server.port', channel&.connection&.port)
+                segment.add_agent_attribute('messaging.destination.name', name) # for consume, this is queue name
+                segment.add_agent_attribute('messaging.destination_publish.name', exch_name)
+                segment.add_agent_attribute('message.queueName', name)
+                segment.add_agent_attribute('messaging.rabbitmq.destination.routing_key', delivery_info&.routing_key)
+              end
             rescue => e
               NewRelic::Agent.logger.error('Error starting message broker segment in Bunny::Queue#pop', e)
             else

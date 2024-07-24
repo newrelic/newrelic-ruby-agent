@@ -43,6 +43,10 @@ module NewRelic
           DependencyDetection.detect!
         end
       end
+
+      def init_security_agent
+        SecurityInterface.instance.init_agent
+      end
     end
   end
 end

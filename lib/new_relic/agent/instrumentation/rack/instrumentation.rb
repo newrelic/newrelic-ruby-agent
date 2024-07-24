@@ -13,6 +13,7 @@ module NewRelic
             attr_accessor :_nr_deferred_detection_ran
           end
           builder_class._nr_deferred_detection_ran = false
+          NewRelic::Control::SecurityInterface.instance.wait = true
         end
 
         def deferred_dependency_check
@@ -21,6 +22,8 @@ module NewRelic
           NewRelic::Agent.logger.info('Doing deferred dependency-detection before Rack startup')
           DependencyDetection.detect!
           self.class._nr_deferred_detection_ran = true
+          NewRelic::Control::SecurityInterface.instance.wait = false
+          NewRelic::Control::SecurityInterface.instance.init_agent
         end
 
         def check_for_late_instrumentation(app)

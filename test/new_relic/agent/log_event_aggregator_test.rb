@@ -15,6 +15,7 @@ module NewRelic::Agent
 
       @enabled_config = {
         :'instrumentation.logger' => 'auto',
+        :'instrumentation.logstasher' => 'auto',
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true
       }
@@ -57,6 +58,7 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1}
@@ -76,6 +78,7 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -337,6 +340,7 @@ module NewRelic::Agent
           'Logging/lines' => {:call_count => 9},
           'Logging/lines/DEBUG' => {:call_count => 9},
           'Supportability/Logging/Ruby/Logger/enabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -359,6 +363,7 @@ module NewRelic::Agent
         # All settings should report as disabled regardless of config option
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -384,6 +389,7 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Supportability/Logging/Ruby/Logger/disabled' => {:call_count => 1},
+          'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
@@ -519,6 +525,172 @@ module NewRelic::Agent
         _, events = @aggregator.harvest!
 
         assert_equal(log_message, events.first.last['message'])
+      end
+    end
+
+    def test_record_json_sets_severity_when_given_level
+      @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'yikes!'})
+      _, events = @aggregator.harvest!
+
+      assert_equal 'WARN', events[0][1]['level']
+      assert_metrics_recorded([
+        'Logging/lines/WARN'
+      ])
+    end
+
+    def test_record_json_sets_severity_unknown_when_no_level
+      @aggregator.record_logstasher_event({'message' => 'hello there'})
+      _, events = @aggregator.harvest!
+
+      assert_equal 'UNKNOWN', events[0][1]['level']
+      assert_metrics_recorded([
+        'Logging/lines/UNKNOWN'
+      ])
+    end
+
+    def test_record_json_does_not_record_if_message_is_nil
+      @aggregator.record_logstasher_event({'level' => :info, 'message' => nil})
+      _, events = @aggregator.harvest!
+
+      assert_empty events
+    end
+
+    def test_record_json_does_not_record_if_message_empty_string
+      @aggregator.record_logstasher_event({'level' => :info, 'message' => ''})
+      _, events = @aggregator.harvest!
+
+      assert_empty events
+    end
+
+    def test_record_json_returns_message_when_avaliable
+      @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'A trex is near'})
+      _, events = @aggregator.harvest!
+
+      assert_equal 'A trex is near', events[0][1]['message']
+    end
+
+    def test_create_logstasher_event_do_not_message_when_not_given
+      @aggregator.record_logstasher_event({'level' => :info})
+      _, events = @aggregator.harvest!
+
+      refute events[0][1]['message']
+    end
+
+    def test_add_logstasher_event_attributes_records_attributes
+      @aggregator.record_logstasher_event({'source' => '127.0.0.1', 'tags' => ['log']})
+      _, events = @aggregator.harvest!
+
+      assert_includes(events[0][1]['attributes'], 'source')
+      assert_includes(events[0][1]['attributes'], 'tags')
+    end
+
+    def test_add_add_logstasher_event_attributes_deletes_already_recorded_attributes
+      @aggregator.record_logstasher_event({'message' => 'bye', 'level' => :info, '@timestamp' => 'now', 'include_me' => 'random attribute'})
+      _, events = @aggregator.harvest!
+
+      # The event's 'attributes' hash doesn't include already recorded attributes
+      refute_includes(events[0][1]['attributes'], 'message')
+      refute_includes(events[0][1]['attributes'], 'level')
+      refute_includes(events[0][1]['attributes'], '@timestamp')
+      assert events[0][1]['attributes']['include_me']
+
+      # The event still includes necessary attributes
+      assert events[0][1]['message']
+      assert events[0][1]['level']
+      assert events[0][1]['timestamp']
+    end
+
+    def test_logstasher_forwarding_disabled_and_high_security_enabled
+      with_config(:'application_logging.forwarding.enabled' => false) do
+        # Refresh the high security setting on this notification
+        NewRelic::Agent.config.notify_server_source_added
+
+        @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :info})
+        _, events = @aggregator.harvest!
+
+        assert_empty events
+      end
+    end
+
+    def test_records_customer_metrics_when_enabled_logstasher
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => true) do
+        2.times { @aggregator.record_logstasher_event({'message' => 'metrics enabled', 'level' => :debug}) }
+        @aggregator.harvest!
+      end
+
+      assert_metrics_recorded({
+        'Logging/lines' => {:call_count => 2},
+        'Logging/lines/DEBUG' => {:call_count => 2}
+      })
+    end
+
+    def test_doesnt_record_customer_metrics_when_overall_disabled_and_metrics_enabled_logstasher
+      with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false,
+        LogEventAggregator::METRICS_ENABLED_KEY => true
+      ) do
+        NewRelic::Agent.config.notify_server_source_added
+
+        @aggregator.record_logstasher_event({'message' => 'overall disabled, metrics enabled', 'level' => :debug})
+        @aggregator.harvest!
+      end
+
+      assert_metrics_not_recorded([
+        'Logging/lines',
+        'Logging/lines/DEBUG'
+      ])
+    end
+
+    def test_doesnt_record_customer_metrics_when_disabled_logstasher
+      with_config(LogEventAggregator::METRICS_ENABLED_KEY => false) do
+        @aggregator.record_logstasher_event({'message' => 'metrics disabled', 'level' => :warn})
+        @aggregator.harvest!
+      end
+
+      assert_metrics_not_recorded([
+        'Logging/lines',
+        'Logging/lines/WARN'
+      ])
+    end
+
+    def test_high_security_mode_logstasher
+      with_config(CAPACITY_KEY => 5, :high_security => true) do
+        # Refresh the high security setting on this notification
+        NewRelic::Agent.config.notify_server_source_added
+
+        @aggregator.record_logstasher_event({'message' => 'high security enabled', 'level' => :info})
+        _, events = @aggregator.harvest!
+
+        assert_empty events
+      end
+    end
+
+    def test_does_not_record_logstasher_events_with_a_severity_below_config
+      with_config(LogEventAggregator::LOG_LEVEL_KEY => 'info') do
+        assert_equal :INFO, @aggregator.send(:configured_log_level_constant)
+
+        @aggregator.record_logstasher_event({'message' => 'severity below config', 'level' => :debug})
+        _, events = @aggregator.harvest!
+
+        assert_empty events
+      end
+    end
+
+    def test_record_logstasher_exits_if_forwarding_disabled
+      with_config(LogEventAggregator::FORWARDING_ENABLED_KEY => false) do
+        @aggregator.record_logstasher_event({'message' => 'forwarding disabled', 'level' => :info})
+        _, results = @aggregator.harvest!
+
+        assert_empty results
+      end
+    end
+
+    def test_nil_when_record_logstasher_errors
+      @aggregator.stub(:severity_too_low?, -> { raise 'kaboom' }) do
+        @aggregator.record_logstasher_event({'level' => :warn, 'message' => 'A trex is near'})
+        _, results = @aggregator.harvest!
+
+        assert_empty results
       end
     end
   end

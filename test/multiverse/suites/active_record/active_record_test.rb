@@ -8,35 +8,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   include MultiverseHelpers
   setup_and_teardown_agent
 
-  module VersionHelpers
-    def active_record_major_version
-      if defined?(::ActiveRecord::VERSION::MAJOR)
-        ::ActiveRecord::VERSION::MAJOR.to_i
-      else
-        2
-      end
-    end
-
-    def active_record_minor_version
-      if defined?(::ActiveRecord::VERSION::MINOR)
-        ::ActiveRecord::VERSION::MINOR.to_i
-      else
-        1
-      end
-    end
-
-    def active_record_version
-      if defined?(::ActiveRecord::VERSION::MINOR)
-        Gem::Version.new(::ActiveRecord::VERSION::STRING)
-      else
-        Gem::Version.new('2.1.0') # Can't tell between 2.1 and 2.2. Meh.
-      end
-    end
-  end
-
-  include VersionHelpers
-  extend VersionHelpers
-
   def after_setup
     super
     NewRelic::Agent.drop_buffered_data
@@ -51,31 +22,23 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.sum(:id)
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Order, 'select', :call_count => 5)
-    else
-      assert_generic_rollup_metrics('select')
-    end
+    assert_activerecord_metrics(Order, 'select', :call_count => 5)
   end
 
-  if active_record_version >= Gem::Version.new('3.2.0')
-    def test_metrics_for_pluck
-      in_web_transaction do
-        Order.pluck(:id)
-      end
-
-      assert_activerecord_metrics(Order, 'select')
+  def test_metrics_for_pluck
+    in_web_transaction do
+      Order.pluck(:id)
     end
+
+    assert_activerecord_metrics(Order, 'select')
   end
 
-  if active_record_version >= Gem::Version.new('4.0.0')
-    def test_metrics_for_ids
-      in_web_transaction do
-        Order.ids
-      end
-
-      assert_activerecord_metrics(Order, 'select')
+  def test_metrics_for_ids
+    in_web_transaction do
+      Order.ids
     end
+
+    assert_activerecord_metrics(Order, 'select')
   end
 
   def test_metrics_for_create
@@ -98,11 +61,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_find
     in_web_transaction do
-      if active_record_major_version >= 4
-        Order.where(:name => 'foo').load
-      else
-        Order.find_all_by_name('foo')
-      end
+      Order.where(:name => 'foo').load
     end
 
     assert_activerecord_metrics(Order, 'find')
@@ -120,38 +79,19 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_find_all
     in_web_transaction do
-      case
-      when active_record_major_version >= 4
-        Order.all.load
-      when active_record_major_version >= 3
-        Order.all
-      else
-        Order.find(:all)
-      end
+      Order.all.load
     end
 
     assert_activerecord_metrics(Order, 'find')
   end
 
   def test_metrics_for_find_via_named_scope
-    major_version = active_record_major_version
-    minor_version = active_record_minor_version
     Order.class_eval do
-      if major_version >= 4
-        scope(:jeffs, lambda { where(:name => 'Jeff') })
-      elsif major_version == 3 && minor_version >= 1
-        scope(:jeffs, :conditions => {:name => 'Jeff'})
-      else
-        named_scope(:jeffs, :conditions => {:name => 'Jeff'})
-      end
+      scope(:jeffs, lambda { where(:name => 'Jeff') })
     end
 
     in_web_transaction do
-      if active_record_major_version >= 4
-        Order.jeffs.load
-      else
-        Order.jeffs.find(:all)
-      end
+      Order.jeffs.load
     end
 
     assert_activerecord_metrics(Order, 'find')
@@ -162,12 +102,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.exists?(['name=?', 'jeff'])
     end
 
-    if active_record_major_version == 3 && [0, 1].include?(active_record_minor_version)
-      # Bugginess in Rails 3.0 and 3.1 doesn't let us get ActiveRecord/find
-      assert_generic_rollup_metrics('select')
-    else
-      assert_activerecord_metrics(Order, 'find')
-    end
+    assert_activerecord_metrics(Order, 'find')
   end
 
   def test_metrics_for_update_all
@@ -192,11 +127,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.delete_all
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Order, 'delete')
-    else
-      assert_generic_rollup_metrics('delete')
-    end
+    assert_activerecord_metrics(Order, 'delete')
   end
 
   def test_metrics_for_relation_delete
@@ -205,32 +136,25 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.delete(order.id)
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Order, 'delete')
-    else
-      assert_generic_rollup_metrics('delete')
-    end
+    assert_activerecord_metrics(Order, 'delete')
   end
 
-  # delete and touch did not exist in AR 2.2
-  if active_record_version >= Gem::Version.new('3.0.0')
-    def test_metrics_for_delete
-      in_web_transaction do
-        order = Order.create('name' => 'burt')
-        order.delete
-      end
-
-      assert_activerecord_metrics(Order, 'delete')
+  def test_metrics_for_delete
+    in_web_transaction do
+      order = Order.create('name' => 'burt')
+      order.delete
     end
 
-    def test_metrics_for_touch
-      in_web_transaction do
-        order = Order.create('name' => 'wendy')
-        order.touch
-      end
+    assert_activerecord_metrics(Order, 'delete')
+  end
 
-      assert_activerecord_metrics(Order, 'update')
+  def test_metrics_for_touch
+    in_web_transaction do
+      order = Order.create('name' => 'wendy')
+      order.touch
     end
+
+    assert_activerecord_metrics(Order, 'update')
   end
 
   def test_metrics_for_relation_update
@@ -252,11 +176,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.groups = groups
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Group, 'create')
-    else
-      assert_generic_rollup_metrics('insert')
-    end
+    assert_activerecord_metrics(Group, 'create')
   end
 
   # Can be Mysql2::Error or ActiveRecord::RecordNotUnique
@@ -305,11 +225,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.groups << Group.new(:name => 'radiohead')
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Group, 'create')
-    else
-      assert_generic_rollup_metrics('insert')
-    end
+    assert_activerecord_metrics(Group, 'create')
   end
 
   def test_create_via_association_create
@@ -318,11 +234,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.groups.create(:name => 'radiohead')
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Group, 'create')
-    else
-      assert_generic_rollup_metrics('insert')
-    end
+    assert_activerecord_metrics(Group, 'create')
   end
 
   def test_create_via_association_create_bang
@@ -331,11 +243,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.groups.create!(:name => 'radiohead')
     end
 
-    if active_record_major_version >= 3
-      assert_activerecord_metrics(Group, 'create')
-    else
-      assert_generic_rollup_metrics('insert')
-    end
+    assert_activerecord_metrics(Group, 'create')
   end
 
   def test_destroy_via_dependent_destroy
@@ -349,25 +257,22 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_activerecord_metrics(Alias, 'delete')
   end
 
-  # update & update! didn't become public until 4.0
-  if active_record_version >= Gem::Version.new('4.0.0')
-    def test_metrics_for_update
-      in_web_transaction do
-        order = Order.create(:name => 'wendy')
-        order.update(:name => 'walter')
-      end
-
-      assert_activerecord_metrics(Order, 'update')
+  def test_metrics_for_update
+    in_web_transaction do
+      order = Order.create(:name => 'wendy')
+      order.update(:name => 'walter')
     end
 
-    def test_metrics_for_update_bang
-      in_web_transaction do
-        order = Order.create(:name => 'wendy')
-        order.update!(:name => 'walter')
-      end
+    assert_activerecord_metrics(Order, 'update')
+  end
 
-      assert_activerecord_metrics(Order, 'update')
+  def test_metrics_for_update_bang
+    in_web_transaction do
+      order = Order.create(:name => 'wendy')
+      order.update!(:name => 'walter')
     end
+
+    assert_activerecord_metrics(Order, 'update')
   end
 
   def test_metrics_for_update_attribute
@@ -601,6 +506,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   ## helpers
 
+  private
+
   def adapter
     adapter_string = Order.configurations[RAILS_ENV]['adapter']
     adapter_string.downcase.to_sym
@@ -619,12 +526,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def operation_for(op)
-    is_5_2 = active_record_version >= Gem::Version.new('5.2.0.beta1')
-
     if op == 'create'
-      active_record_major_version >= 3 && !is_5_2 ? 'insert' : 'create'
-    elsif op == 'delete'
-      active_record_major_version >= 3 && !is_5_2 ? 'delete' : 'destroy'
+      active_record_version_at_least?(5.2) ? 'create' : 'insert'
+    elsif op == 'delete' && !active_record_version_at_least?(7)
+      active_record_version_at_least?(5.2) ? 'destroy' : 'delete'
     else
       op
     end
@@ -647,5 +552,15 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       'Datastore/allWeb',
       'Datastore/all'
     ])
+  end
+
+  def active_record_version
+    Gem::Version.new(::ActiveRecord::VERSION::STRING)
+  end
+
+  def active_record_version_at_least?(version_string)
+    version_string = version_string.to_s
+    version_string += '.0' until version_string.count('.') >= 2 # '7' => '7.0.0'
+    active_record_version >= Gem::Version.new(version_string)
   end
 end

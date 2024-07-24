@@ -20,7 +20,8 @@ module NewRelic
       DROPPED_METRIC = 'Logging/Forwarding/Dropped'.freeze
       SEEN_METRIC = 'Supportability/Logging/Forwarding/Seen'.freeze
       SENT_METRIC = 'Supportability/Logging/Forwarding/Sent'.freeze
-      OVERALL_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
+      LOGGER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/Logger/%s'.freeze
+      LOGSTASHER_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Ruby/LogStasher/%s'.freeze
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
@@ -58,36 +59,69 @@ module NewRelic
       end
 
       def record(formatted_message, severity)
-        return unless enabled?
+        return unless logger_enabled?
 
         severity = 'UNKNOWN' if severity.nil? || severity.empty?
+        increment_event_counters(severity)
 
-        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
-          @counter_lock.synchronize do
-            @seen += 1
-            @seen_by_severity[severity] += 1
-          end
-        end
-
-        return if severity_too_low?(severity)
         return if formatted_message.nil? || formatted_message.empty?
-        return unless NewRelic::Agent.config[FORWARDING_ENABLED_KEY]
-        return if @high_security
+        return unless monitoring_conditions_met?(severity)
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
 
-        if txn
-          return txn.add_log_event(create_event(priority, formatted_message, severity))
-        else
-          return @lock.synchronize do
-            @buffer.append(priority: priority) do
-              create_event(priority, formatted_message, severity)
-            end
+        return txn.add_log_event(create_event(priority, formatted_message, severity)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_event(priority, formatted_message, severity)
           end
         end
       rescue
         nil
+      end
+
+      def record_logstasher_event(log)
+        return unless logstasher_enabled?
+
+        # LogStasher logs do not inherently include a message key, so most logs are recorded.
+        # But when the key exists, we should not record the log if the message value is nil or empty.
+        return if log.key?('message') && (log['message'].nil? || log['message'].empty?)
+
+        severity = determine_severity(log)
+        increment_event_counters(severity)
+
+        return unless monitoring_conditions_met?(severity)
+
+        txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
+        return txn.add_log_event(create_logstasher_event(priority, severity, log)) if txn
+
+        @lock.synchronize do
+          @buffer.append(priority: priority) do
+            create_logstasher_event(priority, severity, log)
+          end
+        end
+      rescue
+        nil
+      end
+
+      def monitoring_conditions_met?(severity)
+        !severity_too_low?(severity) && NewRelic::Agent.config[FORWARDING_ENABLED_KEY] && !@high_security
+      end
+
+      def determine_severity(log)
+        log['level'] ? log['level'].to_s.upcase : 'UNKNOWN'
+      end
+
+      def increment_event_counters(severity)
+        return unless NewRelic::Agent.config[METRICS_ENABLED_KEY]
+
+        @counter_lock.synchronize do
+          @seen += 1
+          @seen_by_severity[severity] += 1
+        end
       end
 
       def record_batch(txn, logs)
@@ -104,21 +138,48 @@ module NewRelic
         end
       end
 
-      def create_event(priority, formatted_message, severity)
-        formatted_message = truncate_message(formatted_message)
-
-        event = LinkingMetadata.append_trace_linking_metadata({
+      def add_event_metadata(formatted_message, severity)
+        metadata = {
           LEVEL_KEY => severity,
-          MESSAGE_KEY => formatted_message,
           TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
-        })
+        }
+        metadata[MESSAGE_KEY] = formatted_message unless formatted_message.nil?
 
+        LinkingMetadata.append_trace_linking_metadata(metadata)
+      end
+
+      def create_prioritized_event(priority, event)
         [
           {
             PrioritySampledBuffer::PRIORITY_KEY => priority
           },
           event
         ]
+      end
+
+      def create_event(priority, formatted_message, severity)
+        formatted_message = truncate_message(formatted_message)
+        event = add_event_metadata(formatted_message, severity)
+
+        create_prioritized_event(priority, event)
+      end
+
+      def create_logstasher_event(priority, severity, log)
+        formatted_message = log['message'] ? truncate_message(log['message']) : nil
+        event = add_event_metadata(formatted_message, severity)
+        add_logstasher_event_attributes(event, log)
+
+        create_prioritized_event(priority, event)
+      end
+
+      def add_logstasher_event_attributes(event, log)
+        log_copy = log.dup
+        # Delete previously reported attributes
+        log_copy.delete('message')
+        log_copy.delete('level')
+        log_copy.delete('@timestamp')
+
+        event['attributes'] = log_copy
       end
 
       def add_custom_attributes(custom_attributes)
@@ -166,8 +227,12 @@ module NewRelic
         super
       end
 
-      def enabled?
+      def logger_enabled?
         @enabled && @instrumentation_logger_enabled
+      end
+
+      def logstasher_enabled?
+        @enabled && NewRelic::Agent::Instrumentation::LogStasher.enabled?
       end
 
       private
@@ -177,8 +242,8 @@ module NewRelic
       def register_for_done_configuring(events)
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
-
-          record_configuration_metric(OVERALL_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
+          record_configuration_metric(LOGGER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
+          record_configuration_metric(LOGSTASHER_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)

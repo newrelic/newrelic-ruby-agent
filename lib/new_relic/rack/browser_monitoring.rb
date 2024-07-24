@@ -20,15 +20,15 @@ module NewRelic
       # examine in order to look for a RUM insertion point.
       SCAN_LIMIT = 50_000
 
-      CONTENT_TYPE = 'Content-Type'.freeze
-      CONTENT_DISPOSITION = 'Content-Disposition'.freeze
-      CONTENT_LENGTH = 'Content-Length'.freeze
+      CONTENT_TYPE = 'Content-Type'
+      CONTENT_DISPOSITION = 'Content-Disposition'
+      CONTENT_LENGTH = 'Content-Length'
       ATTACHMENT = /attachment/.freeze
       TEXT_HTML = %r{text/html}.freeze
 
-      BODY_START = '<body'.freeze
-      HEAD_START = '<head'.freeze
-      GT = '>'.freeze
+      BODY_START = '<body'
+      HEAD_START = '<head'
+      GT = '>'
 
       ALREADY_INSTRUMENTED_KEY = 'newrelic.browser_monitoring_already_instrumented'
       CHARSET_RE = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
@@ -120,7 +120,11 @@ module NewRelic
       end
 
       def streaming?(env, headers)
-        # Chunked transfer encoding is a streaming data transfer mechanism available only in HTTP/1.1
+        # Up until version 8.0, Rails would set 'Transfer-Encoding' to 'chunked'
+        # to trigger the desired HTTP/1.1 based streaming functionality in Rack.
+        # With version v8.0+, Rails assumes that the web server will be using
+        # Rack v3+ or an equally modern alternative and simply leaves the
+        # streaming behavior up to them.
         return true if headers && headers['Transfer-Encoding'] == 'chunked'
 
         defined?(ActionController::Live) &&

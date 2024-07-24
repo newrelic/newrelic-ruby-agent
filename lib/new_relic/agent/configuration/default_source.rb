@@ -72,7 +72,7 @@ module NewRelic
           value_from_defaults(key, :transform)
         end
 
-        def self.config_search_paths # rubocop:disable Metrics/AbcSize
+        def self.config_search_paths
           proc {
             yaml = 'newrelic.yml'
             config_yaml = File.join('config', yaml)
@@ -1112,7 +1112,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => "If `true`, the agent will report source code level metrics for traced methods.\nsee: " \
+          :description => "If `true`, the agent will report source code level metrics for traced methods.\nSee: " \
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
         # Cross application tracer
@@ -1150,7 +1150,7 @@ module NewRelic
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<~DESC
-            * Specify a maximum number of custom events to buffer in memory at a time.'
+            * Specify a maximum number of custom events to buffer in memory at a time.
             * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
             set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
           DESC
@@ -1444,6 +1444,7 @@ module NewRelic
         },
         :'instrumentation.async_http' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1452,6 +1453,7 @@ module NewRelic
         },
         :'instrumentation.bunny' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1468,6 +1470,7 @@ module NewRelic
         },
         :'instrumentation.dynamodb' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1476,6 +1479,7 @@ module NewRelic
         },
         :'instrumentation.fiber' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1484,6 +1488,7 @@ module NewRelic
         },
         :'instrumentation.concurrent_ruby' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1510,6 +1515,7 @@ module NewRelic
         },
         :'instrumentation.elasticsearch' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1518,6 +1524,7 @@ module NewRelic
         },
         :'instrumentation.ethon' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1535,6 +1542,7 @@ module NewRelic
         },
         :'instrumentation.grape' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1603,8 +1611,18 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.logstasher' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.memcache' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1698,6 +1716,7 @@ module NewRelic
         },
         :'instrumentation.rake' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1706,6 +1725,7 @@ module NewRelic
         },
         :'instrumentation.redis' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1723,6 +1743,7 @@ module NewRelic
         },
         :'instrumentation.roda' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1731,6 +1752,7 @@ module NewRelic
         },
         :'instrumentation.sinatra' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1746,6 +1768,7 @@ module NewRelic
         },
         :'instrumentation.view_component' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1782,6 +1805,7 @@ module NewRelic
         },
         :'instrumentation.thread' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1804,6 +1828,7 @@ module NewRelic
         },
         :'instrumentation.tilt' => {
           :default => 'auto',
+          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -2514,6 +2539,84 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
+        },
+        # security agent
+        :'security.agent.enabled' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
+        },
+        :'security.enabled' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the security agent is started (the agent runs in its event loop)'
+        },
+        :'security.mode' => {
+          :default => 'IAST',
+          :external => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :allowlist => %w[IAST RASP],
+          :description => 'Defines the mode for the security agent to operate in. Currently only `IAST` is supported',
+          :dynamic_name => true
+        },
+        :'security.validator_service_url' => {
+          :default => 'wss://csec.nr-data.net',
+          :external => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'Defines the endpoint URL for posting security-related data',
+          :dynamic_name => true
+        },
+        :'security.detection.rci.enabled' => {
+          :default => true,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables RCI (remote code injection) detection'
+        },
+        :'security.detection.rxss.enabled' => {
+          :default => true,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables RXSS (reflected cross-site scripting) detection'
+        },
+        :'security.detection.deserialization.enabled' => {
+          :default => true,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables deserialization detection'
+        },
+        :'security.application_info.port' => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => false,
+          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
+        },
+        :'security.request.body_limit' => {
+          :default => 300,
+          :allow_nil => true,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => false,
+          :description => 'Defines the request body limit to process in security events (in KB). The default value is 300, for 300KB.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
