@@ -645,6 +645,28 @@ common: &default_settings
   # ignoring specific transactions.
   # rules.ignore_url_regexes: []
 
+  # BEGIN security agent
+  #
+  #   NOTE: At this time, the security agent is intended for use only within
+  #         a dedicated security testing environment with data that can tolerate
+  #         modification or deletion. The security agent is available as a
+  #         separate Ruby gem, newrelic_security. It is recommended that this
+  #         separate gem only be introduced to a security testing environment
+  #         by leveraging Bundler grouping like so:
+  #
+  #         # Gemfile
+  #         gem 'newrelic_rpm'               # New Relic APM observability agent
+  #         gem 'newrelic-infinite_tracing'  # New Relic Infinite Tracing
+  #
+  #         group :security do
+  #           gem 'newrelic_security', require: false # New Relic security agent
+  #         end
+  #
+  #   NOTE: All "security.*" configuration parameters are related only to the
+  #         security agent, and all other configuration parameters that may
+  #         have "security" in the name some where are related to the APM agent.
+  #
+
   # If true, the security agent is loaded (a Ruby 'require' is performed)
   # security.agent.enabled: false
 
@@ -674,6 +696,8 @@ common: &default_settings
 
   # Defines the endpoint URL for posting security-related data
   # security.validator_service_url: wss://csec.nr-data.net
+
+  # END security agent
 
   # Applies Language Agent Security Policy settings.
   # security_policies_token: ""
