@@ -23,13 +23,16 @@ namespace :newrelic do
       'browser_monitoring' => "The <InlinePopover type='browser' /> [page load timing](/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process) feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.",
       'application_logging' => "The Ruby agent supports [APM logs in context](/docs/apm/new-relic-apm/getting-started/get-started-logs-context). For some tips on configuring logs for the Ruby agent, see [Configure Ruby logs in context](/docs/logs/logs-context/configure-logs-context-ruby).\n\nAvailable logging-related config options include:",
       'analytics_events' => '[New Relic dashboards](/docs/query-your-data/explore-query-data/dashboards/introduction-new-relic-one-dashboards) is a resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.',
-      'ai_monitoring' => "This section includes Ruby agent configurations for setting up AI monitoring.\n\n<Callout variant='important'>You need to enable distributed tracing to capture trace and feedback data. It is turned on by default in Ruby agents 8.0.0 and higher.</Callout>"
+      'ai_monitoring' => "This section includes Ruby agent configurations for setting up AI monitoring.\n\n<Callout variant='important'>You need to enable distributed tracing to capture trace and feedback data. It is turned on by default in Ruby agents 8.0.0 and higher.</Callout>",
+      'security_agent' => "[New Relic Interactive Application Security Testing](https://docs.newrelic.com/docs/iast/introduction/) (IAST) tests your applications for any exploitable vulnerability by replaying the generated HTTP request with vulnerable payloads.\n\n<Callout variant='important'>Run IAST with non-production deployments only to avoid exposing vulnerabilities on your production software. \
+        IAST mode requires Ruby agent version 9.12.0 or higher and the [newrelic_security](https://rubygems.org/gems/newrelic_security) gem. Security agent configurations are disabled by default.</Callout>"
     }
 
     NAME_OVERRIDES = {
       'slow_sql' => 'Slow SQL [#slow-sql]',
       'custom_insights_events' => 'Custom Events [#custom-events]',
-      'ai_monitoring' => 'AI Monitoring [#ai-monitoring]'
+      'ai_monitoring' => 'AI Monitoring [#ai-monitoring]',
+      'security_agent' => 'Security Agent [#security-agent]'
     }
 
     desc 'Describe available New Relic configuration settings'
