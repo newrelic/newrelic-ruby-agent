@@ -103,30 +103,41 @@ class NewRelicYMLTest < Minitest::Test
       :default => 'newrelic.yml',
       :public => true,
       :description => 'Config path'
+    },
+    :'security.firethorn' => {
+      :default => false,
+      :public => true,
+      :description => 'Thorny shrub.'
     }
   }
 
   def final_config_hash
-    config_hash = {
-      :begonia => {
-        :description => '  # If true, green with white polka dots.',
-        :default => 'nil'
+    config_hash = [
+      {
+        :begonia => {
+          :description => '  # If true, green with white polka dots.',
+          :default => 'nil'
+        },
+        :config_path => {
+          :description => '  # Config path',
+          :default => 'newrelic.yml'
+        },
+        :lily => {
+          :description => '  # White flowers.',
+          :default => 2
+        },
+        :monstera => {
+          :description => '  # Leafy and pretty.',
+          :default => '""'
+        }
       },
-      :config_path => {
-        :description => '  # Config path',
-        :default => 'newrelic.yml'
-      },
-      :lily => {
-        :description => '  # White flowers.',
-        :default => 2
-      },
-      :monstera => {
-        :description => '  # Leafy and pretty.',
-        :default => '""'
+      {
+        :'security.firethorn' => {
+          :description => '  # Thorny shrub.',
+          :default => false
+        }
       }
-    }
-
-    config_hash
+    ]
   end
 
   def final_string
@@ -142,6 +153,32 @@ class NewRelicYMLTest < Minitest::Test
 
   # Leafy and pretty.
   # monstera: ""
+
+  # BEGIN security agent
+  #
+  #   NOTE: At this time, the security agent is intended for use only within
+  #         a dedicated security testing environment with data that can tolerate
+  #         modification or deletion. The security agent is available as a
+  #         separate Ruby gem, newrelic_security. It is recommended that this
+  #         separate gem only be introduced to a security testing environment
+  #         by leveraging Bundler grouping like so:
+  #
+  #         # Gemfile
+  #         gem 'newrelic_rpm'               # New Relic APM observability agent
+  #         gem 'newrelic-infinite_tracing'  # New Relic Infinite Tracing
+  #
+  #         group :security do
+  #           gem 'newrelic_security', require: false # New Relic security agent
+  #         end
+  #
+  #   NOTE: All "security.*" configuration parameters are related only to the
+  #         security agent, and all other configuration parameters that may
+  #         have "security" in the name somewhere are related to the APM agent.
+  
+  # Thorny shrub.
+  # security.firethorn: false
+
+  # END security agent
 
     YML
   end
