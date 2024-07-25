@@ -130,8 +130,6 @@ module NewRelic
                 ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
                 :rails_notifications
               end
-            when defined?(::Grape) then :grape
-            when defined?(::Padrino) then :padrino
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
             when defined?(::Roda) then :roda
             when defined?(::NewRelic::IA) then :external
