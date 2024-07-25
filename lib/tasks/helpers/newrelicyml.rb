@@ -9,9 +9,6 @@ module NewRelicYML
   DEFAULTS = NewRelic::Agent::Configuration::DEFAULTS
   # Skip because not configurable via yml
   SKIP = [:'defer_rails_initialization']
-  SECURITY_AGENT_DEFAULTS = [:'security.agent.enabled', :'security.enabled', :'security.mode',
-    :'security.validator_service_url', :'security.detection.rci.enabled', :'security.detection.rxss.enabled',
-    :'security.detection.deserialization.enabled', :'security.application_info.port', :'security.request.body_limit']
   # Don't evaluate Procs, instead use set values
   PROCS = {:'config_path' => 'newrelic.yml',
            :'process_host.display_name' => 'default hostname',
@@ -68,8 +65,8 @@ module NewRelicYML
   #
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
-  #         have "security" in the name some where are related to the APM agent.
-  #
+  #         have "security" in the name somewhere are related to the APM agent.
+  
   SECURITY
 
   SECURITY_END = <<-SECURITY
@@ -106,7 +103,7 @@ module NewRelicYML
 
       next unless public_config?(value) && !deprecated?(value)
 
-      if SECURITY_AGENT_DEFAULTS.include?(key)
+      if key.start_with?('security.')
         description, default = build_config(key, value)
         security_configs[key] = {description: description, default: default}
         next
