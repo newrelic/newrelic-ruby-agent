@@ -102,7 +102,7 @@ module NewRelicYML
       next if CRITICAL.include?(key) || SKIP.include?(key)
 
       next unless public_config?(value) && !deprecated?(value)
-      
+
       # TODO: OLD RUBIES < 2.6
       # Remove `to_s`. `start_with?` doesn't accept symbols in Ruby <2.6
       if key.to_s.start_with?('security.')
