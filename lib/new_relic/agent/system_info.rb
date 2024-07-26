@@ -24,8 +24,13 @@ module NewRelic
         when darwin? then :darwin
         when linux? then :linux
         when bsd? then :bsd
+        when windows? then :windows
         else ruby_os_identifier
         end
+      end
+
+      def self.windows?
+        !!(ruby_os_identifier =~ /mingw/i || ruby_os_identifier =~ /mswin/i)
       end
 
       def self.darwin?
