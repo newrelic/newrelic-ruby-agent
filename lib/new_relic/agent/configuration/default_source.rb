@@ -388,14 +388,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific
-              LLM events.
+            If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
               The excluded attributes include:
                 * `content` from LlmChatCompletionMessage events
                 * `input` from LlmEmbedding events
 
-            This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
+              This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
           DESCRIPTION
         },
         # this is only set via server side config
@@ -441,16 +440,10 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced
-              errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
+            When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
                 <Callout variant="caution">
-                  When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information.
-                    `Recommendation:` To filter secret information from request parameters, use the
-                    [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby)
-                    instead. For more information, see the
-                    <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute
-                    examples</a>.
+                  When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
                 </Callout>
           DESCRIPTION
         },
@@ -487,14 +480,12 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESC
-            The exit handler that sends all cached data to the collector before shutting down is forcibly installed.
-              This is true even when it detects scenarios where it generally should not be. The known use case for this
-              option is when Sinatra runs as an embedded service within another framework. The agent detects the Sinatra
-              app and skips the `at_exit` handler as a result. Sinatra classically runs the entire application in an
-              `at_exit` block and would otherwise misbehave if the agent's `at_exit` handler was also installed in those
-              circumstances.
-
-            **Note:** `send_data_on_exit` should also be set to `true` in tandem with this setting.
+            The exit handler that sends all cached data to the collector before shutting down is forcibly installed. \
+            This is true even when it detects scenarios where it generally should not be. The known use case for this \
+            option is when Sinatra runs as an embedded service within another framework. The agent detects the Sinatra \
+            app and skips the `at_exit` handler as a result. Sinatra classically runs the entire application in an \
+            `at_exit` block and would otherwise misbehave if the agent's `at_exit` handler was also installed in those \
+            circumstances. Note: `send_data_on_exit` should also be set to `true` in tandem with this setting.
           DESC
         },
         :high_security => {
@@ -732,9 +723,7 @@ module NewRelic
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<~DESCRIPTION
-            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if
-              its error message contains one of the strings corresponding to it here, that error will be treated as
-              expected.
+            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
 
               <Callout variant="caution">
                 This option can't be set via environment variable.
@@ -757,8 +746,7 @@ module NewRelic
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => <<~DESCRIPTION
-            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if
-              its error message contains one of the strings corresponding to it here, that error will be ignored.
+            A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
 
               <Callout variant="caution">
                 This option can't be set via environment variable.
@@ -844,14 +832,11 @@ module NewRelic
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
-            This is based on the integer values of Ruby's `Logger::Severity` constants:
-              https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
+            This is based on the integer values of Ruby's `Logger::Severity` constants: https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
 
-            The intention is to forward logs with the level given to the configuration, as well as any logs with a
-              higher level of severity.
+            The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
 
-            For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to
-              "error" will only forward log events with the levels "error", "fatal", and "unknown".
+            For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
 
             Valid values (ordered lowest to highest):
               * "debug"
@@ -1306,12 +1291,10 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are
-              installed via `Rack::Builder` or Rails).
+            If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
 
               <Callout variant="important">
-                When middleware instrumentation is disabled, if an application is using middleware that could alter the
-                  response code, the HTTP status code reported on the transaction may not reflect the altered value.
+                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
               </Callout>
           DESCRIPTION
         },
@@ -1349,20 +1332,12 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
-            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature
-              support such as
-              [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing),
-              [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and
-              [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
+            If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
                 <Callout variant="important">
-                  Cross application tracing is deprecated in favor of
-                    [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing).
-                    Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not
-                    required to support distributed tracing.
+                  Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
-                  To continue using cross application tracing, update the following options in your `newrelic.yml`
-                    configuration file:
+                  To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
                   ```yaml
                   # newrelic.yml
@@ -1644,7 +1619,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the LogStasher library at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.memcache' => {
           :default => 'auto',
@@ -1787,7 +1762,6 @@ module NewRelic
         },
         :'instrumentation.stripe' => {
           :default => 'enabled',
-          :documentation_default => 'auto',
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -1953,13 +1927,9 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
-          :description => <<~DESC
-            If `true`, the agent will operate in a streamlined mode suitable for use with short-lived serverless
-              functions. NOTE: Only AWS Lambda functions are supported currently and this option is not intended for use
-              without
-              [New Relic's Ruby Lambda layer based instrumentation](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/)
-              offering.
-          DESC
+          :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
+                          'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
+                          "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
         },
         # Sidekiq
         :'sidekiq.args.include' => {
