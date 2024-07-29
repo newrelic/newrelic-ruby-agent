@@ -357,13 +357,13 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       assert_equal :windows, @sysinfo.os_distribution
     end
   end
-  
+
   def test_os_distribution_unknown
     NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'unknown_os' do
       assert_equal 'unknown_os', @sysinfo.os_distribution
     end
   end
-  
+
   def test_supportability_metric_recorded_when_docker_id_unavailable
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
     cgroup_info = File.read(File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt'))
