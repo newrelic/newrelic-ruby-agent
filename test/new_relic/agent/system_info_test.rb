@@ -324,6 +324,46 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     refute_predicate NewRelic::Agent::SystemInfo, :bsd?, 'Did not expect OS to match bsd'
   end
 
+  def test_system_info_windows_predicate
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('mingw32')
+
+    assert_predicate NewRelic::Agent::SystemInfo, :windows?, 'Expected OS to match windows'
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('darwin13')
+
+    refute_predicate NewRelic::Agent::SystemInfo, :windows?, 'Did not expect OS to match windows'
+  end
+
+  def test_os_distribution_darwin
+    NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'darwin23' do
+      assert_equal :darwin, @sysinfo.os_distribution
+    end
+  end
+
+  def test_os_distribution_linux
+    NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'linux' do
+      assert_equal :linux, @sysinfo.os_distribution
+    end
+  end
+
+  def test_os_distribution_bsd
+    NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'freebsd' do
+      assert_equal :bsd, @sysinfo.os_distribution
+    end
+  end
+
+  def test_os_distribution_windows
+    NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'mingw32' do
+      assert_equal :windows, @sysinfo.os_distribution
+    end
+  end
+  
+  def test_os_distribution_unknown
+    NewRelic::Agent::SystemInfo.stub :ruby_os_identifier, 'unknown_os' do
+      assert_equal 'unknown_os', @sysinfo.os_distribution
+    end
+  end
+  
   def test_supportability_metric_recorded_when_docker_id_unavailable
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns('linux')
     cgroup_info = File.read(File.join(cross_agent_tests_dir, 'docker_container_id', 'invalid-length.txt'))
