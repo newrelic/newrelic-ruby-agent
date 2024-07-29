@@ -39,3 +39,6 @@ actions/github-script:
 adriangl/check-new-commits-action:
   :tag: v1.0.7
   :sha: e6471f4fda990ebdb3bf44726371e1ad45ac4d37
+softprops/action-gh-release:
+  :tag: v2.0.8
+  :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191
