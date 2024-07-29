@@ -30,3 +30,6 @@ actions/upload-artifact:
 actions/download-artifact:
   :tag: v4.1.8
   :sha: fa0a91b85d4f404e444e00e005971372dc801d16
+actions/cache:
+  :tag: v4.0.2
+  :sha: 0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
