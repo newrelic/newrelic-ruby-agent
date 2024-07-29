@@ -55,7 +55,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
 
       - name: Set up mini-envs for ruby version
-        uses: kanga333/variable-mapper@3681b75f5c6c00162721168fb91ab74925eaebcb # tag v0.3.0
+        uses: kanga333/variable-mapper@c140b458cb69bd8c9c5eccd41e83aadc597c1352 # tag v0.3.0
         with:
           key: ${{ matrix.ruby-version }}
           map: |
@@ -316,7 +316,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: always()
     steps:
-      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
+      - uses: technote-space/workflow-conclusion-action@c062e08bd532815e2082a85e87e3ef29c3e6d191 # tag v2.0.8
       - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # tag v1.6.0
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
@@ -333,7 +333,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: always()
     steps:
-      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
+      - uses: technote-space/workflow-conclusion-action@c062e08bd532815e2082a85e87e3ef29c3e6d191 # tag v2.0.8
       - run: echo ${{ github.event_name }}
       - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
         id: last_status

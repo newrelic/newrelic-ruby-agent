@@ -8,7 +8,7 @@ actions/checkout:
   :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
 kanga333/variable-mapper:
   :tag: v0.3.0
-  :sha: 3681b75f5c6c00162721168fb91ab74925eaebcb
+  :sha: c140b458cb69bd8c9c5eccd41e83aadc597c1352 # This commit is not on the main branch. It uses Node.js 20, which is needed to stop deprecation warnings.
 actions/cache:
   :tag: v3.3.1
   :sha: 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
@@ -40,5 +40,8 @@ adriangl/check-new-commits-action:
   :tag: v1.0.7
   :sha: e6471f4fda990ebdb3bf44726371e1ad45ac4d37
 softprops/action-gh-release:
+  :tag: v2.0.8
+  :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191
+technote-space/workflow-conclusion-action:
   :tag: v2.0.8
   :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191
