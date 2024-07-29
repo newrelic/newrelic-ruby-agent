@@ -11,7 +11,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Install Ruby 3.3
-      uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
+      uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
       with:
         ruby-version: 3.3
 
