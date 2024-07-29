@@ -33,3 +33,6 @@ actions/download-artifact:
 actions/cache:
   :tag: v4.0.2
   :sha: 0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+actions/github-script:
+  :tag: v7.0.1
+  :sha: 60a0d83039c74a4aee543508d2ffcb1c3799cdea
