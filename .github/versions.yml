@@ -6,7 +6,7 @@ ruby/setup-ruby:
 actions/checkout:
   :tag: v4.1.7
   :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
-nga333/variable-mapper:
+kanga333/variable-mapper:
   :tag: v0.3.0
   :sha: 3681b75f5c6c00162721168fb91ab74925eaebcb
 actions/cache:
@@ -36,3 +36,6 @@ actions/cache:
 actions/github-script:
   :tag: v7.0.1
   :sha: 60a0d83039c74a4aee543508d2ffcb1c3799cdea
+adriangl/check-new-commits-action:
+  :tag: v1.0.7
+  :sha: e6471f4fda990ebdb3bf44726371e1ad45ac4d37
