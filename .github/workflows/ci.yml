@@ -358,3 +358,14 @@ jobs:
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 93.5
           failedThresholdBranch: 50
+
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: upload
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: all-coverage-results
+          pattern: coverage-report-combined-*
