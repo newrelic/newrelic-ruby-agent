@@ -4,8 +4,8 @@ ruby/setup-ruby:
   :tag: v1.186.0
   :sha: 2a9a743e19810b9f3c38060637daf594dbd7b37f
 actions/checkout:
-  :tag: v4.1.2
-  :sha: 9bb56186c3b09b4f86b1c65136769dd318469633
+  :tag: v4.1.7
+  :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
 nga333/variable-mapper:
   :tag: v0.3.0
   :sha: 3681b75f5c6c00162721168fb91ab74925eaebcb

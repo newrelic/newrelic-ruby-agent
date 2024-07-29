@@ -14,7 +14,7 @@ jobs:
     outputs:
       changed: ${{ steps.branch_change_output.outputs.has-new-commits }}
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
       - name: check branch changes
         id: branch_change_output
         uses: adriangl/check-new-commits-action@6556947ca20c2047ed733894258186619b84d282 # tag v1.0.6
@@ -30,7 +30,7 @@ jobs:
       run:
         working-directory: ./test/performance
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
         with:
           ref: 'main'
       - uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
@@ -38,7 +38,7 @@ jobs:
           ruby-version: '3.3'
       - run: bundle
       - run: bundle exec script/runner -B
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
       - run: bundle
       - run: bundle exec script/runner -C -M > performance_results.md
       - name: Save performance results
