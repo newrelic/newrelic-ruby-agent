@@ -279,8 +279,8 @@ jobs:
       - name: Save gem manifest
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
         with:
-          name: gem_manifest_${{ matrix.ruby-version }}.json
-          path: gem_manifest_${{ matrix.ruby-version }}.json
+          name: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
+          path: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
           retention-days: 2
 
 
