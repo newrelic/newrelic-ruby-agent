@@ -362,7 +362,7 @@ jobs:
 
   merge:
     runs-on: ubuntu-latest
-    needs: simplecov, unit_tests, multiverse, infinite_tracing
+    needs: [simplecov, unit_tests, multiverse, infinite_tracing]
     steps:
       - name: Merge Artifacts
         uses: actions/upload-artifact/merge@v4
