@@ -24,3 +24,6 @@ voxmedia/github-action-slack-notify-build:
 Mercymeilya/last-workflow-status:
   :tag: v0.3.3
   :sha: 3418710aefe8556d73b6f173a0564d38bcfd9a43
+actions/upload-artifact:
+  :tag: v4.3.4
+  :sha: 0b2256b8c012f0828dc542b3febcab082c67f72b

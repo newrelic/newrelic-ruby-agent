@@ -103,7 +103,7 @@ jobs:
           CI_FOR_PR: true
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
         with:
           name: coverage-report-unit-tests
           path: lib/coverage_*/.resultset.json
@@ -267,7 +267,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
         with:
           name: coverage-report-multiverse
           path: lib/coverage_*/.resultset.json
@@ -277,7 +277,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
         with:
           name: gem_manifest_${{ matrix.ruby-version }}.json
           path: gem_manifest_${{ matrix.ruby-version }}.json
@@ -321,7 +321,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
         with:
           name: coverage-report-infinite-tracing
           path: lib/coverage_*/.resultset.json
@@ -346,7 +346,7 @@ jobs:
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # tag v3.1.2
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
         with:
           name: coverage-report-combined
           path: lib/coverage_results
