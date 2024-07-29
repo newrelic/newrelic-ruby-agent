@@ -42,9 +42,9 @@ jobs:
       - run: bundle
       - run: bundle exec script/runner -C -M > performance_results.md
       - name: Save performance results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # tag v4.1.8
         with:
-          name: performance-test-results
+          name: performance-test-results-${{ matrix.ruby-version }}
           path: ./test/performance/performance_results.md
       - name: Slack results
         uses: adrey/slack-file-upload-action@903be3678c88966c762193f06530c39178b44d68 # tag v1.0.5
