@@ -102,7 +102,6 @@ module NewRelic
             event_harvest_config,
             environment_for_connect
           )
-          puts "sending environment report : #{environment_for_connect.inspect}"
           connect_response = @service.connect(request_builder.connect_payload)
 
           response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
