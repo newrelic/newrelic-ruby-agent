@@ -30,7 +30,7 @@ module NewRelic
       end
 
       def self.windows?
-        !!(ruby_os_identifier =~ /mingw/i || ruby_os_identifier =~ /mswin/i)
+        !!(ruby_os_identifier[/mingw|mswin/i])
       end
 
       def self.darwin?
