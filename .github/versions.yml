@@ -42,6 +42,3 @@ adriangl/check-new-commits-action:
 softprops/action-gh-release:
   :tag: v2.0.8
   :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191
-technote-space/workflow-conclusion-action:
-  :tag: v3.0.3
-  :sha: 45ce8e0eb155657ab8ccf346ade734257fd196a5
