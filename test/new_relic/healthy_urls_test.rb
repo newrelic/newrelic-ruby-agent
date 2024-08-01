@@ -65,7 +65,7 @@ class HealthyUrlsTest < Minitest::Test
   FILE_PATTERN = /(?:^(?:#{FILENAMES.join('|')})$)|\.(?:#{EXTENSIONS.join('|')})$/.freeze
   IGNORED_FILE_PATTERN = %r{/(?:coverage|test)/}.freeze
   URL_PATTERN = %r{(https?://.*?)[^a-zA-Z0-9/\.\-_#]}.freeze
-  IGNORED_URL_PATTERN = %r{(?:\{|\(|\$|169\.254|\.\.\.|metadata\.google|honeyryderchuck\.gitlab\.io/httpx|http://#)}
+  IGNORED_URL_PATTERN = %r{(?:\{|\(|\$|169\.254|\.\.\.|learn\.|metadata\.google|honeyryderchuck\.gitlab\.io/httpx|http://#)}
   TIMEOUT = 5
   DEBUG = false
 
