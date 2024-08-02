@@ -8,7 +8,7 @@ actions/checkout:
   :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
 kanga333/variable-mapper:
   :tag: v0.3.0
-  :sha: c140b458cb69bd8c9c5eccd41e83aadc597c1352 # This commit is not on the main branch. It uses Node.js 20, which is needed to stop deprecation warnings.
+  :sha: 3681b75f5c6c00162721168fb91ab74925eaebcb
 actions/cache:
   :tag: v3.3.1
   :sha: 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
