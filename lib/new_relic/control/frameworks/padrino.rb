@@ -7,13 +7,7 @@ module NewRelic
   class Control
     module Frameworks
       # Contains basic control logic for Padrino
-      class Padrino < NewRelic::Control::Frameworks::Ruby
-        protected
-
-        def install_shim
-          super
-          ::Padrino::PathRouter::Router.class_eval { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
-        end
+      class Padrino < NewRelic::Control::Frameworks::Sinatra
       end
     end
   end
