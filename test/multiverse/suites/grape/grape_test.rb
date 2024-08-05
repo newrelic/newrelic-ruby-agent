@@ -19,6 +19,10 @@ class GrapeTest < Minitest::Test
       Rack::Builder.app { run(GrapeTestApi.new) }
     end
 
+    def test_framework_assignment
+      assert_equal(:grape, NewRelic::Agent.config[:framework])
+    end
+
     def test_nonexistent_route
       get('/not_grape_ape')
 
