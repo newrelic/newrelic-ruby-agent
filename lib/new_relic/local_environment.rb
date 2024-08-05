@@ -142,9 +142,7 @@ module NewRelic
     end
 
     def check_for_falcon
-      if defined?(::Falcon::Server) && File.basename($0) == 'falcon'
-        @discovered_dispatcher = :falcon
-      end
+      @discovered_dispatcher = :falcon if defined?(::Falcon::Server) && File.basename($PROGRAM_NAME) == 'falcon'
     end
 
     def check_for_delayed_job
