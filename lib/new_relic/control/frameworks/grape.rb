@@ -8,12 +8,6 @@ module NewRelic
     module Frameworks
       # Contains basic control logic for Grape
       class Grape < NewRelic::Control::Frameworks::Ruby
-        protected
-
-        def install_shim
-          super
-          ::Grape::API::Instance.class_eval { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
-        end
       end
     end
   end
