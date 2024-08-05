@@ -10,7 +10,7 @@ Version <dev> updates framework detection and fixes Falcon dispatcher detection.
 
 - **Bugfix: Fix Falcon dispatcher detection**
 
-  Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename($0)`. Thank you,[@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
+  Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename`. Thank you,[@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
 
 ## v9.12.0
 
