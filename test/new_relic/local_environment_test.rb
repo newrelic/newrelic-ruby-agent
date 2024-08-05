@@ -25,6 +25,23 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
     end
   end
 
+  def test_falcon
+    falcon_file = File.expand_path('../../../../bin/falcon', __FILE__)
+    opn = $PROGRAM_NAME
+    $PROGRAM_NAME = falcon_file
+
+    with_constant_defined(:'::Falcon') do
+      with_constant_defined(:'::Falcon::Server') do
+        e = NewRelic::Agent.reset_config
+        e = NewRelic::LocalEnvironment.new
+
+        assert_equal :falcon, e.discovered_dispatcher
+      end
+    end
+  ensure
+    $PROGRAM_NAME = opn
+  end
+
   def test_not_resque
     combinations = [['notrake', 'resque:work', {'QUEUE' => '*'}],
       ['rake', 'notresque:work', {'QUEUE' => '*'}],
