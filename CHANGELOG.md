@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> updates framework detection.
+
+- **Feature: Improve framework detection accuracy for Grape and Padrino**
+
+  Previously, applications using the Grape framework would set `ruby` as their framework within the Environment Report. Now, Grape applications will be set to `grape`. Similarly, applications using the Padrino framework would be set to `sinatra`. Now, they will be set to `padrino`. This will help the New Relic security agent compatibility checks. Thank you, [@prateeksen](https://github.com/prateeksen) for making this change. [Issue#2777](https://github.com/newrelic/newrelic-ruby-agent/issues/2777) [PR#2789](https://github.com/newrelic/newrelic-ruby-agent/pull/2789)
+
 ## v9.12.0
 
 Version 9.12.0 adds support for the `newrelic_security` agent, introduces instrumentation for the LogStasher gem, improves instrumentation for the `redis-clustering` gem, and updates the Elasticsearch instrumentation to only attempt to get the cluster name once per client, even if it fails.
