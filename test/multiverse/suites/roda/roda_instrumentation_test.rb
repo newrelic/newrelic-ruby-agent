@@ -46,6 +46,10 @@ class RodaInstrumentationTest < Minitest::Test
     RodaTestApp
   end
 
+  def test_framework_assignment
+    assert_equal(:roda, NewRelic::Agent.config[:framework])
+  end
+
   def test_http_verb_request_no_request_method
     fake_request = Struct.new('FakeRequest', :path).new
     name = NewRelic::Agent::Instrumentation::Roda::TransactionNamer.transaction_name(fake_request)

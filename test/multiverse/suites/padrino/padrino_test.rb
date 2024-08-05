@@ -39,6 +39,10 @@ class PadrinoRoutesTest < Minitest::Test
     mocha_teardown
   end
 
+  def test_framework_assignment
+    assert_equal(:padrino, NewRelic::Agent.config[:framework])
+  end
+
   def test_tracing_is_involved
     klass = ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] == 'chain' ? ::PadrinoTestApp : ::Padrino::Application
     klass.any_instance.expects(:invoke_route_with_tracing)
