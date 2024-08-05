@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'new_relic/control/frameworks/ruby'
+require 'new_relic/control/frameworks/sinatra'
 module NewRelic
   class Control
     module Frameworks
