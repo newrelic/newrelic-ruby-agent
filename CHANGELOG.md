@@ -2,11 +2,15 @@
 
 ## dev
 
-Version <dev> updates framework detection.
+Version <dev> updates framework detection and fixes Falcon dispatcher detection.
 
 - **Feature: Improve framework detection accuracy for Grape and Padrino**
 
   Previously, applications using the Grape framework would set `ruby` as their framework within the Environment Report. Now, Grape applications will be set to `grape`. Similarly, applications using the Padrino framework would be set to `sinatra`. Now, they will be set to `padrino`. This will help the New Relic security agent compatibility checks. Thank you, [@prateeksen](https://github.com/prateeksen) for making this change. [Issue#2777](https://github.com/newrelic/newrelic-ruby-agent/issues/2777) [PR#2789](https://github.com/newrelic/newrelic-ruby-agent/pull/2789)
+
+- **Bugfix: Fix Falcon dispatcher detection**
+
+  Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename($0)`. Thank you,[@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
 
 ## v9.12.0
 

@@ -142,10 +142,9 @@ module NewRelic
     end
 
     def check_for_falcon
-      return unless defined?(::Falcon::Server) &&
-        NewRelic::LanguageSupport.object_space_usable?
-
-      @discovered_dispatcher = :falcon if find_class_in_object_space(::Falcon::Server)
+      if defined?(::Falcon::Server) && File.basename($0) == 'falcon'
+        @discovered_dispatcher = :falcon
+      end
     end
 
     def check_for_delayed_job
