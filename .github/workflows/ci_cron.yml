@@ -150,7 +150,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
       opensearch:
-        image: opensearch:1.3.18
+        image: opensearchproject/opensearch:latest
         env:
           discovery.type: single-node
         ports:
