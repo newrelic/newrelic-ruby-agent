@@ -4,8 +4,6 @@
 
 class OpenSearchInstrumentationTest < Minitest::Test
   def setup
-
-
     @client = OpenSearch::Client.new(
       host: "https://localhost:#{port}",
       user: 'admin',
