@@ -5,7 +5,7 @@
 instrumentation_methods :chain, :prepend
 
 OPENSEARCH_VERSIONS = [
-  ['2.1.0', 2.5],
+  [nil, 2.5],
   ['3.4.0', 2.5]
 ]
 

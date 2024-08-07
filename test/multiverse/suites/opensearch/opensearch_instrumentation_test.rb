@@ -4,11 +4,13 @@
 
 class OpenSearchInstrumentationTest < Minitest::Test
   def setup
+
+
     @client = OpenSearch::Client.new(
-      host: "https://localhost:9200",
+      host: "https://localhost:#{port}",
       user: 'admin',
       password: 'admin',
-      transport_options: { ssl: { verify: false } }
+      transport_options: {ssl: {verify: false}}
     )
 
     @client.cluster.health
@@ -121,7 +123,6 @@ class OpenSearchInstrumentationTest < Minitest::Test
       assert_equal not_obfuscated_query, segment.nosql_statement
     end
   end
-
 
   def test_nosql_statement_recorded_body_obfuscated
     with_config(:'opensearch.obfuscate_queries' => true) do
