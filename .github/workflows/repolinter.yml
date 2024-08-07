@@ -19,14 +19,14 @@ jobs:
     steps:
       - name: Test Default Branch
         id: default-branch
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # tag v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # tag v7.0.1
         with:
           script: |
             const data = await github.rest.repos.get(context.repo)
             return data.data && data.data.default_branch === context.ref.split('/').slice(-1)[0]
       - name: Checkout Self
         if: ${{ steps.default-branch.outputs.result == 'true' }}
-        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
       - name: Run Repolinter
         if: ${{ steps.default-branch.outputs.result == 'true' }}
         uses: newrelic/repolinter-action@3f4448f855c351e9695b24524a4111c7847b84cb # tag v1.7.0
