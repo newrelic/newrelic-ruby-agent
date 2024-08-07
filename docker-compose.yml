@@ -98,7 +98,7 @@ services:
     volumes:
       - ".:/usr/src/app"
     depends_on:
-      # - elasticsearch7
+      - elasticsearch7
       - elasticsearch8
       - opensearch
       - mysql
@@ -115,6 +115,4 @@ volumes:
   mysql:
     driver: local
   postgres:
-    driver: local
-  opensearch_data:
     driver: local
