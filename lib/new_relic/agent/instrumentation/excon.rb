@@ -33,22 +33,6 @@ DependencyDetection.defer do
     end
   end
 
-  executes do
-    next unless Gem::Version.new(Excon::VERSION) < Gem::Version.new('0.56.0')
-
-    deprecation_msg = 'Instrumentation for Excon versions below 0.56.0 is deprecated.' \
-      'They will stop being monitored in version 9.0.0. ' \
-      'Please upgrade your Excon version to continue receiving full support. '
-
-    NewRelic::Agent.logger.log_once(
-      :warn,
-      :deprecated_excon_version,
-      deprecation_msg
-    )
-
-    NewRelic::Agent.record_metric('Supportability/Deprecated/Excon', 1)
-  end
-
   def install_excon_instrumentation(excon_version)
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/excon_wrappers'
