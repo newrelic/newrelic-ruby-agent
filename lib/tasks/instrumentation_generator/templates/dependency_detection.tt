@@ -12,7 +12,7 @@ DependencyDetection.defer do
   depends_on do
     # The class that needs to be defined to prepend/chain onto. This can be used
     # to determine whether the library is installed.
-    defined?(::<%= @class_name %>)
+    defined?(<%= @class_name %>)
     # Add any additional requirements to verify whether this instrumentation
     # should be installed
   end
@@ -21,7 +21,7 @@ DependencyDetection.defer do
     ::NewRelic::Agent.logger.info('Installing <%= @name.downcase %> instrumentation')
 
     if use_prepend?
-      prepend_instrument ::<%= @class_name %>, NewRelic::Agent::Instrumentation::<%= @class_name %>::Prepend
+      prepend_instrument <%= @class_name %>, NewRelic::Agent::Instrumentation::<%= @class_name %>::Prepend
     else
       chain_instrument NewRelic::Agent::Instrumentation::<%= @class_name %>::Chain
     end

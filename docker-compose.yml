@@ -1,14 +1,13 @@
-version: "3.9"
 services:
-  elasticsearch7:
-    image: elasticsearch:7.16.2
-    ports:
-      - "9200:9200"
-    environment:
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    mem_limit: 1g
+  # elasticsearch7:
+  #   image: elasticsearch:7.16.2
+  #   ports:
+  #     - "9200:9200"
+  #   environment:
+  #     - discovery.type=single-node
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   mem_limit: 1g
   elasticsearch8:
     image: elasticsearch:8.13.0
     ports:
@@ -20,6 +19,25 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     mem_limit: 1g
+  # tests passed with
+  # docker run -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" opensearchproject/opensearch:1.3.18
+  opensearch:
+    image: opensearchproject/opensearch:1.3.18
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
   mysql:
     image: mysql:5.7
     platform: linux/x86_64
@@ -89,8 +107,9 @@ services:
     volumes:
       - ".:/usr/src/app"
     depends_on:
-      - elasticsearch7
+      # - elasticsearch7
       - elasticsearch8
+      - opensearch
       - mysql
       - memcached
       - mongodb
@@ -105,4 +124,6 @@ volumes:
   mysql:
     driver: local
   postgres:
+    driver: local
+  opensearch_data:
     driver: local

@@ -1463,6 +1463,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.opensearch' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the opensearch-ruby library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.aws_sqs' => {
           :default => 'auto',
           :public => true,
@@ -1869,6 +1878,21 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If `true`, the agent obfuscates Mongo queries in transaction traces.'
+        },
+        # OpenSearch
+        :'opensearch.capture_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent captures OpenSearch queries in transaction traces.'
+        },
+        :'opensearch.obfuscate_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent obfuscates OpenSearch queries in transaction traces.'
         },
         # Process host
         :'process_host.display_name' => {
