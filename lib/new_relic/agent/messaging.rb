@@ -117,7 +117,8 @@ module NewRelic
         queue_name: nil,
         exchange_type: nil,
         reply_to: nil,
-        correlation_id: nil)
+        correlation_id: nil,
+        action: nil)
 
         state = Tracer.state
         return yield if state.current_transaction
@@ -125,12 +126,12 @@ module NewRelic
         txn = nil
 
         begin
-          txn_name = transaction_name(library, destination_type, destination_name)
+          txn_name = transaction_name(library, destination_type, destination_name, action)
 
           txn = Tracer.start_transaction(name: txn_name, category: :message)
 
           if headers
-            txn.distributed_tracer.consume_message_headers(headers, state, RABBITMQ_TRANSPORT_TYPE)
+            txn.distributed_tracer.consume_message_headers(headers, state, library)
             CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
               txn.add_agent_attribute(:"message.headers.#{k}", v, AttributeFilter::DST_NONE) unless v.nil?
             end
@@ -327,11 +328,16 @@ module NewRelic
         NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
       end
 
-      def transaction_name(library, destination_type, destination_name)
+      def transaction_name(library, destination_type, destination_name, action = nil)
         transaction_name = Transaction::MESSAGE_PREFIX + library
         transaction_name << NewRelic::SLASH
         transaction_name << Transaction::MessageBrokerSegment::TYPES[destination_type]
         transaction_name << NewRelic::SLASH
+
+        if action == :consume
+          transaction_name << 'Consume'
+          transaction_name << NewRelic::SLASH
+        end
 
         case destination_type
         when :queue
