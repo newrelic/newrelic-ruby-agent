@@ -141,6 +141,7 @@ jobs:
         env:
           discovery.type: single-node
           plugins.security.disabled: true
+          DISABLE_INSTALL_DEMO_CONFIG: true
         ports:
           - 9200:9200
           - 9600:9600
