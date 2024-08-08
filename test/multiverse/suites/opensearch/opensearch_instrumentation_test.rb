@@ -7,7 +7,7 @@ class OpenSearchInstrumentationTest < Minitest::Test
     @client = OpenSearch::Client.new(
       host: "https://localhost:#{port}",
       user: 'admin',
-      password: 'admin',
+      password: 'sn33ZeGesundheit!',
       transport_options: {ssl: {verify: false}}
     )
 
