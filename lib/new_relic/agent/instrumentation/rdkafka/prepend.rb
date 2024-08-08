@@ -29,4 +29,22 @@ module NewRelic::Agent::Instrumentation
       end
     end
   end
+
+  module RdkafkaConfig
+    module Prepend
+      include NewRelic::Agent::Instrumentation::RdkafkaConfig
+
+      def producer(**kwargs)
+        super.tap do |producer|
+          set_nr_config(producer)
+        end
+      end
+
+      def consumer(**kwargs)
+        super.tap do |consumer|
+          set_nr_config(consumer)
+        end
+      end
+    end
+  end
 end

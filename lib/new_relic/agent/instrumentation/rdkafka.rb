@@ -18,6 +18,7 @@ DependencyDetection.defer do
     puts '***NR*** Installing rdkafka instrumentation'
 
     if use_prepend?
+      prepend_instrument ::Rdkafka::Config, NewRelic::Agent::Instrumentation::RdkafkaConfig::Prepend
       prepend_instrument ::Rdkafka::Producer, NewRelic::Agent::Instrumentation::RdkafkaProducer::Prepend
       prepend_instrument ::Rdkafka::Consumer, NewRelic::Agent::Instrumentation::RdkafkaConsumer::Prepend
     else
