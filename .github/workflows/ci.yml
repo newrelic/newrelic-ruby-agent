@@ -51,14 +51,7 @@ jobs:
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
         with:
-          ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Clone the repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-
-      - name: Copy files
-        working-directory: ${{ env.WORK_DIR }}/local_checkout
-        run: cp -r .github "$GITHUB_WORKSPACE/"    
+          ruby-version: ${{ matrix.ruby-version }} 
 
       - name: Set up mini-envs for ruby version
         uses: ./.github/actions/variable-mapper # tag v0.3.0
