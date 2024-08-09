@@ -131,7 +131,7 @@ jobs:
         env:
           discovery.type: single-node
         ports:
-          - 9000:9200
+          - 9200:9200
         options: >-
           --health-cmd "curl http://localhost:9200/_cluster/health"
           --health-interval 10s
@@ -144,17 +144,6 @@ jobs:
           xpack.security.enabled: false
         ports:
           - 9250:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      opensearch:
-        image: opensearchproject/opensearch:latest
-        env:
-          discovery.type: single-node
-        ports:
-          - 9200:9200
         options: >-
           --health-cmd "curl http://localhost:9200/_cluster/health"
           --health-interval 10s

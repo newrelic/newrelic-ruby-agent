@@ -182,13 +182,15 @@ class OpenSearchInstrumentationTest < Minitest::Test
       # NOOP -- allowing span and transaction to notice error
     end
 
-    expected_error_class_name = OpenSearch::Transport::Transport::Error.name
-
-    assert_segment_noticed_error txn, /opensearch$/, expected_error_class_name, /Error/i
-    assert_transaction_noticed_error txn, expected_error_class_name
+    assert_segment_noticed_error txn, /opensearch$/, transport_error_class.name, /Error/i
+    assert_transaction_noticed_error txn, transport_error_class.name
   end
 
   private
+
+  def transport_error_class
+    OpenSearch::Transport::Transport::Error
+  end
 
   def simulate_transport_error
     @client.stub(:search, raise(transport_error_class.new)) do
@@ -197,6 +199,6 @@ class OpenSearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    9300 # remove once we decide on a port
+    9200 # remove once we decide on a port
   end
 end
