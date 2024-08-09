@@ -382,6 +382,14 @@ module NewRelic
         def reset_cache
           return new_cache unless defined?(@cache) && @cache
 
+          # Modifying the @cache hash under JRuby - even with a `synchronize do`
+          # block and a `Hash#dup` operation - has been known to cause issues
+          # with JRuby for concurrent access of the hash while it is being
+          # modified. The hash really only needs to be modified for the benefit
+          # of the security agent, so if JRuby is in play and the security agent
+          # is not, don't attempt to modify the hash at all and return early.
+          return @cache if NewRelic::LanguageSupport.jruby? && !Agent.config[:'security.agent.enabled']
+
           @lock.synchronize do
             preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
             new_cache
