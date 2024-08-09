@@ -108,7 +108,7 @@ module Multiverse
       'httpclients' => %w[async_http curb excon httpclient],
       'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
       'infinite_tracing' => %w[infinite_tracing],
-      'opensearch' => %w[opensearch]
+      'opensearch' => %w[opensearch],
 
       'rest' => [] # Specially handled below
     }
