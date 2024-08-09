@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> updates framework detection and fixes Falcon dispatcher detection.
+Version <dev> updates framework detection, fixes Falcon dispatcher detection, and addresses a JRuby specific concurrency issue.
 
 - **Feature: Improve framework detection accuracy for Grape and Padrino**
 
@@ -11,6 +11,10 @@ Version <dev> updates framework detection and fixes Falcon dispatcher detection.
 - **Bugfix: Fix Falcon dispatcher detection**
 
   Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename`. Thank you, [@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
+
+- **Bugfix: Address JRuby concurrency issue with config hash accessing**
+
+  The agent's internal configuration class maintains a hash that occassionally gets rebuilt. During the rebuild, certain previously dynamically determined instrumentation values are preserved for the benefit of the [New Relic Ruby security agent](https://github.com/newrelic/csec-ruby-agent). After reports from JRuby customers regarding concurrency issues related to the hash being accessed while being modified, two separate fixes went into the hash rebuild logic previously: a `Hash#dup` operation and a `synchronize do` block. But errors were still reported. We ourselves remain unable to reproduce these concurrency errors despite using the same exact versions of JRuby and all reported software. After confirming that the hash access code in question is only needed for the Ruby security agent (which operates only in non-production dedicated security testing environments), we have introduced a new fix for JRuby customers that will simply skip over the troublesome code when JRuby is in play but the security agent is not. [PR#2798](https://github.com/newrelic/newrelic-ruby-agent/pull/2798)
 
 ## v9.12.0
 
