@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       elasticsearch7:
-        image: elasticsearch:7.16.2
+        image: elasticsearch:7.10
         env:
           discovery.type: single-node
         ports:

@@ -222,7 +222,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
 
   def port
     if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
-      9000 # 9000 for elasticsearch 7
+      9200 # 9200 for elasticsearch 7
     else
       9250 # 9250 for elasticsearch 8
     end

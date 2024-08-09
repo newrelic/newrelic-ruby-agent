@@ -2,12 +2,11 @@ services:
   elasticsearch7:
     image: elasticsearch:7.16.2
     ports:
-      - "9000:9000"
+      - "9200:9200"
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - http.port=9000
     mem_limit: 1g
   elasticsearch8:
     image: elasticsearch:8.13.0
@@ -27,7 +26,6 @@ services:
     ports:
       - 9200:9200
       - 9600:9600
-      - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m'
     mem_limit: 1g
   mysql:
     image: mysql:5.7
