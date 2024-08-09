@@ -4,11 +4,16 @@
 
 class OpenSearchInstrumentationTest < Minitest::Test
   def setup
+    # @client = OpenSearch::Client.new(
+    #   host: "https://localhost:#{port}",
+    #   user: 'admin',
+    #   password: 'admin',
+    #   transport_options: {ssl: {verify: false}}
+    # )
     @client = OpenSearch::Client.new(
-      host: "https://localhost:#{port}",
-      user: 'admin',
-      password: 'admin',
-      transport_options: {ssl: {verify: false}}
+          url: 'http://localhost:9200',
+          transport_options: {request: {timeout: 10}, headers: {content_type: "application/json"}},
+          retry_on_failure: 2
     )
 
     @client.cluster.health
