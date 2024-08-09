@@ -17,5 +17,5 @@ inputs:
     description: 'Specify the behavior of getting the variable. first_match, overwrite and fill are valid values.'
     default: 'first_match'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
