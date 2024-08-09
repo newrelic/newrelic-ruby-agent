@@ -113,12 +113,29 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
-      opensearch:
-        image: opensearchproject/opensearch:latest
-        ports: ["9200:9200"]
+      elasticsearch7:
+        image: elasticsearch:7.16.2
         env:
           discovery.type: single-node
-          plugins.security.disabled: true
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.13.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
       memcached:
         image: memcached:latest
         ports:
