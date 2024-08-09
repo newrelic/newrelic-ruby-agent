@@ -119,8 +119,8 @@ jobs:
           - 9200:9200
         env:
           discovery.type: single-node
-          # DISABLE_INSTALL_DEMO_CONFIG: true
-          # DISABLE_SECURITY_PLUGIN: true
+          DISABLE_INSTALL_DEMO_CONFIG: true
+          DISABLE_SECURITY_PLUGIN: true
         options: >-
           --name=opensearch
           --health-cmd="curl https://localhost:9200/_cluster/health"
