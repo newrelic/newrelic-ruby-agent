@@ -11,9 +11,9 @@ class OpenSearchInstrumentationTest < Minitest::Test
     #   transport_options: {ssl: {verify: false}}
     # )
     @client = OpenSearch::Client.new(
-          url: 'http://localhost:9200',
-          transport_options: {request: {timeout: 10}, headers: {content_type: "application/json"}},
-          retry_on_failure: 2
+      url: 'http://localhost:9200',
+      transport_options: {request: {timeout: 10}, headers: {content_type: 'application/json'}},
+      retry_on_failure: 2
     )
 
     @client.cluster.health
