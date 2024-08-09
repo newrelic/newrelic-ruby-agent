@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       opensearch:
-        image: opensearchproject/opensearch:1.1.0
+        image: opensearchproject/opensearch:1.3.18
         ports:
           - 9200:9200
         env:
