@@ -189,8 +189,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [rest]
-        ruby-version: [2.4.10, 3.3.4]
+        multiverse: [opensearch]
+        ruby-version: [3.3.4]
 
     steps:
       - name: Configure git
