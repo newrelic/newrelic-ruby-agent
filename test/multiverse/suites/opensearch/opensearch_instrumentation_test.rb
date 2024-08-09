@@ -4,18 +4,12 @@
 
 class OpenSearchInstrumentationTest < Minitest::Test
   def setup
-    # @client = OpenSearch::Client.new(
-    #   host: "https://localhost:#{port}",
-    #   user: 'admin',
-    #   password: 'admin',
-    #   transport_options: {ssl: {verify: false}}
-    # )
     @client = OpenSearch::Client.new(
-      url: 'http://localhost:9200',
-      transport_options: {request: {timeout: 10}, headers: {content_type: 'application/json'}},
-      retry_on_failure: 2
+      host: "https://localhost:#{port}",
+      user: 'admin',
+      password: 'admin',
+      transport_options: {ssl: {verify: false}}
     )
-
     @client.cluster.health
     @client.index(index: 'my-index', id: 1, body: {title: 'Test'})
     @client.indices.refresh(index: 'my-index')
