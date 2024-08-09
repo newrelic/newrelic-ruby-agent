@@ -6,7 +6,8 @@ instrumentation_methods :chain, :prepend
 
 OPENSEARCH_VERSIONS = [
   [nil, 2.5],
-  ['3.4.0', 2.5]
+  ['3.4.0', 2.5],
+  ['2.1.0', 2.5]
 ]
 
 def gem_list(opensearch_version = nil)
