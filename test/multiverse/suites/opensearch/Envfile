@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 suite_condition('Skip OpenSearch on GitHub Actions, service not currently available') do
-  ENV['CI'] != true
+  ENV['CI'] != 'true'
 end
 
 instrumentation_methods :chain, :prepend
