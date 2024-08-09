@@ -198,9 +198,11 @@ jobs:
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
 
       #   # Runs on OpenSearch 2 by default
-      # - name: Set up OpenSearch
-      #   uses: ankane/setup-opensearch@v1
-
+      - name: Set up OpenSearch
+        uses: ankane/setup-opensearch@v1
+        with:
+          config: |
+            http.port: 9300
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
         # - sasl is needed for memcached

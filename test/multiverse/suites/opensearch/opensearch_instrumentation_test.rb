@@ -197,6 +197,6 @@ class OpenSearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    9200 # remove once we decide on a port
+    9300 # remove once we decide on a port
   end
 end
