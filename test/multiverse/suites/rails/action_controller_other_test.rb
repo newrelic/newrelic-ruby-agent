@@ -231,7 +231,7 @@ if defined?(ActionController::Live)
     def confirm_key_exists_in_params(node)
       assertion_failure = "Expected to find the cache key >>#{DataController::CACHE_KEY}<< in the node params!"
       # Rails v7.2+ stores the URI string, so look for the key on the end of it
-      if rails_version_at_least?('7.2.0.beta1')
+      if rails_version_at_least?('7.2.0')
         assert_match(/#{CGI.escape("/#{DataController::CACHE_KEY}")}/, node.params[:key], assertion_failure)
       # Rails < v7.2 stores the params in an array, so confirm it includes the key
       else
