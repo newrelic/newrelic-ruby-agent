@@ -55,7 +55,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}                                                                                                               
 
       - name: Set up mini-envs for ruby version
-        uses: ./.github/actions/variable-mapper # no tag - locally sourced
+        uses: ./.github/actions/variable-mapper
         with:
           key: ${{ matrix.ruby-version }}
           map: |
