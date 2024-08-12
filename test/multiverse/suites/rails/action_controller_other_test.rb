@@ -78,12 +78,11 @@ if defined?(ActionController::Live)
     end
 
     def test_send_stream
-      # rails/rails@ed68af0 now defers all streaming behavior over to Rack (v3+) itself, so test
-      # only versions >= 7.2 and < 8.0
-      skip unless rails_version_at_least?('7.2') && !rails_version_at_least?('8.0.0.alpha')
+      skip unless rails_version_at_least?('7.2')
+
       get('/data/send_test_stream')
 
-      assert_metrics_recorded(['Controller/data/send_test_stream', 'Ruby/ActionController/send_stream'])
+      assert_metrics_recorded(['Controller/data/send_test_stream'])
     end
 
     def test_halted_callback
