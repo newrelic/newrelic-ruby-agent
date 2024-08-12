@@ -10,7 +10,7 @@ module NewRelic::Agent::Instrumentation
     INSTANCE_METHOD_PATTERN = /:in (?:`|')(?:.+#)?([^']+)'\z/
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
-    def perform_request_with_tracing(_method, _path, params = {}, body = nil, _headers = nil, _opts = {}, &_block)
+    def perform_request_with_tracing(_method, _path, params = NewRelic::EMPTY_HASH, body = nil, _headers = nil, _opts = nil, &_block)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
