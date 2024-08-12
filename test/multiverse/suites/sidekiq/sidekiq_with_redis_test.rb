@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'bundler/inline'
+require 'fileutils'
 
 class SidekiqWithRedisTest < MiniTest::Test
   #
@@ -36,28 +37,50 @@ class SidekiqWithRedisTest < MiniTest::Test
   def test_redis_client_pipelined_calls_work
     skip 'Testing conducted only using Sidekiq v7.0+ with redis not yet bundled' unless sidekiq_without_redis?
 
-    gemfile do
-      source 'https://rubygems.org'
+    begin
+      gemfile do
+        source 'https://rubygems.org'
 
-      gem 'redis', '5.0.5'
-    end
-
-    require 'newrelic_rpm'
-
-    conn = Sidekiq::RedisConnection.create
-    key = 'pineapple'
-    value = 'carrot'
-    result = nil
-
-    conn.with do |c|
-      client = c.instance_variable_get(:@client)
-      client.pipelined do |p|
-        p.call_v([:set, key, value])
+        gem 'redis', '5.0.5'
       end
-      result = client.call(:get, key)
-    end
 
-    assert_equal value, result
+      require 'newrelic_rpm'
+
+      conn = Sidekiq::RedisConnection.create
+      key = 'pineapple'
+      value = 'carrot'
+      result = nil
+
+      conn.with do |c|
+        client = c.instance_variable_get(:@client)
+        client.pipelined do |p|
+          p.call_v([:set, key, value])
+        end
+        result = client.call(:get, key)
+      end
+
+      assert_equal value, result
+
+    # fix for an odd GitHub Actions based error involving Bundler's refusal to
+    # delete the inline-bundled gem due to gem directory permissions.
+    #   1) Error:
+    # SidekiqWithRedisTest#test_redis_client_pipelined_calls_work:
+    # Bundler::InstallError: Bundler::DirectoryRemovalError: Could not delete
+    #   previous installation of `/opt/hostedtoolcache/Ruby/3.2.5/x64/lib/ruby/gems/3.2.0/gems/redis-5.0.5`.
+    # The underlying error was ArgumentError: parent directory is world
+    #   writable, Bundler::FileUtils#remove_entry_secure does not work; abort:
+    #   "/opt/hostedtoolcache/Ruby/3.2.5/x64/lib/ruby/gems/3.2.0/gems/redis-5.0.5"
+    #   (parent directory mode 40777), with backtrace:
+    ensure
+      skip unless ENV.fetch('CI', nil)
+
+      gem_home = ENV.fetch('GEM_HOME', nil)
+      skip unless gem_home
+
+      Dir.glob(File.join(gem_home, '**', 'redis-5.0.5')).each do |path|
+        FileUtils.chmod_R(0744, path)
+      end
+    end
   end
 
   private
