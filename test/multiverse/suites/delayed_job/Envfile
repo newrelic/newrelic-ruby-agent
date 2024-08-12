@@ -24,8 +24,13 @@ def bigdecimal
   end
 end
 
+# delayed_job depends on activesupport and activesupport >= v7.2.0 will
+# depend on securerandom >= 0.3, which may conflict with the "already activated"
+# (built in for Ruby < v3.4.0) version of securerandom, so just declare a
+# top-level >= 0.3 dependency.
 boilerplate_gems = <<~SQLITE
   gem 'rack'
+  gem 'securerandom', '>= 0.3'
   #{sqlite}
   #{bigdecimal}
 
