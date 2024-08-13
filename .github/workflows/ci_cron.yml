@@ -316,7 +316,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: always()
     steps:
-      - uses: ./.github/workflows/scripts/workflow-conclusion
+      - uses: ./.github/actions/workflow-conclusion
       - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # tag v1.6.0
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
@@ -333,7 +333,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: always()
     steps:
-      - uses: ./.github/workflows/scripts/workflow-conclusion
+      - uses: ./.github/actions/workflow-conclusion
       - run: echo ${{ github.event_name }}
       - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
         id: last_status
