@@ -48,7 +48,7 @@ jobs:
     if: always()
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ./.github/actions/workflow-conclusion
+      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
       - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # tag v1.6.0
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
@@ -66,7 +66,7 @@ jobs:
     if: always()
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ./.github/actions/workflow-conclusion
+      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
       - run: echo ${{ github.event_name }}
       - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
         id: last_status
