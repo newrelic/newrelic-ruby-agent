@@ -1,0 +1,49 @@
+on:
+  pull_request:
+    types: [synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+name: Add test tag
+
+jobs:
+  tag:
+    name: Add test tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/')
+    steps:
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - uses: actions/checkout@v3
+      - uses: technote-space/get-git-comment-action@v1
+      - name: Get version
+        uses: technote-space/get-next-version-action@v1
+        with:
+          EXCLUDE_MESSAGES: ${{ env.EXCLUDE_MESSAGES }}
+        if: "! startsWith(github.head_ref, 'release/v') && (contains(env.COMMIT_MESSAGE, 'chore: update dependencies') || contains(env.COMMIT_MESSAGE, 'chore: update npm dependencies'))"
+      - name: Get version
+        run: echo "NEXT_VERSION=${HEAD_REF#release/}" >> $GITHUB_ENV
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        if: "startsWith(github.head_ref, 'release/v') && (contains(env.COMMIT_MESSAGE, 'chore: update dependencies') || contains(env.COMMIT_MESSAGE, 'chore: update npm dependencies'))"
+      - name: Get tag name
+        run: echo "TAG_NAME=${NEXT_VERSION}.${RUN_ID}" >> $GITHUB_ENV
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          RUN_ID: ${{ github.run_id }}
+        if: env.NEXT_VERSION
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.ACCESS_TOKEN }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/test/${process.env.TAG_NAME}`,
+              sha: context.payload.pull_request.head.sha
+            })
+        if: env.TAG_NAME

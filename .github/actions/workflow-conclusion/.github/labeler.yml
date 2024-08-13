@@ -1,0 +1,26 @@
+javascript:
+  - '**/*.js'
+typescript:
+  - '**/*.ts'
+php:
+  - '**/*.php'
+python:
+  - '**/*.py'
+cpp:
+  - '**/*.cpp'
+  - '**/*.cxx'
+  - '**/*.cc'
+  - '**/*.cp'
+
+'Type: Testing':
+  - '**/tests/*'
+  - '**/test/*'
+  - '**/__tests__/*'
+
+'Type: Documentation':
+  - '**/*.md'
+
+'Type: CI/CD':
+  - '.github/workflows/*.yml'
+  - '.circleci/*'
+  - '.travis.yml'

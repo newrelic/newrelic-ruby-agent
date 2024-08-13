@@ -1,0 +1,46 @@
+on:
+  workflow_run:
+    workflows:
+      - CI
+      - Sync workflows
+      - Update dependencies
+      - Broken Link Check
+    types:
+      - completed
+
+name: Check Warnings
+
+jobs:
+  annotations:
+    name: Annotations
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - uses: technote-space/download-annotations-action@v2
+        id: annotations
+        with:
+          TARGET_RUN_ID: ${{ github.event.workflow_run.id }}
+          INCLUDE_LEVELS: warning
+          EXCLUDE_MESSAGE_PATTERNS: ${{ env.ANNOTATION_EXCLUDE_PATTERNS }}
+      - name: Build attachments
+        run: |
+          arr1='[{"fields":[{"title":"repo","value":"<https://github.com/${{ github.repository }}|${{ github.repository }}>","short":true},{"title":"action","value":"<${{ github.event.workflow_run.html_url }}|summary>","short":true}]}]'
+          arr2=$(echo '${{ steps.annotations.outputs.messages }}' | jq -c 'map({"color":"warning","text":"```\(.)```"})')
+          echo "SLACK_ATTACHMENTS=$(jq --argjson arr1 "$arr1" --argjson arr2 "$arr2" -nc '$arr1 + $arr2')" >> $GITHUB_ENV
+        if: steps.annotations.outputs.number > 0
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo
+          custom_payload: |
+            {
+              text: "Warning annotations",
+              attachments: ${{ env.SLACK_ATTACHMENTS }}
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: steps.annotations.outputs.number > 0 && env.SLACK_WEBHOOK_URL

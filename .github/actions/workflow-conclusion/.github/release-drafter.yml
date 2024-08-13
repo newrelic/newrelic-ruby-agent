@@ -1,0 +1,31 @@
+# Config for https://github.com/apps/release-drafter
+name-template: 'v$NEXT_PATCH_VERSION'
+tag-template: 'v$NEXT_PATCH_VERSION'
+categories:
+  - title: ':rocket: Features'
+    labels:
+      - 'Type: Feature'
+      - 'Type: Refactoring'
+  - title: ':bug: Bug Fixes'
+    labels:
+      - 'Type: Bug'
+      - 'Type: Security'
+  - title: ':wrench: Maintenance'
+    labels:
+      - 'Type: Maintenance'
+      - 'Type: CI/CD'
+  - title: ':green_book: Docs'
+    labels:
+      - 'Type: Documentation'
+  - title: ':white_check_mark: Tested'
+    labels:
+      - 'Type: Testing'
+  - title: ':sparkles: All Changes'
+    labels:
+      - 'Type: Release'
+exclude-labels:
+  - 'dependencies'
+template: |
+  ## What’s Changed
+
+  $CHANGES

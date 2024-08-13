@@ -1,0 +1,245 @@
+on: push
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+name: CI
+
+jobs:
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      LINT: 1
+    steps:
+      - name: Set running flag
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: technote-space/get-git-comment-action@v1
+      - uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: +(src|__tests__)/**/*.+(js|ts)
+          FILES: |
+            yarn.lock
+            .eslintrc
+        if: "! contains(env.COMMIT_MESSAGE, '[skip ci]') && ! contains(env.COMMIT_MESSAGE, '[ci skip]')"
+      - name: Set running flag
+        run: echo "RUNNING=" >> $GITHUB_ENV
+        if: "! env.GIT_DIFF"
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+        if: env.RUNNING
+      - name: Install Package dependencies
+        run: yarn install
+        if: env.RUNNING
+      - name: Check code style
+        run: yarn eslint ${{ env.GIT_DIFF_FILTERED }}
+        if: env.RUNNING && !env.MATCHED_FILES
+      - name: Check code style
+        run: yarn lint
+        if: env.RUNNING && env.MATCHED_FILES
+
+  cover:
+    name: Coverage
+    needs: eslint
+    runs-on: ${{matrix.os}}
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest, macos-latest]
+    steps:
+      - name: Set running flag
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: technote-space/get-git-comment-action@v1
+      - uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: +(src|__tests__)/**/*.+(js|ts|snap)
+          FILES: |
+            yarn.lock
+            jest.config.js
+            vite.config.ts
+        if: "! contains(env.COMMIT_MESSAGE, '[skip ci]') && ! contains(env.COMMIT_MESSAGE, '[ci skip]')"
+      - name: Set running flag
+        run: echo "RUNNING=" >> $GITHUB_ENV
+        if: "! env.GIT_DIFF"
+      - name: Set running flag
+        if: "matrix.os == 'ubuntu-latest' && ! startsWith(github.ref, 'refs/tags/') && github.event.base_ref == format('refs/heads/{0}', github.event.repository.default_branch)"
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - name: Set running flag
+        if: "matrix.os == 'ubuntu-latest' && ! startsWith(github.ref, 'refs/tags/') && startsWith(github.base_ref, 'refs/heads/develop/v')"
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - name: Set running flag
+        if: matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v')
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - name: Set running flag
+        run: |
+          if [[ ! -f package.json ]] || ! < package.json jq -r '.scripts | keys[]' | grep -qe '^cover$'; then
+            echo "RUNNING=" >> $GITHUB_ENV
+          fi
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+        if: env.RUNNING
+      - name: Install Package dependencies
+        run: yarn install
+        if: env.RUNNING
+      - name: Run tests
+        run: yarn cover
+        if: env.RUNNING
+      - name: Codecov
+        run: |
+          if [ -n "$CODECOV_TOKEN" ]; then
+            curl -s https://codecov.io/bash | bash -s -- -t $CODECOV_TOKEN -f $COVERAGE_FILE
+          fi
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          COVERAGE_FILE: ./coverage/lcov.info
+        if: env.RUNNING && matrix.os == 'ubuntu-latest'
+
+  release:
+    name: Release GitHub Actions
+    needs: cover
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - name: Release GitHub Actions
+        uses: technote-space/release-github-actions@v8
+        with:
+          OUTPUT_BUILD_INFO_FILENAME: build.json
+          TEST_TAG_PREFIX: test/
+          ORIGINAL_TAG_PREFIX: original/
+          CLEAN_TEST_TAG: true
+          DELETE_NODE_MODULES: ${{ env.RELEASE_GA_DELETE_NODE_MODULES }}
+
+  package:
+    name: Publish Package
+    needs: cover
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        target: ['npm', 'gpr']
+    steps:
+      - name: Set running flag
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - name: Set running flag
+        run: |
+          if [ -z "$NPM_AUTH_TOKEN" ]; then
+            echo "RUNNING=" >> $GITHUB_ENV
+          fi
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - uses: actions/checkout@v3
+        if: env.RUNNING
+      - name: Check package version
+        uses: technote-space/package-version-check-action@v1
+        with:
+          COMMIT_DISABLED: 1
+        if: env.RUNNING
+      - name: Set running flag
+        run: npx can-npm-publish || echo "RUNNING=" >> $GITHUB_ENV
+        if: env.RUNNING && matrix.target == 'npm'
+      - name: Set running flag
+        run: |
+          LATEST=`npm view . version` 2> /dev/null || :
+          CURRENT=`cat package.json | jq -r .version`
+          if [ "$LATEST" = "$CURRENT" ]; then
+            echo "RUNNING=" >> $GITHUB_ENV
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: env.RUNNING && matrix.target == 'gpr'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+          cache: yarn
+        if: env.RUNNING && matrix.target == 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://npm.pkg.github.com
+          cache: yarn
+        if: env.RUNNING && matrix.target == 'gpr'
+      - name: Install Package dependencies
+        run: yarn install
+        if: env.RUNNING
+      - name: Build
+        run: yarn build
+        if: env.RUNNING
+      - name: Publish
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
+          npm publish
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        if: env.RUNNING && matrix.target == 'npm'
+      - name: Publish
+        run: |
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: env.RUNNING && matrix.target == 'gpr'
+
+  publishRelease:
+    name: Create Release
+    needs: [release, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get version
+        run: echo "TAG_NAME=${HEAD_REF#refs/tags/}" >> $GITHUB_ENV
+        env:
+          HEAD_REF: ${{ github.ref }}
+      - name: Create Release
+        id: drafter
+        uses: technote-space/release-drafter@v6
+        with:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          DRAFT: false
+          NAME: ${{ env.TAG_NAME }}
+          TAG: ${{ env.TAG_NAME }}
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: ${{ format('<{0}>', steps.drafter.outputs.html_url) }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success() && env.SLACK_WEBHOOK_URL
+
+  slack:
+    name: Slack
+    needs: publishRelease
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: always()
+    steps:
+      - uses: technote-space/workflow-conclusion-action@gh-actions
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: env.WORKFLOW_CONCLUSION == 'failure' && env.SLACK_WEBHOOK_URL

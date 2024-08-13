@@ -1,0 +1,115 @@
+on: pull_request_target
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+name: Pull Request updated
+
+jobs:
+  triage:
+    name: Pull Request Labeler
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: "! startsWith(github.head_ref, 'release/')"
+    steps:
+      - uses: actions/labeler@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  history:
+    name: Pull Request Body
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event.pull_request.head.user.id == github.event.pull_request.base.user.id
+    steps:
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - uses: technote-space/pr-commit-body-action@v1
+        with:
+          EXCLUDE_MESSAGES: ${{ env.EXCLUDE_MESSAGES }}
+          TITLE: ${{ env.PR_BODY_TITLE }}
+          LINK_ISSUE_KEYWORD: ${{ (startsWith(github.head_ref, 'release/') && 'closes') || '' }}
+          FILTER_PR: true
+          CHANGE_TEMPLATE: ${{ env.CHANGE_TEMPLATE }}
+
+  manageRelease:
+    name: Manage release
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: "github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/') && ! startsWith(github.head_ref, 'release/v')"
+    steps:
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - uses: technote-space/release-type-action@v1
+        with:
+          EXCLUDE_MESSAGES: ${{ env.EXCLUDE_MESSAGES }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+  checkVersion:
+    name: Check package version
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: "github.event.action == 'synchronize' && github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/')"
+    steps:
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - name: Set running flag
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Set running flag
+        run: |
+          if [[ ! -f package.json ]] || [[ $(< package.json jq -r '.version == null') == 'true' ]]; then
+            echo "RUNNING=" >> $GITHUB_ENV
+          fi
+
+      - name: Sort
+        run: npx sort-package-json
+        if: env.RUNNING
+      - name: Get version
+        uses: technote-space/get-next-version-action@v1
+        with:
+          EXCLUDE_MESSAGES: ${{ env.EXCLUDE_MESSAGES }}
+        if: "env.RUNNING && ! startsWith(github.head_ref, 'release/v')"
+      - name: Get version
+        run: echo "NEXT_VERSION=${HEAD_REF#release/}" >> $GITHUB_ENV
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        if: env.RUNNING && startsWith(github.head_ref, 'release/v')
+      - name: Check package version
+        uses: technote-space/package-version-check-action@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH_PREFIX: release/
+          NEXT_VERSION: ${{ env.NEXT_VERSION }}
+        if: env.NEXT_VERSION
+
+  checkPublish:
+    name: Check publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: "github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/')"
+    steps:
+      - name: Set running flag
+        run: echo "RUNNING=1" >> $GITHUB_ENV
+      - name: Set running flag
+        run: |
+          if [ -z "$NPM_AUTH_TOKEN" ]; then
+            echo "RUNNING=" >> $GITHUB_ENV
+          fi
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+        if: env.RUNNING
+      - uses: technote-space/can-npm-publish-action@v1
+        if: env.RUNNING

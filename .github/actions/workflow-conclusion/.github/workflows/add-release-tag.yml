@@ -1,0 +1,56 @@
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+      - develop/v*
+    types: [closed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+name: Add release tag
+
+jobs:
+  tag:
+    name: Add release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.user.id == github.event.pull_request.base.user.id && startsWith(github.head_ref, 'release/')
+    steps:
+      - uses: technote-space/load-config-action@v1
+        with:
+          CONFIG_FILENAME: workflow-settings.json, workflow-details.json
+          IGNORE_WARNING: 'true'
+      - name: Get version
+        uses: technote-space/get-next-version-action@v1
+        with:
+          EXCLUDE_MESSAGES: ${{ env.EXCLUDE_MESSAGES }}
+        if: "! startsWith(github.head_ref, 'release/v')"
+      - name: Get version
+        run: echo "NEXT_VERSION=${HEAD_REF#release/}" >> $GITHUB_ENV
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        if: startsWith(github.head_ref, 'release/v')
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.ACCESS_TOKEN }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${process.env.NEXT_VERSION}`,
+              sha: context.sha
+            })
+        if: env.NEXT_VERSION
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.ACCESS_TOKEN }}
+          script: |
+            github.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/heads/release/next-${process.env.NEXT_VERSION}`,
+              sha: context.sha
+            })
+        if: env.NEXT_VERSION
