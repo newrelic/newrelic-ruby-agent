@@ -51,10 +51,10 @@ jobs:
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
         with:
-          ruby-version: ${{ matrix.ruby-version }}
+          ruby-version: ${{ matrix.ruby-version }} 
 
       - name: Set up mini-envs for ruby version
-        uses: kanga333/variable-mapper@3681b75f5c6c00162721168fb91ab74925eaebcb # tag v0.3.0
+        uses: ./.github/actions/variable-mapper
         with:
           key: ${{ matrix.ruby-version }}
           map: |

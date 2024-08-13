@@ -1,0 +1,21 @@
+name: 'variable-mapper'
+description: 'Github Action for mapping variables by a specific key'
+branding:
+  color: green
+  icon: arrow-right
+author: 'kanga333'
+inputs:
+  key:
+    description: 'Key to match the map argument'
+  map:
+    description: 'Pairs of regular expressions and variables'
+    default: ''
+  export_to:
+    description: 'Comma-separated list of targets to export variables to. log, env and output are valid values.'
+    default: 'log,env'
+  mode:
+    description: 'Specify the behavior of getting the variable. first_match, overwrite and fill are valid values.'
+    default: 'first_match'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
