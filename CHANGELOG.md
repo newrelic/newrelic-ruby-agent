@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> updates framework detection, fixes Falcon dispatcher detection, and addresses a JRuby specific concurrency issue.
+Version <dev> adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, and addresses a JRuby specific concurrency issue.
+
+- **Feature: Add experimental OpenSearch instrumentation**
+
+  The agent will now automatically instrument the `opensearch-ruby` gem. We're marking this instrumentation as experimental because more work is needed to fully test it. OpenSearch instrumentation provides telemetry similar to Elasticsearch. Thank you, [@Earlopain](https://github.com/Earlopain) for reporting the issue and [@praveen-ks](https://github.com/praveen-ks) for an initial draft of the instrumentation. [Issue#2228](https://github.com/newrelic/newrelic-ruby-agent/issues/2228) [PR#2796](https://github.com/newrelic/newrelic-ruby-agent/pull/2796)
 
 - **Feature: Improve framework detection accuracy for Grape and Padrino**
 
