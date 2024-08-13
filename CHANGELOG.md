@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, and addresses a JRuby specific concurrency issue.
+Version <dev> enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, and addresses a JRuby specific concurrency issue.
+
+- **Feature: Enhanced AWS Lambda function instrumentation**
+
+When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layers.newrelic-external.com/), the agent now offers enhanced support for AWS Lambda function instrumentation. The agent's instrumentation for AWS Lambda functions now supports distributed tracing. Web triggered invocations are now identified as being "web" based when an API Gateway call is involved and both API Gateway versions 1.0 and 2.0 are supported. Web based calls have the HTTP method, URI, and status code recorded. The agent will now recognize and report on fully 12 separate AWS resources that are capable of triggering a Lambda function invocation: ALB, API Gateway V1, API Gateway V2, CloudFront, CloudWatch Scheduler, DynamoStreams, Firehose, Kinesis, S3, SES, SNS, and SQS. The type of the triggering resource and its arn will be recorded for each resource and for many of them extra resource specific attributes will be recorded as well. For example, Lambda function invocations triggered by S3 bucket activity will now result in the S3 bucket name being recorded. [PR#2811](https://github.com/newrelic/newrelic-ruby-agent/pull/2811)
 
 - **Feature: Add experimental OpenSearch instrumentation**
 
