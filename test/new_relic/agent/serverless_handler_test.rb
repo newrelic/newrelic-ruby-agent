@@ -204,6 +204,8 @@ module NewRelic::Agent
       end
 
       def test_distributed_tracing_for_api_gateway_v1
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         event = {'version' => '1.0',
                  'httpMethod' => 'POST',
                  'headers' => {NewRelic::NEWRELIC_KEY => {
@@ -214,6 +216,8 @@ module NewRelic::Agent
       end
 
       def test_distributed_tracing_for_api_gateway_v2
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         event = {'version' => '2.0',
                  'httpMethod' => 'POST',
                  'requestContext' => {'http' => {NewRelic::NEWRELIC_KEY => {
@@ -224,6 +228,8 @@ module NewRelic::Agent
       end
 
       def test_reports_web_attributes_for_api_gateway_v1
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         event = {'version' => '1.0',
                  'resource' => '/RG35XXSP',
                  'path' => '/default/RG35XXSP',
@@ -246,6 +252,8 @@ module NewRelic::Agent
       end
 
       def test_reports_web_attributes_for_api_gateway_v2
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         event = {'version' => '2.0',
                  'headers' => {'X-Forwarded-Port' => 443},
                  'queryStringParameters' => {'param1': 'value1', 'param2': 'value2'},
