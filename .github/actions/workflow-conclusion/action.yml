@@ -35,5 +35,5 @@ branding:
   color: 'green'
 
 runs:
-  using: node16
-  main: lib/main.js
+  using: node20
+  main: src/main.ts
