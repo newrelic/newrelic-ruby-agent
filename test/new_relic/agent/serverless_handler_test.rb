@@ -87,6 +87,8 @@ module NewRelic::Agent
       # integration style
 
       def test_the_complete_handoff_from_the_nr_lambda_layer
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         context = testing_context
         output = with_output do
           result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -102,6 +104,8 @@ module NewRelic::Agent
       end
 
       def test_rescued_errors_are_noticed
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         output = with_output do
           assert_raises RuntimeError do
             handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -119,6 +123,8 @@ module NewRelic::Agent
       end
 
       def test_log_events_are_reported
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         output = with_output do
           handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
             event: {simulate_logging: true},
@@ -129,6 +135,8 @@ module NewRelic::Agent
       end
 
       def test_customer_function_lives_within_a_namespace
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         context = testing_context
         output = with_output do
           result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -145,6 +153,8 @@ module NewRelic::Agent
       end
 
       def test_agent_attributes_are_present
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         context = testing_context
         output = with_output do
           result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -161,6 +171,8 @@ module NewRelic::Agent
       end
 
       def test_metric_data_adheres_to_the_agent_specs
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         output = with_output do
           handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
             event: {},
@@ -187,6 +199,8 @@ module NewRelic::Agent
       end
 
       def test_support_for_payload_format_v1
+        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         NewRelic::Agent::ServerlessHandler.stub_const(:PAYLOAD_VERSION, 1) do
           output = with_output do
             result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
