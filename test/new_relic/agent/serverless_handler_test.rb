@@ -257,6 +257,8 @@ module NewRelic::Agent
 
       EVENT_SOURCES.each do |type, info|
         define_method(:"test_event_type_#{type}") do
+          skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
           output = with_output do
             handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
               event: info['event'],
