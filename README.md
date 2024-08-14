@@ -70,7 +70,7 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
   * [Rails plugin installation](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-installation-rails-plugin)
   * [AWS Lambda](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/instrument-lambda-function/instrument-your-own/)
   * [GAE Flexible Environment](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent-gae-flexible-environment)
-  * [Pure Rack Apps](http://docs.newrelic.com/docs/ruby/rack-middlewares)
+  * [Pure Rack apps](http://docs.newrelic.com/docs/ruby/rack-middlewares)
   * [Ruby agent and Heroku](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-heroku)
   * [Background jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/monitor-ruby-background-processes)
 * [Configure the agent](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration)
