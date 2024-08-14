@@ -20,19 +20,17 @@ module NewRelic
     # Furthermore, `.length` calls are converted to Ruby `#size` notation to
     # denote that a method call must be performed on the dug value.
     class ServerlessHandlerEventSources
-      JSON_SOURCE = File.join(File.dirname(__FILE__), 'serverless_handler_event_sources.json')
+      JSON_SOURCE = File.join(File.dirname(__FILE__), 'serverless_handler_event_sources.json').freeze
+      JSON_RAW = JSON.parse(File.read(JSON_SOURCE)).freeze
 
       def self.to_hash
-        hash = {}
-        raw = JSON.parse(File.read('lib/new_relic/agent/serverless_handler_event_sources.json'))
-        raw.each do |type, info|
+        JSON_RAW.each_with_object({}) do |(type, info), hash|
           hash[type] = {'attributes' => {},
                         'name' => info['name'],
                         'required_keys' => []}
           info['attributes'].each { |attr, value| hash[type]['attributes'][attr] = transform(value) }
           info['required_keys'].each { |key| hash[type]['required_keys'].push(transform(key)) }
-        end
-        hash.freeze
+        end.freeze
       end
 
       def self.transform(value)
