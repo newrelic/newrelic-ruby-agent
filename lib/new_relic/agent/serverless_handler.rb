@@ -295,6 +295,7 @@ module NewRelic
 
           size = false
           if elements.last.eql?('#size')
+            elements = elements.dup
             elements.pop
             size = true
           end
