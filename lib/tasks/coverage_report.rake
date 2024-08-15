@@ -11,7 +11,7 @@ if ENV['CI']
 
       SimpleCov.coverage_dir('coverage_results')
 
-      SimpleCov.collate(Dir['*/coverage_*/.resultset.json']) do
+      SimpleCov.collate(Dir['*/coverage_*/.resultset-*.json']) do
         formatter SimpleCov::Formatter::HTMLFormatter
         refuse_coverage_drop
       end
