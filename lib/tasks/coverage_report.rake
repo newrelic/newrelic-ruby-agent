@@ -11,18 +11,18 @@ if ENV['CI']
 
       SimpleCov.coverage_dir('coverage_results')
 
-      SimpleCov.collate(Dir['*/coverage_*/.resultset-*.json']) do
+      SimpleCov.collate(Dir['*/coverage_*/.resultset.json']) do
         formatter SimpleCov::Formatter::HTMLFormatter
         refuse_coverage_drop
       end
 
-      Dir['coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
+      Dir['lib/coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
     end
 
     desc 'Removes all coverage_* directories'
     task :clear do
       require 'fileutils'
-      Dir['coverage_*'].each { |dir| FileUtils.rm_rf(dir) }
+      Dir['lib/coverage_*'].each { |dir| FileUtils.rm_rf(dir) }
     end
   end
 end
