@@ -358,5 +358,3 @@ jobs:
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 93.5
           failedThresholdBranch: 50
-      - name: Clear all Coverage Results
-        run: bundle exec rake coverage:clear

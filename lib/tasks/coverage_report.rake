@@ -16,13 +16,13 @@ if ENV['CI']
         refuse_coverage_drop
       end
 
-      Dir['lib/coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
+      Dir['coverage_{[!r][!e][!s][!u][!l][!t][!s]}*'].each { |dir| FileUtils.rm_rf(dir) }
     end
 
     desc 'Removes all coverage_* directories'
     task :clear do
       require 'fileutils'
-      Dir['lib/coverage_*'].each { |dir| FileUtils.rm_rf(dir) }
+      Dir['coverage_*'].each { |dir| FileUtils.rm_rf(dir) }
     end
   end
 end
