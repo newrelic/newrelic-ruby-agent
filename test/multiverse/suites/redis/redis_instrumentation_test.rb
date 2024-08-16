@@ -468,6 +468,20 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       end
     end
 
+    # regression test for dependency detection bug
+    # https://github.com/newrelic/newrelic-ruby-agent/issues/2814
+    def test_having_a_redis_cluster_client_does_not_cause_an_error
+      skip_unless_minitest5_or_above
+      skip unless defined?(::Redis::Cluster::Client)
+
+      log_data = File.read(File.join(File.dirname(__FILE__), 'log', 'newrelic_agent.log'))
+      contains_error = log_data.match?('LocalJumpError')
+
+      refute contains_error, "Expected the agent log to be free of 'LocalJumpError' errors"
+    end
+
+    private
+
     def client
       if Gem::Version.new(Redis::VERSION).segments[0] < 4
         :client

@@ -29,4 +29,14 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7.0')
     gem 'rack'
     gem 'redis-clustering'
   RB
+
+  # regression test for dependency detection bug
+  # https://github.com/newrelic/newrelic-ruby-agent/issues/2814
+  gemfile <<~GEMFILE
+    gem 'rack'
+    gem 'redis-clustering'
+
+    require 'redis'
+    ::Redis::Cluster.const_set(:Client, 'phony client definition')
+  GEMFILE
 end

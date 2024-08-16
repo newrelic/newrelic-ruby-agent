@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, and addresses a JRuby specific concurrency issue.
+Version <dev> adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby specific concurrency issue.
 
 - **Feature: Add experimental OpenSearch instrumentation**
 
@@ -15,6 +15,10 @@ Version <dev> adds experimental OpenSearch instrumentation, updates framework de
 - **Bugfix: Fix Falcon dispatcher detection**
 
   Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename`. Thank you, [@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
+
+- **Bugfix: Fix for a Redis instrumentation error when Redis::Cluster::Client is present**
+
+  The Redis instrumentation previously contained a bug that would cause it to error out when `Redis::Cluster::Client` was present, owing to the use of a Ruby `return` outside of a method. Thanks very much to [@jdelStrother](https://github.com/jdelStrother) for not only reporting this bug but pointing us to the root cause as well. [Issue#2814](https://github.com/newrelic/newrelic-ruby-agent/issues/2814) [PR#2816](https://github.com/newrelic/newrelic-ruby-agent/pull/2816)
 
 - **Bugfix: Address JRuby concurrency issue with config hash accessing**
 
