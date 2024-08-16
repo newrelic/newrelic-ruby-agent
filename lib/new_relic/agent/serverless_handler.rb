@@ -22,7 +22,7 @@ module NewRelic
       SUPPORTABILITY_METRIC = 'Supportability/AWSLambda/HandlerInvocation'
       FUNCTION_NAME = 'lambda_function'
       PAYLOAD_VERSION = ENV.fetch('NEW_RELIC_SERVERLESS_PAYLOAD_VERSION', 2)
-      DIGIT = /\d/.freeze
+      DIGIT = /\d/
       EVENT_SOURCES = NewRelic::Agent::ServerlessHandlerEventSources.to_hash
 
       def self.env_var_set?
