@@ -193,7 +193,6 @@ module NewRelic
         end
 
         URI.parse(url_str)
-      rescue StandardError
       end
 
       def info_for_api_gateway_v2
