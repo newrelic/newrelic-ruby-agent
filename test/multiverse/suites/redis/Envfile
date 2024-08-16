@@ -36,7 +36,7 @@ if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7.0')
     gem 'rack'
     gem 'redis-clustering'
 
-    require 'redis'
-    ::Redis::Cluster.const_set(:Client, 'phony client definition')
+    require 'redis'                                                 # non-gem line
+    ::Redis::Cluster.const_set(:Client, 'phony client definition')  # non-gem line
   GEMFILE
 end
