@@ -74,6 +74,8 @@ module NewRelic::Agent
       }
 
       def setup
+        skip 'Serverless usage is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         config_hash = {:'serverless_mode.enabled' => true}
         @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
         NewRelic::Agent.config.add_config_for_testing(@test_config, true)
@@ -81,14 +83,14 @@ module NewRelic::Agent
       end
 
       def teardown
+        skip unless defined?(@test_config)
+
         NewRelic::Agent.config.remove_config(@test_config)
       end
 
       # integration style
 
       def test_the_complete_handoff_from_the_nr_lambda_layer
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         context = testing_context
         output = with_output do
           result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -104,8 +106,6 @@ module NewRelic::Agent
       end
 
       def test_rescued_errors_are_noticed
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         output = with_output do
           assert_raises RuntimeError do
             handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -123,8 +123,6 @@ module NewRelic::Agent
       end
 
       def test_log_events_are_reported
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         output = with_output do
           handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
             event: {simulate_logging: true},
@@ -135,8 +133,6 @@ module NewRelic::Agent
       end
 
       def test_customer_function_lives_within_a_namespace
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         context = testing_context
         output = with_output do
           result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -153,8 +149,6 @@ module NewRelic::Agent
       end
 
       def test_agent_attributes_are_present
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         context = testing_context
         output = with_output do
           result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -171,8 +165,6 @@ module NewRelic::Agent
       end
 
       def test_metric_data_adheres_to_the_agent_specs
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         output = with_output do
           handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
             event: {},
@@ -199,8 +191,6 @@ module NewRelic::Agent
       end
 
       def test_support_for_payload_format_v1
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         NewRelic::Agent::ServerlessHandler.stub_const(:PAYLOAD_VERSION, 1) do
           output = with_output do
             result = handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
@@ -218,8 +208,6 @@ module NewRelic::Agent
       end
 
       def test_distributed_tracing_for_api_gateway_v1
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         event = {'version' => '1.0',
                  'httpMethod' => 'POST',
                  'headers' => {NewRelic::NEWRELIC_KEY => {
@@ -230,8 +218,6 @@ module NewRelic::Agent
       end
 
       def test_distributed_tracing_for_api_gateway_v2
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         event = {'version' => '2.0',
                  'httpMethod' => 'POST',
                  'requestContext' => {'http' => {NewRelic::NEWRELIC_KEY => {
@@ -242,8 +228,6 @@ module NewRelic::Agent
       end
 
       def test_reports_web_attributes_for_api_gateway_v1
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         event = {'version' => '1.0',
                  'resource' => '/RG35XXSP',
                  'path' => '/default/RG35XXSP',
@@ -266,8 +250,6 @@ module NewRelic::Agent
       end
 
       def test_reports_web_attributes_for_api_gateway_v2
-        skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
         event = {'version' => '2.0',
                  'headers' => {'X-Forwarded-Port' => 443},
                  'queryStringParameters' => {'param1': 'value1', 'param2': 'value2'},
@@ -279,8 +261,6 @@ module NewRelic::Agent
 
       EVENT_SOURCES.each do |type, info|
         define_method(:"test_event_type_#{type}") do
-          skip 'This serverless test is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
-
           output = with_output do
             handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
               event: info['event'],
