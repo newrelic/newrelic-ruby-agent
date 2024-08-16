@@ -334,7 +334,7 @@ module NewRelic
 
         # if every required key for a source is found, consider that source
         # to be a match
-        EVENT_SOURCES.each do |_type, info|
+        EVENT_SOURCES.each_value do |info|
           return info unless info['required_keys'].detect { |r| @event.dig(*r).nil? }
         end
 
