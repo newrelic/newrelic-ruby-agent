@@ -36,14 +36,16 @@ DependencyDetection.defer do
       RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::Middleware)
 
       if defined?(Redis::Cluster::Client)
-        return RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::ClusterMiddleware)
+        RedisClient.register(NewRelic::Agent::Instrumentation::RedisClient::ClusterMiddleware)
       end
     end
 
-    if use_prepend?
-      prepend_instrument Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
-    else
-      chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
+    unless defined?(Redis::Cluster::Client)
+      if use_prepend?
+        prepend_instrument Redis::Client, NewRelic::Agent::Instrumentation::Redis::Prepend
+      else
+        chain_instrument NewRelic::Agent::Instrumentation::Redis::Chain
+      end
     end
   end
 end
