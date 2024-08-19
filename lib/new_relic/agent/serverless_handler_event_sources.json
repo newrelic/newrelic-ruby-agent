@@ -1,0 +1,155 @@
+{
+    "alb": {
+        "attributes": {},
+        "name": "alb",
+        "required_keys": [
+            "httpMethod",
+            "requestContext.elb"
+        ]
+    },
+
+    "apiGateway": {
+        "attributes": {
+            "aws.lambda.eventSource.accountId": "requestContext.accountId",
+            "aws.lambda.eventSource.apiId": "requestContext.apiId",
+            "aws.lambda.eventSource.resourceId": "requestContext.resourceId",
+            "aws.lambda.eventSource.resourcePath": "requestContext.resourcePath",
+            "aws.lambda.eventSource.stage": "requestContext.stage"
+        },
+        "name": "apiGateway",
+        "required_keys": [
+            "headers",
+            "httpMethod",
+            "path",
+            "requestContext",
+            "requestContext.stage"
+        ]
+    },
+
+    "apiGatewayV2": {
+        "attributes": {
+            "aws.lambda.eventSource.accountId": "requestContext.accountId",
+            "aws.lambda.eventSource.apiId": "requestContext.apiId",
+            "aws.lambda.eventSource.stage": "requestContext.stage"
+        },
+        "name": "apiGatewayV2",
+        "required_keys": [
+            "version",
+            "headers",
+            "requestContext.http",
+            "requestContext.http.path",
+            "requestContext.http.method",
+            "requestContext.stage"
+        ]
+    },
+
+    "cloudFront": {
+        "attributes": {},
+        "name": "cloudFront",
+        "required_keys": [
+            "Records[0].cf"
+        ]
+    },
+
+    "cloudWatchScheduled": {
+        "attributes": {
+            "aws.lambda.eventSource.account": "account",
+            "aws.lambda.eventSource.id": "id",
+            "aws.lambda.eventSource.region": "region",
+            "aws.lambda.eventSource.resource": "resources[0]",
+            "aws.lambda.eventSource.time": "time"
+        },
+        "name": "cloudWatch_scheduled",
+        "required_keys": [
+            "detail-type",
+            "source"
+        ]
+    },
+
+    "dynamoStreams": {
+        "attributes": {
+            "aws.lambda.eventSource.length": "Records.length"
+        },
+        "name": "dynamo_streams",
+        "required_keys": [
+            "Records[0].dynamodb"
+        ]
+    },
+
+    "firehose": {
+        "attributes": {
+            "aws.lambda.eventSource.length": "records.length",
+            "aws.lambda.eventSource.region": "region"
+        },
+        "name": "firehose",
+        "required_keys": [
+            "deliveryStreamArn",
+            "records[0].kinesisRecordMetadata"
+        ]
+    },
+
+    "kinesis": {
+        "attributes": {
+            "aws.lambda.eventSource.length": "Records.length",
+            "aws.lambda.eventSource.region": "Records[0].awsRegion"
+        },
+        "name": "kinesis",
+        "required_keys": [
+            "Records[0].kinesis"
+        ]
+    },
+
+    "s3": {
+        "attributes": {
+            "aws.lambda.eventSource.bucketName": "Records[0].s3.bucket.name",
+            "aws.lambda.eventSource.eventName": "Records[0].eventName",
+            "aws.lambda.eventSource.eventTime": "Records[0].eventTime",
+            "aws.lambda.eventSource.length": "Records.length",
+            "aws.lambda.eventSource.objectKey": "Records[0].s3.object.key",
+            "aws.lambda.eventSource.objectSequencer": "Records[0].s3.object.sequencer",
+            "aws.lambda.eventSource.objectSize": "Records[0].s3.object.size",
+            "aws.lambda.eventSource.region": "Records[0].awsRegion"
+        },
+        "name": "s3",
+        "required_keys": [
+            "Records[0].s3"
+        ]
+    },
+
+    "ses": {
+        "attributes": {
+            "aws.lambda.eventSource.date": "Records[0].ses.mail.commonHeaders.date",
+            "aws.lambda.eventSource.length": "Records.length",
+            "aws.lambda.eventSource.messageId": "Records[0].ses.mail.commonHeaders.messageId",
+            "aws.lambda.eventSource.returnPath": "Records[0].ses.mail.commonHeaders.returnPath"
+        },
+        "name": "ses",
+        "required_keys": [
+            "Records[0].ses"
+        ]
+    },
+
+    "sns": {
+        "attributes": {
+            "aws.lambda.eventSource.length": "Records.length",
+            "aws.lambda.eventSource.messageId": "Records[0].Sns.MessageId",
+            "aws.lambda.eventSource.timestamp": "Records[0].Sns.Timestamp",
+            "aws.lambda.eventSource.topicArn": "Records[0].Sns.TopicArn",
+            "aws.lambda.eventSource.type": "Records[0].Sns.Type"
+        },
+        "name": "sns",
+        "required_keys": [
+            "Records[0].Sns"
+        ]
+    },
+
+    "sqs": {
+        "attributes": {
+            "aws.lambda.eventSource.length": "Records.length"
+        },
+        "name": "sqs",
+        "required_keys": [
+            "Records[0].receiptHandle"
+        ]
+    }
+}
