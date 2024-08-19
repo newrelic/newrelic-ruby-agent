@@ -85,7 +85,7 @@ jobs:
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
               },
               "3.4.0-preview1": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72"
               }
             }
 
