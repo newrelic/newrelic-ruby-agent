@@ -423,9 +423,9 @@ module NewRelic::Agent
         refute_empty metadata[:agent_language]
       end
 
-      # when testing locally with (the Node.js tool) serverless or whatnot, the
-      # base host value may contain ':3000', so make sure the constructed URI
-      # doesn't end up as 'https://localhost:3000:443'
+      # when testing locally without AWS the base host value may contain
+      # ':3000' so make sure the constructed URI doesn't end up as
+      # 'https://localhost:3000:443'
       def test_http_uri_with_existing_port
         info = {:host => 'localhost:3000',
                 :port => 443,
