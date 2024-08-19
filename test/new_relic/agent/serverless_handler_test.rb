@@ -423,6 +423,47 @@ module NewRelic::Agent
         refute_empty metadata[:agent_language]
       end
 
+      # when testing locally with (the Node.js tool) serverless or whatnot, the
+      # base host value may contain ':3000', so make sure the constructed URI
+      # doesn't end up as 'https://localhost:3000:443'
+      def test_http_uri_with_existing_port
+        info = {:host => 'localhost:3000',
+                :port => 443,
+                :path => ''}
+
+        uri = fresh_handler.send(:http_uri, info)
+
+        assert_equal 'https://localhost:3000', uri.to_s
+      end
+
+      def test_http_uri_still_adds_the_port_when_needed
+        info = {:host => 'flame',
+                :port => '1138',
+                :path => '/broiler'}
+
+        uri = fresh_handler.send(:http_uri, info)
+
+        assert_equal 'https://flame:1138/broiler', uri.to_s
+      end
+
+      def test_http_uri_handles_errors
+        info = {:host => 'perfecto',
+                :port => 443,
+                :path => ''}
+        logger_mock = Minitest::Mock.new
+        logger_mock.expect :error, nil, [/failed to parse/]
+
+        URI.stub :parse, proc { |_uri| raise 'kaboom' } do
+          NewRelic::Agent.stub :logger, logger_mock do
+            uri = fresh_handler.send(:http_uri, info)
+
+            assert_nil uri, 'Expected http_uri to rescue and return nil'
+          end
+        end
+
+        logger_mock.verify
+      end
+
       private
 
       def handler

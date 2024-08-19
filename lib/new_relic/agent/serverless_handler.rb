@@ -186,13 +186,18 @@ module NewRelic
       def http_uri(info)
         return unless info[:host] && info[:path]
 
-        url_str = "https://#{info[:host]}:#{info[:port]}#{info[:path]}"
+        url_str = "https://#{info[:host]}"
+        url_str += ":#{info[:port]}" unless info[:host].match?(':')
+        url_str += "#{info[:path]}"
+
         if info[:query_parameters]
           qp = info[:query_parameters].map { |k, v| "#{k}=#{v}" }.join('&')
           url_str += "?#{qp}"
         end
 
         URI.parse(url_str)
+      rescue StandardError => e
+        NewRelic::Agent.logger.error "ServerlessHandler failed to parse the source HTTP URI: #{e}"
       end
 
       def info_for_api_gateway_v2
