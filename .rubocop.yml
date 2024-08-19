@@ -1250,6 +1250,7 @@ Style/MethodCallWithArgsParentheses:
     - add_development_dependency
     - catch
     - debug
+    - error
     - exit
     - expect
     - fail
