@@ -9,8 +9,10 @@ module NewRelic
     module Frameworks
       class Rails4 < NewRelic::Control::Frameworks::Rails3
         def rails_gem_list
-          Bundler.rubygems.all_specs.map do |gem|
-            "#{gem.name} (#{gem.version})"
+          if Bundler::VERSION >= '2'
+            Bundler.rubygems.installed_specs.map { |gem| "#{gem.name} (#{gem.version})" }
+          else
+            Bundler.rubygems.all_specs.map { |gem| "#{gem.name} (#{gem.version})" }
           end
         end
 
