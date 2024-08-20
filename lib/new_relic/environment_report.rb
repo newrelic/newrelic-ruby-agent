@@ -44,11 +44,8 @@ module NewRelic
     ####################################
     report_on('Gems') do
       begin
-        if Bundler::VERSION >= '2'
-          Bundler.rubygems.installed_specs.map { |gem| "#{gem.name}(#{gem.version})" }
-        else
-          Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
-        end
+          specs_method = Bundler::VERSION >= '2' ? :installed_specs : :all_specs
+          Bundler.rubygems.send(specs_method).map { |gem| "#{gem.name} (#{gem.version})" }
       rescue
         # There are certain rubygem, bundler, rails combinations (e.g. gem
         # 1.6.2, rails 2.3, bundler 1.2.3) where the code above throws an error
