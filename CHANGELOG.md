@@ -24,7 +24,7 @@ When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layer
 
 - **Feature: Silence Bundler `all_specs` deprecation warning**
 
-  `Bundler.rubygems.all_specs` was removed in favor of `Bundler.rubygems.installed_specs` in Bundler versions 2+, causing the agent to emit deprecation warnings. The method has been updated when Bundler 2+ is detected and warnings are now silenced. Thanks to [@jcoyne](https://github.com/jcoyne) for reporting this issue. [Issue#2733](https://github.com/newrelic/newrelic-ruby-agent/issues/2733) [PR#2823](https://github.com/newrelic/newrelic-ruby-agent/pull/2823)
+  `Bundler.rubygems.all_specs` was deprecated in favor of `Bundler.rubygems.installed_specs` in Bundler versions 2+, causing the agent to emit deprecation warnings. The method has been updated when Bundler 2+ is detected and warnings are now silenced. Thanks to [@jcoyne](https://github.com/jcoyne) for reporting this issue. [Issue#2733](https://github.com/newrelic/newrelic-ruby-agent/issues/2733) [PR#2823](https://github.com/newrelic/newrelic-ruby-agent/pull/2823)
 
 - **Bugfix: Fix Falcon dispatcher detection**
 
