@@ -537,6 +537,19 @@ module NewRelic::Agent::Configuration
       refute_includes(log, ':license_key')
     end
 
+    def test_reset_cache_return_early_for_jruby
+      phony_cache = {dup_called: false}
+      def phony_cache.dup; self[:dup_called] = true; self; end
+      @manager.instance_variable_set(:@cache, phony_cache)
+      NewRelic::LanguageSupport.stub :jruby?, true do
+        @manager.reset_cache
+      end
+
+      refute phony_cache[:dup_called], 'Expected the use of JRuby to prevent the Hash#dup call!'
+    ensure
+      @manager.new_cache
+    end
+
     private
 
     def assert_parsed_labels(expected)

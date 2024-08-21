@@ -18,9 +18,14 @@ class MiddlewareInstrumentationTest < ActionDispatch::IntegrationTest
   def test_rails_routeset_is_instrumented
     get('/')
 
-    assert_metrics_recorded(
+    # Rails v8.0+ uses lazy routing
+    metric = if rails_version_at_least?('8.0.0.alpha')
+      'Middleware/Rack/Rails::Engine::LazyRouteSet/call'
+    else
       'Middleware/Rack/ActionDispatch::Routing::RouteSet/call'
-    )
+    end
+
+    assert_metrics_recorded(metric)
   end
 
   if Rails::VERSION::MAJOR >= 4

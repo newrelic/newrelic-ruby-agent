@@ -4,23 +4,35 @@ ruby/setup-ruby:
   :tag: v1.190.0
   :sha: a6e6f86333f0a2523ece813039b8b4be04560854
 actions/checkout:
-  :tag: v4.1.2
-  :sha: 9bb56186c3b09b4f86b1c65136769dd318469633
-nga333/variable-mapper:
-  :tag: v0.3.0
-  :sha: 3681b75f5c6c00162721168fb91ab74925eaebcb
+  :tag: v4.1.7
+  :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
 actions/cache:
   :tag: v3.3.1
   :sha: 88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8
 nick-fields/retry:
   :tag: v3.0.0
   :sha: 7152eba30c6575329ac0576536151aca5a72780e
-technote-space/workflow-conclusion-action:
-  :tag: v3.0.3
-  :sha: 45ce8e0eb155657ab8ccf346ade734257fd196a5
 voxmedia/github-action-slack-notify-build:
   :tag: v1.6.0
   :sha: 3665186a8c1a022b28a1dbe0954e73aa9081ea9e
 Mercymeilya/last-workflow-status:
   :tag: v0.3.3
   :sha: 3418710aefe8556d73b6f173a0564d38bcfd9a43
+actions/upload-artifact:
+  :tag: v4.3.4
+  :sha: 0b2256b8c012f0828dc542b3febcab082c67f72b
+actions/download-artifact:
+  :tag: v4.1.8
+  :sha: fa0a91b85d4f404e444e00e005971372dc801d16
+actions/cache:
+  :tag: v4.0.2
+  :sha: 0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+actions/github-script:
+  :tag: v7.0.1
+  :sha: 60a0d83039c74a4aee543508d2ffcb1c3799cdea
+adriangl/check-new-commits-action:
+  :tag: v1.0.7
+  :sha: e6471f4fda990ebdb3bf44726371e1ad45ac4d37
+softprops/action-gh-release:
+  :tag: v2.0.8
+  :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191

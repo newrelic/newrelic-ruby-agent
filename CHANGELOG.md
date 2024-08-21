@@ -2,7 +2,21 @@
 
 ## dev
 
-Version <dev> updates framework detection and fixes Falcon dispatcher detection.
+Version <dev> enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby specific concurrency issue.
+
+- **Feature: Enhance AWS Lambda function instrumentation**
+
+When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layers.newrelic-external.com/), the agent now offers enhanced support for AWS Lambda function instrumentation. 
+* The agent's instrumentation for AWS Lambda functions now supports distributed tracing. 
+* Web-triggered invocations are now identified as being "web"-based when an API Gateway call is involved, with support for both API Gateway versions 1.0 and 2.0. 
+* Web-based calls have the HTTP method, URI, and status code recorded. 
+* The agent now recognizes and reports on 12 separate AWS resources that are capable of triggering a Lambda function invocation: ALB, API Gateway V1, API Gateway V2, CloudFront, CloudWatch Scheduler, DynamoStreams, Firehose, Kinesis, S3, SES, SNS, and SQS. 
+* The type of the triggering resource and its ARN will be recorded for each resource, and for many of them, extra resource-specific attributes will be recorded as well. For example, Lambda function invocations triggered by S3 bucket activity will now result in the S3 bucket name being recorded.
+[PR#2811](https://github.com/newrelic/newrelic-ruby-agent/pull/2811)
+
+- **Feature: Add experimental OpenSearch instrumentation**
+
+  The agent will now automatically instrument the `opensearch-ruby` gem. We're marking this instrumentation as experimental because more work is needed to fully test it. OpenSearch instrumentation provides telemetry similar to Elasticsearch. Thank you, [@Earlopain](https://github.com/Earlopain) for reporting the issue and [@praveen-ks](https://github.com/praveen-ks) for an initial draft of the instrumentation. [Issue#2228](https://github.com/newrelic/newrelic-ruby-agent/issues/2228) [PR#2796](https://github.com/newrelic/newrelic-ruby-agent/pull/2796)
 
 - **Feature: Improve framework detection accuracy for Grape and Padrino**
 
@@ -11,6 +25,14 @@ Version <dev> updates framework detection and fixes Falcon dispatcher detection.
 - **Bugfix: Fix Falcon dispatcher detection**
 
   Previously, we tried to use the object space to determine whether the [Falcon web server](https://github.com/socketry/falcon) was in use. However, Falcon is not added to the object space until after the environment report is generated, resulting in a `nil` dispatcher. Now, we revert to an earlier strategy that discovered the dispatcher using `File.basename`. Thank you, [@prateeksen](https://github.com/prateeksen) for reporting this issue and researching the problem. [Issue#2778](https://github.com/newrelic/newrelic-ruby-agent/issues/2778) [PR#2795](https://github.com/newrelic/newrelic-ruby-agent/pull/2795)
+
+- **Bugfix: Fix for a Redis instrumentation error when Redis::Cluster::Client is present**
+
+  The Redis instrumentation previously contained a bug that would cause it to error out when `Redis::Cluster::Client` was present, owing to the use of a Ruby `return` outside of a method. Thanks very much to [@jdelStrother](https://github.com/jdelStrother) for not only reporting this bug but pointing us to the root cause as well. [Issue#2814](https://github.com/newrelic/newrelic-ruby-agent/issues/2814) [PR#2816](https://github.com/newrelic/newrelic-ruby-agent/pull/2816)
+
+- **Bugfix: Address JRuby concurrency issue with config hash accessing**
+
+  The agent's internal configuration class maintains a hash that occassionally gets rebuilt. During the rebuild, certain previously dynamically determined instrumentation values are preserved for the benefit of the [New Relic Ruby security agent](https://github.com/newrelic/csec-ruby-agent). After reports from JRuby customers regarding concurrency issues related to the hash being accessed while being modified, two separate fixes went into the hash rebuild logic previously: a `Hash#dup` operation and a `synchronize do` block. But errors were still reported. We ourselves remain unable to reproduce these concurrency errors despite using the same exact versions of JRuby and all reported software. After confirming that the hash access code in question is only needed for the Ruby security agent (which operates only in non-production dedicated security testing environments), we have introduced a new fix for JRuby customers that will simply skip over the troublesome code when JRuby is in play but the security agent is not. [PR#2798](https://github.com/newrelic/newrelic-ruby-agent/pull/2798)
 
 ## v9.12.0
 
