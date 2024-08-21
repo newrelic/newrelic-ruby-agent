@@ -5,6 +5,18 @@
 # instrumentation_methods :chain, :prepend
 instrumentation_methods :prepend
 
-gemfile <<~RB
-  gem 'rdkafka'
-RB
+suite_condition("Does not run on JRuby") do
+  RUBY_PLATFORM != 'java'
+end
+
+VERSIONS = [
+  [nil, 2.7]
+]
+
+def gem_list(sidekiq_version = nil)
+  <<-RB
+    gem 'rdkafka'#{sidekiq_version}
+  RB
+end
+
+create_gemfiles(VERSIONS)
