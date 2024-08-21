@@ -21,7 +21,7 @@ DependencyDetection.defer do
       prepend_instrument Rdkafka::Config, NewRelic::Agent::Instrumentation::RdkafkaConfig::Prepend
       prepend_instrument Rdkafka::Producer, NewRelic::Agent::Instrumentation::RdkafkaProducer::Prepend
       prepend_instrument Rdkafka::Consumer, NewRelic::Agent::Instrumentation::RdkafkaConsumer::Prepend
-    else
+      # else
       # chain_instrument NewRelic::Agent::Instrumentation::Rdkafka::Chain
     end
   end
