@@ -136,7 +136,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-       zookeeper:
+      zookeeper:
         image: bitnami/zookeeper
         ports:
           - 2181:2181
