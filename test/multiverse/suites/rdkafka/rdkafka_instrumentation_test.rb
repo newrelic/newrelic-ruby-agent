@@ -105,7 +105,7 @@ class RdkafkaInstrumentationTest < Minitest::Test
   end
 
   def host
-    'localhost:9092'
+    '127.0.0.1:9092'
   end
 
   def config(host_key = 'bootstrap.servers')
