@@ -10,19 +10,18 @@ DependencyDetection.defer do
   named :rdkafka
 
   depends_on do
-    defined?(Rdkafka)
+    defined?(Rdkafka) # TODO: check version bc some older oens break
   end
 
   executes do
     NewRelic::Agent.logger.info('Installing rdkafka instrumentation')
-    puts '***NR*** Installing rdkafka instrumentation'
 
     if use_prepend?
       prepend_instrument Rdkafka::Config, NewRelic::Agent::Instrumentation::RdkafkaConfig::Prepend
       prepend_instrument Rdkafka::Producer, NewRelic::Agent::Instrumentation::RdkafkaProducer::Prepend
       prepend_instrument Rdkafka::Consumer, NewRelic::Agent::Instrumentation::RdkafkaConsumer::Prepend
-      # else
-      # chain_instrument NewRelic::Agent::Instrumentation::Rdkafka::Chain
+    else
+      chain_instrument NewRelic::Agent::Instrumentation::Rdkafka::Chain
     end
   end
 end

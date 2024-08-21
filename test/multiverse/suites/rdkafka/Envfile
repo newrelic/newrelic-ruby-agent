@@ -2,8 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# instrumentation_methods :chain, :prepend
-instrumentation_methods :prepend
+instrumentation_methods :chain, :prepend
 
 suite_condition("Does not run on JRuby") do
   RUBY_PLATFORM != 'java'
