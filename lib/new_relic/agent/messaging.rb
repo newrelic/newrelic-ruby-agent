@@ -131,8 +131,11 @@ module NewRelic
           txn = Tracer.start_transaction(name: txn_name, category: :message)
           if headers
             NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(headers, library)
-            CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
-              txn.add_agent_attribute(:"message.headers.#{k}", v, AttributeFilter::DST_NONE) unless v.nil?
+            if NewRelic::Agent.config[:'cross_application_tracer.enabled']
+              txn.distributed_tracer.consume_message_headers(headers, state, library)
+              CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
+                txn.add_agent_attribute(:"message.headers.#{k}", v, AttributeFilter::DST_NONE) unless v.nil?
+              end
             end
           end
 
