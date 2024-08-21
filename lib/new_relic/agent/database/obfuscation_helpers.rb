@@ -7,17 +7,17 @@ module NewRelic
     module Database
       module ObfuscationHelpers
         COMPONENTS_REGEX_MAP = {
-          :single_quotes => /'(?:[^']|'')*?(?:\\'.*|'(?!'))/,
-          :double_quotes => /"(?:[^"]|"")*?(?:\\".*|"(?!"))/,
-          :dollar_quotes => /(\$(?!\d)[^$]*?\$).*?(?:\1|$)/,
-          :uuids => /\{?(?:[0-9a-fA-F]\-*){32}\}?/,
-          :numeric_literals => /-?\b(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
-          :boolean_literals => /\b(?:true|false|null)\b/i,
-          :hexadecimal_literals => /0x[0-9a-fA-F]+/,
-          :comments => /(?:#|--).*?(?=\r|\n|$)/i,
-          :multi_line_comments => /\/\*(?:[^\/]|\/[^*])*?(?:\*\/|\/\*.*)/,
-          :oracle_quoted_strings => /q'\[.*?(?:\]'|$)|q'\{.*?(?:\}'|$)|q'\<.*?(?:\>'|$)|q'\(.*?(?:\)'|$)/
-        }
+          single_quotes: /'(?:[^']|'')*?(?:\\'.*|'(?!'))/,
+          double_quotes: /"(?:[^"]|"")*?(?:\\".*|"(?!"))/,
+          dollar_quotes: /(\$(?!\d)[^$]*?\$).*?(?:\1|$)/,
+          uuids: /\{?(?:[0-9a-fA-F]-*){32}\}?/,
+          numeric_literals: /-?\b(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
+          boolean_literals: /\b(?:true|false|null)\b/i,
+          hexadecimal_literals: /0x[0-9a-fA-F]+/,
+          comments: /(?:#|--).*?(?=\r|\n|$)/i,
+          multi_line_comments: %r{/\*.*?\*/}m,
+          oracle_quoted_strings: /q'\[.*?(?:\]'|$)|q'\{.*?(?:\}'|$)|q'<.*?(?:>'|$)|q'\(.*?(?:\)'|$)/
+        }.freeze
 
         DIALECT_COMPONENTS = {
           :fallback => COMPONENTS_REGEX_MAP.keys,
