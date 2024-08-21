@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.13.0
 
-Version <dev> enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, silences a Bundler deprecation warning, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby-specific concurrency issue.
+Version 9.13.0 enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, silences a Bundler deprecation warning, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby-specific concurrency issue.
 
 - **Feature: Enhance AWS Lambda function instrumentation**
 
