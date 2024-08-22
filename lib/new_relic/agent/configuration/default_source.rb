@@ -130,8 +130,10 @@ module NewRelic
                 ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
                 :rails_notifications
               end
+            when defined?(::Padrino) && defined?(::Padrino::PathRouter::Router) then :padrino
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
             when defined?(::Roda) then :roda
+            when defined?(::Grape) then :grape
             when defined?(::NewRelic::IA) then :external
             else :ruby
             end
@@ -1149,9 +1151,10 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :dynamic_name => true,
+          # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
             * Specify a maximum number of custom events to buffer in memory at a time.
-            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
+              * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
             set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
           DESC
         },
@@ -1459,6 +1462,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.opensearch' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the opensearch-ruby library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.aws_sqs' => {
           :default => 'auto',
@@ -1867,6 +1879,21 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If `true`, the agent obfuscates Mongo queries in transaction traces.'
         },
+        # OpenSearch
+        :'opensearch.capture_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent captures OpenSearch queries in transaction traces.'
+        },
+        :'opensearch.obfuscate_queries' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent obfuscates OpenSearch queries in transaction traces.'
+        },
         # Process host
         :'process_host.display_name' => {
           :default => proc { NewRelic::Agent::Hostname.get },
@@ -2022,9 +2049,10 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
+          # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
             * Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
-            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
+              * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
             This ensures the agent captures the maximum amount of distributed traces.
           DESC
         },

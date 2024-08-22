@@ -66,7 +66,7 @@ module Multiverse
 
     def gems_from_gemfile_body(body, path)
       body.split("\n").each do |line|
-        next if line.empty? || line.match?(/(?:^\s*(?:#|if|else|end))|newrelic_(?:rpm|prepender)/)
+        next if line.empty? || line.match?(/(?:^\s*(?:#|if|else|end))|newrelic_(?:rpm|prepender)|# non-gem line/)
 
         if line =~ /.*gem\s+['"]([^'"]+)['"](?:,\s+['"]([^'"]+)['"])?/
           gem = Regexp.last_match(1)

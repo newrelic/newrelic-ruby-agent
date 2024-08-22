@@ -44,7 +44,11 @@ module NewRelic
     ####################################
     report_on('Gems') do
       begin
-        Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
+        if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new('2.0.0')
+          Bundler.rubygems.installed_specs.map { |gem| "#{gem.name}(#{gem.version})" }
+        else
+          Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
+        end
       rescue
         # There are certain rubygem, bundler, rails combinations (e.g. gem
         # 1.6.2, rails 2.3, bundler 1.2.3) where the code above throws an error
@@ -67,7 +71,7 @@ module NewRelic
     report_on('Physical Cores') { ::NewRelic::Agent::SystemInfo.num_physical_cores }
     report_on('Arch') { ::NewRelic::Agent::SystemInfo.processor_arch }
     report_on('OS version') { ::NewRelic::Agent::SystemInfo.os_version }
-    report_on('OS') { ::NewRelic::Agent::SystemInfo.ruby_os_identifier }
+    report_on('OS') { ::NewRelic::Agent::SystemInfo.os_distribution }
     report_on('Database adapter') { ::NewRelic::Agent::DatabaseAdapter.value }
     report_on('Framework') { Agent.config[:framework].to_s }
     report_on('Dispatcher') { Agent.config[:dispatcher].to_s }

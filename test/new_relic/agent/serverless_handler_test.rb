@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'json'
 require 'logger'
 require 'stringio'
 require 'tempfile'
@@ -32,7 +33,52 @@ end
 module NewRelic::Agent
   class ServerlessHandler
     class ServerlessHandlerTest < Minitest::Test
+      EVENT_SOURCES = JSON.parse(File.read(File.join(File.dirname(__FILE__), '..', '..', 'fixtures', 'cross_agent_tests', 'lambda', 'event_source_info.json')))
+
+      AWS_TYPE_SPECIFIC_ATTRIBUTES = {
+        's3' => {'aws.lambda.eventSource.bucketName' => 'example-bucket',
+                 'aws.lambda.eventSource.eventName' => 'ObjectCreated:Put',
+                 'aws.lambda.eventSource.eventTime' => '1970-01-01T00:00:00.000Z',
+                 'aws.lambda.eventSource.length' => 1,
+                 'aws.lambda.eventSource.objectKey' => 'test/key',
+                 'aws.lambda.eventSource.objectSequencer' => '0A1B2C3D4E5F678901',
+                 'aws.lambda.eventSource.objectSize' => 1024,
+                 'aws.lambda.eventSource.region' => 'us-west-2'},
+        'dynamo_streams' => {'aws.lambda.eventSource.length' => 3},
+        'firehose' => {'aws.lambda.eventSource.length' => 1,
+                       'aws.lambda.eventSource.region' => 'us-west-2'},
+        'cloudFront' => {},
+        'sqs' => {'aws.lambda.eventSource.length' => 1},
+        'apiGateway' => {'aws.lambda.eventSource.accountId' => '123456789012',
+                         'aws.lambda.eventSource.apiId' => '1234567890',
+                         'aws.lambda.eventSource.resourceId' => '123456',
+                         'aws.lambda.eventSource.resourcePath' => '/{proxy+}',
+                         'aws.lambda.eventSource.stage' => 'prod'},
+        'apiGatewayV2' => {'aws.lambda.eventSource.accountId' => '123456789012',
+                           'aws.lambda.eventSource.apiId' => 'r3pmxmplak',
+                           'aws.lambda.eventSource.stage' => 'default'},
+        'cloudWatch_scheduled' => {'aws.lambda.eventSource.account' => '{{{account-id}}}',
+                                   'aws.lambda.eventSource.id' => 'cdc73f9d-aea9-11e3-9d5a-835b769c0d9c',
+                                   'aws.lambda.eventSource.region' => 'us-west-2',
+                                   'aws.lambda.eventSource.resource' => 'arn:aws:events:us-west-2:123456789012:rule/ExampleRule',
+                                   'aws.lambda.eventSource.time' => '1970-01-01T00:00:00Z'},
+        'ses' => {'aws.lambda.eventSource.date' => 'Wed, 7 Oct 2015 12:34:56 -0700',
+                  'aws.lambda.eventSource.length' => 1,
+                  'aws.lambda.eventSource.messageId' => '<0123456789example.com>',
+                  'aws.lambda.eventSource.returnPath' => 'janedoe@example.com'},
+        'sns' => {'aws.lambda.eventSource.length' => 1,
+                  'aws.lambda.eventSource.messageId' => '95df01b4-ee98-5cb9-9903-4c221d41eb5e',
+                  'aws.lambda.eventSource.timestamp' => '1970-01-01T00:00:00.000Z',
+                  'aws.lambda.eventSource.topicArn' => 'arn:aws:sns:us-west-2:123456789012:ExampleTopic',
+                  'aws.lambda.eventSource.type' => 'Notification'},
+        'alb' => {},
+        'kinesis' => {'aws.lambda.eventSource.length' => 1,
+                      'aws.lambda.eventSource.region' => 'us-west-2'}
+      }
+
       def setup
+        skip 'Serverless usage is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+
         config_hash = {:'serverless_mode.enabled' => true}
         @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
         NewRelic::Agent.config.add_config_for_testing(@test_config, true)
@@ -40,6 +86,8 @@ module NewRelic::Agent
       end
 
       def teardown
+        skip unless defined?(@test_config)
+
         NewRelic::Agent.config.remove_config(@test_config)
       end
 
@@ -159,6 +207,77 @@ module NewRelic::Agent
           assert output.last.key?('metadata'), "Expected a v1 payload format with a 'metadata' key!"
           assert_equal 4, output.last['data']['metric_data'].size
           assert_match(/lambda_function/, output.to_s)
+        end
+      end
+
+      def test_distributed_tracing_for_api_gateway_v1
+        event = {'version' => '1.0',
+                 'httpMethod' => 'POST',
+                 'headers' => {NewRelic::NEWRELIC_KEY => {
+                   NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+                   NewRelic::TRACESTATE_KEY => '190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035'
+                 }}}
+        perform_distributed_tracing_based_invocation(event)
+      end
+
+      def test_distributed_tracing_for_api_gateway_v2
+        event = {'version' => '2.0',
+                 'httpMethod' => 'POST',
+                 'requestContext' => {'http' => {NewRelic::NEWRELIC_KEY => {
+                   NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+                   NewRelic::TRACESTATE_KEY => '190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035'
+                 }}}}
+        perform_distributed_tracing_based_invocation(event)
+      end
+
+      def test_reports_web_attributes_for_api_gateway_v1
+        event = {'version' => '1.0',
+                 'resource' => '/RG35XXSP',
+                 'path' => '/default/RG35XXSP',
+                 'httpMethod' => 'POST',
+                 'headers' => {'Content-Length' => '1138',
+                               'Content-Type' => 'application/json',
+                               'Host' => 'garbanz0.execute-api.us-west-1.amazonaws.com',
+                               'User-Agent' => 'curl/8.4.0',
+                               'X-Amzn-Trace-Id' => 'Root=1-08675309-3e0mfbschanamasala8302xv1',
+                               'X-Forwarded-For' => '123.456.769.101',
+                               'X-Forwarded-Port' => '443',
+                               'X-Forwarded-Proto' => 'https',
+                               'accept' => '*/*'},
+                 'queryStringParameters' => {'param1': 'value1', 'param2': 'value2'},
+                 'pathParameters' => nil,
+                 'stageVariables' => nil,
+                 'body' => '{"thekey1":"thevalue1"}',
+                 'isBase64Encoded' => false}
+        perform_http_attribute_based_invocation(event)
+      end
+
+      def test_reports_web_attributes_for_api_gateway_v2
+        event = {'version' => '2.0',
+                 'headers' => {'X-Forwarded-Port' => 443},
+                 'queryStringParameters' => {'param1': 'value1', 'param2': 'value2'},
+                 'requestContext' => {'http' => {'method' => 'POST',
+                                                 'path' => '/default/RG35XXSP'},
+                                      'domainName' => 'garbanz0.execute-api.us-west-1.amazonaws.com'}}
+        perform_http_attribute_based_invocation(event)
+      end
+
+      EVENT_SOURCES.each do |type, info|
+        define_method(:"test_event_type_#{type}") do
+          output = with_output do
+            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: info['event'],
+              context: testing_context)
+          end
+          attributes = output.last['analytic_event_data'].last.last.last
+
+          assert_equal info['expected_arn'], attributes['aws.lambda.eventSource.arn']
+          assert_equal info['expected_type'], attributes['aws.lambda.eventSource.eventType']
+
+          AWS_TYPE_SPECIFIC_ATTRIBUTES[type].each do |key, value|
+            assert_equal value, attributes[key],
+              "Expected agent attribute of '#{key}' with a value of '#{value}'. Got '#{attributes['key']}'"
+          end
         end
       end
 
@@ -307,6 +426,47 @@ module NewRelic::Agent
         refute_empty metadata[:agent_language]
       end
 
+      # when testing locally without AWS the base host value may contain
+      # ':3000' so make sure the constructed URI doesn't end up as
+      # 'https://localhost:3000:443'
+      def test_http_uri_with_existing_port
+        info = {:host => 'localhost:3000',
+                :port => 443,
+                :path => ''}
+
+        uri = fresh_handler.send(:http_uri, info)
+
+        assert_equal 'https://localhost:3000', uri.to_s
+      end
+
+      def test_http_uri_still_adds_the_port_when_needed
+        info = {:host => 'flame',
+                :port => '1138',
+                :path => '/broiler'}
+
+        uri = fresh_handler.send(:http_uri, info)
+
+        assert_equal 'https://flame:1138/broiler', uri.to_s
+      end
+
+      def test_http_uri_handles_errors
+        info = {:host => 'perfecto',
+                :port => 443,
+                :path => ''}
+        logger_mock = Minitest::Mock.new
+        logger_mock.expect :error, nil, [/failed to parse/]
+
+        URI.stub :parse, proc { |_uri| raise 'kaboom' } do
+          NewRelic::Agent.stub :logger, logger_mock do
+            uri = fresh_handler.send(:http_uri, info)
+
+            assert_nil uri, 'Expected http_uri to rescue and return nil'
+          end
+        end
+
+        logger_mock.verify
+      end
+
       private
 
       def handler
@@ -344,6 +504,51 @@ module NewRelic::Agent
       ensure
         temp.close
         temp.unlink
+      end
+
+      def distributed_tracing_config
+        {
+          :account_id => 190,
+          :primary_application_id => '2827902',
+          :trusted_account_key => 190,
+          :'span_events.enabled' => true,
+          :'distributed_tracing.enabled' => true
+        }
+      end
+
+      def perform_distributed_tracing_based_invocation(event)
+        output = nil
+        with_config(distributed_tracing_config) do
+          NewRelic::Agent.config.notify_server_source_added
+          output = with_output do
+            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: event,
+              context: testing_context)
+          end
+        end
+        success = output.last['metric_data'].last.detect do |metrics|
+          metrics.first['name'] == 'Supportability/TraceContext/Accept/Success'
+        end
+
+        assert success, 'Failed to detect the supportability metric representing DT success'
+      end
+
+      def perform_http_attribute_based_invocation(event)
+        output = with_output do
+          NewRelic::Agent.instance.attribute_filter.stub(:allows_key?, true, ['http.url', AttributeFilter::DST_SPAN_EVENTS]) do
+            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+              event: event,
+              context: testing_context)
+          end
+        end
+        attrs = output.last['analytic_event_data'].last.last.last
+
+        assert attrs, 'Unable to glean event attributes from the response output'
+        assert_equal 'POST', attrs.fetch('http.method', nil)
+        assert_equal 'POST', attrs.fetch('http.request.method', nil)
+        assert_equal 200, attrs.fetch('http.statusCode', nil)
+        assert_equal 'https://garbanz0.execute-api.us-west-1.amazonaws.com/default/RG35XXSP?param1=value1&param2=value2',
+          attrs.fetch('http.url', nil)
       end
     end
   end

@@ -1,0 +1,39 @@
+name: Workflow Conclusion Action
+
+description: GitHub action to get workflow conclusion.
+
+author: technote-space
+
+inputs:
+  GITHUB_TOKEN:
+    description: Secret GitHub API token to use for making API requests.
+    default: ${{ github.token }}
+    required: false
+  TARGET_RUN_ID:
+    description: Target run id
+    default: ${{ github.run_id }}
+    required: false
+  SET_ENV_NAME:
+    description: Env name
+    required: false
+    default: WORKFLOW_CONCLUSION
+  FALLBACK_CONCLUSION:
+    description: Fallback conclusion
+    required: false
+    default: skipped
+  STRICT_SUCCESS:
+    description: Whether to report as success only if all jobs are successful
+    required: false
+    default: "false"
+
+outputs:
+  conclusion:
+    description: Workflow conclusion
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+runs:
+  using: node20
+  main: lib/main.js

@@ -45,6 +45,34 @@ module NewRelicYML
 
   HEADER
 
+  SECURITY_BEGIN = <<-SECURITY
+  # BEGIN security agent
+  #
+  #   NOTE: At this time, the security agent is intended for use only within
+  #         a dedicated security testing environment with data that can tolerate
+  #         modification or deletion. The security agent is available as a
+  #         separate Ruby gem, newrelic_security. It is recommended that this
+  #         separate gem only be introduced to a security testing environment
+  #         by leveraging Bundler grouping like so:
+  #
+  #         # Gemfile
+  #         gem 'newrelic_rpm'               # New Relic APM observability agent
+  #         gem 'newrelic-infinite_tracing'  # New Relic Infinite Tracing
+  #
+  #         group :security do
+  #           gem 'newrelic_security', require: false # New Relic security agent
+  #         end
+  #
+  #   NOTE: All "security.*" configuration parameters are related only to the
+  #         security agent, and all other configuration parameters that may
+  #         have "security" in the name somewhere are related to the APM agent.
+  
+  SECURITY
+
+  SECURITY_END = <<-SECURITY
+  # END security agent
+  SECURITY
+
   FOOTER = <<~FOOTER
     # Environment-specific settings are in this section.
     # RAILS_ENV or RACK_ENV (as appropriate) is used to determine the environment.
@@ -67,16 +95,35 @@ module NewRelicYML
   FOOTER
 
   def self.get_configs(defaults)
-    defaults.sort.each_with_object({}) do |(key, value), final_configs|
+    agent_configs = {}
+    security_configs = {}
+
+    defaults.sort.each do |key, value|
       next if CRITICAL.include?(key) || SKIP.include?(key)
 
       next unless public_config?(value) && !deprecated?(value)
 
-      sanitized_description = sanitize_description(value[:description])
-      description = format_description(sanitized_description)
-      default = default_value(key, value)
-      final_configs[key] = {description: description, default: default}
+      # TODO: OLD RUBIES < 2.6
+      # Remove `to_s`. `start_with?` doesn't accept symbols in Ruby <2.6
+      if key.to_s.start_with?('security.')
+        description, default = build_config(key, value)
+        security_configs[key] = {description: description, default: default}
+        next
+      end
+
+      description, default = build_config(key, value)
+      agent_configs[key] = {description: description, default: default}
     end
+
+    [agent_configs, security_configs]
+  end
+
+  def self.build_config(key, value)
+    sanitized_description = sanitize_description(value[:description])
+    description = format_description(sanitized_description)
+    default = default_value(key, value)
+
+    [description, default]
   end
 
   def self.public_config?(value)
@@ -126,15 +173,30 @@ module NewRelicYML
     end
   end
 
-  def self.build_string(defaults)
-    configs = get_configs(defaults)
-    yml_string = ''
-
-    configs.each do |key, value|
-      yml_string += "#{value[:description]}\n  # #{key}: #{value[:default]}\n\n"
+  def self.agent_configs_yml(agent_configs)
+    agent_yml = ''
+    agent_configs.each do |key, value|
+      agent_yml += "#{value[:description]}\n  # #{key}: #{value[:default]}\n\n"
     end
 
-    yml_string
+    agent_yml
+  end
+
+  def self.security_configs_yml(security_configs)
+    security_yml = ''
+    security_configs.each do |key, value|
+      security_yml += "#{value[:description]}\n  # #{key}: #{value[:default]}\n\n"
+    end
+
+    security_yml
+  end
+
+  def self.build_string(defaults)
+    agent_configs, security_configs = get_configs(defaults)
+    agent_string = agent_configs_yml(agent_configs)
+    security_string = security_configs_yml(security_configs)
+
+    agent_string + SECURITY_BEGIN + security_string + SECURITY_END + "\n"
   end
 
   # :nocov:

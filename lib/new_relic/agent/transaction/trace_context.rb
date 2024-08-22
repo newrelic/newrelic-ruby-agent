@@ -95,7 +95,7 @@ module NewRelic
 
         def create_trace_state_payload
           unless Agent.config[:'distributed_tracing.enabled']
-            NewRelic::Agent.logger.warn('Not configured to create WC3 trace context payload')
+            NewRelic::Agent.logger.warn('Not configured to create W3C trace context payload')
             return
           end
 

@@ -15,8 +15,8 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
-      - uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
         with:
           ruby-version: '3.3'
       - run: bundle
@@ -36,12 +36,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.4, 3.3.4, 3.4.0-preview1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.4, 3.4.0-preview1]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -50,12 +50,12 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
         with:
-          ruby-version: ${{ matrix.ruby-version }}
+          ruby-version: ${{ matrix.ruby-version }}                                                                                                               
 
       - name: Set up mini-envs for ruby version
-        uses: kanga333/variable-mapper@3681b75f5c6c00162721168fb91ab74925eaebcb # tag v0.3.0
+        uses: ./.github/actions/variable-mapper
         with:
           key: ${{ matrix.ruby-version }}
           map: |
@@ -78,14 +78,14 @@ jobs:
               "3.1.6": {
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
               },
-              "3.2.4": {
+              "3.2.5": {
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
               },
               "3.3.4": {
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
               },
               "3.4.0-preview1": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72"
               }
             }
 
@@ -96,7 +96,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10' || matrix.ruby-version == '2.5.9' || matrix.ruby-version == '2.6.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # tag v3.3.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -203,11 +203,11 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.4, 3.3.4, 3.4.0-preview1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.4, 3.4.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -216,7 +216,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -227,7 +227,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # tag v3.3.1
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -281,14 +281,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.4, 3.3.4, 3.4.0-preview1]
+        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.4, 3.4.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # tag v4.1.2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f # tag v1.186.0
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -316,7 +316,8 @@ jobs:
     runs-on: ubuntu-22.04
     if: always()
     steps:
-      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: ./.github/actions/workflow-conclusion
       - uses: voxmedia/github-action-slack-notify-build@3665186a8c1a022b28a1dbe0954e73aa9081ea9e # tag v1.6.0
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.event_name != 'workflow_dispatch' }}
         env:
@@ -333,7 +334,8 @@ jobs:
     runs-on: ubuntu-22.04
     if: always()
     steps:
-      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # tag v3.0.3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: ./.github/actions/workflow-conclusion
       - run: echo ${{ github.event_name }}
       - uses: Mercymeilya/last-workflow-status@3418710aefe8556d73b6f173a0564d38bcfd9a43 # tag v0.3.3
         id: last_status
