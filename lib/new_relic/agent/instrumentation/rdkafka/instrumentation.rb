@@ -10,7 +10,6 @@ module NewRelic::Agent::Instrumentation
     PRODUCE = 'Produce'
     CONSUME = 'Consume'
 
-    # TODO: serialization ?
     def produce_with_new_relic(*args)
       topic_name = args[0][:topic]
       segment = NewRelic::Agent::Tracer.start_message_broker_segment(
