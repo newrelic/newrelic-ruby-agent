@@ -9,7 +9,7 @@ suite_condition("Does not run on JRuby") do
 end
 
 VERSIONS = [
-  [nil, 2.7]
+  [nil]
 ]
 
 def gem_list(sidekiq_version = nil)

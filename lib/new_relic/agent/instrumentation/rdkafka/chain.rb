@@ -36,18 +36,32 @@ module NewRelic::Agent::Instrumentation
         include NewRelic::Agent::Instrumentation::RdkafkaConfig
 
         alias_method(:producer_without_new_relic, :producer)
-
-        def producer(**kwargs)
-          producer_without_new_relic(**kwargs).tap do |producer|
-            set_nr_config(producer)
-          end
-        end
-
         alias_method(:consumer_without_new_relic, :consumer)
 
-        def consumer(**kwargs)
-          consumer_without_new_relic(**kwargs).tap do |consumer|
-            set_nr_config(consumer)
+        if Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0')
+          def producer(**kwargs)
+            producer_without_new_relic(**kwargs).tap do |producer|
+              set_nr_config(producer)
+            end
+          end
+  
+  
+          def consumer(**kwargs)
+            consumer_without_new_relic(**kwargs).tap do |consumer|
+              set_nr_config(consumer)
+            end
+          end
+        else
+          def producer
+            producer_without_new_relic.tap do |producer|
+              set_nr_config(producer)
+            end
+          end
+  
+          def consumer
+            consumer_without_new_relic.tap do |consumer|
+              set_nr_config(consumer)
+            end
           end
         end
       end
