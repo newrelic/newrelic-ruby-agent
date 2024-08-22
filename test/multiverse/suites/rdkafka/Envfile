@@ -15,7 +15,12 @@ VERSIONS = [
 def gem_list(sidekiq_version = nil)
   <<-RB
     gem 'rdkafka'#{sidekiq_version}
+    #{ffi}
   RB
+end
+
+def ffi
+  "gem 'ffi', '< 1.17.0'" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7')
 end
 
 create_gemfiles(VERSIONS)
