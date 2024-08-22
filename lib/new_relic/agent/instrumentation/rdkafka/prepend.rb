@@ -40,7 +40,7 @@ module NewRelic::Agent::Instrumentation
             set_nr_config(producer)
           end
         end
-  
+
         def consumer(**kwargs)
           super.tap do |consumer|
             set_nr_config(consumer)
@@ -52,7 +52,7 @@ module NewRelic::Agent::Instrumentation
             set_nr_config(producer)
           end
         end
-  
+
         def consumer
           super.tap do |consumer|
             set_nr_config(consumer)
