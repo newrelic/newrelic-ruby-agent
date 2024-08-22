@@ -29,9 +29,8 @@ function update_to_desired_rubygems_version {
   # Rubies < 2.3 need to use update_rubygems,
   # newer Rubies can use 'gem update --system'
   if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
-    echo "DEBUG: running 'gem update --system 3.3.22 --force'"
-    # gem update --system 3.0.6 --force >/dev/null
-    gem update --system 3.3.22 --force >/dev/null
+    echo "DEBUG: running 'gem update --system 3.0.6 --force'"
+    gem update --system 3.0.6 --force >/dev/null
   else
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force >/dev/null
