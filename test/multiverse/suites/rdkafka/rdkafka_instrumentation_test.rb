@@ -127,16 +127,4 @@ class RdkafkaInstrumentationTest < Minitest::Test
     delivery_handles.each(&:wait)
     producer.close
   end
-
-  def mock_message(headers: {})
-    message = mock
-    message.stubs(:headers).returns(headers)
-    message.stubs(:key).returns('Key 0')
-    message.stubs(:offset).returns(7106)
-    message.stubs(:partition).returns(0)
-    message.stubs(:payload).returns('Payload 0')
-    message.stubs(:timestamp).returns(Time.new(2024, 8, 21, 9, 52, 44, '-05:00'))
-    message.stubs(:topic).returns('ruby-test-topic')
-    message
-  end
 end
