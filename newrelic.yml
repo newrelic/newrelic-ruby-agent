@@ -509,6 +509,10 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.net_http: auto
 
+  # Controls auto-instrumentation of the opensearch-ruby library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.opensearch: auto
+
   # Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks
   # into the to_app method in Puma::Rack::Builder to find gems to instrument
   # during application startup. May be one of: auto, prepend, chain, disabled.
@@ -606,6 +610,12 @@ common: &default_settings
 
   # When true, the agent transmits data about your app to the New Relic collector.
   # monitor_mode: true
+
+  # If true, the agent captures OpenSearch queries in transaction traces.
+  # opensearch.capture_queries: true
+
+  # If true, the agent obfuscates OpenSearch queries in transaction traces.
+  # opensearch.obfuscate_queries: true
 
   # If true, uses Module#prepend rather than alias_method for ActiveRecord
   # instrumentation.

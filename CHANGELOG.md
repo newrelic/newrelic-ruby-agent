@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.13.0
 
-Version <dev> enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby specific concurrency issue.
+Version 9.13.0 enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, silences a Bundler deprecation warning, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby-specific concurrency issue.
 
 - **Feature: Enhance AWS Lambda function instrumentation**
 
@@ -21,6 +21,10 @@ When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layer
 - **Feature: Improve framework detection accuracy for Grape and Padrino**
 
   Previously, applications using the Grape framework would set `ruby` as their framework within the Environment Report. Now, Grape applications will be set to `grape`. Similarly, applications using the Padrino framework would be set to `sinatra`. Now, they will be set to `padrino`. This will help the New Relic security agent compatibility checks. Thank you, [@prateeksen](https://github.com/prateeksen) for making this change. [Issue#2777](https://github.com/newrelic/newrelic-ruby-agent/issues/2777) [PR#2789](https://github.com/newrelic/newrelic-ruby-agent/pull/2789)
+
+- **Feature: Silence Bundler `all_specs` deprecation warning**
+
+  `Bundler.rubygems.all_specs` was deprecated in favor of `Bundler.rubygems.installed_specs` in Bundler versions 2+, causing the agent to emit deprecation warnings. The method has been updated when Bundler 2+ is detected and warnings are now silenced. Thanks to [@jcoyne](https://github.com/jcoyne) for reporting this issue. [Issue#2733](https://github.com/newrelic/newrelic-ruby-agent/issues/2733) [PR#2823](https://github.com/newrelic/newrelic-ruby-agent/pull/2823)
 
 - **Bugfix: Fix Falcon dispatcher detection**
 
