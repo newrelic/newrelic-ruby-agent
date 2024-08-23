@@ -2646,7 +2646,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Defines the request body limit to process in security events (in KB). The default value is 300, for 300KB.'
         },
-        :'security.skip_iast_scan.api' => {
+        :'security.exclude_from_iast_scan.api' => {
           :default => [],
           :public => true,
           :type => Array,
@@ -2654,7 +2654,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Defines api paths you want the security agent to ignore in IAST scan, by specifying a list of patterns matching the URI you want to ignore.'
         },
-        :'security.skip_iast_scan.parameters.header' => {
+        :'security.exclude_from_iast_scan.http_request_parameters.header' => {
           :default => [],
           :public => true,
           :type => Array,
@@ -2662,7 +2662,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_list),
           :description => 'Define http request headers you want the security agent to ignore in IAST scan, by specifying a list of patterns matching the header you want to ignore.'
         },
-        :'security.skip_iast_scan.parameters.query' => {
+        :'security.exclude_from_iast_scan.http_request_parameters.query' => {
           :default => [],
           :public => true,
           :type => Array,
@@ -2670,7 +2670,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_list),
           :description => 'Defines http request query parameters you want the security agent to ignore in IAST scan, by specifying a list of patterns matching the http request query parameters you want to ignore.'
         },
-        :'security.skip_iast_scan.parameters.body' => {
+        :'security.exclude_from_iast_scan.http_request_parameters.body' => {
           :default => [],
           :public => true,
           :type => Array,
@@ -2678,7 +2678,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_regexp_list),
           :description => 'Defines key values in http request body you want the security agent to ignore in IAST scan, by specifying a list of keys in the http request body you want to ignore.'
         },
-        :'security.skip_iast_scan.iast_detection_category.insecure_settings' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.insecure_settings' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2686,7 +2686,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables Low severity insecure settings(Hash, crypto, cookie, Ranndom) detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.invalid_file_access' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2694,7 +2694,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables file access related IAST detections'
         },
-        :'security.skip_iast_scan.iast_detection_category.sql_injection' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.sql_injection' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2702,7 +2702,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables SQL injection detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.nosql_injection' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.nosql_injection' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2710,7 +2710,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables NOSQL injection detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.ldap_injection' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.ldap_injection' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2718,7 +2718,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables LDAP injection detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.javascript_injection' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.javascript_injection' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2726,7 +2726,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables javascript injection detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.command_injection' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.command_injection' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2734,7 +2734,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables system command injection detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.xpath_injection' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.xpath_injection' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2742,7 +2742,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables XPATH injection detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.ssrf' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.ssrf' => {
           :default => false,
           :external => true,
           :public => true,
@@ -2750,7 +2750,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables SSRF(Server side reuqest forgery) detection'
         },
-        :'security.skip_iast_scan.iast_detection_category.rxss' => {
+        :'security.exclude_from_iast_scan.iast_detection_category.rxss' => {
           :default => false,
           :external => true,
           :public => true,
