@@ -10,7 +10,7 @@ DependencyDetection.defer do
   named :rdkafka
 
   depends_on do
-    defined?(Rdkafka) # TODO: check version bc some older oens break
+    defined?(Rdkafka)
   end
 
   executes do
