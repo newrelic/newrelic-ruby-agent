@@ -10,7 +10,11 @@ module NewRelic::Agent::Instrumentation
     PRODUCE = 'Produce'
     CONSUME = 'Consume'
 
+    INSTRUMENTATION_NAME = 'Rdkafka'
+
     def produce_with_new_relic(*args)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       topic_name = args[0][:topic]
       segment = NewRelic::Agent::Tracer.start_message_broker_segment(
         action: :produce,
@@ -29,6 +33,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def each_with_new_relic(message)
+      NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
+
       headers = message&.headers || {}
       topic_name = message&.topic
 
