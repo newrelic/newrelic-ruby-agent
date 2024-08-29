@@ -24,3 +24,11 @@ def ffi
 end
 
 create_gemfiles(VERSIONS)
+
+# check karafka-rdkafka compatibility as well
+# but we don't need to test it on every ruby version bc it should just be the same as rdkafka
+if Gem::Version.new(RUBY_VERSION) > Gem::Version.new('3.3.0')
+  gemfile <<~RB
+    gem 'karafka-rdkafka', require: 'rdkafka'
+  RB
+end
