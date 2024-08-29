@@ -1,0 +1,34 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+instrumentation_methods :chain, :prepend
+
+suite_condition("Does not run on JRuby") do
+  RUBY_PLATFORM != 'java'
+end
+
+VERSIONS = [
+  [nil, 2.5]
+]
+
+def gem_list(sidekiq_version = nil)
+  <<-RB
+    gem 'rdkafka'#{sidekiq_version}
+    #{ffi}
+  RB
+end
+
+def ffi
+  "gem 'ffi', '< 1.17.0'" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7')
+end
+
+create_gemfiles(VERSIONS)
+
+# check karafka-rdkafka compatibility as well
+# but we don't need to test it on every ruby version bc it should just be the same as rdkafka
+if Gem::Version.new(RUBY_VERSION) > Gem::Version.new('3.3.0')
+  gemfile <<~RB
+    gem 'karafka-rdkafka', require: 'rdkafka'
+  RB
+end

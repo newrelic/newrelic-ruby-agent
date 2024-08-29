@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> adds instrumentation for the rdkafka gem.
+
+- **Feature: Add instrumentation for the rdkafka gem**
+
+  The agent now has instrumentation for the rdkafka gem and will record message broker segments for produce and consume calls made using this gem. [PR#2824](https://github.com/newrelic/newrelic-ruby-agent/pull/2824)
+
+
 ## v9.13.0
 
 Version 9.13.0 enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, silences a Bundler deprecation warning, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby-specific concurrency issue.
