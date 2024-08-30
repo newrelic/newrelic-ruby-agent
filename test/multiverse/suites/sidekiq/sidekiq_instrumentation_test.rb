@@ -58,6 +58,11 @@ class SidekiqInstrumentationTest < Minitest::Test
   # client and server middleware, and the lighting up of NR's server middleware
   # will produce a segment
   def test_works_with_perform_inline
+    # Sidekiq version 6.4.2 ends up invoking String#constantize, which is only
+    # delivered by ActiveSupport, which this test suite doesn't currently
+    # include.
+    skip 'This test requires Sidekiq v7+' unless Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('7.0.0')
+
     in_transaction do |txn|
       NRDeadEndJob.perform_inline
       segments = txn.segments.select { |s| s.name.eql?('Nested/OtherTransaction/SidekiqJob/NRDeadEndJob/perform') }
