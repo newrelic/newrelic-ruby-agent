@@ -53,4 +53,16 @@ class SidekiqInstrumentationTest < Minitest::Test
     assert_equal 1, noticed.size
     assert_equal exception, noticed.first
   end
+
+  # Sidekiq::Job::Setter#perform_inline is expected to light up all registered
+  # client and server middleware, and the lighting up of NR's server middleware
+  # will produce a segment
+  def test_works_with_perform_inline
+    in_transaction do |txn|
+      NRDeadEndJob.perform_inline
+      segments = txn.segments.select { |s| s.name.eql?('Nested/OtherTransaction/SidekiqJob/NRDeadEndJob/perform') }
+
+      assert_equal 1, segments.size, "Expected to find a single Sidekiq job segment, found #{segments.size}"
+    end
+  end
 end
