@@ -1472,6 +1472,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the opensearch-ruby library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.rdkafka' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the rdkafka library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.aws_sqs' => {
           :default => 'auto',
           :public => true,

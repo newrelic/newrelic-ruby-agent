@@ -31,8 +31,9 @@ module NewRelic::Agent::Instrumentation
         collection: args[0][:table_name]
       )
 
-      arn = get_arn(args[0])
-      segment&.add_agent_attribute('cloud.resource_id', arn) if arn
+      # TODO: Update this when it has been decided how to handle account id for ARN
+      # arn = get_arn(args[0])
+      # segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
       @nr_captured_request = nil # clear request just in case
       begin
