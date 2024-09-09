@@ -5,14 +5,48 @@
 module NewRelic::Agent::Instrumentation
   module RubyKafka::Chain
     def self.instrument!
-      ::RubyKafka.class_eval do
+      ::Kafka::Producer.class_eval do
         include NewRelic::Agent::Instrumentation::RubyKafka
 
-        alias_method(:method_to_instrument_without_new_relic, :method_to_instrument)
+        alias_method(:produce_without_new_relic, :produce)
 
-        def method_to_instrument(*args)
-          method_to_instrument_with_new_relic(*args) do
-            method_to_instrument_without_new_relic(*args)
+        def produce(value, **kwargs)
+          produce_with_new_relic(value, **kwargs) do |headers|
+            kwargs[:headers] = headers
+            produce_without_new_relic(value, **kwargs)
+          end
+        end
+      end
+
+      ::Kafka::Consumer.class_eval do
+        include NewRelic::Agent::Instrumentation::RubyKafka
+
+        alias_method(:each_message_without_new_relic, :each_message)
+
+        def each_message(*args)
+          each_message_without_new_relic(*args) do |message|
+            each_message_with_new_relic(message) do
+              yield(message)
+            end
+          end
+        end
+      end
+
+      ::Kafka::Client.class_eval do
+        include NewRelic::Agent::Instrumentation::RubyKafkaConfig
+
+        alias_method(:producer_without_new_relic, :producer)
+        alias_method(:consumer_without_new_relic, :consumer)
+
+        def producer(**kwargs)
+          producer_without_new_relic(**kwargs).tap do |producer|
+            set_nr_config(producer)
+          end
+        end
+
+        def consumer(**kwargs)
+          consumer_without_new_relic(**kwargs).tap do |consumer|
+            set_nr_config(consumer)
           end
         end
       end
