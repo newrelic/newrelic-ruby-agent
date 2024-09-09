@@ -25,7 +25,7 @@ DependencyDetection.defer do
       prepend_instrument Kafka::Consumer, NewRelic::Agent::Instrumentation::RubyKafkaConsumer::Prepend
       prepend_instrument Kafka::Client, NewRelic::Agent::Instrumentation::RubyKafkaClient::Prepend
     else
-      # chain_instrument NewRelic::Agent::Instrumentation::RubyKafka::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::RubyKafka::Chain
     end
   end
 end
