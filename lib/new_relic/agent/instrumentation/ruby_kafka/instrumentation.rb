@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'new_relic/agent/messaging'
+
 module NewRelic::Agent::Instrumentation
   module RubyKafka
     MESSAGING_LIBRARY = 'Kafka'
