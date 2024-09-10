@@ -4,8 +4,11 @@
 
 class RubyKafkaInstrumentationTest < Minitest::Test
   def setup
+    @logger = Logger.new($stdout)
     @topic = 'ruby-test-topic' + Time.now.to_i.to_s
     @stats_engine = NewRelic::Agent.instance.stats_engine
+    puts ' '
+    puts '-' * 100
   end
 
   def teardown
@@ -75,7 +78,7 @@ class RubyKafkaInstrumentationTest < Minitest::Test
   end
 
   def config
-    Kafka.new([host], client_id: 'ruby-test')
+    Kafka.new([host], client_id: 'ruby-test', logger: @logger)
   end
 
   def produce_message(producer = config.producer)
