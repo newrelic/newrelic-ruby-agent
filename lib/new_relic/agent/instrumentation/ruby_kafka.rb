@@ -10,11 +10,7 @@ DependencyDetection.defer do
   named :'ruby_kafka'
 
   depends_on do
-    # The class that needs to be defined to prepend/chain onto. This can be used
-    # to determine whether the library is installed.
     defined?(Kafka)
-    # Add any additional requirements to verify whether this instrumentation
-    # should be installed
   end
 
   executes do
