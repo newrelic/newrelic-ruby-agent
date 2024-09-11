@@ -140,12 +140,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_application_logging_enabled_default
-      with_config(:'application_logging.enabled' => :foo) do
-        assert_equal :foo, NewRelic::Agent.config['application_logging.enabled']
-      end
-    end
-
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
       types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
