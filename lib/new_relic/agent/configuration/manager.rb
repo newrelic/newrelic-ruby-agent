@@ -388,7 +388,7 @@ module NewRelic
           # modified. The hash really only needs to be modified for the benefit
           # of the security agent, so if JRuby is in play and the security agent
           # is not, don't attempt to modify the hash at all and return early.
-          return @cache if NewRelic::LanguageSupport.jruby? && !Agent.config[:'security.agent.enabled']
+          return new_cache if NewRelic::LanguageSupport.jruby? && !Agent.config[:'security.agent.enabled']
 
           @lock.synchronize do
             preserved = @cache.dup.select { |_k, v| DEPENDENCY_DETECTION_VALUES.include?(v) }
