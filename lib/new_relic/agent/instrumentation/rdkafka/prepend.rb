@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'instrumentation'
+
 module NewRelic::Agent::Instrumentation
   module RdkafkaProducer
     module Prepend
@@ -34,7 +36,7 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::RdkafkaConfig
 
-      if Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0')
+      if defined?(::Rdkafka) && Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0')
         def producer(**kwargs)
           super.tap do |producer|
             set_nr_config(producer)
