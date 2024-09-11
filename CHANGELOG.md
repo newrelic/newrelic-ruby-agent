@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds kafka instrumentation for the rdkafka and ruby-kafka gems.
+Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems.
 
 - **Feature: Add kafka instrumentation for the rdkafka and ruby-kafka gems**
 
