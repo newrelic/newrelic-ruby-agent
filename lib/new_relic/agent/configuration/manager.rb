@@ -142,6 +142,9 @@ module NewRelic
           default = enforce_allowlist(key, evaluated)
           return default if default
 
+          boolean = enforce_boolean(key, value)
+          return boolean if [true, false].include?(boolean)
+
           apply_transformations(key, evaluated)
         end
 
@@ -161,6 +164,18 @@ module NewRelic
         def enforce_allowlist(key, value)
           return unless allowlist = default_source.allowlist_for(key)
           return if allowlist.include?(value)
+
+          default = default_source.default_for(key)
+          NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
+          default
+        end
+
+        def enforce_boolean(key, value)
+          type = default_source.value_from_defaults(key, :type)
+          return unless type == Boolean
+
+          bool_value = default_source.boolean_for(key, value)
+          return bool_value unless bool_value.nil?
 
           default = default_source.default_for(key)
           NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"

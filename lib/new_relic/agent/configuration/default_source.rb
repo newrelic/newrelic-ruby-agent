@@ -35,6 +35,15 @@ module NewRelic
       end
 
       class DefaultSource
+        BOOLEAN_MAP = {
+          'true' => true,
+          'yes' => true,
+          'on' => true,
+          'false' => false,
+          'no' => false,
+          'off' => false
+        }.freeze
+
         attr_reader :defaults
 
         extend Forwardable
@@ -62,6 +71,10 @@ module NewRelic
 
         def self.allowlist_for(key)
           value_from_defaults(key, :allowlist)
+        end
+
+        def self.boolean_for(key, value)
+          BOOLEAN_MAP.fetch(value.to_s, nil)
         end
 
         def self.default_for(key)
