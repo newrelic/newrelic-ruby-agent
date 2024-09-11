@@ -3,8 +3,8 @@
 # frozen_string_literal: true
 
 suite_condition('Skip in CI on newer ruby versions') do
-  # will run locally OR on CI for ruby < 3.3.0
-  !ENV['CI'] || RUBY_VERSION < '3.3.0'
+  # will run locally OR on CI for ruby < 3.4.0
+  !ENV['CI'] || RUBY_VERSION < '3.4.0'
 end
 
 instrumentation_methods :chain, :prepend
