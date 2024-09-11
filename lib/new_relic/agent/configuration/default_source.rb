@@ -74,7 +74,9 @@ module NewRelic
         end
 
         def self.boolean_for(key, value)
-          BOOLEAN_MAP.fetch(value.to_s, nil)
+          string_value = (value.respond_to?(:call) ? value.call : value).to_s
+
+          BOOLEAN_MAP.fetch(string_value, nil)
         end
 
         def self.default_for(key)
@@ -792,7 +794,8 @@ module NewRelic
         },
         # Browser monitoring
         :'browser_monitoring.auto_instrument' => {
-          :default => value_of(:'rum.enabled'),
+          # :default => value_of(:'rum.enabled'),
+          :default => true,
           :documentation_default => true,
           :public => true,
           :type => Boolean,
@@ -801,7 +804,8 @@ module NewRelic
         },
         # CSP nonce
         :'browser_monitoring.content_security_policy_nonce' => {
-          :default => value_of(:'rum.enabled'),
+          # :default => value_of(:'rum.enabled'),
+          :default => true,
           :documentation_default => true,
           :public => true,
           :type => Boolean,
@@ -2223,7 +2227,7 @@ module NewRelic
           :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
         },
         :'browser_monitoring.ssl_for_http' => {
-          :default => nil,
+          :default => false,
           :allow_nil => true,
           :public => false,
           :type => Boolean,

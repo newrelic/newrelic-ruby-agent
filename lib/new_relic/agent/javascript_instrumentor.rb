@@ -164,9 +164,8 @@ module NewRelic
 
       def add_ssl_for_http(data)
         ssl_for_http = NewRelic::Agent.config[:'browser_monitoring.ssl_for_http']
-        unless ssl_for_http.nil?
-          data[SSL_FOR_HTTP_KEY] = ssl_for_http
-        end
+
+        data[SSL_FOR_HTTP_KEY] = ssl_for_http if ssl_for_http
       end
 
       def add_attributes(data, txn)
