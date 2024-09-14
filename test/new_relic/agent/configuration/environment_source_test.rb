@@ -160,6 +160,18 @@ module NewRelic::Agent::Configuration
       assert_equal %w[hi bye], @environment_source[:'attributes.include']
     end
 
+    def test_array_based_params_use_the_transform_proc_when_present
+      arr = %w[James Jessie Meowth]
+
+      env_var = 'NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST'
+      param = :automatic_custom_instrumentation_method_list
+      ENV.stub(:[], arr.join(','), [env_var]) do
+        @environment_source.set_key_by_type(param, env_var)
+      end
+
+      assert_equal arr, @environment_source[param]
+    end
+
     def test_set_key_with_new_relic_prefix
       assert_applied_string('NEW_RELIC_LICENSE_KEY', :license_key)
     end
