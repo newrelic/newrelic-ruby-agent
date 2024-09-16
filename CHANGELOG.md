@@ -2,11 +2,12 @@
 
 ## dev
 
-Version <dev> adds instrumentation for the rdkafka gem and fixes a JRuby bug in the configuration manager.
 
-- **Feature: Add instrumentation for the rdkafka gem**
+Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems and fixes a JRuby bug in the configuration manager.
 
-  The agent now has instrumentation for the rdkafka gem and will record message broker segments for produce and consume calls made using this gem. [PR#2824](https://github.com/newrelic/newrelic-ruby-agent/pull/2824)
+- **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
+
+  The agent now has instrumentation for both the rdkafka and ruby-kafka gems. The agent will record transactions and message broker segments for produce and consume calls made using these gems. [PR#2824](https://github.com/newrelic/newrelic-ruby-agent/pull/2824) [PR#2842](https://github.com/newrelic/newrelic-ruby-agent/pull/2842)
 
 - **Bugfix: Jruby not saving configuration values correctly in configuration manager**
 
