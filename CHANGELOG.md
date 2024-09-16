@@ -3,7 +3,7 @@
 ## dev
 
 
-Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration based automatic way to add custom instrumentation method tracers, and fixes a JRuby bug in the configuration manager.
+Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, and fixes a JRuby bug in the configuration manager.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
