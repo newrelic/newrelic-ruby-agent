@@ -771,6 +771,8 @@ module NewRelic
     end
 
     def test_prep_tracer_handles_a_failed_tracer_add_attempt
+      skip_unless_minitest5_or_above
+
       notation = "Monk's.Blend"
       NewRelic::LanguageSupport.stub :constantize, -> { raise 'kaboom' }, [notation] do
         result = with_logger_expectation(:error, /Unable to automatically apply .*#{notation}/) do
@@ -782,6 +784,8 @@ module NewRelic
     end
 
     def test_prep_tracer_for_traces_a_class_method
+      skip_unless_minitest5_or_above
+
       notation = 'A::Short.hike'
       NewRelic::LanguageSupport.stub :constantize, TesterClass, [notation] do
         NewRelic::Agent.stub :add_or_defer_method_tracer, nil, [TesterClass.singleton_class, 'hike', nil, {}] do
@@ -793,6 +797,8 @@ module NewRelic
     end
 
     def test_prep_tracer_for_traces_an_instance_method
+      skip_unless_minitest5_or_above
+
       notation = 'A::Short#hike'
       NewRelic::LanguageSupport.stub :constantize, TesterClass, [notation] do
         NewRelic::Agent.stub :add_or_defer_method_tracer, nil, [TesterClass, 'hike', nil, {}] do

@@ -161,6 +161,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_array_based_params_use_the_transform_proc_when_present
+      skip_unless_minitest5_or_above
+
       arr = %w[James Jessie Meowth]
 
       env_var = 'NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST'
