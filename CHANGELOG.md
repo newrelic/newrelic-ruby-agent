@@ -3,11 +3,58 @@
 ## dev
 
 
-Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems and fixes a JRuby bug in the configuration manager.
+Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration based automatic way to add custom instrumentation method tracers, and fixes a JRuby bug in the configuration manager.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
   The agent now has instrumentation for both the rdkafka and ruby-kafka gems. The agent will record transactions and message broker segments for produce and consume calls made using these gems. [PR#2824](https://github.com/newrelic/newrelic-ruby-agent/pull/2824) [PR#2842](https://github.com/newrelic/newrelic-ruby-agent/pull/2842)
+
+- **Feature: Add a configuration option to permit custom method tracers to be defined automatically**
+
+  A new `:automatic_custom_instrumentation_method_list` configuration parameter has been added to permit the user to define a list of fully qualified (namespaced) Ruby methods for the agent to automatically add custom instrumentation for without requiring any code modifications to be made to the classes that define the methods.
+
+  The list should be an array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings.
+
+  Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
+
+  Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
+
+  ```
+  module MyCompany
+      class Image
+      def render_png
+          # code to render a PNG
+      end
+      end
+      class User
+      def self.notify
+          # code to notify users
+      end
+      end
+  end
+  ```
+
+  Given that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
+
+  ```
+  automatic_custom_instrumentation_method_list:
+    - MyCompany::Image#render_png
+    - MyCompany::User.notify
+  ```
+
+  That configuration example uses YAML array syntax to specify both methods. Alternatively, a comma-delimited string can be used instead:
+
+  ```
+  automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
+  ```
+
+  Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used:
+
+  ```
+  export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
+  ```
+
+[PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
 
 - **Bugfix: Jruby not saving configuration values correctly in configuration manager**
 

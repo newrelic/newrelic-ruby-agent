@@ -1180,7 +1180,11 @@ module NewRelic
             automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
             ```
 
-            Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used.
+            Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used:
+
+            ```
+            export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
+            ```
           DESCRIPTION
         },
         # Custom events
