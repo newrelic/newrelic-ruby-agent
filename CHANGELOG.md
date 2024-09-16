@@ -21,16 +21,17 @@ Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka g
 
   ```
   module MyCompany
-      class Image
+    class Image
       def render_png
-          # code to render a PNG
+        # code to render a PNG
       end
-      end
-      class User
+    end
+
+    class User
       def self.notify
-          # code to notify users
+        # code to notify users
       end
-      end
+    end
   end
   ```
 
