@@ -170,6 +170,7 @@ module NewRelic
       end
     end
 
+    # @api private
     def self.add_automatic_method_tracers(arr)
       return unless arr
       return arr if arr.respond_to?(:empty?) && arr.empty?
@@ -190,6 +191,8 @@ module NewRelic
     #   - the maximum number of attempts has been reached
     # the thread will only be spawned once per agent initialization, to account
     # for configuration reloading scenarios.
+    #
+    # @api private
     def self.add_tracers_once_methods_are_defined(notations)
       # this class method can be invoked multiple times at agent startup, so
       # we return asap here instead of using a traditional memoization of
@@ -215,6 +218,8 @@ module NewRelic
     # processed or raised an error during processing. returns `false` if the
     # string seems good but the (customer) code to be traced has not yet been
     # loaded into the Ruby VM
+    #
+    # @api private
     def self.prep_tracer_for(fully_qualified_method_notation)
       delimiters = fully_qualified_method_notation.scan(/\.|#/)
       raise AutomaticTracerParseException.new("Expected exactly one '.' or '#' delimiter.") unless delimiters.size == 1
@@ -250,6 +255,7 @@ module NewRelic
       true
     end
 
+    # @api private
     def add_deferred_method_tracers_now
       @tracer_lock.synchronize do
         @tracer_queue.each do |receiver, method_name, metric_name, options|
