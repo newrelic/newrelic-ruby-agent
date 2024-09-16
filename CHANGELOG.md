@@ -17,7 +17,7 @@ Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka g
 
   Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
 
-  Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
+  Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
 
   ```
   module MyCompany
