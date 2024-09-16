@@ -1144,7 +1144,7 @@ module NewRelic
           :allowed_from_server => false,
           :transform => proc { |arr| NewRelic::Agent.add_automatic_method_tracers(arr) },
           :description => <<~DESCRIPTION
-            An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods for the agent to add custom instrumentation to automatically without the need for altering any of the source code that defines the methods.
+            An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods for the agent to automatically add custom instrumentation to without the need for altering any of the source code that defines the methods.
 
             Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
 
