@@ -794,8 +794,7 @@ module NewRelic
         },
         # Browser monitoring
         :'browser_monitoring.auto_instrument' => {
-          # :default => value_of(:'rum.enabled'),
-          :default => true,
+          :default => value_of(:'rum.enabled'),
           :documentation_default => true,
           :public => true,
           :type => Boolean,
@@ -804,8 +803,7 @@ module NewRelic
         },
         # CSP nonce
         :'browser_monitoring.content_security_policy_nonce' => {
-          # :default => value_of(:'rum.enabled'),
-          :default => true,
+          :default => value_of(:'rum.enabled'),
           :documentation_default => true,
           :public => true,
           :type => Boolean,
