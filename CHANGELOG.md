@@ -2,8 +2,7 @@
 
 ## dev
 
-
-Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, and fixes a JRuby bug in the configuration manager.
+Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, and fixes a JRuby bug in the configuration manager, and fixes a bug related to `Bundler.rubygems.installed_specs`.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
@@ -61,6 +60,9 @@ Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka g
 
   Previously, a change made to fix a different JRuby bug caused the agent to not save configuration values correctly in the configuration manager when running on JRuby. This has been fixed. [PR#2848](https://github.com/newrelic/newrelic-ruby-agent/pull/2848)
 
+- **Bugfix: Update condition to verify Bundler.rubygems.installed_specs is available**
+
+  To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low.
 
 ## v9.13.0
 
@@ -68,11 +70,11 @@ Version 9.13.0 enhances support for AWS Lambda functions, adds experimental Open
 
 - **Feature: Enhance AWS Lambda function instrumentation**
 
-When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layers.newrelic-external.com/), the agent now offers enhanced support for AWS Lambda function instrumentation. 
-* The agent's instrumentation for AWS Lambda functions now supports distributed tracing. 
-* Web-triggered invocations are now identified as being "web"-based when an API Gateway call is involved, with support for both API Gateway versions 1.0 and 2.0. 
-* Web-based calls have the HTTP method, URI, and status code recorded. 
-* The agent now recognizes and reports on 12 separate AWS resources that are capable of triggering a Lambda function invocation: ALB, API Gateway V1, API Gateway V2, CloudFront, CloudWatch Scheduler, DynamoStreams, Firehose, Kinesis, S3, SES, SNS, and SQS. 
+When utilized via the latest [New Relic Ruby layer for AWS Lambda](https://layers.newrelic-external.com/), the agent now offers enhanced support for AWS Lambda function instrumentation.
+* The agent's instrumentation for AWS Lambda functions now supports distributed tracing.
+* Web-triggered invocations are now identified as being "web"-based when an API Gateway call is involved, with support for both API Gateway versions 1.0 and 2.0.
+* Web-based calls have the HTTP method, URI, and status code recorded.
+* The agent now recognizes and reports on 12 separate AWS resources that are capable of triggering a Lambda function invocation: ALB, API Gateway V1, API Gateway V2, CloudFront, CloudWatch Scheduler, DynamoStreams, Firehose, Kinesis, S3, SES, SNS, and SQS.
 * The type of the triggering resource and its ARN will be recorded for each resource, and for many of them, extra resource-specific attributes will be recorded as well. For example, Lambda function invocations triggered by S3 bucket activity will now result in the S3 bucket name being recorded.
 [PR#2811](https://github.com/newrelic/newrelic-ruby-agent/pull/2811)
 
