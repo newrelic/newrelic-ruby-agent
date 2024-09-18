@@ -35,6 +35,7 @@ module NewRelic
 
         module_function
 
+        # Used only for testing
         def should_install?
           safe_from_third_party_gem?
         end
@@ -47,9 +48,13 @@ module NewRelic
         end
 
         def should_trace?(name)
-          NewRelic::Agent.config[:'rake.tasks'].any? do |regex|
+          result = NewRelic::Agent.config[:'rake.tasks'].any? do |regex|
+            NewRelic::Agent.logger.debug("WALUIGI: Instrumentation::Rake#should_trace? - name: #{name}; regex: #{regex}")
             regex.match(name)
           end
+
+          NewRelic::Agent.logger.debug("WALUIGI: Instrumentation::Rake#should_trace? - result: #{result}")
+          result
         end
 
         def instrument_execute_on_prereqs(task)
@@ -128,6 +133,7 @@ module NewRelic
           return if @installed_at_exit
 
           at_exit do
+            NewRelic::Agent.logger.debug("WALUIGI: ensure_at_exit run")
             # The agent's default at_exit might not default to installing, but
             # if we are running an instrumented rake task, we always want it.
             # No code coverage, as the strategy for mocking Kernel.exit prevents

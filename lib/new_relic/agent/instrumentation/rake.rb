@@ -23,8 +23,10 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
+      NewRelic::Agent.logger.debug('WALUIGI: Prepend instrument for Rake task fired')
       prepend_instrument Rake::Task, NewRelic::Agent::Instrumentation::Rake::Prepend
     else
+      NewRelic::Agent.logger.debug('WALUIGI: Chain instrument for Rake task fired')
       chain_instrument NewRelic::Agent::Instrumentation::Rake::Chain
     end
   end

@@ -7,6 +7,7 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::Rake::Tracer
       def invoke(*args)
+        NewRelic::Agent.logger.debug("WALUIGI: Instrumentation::Rake::Prepend#invoke fired. args: #{args}")
         invoke_with_newrelic_tracing(*args) { super }
       end
     end

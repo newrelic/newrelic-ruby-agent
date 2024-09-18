@@ -11,6 +11,7 @@ module NewRelic::Agent::Instrumentation
           alias_method(:invoke_without_newrelic, :invoke)
 
           def invoke(*args)
+            NewRelic::Agent.logger.debug("WALUIGI: Instrumentation::Rake::Chain#invoke fired. args: #{args}")
             invoke_with_newrelic_tracing(*args) { invoke_without_newrelic(*args) }
           end
         end
