@@ -285,14 +285,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_boolean_configs_accepts_yes_on_and_true_as_strings
-      key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
-      config_array = %w[yes on true]
-
-      config_array.each do |value|
-        with_config(key => value) do
-          assert NewRelic::Agent.config[key]
     def test_automatic_custom_instrumentation_method_list_supports_an_array
       key = :automatic_custom_instrumentation_method_list
       list = %w[Beano::Roger#dodge Beano::Gnasher.gnash]
@@ -304,14 +296,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_boolean_configs_accepts_yes_on_and_true_as_symbols
-      key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
-      config_array = %i[yes on true]
-
-      config_array.each do |value|
-        with_config(key => value) do
-          assert NewRelic::Agent.config[key]
     def test_automatic_custom_instrumentation_method_list_supports_a_comma_delmited_string
       key = :automatic_custom_instrumentation_method_list
       list = %w[Beano::Roger#dodge Beano::Gnasher.gnash]
@@ -323,14 +307,37 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_boolean_configs_accepts_no_off_and_false_as_strings
+    def test_boolean_configs_accepts_yes_on_and_true_as_strings
       key = :'send_data_on_exit'
       default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
-      config_array = %w[no off false]
+      config_array = %w[yes on true]
 
       config_array.each do |value|
         with_config(key => value) do
-          refute NewRelic::Agent.config[key]
+          assert NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as truthy!"
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_yes_on_and_true_as_symbols
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+      config_array = %i[yes on true]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          assert NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as truthy!"
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_no_off_and_false_as_strings
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+
+      %w[no off false].each do |value|
+        with_config(key => value) do
+          refute NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as falsey!"
         end
       end
     end
@@ -338,11 +345,10 @@ module NewRelic::Agent::Configuration
     def test_boolean_configs_accepts_no_off_and_false_as_strings_as_symbols
       key = :'send_data_on_exit'
       default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
-      config_array = %i[no off false]
 
-      config_array.each do |value|
+      %i[no off false].each do |value|
         with_config(key => value) do
-          refute NewRelic::Agent.config[key]
+          refute NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as falsey!"
         end
       end
     end
