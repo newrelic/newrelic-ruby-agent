@@ -90,7 +90,7 @@ module NewRelic
     def bundled_gem?(gem_name)
       return false unless defined?(Bundler)
 
-      if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new('2.0.0')
+      if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new('2.5.12')
         Bundler.rubygems.installed_specs.map(&:name).include?(gem_name)
       else
         Bundler.rubygems.all_specs.map(&:name).include?(gem_name)
