@@ -285,6 +285,81 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_boolean_configs_accepts_yes_on_and_true_as_strings
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+      config_array = %w[yes on true]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          assert NewRelic::Agent.config[key]
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_yes_on_and_true_as_symbols
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+      config_array = %i[yes on true]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          assert NewRelic::Agent.config[key]
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_no_off_and_false_as_strings
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+      config_array = %w[no off false]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          refute NewRelic::Agent.config[key]
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_no_off_and_false_as_strings_as_symbols
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+      config_array = %i[no off false]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          refute NewRelic::Agent.config[key]
+        end
+      end
+    end
+
+    def test_enforce_boolean_uses_defult_on_invalid_value
+      key = :'send_data_on_exit' # default value is `true`
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+
+      with_config(key => 'invalid_value') do
+        assert NewRelic::Agent.config[key]
+      end
+    end
+
+    def test_enforce_boolean_logs_warning_on_invalid_value
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+
+      with_config(key => 'yikes!') do
+        expects_logging(:warn, includes("Invalid value 'yikes!' for #{key}, applying default value of '#{default}'"))
+      end
+    end
+
+    def test_boolean_config_evaluates_proc_configs
+      key = :agent_enabled # default value is a proc
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+
+      with_config(key => 'off') do
+        refute NewRelic::Agent.config[key]
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 
