@@ -309,7 +309,6 @@ module NewRelic::Agent::Configuration
 
     def test_boolean_configs_accepts_yes_on_and_true_as_strings
       key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
       config_array = %w[yes on true]
 
       config_array.each do |value|
@@ -321,7 +320,6 @@ module NewRelic::Agent::Configuration
 
     def test_boolean_configs_accepts_yes_on_and_true_as_symbols
       key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
       config_array = %i[yes on true]
 
       config_array.each do |value|
@@ -333,7 +331,6 @@ module NewRelic::Agent::Configuration
 
     def test_boolean_configs_accepts_no_off_and_false_as_strings
       key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       %w[no off false].each do |value|
         with_config(key => value) do
@@ -344,7 +341,6 @@ module NewRelic::Agent::Configuration
 
     def test_boolean_configs_accepts_no_off_and_false_as_strings_as_symbols
       key = :'send_data_on_exit'
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       %i[no off false].each do |value|
         with_config(key => value) do
@@ -355,7 +351,6 @@ module NewRelic::Agent::Configuration
 
     def test_enforce_boolean_uses_defult_on_invalid_value
       key = :'send_data_on_exit' # default value is `true`
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       with_config(key => 'invalid_value') do
         assert NewRelic::Agent.config[key]
@@ -373,7 +368,6 @@ module NewRelic::Agent::Configuration
 
     def test_boolean_config_evaluates_proc_configs
       key = :agent_enabled # default value is a proc
-      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
 
       with_config(key => 'off') do
         refute NewRelic::Agent.config[key]
