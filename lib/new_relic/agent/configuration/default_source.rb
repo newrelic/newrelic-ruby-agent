@@ -1152,6 +1152,56 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `false`, custom attributes will not be sent on events.'
         },
+        :automatic_custom_instrumentation_method_list => {
+          :default => NewRelic::EMPTY_ARRAY,
+          :public => true,
+          :type => Array,
+          :allowed_from_server => false,
+          :transform => proc { |arr| NewRelic::Agent.add_automatic_method_tracers(arr) },
+          :description => <<~DESCRIPTION
+            An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods for the agent to automatically add custom instrumentation to without the need for altering any of the source code that defines the methods.
+
+            Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
+
+            Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
+
+            ```
+            module MyCompany
+              class Image
+                def render_png
+                  # code to render a PNG
+                end
+              end
+
+              class User
+                def self.notify
+                  # code to notify users
+                end
+              end
+            end
+            ```
+
+            Given that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
+
+            ```
+            automatic_custom_instrumentation_method_list:
+              - MyCompany::Image#render_png
+              - MyCompany::User.notify
+            ```
+
+            That configuration example uses YAML array syntax to specify both methods. Alternatively, a comma-delimited string can be used instead:
+
+            ```
+            automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
+            ```
+
+            Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used:
+
+            ```
+            export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
+            ```
+          DESCRIPTION
+        },
         # Custom events
         :'custom_insights_events.enabled' => {
           :default => true,
@@ -1477,6 +1527,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.ruby_kafka' => {
+          :default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the ruby-kafka library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.opensearch' => {
           :default => 'auto',

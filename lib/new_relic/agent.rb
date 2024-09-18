@@ -85,6 +85,10 @@ module NewRelic
     # An exception that forces an agent to stop reporting until its mongrel is restarted.
     class ForceDisconnectException < StandardError; end
 
+    # Error handling for the automated custom instrumentation tracer logic
+    class AutomaticTracerParseException < StandardError; end
+    class AutomaticTracerTraceException < StandardError; end
+
     # An exception that forces an agent to restart.
     class ForceRestartException < StandardError
       def message
@@ -109,6 +113,9 @@ module NewRelic
     # placeholder name used when we cannot determine a transaction's name
     UNKNOWN_METRIC = '(unknown)'.freeze
     LLM_FEEDBACK_MESSAGE = 'LlmFeedbackMessage'
+    # give the observed app time to load the code that automatic tracers have
+    # been configured for
+    AUTOMATIC_TRACER_MAX_ATTEMPTS = 60 # 60 = try about twice a second for 30 seconds
 
     attr_reader :error_group_callback
     attr_reader :llm_token_count_callback
@@ -163,6 +170,92 @@ module NewRelic
       end
     end
 
+    # @api private
+    def self.add_automatic_method_tracers(arr)
+      return unless arr
+      return arr if arr.respond_to?(:empty?) && arr.empty?
+
+      arr = arr.split(/\s*,\s*/) if arr.is_a?(String)
+
+      add_tracers_once_methods_are_defined(arr.dup)
+
+      arr
+    end
+
+    # spawn a thread that will attempt to establish a tracer for each of the
+    # configured methods. the thread will continue to keep trying with each
+    # tracer until one of the following happens:
+    #   - the tracer is successfully established
+    #   - the configured method string couldn't be parsed
+    #   - establishing a tracer for a successfully parsed string failed
+    #   - the maximum number of attempts has been reached
+    # the thread will only be spawned once per agent initialization, to account
+    # for configuration reloading scenarios.
+    #
+    # @api private
+    def self.add_tracers_once_methods_are_defined(notations)
+      # this class method can be invoked multiple times at agent startup, so
+      # we return asap here instead of using a traditional memoization of
+      # waiting for the method's body to finish being executed
+      if defined?(@add_tracers_once_methods_are_defined)
+        return
+      else
+        @add_tracers_once_methods_are_defined = true
+      end
+
+      Thread.new do
+        AUTOMATIC_TRACER_MAX_ATTEMPTS.times do
+          notations.delete_if { |notation| prep_tracer_for(notation) }
+
+          break if notations.empty?
+
+          sleep 0.5
+        end
+      end
+    end
+
+    # returns `true` if the notation string has either been successfully
+    # processed or raised an error during processing. returns `false` if the
+    # string seems good but the (customer) code to be traced has not yet been
+    # loaded into the Ruby VM
+    #
+    # @api private
+    def self.prep_tracer_for(fully_qualified_method_notation)
+      delimiters = fully_qualified_method_notation.scan(/\.|#/)
+      raise AutomaticTracerParseException.new("Expected exactly one '.' or '#' delimiter.") unless delimiters.size == 1
+
+      delimiter = delimiters.first
+      namespace, method_name = fully_qualified_method_notation.split(delimiter)
+      unless namespace && !namespace.empty?
+        raise AutomaticTracerParseException.new("Nothing found to the left of the #{delimiter} delimiter.")
+      end
+      unless method_name && !method_name.empty?
+        raise AutomaticTracerParseException.new("Nothing found to the right of the #{delimiter} delimiter.")
+      end
+
+      begin
+        klass = ::NewRelic::LanguageSupport.constantize(namespace)
+        return false unless klass
+
+        klass_to_trace = delimiter.eql?('.') ? klass.singleton_class : klass
+        add_or_defer_method_tracer(klass_to_trace, method_name, nil, {})
+      rescue StandardError => e
+        raise AutomaticTracerTraceException.new("#{e.class} - #{e.message}")
+      end
+
+      true
+    rescue AutomaticTracerParseException => e
+      NewRelic::Agent.logger.error('Unable to parse out a usable method name to trace. Expected a valid, fully ' \
+                                   "qualified method notation. Got: '#{fully_qualified_method_notation}'. " \
+                                   "Error: #{e.message}")
+      true
+    rescue AutomaticTracerTraceException => e
+      NewRelic::Agent.logger.error('Unable to automatically apply a tracer to method ' \
+                                   "'#{fully_qualified_method_notation}'. Error: #{e.message}")
+      true
+    end
+
+    # @api private
     def add_deferred_method_tracers_now
       @tracer_lock.synchronize do
         @tracer_queue.each do |receiver, method_name, metric_name, options|

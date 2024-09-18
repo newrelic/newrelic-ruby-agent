@@ -293,6 +293,13 @@ module NewRelic::Agent::Configuration
       config_array.each do |value|
         with_config(key => value) do
           assert NewRelic::Agent.config[key]
+    def test_automatic_custom_instrumentation_method_list_supports_an_array
+      key = :automatic_custom_instrumentation_method_list
+      list = %w[Beano::Roger#dodge Beano::Gnasher.gnash]
+      NewRelic::Agent.stub :add_tracers_once_methods_are_defined, nil do
+        with_config(key => list) do
+          assert_equal list, NewRelic::Agent.config[key],
+            "Expected '#{key}' to be configured with the unmodified original list"
         end
       end
     end
@@ -305,6 +312,13 @@ module NewRelic::Agent::Configuration
       config_array.each do |value|
         with_config(key => value) do
           assert NewRelic::Agent.config[key]
+    def test_automatic_custom_instrumentation_method_list_supports_a_comma_delmited_string
+      key = :automatic_custom_instrumentation_method_list
+      list = %w[Beano::Roger#dodge Beano::Gnasher.gnash]
+      NewRelic::Agent.stub :add_tracers_once_methods_are_defined, nil do
+        with_config(key => list.join('                                          ,')) do
+          assert_equal list, NewRelic::Agent.config[key],
+            "Expected '#{key}' to be configured with the given string converted into an array"
         end
       end
     end
