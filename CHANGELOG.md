@@ -57,7 +57,7 @@ Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka g
 
 [PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
 
-  - **Bugfix: Corrected Boolean coercion for `newrelic.yml` configuration**
+- **Bugfix: Corrected Boolean coercion for `newrelic.yml` configuration**
 
   Previously, any String assigned to New Relic configurations expecting a Boolean value were evaluated as `true`. This could lead to unexpected behavior. For example, setting `application_logging.enabled: 'false'` in `newrelic.yml` would incorrectly evaluate to `application_logging.enabled: true` due to the truthy nature of Strings. 
 
