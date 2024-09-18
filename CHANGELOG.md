@@ -62,7 +62,7 @@ Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka g
 
 - **Bugfix: Update condition to verify Bundler.rubygems.installed_specs is available**
 
-  To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low.
+  To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low. Now, rather than check the version, we check for the method using `respond_to?`.
 
 ## v9.13.0
 

@@ -44,7 +44,7 @@ module NewRelic
     ####################################
     report_on('Gems') do
       begin
-        if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new('2.5.12')
+        if Bundler.rubygems.respond_to?(:installed_specs)
           Bundler.rubygems.installed_specs.map { |gem| "#{gem.name}(#{gem.version})" }
         else
           Bundler.rubygems.all_specs.map { |gem| "#{gem.name}(#{gem.version})" }
