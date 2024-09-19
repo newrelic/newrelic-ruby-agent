@@ -35,6 +35,15 @@ module NewRelic
       end
 
       class DefaultSource
+        BOOLEAN_MAP = {
+          'true' => true,
+          'yes' => true,
+          'on' => true,
+          'false' => false,
+          'no' => false,
+          'off' => false
+        }.freeze
+
         attr_reader :defaults
 
         extend Forwardable
@@ -62,6 +71,12 @@ module NewRelic
 
         def self.allowlist_for(key)
           value_from_defaults(key, :allowlist)
+        end
+
+        def self.boolean_for(key, value)
+          string_value = (value.respond_to?(:call) ? value.call : value).to_s
+
+          BOOLEAN_MAP.fetch(string_value, nil)
         end
 
         def self.default_for(key)
@@ -2268,7 +2283,7 @@ module NewRelic
           :description => 'Enable or disable debugging version of JavaScript agent loader for browser monitoring instrumentation.'
         },
         :'browser_monitoring.ssl_for_http' => {
-          :default => nil,
+          :default => false,
           :allow_nil => true,
           :public => false,
           :type => Boolean,
