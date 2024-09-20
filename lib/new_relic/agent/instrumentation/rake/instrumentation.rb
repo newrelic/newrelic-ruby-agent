@@ -133,7 +133,7 @@ module NewRelic
           return if @installed_at_exit
 
           at_exit do
-            NewRelic::Agent.logger.debug("WALUIGI: ensure_at_exit run")
+            NewRelic::Agent.logger.debug('WALUIGI: ensure_at_exit run')
             # The agent's default at_exit might not default to installing, but
             # if we are running an instrumented rake task, we always want it.
             # No code coverage, as the strategy for mocking Kernel.exit prevents
