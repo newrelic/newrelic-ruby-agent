@@ -56,6 +56,10 @@ Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka g
 
 [PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
 
+- **Feature: Collect just MIME type from AcionDispatch requests**
+  
+  Rails 7.0 [introduced changes](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is) to the behavior of `ActionDispatch::Request#content_type`, adding extra request-related details the agent wasn't expecting to collect. Additionally, the agent's use of `content_type ` was triggering deprecation warnings. The agent now uses `ActionDispatch::Request#media_type` to capture the MIME type. Thanks to [@internethostage](https://github.com/internethostage) for letting us know about this change. [Issue#2500](https://github.com/newrelic/newrelic-ruby-agent/issues/2500) [PR#2855](https://github.com/newrelic/newrelic-ruby-agent/pull/2855)
+
 - **Bugfix: Corrected Boolean coercion for `newrelic.yml` configuration**
 
   Previously, any String assigned to New Relic configurations expecting a Boolean value were evaluated as `true`. This could lead to unexpected behavior. For example, setting `application_logging.enabled: 'false'` in `newrelic.yml` would incorrectly evaluate to `application_logging.enabled: true` due to the truthy nature of Strings. 
