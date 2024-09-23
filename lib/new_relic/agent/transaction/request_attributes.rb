@@ -131,10 +131,11 @@ module NewRelic
           # Rails 7.0 changed the behavior of `content_type`. We want just the MIME type, so use `media_type` if available.
           # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is
           content_type = if request.respond_to?(:media_type)
-            request.media_type
+            :media_type
           elsif request.respond_to?(:content_type)
-            request.content_type
+            :content_type
           end
+          # binding.irb if !content_type.nil?
 
           request.send(content_type) if content_type
         end
