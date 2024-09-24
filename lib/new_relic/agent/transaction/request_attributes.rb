@@ -135,7 +135,6 @@ module NewRelic
           elsif request.respond_to?(:content_type)
             :content_type
           end
-          # binding.irb if !content_type.nil?
 
           request.send(content_type) if content_type
         end
