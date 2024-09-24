@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, fixes a JRuby bug in the configuration manager, and fixes a bug related to `Bundler.rubygems.installed_specs`.
+Version <dev> adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for AcionDispatch 7.0+ requests, fixes a JRuby bug in the configuration manager, and fixes a bug related to `Bundler.rubygems.installed_specs`.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
