@@ -2770,9 +2770,22 @@ module NewRelic
           :default => 3600,
           :public => true,
           :type => Integer,
-          :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of http request limit for ISAT scan per minute. Default is 3600. Minimum is 12 and maximum is 3600'
+        },
+        :'security.scan_controllers.scan_instance_count' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Scan instance count controls the number of application instances for a specific entity where IAST analysis is performed'
+        },
+        :'security.iast_test_identifier' => {
+          :default => nil,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'This will allow users to run IAST for CI/CD'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
