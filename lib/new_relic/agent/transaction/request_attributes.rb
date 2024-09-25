@@ -24,7 +24,7 @@ module NewRelic
           @referer = referer_from_request(request)
           @accept = attribute_from_env(request, HTTP_ACCEPT_HEADER_KEY)
           @content_length = content_length_from_request(request)
-          @content_type = attribute_from_request(request, :content_type)
+          @content_type = content_type_attribute_from_request(request)
           @host = attribute_from_request(request, :host)
           @port = port_from_request(request)
           @user_agent = attribute_from_request(request, :user_agent)
@@ -125,6 +125,18 @@ module NewRelic
           if request.respond_to?(attribute_method)
             request.send(attribute_method)
           end
+        end
+
+        def content_type_attribute_from_request(request)
+          # Rails 7.0 changed the behavior of `content_type`. We want just the MIME type, so use `media_type` if available.
+          # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is
+          content_type = if request.respond_to?(:media_type)
+            :media_type
+          elsif request.respond_to?(:content_type)
+            :content_type
+          end
+
+          request.send(content_type) if content_type
         end
 
         def attribute_from_env(request, key)
