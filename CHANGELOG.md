@@ -54,15 +54,15 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
   export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
   ```
 
-[PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
+  [PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
 
 - **Feature: Collect just MIME type for AcionDispatch 7.0+ requests**
-  
+
   Rails 7.0 [introduced changes](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is) to the behavior of `ActionDispatch::Request#content_type`, adding extra request-related details the agent wasn't expecting to collect. Additionally, the agent's use of `content_type ` was triggering deprecation warnings. The agent now uses `ActionDispatch::Request#media_type` to capture the MIME type. Thanks to [@internethostage](https://github.com/internethostage) for letting us know about this change. [Issue#2500](https://github.com/newrelic/newrelic-ruby-agent/issues/2500) [PR#2855](https://github.com/newrelic/newrelic-ruby-agent/pull/2855)
 
 - **Bugfix: Corrected Boolean coercion for `newrelic.yml` configuration**
 
-  Previously, any String assigned to New Relic configurations expecting a Boolean value were evaluated as `true`. This could lead to unexpected behavior. For example, setting `application_logging.enabled: 'false'` in `newrelic.yml` would incorrectly evaluate to `application_logging.enabled: true` due to the truthy nature of Strings. 
+  Previously, any String assigned to New Relic configurations expecting a Boolean value were evaluated as `true`. This could lead to unexpected behavior. For example, setting `application_logging.enabled: 'false'` in `newrelic.yml` would incorrectly evaluate to `application_logging.enabled: true` due to the truthy nature of Strings.
 
   Now, the agent strictly interprets Boolean configuration values. It recognizes both actual Boolean values and certain Strings/Symbols:
   - `'true'`, `'yes'`, or `'on'` (evaluates to `true`)
@@ -70,13 +70,13 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
 
   Any other inputs will revert to the setting's default configuration value. [PR#2847](https://github.com/newrelic/newrelic-ruby-agent/pull/2847)
 
-- **Bugfix: Jruby not saving configuration values correctly in configuration manager**
+- **Bugfix: JRuby not saving configuration values correctly in configuration manager**
 
   Previously, a change made to fix a different JRuby bug caused the agent to not save configuration values correctly in the configuration manager when running on JRuby. This has been fixed. [PR#2848](https://github.com/newrelic/newrelic-ruby-agent/pull/2848)
 
 - **Bugfix: Update condition to verify Bundler.rubygems.installed_specs is available**
 
-  To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low. Now, rather than check the version, we check for the method using `respond_to?`.
+  To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low. Now, rather than check the version, we check for the method using `respond_to?`. [PR#2853](https://github.com/newrelic/newrelic-ruby-agent/pull/2853)
 
 ## v9.13.0
 
