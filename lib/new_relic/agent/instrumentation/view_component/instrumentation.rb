@@ -11,7 +11,10 @@ module NewRelic::Agent::Instrumentation
 
       begin
         segment = NewRelic::Agent::Tracer.start_segment(
-          name: metric_name(self.class.identifier, self.class.name)
+          name: metric_name(
+            self.class.respond_to?(:identifier) ? self.class.identifier : nil,
+            self.class.name
+          )
         )
         yield
       rescue => e
