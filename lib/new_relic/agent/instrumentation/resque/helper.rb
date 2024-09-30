@@ -10,6 +10,9 @@ module NewRelic
           extend self
 
           def resque_fork_per_job?
+            NewRelic::Agent.logger.debug("PAISLEY: resque_fork_per_job?")
+            NewRelic::Agent.logger.debug("PAISLEY: ENV['FORK_PER_JOB'] value => #{ENV['FORK_PER_JOB']}")
+            NewRelic::Agent.logger.debug("PAISLEY: NewRelic::LanguageSupport.can_fork? value => #{NewRelic::LanguageSupport.can_fork?}")
             ENV['FORK_PER_JOB'] != 'false' && NewRelic::LanguageSupport.can_fork?
           end
         end

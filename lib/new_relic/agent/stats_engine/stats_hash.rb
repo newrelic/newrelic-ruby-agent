@@ -34,16 +34,22 @@ module NewRelic
 
       def initialize(started_at = Process.clock_gettime(Process::CLOCK_REALTIME))
         @started_at = started_at.to_f
+        NewRelic::Agent.logger.debug("PAISLEY: original @started_at: #{@started_at}")
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         @scoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
+        NewRelic::Agent.logger.debug("PAISLEY: marshal_dump @started_at: #{@started_at}")
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         [@started_at, Hash[@scoped], Hash[@unscoped]]
       end
 
       def marshal_load(data)
         @started_at = data.shift
+        NewRelic::Agent.logger.debug("PAISLEY: marshal_load @started_at: #{@started_at}")
+          NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         @scoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @scoped.merge!(data.shift)
@@ -133,6 +139,8 @@ module NewRelic
       end
 
       def merge!(other)
+        NewRelic::Agent.logger.debug("PAISLEY: other.started_at < @started_at; #{other.started_at}") if other.started_at < @started_at
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         @started_at = other.started_at if other.started_at < @started_at
 
         other.each do |spec, val|

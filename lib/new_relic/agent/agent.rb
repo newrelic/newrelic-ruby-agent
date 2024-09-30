@@ -239,6 +239,8 @@ module NewRelic
         end
 
         def install_pipe_service(channel_id)
+          NewRelic::Agent.logger.debug('PAISLEY: #install_pipe_service called')
+          NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
           @service = PipeService.new(channel_id)
           if connected?
             @connected_pid = Process.pid

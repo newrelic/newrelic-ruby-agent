@@ -12,6 +12,8 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
       begin
+        NewRelic::Agent.logger.debug("PAISLEY: start time before perform_action_with_newrelic_trace in Resque: #{Process.clock_gettime(Process::CLOCK_REALTIME)}")
+        NewRelic::Agent.logger.debug("PAISLEY: stats_engine.stats_hash.started_at: #{NewRelic::Agent.agent&.stats_engine&.stats_hash&.started_at}")
         perform_action_with_newrelic_trace(
           :name => 'perform',
           :class_name => self.payload_class,
@@ -22,7 +24,7 @@ module NewRelic::Agent::Instrumentation
             :'job.resque.args',
             NewRelic::Agent::AttributeFilter::DST_NONE
           )
-
+        NewRelic::Agent.logger.debug("PAISLEY: time after perform_action_with_newrelic_trace in Resque: #{Process.clock_gettime(Process::CLOCK_REALTIME)}")
           yield
         end
       ensure

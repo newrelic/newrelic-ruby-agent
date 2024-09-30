@@ -146,8 +146,13 @@ module NewRelic
         # let the serverless handler handle serialization
         return NewRelic::Agent.agent.serverless_handler.metric_data(stats_hash) if NewRelic::Agent.agent.serverless?
 
+        NewRelic::Agent.logger.debug("PAISLEY: metric_data stats_hash.started_at: #{stats_hash.started_at}")
+        NewRelic::Agent.logger.debug("PAISLEY: payload contains 'OtherTransaction/Background/BackgroundCsvFileLoad/perform'? #{stats_hash&.instance_variable_get(:@scoped)&.keys&.map(&:to_s)&.any?{|a| a&.include?("OtherTransaction/Background/BackgroundCsvFileLoad/perform")}}")
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
+        # is the metric in this array?
         timeslice_start = stats_hash.started_at
         timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
+        NewRelic::Agent.logger.debug("PAISLEY: metric_data timeslice_end: #{timeslice_end}")
         metric_data_array = build_metric_data_array(stats_hash)
         invoke_remote(
           :metric_data,
