@@ -49,7 +49,7 @@ module NewRelic
       def marshal_load(data)
         @started_at = data.shift
         NewRelic::Agent.logger.debug("PAISLEY: marshal_load @started_at: #{@started_at}")
-          NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         @scoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @scoped.merge!(data.shift)

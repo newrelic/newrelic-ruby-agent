@@ -24,7 +24,7 @@ module NewRelic::Agent::Instrumentation
             :'job.resque.args',
             NewRelic::Agent::AttributeFilter::DST_NONE
           )
-        NewRelic::Agent.logger.debug("PAISLEY: time after perform_action_with_newrelic_trace in Resque: #{Process.clock_gettime(Process::CLOCK_REALTIME)}")
+          NewRelic::Agent.logger.debug("PAISLEY: time after perform_action_with_newrelic_trace in Resque: #{Process.clock_gettime(Process::CLOCK_REALTIME)}")
           yield
         end
       ensure
