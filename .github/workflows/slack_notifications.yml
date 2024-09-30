@@ -8,7 +8,7 @@ jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
+      - uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
           ruby-version: 3.3
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
@@ -32,6 +32,7 @@ jobs:
             rack
             rails
             rake
+            rdkafka
             redis
             resque
             roda
@@ -46,7 +47,7 @@ jobs:
   cve_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
+      - uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
           ruby-version: 3.3
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7

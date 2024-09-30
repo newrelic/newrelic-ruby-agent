@@ -140,12 +140,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_application_logging_enabled_default
-      with_config(:'application_logging.enabled' => :foo) do
-        assert_equal :foo, NewRelic::Agent.config['application_logging.enabled']
-      end
-    end
-
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
       types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
@@ -288,6 +282,95 @@ module NewRelic::Agent::Configuration
 
       with_config(key => 'bogus') do
         assert_equal default, NewRelic::Agent.config[key]
+      end
+    end
+
+    def test_automatic_custom_instrumentation_method_list_supports_an_array
+      key = :automatic_custom_instrumentation_method_list
+      list = %w[Beano::Roger#dodge Beano::Gnasher.gnash]
+      NewRelic::Agent.stub :add_tracers_once_methods_are_defined, nil do
+        with_config(key => list) do
+          assert_equal list, NewRelic::Agent.config[key],
+            "Expected '#{key}' to be configured with the unmodified original list"
+        end
+      end
+    end
+
+    def test_automatic_custom_instrumentation_method_list_supports_a_comma_delmited_string
+      key = :automatic_custom_instrumentation_method_list
+      list = %w[Beano::Roger#dodge Beano::Gnasher.gnash]
+      NewRelic::Agent.stub :add_tracers_once_methods_are_defined, nil do
+        with_config(key => list.join('                                          ,')) do
+          assert_equal list, NewRelic::Agent.config[key],
+            "Expected '#{key}' to be configured with the given string converted into an array"
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_yes_on_and_true_as_strings
+      key = :'send_data_on_exit'
+      config_array = %w[yes on true]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          assert NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as truthy!"
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_yes_on_and_true_as_symbols
+      key = :'send_data_on_exit'
+      config_array = %i[yes on true]
+
+      config_array.each do |value|
+        with_config(key => value) do
+          assert NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as truthy!"
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_no_off_and_false_as_strings
+      key = :'send_data_on_exit'
+
+      %w[no off false].each do |value|
+        with_config(key => value) do
+          refute NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as falsey!"
+        end
+      end
+    end
+
+    def test_boolean_configs_accepts_no_off_and_false_as_strings_as_symbols
+      key = :'send_data_on_exit'
+
+      %i[no off false].each do |value|
+        with_config(key => value) do
+          refute NewRelic::Agent.config[key], "The '#{value}' value failed to evaluate as falsey!"
+        end
+      end
+    end
+
+    def test_enforce_boolean_uses_defult_on_invalid_value
+      key = :'send_data_on_exit' # default value is `true`
+
+      with_config(key => 'invalid_value') do
+        assert NewRelic::Agent.config[key]
+      end
+    end
+
+    def test_enforce_boolean_logs_warning_on_invalid_value
+      key = :'send_data_on_exit'
+      default = ::NewRelic::Agent::Configuration::DefaultSource.default_for(key)
+
+      with_config(key => 'yikes!') do
+        expects_logging(:warn, includes("Invalid value 'yikes!' for #{key}, applying default value of '#{default}'"))
+      end
+    end
+
+    def test_boolean_config_evaluates_proc_configs
+      key = :agent_enabled # default value is a proc
+
+      with_config(key => 'off') do
+        refute NewRelic::Agent.config[key]
       end
     end
 

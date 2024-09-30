@@ -16,7 +16,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
+      - uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
           ruby-version: '3.3'
       - run: bundle
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.4, 3.4.0-preview1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.5, 3.4.0-preview1]
 
     steps:
       - name: Configure git
@@ -50,9 +50,9 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
+        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
-          ruby-version: ${{ matrix.ruby-version }}                                                                                                               
+          ruby-version: ${{ matrix.ruby-version }}
 
       - name: Set up mini-envs for ruby version
         uses: ./.github/actions/variable-mapper
@@ -76,12 +76,12 @@ jobs:
                 "rails": "norails,rails61,rails60,rails70,rails71"
               },
               "3.1.6": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72"
               },
               "3.2.5": {
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
               },
-              "3.3.4": {
+              "3.3.5": {
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
               },
               "3.4.0-preview1": {
@@ -149,6 +149,33 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
+      zookeeper:
+        image: bitnami/zookeeper
+        ports:
+          - 2181:2181
+        env:
+          ALLOW_ANONYMOUS_LOGIN: yes
+        options: >-
+          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      kafka:
+        image: bitnami/kafka
+        ports:
+          - 9092:9092
+        options: >-
+          --health-cmd "kafka-broker-api-versions.sh --version"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          ALLOW_PLAINTEXT_LISTENER: yes
+          KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+          KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
       memcached:
         image: memcached:latest
         ports:
@@ -203,7 +230,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.4, 3.4.0-preview1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.5, 3.4.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -216,7 +243,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
+        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -281,14 +308,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.4, 3.4.0-preview1]
+        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.5, 3.3.5, 3.4.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # tag v1.190.0
+        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
