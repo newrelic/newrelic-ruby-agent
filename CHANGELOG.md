@@ -78,6 +78,10 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
 
   To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low. Now, rather than check the version, we check for the method using `respond_to?`. [PR#2853](https://github.com/newrelic/newrelic-ruby-agent/pull/2853)
 
+- **Bugfix: Support view_component v3.15.0+**
+
+  Previously the agent had been making use of a private API to obtain a component identifier value. This private API was dropped in v3.15.0 of view_component, resulting in errors from the New Relic Ruby agent's continued attempts to use it. Many thanks to community member [@navidemad](https://github.com/navidemad) for bringing this issue to our attention and supplying a bugfix with [PR#2870](https://github.com/newrelic/newrelic-ruby-agent/pull/2870).
+
 ## v9.13.0
 
 Version 9.13.0 enhances support for AWS Lambda functions, adds experimental OpenSearch instrumentation, updates framework detection, silences a Bundler deprecation warning, fixes Falcon dispatcher detection, fixes a bug with Redis instrumentation installation, and addresses a JRuby-specific concurrency issue.
