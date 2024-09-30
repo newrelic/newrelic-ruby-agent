@@ -13,7 +13,7 @@ module NewRelic::Agent::Instrumentation
 
       begin
         NewRelic::Agent.logger.debug("PAISLEY: start time before perform_action_with_newrelic_trace in Resque: #{Process.clock_gettime(Process::CLOCK_REALTIME)}")
-        NewRelic::Agent.logger.debug("PAISLEY: stats_engine.stats_hash.started_at: #{NewRelic::Agent.agent&.stats_engine&.stats_hash&.started_at}")
+        NewRelic::Agent.logger.debug("PAISLEY: stats_engine.stats_hash.started_at: #{NewRelic::Agent.agent&.stats_engine&.instance_variable_get(:@stats_hash)&.started_at}")
         perform_action_with_newrelic_trace(
           :name => 'perform',
           :class_name => self.payload_class,
