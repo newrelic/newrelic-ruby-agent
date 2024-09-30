@@ -2,7 +2,7 @@
 
 ## v9.14.0
 
-Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for AcionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, and fixes a bug related to `Bundler.rubygems.installed_specs`.
+Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for AcionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
@@ -77,6 +77,10 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
 - **Bugfix: Update condition to verify Bundler.rubygems.installed_specs is available**
 
   To address a recent Bundler deprecation warning, we started using `Bundler.rubygems.installed_specs` instead of `Bundler.rubygems.all_specs` in environments that seemed appropriate. We discovered the version constraint we used was too low. Now, rather than check the version, we check for the method using `respond_to?`. [PR#2853](https://github.com/newrelic/newrelic-ruby-agent/pull/2853)
+
+- **Bugfix: Support view_component v3.15.0+**
+
+  Previously the agent had been making use of a private API to obtain a component identifier value. This private API was dropped in v3.15.0 of view_component, resulting in errors from the New Relic Ruby agent's continued attempts to use it. Many thanks to community member [@navidemad](https://github.com/navidemad) for bringing this issue to our attention and supplying a bugfix with [PR#2870](https://github.com/newrelic/newrelic-ruby-agent/pull/2870).
 
 ## v9.13.0
 
