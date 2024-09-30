@@ -101,7 +101,7 @@ services:
     depends_on:
       - elasticsearch7
       - elasticsearch8
-      - opensearch
+      # - opensearch
       - mysql
       - memcached
       - mongodb
