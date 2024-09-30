@@ -52,7 +52,7 @@ jobs:
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
         with:
-          ruby-version: ${{ matrix.ruby-version }}                                                                                                               
+          ruby-version: ${{ matrix.ruby-version }}
 
       - name: Set up mini-envs for ruby version
         uses: ./.github/actions/variable-mapper
@@ -76,7 +76,7 @@ jobs:
                 "rails": "norails,rails61,rails60,rails70,rails71"
               },
               "3.1.6": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72"
               },
               "3.2.5": {
                 "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
