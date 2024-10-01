@@ -13,6 +13,7 @@ module NewRelic
           /^NEW_RELIC_METADATA_/ # read by NewRelic::Agent::Connect::RequestBuilder
         ]
 
+        # TODO: remove type_map
         attr_accessor :alias_map, :type_map
 
         def initialize
@@ -20,9 +21,11 @@ module NewRelic
           set_config_file
 
           @alias_map = {}
+          # TODO: remove type_map
           @type_map = {}
 
           DEFAULTS.each do |config_setting, value|
+            # TODO: remove type_map
             self.type_map[config_setting] = value[:type]
             set_aliases(config_setting, value)
           end
@@ -70,43 +73,14 @@ module NewRelic
           nr_env_var_keys.each do |key|
             next if SPECIAL_CASE_KEYS.any? { |pattern| pattern === key.upcase }
 
-            set_value_from_environment_variable(key)
-          end
-        end
+            config_key = convert_environment_key_to_config_key(key)
 
-        def set_value_from_environment_variable(key)
-          config_key = convert_environment_key_to_config_key(key)
-          set_key_by_type(config_key, key)
-        end
-
-        def set_key_by_type(config_key, environment_key)
-          value = ENV[environment_key]
-          type = self.type_map[config_key]
-
-          if type == String
-            self[config_key] = value
-          elsif type == Integer
-            self[config_key] = value.to_i
-          elsif type == Float
-            self[config_key] = value.to_f
-          elsif type == Symbol
-            self[config_key] = value.to_sym
-          elsif type == Array
-            self[config_key] = if DEFAULTS[config_key].key?(:transform)
-              DEFAULTS[config_key][:transform].call(value)
-            else
-              value.split(/\s*,\s*/)
+            unless DEFAULTS.key?(config_key) || serverless?
+              ::NewRelic::Agent.logger.info("#{key} does not have a corresponding configuration setting (#{config_key} does not exist).")
+              ::NewRelic::Agent.logger.info('Run `rake newrelic:config:docs` or visit https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration to see a list of available configuration settings.')
             end
-          elsif type == NewRelic::Agent::Configuration::Boolean
-            if /false|off|no/i.match?(value)
-              self[config_key] = false
-            elsif !value.nil?
-              self[config_key] = true
-            end
-          elsif !serverless?
-            ::NewRelic::Agent.logger.info("#{environment_key} does not have a corresponding configuration setting (#{config_key} does not exist).")
-            ::NewRelic::Agent.logger.info('Run `rake newrelic:config:docs` or visit https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration to see a list of available configuration settings.')
-            self[config_key] = value
+
+            self[config_key] = ENV[key]
           end
         end
 

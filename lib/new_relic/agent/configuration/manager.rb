@@ -17,6 +17,27 @@ module NewRelic
       class Manager
         DEPENDENCY_DETECTION_VALUES = %i[prepend chain unsatisfied].freeze
 
+        BOOLEAN_MAP = {
+          'true' => true,
+          'yes' => true,
+          'on' => true,
+          'false' => false,
+          'no' => false,
+          'off' => false
+        }.freeze
+
+        INSTRUMENTATION_VALUES = %w[chain prepend unsatisfied]
+
+        TYPE_COERCIONS = {Integer => {pattern: /^\d+$/, proc: proc { |s| s.to_i }},
+                          Float => {pattern: /^\d+\.\d+$/, proc: proc { |s| s.to_f }},
+                          Symbol => {proc: proc { |s| s.to_sym }},
+                          Array => {proc: proc { |s| s.split(/\s*,\s*/) }},
+                          Hash => {proc: proc { |s| s.split(/\s*,\s*/).each_with_object({}) { |i, h| k, v = i.split(/\s*=\s*/); h[k] = v } }},
+                          NewRelic::Agent::Configuration::Boolean => {pattern: /^(?:#{BOOLEAN_MAP.keys.join('|')})$/,
+                                                                      proc: proc { |s| BOOLEAN_MAP[s] }}}.freeze
+
+        USER_CONFIG_CLASSES = [NewRelic::Agent::Configuration::EnvironmentSource, NewRelic::Agent::Configuration::YamlSource]
+
         # Defining these explicitly saves object allocations that we incur
         # if we use Forwardable and def_delegators.
         def [](key)
@@ -116,70 +137,101 @@ module NewRelic
             next unless config
 
             accessor = key.to_sym
+            next unless config.has_key?(accessor)
 
-            if config.has_key?(accessor)
-              begin
-                return evaluate_and_apply_transformations(accessor, config[accessor])
-              rescue
-                next
-              end
+            begin
+              return evaluate_and_apply_transformations(accessor, config[accessor], nr_supplied?(config.class))
+            rescue
+              next
             end
           end
 
           nil
         end
 
-        def evaluate_procs(value)
-          if value.respond_to?(:call)
-            instance_eval(&value)
-          else
-            value
-          end
+        def nr_supplied?(klass)
+          !USER_CONFIG_CLASSES.include?(klass)
         end
 
-        def evaluate_and_apply_transformations(key, value)
-          evaluated = evaluate_procs(value)
-          default = enforce_allowlist(key, evaluated)
-          return default if default
-
-          boolean = enforce_boolean(key, value)
-          return boolean if [true, false].include?(boolean)
+        def evaluate_and_apply_transformations(key, value, nr_supplied)
+          evaluated = value.respond_to?(:call) ? value.call : value
+          evaluated = type_coerce(key, evaluated, nr_supplied)
+          evaluated = enforce_allowlist(key, evaluated)
 
           apply_transformations(key, evaluated)
         end
 
-        def apply_transformations(key, value)
-          if transform = transform_from_default(key)
-            begin
-              transform.call(value)
-            rescue => e
-              NewRelic::Agent.logger.error("Error applying transformation for #{key}, pre-transform value was: #{value}.", e)
-              raise e
-            end
-          else
-            value
+        def boolean?(type, value)
+          return false unless type == NewRelic::Agent::Configuration::Boolean
+
+          value.class == TrueClass || value.class == FalseClass
+        end
+
+        # auto-instrumentation configuration params can be symbols or strings
+        # and unless we want to refactor the configuration hash to support both
+        # types, we handle the special case here
+        def instrumentation?(type, value)
+          return false unless type == String || type == Symbol
+          return true if INSTRUMENTATION_VALUES.include?(value.to_s)
+
+          false
+        end
+
+        def type_coerce(key, value, nr_supplied)
+          return validate_nil(key, nr_supplied) unless value
+
+          type = DEFAULTS.dig(key, :type)
+          return value if value.is_a?(type) || boolean?(type, value) || instrumentation?(type, value)
+
+          if value.class != String
+            return default_with_warning(key, value, "Expected to receive a value of type #{type} but " \
+                                        "received #{value.class}.")
           end
+
+          pattern = TYPE_COERCIONS.dig(type, :pattern)
+          if pattern && value !~ pattern
+            return default_with_warning(key, value, "Expected to receive a value of type #{type} matching " \
+              "pattern '#{pattern}'.")
+          end
+
+          procedure = TYPE_COERCIONS.dig(type, :proc)
+          return value unless procedure
+
+          procedure.call(value)
+        end
+
+        def default_with_warning(key, value, msg)
+          default = default_without_warning(key)
+          NewRelic::Agent.logger.warn "Received an invalid '#{value}' value for the '#{key}' configuration " \
+            "parameter! #{msg} Using the default value of '#{default}'."
+          default
+        end
+
+        def default_without_warning(key)
+          DEFAULTS[key][:default]
+        end
+
+        def validate_nil(key, nr_supplied = false)
+          return if DEFAULTS.dig(key, :allow_nil)
+          return default_without_warning(key) if nr_supplied
+
+          default_with_warning(key, nil, 'Nil values are not permitted for the parameter.')
+        end
+
+        def apply_transformations(key, value)
+          return value unless transform = default_source.transform_for(key)
+
+          transform.call(value)
+        rescue => e
+          default_with_warning(key, value, "Error encountered while applying transformation: >>#{e}<<")
         end
 
         def enforce_allowlist(key, value)
-          return unless allowlist = default_source.allowlist_for(key)
-          return if allowlist.include?(value)
+          return value unless allowlist = default_source.allowlist_for(key)
+          return value if allowlist.include?(value)
 
-          default = default_source.default_for(key)
-          NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
-          default
-        end
-
-        def enforce_boolean(key, value)
-          type = default_source.value_from_defaults(key, :type)
-          return unless type == Boolean
-
-          bool_value = default_source.boolean_for(key, value)
-          return bool_value unless bool_value.nil?
-
-          default = default_source.default_for(key)
-          NewRelic::Agent.logger.warn "Invalid value '#{value}' for #{key}, applying default value of '#{default}'"
-          default
+          default_with_warning(key, value, 'Expected to receive a value found on the following list: ' \
+                               ">>#{allowlist}<<, but received '#{value}'.")
         end
 
         def transform_from_default(key)
@@ -244,7 +296,7 @@ module NewRelic
             thawed_layer = layer.to_hash.dup
             thawed_layer.each do |k, v|
               begin
-                thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
+                thawed_layer[k] = v.call if v.respond_to?(:call)
               rescue => e
                 NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
                 thawed_layer[k] = nil
