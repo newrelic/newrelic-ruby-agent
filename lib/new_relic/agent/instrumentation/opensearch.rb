@@ -14,8 +14,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing opensearch-ruby instrumentation')
-
     if use_prepend?
       prepend_instrument OpenSearch::Transport::Client, NewRelic::Agent::Instrumentation::OpenSearch::Prepend
     else

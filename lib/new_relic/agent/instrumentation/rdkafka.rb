@@ -10,8 +10,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing rdkafka instrumentation')
-
     require_relative 'rdkafka/instrumentation'
     require_relative 'rdkafka/chain'
     require_relative 'rdkafka/prepend'

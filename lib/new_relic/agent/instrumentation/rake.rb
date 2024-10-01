@@ -17,7 +17,6 @@ DependencyDetection.defer do
   depends_on { NewRelic::Agent::Instrumentation::Rake.safe_from_third_party_gem? }
 
   executes do
-    NewRelic::Agent.logger.info('Installing Rake instrumentation')
     NewRelic::Agent.logger.debug("Instrumenting Rake tasks: #{NewRelic::Agent.config[:'rake.tasks']}")
   end
 

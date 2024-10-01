@@ -17,10 +17,6 @@ DependencyDetection.defer do
   depends_on { Sinatra::Base.private_method_defined?(:route_eval) }
 
   executes do
-    NewRelic::Agent.logger.info('Installing Sinatra instrumentation')
-  end
-
-  executes do
     if use_prepend?
       prepend_instrument Sinatra::Base, NewRelic::Agent::Instrumentation::Sinatra::Prepend
     else

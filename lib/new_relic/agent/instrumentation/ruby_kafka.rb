@@ -14,8 +14,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing ruby-kafka instrumentation')
-
     if use_prepend?
       prepend_instrument Kafka::Producer, NewRelic::Agent::Instrumentation::RubyKafkaProducer::Prepend
       prepend_instrument Kafka::Consumer, NewRelic::Agent::Instrumentation::RubyKafkaConsumer::Prepend

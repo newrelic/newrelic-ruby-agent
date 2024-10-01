@@ -20,8 +20,6 @@ DependencyDetection.defer do
     require_relative '../../rack/agent_hooks'
     require_relative '../../rack/browser_monitoring'
 
-    NewRelic::Agent.logger.info('Installing Roda instrumentation')
-
     if use_prepend?
       require_relative 'roda/prepend'
       prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend
