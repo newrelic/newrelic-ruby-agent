@@ -35,15 +35,6 @@ module NewRelic
       end
 
       class DefaultSource
-        BOOLEAN_MAP = {
-          'true' => true,
-          'yes' => true,
-          'on' => true,
-          'false' => false,
-          'no' => false,
-          'off' => false
-        }.freeze
-
         attr_reader :defaults
 
         extend Forwardable
@@ -71,12 +62,6 @@ module NewRelic
 
         def self.allowlist_for(key)
           value_from_defaults(key, :allowlist)
-        end
-
-        def self.boolean_for(key, value)
-          string_value = (value.respond_to?(:call) ? value.call : value).to_s
-
-          BOOLEAN_MAP.fetch(string_value, nil)
         end
 
         def self.default_for(key)
@@ -213,53 +198,14 @@ module NewRelic
           end
         end
 
-        def self.convert_to_regexp_list(raw_value)
-          value_list = convert_to_list(raw_value)
-          value_list.map do |value|
-            /#{value}/
-          end
+        def self.convert_to_regexp_list(string_array)
+          string_array.map { |value| /#{value}/ }
         end
 
-        def self.convert_to_list(value)
-          case value
-          when String
-            value.split(/\s*,\s*/)
-          when Array
-            value
-          else
-            raise ArgumentError.new("Config value '#{value}' couldn't be turned into a list.")
-          end
-        end
+        def self.convert_to_constant_list(string_array)
+          return string_array if string_array.empty?
 
-        def self.convert_to_hash(value)
-          return value if value.is_a?(Hash)
-
-          if value.is_a?(String)
-            return value.split(',').each_with_object({}) do |item, hash|
-              key, value = item.split('=')
-              hash[key] = value
-            end
-          end
-
-          raise ArgumentError.new(
-            "Config value '#{value}' of " \
-            "class #{value.class} couldn't be turned into a Hash."
-          )
-        end
-
-        SEMICOLON = ';'.freeze
-        def self.convert_to_list_on_semicolon(value)
-          case value
-          when Array then value
-          when String then value.split(SEMICOLON)
-          else NewRelic::EMPTY_ARRAY
-          end
-        end
-
-        def self.convert_to_constant_list(raw_value)
-          return NewRelic::EMPTY_ARRAY if raw_value.nil? || raw_value.empty?
-
-          constants = convert_to_list(raw_value).map! do |class_name|
+          constants = string_array.map! do |class_name|
             const = ::NewRelic::LanguageSupport.constantize(class_name)
             NewRelic::Agent.logger.warn("Ignoring invalid constant '#{class_name}' in #{raw_value}") unless const
             const
@@ -347,7 +293,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list_on_semicolon),
+          :transform => proc { |str| str.split(';') },
           :description => 'Specify the [application name](/docs/apm/new-relic-apm/installation-configuration/name-your-application) used to aggregate data in the New Relic UI. To report data to [multiple apps at the same time](/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app), specify a list of names separated by a semicolon `;`. For example, `MyApp` or `MyStagingApp;Instance1`.'
         },
         :license_key => {
@@ -848,7 +794,6 @@ module NewRelic
           :default => {},
           :public => true,
           :type => Hash,
-          :transform => DefaultSource.method(:convert_to_hash),
           :allowed_from_server => false,
           :description => 'A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2"'
         },
@@ -909,7 +854,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from all destinations. Allows `*` as wildcard at end.'
         },
         :'attributes.include' => {
@@ -917,7 +861,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in all destinations. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.enabled' => {
@@ -932,7 +875,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.include' => {
@@ -940,7 +882,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.enabled' => {
@@ -955,7 +896,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from error collection. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.include' => {
@@ -963,7 +903,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in error collection. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.enabled' => {
@@ -978,7 +917,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from span events. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.include' => {
@@ -986,7 +924,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include on span events. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.enabled' => {
@@ -1001,7 +938,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction events. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.include' => {
@@ -1009,7 +945,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction events. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.enabled' => {
@@ -1024,7 +959,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction segments. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.include' => {
@@ -1032,7 +966,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include on transaction segments. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.enabled' => {
@@ -1047,7 +980,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction traces. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.include' => {
@@ -1055,7 +987,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction traces. Allows `*` as wildcard at end.'
         },
         # Audit log
@@ -1483,7 +1414,6 @@ module NewRelic
           :public => true,
           :type => Array,
           :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, `worker.3`). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, `worker`).'
         },
         # Infinite tracing
@@ -1916,7 +1846,6 @@ module NewRelic
           type: Array,
           dynamic_name: true,
           allowed_from_server: false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => <<~DESCRIPTION
             An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported
             to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
@@ -1929,7 +1858,6 @@ module NewRelic
           type: Array,
           dynamic_name: true,
           allowed_from_server: false,
-          :transform => DefaultSource.method(:convert_to_list),
           :description => <<~DESCRIPTION
             An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
             \tnot be reported to New Relic. Each string in this array will be turned into a regular expression via
@@ -2196,9 +2124,9 @@ module NewRelic
           :description => 'If true, the agent strips messages from all exceptions except those in the [allowed classes list](#strip_exception_messages-allowed_classes). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
         },
         :'strip_exception_messages.allowed_classes' => {
-          :default => '',
+          :default => NewRelic::EMPTY_ARRAY,
           :public => true,
-          :type => String,
+          :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Specify a list of exceptions you do not want the agent to strip when [strip_exception_messages](#strip_exception_messages-enabled) is `true`. Separate exceptions with a comma. For example, `"ImportantException,PreserveMessageException"`.'
