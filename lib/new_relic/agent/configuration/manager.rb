@@ -178,7 +178,7 @@ module NewRelic
         end
 
         def type_coerce(key, value, nr_supplied)
-          return validate_nil(key, nr_supplied) unless value
+          return validate_nil(key, nr_supplied) if value.nil?
 
           type = DEFAULTS.dig(key, :type)
           return value if value.is_a?(type) || boolean?(type, value) || instrumentation?(type, value)
@@ -208,7 +208,8 @@ module NewRelic
         end
 
         def default_without_warning(key)
-          DEFAULTS[key][:default]
+          default = DEFAULTS[key][:default]
+          default.respond_to?(:call) ? default.call : default
         end
 
         def validate_nil(key, nr_supplied = false)

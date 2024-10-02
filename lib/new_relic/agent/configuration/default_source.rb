@@ -221,7 +221,7 @@ module NewRelic
 
           constants = string_array.map! do |class_name|
             const = ::NewRelic::LanguageSupport.constantize(class_name)
-            NewRelic::Agent.logger.warn("Ignoring invalid constant '#{class_name}' in #{raw_value}") unless const
+            NewRelic::Agent.logger.warn("Ignoring invalid constant '#{class_name}' in #{string_array}") unless const
             const
           end
           constants.compact!
