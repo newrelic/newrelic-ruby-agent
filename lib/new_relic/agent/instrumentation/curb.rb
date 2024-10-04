@@ -22,10 +22,10 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument Curl::Easy, NewRelic::Agent::Instrumentation::Curb::Easy::Prepend, "Curb::Easy"
-      prepend_instrument Curl::Multi, NewRelic::Agent::Instrumentation::Curb::Multi::Prepend, "Curb::Multi"
+      prepend_instrument Curl::Easy, NewRelic::Agent::Instrumentation::Curb::Easy::Prepend, 'Curb::Easy'
+      prepend_instrument Curl::Multi, NewRelic::Agent::Instrumentation::Curb::Multi::Prepend, 'Curb::Multi'
     else
       chain_instrument NewRelic::Agent::Instrumentation::Curb::Chain, NewRelic::Agent::Instrumentation::Curb::Multi::INSTRUMENTATION_NAME
-    end 
+    end
   end
 end
