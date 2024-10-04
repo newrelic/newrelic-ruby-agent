@@ -7,8 +7,7 @@
 instrumentation_methods :chain
 
 STRIPE_VERSIONS = [
-  # TODO: support Stripe v13+ https://github.com/newrelic/newrelic-ruby-agent/issues/2884
-  # [nil, 2.4],
+  [nil, 2.4],
   ['12.6.0', 2.4],
   ['5.38.0', 2.4]
 ]
