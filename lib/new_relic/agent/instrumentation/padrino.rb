@@ -22,10 +22,11 @@ DependencyDetection.defer do
   depends_on { defined?(Padrino) && defined?(Padrino::Routing::InstanceMethods) }
 
   executes do
+    supportability_name = NewRelic::Agent::Instrumentation::Padrino::INSTRUMENTATION_NAME
     if use_prepend?
-      prepend_instrument Padrino::Application, NewRelic::Agent::Instrumentation::PadrinoTracer::Prepend
+      prepend_instrument Padrino::Application, NewRelic::Agent::Instrumentation::PadrinoTracer::Prepend, supportability_name
     else
-      chain_instrument NewRelic::Agent::Instrumentation::PadrinoTracer::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::PadrinoTracer::Chain, supportability_name
     end
   end
 end

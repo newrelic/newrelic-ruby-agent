@@ -28,14 +28,15 @@ DependencyDetection.defer do
   end
 
   executes do
+    supportability_name = NewRelic::Agent::Instrumentation::Sinatra::Tracer::INSTRUMENTATION_NAME
     # These requires are inside an executes block because they require rack, and
     # we can't be sure that rack is available when this file is first required.
     require 'new_relic/rack/agent_hooks'
     require 'new_relic/rack/browser_monitoring'
     if use_prepend?
-      prepend_instrument Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::Build::Prepend
+      prepend_instrument Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::Build::Prepend, supportability_name
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Build::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Build::Chain, supportability_name
     end
   end
 end

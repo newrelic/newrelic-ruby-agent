@@ -21,9 +21,9 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument Bunny::Exchange, NewRelic::Agent::Instrumentation::Bunny::Prepend::Exchange
-      prepend_instrument Bunny::Queue, NewRelic::Agent::Instrumentation::Bunny::Prepend::Queue
-      prepend_instrument Bunny::Consumer, NewRelic::Agent::Instrumentation::Bunny::Prepend::Consumer
+      prepend_instrument Bunny::Exchange, NewRelic::Agent::Instrumentation::Bunny::Prepend::Exchange, 'Bunny::Exchange'
+      prepend_instrument Bunny::Queue, NewRelic::Agent::Instrumentation::Bunny::Prepend::Queue, 'Bunny::Queue'
+      prepend_instrument Bunny::Consumer, NewRelic::Agent::Instrumentation::Bunny::Prepend::Consumer, 'Bunny::Consumer'
     else
       chain_instrument NewRelic::Agent::Instrumentation::Bunny::Chain
     end

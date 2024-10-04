@@ -16,10 +16,11 @@ DependencyDetection.defer do
   end
 
   executes do
+    supportability_name = NewRelic::Agent::Instrumentation::LogStasher::INSTRUMENTATION_NAME
     if use_prepend?
-      prepend_instrument LogStasher.singleton_class, NewRelic::Agent::Instrumentation::LogStasher::Prepend
+      prepend_instrument LogStasher.singleton_class, NewRelic::Agent::Instrumentation::LogStasher::Prepend, supportability_name
     else
-      chain_instrument NewRelic::Agent::Instrumentation::LogStasher::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::LogStasher::Chain, supportability_name
     end
   end
 end

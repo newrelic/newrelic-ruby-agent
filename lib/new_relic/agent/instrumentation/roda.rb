@@ -22,11 +22,13 @@ DependencyDetection.defer do
 
     if use_prepend?
       require_relative 'roda/prepend'
-      prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend
+
+      supportability_name = NewRelic::Agent::Instrumentation::Roda::Tracer::INSTRUMENTATION_NAME
+      prepend_instrument Roda.singleton_class, NewRelic::Agent::Instrumentation::Roda::Build::Prepend, supportability_name
       prepend_instrument Roda, NewRelic::Agent::Instrumentation::Roda::Prepend
     else
       require_relative 'roda/chain'
-      chain_instrument NewRelic::Agent::Instrumentation::Roda::Build::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Roda::Build::Chain, supportability_name
       chain_instrument NewRelic::Agent::Instrumentation::Roda::Chain
     end
     Roda.class_eval { extend NewRelic::Agent::Instrumentation::Roda::Ignorer }
