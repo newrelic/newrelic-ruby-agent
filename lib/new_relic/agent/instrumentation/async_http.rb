@@ -16,9 +16,8 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing async_http instrumentation')
-
     require 'async/http/internet'
+
     if use_prepend?
       prepend_instrument Async::HTTP::Internet, NewRelic::Agent::Instrumentation::AsyncHttp::Prepend
     else

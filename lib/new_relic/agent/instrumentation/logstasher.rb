@@ -16,8 +16,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing LogStasher instrumentation')
-
     if use_prepend?
       prepend_instrument LogStasher.singleton_class, NewRelic::Agent::Instrumentation::LogStasher::Prepend
     else

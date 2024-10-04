@@ -83,10 +83,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing DelayedJob instrumentation [part 1/2]')
-  end
-
-  executes do
     if use_prepend?
       prepend_instrument Delayed::Worker, NewRelic::Agent::Instrumentation::DelayedJob::Prepend
     else

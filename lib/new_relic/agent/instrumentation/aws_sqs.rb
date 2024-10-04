@@ -14,8 +14,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing aws-sdk-sqs instrumentation')
-
     if use_prepend?
       prepend_instrument Aws::SQS::Client, NewRelic::Agent::Instrumentation::AwsSqs::Prepend
     else

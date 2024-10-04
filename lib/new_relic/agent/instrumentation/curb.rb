@@ -16,17 +16,16 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing Curb instrumentation')
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/curb_wrappers'
   end
 
   executes do
     if use_prepend?
-      prepend_instrument Curl::Easy, NewRelic::Agent::Instrumentation::Curb::Easy::Prepend
-      prepend_instrument Curl::Multi, NewRelic::Agent::Instrumentation::Curb::Multi::Prepend
+      prepend_instrument Curl::Easy, NewRelic::Agent::Instrumentation::Curb::Easy::Prepend, 'Curb::Easy'
+      prepend_instrument Curl::Multi, NewRelic::Agent::Instrumentation::Curb::Multi::Prepend, 'Curb::Multi'
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Curb::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Curb::Chain, NewRelic::Agent::Instrumentation::Curb::Multi::INSTRUMENTATION_NAME
     end
   end
 end

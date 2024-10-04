@@ -18,8 +18,11 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing <%= @name.downcase %> instrumentation')
-
+    # prepend_instrument and chain_instrument call extract_supportability_name
+    # to get the library name for supportability metrics and info-level logging. 
+    # This is done by spliting on the 2nd to last spot of the instrumented
+    # module. If this isn't how we want the name to appear, pass in the desired
+    # name as a third argument.
     if use_prepend?
       prepend_instrument <%= @class_name %>, NewRelic::Agent::Instrumentation::<%= @class_name %>::Prepend
     else
