@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 DependencyDetection.defer do
-  named :sequel
+  @name = :sequel
 
   depends_on do
     defined?(Sequel)

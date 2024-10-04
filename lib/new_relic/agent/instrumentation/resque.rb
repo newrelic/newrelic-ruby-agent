@@ -7,7 +7,7 @@ require_relative 'resque/chain'
 require_relative 'resque/prepend'
 
 DependencyDetection.defer do
-  named :resque
+  @name = :resque
 
   depends_on do
     defined?(Resque::Job)

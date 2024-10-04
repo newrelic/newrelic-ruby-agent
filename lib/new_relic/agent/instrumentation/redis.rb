@@ -14,7 +14,7 @@ require_relative 'redis/cluster_middleware'
 
 DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
-  named :redis_instrumentation
+  @name = :redis_instrumentation
   configure_with :redis
 
   depends_on do

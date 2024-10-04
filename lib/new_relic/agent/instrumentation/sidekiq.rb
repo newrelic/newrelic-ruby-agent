@@ -7,7 +7,7 @@ require_relative 'sidekiq/server'
 require_relative 'sidekiq/extensions/delayed_class'
 
 DependencyDetection.defer do
-  named :sidekiq
+  @name = :sidekiq
 
   depends_on do
     defined?(Sidekiq) && !NewRelic::Agent.config[:disable_sidekiq]
