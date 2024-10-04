@@ -26,6 +26,8 @@ module NewRelic
         }.freeze
 
         INSTRUMENTATION_VALUES = %w[chain prepend unsatisfied]
+        NUMERIC_TYPES = [Integer, Float]
+        STRINGLIKE_TYPES = [String, Symbol]
 
         TYPE_COERCIONS = {Integer => {pattern: /^\d+$/, proc: proc { |s| s.to_i }},
                           Float => {pattern: /^\d+\.\d+$/, proc: proc { |s| s.to_f }},
@@ -136,7 +138,7 @@ module NewRelic
             next unless config.has_key?(accessor)
 
             begin
-              return evaluate_and_apply_transformations(accessor, config[accessor], nr_supplied?(config.class))
+              return evaluate_and_apply_transformations(accessor, config[accessor], config_category(config.class))
             rescue
               next
             end
@@ -145,13 +147,17 @@ module NewRelic
           nil
         end
 
-        def nr_supplied?(klass)
-          !USER_CONFIG_CLASSES.include?(klass)
+        def config_category(klass)
+          return :user if USER_CONFIG_CLASSES.include?(klass)
+          return :test if [DottedHash, Hash].include?(klass)
+          return :manual if klass == ManualSource
+
+          return :nr
         end
 
-        def evaluate_and_apply_transformations(key, value, nr_supplied)
+        def evaluate_and_apply_transformations(key, value, category)
           evaluated = value.respond_to?(:call) ? value.call : value
-          evaluated = type_coerce(key, evaluated, nr_supplied)
+          evaluated = type_coerce(key, evaluated, category)
           evaluated = enforce_allowlist(key, evaluated)
 
           apply_transformations(key, evaluated)
@@ -173,11 +179,30 @@ module NewRelic
           false
         end
 
-        def type_coerce(key, value, nr_supplied)
-          return validate_nil(key, nr_supplied) if value.nil?
+        def handle_nil_type(key, value, category)
+          return value if %i[manual test].include?(category)
+
+          default_without_warning(key)
+        end
+
+        # permit an int to be supplied for a float based param and vice versa
+        def numeric_conversion(value)
+          value.is_a?(Integer) ? value.to_f : value.round
+        end
+
+        # permit a symbol to be supplied for a string based param and vice versa
+        def string_conversion(value)
+          value.is_a?(Symbol) ? value.to_s : value.to_sym
+        end
+
+        def type_coerce(key, value, category)
+          return validate_nil(key, category) if value.nil?
 
           type = DEFAULTS.dig(key, :type)
+          return handle_nil_type(key, value, category) unless type
           return value if value.is_a?(type) || boolean?(type, value) || instrumentation?(type, value)
+          return numeric_conversion(value) if NUMERIC_TYPES.include?(type) && NUMERIC_TYPES.include?(value.class)
+          return string_conversion(value) if STRINGLIKE_TYPES.include?(type) && STRINGLIKE_TYPES.include?(value.class)
 
           if value.class != String
             return default_with_warning(key, value, "Expected to receive a value of type #{type} but " \
@@ -204,13 +229,13 @@ module NewRelic
         end
 
         def default_without_warning(key)
-          default = DEFAULTS[key][:default]
+          default = DEFAULTS.dig(key, :default)
           default.respond_to?(:call) ? default.call : default
         end
 
-        def validate_nil(key, nr_supplied = false)
-          return if DEFAULTS.dig(key, :allow_nil)
-          return default_without_warning(key) if nr_supplied
+        def validate_nil(key, category)
+          return if DEFAULTS.dig(key, :allow_nil) || category == :test # tests are free to specify nil
+          return default_without_warning(key) unless category == :user # only user supplied config raises a warning
 
           default_with_warning(key, nil, 'Nil values are not permitted for the parameter.')
         end
@@ -246,13 +271,14 @@ module NewRelic
 
         def invoke_callbacks(direction, source)
           return unless source
+          return if source.respond_to?(:empty?) && source.empty?
 
           source.keys.each do |key|
             begin
               # we need to evaluate and apply transformations for the value to deal with procs as values
               # this is usually done by the fetch method when accessing config, however the callbacks bypass that
-              evaluated_cache = evaluate_and_apply_transformations(key, @cache[key])
-              evaluated_source = evaluate_and_apply_transformations(key, source[key])
+              evaluated_cache = evaluate_and_apply_transformations(key, @cache[key], :nr)
+              evaluated_source = evaluate_and_apply_transformations(key, source[key], config_category(source.class))
             rescue
               next
             end
