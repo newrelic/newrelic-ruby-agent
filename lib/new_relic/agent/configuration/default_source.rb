@@ -307,7 +307,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :transform => proc { |str| str.split(';') },
+          :transform => proc { |v| v.is_a?(String) ? v.split(';') : v },
           :description => 'Specify the [application name](/docs/apm/new-relic-apm/installation-configuration/name-your-application) used to aggregate data in the New Relic UI. To report data to [multiple apps at the same time](/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app), specify a list of names separated by a semicolon `;`. For example, `MyApp` or `MyStagingApp;Instance1`.'
         },
         :license_key => {
