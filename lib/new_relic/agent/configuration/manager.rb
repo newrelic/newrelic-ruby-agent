@@ -205,6 +205,8 @@ module NewRelic
           return string_conversion(value) if STRINGLIKE_TYPES.include?(type) && STRINGLIKE_TYPES.include?(value.class)
 
           if value.class != String
+            return value if category == :test
+
             return default_with_warning(key, value, "Expected to receive a value of type #{type} but " \
                                         "received #{value.class}.")
           end
