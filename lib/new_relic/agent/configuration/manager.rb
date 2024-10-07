@@ -208,6 +208,8 @@ module NewRelic
           return numeric_conversion(value) if NUMERIC_TYPES.include?(type) && NUMERIC_TYPES.include?(value.class)
           return string_conversion(value) if STRINGLIKE_TYPES.include?(type) && STRINGLIKE_TYPES.include?(value.class)
 
+          # convert bool to string for regex usage and bool hash lookup
+          value = value.to_s if type == Boolean
           if value.class != String
             return value if category == :test
 

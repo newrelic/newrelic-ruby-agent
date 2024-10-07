@@ -13,20 +13,15 @@ module NewRelic
           /^NEW_RELIC_METADATA_/ # read by NewRelic::Agent::Connect::RequestBuilder
         ]
 
-        # TODO: remove type_map
-        attr_accessor :alias_map, :type_map
+        attr_accessor :alias_map
 
         def initialize
           set_log_file
           set_config_file
 
           @alias_map = {}
-          # TODO: remove type_map
-          @type_map = {}
 
           DEFAULTS.each do |config_setting, value|
-            # TODO: remove type_map
-            self.type_map[config_setting] = value[:type]
             set_aliases(config_setting, value)
           end
 
