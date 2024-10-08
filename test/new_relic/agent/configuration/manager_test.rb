@@ -405,21 +405,6 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_fetch_skips_the_config_layer_if_transformation_raises_error
-      bomb = proc do |value|
-        if value == 'boom'
-          raise StandardError.new
-        else
-          value
-        end
-      end
-      @manager.stubs(:transform_from_default).returns(bomb)
-
-      with_config(:'rules.ignore_url_regexes' => 'boom') do
-        assert_empty(@manager.fetch(:'rules.ignore_url_regexes'))
-      end
-    end
-
     def test_prepend_key_absent_to_instrumentation_value_of
       with_config({}) do
         result = @manager.fetch(:'instrumentation.net_http')
@@ -436,34 +421,31 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def test_evaluate_procs_returns_evaluated_value_if_it_responds_to_call
-      callable = proc { 'test' }
+    def test_default_to_value_of
+      with_config(:port => 8888) do
+        result = @manager.fetch(:api_port)
 
-      assert_equal 'test', @manager.evaluate_procs(callable)
-    end
-
-    def test_evaluate_procs_returns_original_value_if_it_does_not_respond_to_call
-      assert_equal 'test', @manager.evaluate_procs('test')
-    end
-
-    def test_apply_transformations_logs_error_if_transformation_fails
-      bomb = proc { raise StandardError.new }
-      @manager.stubs(:transform_from_default).returns(bomb)
-
-      expects_logging(:error, includes('Error applying transformation'), any_parameters)
-
-      assert_raises StandardError do
-        @manager.apply_transformations(:test_key, 'test_value')
+        assert_equal 8888, result
       end
     end
 
-    def test_apply_transformations_reraises_errors
-      bomb = proc { raise StandardError.new }
-      @manager.stubs(:transform_from_default).returns(bomb)
+    def test_default_to_value_of_only_happens_at_defaults
+      with_config(:port => 8888, :api_port => 3000) do
+        result = @manager.fetch(:api_port)
 
-      assert_raises StandardError do
-        @manager.apply_transformations(:test_key, 'test_value')
+        assert_equal 3000, result
       end
+    end
+
+    def test_apply_transformations_logs_warning_if_transformation_fails
+      key = :test_key
+      bomb = proc { raise 'kaboom' }
+      ds = Minitest::Mock.new
+      ds.expect :transform_for, bomb, [key]
+      @manager.stubs(:default_source).returns(ds)
+      expects_logging(:warn, includes('Error encountered while applying transformation'), any_parameters)
+      @manager.apply_transformations(key, 'test_value')
+      ds.verify
     end
 
     def test_auto_determined_values_stay_cached
