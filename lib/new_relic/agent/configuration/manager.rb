@@ -160,7 +160,7 @@ module NewRelic
         end
 
         def evaluate_and_apply_transformations(key, value, category)
-          evaluated = value.respond_to?(:call) ? value.call : value
+          evaluated = value.respond_to?(:call) ? instance_eval(&value) : value
           evaluated = type_coerce(key, evaluated, category)
           evaluated = enforce_allowlist(key, evaluated)
 
@@ -264,10 +264,6 @@ module NewRelic
                                ">>#{allowlist}<<, but received '#{value}'.")
         end
 
-        def transform_from_default(key)
-          default_source.transform_for(key)
-        end
-
         def default_source
           NewRelic::Agent::Configuration::DefaultSource
         end
@@ -283,11 +279,10 @@ module NewRelic
 
           source.keys.each do |key|
             begin
-              # we need to evaluate and apply transformations for the value to deal with procs as values
-              # this is usually done by the fetch method when accessing config, however the callbacks bypass that
-              evaluated_cache = evaluate_and_apply_transformations(key, @cache[key], :nr)
+              evaluated_cache = evaluate_and_apply_transformations(key, @cache[key], :manual)
               evaluated_source = evaluate_and_apply_transformations(key, source[key], config_category(source.class))
-            rescue
+            rescue => e
+              NewRelic::Agent.logger.warn("Error evaluating callback for direction '#{direction}' with key '#{key}': #{e}")
               next
             end
 
@@ -327,7 +322,7 @@ module NewRelic
             thawed_layer = layer.to_hash.dup
             thawed_layer.each do |k, v|
               begin
-                thawed_layer[k] = v.call if v.respond_to?(:call)
+                thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
               rescue => e
                 NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
                 thawed_layer[k] = nil
