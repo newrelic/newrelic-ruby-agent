@@ -14,10 +14,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing httpx instrumentation')
-  end
-
-  executes do
     if use_prepend?
       prepend_instrument HTTPX::Session, NewRelic::Agent::Instrumentation::HTTPX::Prepend
     else

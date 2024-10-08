@@ -2,7 +2,7 @@
 
 ## v9.14.0
 
-Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for AcionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
+Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for ActionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
@@ -42,13 +42,13 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
     - MyCompany::User.notify
   ```
 
-  That configuration example uses YAML array syntax to specify both methods. Alternatively, a comma-delimited string can be used instead:
+  That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
 
   ```
   automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
   ```
 
-  Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used:
+  Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
 
   ```
   export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
@@ -56,7 +56,7 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
 
   [PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
 
-- **Feature: Collect just MIME type for AcionDispatch 7.0+ requests**
+- **Feature: Collect just MIME type for ActionDispatch 7.0+ requests**
 
   Rails 7.0 [introduced changes](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is) to the behavior of `ActionDispatch::Request#content_type`, adding extra request-related details the agent wasn't expecting to collect. Additionally, the agent's use of `content_type ` was triggering deprecation warnings. The agent now uses `ActionDispatch::Request#media_type` to capture the MIME type. Thanks to [@internethostage](https://github.com/internethostage) for letting us know about this change. [Issue#2500](https://github.com/newrelic/newrelic-ruby-agent/issues/2500) [PR#2855](https://github.com/newrelic/newrelic-ruby-agent/pull/2855)
 

@@ -199,9 +199,19 @@ class StripeInstrumentation < Minitest::Test
   end
 
   def with_stubbed_connection_manager(&block)
-    Stripe::StripeClient.stub(:default_connection_manager, @connection) do
-      @connection.stub(:execute_request, @response) do
-        yield
+    # Stripe moved StripeClient and requestor logic to APIRequestor in v13.0.0
+    # https://github.com/stripe/stripe-ruby/pull/1458
+    if Gem::Version.new(Stripe::VERSION) >= Gem::Version.new('13.0.0')
+      Stripe::APIRequestor.stub(:default_connection_manager, @connection) do
+        @connection.stub(:execute_request, @response) do
+          yield
+        end
+      end
+    else
+      Stripe::StripeClient.stub(:default_connection_manager, @connection) do
+        @connection.stub(:execute_request, @response) do
+          yield
+        end
       end
     end
   end
