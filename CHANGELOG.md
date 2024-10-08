@@ -6,7 +6,7 @@ Version <dev> resolves a bug in rdkafka instrumentation when using the karafka-r
 
 - **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
 
-  Due to version differences between the rdkafka gem and karafka-rdkafka gem, the agent was installing instrumentation on some versions of karafka-rdkafka that encountered errors. This has now been resolved. Thank you to @krisdigital for bringing this issue to our attention. [PR#2880](https://github.com/newrelic/newrelic-ruby-agent/pull/2880)
+  Due to version differences between the rdkafka gem and karafka-rdkafka gem, the agent could encounter an error when it tried to install rdkafka instrumentation. This has now been resolved. Thank you to @krisdigital for bringing this issue to our attention. [PR#2880](https://github.com/newrelic/newrelic-ruby-agent/pull/2880)
 
 
 ## v9.14.0
