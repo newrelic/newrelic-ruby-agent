@@ -427,6 +427,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :exclude_from_reported_settings => true,
           :description => 'Your New Relic <InlinePopover type="userKey" />. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
         },
         :backport_fast_active_record_connection_lookup => {
