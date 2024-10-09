@@ -4,10 +4,15 @@
 
 omit_collector!
 
+# TODO: RUBY 3.4
+# The CI has a prism-related error when it tries to run this suite
+# The problem may be a bug fixed in future preview releases
+# Disable ths suite for now, and try again when the next version
+# is out.
 PSYCH_VERSIONS = [
-  [nil],
-  ['4.0.0', 2.4],
-  ['3.3.0', 2.4]
+  [nil, 2.4, 3.3],
+  ['4.0.0', 2.4, 3.3],
+  ['3.3.0', 2.4, 3.3]
 ]
 
 def stringio_version
