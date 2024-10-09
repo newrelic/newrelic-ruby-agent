@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
+
+- **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
+
+  Due to version differences between the rdkafka gem and karafka-rdkafka gem, the agent could encounter an error when it tried to install rdkafka instrumentation. This has now been resolved. Thank you to @krisdigital for bringing this issue to our attention. [PR#2880](https://github.com/newrelic/newrelic-ruby-agent/pull/2880)
+
+
 ## v9.14.0
 
 Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for ActionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
