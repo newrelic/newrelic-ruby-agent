@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
+Version <dev> adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS sdk, and resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
+
+- **Feature: New configuration option cloud.aws.account_id**
+
+  A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS sdk. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
 
 - **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
 
