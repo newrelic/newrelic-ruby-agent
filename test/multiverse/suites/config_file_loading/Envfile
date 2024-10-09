@@ -12,7 +12,7 @@ PSYCH_VERSIONS = [
 
 def stringio_version
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
-    "gem 'stringio', '3.1.1-dev'"
+    "gem 'stringio', '3.1.2.dev'"
   else
     "gem 'stringio'"
   end
