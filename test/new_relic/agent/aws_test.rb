@@ -12,7 +12,7 @@ class AwsTest < Minitest::Test
     resource = 'test/test-resource'
     expected = 'arn:aws:test-service:us-test-region-1:123456789:test/test-resource'
 
-    with_config(aws_account_id: account_id) do
+    with_config('cloud.aws.account_id': account_id) do
       arn = NewRelic::Agent::Aws.create_arn(service, resource, region)
 
       assert_equal expected, arn

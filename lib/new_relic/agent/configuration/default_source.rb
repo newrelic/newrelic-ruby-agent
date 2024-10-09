@@ -429,13 +429,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Your New Relic <InlinePopover type="userKey" />. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
         },
-        :aws_account_id => {
-          :default => nil,
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'The AWS account ID for the associated AWS account'
-        },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
           :public => true,
@@ -477,6 +470,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent will clear `Tracer::State` in `Agent.drop_buffered_data`.'
+        },
+        :'cloud.aws.account_id' => {
+          :default => nil,
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'The AWS account ID for the associated AWS account'
         },
         :config_path => {
           :default => DefaultSource.config_path,

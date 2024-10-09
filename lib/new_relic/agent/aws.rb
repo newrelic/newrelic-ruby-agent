@@ -6,9 +6,9 @@ module NewRelic
   module Agent
     module Aws
       def self.create_arn(service, resource, region)
-        return unless NewRelic::Agent.config[:'aws_account_id']
+        return unless NewRelic::Agent.config[:'cloud.aws.account_id']
 
-        "arn:aws:#{service}:#{region}:#{NewRelic::Agent.config[:'aws_account_id']}:#{resource}"
+        "arn:aws:#{service}:#{region}:#{NewRelic::Agent.config[:'cloud.aws.account_id']}:#{resource}"
       rescue => e
         NewRelic::Agent.logger.warn("Failed to create ARN: #{e}")
       end
