@@ -32,7 +32,6 @@ module NewRelic
 
         TYPE_COERCIONS = {Integer => {pattern: /^\d+$/, proc: proc { |s| s.to_i }},
                           Float => {pattern: /^\d+\.\d+$/, proc: proc { |s| s.to_f }},
-                          Symbol => {proc: proc { |s| s.to_sym }},
                           Array => {proc: proc { |s| s.split(/\s*,\s*/) }},
                           Hash => {proc: proc { |s| s.split(/\s*,\s*/).each_with_object({}) { |i, h| k, v = i.split(/\s*=\s*/); h[k] = v } }},
                           NewRelic::Agent::Configuration::Boolean => {pattern: /^(?:#{BOOLEAN_MAP.keys.join('|')})$/,
