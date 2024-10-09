@@ -36,7 +36,8 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::RdkafkaConfig
 
-      if defined?(::Rdkafka) && Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0')
+      if (defined?(::Rdkafka) && Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0')) ||
+          (Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7.0'))
         def producer(**kwargs)
           super.tap do |producer|
             set_nr_config(producer)

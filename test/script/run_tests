@@ -51,7 +51,6 @@ help() {
   echo "        "
 }
 
-
 unit_command() {
   # echo "ENV   TEST="$TEST"    TESTOPTS="$TESTOPTS""
   # echo "bundle exec rake test -q;"
@@ -78,6 +77,8 @@ set_test_opts() {
 
 # organizes the args for mutiverse and calls the command
 run_multiverse() {  
+  clean
+
   if [[ -n "$3" ]]; then
     # echo "running file and name"
     multiverse_command "$1",file="$2",name="$3"; 
@@ -95,6 +96,8 @@ run_multiverse() {
 
 # calls multiverse but only env 0 or specified and method prepend
 run_multiverse_quick() {
+  clean
+
   if [[ "$2" =~ [0-9]+ && ! "$2" =~ ^test ]]; then
     run_multiverse "$1",env="$2",method=prepend "$3" "$4"
   else
@@ -104,6 +107,8 @@ run_multiverse_quick() {
 
 # organizes the args for env tests and calls the command
 run_env_tests() {
+  clean
+
   # this will add "rails" before any number so you can pass in just "61" or "61,70"
   ENVARGS=$(echo "$1" | sed -E -e 's/(\,)|(\,rails)/,rails/g' | sed '/^rails/!s/^/rails/');
 
@@ -126,6 +131,8 @@ run_env_tests() {
 
 # organizes the args for the unit tests and calls the command
 run_unit_tests() {
+  clean
+
   find_test_file "$1" "new_relic"
   if [[ -n "$2" ]]; then
     # echo "running file and name"
@@ -142,6 +149,15 @@ run_unit_tests() {
     # echo "running unit tests"
     unit_command;
   fi
+}
+
+clean() {
+  echo 'Cleaning...'
+  # xargs over -exec to avoid warnings on already-deleted content
+  find . -name \*.log | xargs rm -f
+  find . -name tmp -type d | xargs rm -rf
+  rm -rf lib/coverage test/minitest/minitest_time_report test/multiverse/lib/multiverse/errors.txt
+  echo 'Done.'
 }
 
 # from a given space/newline delimited string of file paths, return the
