@@ -289,7 +289,7 @@ module NewRelic
               next
             end
 
-            evaluated_cache = @cache.fetch(key, nil)
+            evaluated_cache = @cache[key]
             if evaluated_cache != evaluated_source
               @callbacks[key].each do |proc|
                 if direction == :add

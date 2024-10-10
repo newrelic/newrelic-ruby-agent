@@ -315,6 +315,7 @@ module NewRelic::Agent::Configuration
       with_config(key => 'yikes!') do
         NewRelic::Agent::Configuration::Manager.stub_const(:USER_CONFIG_CLASSES, [DottedHash]) do
           expects_logging(:warn, includes('Expected to receive a value of type NewRelic::Agent::Configuration::Boolean matching pattern '))
+          NewRelic::Agent.config[key]
         end
       end
     end
