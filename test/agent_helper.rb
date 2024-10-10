@@ -112,7 +112,7 @@ def assert_log_contains(log, message)
   lines = log.array
 
   assert (lines.any? { |line| line.match(message) }),
-    "Could not find message. Log contained: #{lines.join("\n")}"
+    "Could not find message: '#{message.inspect}'. Log contained: #{lines.join("\n")}"
 end
 
 def assert_audit_log_contains(audit_log_contents, needle)

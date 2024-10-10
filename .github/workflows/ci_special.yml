@@ -20,15 +20,15 @@ jobs:
       - name: Install OS packages
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
-      - name: Install Ruby 3.4.0-preview1
-        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
+      - name: Install Ruby 3.4.0-preview2
+        uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
-          ruby-version: 3.4.0-preview1
+          ruby-version: 3.4.0-preview2
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
         env:
-          RUBY_VERSION: 3.4.0-preview1
+          RUBY_VERSION: 3.4.0-preview2
 
       - name: Run Unit Tests
         uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
