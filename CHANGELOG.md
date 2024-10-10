@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS sdk, and resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
+Version <dev> adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, and resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
 
 - **Feature: New configuration option cloud.aws.account_id**
 
