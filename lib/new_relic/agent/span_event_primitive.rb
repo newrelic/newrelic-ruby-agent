@@ -52,6 +52,8 @@ module NewRelic
       DATASTORE_CATEGORY = 'datastore'
       CLIENT = 'client'
 
+      DB_STATEMENT_MAX_BYTES = 4096
+
       # Builds a Hash of error attributes as well as the Span ID when
       # an error is present.  Otherwise, returns nil when no error present.
       def error_attributes(segment)
@@ -114,9 +116,9 @@ module NewRelic
         agent_attributes[DB_SYSTEM_KEY] = segment.product if allowed?(DB_SYSTEM_KEY)
 
         if segment.sql_statement && allowed?(DB_STATEMENT_KEY)
-          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
+          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, DB_STATEMENT_MAX_BYTES)
         elsif segment.nosql_statement && allowed?(DB_STATEMENT_KEY)
-          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
+          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, DB_STATEMENT_MAX_BYTES)
         end
 
         [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
