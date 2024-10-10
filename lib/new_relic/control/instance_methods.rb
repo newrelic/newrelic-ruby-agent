@@ -95,8 +95,10 @@ module NewRelic
       end
 
       def configure_agent(env, options)
-        manual = Agent::Configuration::ManualSource.new(options)
-        Agent.config.replace_or_add_config(manual)
+        unless options.empty?
+          manual = Agent::Configuration::ManualSource.new(options)
+          Agent.config.replace_or_add_config(manual)
+        end
 
         # don't bother with YAML and high security in a serverless context
         return if Agent.config[:'serverless_mode.enabled'] || env == 'serverless'

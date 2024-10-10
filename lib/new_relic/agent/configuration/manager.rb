@@ -101,6 +101,8 @@ module NewRelic
         end
 
         def replace_or_add_config(source)
+          return if source.respond_to?(:empty?) && source.empty?
+
           source.freeze
           was_finished = finished_configuring?
 
@@ -185,7 +187,12 @@ module NewRelic
         def handle_nil_type(key, value, category)
           return value if %i[manual test].include?(category)
 
-          default_without_warning(key)
+          # TODO: identify all config params such as :web_transactions_apdex
+          #       that can exist in the @config hash without having an entry
+          #       in the DEFAULTS hash. then warn here when a key is in play
+          #       that is not on that allowlist. for now, just permit any key
+          #       and return the value.
+          default_without_warning(key) || value
         end
 
         # permit an int to be supplied for a float based param and vice versa
@@ -335,8 +342,8 @@ module NewRelic
         end
 
         def apply_mask(hash)
-          MASK_DEFAULTS \
-            .select { |_, proc| proc.call } \
+          MASK_DEFAULTS
+            .select { |_, proc| proc.call }
             .each { |key, _| hash.delete(key) }
           hash
         end
