@@ -477,7 +477,7 @@ module NewRelic
           :type => String,
           :allow_nil => true,
           :allowed_from_server => false,
-          :description => 'The AWS account ID for the associated AWS account'
+          :description => 'The AWS account ID for the AWS account associated with this app'
         },
         :config_path => {
           :default => DefaultSource.config_path,
