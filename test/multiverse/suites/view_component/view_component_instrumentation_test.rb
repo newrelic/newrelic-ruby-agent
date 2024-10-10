@@ -60,12 +60,12 @@ class ViewComponentInstrumentationTest < ActionDispatch::IntegrationTest
 
   # Test metric name being built when the controller class doesn't respond to :identifier
   # https://github.com/newrelic/newrelic-ruby-agent/pull/2870
-  def test_the_metric_name_omits_the_identifier_when_absent
+  def test_the_metric_name_records_default_name_on_error
     in_transaction do |txn|
       FAKE_CLASS.render_in_with_tracing { 11 * 38 }
       actual_name = txn.segments.last.name
 
-      assert_equal 'View/component/DummyViewComponentInstrumentationClass', actual_name
+      assert_equal 'View/component', actual_name
     end
   end
 end
