@@ -101,8 +101,6 @@ module NewRelic
         end
 
         def replace_or_add_config(source)
-          return if source.respond_to?(:empty?) && source.empty?
-
           source.freeze
           was_finished = finished_configuring?
 
