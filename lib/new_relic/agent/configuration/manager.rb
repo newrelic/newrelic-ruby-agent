@@ -215,7 +215,7 @@ module NewRelic
           # convert bool to string for regex usage and bool hash lookup
           value = value.to_s if type == Boolean
           if value.class != String
-            return value if category == :test
+            return value if category == :test || likely_transformed_already?(key, value)
 
             return default_with_warning(key, value, "Expected to receive a value of type #{type} but " \
                                         "received #{value.class}.")
@@ -231,6 +231,10 @@ module NewRelic
           return value unless procedure
 
           procedure.call(value)
+        end
+
+        def likely_transformed_already?(key, value)
+          DEFAULTS.dig(key, :transformed_type) == value.class
         end
 
         def default_with_warning(key, value, msg)

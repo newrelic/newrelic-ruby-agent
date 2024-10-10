@@ -308,6 +308,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :transform => proc { |v| v.is_a?(String) ? v.split(';') : v },
+          :transformed_type => Array,
           :description => 'Specify the [application name](/docs/apm/new-relic-apm/installation-configuration/name-your-application) used to aggregate data in the New Relic UI. To report data to [multiple apps at the same time](/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app), specify a list of names separated by a semicolon `;`. For example, `MyApp` or `MyStagingApp;Instance1`.'
         },
         :license_key => {
@@ -463,6 +464,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :transformed_type => Hash, # NOTE: :labels is a special case and transformed in manager.rb without a :transform key
           :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `Server:One;Data Center:Primary`.'
         },
         :log_file_name => {
@@ -1008,6 +1010,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
+          :transformed_type => Array,
           :description => 'List of allowed endpoints to include in audit log.'
         },
         :'audit_log.path' => {
@@ -1089,6 +1092,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :transform => proc { |arr| NewRelic::Agent.add_automatic_method_tracers(arr) },
+          :transformed_type => Array,
           :description => <<~DESCRIPTION
             An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods that the agent can automatically add custom instrumentation to. This doesn't require any modifications of the source code that defines the methods.
 
@@ -1587,6 +1591,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
+          :transformed_type => Array,
           :description => %Q(Specifies a list of hostname patterns separated by commas that will match gRPC hostnames that traffic is to be ignored by New Relic for. New Relic's gRPC client instrumentation will ignore traffic streamed to a host matching any of these patterns, and New Relic's gRPC server instrumentation will ignore traffic for a server running on a host whose hostname matches any of these patterns. By default, no traffic is ignored when gRPC instrumentation is itself enabled. For example, `"private.com$,exception.*"`)
         },
         :'instrumentation.grpc_server' => {
@@ -1933,6 +1938,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_regexp_list),
+          :transformed_type => Array,
           :description => 'Specify an Array of Rake tasks to automatically instrument. ' \
           'This configuration option converts the Array to a RegEx list. If you\'d like ' \
           'to allow all tasks by default, use `rake.tasks: [.+]`. No rake tasks will be ' \
@@ -1953,6 +1959,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
+          :transformed_type => Array,
           :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. For more detail, see [the docs on ignoring specific transactions](/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring).'
         },
         # Serverless
@@ -1962,6 +1969,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
+          :transformed_type => Boolean,
           :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
                           'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
                           "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
@@ -2080,6 +2088,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
+          :transformed_type => Array,
           :description => 'Specify a list of exceptions you do not want the agent to strip when [strip_exception_messages](#strip_exception_messages-enabled) is `true`. Separate exceptions with a comma. For example, `"ImportantException,PreserveMessageException"`.'
         },
         # Thread profiler
