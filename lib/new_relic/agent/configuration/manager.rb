@@ -273,14 +273,16 @@ module NewRelic
           return if source.respond_to?(:empty?) && source.empty?
 
           source.keys.each do |key|
+            next unless @callbacks.key?(key)
+
             begin
-              evaluated_cache = evaluate_and_apply_transformations(key, @cache[key], :manual)
               evaluated_source = evaluate_and_apply_transformations(key, source[key], config_category(source.class))
             rescue => e
               NewRelic::Agent.logger.warn("Error evaluating callback for direction '#{direction}' with key '#{key}': #{e}")
               next
             end
 
+            evaluated_cache = @cache.fetch(key, nil)
             if evaluated_cache != evaluated_source
               @callbacks[key].each do |proc|
                 if direction == :add
