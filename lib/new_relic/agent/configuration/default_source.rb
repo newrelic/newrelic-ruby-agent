@@ -475,6 +475,7 @@ module NewRelic
           :default => nil,
           :public => true,
           :type => String,
+          :allow_nil => true,
           :allowed_from_server => false,
           :description => 'The AWS account ID for the associated AWS account'
         },
