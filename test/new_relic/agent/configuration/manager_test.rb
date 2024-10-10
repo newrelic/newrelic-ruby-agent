@@ -533,20 +533,8 @@ module NewRelic::Agent::Configuration
     def test_logger_does_not_receive_excluded_settings
       log = with_array_logger(:debug) { @manager.log_config('direction', 'source') }.array.join('')
 
-      # TODO: OLD RUBIES - RUBY_VERSION < 3.4
-      # The JSON string output changed in Ruby 3.4 to remove the hash rocket
-      # Pre Ruby 3.4:
-      # :app_name=>\"test\"
-      # Ruby 3.4+:
-      # app_name: \"test\"
-      # Remove the condition once we support only version 3.4+
-      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
-        assert_includes(log, 'app_name:')
-        refute_includes(log, 'license_key:')
-      else
-        assert_includes(log, ':app_name')
-        refute_includes(log, ':license_key')
-      end
+      assert_includes(log, 'app_name')
+      refute_includes(log, 'license_key')
     end
 
     def test_reset_cache_return_early_for_jruby
