@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
+Version <dev> updates View Componment instrumentation to use a default metric name when one is unavaliable and resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.  
+
+- **Feature: Use default `View/component` metric name for unidentified View Components**
+
+  Previously, when a View Component metric name could not be identified, the agent would set the name as `nil`. Now, the agent defaults to using `View/component` as the metric name when one can not be identified. [PR#2907](https://github.com/newrelic/newrelic-ruby-agent/pull/2907)
 
 - **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
 
