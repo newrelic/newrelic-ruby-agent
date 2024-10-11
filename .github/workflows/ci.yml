@@ -216,7 +216,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse: [agent, ai, background, background_2, kafka, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.4.10, 3.3.5]
 
     steps:
