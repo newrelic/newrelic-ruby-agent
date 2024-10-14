@@ -80,7 +80,7 @@ class HelperTest < Minitest::Test
 
   #
   # rubygems_specs
-  # 
+  #
   def test_rubygems_specs_returns_empty_array_without_bundler
     stub(:defined?, nil, ['Bundler']) do
       result = NewRelic::Helper.rubygems_specs
