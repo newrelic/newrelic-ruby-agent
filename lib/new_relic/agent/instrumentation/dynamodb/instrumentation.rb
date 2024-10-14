@@ -31,9 +31,8 @@ module NewRelic::Agent::Instrumentation
         collection: args[0][:table_name]
       )
 
-      # TODO: Update this when it has been decided how to handle account id for ARN
-      # arn = get_arn(args[0])
-      # segment&.add_agent_attribute('cloud.resource_id', arn) if arn
+      arn = get_arn(args[0])
+      segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
       @nr_captured_request = nil # clear request just in case
       begin
@@ -50,16 +49,10 @@ module NewRelic::Agent::Instrumentation
       @nr_captured_request = yield
     end
 
-    def nr_account_id
-      return @nr_account_id if defined?(@nr_account_id)
-
-      @nr_account_id = NewRelic::Agent::Aws.get_account_id(config)
-    end
-
     def get_arn(params)
-      return unless params[:table_name] && nr_account_id
+      return unless params[:table_name]
 
-      NewRelic::Agent::Aws.create_arn(PRODUCT.downcase, "table/#{params[:table_name]}", config&.region, nr_account_id)
+      NewRelic::Agent::Aws.create_arn(PRODUCT.downcase, "table/#{params[:table_name]}", config&.region)
     end
   end
 end
