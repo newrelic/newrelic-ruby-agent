@@ -82,5 +82,20 @@ module NewRelic
         File.exist?(executable_path) && File.file?(executable_path) && File.executable?(executable_path)
       end
     end
+
+    # Bundler version 2.5.12 deprecated all_specs and added installed_specs.
+    # To support newer Bundler versions, try to use installed_specs first,
+    # then fall back to all_specs.
+    # All callers expect this to be an array, so return an array if Bundler isn't defined
+    # @api private
+    def rubygems_specs
+      return [] unless defined?(Bundler)
+
+      if Bundler.rubygems.respond_to?(:installed_specs)
+        Bundler.rubygems.installed_specs
+      else
+        Bundler.rubygems.all_specs
+      end
+    end
   end
 end
