@@ -78,7 +78,9 @@ class HelperTest < Minitest::Test
     end
   end
 
-  ## rubygems_specs
+  #
+  # rubygems_specs
+  # 
   def test_rubygems_specs_returns_empty_array_without_bundler
     stub(:defined?, nil, ['Bundler']) do
       result = NewRelic::Helper.rubygems_specs
@@ -89,7 +91,7 @@ class HelperTest < Minitest::Test
   end
 
   def test_rubygems_specs_works_with_all_specs_when_installed_specs_is_absent
-    Bundler.rubygems.stub(:respond_to?, nil, [':installed_specs']) do
+    Bundler.rubygems.stub(:respond_to?, nil) do
       assert_equal Bundler.rubygems.all_specs, NewRelic::Helper.rubygems_specs
     end
   end
