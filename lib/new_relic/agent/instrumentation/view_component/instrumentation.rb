@@ -10,12 +10,7 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.record_instrumentation_invocation(INSTRUMENTATION_NAME)
 
       begin
-        segment = NewRelic::Agent::Tracer.start_segment(
-          name: metric_name(
-            self.class.respond_to?(:identifier) ? self.class.identifier : nil,
-            self.class.name
-          )
-        )
+        segment = NewRelic::Agent::Tracer.start_segment(name: metric_name)
         yield
       rescue => e
         NewRelic::Agent.notice_error(e)
@@ -25,8 +20,12 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def metric_name(identifier, component)
-      "View/#{metric_path(identifier)}/#{component}"
+    def metric_name
+      "View/#{metric_path(self.class.source_location)}/#{self.class.name}"
+    rescue => e
+      NewRelic::Agent.logger.error('Error identifying View Component metric name', e)
+
+      'View/component'
     end
 
     def metric_path(identifier)

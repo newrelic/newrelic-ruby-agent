@@ -533,8 +533,8 @@ module NewRelic::Agent::Configuration
     def test_logger_does_not_receive_excluded_settings
       log = with_array_logger(:debug) { @manager.log_config('direction', 'source') }.array.join('')
 
-      assert_includes(log, ':app_name')
-      refute_includes(log, ':license_key')
+      assert_includes(log, 'app_name')
+      refute_includes(log, 'license_key')
     end
 
     def test_reset_cache_return_early_for_jruby
