@@ -2,7 +2,11 @@
 
 ## dev
 
-Version <dev> resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem and fixes a bug with Grape instrumentation.
+Version <dev> updates View Componment instrumentation to use a default metric name when one is unavaliable, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem and fixes a bug with Grape instrumentation.
+
+- **Feature: Use default `View/component` metric name for unidentified View Components**
+
+  Previously, when a View Component metric name could not be identified, the agent would set the name as `nil`. Now, the agent defaults to using `View/component` as the metric name when one can not be identified. [PR#2907](https://github.com/newrelic/newrelic-ruby-agent/pull/2907)
 
 - **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
 
@@ -11,7 +15,6 @@ Version <dev> resolves a bug in rdkafka instrumentation when using the karafka-r
 - **Bugfix: Stop calling deprecated all_specs method to check for the presence of newrelic-grape**
 
   In 9.14.0, we released a fix for calls to the deprecated `Bundler.rubygems.all_specs`, but the fix fell short for the agent's Grape instrumentation and deprecation warnings could still be raised. The condition has been simplified and deprecation warnings should no longer be raised. Thank you, [@excelsior](https://github.com/excelsior) for bringing this to our attention. [Issue#](https://github.com/newrelic/newrelic-ruby-agent/issues/2885) [PR#2906](https://github.com/newrelic/newrelic-ruby-agent/pull/2906)
-
 
 ## v9.14.0
 
