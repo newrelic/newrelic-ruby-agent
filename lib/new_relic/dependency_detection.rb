@@ -25,11 +25,9 @@ module DependencyDetection
 
   def detect!
     @items.each do |item|
-      if item.dependencies_satisfied?
-        item.execute
-      else
-        item.configure_as_unsatisfied unless item.disabled_configured?
-      end
+      next if item.executed || item.disabled_configured?
+
+      item.dependencies_satisfied? ? item.execute : item.configure_as_unsatisfied
     end
   end
 
@@ -65,6 +63,13 @@ module DependencyDetection
     end
 
     def configure_as_unsatisfied
+      # TODO: currently using :unsatisfied for Padrino will clobber the value
+      #       already set for Sinatra, so skip Padrino and circle back with a
+      #       new Padrino specific solution in the future.
+      #
+      #       https://github.com/newrelic/newrelic-ruby-agent/issues/2912
+      return if name == :padrino
+
       NewRelic::Agent.config.instance_variable_get(:@cache)[config_key] = :unsatisfied
     end
 
