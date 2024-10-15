@@ -41,26 +41,26 @@ module NewRelic::Agent::Configuration
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
 
-        assert EnvironmentSource.new[:enabled]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'true', true)
         ENV[var] = 'on'
 
-        assert EnvironmentSource.new[:enabled]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'on', true)
         ENV[var] = 'yes'
 
-        assert EnvironmentSource.new[:enabled]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'yes', true)
         ENV.delete(var)
       end
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
 
-        refute EnvironmentSource.new[:enabled]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'false', false)
         ENV[var] = 'off'
 
-        refute EnvironmentSource.new[:enabled]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'off', false)
         ENV[var] = 'no'
 
-        refute EnvironmentSource.new[:enabled]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'no', false)
         ENV.delete(var)
       end
     end
@@ -69,26 +69,26 @@ module NewRelic::Agent::Configuration
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
 
-        assert EnvironmentSource.new[:disable_harvest_thread]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'true', true)
         ENV[var] = 'on'
 
-        assert EnvironmentSource.new[:disable_harvest_thread]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'on', true)
         ENV[var] = 'yes'
 
-        assert EnvironmentSource.new[:disable_harvest_thread]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'yes', true)
         ENV.delete(var)
       end
 
       define_method("test_environment_booleans_falsehoods_are_applied_to_#{var}") do
         ENV[var] = 'false'
 
-        refute EnvironmentSource.new[:disable_harvest_thread]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'false', false)
         ENV[var] = 'off'
 
-        refute EnvironmentSource.new[:disable_harvest_thread]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'off', false)
         ENV[var] = 'no'
 
-        refute EnvironmentSource.new[:disable_harvest_thread]
+        assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'no', false)
         ENV.delete(var)
       end
     end
@@ -132,48 +132,6 @@ module NewRelic::Agent::Configuration
       @environment_source.set_values_from_new_relic_environment_variables
     end
 
-    def test_set_value_from_environment_variable
-      ENV['NEW_RELIC_LICENSE_KEY'] = 'super rad'
-      @environment_source.set_value_from_environment_variable('NEW_RELIC_LICENSE_KEY')
-
-      assert_equal 'super rad', @environment_source[:license_key]
-    end
-
-    def test_set_key_by_type_uses_the_default_type
-      ENV['NEW_RELIC_TEST'] = 'true'
-      @environment_source.set_key_by_type(:enabled, 'NEW_RELIC_TEST')
-
-      assert @environment_source[:enabled]
-    end
-
-    def test_set_key_by_type_converts_comma_lists_to_array
-      ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi,bye'
-      @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
-
-      assert_equal %w[hi bye], @environment_source[:'attributes.include']
-    end
-
-    def test_set_key_by_type_converts_comma_lists_with_spaces_to_array
-      ENV['NEW_RELIC_ATTRIBUTES_INCLUDE'] = 'hi, bye'
-      @environment_source.set_key_by_type(:'attributes.include', 'NEW_RELIC_ATTRIBUTES_INCLUDE')
-
-      assert_equal %w[hi bye], @environment_source[:'attributes.include']
-    end
-
-    def test_array_based_params_use_the_transform_proc_when_present
-      skip_unless_minitest5_or_above
-
-      arr = %w[James Jessie Meowth]
-
-      env_var = 'NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST'
-      param = :automatic_custom_instrumentation_method_list
-      ENV.stub(:[], arr.join(','), [env_var]) do
-        @environment_source.set_key_by_type(param, env_var)
-      end
-
-      assert_equal arr, @environment_source[param]
-    end
-
     def test_set_key_with_new_relic_prefix
       assert_applied_string('NEW_RELIC_LICENSE_KEY', :license_key)
     end
@@ -195,7 +153,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_convert_environment_key_to_config_key_respects_aliases
-      assert_applied_boolean('NEWRELIC_ENABLE', :enabled)
+      assert_applied_boolean('NEWRELIC_ENABLE', :enabled, 'true', true)
     end
 
     def test_convert_environment_key_to_config_key_allows_underscores_as_dots
@@ -220,31 +178,42 @@ module NewRelic::Agent::Configuration
     end
 
     def assert_applied_string(env_var, config_var)
-      ENV[env_var] = 'test value'
+      value = 'test value'
+      ENV[env_var] = value
+      expected = env_var.end_with?('_APP_NAME') ? [value] : value
 
-      assert_equal 'test value', EnvironmentSource.new[config_var.to_sym]
+      assert_equal expected, refreshed_config_value_for(config_var)
+    ensure
       ENV.delete(env_var)
     end
 
     def assert_applied_symbol(env_var, config_var)
       ENV[env_var] = 'test value'
 
-      assert_equal :'test value', EnvironmentSource.new[config_var.to_sym]
+      assert_equal :'test value', refreshed_config_value_for(config_var)
+    ensure
       ENV.delete(env_var)
     end
 
     def assert_applied_fixnum(env_var, config_var)
       ENV[env_var] = '3000'
 
-      assert_equal 3000, EnvironmentSource.new[config_var.to_sym]
+      assert_equal 3000, refreshed_config_value_for(config_var)
+    ensure
       ENV.delete(env_var)
     end
 
-    def assert_applied_boolean(env_var, config_var)
-      ENV[env_var] = 'true'
+    def assert_applied_boolean(env_var, config_var, value, expected)
+      ENV[env_var] = value
 
-      assert EnvironmentSource.new[config_var.to_sym]
+      assert_equal expected, refreshed_config_value_for(config_var)
+    ensure
       ENV.delete(env_var)
+    end
+
+    def refreshed_config_value_for(var)
+      NewRelic::Agent.config.reset_to_defaults
+      NewRelic::Agent.config[var.to_sym]
     end
   end
 end

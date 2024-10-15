@@ -31,7 +31,7 @@ class LoggingTest < Minitest::Test
   def test_logs_error_with_bad_app_name
     running_agent_writes_to_log(
       {:app_name => false},
-      'No application name configured.'
+      'Using the default value'
     )
   end
 
