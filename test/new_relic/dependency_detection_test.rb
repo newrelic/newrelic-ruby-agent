@@ -488,4 +488,21 @@ class DependencyDetectionTest < Minitest::Test
       assert_equal :unsatisfied, dd.config_value
     end
   end
+
+  def test_already_executed_items_are_not_executed_again
+    unexecuted = Minitest::Mock.new
+    unexecuted.expect :executed, false
+    unexecuted.expect :dependencies_satisfied?, true
+    unexecuted.expect :disabled_configured?, false
+    unexecuted.expect :execute, -> { execution_took_place = true }
+    executed = Minitest::Mock.new
+    executed.expect :executed, true
+    unexecuted.expect :disabled_configured?, false
+
+    DependencyDetection.instance_variable_set(:@items, [unexecuted, executed])
+    DependencyDetection.detect!
+
+    unexecuted.verify
+    executed.verify
+  end
 end
