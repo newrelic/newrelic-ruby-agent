@@ -14,6 +14,8 @@ module NewRelic
 
       def initialize
         @stats_lock = Mutex.new
+        NewRelic::Agent.logger.debug('PAISLEY: StatsEngine#initialize')
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         @stats_hash = StatsHash.new
         @metric_rules = RulesEngine.new
       end
@@ -130,6 +132,8 @@ module NewRelic
       def reset!
         with_stats_lock do
           old = @stats_hash
+          NewRelic::Agent.logger.debug('PAISLEY: StatsEngine#reset!')
+          NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
           @stats_hash = StatsHash.new
           old
         end
@@ -158,6 +162,8 @@ module NewRelic
       end
 
       def apply_rules_to_metric_data(rules_engine, stats_hash)
+        NewRelic::Agent.logger.debug("PAISLEY: apply_rules_to_metric data called - started_at: #{stats_hash.started_at}")
+        NewRelic::Agent.logger.debug("PAISLEY: caller locations - \n#{caller_locations[0..10].join("\n ")}")
         renamed_stats = NewRelic::Agent::StatsHash.new(stats_hash.started_at)
         stats_hash.each do |spec, stats|
           new_name = rules_engine.rename(spec.name)
