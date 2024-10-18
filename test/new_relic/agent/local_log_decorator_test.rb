@@ -94,7 +94,7 @@ module NewRelic::Agent
       end
 
       def test_safe_without_entity_name
-        with_config(app_name: nil) do
+        with_config(app_name: []) do
           decorated_message = LocalLogDecorator.decorate(MESSAGE)
 
           assert_includes decorated_message, '||'

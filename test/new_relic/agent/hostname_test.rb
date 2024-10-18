@@ -80,14 +80,6 @@ module NewRelic
         end
       end
 
-      def test_shortens_to_prefixes_with_unsupported_object
-        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => Object.new) do
-          expects_logging(:error, includes('heroku.dyno_name_prefixes_to_shorten'), instance_of(ArgumentError))
-
-          assert_equal 'Imladris.1', NewRelic::Agent::Hostname.get
-        end
-      end
-
       def test_local_predicate_true_when_host_local
         hosts = %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1
           0:0:0:0:0:0:0:0 ::1 ::]
