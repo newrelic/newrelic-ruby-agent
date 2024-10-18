@@ -75,11 +75,12 @@ module NewRelic
         end
 
         def test_failsafe_if_event_does_not_match_expected_pattern
+          name = 'charcuterie_build_a_board_workshop'
           in_transaction('test') do
-            generate_event('charcuterie_build_a_board_workshop')
+            generate_event(name)
           end
 
-          assert_metrics_recorded "#{METRIC_PREFIX}#{DEFAULT_STORE}/Unknown"
+          assert_metrics_recorded "#{METRIC_PREFIX}#{DEFAULT_STORE}/#{name}"
         end
 
         def test_key_recorded_as_attribute_on_traces
