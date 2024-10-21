@@ -2,10 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '<%= @snake_name.downcase %>/instrumentation'
-require_relative '<%= @snake_name.downcase %>/chain'
-require_relative '<%= @snake_name.downcase %>/prepend'
-
 DependencyDetection.defer do
   named :<%= @name.match?(/\-|\_/) ? "'#{@snake_name}'" : @name.downcase %>
 
@@ -18,6 +14,10 @@ DependencyDetection.defer do
   end
 
   executes do
+    require_relative '<%= @snake_name.downcase %>/instrumentation'
+    require_relative '<%= @snake_name.downcase %>/chain'
+    require_relative '<%= @snake_name.downcase %>/prepend'
+
     # prepend_instrument and chain_instrument call extract_supportability_name
     # to get the library name for supportability metrics and info-level logging. 
     # This is done by spliting on the 2nd to last spot of the instrumented
