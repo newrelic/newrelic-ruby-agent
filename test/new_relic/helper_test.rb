@@ -77,4 +77,28 @@ class HelperTest < Minitest::Test
       NewRelic::Helper.run_command('executable that existed at detection time but is not there now')
     end
   end
+
+  #
+  # rubygems_specs
+  #
+  def test_rubygems_specs_returns_empty_array_without_bundler
+    stub(:defined?, nil, ['Bundler']) do
+      result = NewRelic::Helper.rubygems_specs
+
+      assert_instance_of Array, result
+      assert_empty Array, result
+    end
+  end
+
+  def test_rubygems_specs_works_with_all_specs_when_installed_specs_is_absent
+    Bundler.rubygems.stub(:respond_to?, nil) do
+      assert_equal Bundler.rubygems.all_specs, NewRelic::Helper.rubygems_specs
+    end
+  end
+
+  def test_rubygems_specs_works_with_installed_specs
+    skip 'running a version of Bundler that has not defined installed_specs' unless Bundler.rubygems.respond_to?(:installed_specs)
+
+    assert_equal Bundler.rubygems.installed_specs, NewRelic::Helper.rubygems_specs
+  end
 end

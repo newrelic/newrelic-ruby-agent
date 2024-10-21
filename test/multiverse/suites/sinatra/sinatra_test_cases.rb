@@ -128,6 +128,13 @@ module SinatraTestCases
     assert_metrics_recorded(["Controller/Sinatra/#{app_name}/#{regex_segment}"])
   end
 
+  def test_that_the_actively_configured_instrumentation_is_not_marked_as_unsatsfied
+    get('/pass')
+
+    assert_equal 200, last_response.status
+    assert_includes(%w[chain prepend], NewRelic::Agent.config[:'instrumentation.sinatra'].to_s)
+  end
+
   # https://support.newrelic.com/tickets/31061
   def test_precondition_not_over_called
     get('/precondition')

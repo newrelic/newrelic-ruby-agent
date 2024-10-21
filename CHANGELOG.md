@@ -2,9 +2,9 @@
 
 ## dev
 
-
-Version <dev> adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, updates View Componment instrumentation to use a default metric name when one is unavaliable, and resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem.
-
+Version <dev> updates View Componment instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, and fixes a bug with Grape instrumentation.
+  
+  
 - **Feature: New configuration option cloud.aws.account_id**
 
   A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS SDK. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
@@ -16,6 +16,14 @@ Version <dev> adds a configuration option to associate the AWS account ID with t
 - **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
 
   Due to version differences between the rdkafka gem and karafka-rdkafka gem, the agent could encounter an error when it tried to install rdkafka instrumentation. This has now been resolved. Thank you to @krisdigital for bringing this issue to our attention. [PR#2880](https://github.com/newrelic/newrelic-ruby-agent/pull/2880)
+
+- **Bugfix: Stop calling deprecated all_specs method to check for the presence of newrelic-grape**
+
+  In 9.14.0, we released a fix for calls to the deprecated `Bundler.rubygems.all_specs`, but the fix fell short for the agent's Grape instrumentation and deprecation warnings could still be raised. The condition has been simplified and deprecation warnings should no longer be raised. Thank you, [@excelsior](https://github.com/excelsior) for bringing this to our attention. [Issue#](https://github.com/newrelic/newrelic-ruby-agent/issues/2885) [PR#2906](https://github.com/newrelic/newrelic-ruby-agent/pull/2906)
+
+- **Bugfix: Instrumentation errors when using the ruby-kafka gem**
+
+  Kafka::Consumer#each_message takes keyword arguments, while the prepended method is defined with a single splat positional argument. In Ruby >= 3.0, this signature mismatch raises an ArgumentError. Thank you [@patrickarnett](https://github.com/patrickarnett) for providing this bugfix. [PR#2915](https://github.com/newrelic/newrelic-ruby-agent/pull/2915)
 
 
 ## v9.14.0
