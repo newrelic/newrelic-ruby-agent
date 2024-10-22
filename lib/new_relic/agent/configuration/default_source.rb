@@ -2766,6 +2766,36 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables RXSS (reflected cross-site scripting) detection'
         },
+        :'security.scan_schedule.delay' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The delay field indicated time in minutes before the IAST scan starts after the application starts'
+        },
+        :'security.scan_schedule.duration' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The duration field specifies the duration of the IAST scan in minutes. This determines how long the scan will run'
+        },
+        :'security.scan_schedule.schedule' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The schedule field specifies a cron expression that defines when the IAST scan should run',
+          :dynamic_name => true
+        },
+        :'security.scan_schedule.always_sample_traces' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'always_sample_traces permits IAST to actively gather trace data in the background, and the collected data will be used by Security Agent to perform an IAST Scan at the scheduled time'
+        },
         :'security.scan_controllers.iast_scan_request_rate_limit' => {
           :default => 3600,
           :public => true,
