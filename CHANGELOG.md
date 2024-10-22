@@ -2,7 +2,12 @@
 
 ## dev
 
-Version <dev> updates View Componment instrumentation to use a default metric name when one is unavailable, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, and fixes a bug with Grape instrumentation.
+Version <dev> updates View Componment instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, and fixes a bug with Grape instrumentation.
+  
+  
+- **Feature: New configuration option cloud.aws.account_id**
+
+  A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS SDK. One example, is that relationships between AWS services instrumented with New Relic's CloudWatch Metric Streams will have relationships formed in the service map with APM applications. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
 
 - **Feature: Use default `View/component` metric name for unidentified View Components**
 

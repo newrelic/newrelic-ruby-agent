@@ -8,7 +8,6 @@ class DynamodbInstrumentationTest < Minitest::Test
   def setup
     Aws.config.update(stub_responses: true)
     NewRelic::Agent::Aws.stubs(:create_arn).returns('test-arn')
-    NewRelic::Agent::Aws.stubs(:get_account_id).returns('123456789')
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
 
@@ -42,8 +41,7 @@ class DynamodbInstrumentationTest < Minitest::Test
     assert_equal 'us-east-2', span[2]['aws.region']
     assert_equal 'query', span[2]['aws.operation']
     assert_equal '1234321', span[2]['aws.requestId']
-    # TODO: Uncomment this when the ARN is added to the segment
-    # assert_equal 'test-arn', span[2]['cloud.resource_id']
+    assert_equal 'test-arn', span[2]['cloud.resource_id']
   end
 
   def test_create_table_table_name_operation
