@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 DependencyDetection.defer do
-  named :<%= @name.match?(/\-|\_/) ? "'#{@snake_name}'" : @name.downcase %>
+  named :<%= @snake_name %>
 
   depends_on do
     # The class that needs to be defined to prepend/chain onto. This can be used
