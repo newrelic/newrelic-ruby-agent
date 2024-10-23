@@ -731,6 +731,11 @@ module NewRelic::Agent
     end
 
     def assert_labels(config, expected_attributes = {})
+      # we should only have one log event aggregator per agent instance
+      # simulate that by resetting @labels between tests
+      aggregator = NewRelic::Agent.agent.log_event_aggregator
+      aggregator.remove_instance_variable(:@labels) if aggregator.instance_variable_defined?(:@labels)
+
       with_config(config) do
         LinkingMetadata.stub('append_service_linking_metadata', { 'entity.guid' => 'GUID', 'entity.name' => 'Hola'}) do
           log_data = [
