@@ -693,5 +693,65 @@ module NewRelic::Agent
         assert_empty results
       end
     end
+
+    def test_labels_added_as_common_attributes_when_enabled
+      config = {:labels => 'Server:One;Data Center:Primary', :'application_logging.forwarding.labels.enabled' => true}
+      expected_label_attributes = {'tags.Server' => 'One', 'tags.Data Center' => 'Primary'}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def test_labels_not_added_as_common_attributes_when_disabled
+      config = {:labels => 'Server:One;Data Center:Primary', :'application_logging.forwarding.labels.enabled' => false}
+      expected_label_attributes = {}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def test_labels_not_added_as_common_attributes_when_excluded
+      config = {
+        :labels => 'Server:One;Data Center:Primary;Fake:two',
+        :'application_logging.forwarding.labels.enabled' => true,
+        :'application_logging.forwarding.labels.exclude' => ['Fake']
+      }
+      expected_label_attributes = {'tags.Server' => 'One', 'tags.Data Center' => 'Primary'}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def test_labels_excluded_only_for_case_insensitive_match
+      config = {
+        :labels => 'Server:One;Data Center:Primary;fake:two;Faker:three',
+        :'application_logging.forwarding.labels.enabled' => true,
+        :'application_logging.forwarding.labels.exclude' => ['Fake']
+      }
+      expected_label_attributes = {'tags.Server' => 'One', 'tags.Data Center' => 'Primary', 'tags.Faker' => 'three'}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def assert_labels(config, expected_attributes = {})
+      with_config(config) do
+        LinkingMetadata.stub('append_service_linking_metadata', { 'entity.guid' => 'GUID', 'entity.name' => 'Hola'}) do
+          log_data = [
+            {
+              events_seen: 0,
+              reservoir_size: 0
+            },
+            [
+              [{"priority": 1}, {"message": 'This is a mess'}]
+            ]
+          ]
+
+          payload, _ = LogEventAggregator.payload_to_melt_format(log_data)
+          expected = [{
+            common: {attributes: {'entity.guid' => 'GUID', 'entity.name' => 'Hola'}.merge!(expected_attributes)},
+            logs: [{"message": 'This is a mess'}]
+          }]
+
+          assert_equal(payload, expected)
+        end
+      end
+    end
   end
 end

@@ -51,7 +51,24 @@ module NewRelic
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
         @attributes = NewRelic::Agent::LogEventAttributes.new
+
         register_for_done_configuring(events)
+      end
+
+      def label_attributes
+        return NewRelic::EMPTY_HASH unless NewRelic::Agent.config[:'application_logging.forwarding.labels.enabled']
+
+        downcased_exclusion_list = NewRelic::Agent.config[:'application_logging.forwarding.labels.exclude'].map(&:downcase)
+        log_labels = {}
+
+        NewRelic::Agent.config.parsed_labels.each do |parsed_label|
+          next if downcased_exclusion_list.include?(parsed_label['label_type'].downcase)
+          # labels are referred to as tags in the UI, so prefix the label-related attributes
+          # with tags.*
+          log_labels["tags.#{parsed_label['label_type']}"] = parsed_label['label_value']
+        end
+
+        log_labels
       end
 
       def capacity
@@ -201,8 +218,9 @@ module NewRelic
         # To save on unnecessary data transmission, trim the entity.type
         # sent by classic logs-in-context
         common_attributes.delete(ENTITY_TYPE_KEY)
-
-        common_attributes.merge!(NewRelic::Agent.agent.log_event_aggregator.attributes.custom_attributes)
+        aggregator = NewRelic::Agent.agent.log_event_aggregator
+        common_attributes.merge!(aggregator.attributes.custom_attributes)
+        common_attributes.merge!(aggregator.label_attributes)
 
         _, items = data
         payload = [{

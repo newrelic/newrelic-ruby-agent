@@ -873,6 +873,21 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2"'
         },
+        :'application_logging.forwarding.labels.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent attaches [labels](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#labels) to log records.'
+        },
+        :'application_logging.forwarding.labels.exclude' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :transform => DefaultSource.method(:convert_to_list),
+          :allowed_from_server => false,
+          :description => 'A case-insensitive array or comma-delimited string containing the labels to exclude from log records.'
+        },
         :'application_logging.forwarding.max_samples_stored' => {
           :default => 10000,
           :public => true,
