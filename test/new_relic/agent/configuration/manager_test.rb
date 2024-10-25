@@ -552,6 +552,23 @@ module NewRelic::Agent::Configuration
       @manager.new_cache
     end
 
+    # https://github.com/newrelic/newrelic-ruby-agent/issues/2919
+    def test_that_boolean_based_params_always_go_through_any_defined_transform_sequence
+      key = :soundwave
+      defaults = {key => {default: false,
+                          public: true,
+                          type: Boolean,
+                          allowed_from_server: false,
+                          transform: proc { |bool| bool.to_s.reverse },
+                          description: 'Param what transforms'}}
+      NewRelic::Agent::Configuration.stub_const(:DEFAULTS, defaults) do
+        mgr = NewRelic::Agent::Configuration::Manager.new
+        value = mgr[key]
+
+        assert_equal 'eslaf', value, 'Expected `false` boolean value to be transformed!'
+      end
+    end
+
     private
 
     def assert_parsed_labels(expected)
