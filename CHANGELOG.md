@@ -25,7 +25,7 @@ Version <dev> updates View Componment instrumentation to use a default metric na
 
   Kafka::Consumer#each_message takes keyword arguments, while the prepended method is defined with a single splat positional argument. In Ruby >= 3.0, this signature mismatch raises an ArgumentError. Thank you [@patrickarnett](https://github.com/patrickarnett) for providing this bugfix. [PR#2915](https://github.com/newrelic/newrelic-ruby-agent/pull/2915)
 
-- **Bugfix: Restore AWS Lambda layer based operational functionality**
+- **Bugfix: Restore AWS Lambda layer operational functionality**
 
   Version 9.14.0 of the agent introduced an optimization related to how the agent handles boolean based configuration parameters which inadvertently caused the agent to stop operating properly in an AWS Lambda layer context. [Issue#2919](https://github.com/newrelic/newrelic-ruby-agent/issues/2919)
 
