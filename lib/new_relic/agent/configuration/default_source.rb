@@ -2727,15 +2727,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
         },
-        :'security.request.body_limit' => {
-          :default => 300,
-          :allow_nil => true,
-          :public => true,
-          :type => Integer,
-          :external => true,
-          :allowed_from_server => false,
-          :description => 'Defines the request body limit to process in security events (in KB). The default value is 300, for 300KB.'
-        },
         :'security.exclude_from_iast_scan.api' => {
           :default => [],
           :public => true,
