@@ -14,7 +14,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
+      - uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
           ruby-version: '3.3'
       - run: bundle
@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
+        uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
           ruby-version: ${{ matrix.ruby-version }} 
 
@@ -216,7 +216,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, ai, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+        multiverse: [agent, ai, background, background_2, kafka, database, frameworks, httpclients, httpclients_2, rails, rest]
         ruby-version: [2.4.10, 3.3.5]
 
     steps:
@@ -231,7 +231,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
+        uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -324,7 +324,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
+        uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -364,7 +364,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@52753b7da854d5c07df37391a986c76ab4615999 # tag v1.191.0
+      - uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
           ruby-version: '3.3'
       - run: bundle

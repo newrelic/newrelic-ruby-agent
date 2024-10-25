@@ -158,15 +158,20 @@ class ConfigFileLoadingTest < Minitest::Test
     assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
   end
 
-  def test_warning_logged_when_config_file_erb_error
-    path = File.join(@cwd, 'config', 'newrelic.yml')
-    setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
-    setup_agent
+  # TODO: RUBY 3.4 SUPPORT
+  # Both error class and output have changes in Ruby 3.4
+  # See Issue: https://github.com/newrelic/newrelic-ruby-agent/issues/2902
+  unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+    def test_warning_logged_when_config_file_erb_error
+      path = File.join(@cwd, 'config', 'newrelic.yml')
+      setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
+      setup_agent
 
-    log = with_array_logger { NewRelic::Agent.manual_start }
+      log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_log_contains(log, /ERROR.*Failed ERB processing/)
-    assert_log_contains(log, /\(erb\):4/)
+      assert_log_contains(log, /ERROR.*Failed ERB processing/)
+      assert_log_contains(log, /\(erb\):4/)
+    end
   end
 
   def test_exclude_commented_out_erb_lines

@@ -553,7 +553,7 @@ module Multiverse
 
     def check_for_failure(env)
       if $? != 0
-        OutputCollector.write(suite, env, red("#{suite.inspect} for Envfile entry #{env} failed!"))
+        OutputCollector.write(suite, env, red("#{suite.inspect} for Envfile entry #{env} failed! (exit: #{$?})"))
         OutputCollector.failed(suite, env)
       end
       Multiverse::Runner.notice_exit_status($?)

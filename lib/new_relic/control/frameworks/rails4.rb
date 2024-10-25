@@ -9,11 +9,7 @@ module NewRelic
     module Frameworks
       class Rails4 < NewRelic::Control::Frameworks::Rails3
         def rails_gem_list
-          if Gem::Version.new(Bundler::VERSION) >= Gem::Version.new('2.0.0')
-            Bundler.rubygems.installed_specs.map { |gem| "#{gem.name} (#{gem.version})" }
-          else
-            Bundler.rubygems.all_specs.map { |gem| "#{gem.name} (#{gem.version})" }
-          end
+          NewRelic::Helper.rubygems_specs.map { |gem| "#{gem.name} (#{gem.version})" }
         end
 
         def append_plugin_list

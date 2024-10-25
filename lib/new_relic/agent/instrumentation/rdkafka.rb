@@ -2,10 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'rdkafka/instrumentation'
-require_relative 'rdkafka/chain'
-require_relative 'rdkafka/prepend'
-
 DependencyDetection.defer do
   named :rdkafka
 
@@ -14,7 +10,9 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing rdkafka instrumentation')
+    require_relative 'rdkafka/instrumentation'
+    require_relative 'rdkafka/chain'
+    require_relative 'rdkafka/prepend'
 
     if use_prepend?
       prepend_instrument Rdkafka::Config, NewRelic::Agent::Instrumentation::RdkafkaConfig::Prepend

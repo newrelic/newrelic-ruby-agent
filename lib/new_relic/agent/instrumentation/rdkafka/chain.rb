@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'instrumentation'
+
 module NewRelic::Agent::Instrumentation
   module Rdkafka::Chain
     def self.instrument!
@@ -38,7 +40,8 @@ module NewRelic::Agent::Instrumentation
         alias_method(:producer_without_new_relic, :producer)
         alias_method(:consumer_without_new_relic, :consumer)
 
-        if Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0')
+        if Gem::Version.new(::Rdkafka::VERSION) >= Gem::Version.new('0.16.0') ||
+            (Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7.0'))
           def producer(**kwargs)
             producer_without_new_relic(**kwargs).tap do |producer|
               set_nr_config(producer)

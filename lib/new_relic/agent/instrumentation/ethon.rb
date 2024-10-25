@@ -22,10 +22,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing ethon instrumentation')
-  end
-
-  executes do
     if use_prepend?
       # NOTE: by default prepend_instrument will go with the module name that
       #       precedes 'Prepend' (so 'Easy' and 'Multi'), but we want to use
