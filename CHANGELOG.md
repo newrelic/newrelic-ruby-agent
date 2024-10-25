@@ -27,7 +27,7 @@ Version <dev> updates View Componment instrumentation to use a default metric na
 
 - **Bugfix: Restore AWS Lambda layer operational functionality**
 
-  Version 9.14.0 of the agent introduced an optimization related to how the agent handles boolean based configuration parameters which inadvertently caused the agent to stop operating properly in an AWS Lambda layer context. [Issue#2919](https://github.com/newrelic/newrelic-ruby-agent/issues/2919)
+  Version 9.14.0 of the agent introduced an optimization related to how the agent handles boolean configuration parameters which inadvertently caused the agent to stop operating properly in an AWS Lambda layer context. [Issue#2919](https://github.com/newrelic/newrelic-ruby-agent/issues/2919)[PR#2920](https://github.com/newrelic/newrelic-ruby-agent/pull/2920)
 
 ## v9.14.0
 
