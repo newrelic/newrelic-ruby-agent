@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-  pull_request:
+      - dev
   schedule:
     - cron: '0 9 * * *' # Same time as CI Cron
 
