@@ -342,6 +342,7 @@ module NewRelic
 
         NewRelic::Agent.config.parsed_labels.each do |parsed_label|
           next if downcased_exclusions.include?(parsed_label['label_type'].downcase)
+
           # labels are referred to as tags in the UI, so prefix the
           # label-related attributes with 'tags.*'
           log_labels["tags.#{parsed_label['label_type']}"] = parsed_label['label_value']

@@ -737,7 +737,7 @@ module NewRelic::Agent
       aggregator.remove_instance_variable(:@labels) if aggregator.instance_variable_defined?(:@labels)
 
       with_config(config) do
-        LinkingMetadata.stub('append_service_linking_metadata', { 'entity.guid' => 'GUID', 'entity.name' => 'Hola'}) do
+        LinkingMetadata.stub('append_service_linking_metadata', {'entity.guid' => 'GUID', 'entity.name' => 'Hola'}) do
           log_data = [
             {
               events_seen: 0,
