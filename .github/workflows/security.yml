@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - dev
+  pull_request:
   schedule:
     - cron: '0 9 * * *' # Same time as CI Cron
 
@@ -12,6 +13,11 @@ jobs:
     name: Trivy Scan
     runs-on: ubuntu-latest
     steps:
+      - name: Install Ruby 3.3
+        uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
+        with:
+          ruby-version: 3.3
+      - run: bundle
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
       - name: Run Trivy in table mode
         # Table output is only useful when running on a pull request or push.
