@@ -17,8 +17,11 @@ jobs:
         uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
         with:
           ruby-version: 3.3
-      - run: bundle
+
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+      - run: bundle # Generate a Gemfile.lock to scan
+
       - name: Run Trivy in table mode
         # Table output is only useful when running on a pull request or push.
         if: contains(fromJSON('["push", "pull_request"]'), github.event_name)
@@ -31,19 +34,18 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM,LOW
 
       - name: Run Trivy in report mode
-        # Only generate sarif when running nightly on the main branch.
+        # Only generate sarif when running nightly on the dev branch.
         if: ${{ github.event_name == 'schedule' }}
         uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v.0.28.0
         with:
           scan-type: fs
-          format: template
-          template: '@/contrib/sarif.tpl'
+          format: sarif
           output: trivy-results.sarif
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        # Only upload sarif when running nightly on the main branch.
+        # Only upload sarif when running nightly on the dev branch.
         if: ${{ github.event_name == 'schedule' }}
         uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd # tag v3.27.0
         with:
