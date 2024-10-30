@@ -149,8 +149,7 @@ common: &default_settings
   # That configuration example uses YAML array syntax to specify both methods.
   # Alternatively, a comma-delimited string can be used instead:
   # 
-  # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png,
-  # MyCompany::User.notify'
+  # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
   # 
   # Whitespace around the comma(s) in the list is optional. When configuring the
   # agent with a list of methods via the
