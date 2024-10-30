@@ -2883,6 +2883,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Scan instance count controls the number of application instances for a specific entity where IAST analysis is performed'
         },
+        :'security.scan_controllers.report_http_response_body' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'report_http_response_body allows user to enable/disable sending of HTTP responses body, Disabling this would also disable RXSS vulnerability detection'
+        },
         :'security.iast_test_identifier' => {
           :default => nil,
           :public => true,
