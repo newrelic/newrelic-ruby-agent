@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.15.0
 
-Version <dev> updates View Componment instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
+Version 9.15.0 updates View Componment instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
   
 - **Feature: New configuration option cloud.aws.account_id**
 

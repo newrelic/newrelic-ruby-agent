@@ -114,9 +114,9 @@ common: &default_settings
   # audit_log.path: log/newrelic_audit.log
 
   # An array of CLASS#METHOD (for instance methods) and/or CLASS.METHOD (for class
-  # methods) strings representing Ruby methods for the agent to automatically add
-  # custom instrumentation to without the need for altering any of the source code
-  # that defines the methods.
+  # methods) strings representing Ruby methods for the agent to automatically
+  # add custom instrumentation to without the need for altering any of the
+  # source code that defines the methods.
   #
   # Use fully qualified class names (using the :: delimiter) that include any
   # module or class namespacing.
@@ -138,10 +138,10 @@ common: &default_settings
   #     end
   #   end
   # end
-  # 
+  #
   # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
-  # 
+  #
   # automatic_custom_instrumentation_method_list:
   # - MyCompany::Image#render_png
   # - MyCompany::User.notify
@@ -215,6 +215,9 @@ common: &default_settings
 
   # If true, the agent will clear Tracer::State in Agent.drop_buffered_data.
   # clear_transaction_state_after_fork: false
+
+  # The AWS account ID for the AWS account associated with this app
+  # cloud.aws.account_id: nil
 
   # If true, the agent will report source code level metrics for traced methods.
   # See:
