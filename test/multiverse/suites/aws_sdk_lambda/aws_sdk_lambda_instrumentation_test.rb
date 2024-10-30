@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'aws_sdk_monkeypatch'
+require 'json'
 
 class AwsSdkLambdaInstrumentationTest < Minitest::Test
   REGION = 'us-east-2'
@@ -10,52 +11,78 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
 
   def setup
     Aws.config.update(stub_responses: true)
-    @client = Aws::Lambda::Client.new(region: REGION)
-    @client.config.account_id = AWS_ACCOUNT_ID
   end
 
   def test_invoke
-    perform_invocation(:invoke)
+    perform_invocation(:invoke, {status_code: 200})
   end
 
   def test_invoke_async
-    perform_invocation(:invoke_async, invoke_args: StringIO.new('null'))
+    perform_invocation(:invoke_async, {}, {invoke_args: StringIO.new('null')})
   end
 
   def test_invoke_with_response_stream
-    perform_invocation(:invoke_with_response_stream, event_stream_handler: proc { |_stream| 'hi' })
+    perform_invocation(:invoke_with_response_stream, {status_code: 200}, {event_stream_handler: proc { |_stream| 'hi' }})
   end
 
-  # TODO
   def test_client_call_raises_an_exception
+    in_transaction do |txn|
+      client = Aws::Lambda::Client.new(region: REGION)
+      client.config.account_id = AWS_ACCOUNT_ID
+      def client.process_response(*_args); raise 'kaboom'; end
+
+      assert_raises(RuntimeError) { client.invoke(function_name: 'Invoke-Me-And-Explode') }
+      noticed_error = lambda_segment(txn).noticed_error
+
+      assert_equal 'kaboom', noticed_error.message
+      assert_equal 'RuntimeError', noticed_error.exception_class_name
+    end
   end
 
-  # TODO
   def test_client_response_indicates_an_unhandled_function_error
-  end
+    function_error = 'Unhandled'
+    message = 'oh no'
+    type = 'Function<RuntimeError>'
+    backtrace = ["/var/task/lambda_function.rb:4:in `lambda_handler'",
+      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric/lambda_handler.rb:28:in `call_handler'",
+      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:88:in `run_user_code'",
+      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:66:in `start_runtime_loop'",
+      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:49:in `run'",
+      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:221:in `bootstrap_handler'",
+      "/var/runtime/gems/aws_lambda_ric-3.0.0/lib/aws_lambda_ric.rb:203:in `start'",
+      "/var/runtime/index.rb:4:in `<main>'"]
+    payload = StringIO.new(JSON.generate({'errorMessage' => message, 'errorType' => type, 'stackTrace' => backtrace}))
+    response = {status_code: 200, function_error: function_error, payload: payload}
 
-  # TODO
-  def test_client_response_indicates_a_handled_function_error
+    in_transaction do |txn|
+      function_name = 'Invoke-At-Your-Own-Risk'
+      client = Aws::Lambda::Client.new(region: REGION, stub_responses: {invoke: response})
+      client.config.account_id = AWS_ACCOUNT_ID
+      client.invoke(function_name: function_name)
+      noticed_error = lambda_segment(txn).noticed_error
+
+      assert_equal "[#{function_error}] #{type} - #{message}", noticed_error.message
+      assert_equal backtrace, noticed_error.stack_trace
+    end
   end
 
   private
 
-  def perform_invocation(method, extra_args = {})
+  def perform_invocation(method, response = {}, extra_args = {})
     function_name = 'Half-Life'
 
     in_transaction do |txn|
-      @client.send(method, {function_name: function_name}.merge(extra_args))
+      client = Aws::Lambda::Client.new(region: REGION, stub_responses: {method => response})
+      client.config.account_id = AWS_ACCOUNT_ID
+
+      client.send(method, {function_name: function_name}.merge(extra_args))
 
       segment = lambda_segment(txn)
 
       assert_equal("External/Lambda/#{method}/#{function_name}", segment.name)
       assert_equal("lambda.#{REGION}.amazonaws.com", segment.host)
-
-      # TODO: `yield` returns `nil` under AWS SDK response stubbing, so the
-      #        response status code, function error, and body won't work
-      # assert_equal(200, segment.http_status_code) unless method == :invoke_async
-
-      assert_equal('aws_sdk_lambda', segment.library)
+      assert_equal(200, segment.http_status_code) unless method == :invoke_async
+      assert_equal('aws_sdk_lambda', segment.library) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
       assert_equal({'cloud.platform' => 'aws_lambda',
                     'cloud.region' => REGION,
                     'cloud.account.id' => AWS_ACCOUNT_ID,
@@ -76,40 +103,3 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
     segments.first
   end
 end
-
-
-
-__END__
-
-
-require 'json'
-
-# 1.
-client = Aws::Lambda::Client.new(region: 'us-east-2')
-response = client.invoke(function_name: 'Half-Life')
-JSON.parse(response.payload.string)
-
-# 2.
-response = client.invoke_async({function_name: 'Half-Life', invoke_args: "{}"})
-response.status # => 202
-
-# 3.
-response = client.invoke_with_response_stream({function_name: 'Half-Life'}) { |str| }
-
-
-resp = client.invoke({
-  function_name: "NamespacedFunctionName", # required
-  invocation_type: "Event", # accepts Event, RequestResponse, DryRun
-  log_type: "None", # accepts None, Tail
-  client_context: "String",
-  payload: "data",
-  qualifier: "Qualifier",
-})
-
-# Response structure
-
-resp.status_code #=> Integer
-resp.function_error #=> String
-resp.log_result #=> String
-resp.payload #=> String
-resp.executed_version #=> String

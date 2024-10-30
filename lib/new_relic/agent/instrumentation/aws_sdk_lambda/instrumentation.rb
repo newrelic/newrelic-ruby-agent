@@ -2,12 +2,13 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'json'
+
 module NewRelic::Agent::Instrumentation
   module AwsSdkLambda
     INSTRUMENTATION_NAME = 'aws_sdk_lambda'
     AWS_SERVICE = 'lambda'
     CLOUD_PLATFORM = 'aws_lambda'
-    ERROR_STATUS_REGEX = /^(?:4|5)/
     WRAPPED_RESPONSE = Struct.new(:status_code, :has_status_code?)
 
     def invoke_with_new_relic(*args)
@@ -35,7 +36,6 @@ module NewRelic::Agent::Instrumentation
           process_response(response, segment)
           response
         rescue => e
-          # notice error that was unhandled by the AWS SDK Lambda client
           NewRelic::Agent.notice_error(e)
           raise
         end
@@ -46,7 +46,7 @@ module NewRelic::Agent::Instrumentation
 
     def process_response(response, segment)
       process_status_code(response, segment) if response.respond_to?(:status_code)
-      process_function_error(response.function_error, segment) if response.respond_to?(:function_error)
+      process_function_error(response) if response.respond_to?(:function_error)
     end
 
     def process_status_code(response, segment)
@@ -54,23 +54,21 @@ module NewRelic::Agent::Instrumentation
       return unless status_code
 
       segment.process_response_headers(WRAPPED_RESPONSE.new(status_code, true))
-
-      # notice error that was handled by the function
-      if status_code.to_s.match?(ERROR_STATUS_REGEX)
-        payload = response.respond_to?(:payload) ? response.payload : '(empty response payload)'
-        wrap_and_notice_error("Lambda function error handled with status #{status_code}: #{payload}")
-      end
     end
 
-    # notice error that was raised by the function
-    def process_function_error(function_error, segment)
+    # notice error that was raised / unhandled by the function
+    def process_function_error(response)
+      function_error = response.function_error
       return unless function_error
 
-      wrap_and_notice_error(function_error)
-    end
+      msg = "[#{function_error}]"
+      payload = response.payload&.string if response.respond_to?(:payload)
+      payload_hash = JSON.parse(payload) if payload
+      msg = "#{msg} #{payload_hash['errorType']} - #{payload_hash['errorMessage']}" if payload_hash
+      e = StandardError.new(msg)
+      e.set_backtrace(payload_hash['stackTrace']) if payload_hash
 
-    def wrap_and_notice_error(msg)
-      NewRelic::Agent.notice_error(StandardError.new(msg))
+      NewRelic::Agent.notice_error(e)
     end
 
     def generate_segment(action, options = {})
