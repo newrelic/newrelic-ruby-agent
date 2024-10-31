@@ -75,7 +75,7 @@ module NewRelic::Agent::Instrumentation
       function = function_name(options)
       region = aws_region
       account_id = aws_account_id
-      arn = aws_arn(function, account_id, region)
+      arn = aws_arn(function, region)
 
       segment = NewRelic::Agent::Tracer.start_external_request_segment(
         library: INSTRUMENTATION_NAME,
@@ -98,18 +98,15 @@ module NewRelic::Agent::Instrumentation
     def aws_account_id
       return unless self.respond_to?(:config)
 
-      configured_id = config&.account_id
-      return configured_id if configured_id
-
-      NewRelic::Agent::Aws.get_account_id(self.config)
+      config&.account_id || NewRelic::Agent.config[:'cloud.aws.account_id']
     end
 
     def aws_region
       config&.region if self.respond_to?(:config)
     end
 
-    def aws_arn(function, account_id, region)
-      NewRelic::Agent::Aws.create_arn(AWS_SERVICE, "function:#{function}", region, account_id)
+    def aws_arn(function, region)
+      NewRelic::Agent::Aws.create_arn(AWS_SERVICE, "function:#{function}", region)
     end
   end
 end

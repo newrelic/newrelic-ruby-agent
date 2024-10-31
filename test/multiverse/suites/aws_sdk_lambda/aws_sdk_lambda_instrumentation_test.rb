@@ -71,23 +71,25 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
   def perform_invocation(method, response = {}, extra_args = {})
     function_name = 'Half-Life'
 
-    in_transaction do |txn|
-      client = Aws::Lambda::Client.new(region: REGION, stub_responses: {method => response})
-      client.config.account_id = AWS_ACCOUNT_ID
+    with_config('cloud.aws.account_id': AWS_ACCOUNT_ID) do
+      in_transaction do |txn|
+        client = Aws::Lambda::Client.new(region: REGION, stub_responses: {method => response})
+        client.config.account_id = AWS_ACCOUNT_ID
 
-      client.send(method, {function_name: function_name}.merge(extra_args))
+        client.send(method, {function_name: function_name}.merge(extra_args))
 
-      segment = lambda_segment(txn)
+        segment = lambda_segment(txn)
 
-      assert_equal("External/Lambda/#{method}/#{function_name}", segment.name)
-      assert_equal("lambda.#{REGION}.amazonaws.com", segment.host)
-      assert_equal(200, segment.http_status_code) unless method == :invoke_async
-      assert_equal('aws_sdk_lambda', segment.library) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
-      assert_equal({'cloud.platform' => 'aws_lambda',
-                    'cloud.region' => REGION,
-                    'cloud.account.id' => AWS_ACCOUNT_ID,
-                    'cloud.resource_id' => "arn:aws:lambda:#{REGION}:#{AWS_ACCOUNT_ID}:function:#{function_name}"},
-        agent_attributes(segment))
+        assert_equal("External/Lambda/#{method}/#{function_name}", segment.name)
+        assert_equal("lambda.#{REGION}.amazonaws.com", segment.host)
+        assert_equal(200, segment.http_status_code) unless method == :invoke_async
+        assert_equal('aws_sdk_lambda', segment.library) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
+        assert_equal({'cloud.platform' => 'aws_lambda',
+                      'cloud.region' => REGION,
+                      'cloud.account.id' => AWS_ACCOUNT_ID,
+                      'cloud.resource_id' => "arn:aws:lambda:#{REGION}:#{AWS_ACCOUNT_ID}:function:#{function_name}"},
+          agent_attributes(segment))
+      end
     end
   end
 
