@@ -472,6 +472,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, the agent will clear `Tracer::State` in `Agent.drop_buffered_data`.'
         },
+        :'cloud.aws.account_id' => {
+          :default => nil,
+          :public => true,
+          :type => String,
+          :allow_nil => true,
+          :allowed_from_server => false,
+          :description => 'The AWS account ID for the AWS account associated with this app'
+        },
         :config_path => {
           :default => DefaultSource.config_path,
           :public => true,
