@@ -16,8 +16,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing concurrent-ruby instrumentation')
-
     if use_prepend?
       prepend_instrument(Concurrent::ThreadPoolExecutor, NewRelic::Agent::Instrumentation::ConcurrentRuby::Prepend)
 

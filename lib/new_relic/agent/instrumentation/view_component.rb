@@ -15,8 +15,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing ViewComponent instrumentation')
-
     if use_prepend?
       prepend_instrument ViewComponent::Base, NewRelic::Agent::Instrumentation::ViewComponent::Prepend
     else

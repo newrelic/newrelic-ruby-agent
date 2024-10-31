@@ -427,6 +427,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :exclude_from_reported_settings => true,
           :description => 'Your New Relic <InlinePopover type="userKey" />. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
         },
         :backport_fast_active_record_connection_lookup => {
@@ -470,6 +471,14 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent will clear `Tracer::State` in `Agent.drop_buffered_data`.'
+        },
+        :'cloud.aws.account_id' => {
+          :default => nil,
+          :public => true,
+          :type => String,
+          :allow_nil => true,
+          :allowed_from_server => false,
+          :description => 'The AWS account ID for the AWS account associated with this app'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -1159,7 +1168,7 @@ module NewRelic
           :allowed_from_server => false,
           :transform => proc { |arr| NewRelic::Agent.add_automatic_method_tracers(arr) },
           :description => <<~DESCRIPTION
-            An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods for the agent to automatically add custom instrumentation to without the need for altering any of the source code that defines the methods.
+            An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods that the agent can automatically add custom instrumentation to. This doesn't require any modifications of the source code that defines the methods.
 
             Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
 
@@ -1189,13 +1198,13 @@ module NewRelic
               - MyCompany::User.notify
             ```
 
-            That configuration example uses YAML array syntax to specify both methods. Alternatively, a comma-delimited string can be used instead:
+            That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
 
             ```
             automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
             ```
 
-            Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used:
+            Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
 
             ```
             export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'

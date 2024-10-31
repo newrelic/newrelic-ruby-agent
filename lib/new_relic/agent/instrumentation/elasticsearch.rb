@@ -14,8 +14,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info('Installing Elasticsearch instrumentation')
-
     to_instrument = if Gem::Version.create(Elasticsearch::VERSION) < Gem::Version.create('8.0.0')
       Elasticsearch::Transport::Client
     else

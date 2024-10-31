@@ -492,20 +492,22 @@ module NewRelic::Agent::Configuration
     end
 
     def test_auto_determined_values_stay_cached
-      name = :knockbreck_manse
+      with_config(:'security.agent.enabled' => true) do
+        name = :knockbreck_manse
 
-      DependencyDetection.defer do
-        named(name)
-        executes { use_prepend? }
-      end
+        DependencyDetection.defer do
+          named(name)
+          executes { use_prepend? }
+        end
 
-      key = :"instrumentation.#{name}"
-      with_config(key => 'auto') do
-        DependencyDetection.detect!
+        key = :"instrumentation.#{name}"
+        with_config(key => 'auto') do
+          DependencyDetection.detect!
 
-        @manager.replace_or_add_config(ServerSource.new({}))
+          @manager.replace_or_add_config(ServerSource.new({}))
 
-        assert_equal :prepend, @manager.instance_variable_get(:@cache)[key]
+          assert_equal :prepend, @manager.instance_variable_get(:@cache)[key]
+        end
       end
     end
 
@@ -533,8 +535,8 @@ module NewRelic::Agent::Configuration
     def test_logger_does_not_receive_excluded_settings
       log = with_array_logger(:debug) { @manager.log_config('direction', 'source') }.array.join('')
 
-      assert_includes(log, ':app_name')
-      refute_includes(log, ':license_key')
+      assert_includes(log, 'app_name')
+      refute_includes(log, 'license_key')
     end
 
     def test_reset_cache_return_early_for_jruby
@@ -548,6 +550,23 @@ module NewRelic::Agent::Configuration
       refute phony_cache[:dup_called], 'Expected the use of JRuby to prevent the Hash#dup call!'
     ensure
       @manager.new_cache
+    end
+
+    # https://github.com/newrelic/newrelic-ruby-agent/issues/2919
+    def test_that_boolean_based_params_always_go_through_any_defined_transform_sequence
+      key = :soundwave
+      defaults = {key => {default: false,
+                          public: true,
+                          type: Boolean,
+                          allowed_from_server: false,
+                          transform: proc { |bool| bool.to_s.reverse },
+                          description: 'Param what transforms'}}
+      NewRelic::Agent::Configuration.stub_const(:DEFAULTS, defaults) do
+        mgr = NewRelic::Agent::Configuration::Manager.new
+        value = mgr[key]
+
+        assert_equal 'eslaf', value, 'Expected `false` boolean value to be transformed!'
+      end
     end
 
     private

@@ -1,8 +1,36 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.15.0
+
+Version 9.15.0 updates View Componment instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
+  
+- **Feature: New configuration option cloud.aws.account_id**
+
+  A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS SDK. One example, is that relationships between AWS services instrumented with New Relic's CloudWatch Metric Streams will have relationships formed in the service map with APM applications. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
+
+- **Feature: Use default `View/component` metric name for unidentified View Components**
+
+  Previously, when a View Component metric name could not be identified, the agent would set the name as `nil`. Now, the agent defaults to using `View/component` as the metric name when one can not be identified. [PR#2907](https://github.com/newrelic/newrelic-ruby-agent/pull/2907)
+
+- **Bugfix: Instrumentation errors when using the karafka-rdkafka gem**
+
+  Due to version differences between the rdkafka gem and karafka-rdkafka gem, the agent could encounter an error when it tried to install rdkafka instrumentation. This has now been resolved. Thank you to @krisdigital for bringing this issue to our attention. [PR#2880](https://github.com/newrelic/newrelic-ruby-agent/pull/2880)
+
+- **Bugfix: Stop calling deprecated all_specs method to check for the presence of newrelic-grape**
+
+  In 9.14.0, we released a fix for calls to the deprecated `Bundler.rubygems.all_specs`, but the fix fell short for the agent's Grape instrumentation and deprecation warnings could still be raised. The condition has been simplified and deprecation warnings should no longer be raised. Thank you, [@excelsior](https://github.com/excelsior) for bringing this to our attention. [Issue#2885](https://github.com/newrelic/newrelic-ruby-agent/issues/2885) [PR#2906](https://github.com/newrelic/newrelic-ruby-agent/pull/2906)
+
+- **Bugfix: Instrumentation errors when using the ruby-kafka gem**
+
+  Kafka::Consumer#each_message takes keyword arguments, while the prepended method is defined with a single splat positional argument. In Ruby >= 3.0, this signature mismatch raises an ArgumentError. Thank you [@patrickarnett](https://github.com/patrickarnett) for providing this bugfix. [PR#2915](https://github.com/newrelic/newrelic-ruby-agent/pull/2915)
+
+- **Bugfix: Restore AWS Lambda layer operational functionality**
+
+  Version 9.14.0 of the agent introduced an optimization related to how the agent handles boolean configuration parameters which inadvertently caused the agent to stop operating properly in an AWS Lambda layer context. [Issue#2919](https://github.com/newrelic/newrelic-ruby-agent/issues/2919)[PR#2920](https://github.com/newrelic/newrelic-ruby-agent/pull/2920)
+
 ## v9.14.0
 
-Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for AcionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
+Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka gems, introduces a configuration-based, automatic way to add custom instrumentation method tracers, correctly captures MIME type for ActionDispatch 7.0+ requests, properly handles Boolean coercion for `newrelic.yml` configuration, fixes a JRuby bug in the configuration manager, fixes a bug related to `Bundler.rubygems.installed_specs`, and fixes a bug to make the agent compatible with ViewComponent v3.15.0+.
 
 - **Feature: Add Apache Kafka instrumentation for the rdkafka and ruby-kafka gems**
 
@@ -42,13 +70,13 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
     - MyCompany::User.notify
   ```
 
-  That configuration example uses YAML array syntax to specify both methods. Alternatively, a comma-delimited string can be used instead:
+  That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
 
   ```
   automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
   ```
 
-  Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, this comma-delimited string format should be used:
+  Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
 
   ```
   export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
@@ -56,7 +84,7 @@ Version 9.14.0 adds Apache Kafka instrumentation for the rdkafka and ruby-kafka 
 
   [PR#2851](https://github.com/newrelic/newrelic-ruby-agent/pull/2851)
 
-- **Feature: Collect just MIME type for AcionDispatch 7.0+ requests**
+- **Feature: Collect just MIME type for ActionDispatch 7.0+ requests**
 
   Rails 7.0 [introduced changes](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#actiondispatch-request-content-type-now-returns-content-type-header-as-it-is) to the behavior of `ActionDispatch::Request#content_type`, adding extra request-related details the agent wasn't expecting to collect. Additionally, the agent's use of `content_type ` was triggering deprecation warnings. The agent now uses `ActionDispatch::Request#media_type` to capture the MIME type. Thanks to [@internethostage](https://github.com/internethostage) for letting us know about this change. [Issue#2500](https://github.com/newrelic/newrelic-ruby-agent/issues/2500) [PR#2855](https://github.com/newrelic/newrelic-ruby-agent/pull/2855)
 

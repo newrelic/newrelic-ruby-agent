@@ -1,8 +1,8 @@
 ---
 # This file is consumed by lib/tasks/gha.rake
 ruby/setup-ruby:
-  :tag: v1.191.0
-  :sha: 52753b7da854d5c07df37391a986c76ab4615999
+  :tag: v1.196.0
+  :sha: f26937343756480a8cb3ae1f623b9c8d89ed6984
 actions/checkout:
   :tag: v4.1.7
   :sha: 692973e3d937129bcbf40652eb9f2f61becf3332
@@ -36,3 +36,9 @@ adriangl/check-new-commits-action:
 softprops/action-gh-release:
   :tag: v2.0.8
   :sha: c062e08bd532815e2082a85e87e3ef29c3e6d191
+aquasecurity/trivy-action:
+  :tag: v0.28.0
+  :sha: 915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2
+github/codeql-action/upload-sarif:
+  :tag: v3.27.0
+  :sha: 662472033e021d55d94146f66f6058822b0b39fd
