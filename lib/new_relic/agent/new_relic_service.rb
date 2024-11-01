@@ -330,6 +330,7 @@ module NewRelic
       end
 
       def setup_connection_timeouts(conn)
+        ::NewRelic::Agent.logger.debug('Waluigi : Using test branch reverting to old timeout.')
         # We use Timeout explicitly instead of this
         conn.read_timeout = nil
 
