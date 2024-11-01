@@ -31,7 +31,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_session_handles_timeouts_opening_connection_gracefully
-    @http_handle.stubs(:start).raises(Net::OpenTimeout)
+    @http_handle.stubs(:start).raises(Timeout::Error)
 
     block_ran = false
 
