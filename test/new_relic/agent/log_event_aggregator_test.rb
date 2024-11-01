@@ -328,6 +328,35 @@ module NewRelic::Agent
       end
     end
 
+    def test_seen_and_sent_zeroed_out_on_reset!
+      with_config(CAPACITY_KEY => 3) do
+        3.times { @aggregator.record('Are you counting this?', 'DEBUG') }
+        @aggregator.harvest! # seen/sent are counted on harvest, this zeroes things out
+
+        assert_metrics_recorded_exclusive({
+          'Logging/lines' => {:call_count => 3},
+          'Logging/lines/DEBUG' => {:call_count => 3},
+          'Logging/Forwarding/Dropped' => {:call_count => 0},
+          'Supportability/Logging/Forwarding/Seen' => {:call_count => 3},
+          'Supportability/Logging/Forwarding/Sent' => {:call_count => 3}
+        },
+          :ignore_filter => %r{^Supportability/API/})
+
+        @aggregator.record('Are you counting this?', 'DEBUG')
+        @aggregator.reset! # set seen/sent to zero, throwing out the latest #record
+        @aggregator.harvest! # nothing new should be available to count, so use same numbers as before
+
+        assert_metrics_recorded_exclusive({
+          'Logging/lines' => {:call_count => 3},
+          'Logging/lines/DEBUG' => {:call_count => 3}, # ?
+          'Logging/Forwarding/Dropped' => {:call_count => 0},
+          'Supportability/Logging/Forwarding/Seen' => {:call_count => 3}, # ?
+          'Supportability/Logging/Forwarding/Sent' => {:call_count => 3}
+        },
+          :ignore_filter => %r{^Supportability/API/})
+      end
+    end
+
     def test_high_security_mode
       with_config(CAPACITY_KEY => 5, :high_security => true) do
         # We refresh the high security setting on this notification
@@ -355,7 +384,16 @@ module NewRelic::Agent
     end
 
     def test_overall_disabled
-      with_config(LogEventAggregator::OVERALL_ENABLED_KEY => false) do
+      # set the overall enabled key to false
+      # put all other configs as true
+      with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false,
+        :'instrumentation.logger' => 'auto',
+        LogEventAggregator::METRICS_ENABLED_KEY => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true,
+        LogEventAggregator::DECORATING_ENABLED_KEY => true,
+        LogEventAggregator::LABELS_ENABLED_KEY => true
+      ) do
         # Refresh the value of @enabled on the LogEventAggregator
         NewRelic::Agent.config.notify_server_source_added
 
@@ -736,6 +774,17 @@ module NewRelic::Agent
 
       assert_labels(config, expected_label_attributes)
     end
+
+    def test_labels_undefined_during_reset!
+      with_config(:'application_logging.forwarding.labels.enabled' => true, :labels => 'Server:One;Data Center:primary') do
+        assert_equal({'tags.Server' => 'One', 'tags.Data Center' => 'primary'}, @aggregator.labels)
+        @aggregator.reset!
+
+        refute @aggregator.instance_variable_defined?(:@labels)
+      end
+    end
+
+    private
 
     def assert_labels(config, expected_attributes = {})
       # we should only have one log event aggregator per agent instance

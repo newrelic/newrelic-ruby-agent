@@ -230,6 +230,7 @@ module NewRelic
         @counter_lock.synchronize do
           @seen = 0
           @seen_by_severity.clear
+          remove_instance_variable(:@labels) if instance_variable_defined?(:@labels)
         end
 
         super
@@ -338,7 +339,7 @@ module NewRelic
       end
 
       def create_labels
-        return NewRelic::EMPTY_HASH unless NewRelic::Agent.config[:'application_logging.forwarding.labels.enabled']
+        return NewRelic::EMPTY_HASH unless NewRelic::Agent.config[LABELS_ENABLED_KEY]
 
         downcased_exclusions = NewRelic::Agent.config[:'application_logging.forwarding.labels.exclude'].map(&:downcase)
         log_labels = {}
