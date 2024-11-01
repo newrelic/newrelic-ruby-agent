@@ -25,6 +25,15 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
     perform_invocation(:invoke_with_response_stream, {status_code: 200}, {event_stream_handler: proc { |_stream| 'hi' }})
   end
 
+  # When using aws-sdk-lambda to invoke a function via its alias, the
+  # `:function_name` argument passed to the invocation method will be in the
+  # format of "<function name>:<alias>". The agent doesn't need to treat this
+  # format of input in any special way, as naming and AWS arn creation will
+  # simply work as expected.
+  def test_invoke_with_alias
+    perform_invocation(:invoke, {status_code: 200}, {alias: 'Freeman'})
+  end
+
   def test_client_call_raises_an_exception
     in_transaction do |txn|
       client = Aws::Lambda::Client.new(region: REGION)
@@ -70,6 +79,8 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
 
   def perform_invocation(method, response = {}, extra_args = {})
     function_name = 'Half-Life'
+    al = extra_args.delete(:alias)
+    function_name = "#{function_name}:#{al}" if al
 
     with_config('cloud.aws.account_id': AWS_ACCOUNT_ID) do
       in_transaction do |txn|
