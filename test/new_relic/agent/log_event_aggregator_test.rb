@@ -52,7 +52,8 @@ module NewRelic::Agent
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::METRICS_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true,
-        LogEventAggregator::DECORATING_ENABLED_KEY => true
+        LogEventAggregator::DECORATING_ENABLED_KEY => true,
+        LogEventAggregator::LABELS_ENABLED_KEY => true
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
@@ -61,7 +62,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/enabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -72,7 +74,8 @@ module NewRelic::Agent
         LogEventAggregator::OVERALL_ENABLED_KEY => false,
         LogEventAggregator::METRICS_ENABLED_KEY => false,
         LogEventAggregator::FORWARDING_ENABLED_KEY => false,
-        LogEventAggregator::DECORATING_ENABLED_KEY => false
+        LogEventAggregator::DECORATING_ENABLED_KEY => false,
+        LogEventAggregator::LABELS_ENABLED_KEY => false
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
@@ -81,7 +84,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -343,7 +347,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -366,7 +371,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -392,7 +398,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end

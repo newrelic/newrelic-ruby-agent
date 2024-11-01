@@ -25,6 +25,7 @@ module NewRelic
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
+      LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
 
       named :LogEventAggregator
@@ -38,6 +39,7 @@ module NewRelic
       METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
       FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
+      LABELS_ENABLED_KEY = :'application_logging.forwarding.labels.enabled'
       LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
       CUSTOM_ATTRIBUTES_KEY = :'application_logging.forwarding.custom_attributes'
 
@@ -253,6 +255,7 @@ module NewRelic
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
+          record_configuration_metric(LABELS_SUPPORTABILITY_FORMAT, LABELS_ENABLED_KEY)
 
           add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
         end
