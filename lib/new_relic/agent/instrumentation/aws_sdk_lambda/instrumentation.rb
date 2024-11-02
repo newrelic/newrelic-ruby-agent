@@ -79,7 +79,7 @@ module NewRelic::Agent::Instrumentation
 
       segment = NewRelic::Agent::Tracer.start_external_request_segment(
         library: INSTRUMENTATION_NAME,
-        uri: "https://lambda.#{aws_region || 'unknown-region'}.amazonaws.com",
+        uri: "https://lambda.#{region || 'unknown-region'}.amazonaws.com",
         procedure: action
       )
       segment.name = "External/Lambda/#{action}/#{function}"
