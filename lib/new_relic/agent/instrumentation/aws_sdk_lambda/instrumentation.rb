@@ -31,13 +31,13 @@ module NewRelic::Agent::Instrumentation
       # prevent additional instrumentation for things like Net::HTTP from
       # creating any segments that may appear as redundant / confusing
       NewRelic::Agent.disable_all_tracing do
+        response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
         begin
-          response = yield
           process_response(response, segment)
-          response
         rescue => e
-          NewRelic::Agent.notice_error(e)
-          raise
+          NewRelic::Agent.logger.error("Error processing aws-sdk-lambda invocation response (action = #{action}): #{e}")
+        ensure
+          response
         end
       end
     ensure

@@ -38,13 +38,44 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
     in_transaction do |txn|
       client = Aws::Lambda::Client.new(region: REGION)
       client.config.account_id = AWS_ACCOUNT_ID
-      def client.process_response(*_args); raise 'kaboom'; end
 
-      assert_raises(RuntimeError) { client.invoke(function_name: 'Invoke-Me-And-Explode') }
+      # We need the aws-sdk-lambda client's `yield` to raise an exception for
+      # this test, but that's tricky given that we're monkeypatching the very
+      # client invocation method under test. So let's trust that
+      # capture_segment_error is thoroughly tested elsewhere and stub it to
+      # do its raise-and-notice-an-error thing in a predictable way so that the
+      # aws-sdk-lambda specific stuff can be tested.
+      capture_proc = proc do |segment|
+        error = RuntimeError.new('kaboom')
+        segment.notice_error(error)
+        raise error
+      end
+
+      NewRelic::Agent::Tracer.stub(:capture_segment_error,
+        capture_proc,
+        [NewRelic::Agent::Transaction::ExternalRequestSegment]) do
+        assert_raises(RuntimeError) { client.invoke(function_name: 'Invoke-Me-And-Explode') }
+      end
+
       noticed_error = lambda_segment(txn).noticed_error
 
       assert_equal 'kaboom', noticed_error.message
       assert_equal 'RuntimeError', noticed_error.exception_class_name
+    end
+  end
+
+  def test_errors_in_processing_the_invocation_response_are_logged_but_not_raised_to_the_user_app
+    in_transaction do |txn|
+      client = Aws::Lambda::Client.new(region: REGION)
+      client.config.account_id = AWS_ACCOUNT_ID
+      def client.process_response(*_args); raise 'kaboom'; end
+
+      NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
+        client.invoke(function_name: 'Invoke-Me-And-Only-The-Agent-Explodes')
+
+        assert NewRelic::Agent.logger.messages.any? { |m| m[1][0].match?(/^Error processing aws-sdk-lambda/) },
+          'Expected to find an error message in the agent logs'
+      end
     end
   end
 
