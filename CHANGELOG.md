@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+Version <dev> introduces instrumentation for the aws-sdk-lambda gem.
+
+- **Feature: Instrumentation for aws-sdk-lambda**
+
+  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926)
+
 ## v9.15.0
 
 Version 9.15.0 updates View Component instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
