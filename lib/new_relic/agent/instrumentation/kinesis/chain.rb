@@ -5,14 +5,14 @@
 module NewRelic::Agent::Instrumentation
   module Kinesis::Chain
     def self.instrument!
-      ::Kinesis.class_eval do
+      ::Aws::Kinesis::Client.class_eval do
         include NewRelic::Agent::Instrumentation::Kinesis
+  
+        NewRelic::Agent::Instrumentation::Kinesis::INSTRUMENTED_METHODS.each do |method_name|
+          alias_method("#{method_name}_without_new_relic".to_sym, method_name.to_sym)
 
-        alias_method(:build_request_without_new_relic, :build_request)
-
-        def build_request(*args)
-          build_request_with_new_relic(*args) do
-            build_request_without_new_relic(*args)
+          define_method(method_name) do |*args|
+            instrument_method_with_new_relic(method_name, *args) { send("#{method_name}_without_new_relic".to_sym, *args) }
           end
         end
       end

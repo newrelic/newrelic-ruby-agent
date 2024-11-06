@@ -11,9 +11,5 @@ module NewRelic::Agent::Instrumentation
         instrument_method_with_new_relic(method_name, *args) { super(*args) }
       end
     end
-
-    def build_request(*args)
-      build_request_with_new_relic(*args) { super }
-    end
   end
 end

@@ -35,13 +35,12 @@ module NewRelic::Agent::Instrumentation
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       NewRelic::Agent.record_instrumentation_invocation(KINESIS)
-
+      
       params = args[0]
       segment = NewRelic::Agent::Tracer.start_segment(name: segment_name(method_name, params))
       arn = get_arn(params) if params
       segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
-      @nr_captured_request = nil # clear request just in case
       begin
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
@@ -49,10 +48,6 @@ module NewRelic::Agent::Instrumentation
         segment&.add_agent_attribute('name', segment_name(method_name, params))
         segment&.finish
       end
-    end
-
-    def build_request_with_new_relic(*args)
-      @nr_captured_request = yield
     end
 
     def segment_name(method_name, params)
