@@ -66,9 +66,10 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
 
   def test_errors_in_processing_the_invocation_response_are_logged_but_not_raised_to_the_user_app
     in_transaction do |txn|
-      client = Aws::Lambda::Client.new(region: REGION)
+      response = {status_code: 200}
+      client = Aws::Lambda::Client.new(region: REGION, stub_responses: {invoke: response})
       client.config.account_id = AWS_ACCOUNT_ID
-      def client.process_response(*_args); raise 'kaboom'; end
+      def client.process_status_code(*_args); raise 'kaboom'; end
 
       NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
         client.invoke(function_name: 'Invoke-Me-And-Only-The-Agent-Explodes')
