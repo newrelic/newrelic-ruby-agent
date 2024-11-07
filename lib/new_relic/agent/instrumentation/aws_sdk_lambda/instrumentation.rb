@@ -32,13 +32,8 @@ module NewRelic::Agent::Instrumentation
       # creating any segments that may appear as redundant / confusing
       NewRelic::Agent.disable_all_tracing do
         response = NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-        begin
-          process_response(response, segment)
-        rescue => e
-          NewRelic::Agent.logger.error("Error processing aws-sdk-lambda invocation response (action = #{action}): #{e}")
-        ensure
-          response
-        end
+        process_response(response, segment)
+        response
       end
     ensure
       segment&.finish
@@ -47,6 +42,8 @@ module NewRelic::Agent::Instrumentation
     def process_response(response, segment)
       process_status_code(response, segment) if response.respond_to?(:status_code)
       process_function_error(response) if response.respond_to?(:function_error)
+    rescue => e
+      NewRelic::Agent.logger.error("Error processing aws-sdk-lambda invocation response: #{e}")
     end
 
     def process_status_code(response, segment)
