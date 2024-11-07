@@ -375,14 +375,15 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_direct_sql_show
-    if supports_show_tables?
-      in_web_transaction do
-        conn = Order.connection
+    skip "Adapter does not support 'show tables'" unless supports_show_tables?
+
+    in_web_transaction do
+      Order.with_connection do |conn|
         conn.execute('show tables')
       end
-
-      assert_generic_rollup_metrics('show')
     end
+
+    assert_generic_rollup_metrics('show')
   end
 
   def test_still_records_metrics_in_error_cases
@@ -454,11 +455,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
       sample.prepare_to_send!
       explanations = sql_node.params[:explain_plan]
-      if supports_explain_plans?
-        refute_nil explanations, "No explains in node: #{sql_node}"
-        assert_equal(2, explanations.size,
-          "No explains in node: #{sql_node}")
-      end
+
+      refute_nil explanations, "No explains in node: #{sql_node}"
+      assert_equal(2, explanations.size,
+        "No explains in node: #{sql_node}")
     end
   end
 
@@ -593,11 +593,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def supports_show_tables?
-    [:mysql, :postgres].include?(adapter)
-  end
-
-  def supports_explain_plans?
-    [:mysql, :postgres].include?(adapter)
+    [:mysql, :mysql2, :trilogy].include?(adapter)
   end
 
   def current_product
