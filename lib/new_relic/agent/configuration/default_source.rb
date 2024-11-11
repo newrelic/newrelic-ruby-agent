@@ -2882,7 +2882,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Number of http request limit for ISAT scan per minute. Default is 3600. Minimum is 12 and maximum is 3600'
+          :description => 'Sets the maximum number of HTTP requests allowed for the IAST scan per minute. Any Integer between 12 and 3600 is valid. The default value is 3600.'
         },
         :'security.scan_controllers.scan_instance_count' => {
           :default => 0,
