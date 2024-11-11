@@ -2865,7 +2865,7 @@ module NewRelic
           :type => String,
           :external => true,
           :allowed_from_server => true,
-          :description => 'The schedule field specifies a cron expression that defines when the IAST scan should run',
+          :description => 'Specifies a cron expression that sets when the IAST scan should run.',
           :dynamic_name => true
         },
         :'security.scan_schedule.always_sample_traces' => {
