@@ -2863,6 +2863,7 @@ module NewRelic
           :default => '',
           :public => true,
           :type => String,
+          :external => true,
           :allowed_from_server => true,
           :description => 'The schedule field specifies a cron expression that defines when the IAST scan should run',
           :dynamic_name => true
