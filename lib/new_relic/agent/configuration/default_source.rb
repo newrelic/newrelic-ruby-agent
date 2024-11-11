@@ -2896,6 +2896,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
+          :external => true,
           :allowed_from_server => true,
           :description => 'report_http_response_body allows user to enable/disable sending of HTTP responses body, Disabling this would also disable RXSS vulnerability detection'
         },
