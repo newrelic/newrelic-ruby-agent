@@ -2890,7 +2890,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Scan instance count controls the number of application instances for a specific entity where IAST analysis is performed'
+          :description => 'The number of application instances for a specific entity on which IAST analysis is performed.'
         },
         :'security.scan_controllers.report_http_response_body' => {
           :default => true,
