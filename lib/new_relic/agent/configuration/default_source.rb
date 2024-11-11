@@ -2785,7 +2785,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables SQL injection detection'
+          :description => 'If `true`, disables SQL injection detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.nosql_injection' => {
           :default => false,
