@@ -2740,6 +2740,7 @@ module NewRelic
           :default => [],
           :public => true,
           :type => Array,
+          :external => true,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_list),
           :description => 'Define http request headers you want the security agent to ignore in IAST scan, by specifying a list of patterns matching the header you want to ignore.'
