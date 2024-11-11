@@ -2857,7 +2857,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'The duration field specifies the duration of the IAST scan in minutes. This determines how long the scan will run'
+          :description => 'Specifies the length of time (in minutes) that the IAST scan will run.'
         },
         :'security.scan_schedule.schedule' => {
           :default => '',
