@@ -2793,7 +2793,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables NOSQL injection detection'
+          :description => 'If `true`, disables NOSQL injection detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.ldap_injection' => {
           :default => false,
