@@ -2833,7 +2833,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables SSRF(Server side reuqest forgery) detection'
+          :description => 'If `true`, disables Sever-Side Request Forgery (SSRF) detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.rxss' => {
           :default => false,
