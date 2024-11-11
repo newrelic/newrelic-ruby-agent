@@ -2849,7 +2849,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'The delay field indicated time in minutes before the IAST scan starts after the application starts'
+          :description => 'Specifies the delay time (in minutes) before the IAST scan begins after the application starts.'
         },
         :'security.scan_schedule.duration' => {
           :default => 0,
