@@ -1,14 +1,11 @@
-#!/usr/bin/ruby
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-module NewRelic
-  module VERSION # :nodoc:
-    MAJOR = 9
-    MINOR = 15
-    TINY = 0
+suite_condition('Requires Ruby v2.5+') { RUBY_VERSION.split('.')[0..1].join('.').to_f >= 2.5 }
 
-    STRING = "#{MAJOR}.#{MINOR}.#{TINY}"
-  end
-end
+instrumentation_methods :chain, :prepend
+
+gemfile <<~RB
+  gem 'aws-sdk-lambda'
+RB

@@ -1174,7 +1174,7 @@ module NewRelic
 
             Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
 
-            ```
+            ```ruby
             module MyCompany
               class Image
                 def render_png
@@ -1192,7 +1192,7 @@ module NewRelic
 
             Given that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
 
-            ```
+            ```yml
             automatic_custom_instrumentation_method_list:
               - MyCompany::Image#render_png
               - MyCompany::User.notify
@@ -1200,13 +1200,13 @@ module NewRelic
 
             That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
 
-            ```
+            ```yml
             automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
             ```
 
             Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
 
-            ```
+            ```sh
             export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
             ```
           DESCRIPTION
@@ -1536,6 +1536,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.aws_sdk_lambda' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.ruby_kafka' => {
           :default => 'auto',
