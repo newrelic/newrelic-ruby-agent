@@ -2880,6 +2880,7 @@ module NewRelic
           :default => 3600,
           :public => true,
           :type => Integer,
+          :external => true,
           :allowed_from_server => true,
           :description => 'Number of http request limit for ISAT scan per minute. Default is 3600. Minimum is 12 and maximum is 3600'
         },
