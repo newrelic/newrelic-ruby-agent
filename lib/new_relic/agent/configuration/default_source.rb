@@ -2847,6 +2847,7 @@ module NewRelic
           :default => 0,
           :public => true,
           :type => Integer,
+          :external => true,
           :allowed_from_server => true,
           :description => 'The delay field indicated time in minutes before the IAST scan starts after the application starts'
         },
