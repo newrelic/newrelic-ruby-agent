@@ -2841,7 +2841,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables RXSS (reflected cross-site scripting) detection'
+          :description => 'If `true`, disables Reflected Cross-Site Scripting (RXSS) detection in IAST scans.'
         },
         :'security.scan_schedule.delay' => {
           :default => 0,
