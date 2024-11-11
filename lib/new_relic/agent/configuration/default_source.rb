@@ -2904,6 +2904,7 @@ module NewRelic
           :default => nil,
           :public => true,
           :type => String,
+          :external => true,
           :allowed_from_server => true,
           :description => 'This will allow users to run IAST for CI/CD'
         }
