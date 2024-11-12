@@ -2915,7 +2915,7 @@ module NewRelic
           :type => String,
           :external => true,
           :allowed_from_server => true,
-          :description => 'This will allow users to run IAST for CI/CD'
+          :description => 'Unique test identifier when runnning IAST in CI/CD environment to differentiate between different test runs, e.g., a build number.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
