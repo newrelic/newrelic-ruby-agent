@@ -37,7 +37,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s.to_s
   end
 
-  def test_to_array
+  def ttest_explain_sql_raising_an_errorest_to_array
     parent = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/parent', 1)
     parent.params[:test] = 'value'
     child = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/child', 2)
@@ -290,12 +290,11 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_explain_sql_raising_an_error
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    config = {:adapter => 'mysql'}
     statement = NewRelic::Agent::Database::Statement.new('SELECT')
-    statement.config = config
+    statement.config = {:adapter => 'mysql'}
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
     s.params = {:sql => statement}
-    NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new('whee'))
+    NewRelic::Agent::Database.expects(:explain_this).raises(RuntimeError.new('whee'))
     s.explain_sql
   end
 
