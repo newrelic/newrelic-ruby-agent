@@ -143,7 +143,7 @@ module NewRelic
           return default if default
 
           boolean = enforce_boolean(key, value)
-          return boolean if [true, false].include?(boolean)
+          evaluated = boolean if [true, false].include?(boolean)
 
           apply_transformations(key, evaluated)
         end

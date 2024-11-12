@@ -467,6 +467,18 @@ module NewRelic::Agent
         logger_mock.verify
       end
 
+      # https://github.com/newrelic/newrelic-ruby-agent/issues/2919
+      def test_env_var_will_properly_enable_serverless_mode
+        NewRelic::Agent.config.remove_config(@test_config)
+
+        ENV.stub(:key?, NewRelic::Agent::ServerlessHandler::LAMBDA_ENVIRONMENT_VARIABLE, true) do
+          NewRelic::Agent.config.send(:reset_cache)
+
+          assert NewRelic::Agent.config[:'serverless_mode.enabled'],
+            'Expected the presence of an env var to enable serverless mode!'
+        end
+      end
+
       private
 
       def handler

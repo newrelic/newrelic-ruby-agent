@@ -20,10 +20,20 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::RubyKafka
 
-      def each_message(*args)
-        super do |message|
-          each_message_with_new_relic(message) do
-            yield(message)
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3')
+        def each_message(**args)
+          super do |message|
+            each_message_with_new_relic(message) do
+              yield(message)
+            end
+          end
+        end
+      else
+        def each_message(*args)
+          super do |message|
+            each_message_with_new_relic(message) do
+              yield(message)
+            end
           end
         end
       end
