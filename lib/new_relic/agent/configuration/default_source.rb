@@ -2703,30 +2703,6 @@ module NewRelic
           :description => 'Defines the endpoint URL for posting security-related data',
           :dynamic_name => true
         },
-        :'security.detection.rci.enabled' => {
-          :default => true,
-          :external => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, enables RCI (remote code injection) detection'
-        },
-        :'security.detection.rxss.enabled' => {
-          :default => true,
-          :external => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, enables RXSS (reflected cross-site scripting) detection'
-        },
-        :'security.detection.deserialization.enabled' => {
-          :default => true,
-          :external => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, enables deserialization detection'
-        },
         :'security.application_info.port' => {
           :default => nil,
           :allow_nil => true,
