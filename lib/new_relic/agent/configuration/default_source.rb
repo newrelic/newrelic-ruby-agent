@@ -2911,6 +2911,7 @@ module NewRelic
         },
         :'security.iast_test_identifier' => {
           :default => nil,
+          :allow_nil => true,
           :public => true,
           :type => String,
           :external => true,
