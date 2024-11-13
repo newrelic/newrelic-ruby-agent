@@ -37,7 +37,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s.to_s
   end
 
-  def ttest_explain_sql_raising_an_errorest_to_array
+  def test_explain_sql_raising_an_errorest_to_array
     parent = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/parent', 1)
     parent.params[:test] = 'value'
     child = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/child', 2)
