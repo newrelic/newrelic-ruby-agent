@@ -593,7 +593,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def supports_show_tables?
-    [:mysql, :mysql2, :trilogy].include?(adapter)
+    [:mysql, :mysql2, :trilogy, :postgresql].include?(adapter)
   end
 
   def current_product
