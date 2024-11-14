@@ -10,7 +10,7 @@ Version <dev> introduces instrumentation for the aws-sdk-lambda gem and allows u
 
 - **Feature: Add new configuration options to attach custom tags (labels) to logs**
 
-  The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. To learn more about this feature see the documentation: </docs/logs/logs-context/Custom-tags-agent-forwarder-logs>. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
+  The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
 
 ## v9.15.0
 
