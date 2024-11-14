@@ -2746,7 +2746,7 @@ module NewRelic
           :external => true,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_list),
-          :description => 'Defines key values in http request body you want the security agent to ignore in IAST scan, by specifying a list of keys in the http request body you want to ignore.'
+          :description => 'An array of HTTP request body keys the security agent should ignore in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.insecure_settings' => {
           :default => false,
