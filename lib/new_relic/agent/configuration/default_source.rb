@@ -2754,7 +2754,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables detection of low-severity insecure settings (e.g., hash, crypto, cookie, random generators, trust boundary).'
+          :description => 'If `true`, disables the detection of low-severity insecure settings (e.g., hash, crypto, cookie, random generators, trust boundary).'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access' => {
           :default => false,
