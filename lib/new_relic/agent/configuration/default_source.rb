@@ -2762,7 +2762,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables file operation related IAST detections(File Access & Application integrity violation)'
+          :description => 'If `true`, disables file operation-related IAST detections (File Access & Application integrity violation)'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.sql_injection' => {
           :default => false,
