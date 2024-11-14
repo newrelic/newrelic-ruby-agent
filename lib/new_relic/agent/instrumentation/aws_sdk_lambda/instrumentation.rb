@@ -40,17 +40,9 @@ module NewRelic::Agent::Instrumentation
     end
 
     def process_response(response, segment)
-      process_status_code(response, segment) if response.respond_to?(:status_code)
       process_function_error(response) if response.respond_to?(:function_error)
     rescue => e
       NewRelic::Agent.logger.error("Error processing aws-sdk-lambda invocation response: #{e}")
-    end
-
-    def process_status_code(response, segment)
-      status_code = response.status_code
-      return unless status_code
-
-      segment.process_response_headers(WRAPPED_RESPONSE.new(status_code, true))
     end
 
     # notice error that was raised / unhandled by the function
@@ -73,18 +65,11 @@ module NewRelic::Agent::Instrumentation
       region = aws_region
       account_id = aws_account_id
       arn = aws_arn(function, region)
-
-      segment = NewRelic::Agent::Tracer.start_external_request_segment(
-        library: INSTRUMENTATION_NAME,
-        uri: "https://lambda.#{region || 'unknown-region'}.amazonaws.com",
-        procedure: action
-      )
-      segment.name = "External/Lambda/#{action}/#{function}"
+      segment = NewRelic::Agent::Tracer.start_segment(name: "Lambda/#{action}/#{function}")
       segment.add_agent_attribute('cloud.account.id', account_id)
       segment.add_agent_attribute('cloud.platform', CLOUD_PLATFORM)
       segment.add_agent_attribute('cloud.region', region)
       segment.add_agent_attribute('cloud.resource_id', arn) if arn
-
       segment
     end
 

@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'instrumentation'
+
 module NewRelic::Agent::Instrumentation
   module AwsSdkLambda::Prepend
     include NewRelic::Agent::Instrumentation::AwsSdkLambda
