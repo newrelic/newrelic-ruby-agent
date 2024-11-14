@@ -2859,7 +2859,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, allows IAST to continuously gather trace data in the background. Collected data will be used by Security Agent to perform an IAST Scan at the scheduled time.'
+          :description => 'If `true`, allows IAST to continuously gather trace data in the background. Collected data will be used by the security agent to perform an IAST scan at the scheduled time.'
         },
         :'security.scan_controllers.iast_scan_request_rate_limit' => {
           :default => 3600,
