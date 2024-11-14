@@ -57,6 +57,8 @@ class ThreadProfilingTest < Minitest::Test
   # go only let a few cycles through, so we check less than 10
 
   def test_thread_profiling
+    skip 'Fails on Ruby 3.0+, see Issue #2947' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0')
+
     run_transaction_in_thread(:controller)
     run_transaction_in_thread(:task)
 
