@@ -2719,7 +2719,7 @@ module NewRelic
           :external => true,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_list),
-          :description => 'Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should provide a complete match for the URL without the endpoint. For example, `[".*account.*], [".*/\api\/v1\/.*?\/login"]'`
+          :description => 'Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should provide a complete match for the URL without the endpoint. For example, `[".*account.*"], [".*/\api\/v1\/.*?\/login"]`'
         },
         :'security.exclude_from_iast_scan.http_request_parameters.header' => {
           :default => [],
