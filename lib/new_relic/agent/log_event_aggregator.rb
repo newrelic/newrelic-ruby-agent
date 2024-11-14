@@ -230,7 +230,6 @@ module NewRelic
         @counter_lock.synchronize do
           @seen = 0
           @seen_by_severity.clear
-          remove_instance_variable(:@labels) if instance_variable_defined?(:@labels)
         end
 
         super

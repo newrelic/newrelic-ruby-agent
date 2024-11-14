@@ -444,6 +444,10 @@ module NewRelic::Agent
     end
 
     def test_basic_conversion_to_melt_format
+      # If @labels was assigned in another test, it might leak into the common attributes
+      # forcibly remove them so that the melt format method has to freshly add them
+      @aggregator.remove_instance_variable(:@labels) if @aggregator.instance_variable_defined?(:@labels)
+
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
         'entity.guid' => 'GUID',
         'entity.name' => 'Hola'
@@ -775,22 +779,12 @@ module NewRelic::Agent
       assert_labels(config, expected_label_attributes)
     end
 
-    def test_labels_undefined_during_reset!
-      with_config(:'application_logging.forwarding.labels.enabled' => true, :labels => 'Server:One;Data Center:primary') do
-        assert_equal({'tags.Server' => 'One', 'tags.Data Center' => 'primary'}, @aggregator.labels)
-        @aggregator.reset!
-
-        refute @aggregator.instance_variable_defined?(:@labels)
-      end
-    end
-
     private
 
     def assert_labels(config, expected_attributes = {})
       # we should only have one log event aggregator per agent instance
       # simulate that by resetting @labels between tests
-      aggregator = NewRelic::Agent.agent.log_event_aggregator
-      aggregator.remove_instance_variable(:@labels) if aggregator.instance_variable_defined?(:@labels)
+      @aggregator.remove_instance_variable(:@labels) if @aggregator.instance_variable_defined?(:@labels)
 
       with_config(config) do
         LinkingMetadata.stub('append_service_linking_metadata', {'entity.guid' => 'GUID', 'entity.name' => 'Hola'}) do
