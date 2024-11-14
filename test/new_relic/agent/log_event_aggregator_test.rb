@@ -348,9 +348,9 @@ module NewRelic::Agent
 
         assert_metrics_recorded_exclusive({
           'Logging/lines' => {:call_count => 3},
-          'Logging/lines/DEBUG' => {:call_count => 3}, # ?
+          'Logging/lines/DEBUG' => {:call_count => 3},
           'Logging/Forwarding/Dropped' => {:call_count => 0},
-          'Supportability/Logging/Forwarding/Seen' => {:call_count => 3}, # ?
+          'Supportability/Logging/Forwarding/Seen' => {:call_count => 3},
           'Supportability/Logging/Forwarding/Sent' => {:call_count => 3}
         },
           :ignore_filter => %r{^Supportability/API/})
