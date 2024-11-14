@@ -34,6 +34,7 @@ jobs:
           exit-code: 1
           ignore-unfixed: true
           severity: CRITICAL,HIGH,MEDIUM,LOW
+          cache: false
 
       - name: Run Trivy in report mode
         # Only generate sarif when running nightly on the dev branch.
@@ -45,6 +46,7 @@ jobs:
           output: trivy-results.sarif
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          cache: false
 
       - name: Upload Trivy scan results to GitHub Security tab
         # Only upload sarif when running nightly on the dev branch.
