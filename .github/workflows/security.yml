@@ -40,7 +40,6 @@ jobs:
         if: ${{ github.event_name == 'schedule' }}
         uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v0.28.0
         with:
-          token-setup-trivy: ${{ secrets.GITHUB_TOKEN }}
           scan-type: fs
           format: sarif
           output: trivy-results.sarif
