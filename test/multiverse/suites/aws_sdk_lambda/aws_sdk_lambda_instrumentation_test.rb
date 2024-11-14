@@ -53,7 +53,7 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
 
       NewRelic::Agent::Tracer.stub(:capture_segment_error,
         capture_proc,
-        [NewRelic::Agent::Transaction::ExternalRequestSegment]) do
+        [NewRelic::Agent::Transaction::Segment]) do
         assert_raises(RuntimeError) { client.invoke(function_name: 'Invoke-Me-And-Explode') }
       end
 
@@ -69,7 +69,7 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
       response = {status_code: 200}
       client = Aws::Lambda::Client.new(region: REGION, stub_responses: {invoke: response})
       client.config.account_id = AWS_ACCOUNT_ID
-      def client.process_status_code(*_args); raise 'kaboom'; end
+      def client.process_function_error(*_args); raise 'kaboom'; end
 
       NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
         client.invoke(function_name: 'Invoke-Me-And-Only-The-Agent-Explodes')
@@ -123,10 +123,7 @@ class AwsSdkLambdaInstrumentationTest < Minitest::Test
 
         segment = lambda_segment(txn)
 
-        assert_equal("External/Lambda/#{method}/#{function_name}", segment.name)
-        assert_equal("lambda.#{REGION}.amazonaws.com", segment.host)
-        assert_equal(200, segment.http_status_code) unless method == :invoke_async
-        assert_equal('aws_sdk_lambda', segment.library) # rubocop:disable Minitest/EmptyLineBeforeAssertionMethods
+        assert_equal("Lambda/#{method}/#{function_name}", segment.name)
         assert_equal({'cloud.platform' => 'aws_lambda',
                       'cloud.region' => REGION,
                       'cloud.account.id' => AWS_ACCOUNT_ID,
