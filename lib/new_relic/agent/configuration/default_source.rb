@@ -2737,7 +2737,7 @@ module NewRelic
           :external => true,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_list),
-          :description => 'Defines http request query parameters you want the security agent to ignore in IAST scan, by specifying a list of patterns matching the http request query parameters you want to ignore.'
+          :description => 'An array of HTTP request query parameters the security agent should ignore in IAST scans. The array should specify a list of patterns matching the HTTP request query parameters to ignore.'
         },
         :'security.exclude_from_iast_scan.http_request_parameters.body' => {
           :default => [],
