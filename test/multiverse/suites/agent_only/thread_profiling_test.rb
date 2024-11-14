@@ -76,6 +76,8 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   def test_thread_profiling_can_stop
+    skip 'Fails on Ruby 3.0+, see Issue #2947' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.0')
+
     issue_command(START_COMMAND)
     issue_command(STOP_COMMAND)
 
