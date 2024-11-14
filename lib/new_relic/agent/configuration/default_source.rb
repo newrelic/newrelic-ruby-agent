@@ -2794,7 +2794,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables javascript injection detection in IAST scans.'
+          :description => 'If `true`, disables Javascript injection detection in IAST scans.'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.command_injection' => {
           :default => false,
