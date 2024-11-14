@@ -25,10 +25,9 @@ ACTIVERECORD_VERSIONS = [
 ]
 
 # There's a problem where if Rails 8.1 runs first, it'll create migrations
-# that sticks around and causes migrate to fail on Rails 8.0
-# Let's just run Rails 8.1 at the end until this gets sorted out.
+# that stick around and cause db:migrate to fail on Rails 8.0
+# Let's just skip Rails edge until this gets sorted out.
 # unshift_rails_edge(ACTIVERECORD_VERSIONS)
-ACTIVERECORD_VERSIONS.push(["github: 'rails'", 3.2])
 
 def gem_list(activerecord_version = nil)
   <<~RB
