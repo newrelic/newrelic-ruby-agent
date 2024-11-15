@@ -2,8 +2,4 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-gemfile <<~RB
-  gem 'minitest', "#{RUBY_VERSION >= '3.0.0' ? '5.3.3' : '4.7.5'}"
-  gem 'rack', '< 2.1.0'
-  gem 'rack-test', '>= 0.8.0'
-RB
+# File is required to exist by Rails

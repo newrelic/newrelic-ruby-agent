@@ -958,25 +958,12 @@ common: &default_settings
   # Passenger servers. Other servers should be detected by default.
   # security.application_info.port: nil
 
-  # If true, enables deserialization detection
-  # security.detection.deserialization.enabled: true
-
-  # If true, enables RCI (remote code injection) detection
-  # security.detection.rci.enabled: true
-
-  # If true, enables RXSS (reflected cross-site scripting) detection
-  # security.detection.rxss.enabled: true
-
   # If true, the security agent is started (the agent runs in its event loop)
   # security.enabled: false
 
   # Defines the mode for the security agent to operate in. Currently only IAST is
   # supported
   # security.mode: IAST
-
-  # Defines the request body limit to process in security events (in KB). The
-  # default value is 300, for 300KB.
-  # security.request.body_limit: 300
 
   # Defines the endpoint URL for posting security-related data
   # security.validator_service_url: wss://csec.nr-data.net

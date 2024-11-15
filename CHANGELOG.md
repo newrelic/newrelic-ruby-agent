@@ -2,11 +2,15 @@
 
 ## dev
 
-Version <dev> introduces instrumentation for the aws-sdk-lambda gem and fixes a bug with explain plans on Rails 7.2+.
+Version <dev> introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, and fixes a bug with explain plans on Rails 7.2+.
 
 - **Feature: Instrumentation for aws-sdk-lambda**
 
-  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926)
+  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926).
+
+- **Feature: Add new configuration options to attach custom tags (labels) to logs**
+
+  The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
 
 - **Bugfix: Record explain plan traces on Rails 7.2+**
 
