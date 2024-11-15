@@ -25,6 +25,7 @@ module NewRelic
       METRICS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Metrics/Ruby/%s'.freeze
       FORWARDING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Forwarding/Ruby/%s'.freeze
       DECORATING_SUPPORTABILITY_FORMAT = 'Supportability/Logging/LocalDecorating/Ruby/%s'.freeze
+      LABELS_SUPPORTABILITY_FORMAT = 'Supportability/Logging/Labels/Ruby/%s'.freeze
       MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
 
       named :LogEventAggregator
@@ -38,6 +39,7 @@ module NewRelic
       METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
       FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
+      LABELS_ENABLED_KEY = :'application_logging.forwarding.labels.enabled'
       LOG_LEVEL_KEY = :'application_logging.forwarding.log_level'
       CUSTOM_ATTRIBUTES_KEY = :'application_logging.forwarding.custom_attributes'
 
@@ -51,6 +53,7 @@ module NewRelic
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
         @attributes = NewRelic::Agent::LogEventAttributes.new
+
         register_for_done_configuring(events)
       end
 
@@ -186,6 +189,10 @@ module NewRelic
         attributes.add_custom_attributes(custom_attributes)
       end
 
+      def labels
+        @labels ||= create_labels
+      end
+
       # Because our transmission format (MELT) is different than historical
       # agent payloads, extract the munging here to keep the service focused
       # on the general harvest + transmit instead of the format.
@@ -201,8 +208,9 @@ module NewRelic
         # To save on unnecessary data transmission, trim the entity.type
         # sent by classic logs-in-context
         common_attributes.delete(ENTITY_TYPE_KEY)
-
-        common_attributes.merge!(NewRelic::Agent.agent.log_event_aggregator.attributes.custom_attributes)
+        aggregator = NewRelic::Agent.agent.log_event_aggregator
+        common_attributes.merge!(aggregator.attributes.custom_attributes)
+        common_attributes.merge!(aggregator.labels)
 
         _, items = data
         payload = [{
@@ -247,6 +255,7 @@ module NewRelic
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
+          record_configuration_metric(LABELS_SUPPORTABILITY_FORMAT, LABELS_ENABLED_KEY)
 
           add_custom_attributes(NewRelic::Agent.config[CUSTOM_ATTRIBUTES_KEY])
         end
@@ -326,6 +335,23 @@ module NewRelic
         return false unless Logger::Severity.constants.include?(severity_constant)
 
         Logger::Severity.const_get(severity_constant) < Logger::Severity.const_get(configured_log_level_constant)
+      end
+
+      def create_labels
+        return NewRelic::EMPTY_HASH unless NewRelic::Agent.config[LABELS_ENABLED_KEY]
+
+        downcased_exclusions = NewRelic::Agent.config[:'application_logging.forwarding.labels.exclude'].map(&:downcase)
+        log_labels = {}
+
+        NewRelic::Agent.config.parsed_labels.each do |parsed_label|
+          next if downcased_exclusions.include?(parsed_label['label_type'].downcase)
+
+          # labels are referred to as tags in the UI, so prefix the
+          # label-related attributes with 'tags.*'
+          log_labels["tags.#{parsed_label['label_type']}"] = parsed_label['label_value']
+        end
+
+        log_labels
       end
     end
   end
