@@ -881,6 +881,21 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'A hash with key/value pairs to add as custom attributes to all log events forwarded to New Relic. If sending using an environment variable, the value must be formatted like: "key1=value1,key2=value2"'
         },
+        :'application_logging.forwarding.labels.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent attaches [labels](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#labels) to log records.'
+        },
+        :'application_logging.forwarding.labels.exclude' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :transform => DefaultSource.method(:convert_to_list),
+          :allowed_from_server => false,
+          :description => 'A case-insensitive array or comma-delimited string containing the labels to exclude from log records.'
+        },
         :'application_logging.forwarding.max_samples_stored' => {
           :default => 10000,
           :public => true,
@@ -2703,30 +2718,6 @@ module NewRelic
           :description => 'Defines the endpoint URL for posting security-related data',
           :dynamic_name => true
         },
-        :'security.detection.rci.enabled' => {
-          :default => true,
-          :external => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, enables RCI (remote code injection) detection'
-        },
-        :'security.detection.rxss.enabled' => {
-          :default => true,
-          :external => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, enables RXSS (reflected cross-site scripting) detection'
-        },
-        :'security.detection.deserialization.enabled' => {
-          :default => true,
-          :external => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If `true`, enables deserialization detection'
-        },
         :'security.application_info.port' => {
           :default => nil,
           :allow_nil => true,
@@ -2734,16 +2725,189 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => false,
-          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers should be detected by default.'
+          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers are detected by default.'
         },
-        :'security.request.body_limit' => {
-          :default => 300,
-          :allow_nil => true,
+        :'security.exclude_from_iast_scan.api' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :external => true,
+          :allowed_from_server => true,
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => 'Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should provide a complete match for the URL without the endpoint. For example, `[".*account.*"], [".*/\api\/v1\/.*?\/login"]`'
+        },
+        :'security.exclude_from_iast_scan.http_request_parameters.header' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :external => true,
+          :allowed_from_server => true,
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => 'An array of HTTP request headers the security agent should ignore in IAST scans. The array should specify a list of patterns matching the headers to ignore.'
+        },
+        :'security.exclude_from_iast_scan.http_request_parameters.query' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :external => true,
+          :allowed_from_server => true,
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => 'An array of HTTP request query parameters the security agent should ignore in IAST scans. The array should specify a list of patterns matching the HTTP request query parameters to ignore.'
+        },
+        :'security.exclude_from_iast_scan.http_request_parameters.body' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :external => true,
+          :allowed_from_server => true,
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => 'An array of HTTP request body keys the security agent should ignore in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.insecure_settings' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables the detection of low-severity insecure settings (e.g., hash, crypto, cookie, random generators, trust boundary).'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables file operation-related IAST detections (File Access & Application integrity violation)'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.sql_injection' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables SQL injection detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.nosql_injection' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables NOSQL injection detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.ldap_injection' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables LDAP injection detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.javascript_injection' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Javascript injection detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.command_injection' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables system command injection detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.xpath_injection' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables XPATH injection detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.ssrf' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Sever-Side Request Forgery (SSRF) detection in IAST scans.'
+        },
+        :'security.exclude_from_iast_scan.iast_detection_category.rxss' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, disables Reflected Cross-Site Scripting (RXSS) detection in IAST scans.'
+        },
+        :'security.scan_schedule.delay' => {
+          :default => 0,
           :public => true,
           :type => Integer,
           :external => true,
+          :allowed_from_server => true,
+          :description => 'Specifies the delay time (in minutes) before the IAST scan begins after the application starts.'
+        },
+        :'security.scan_schedule.duration' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => true,
+          :description => 'Specifies the length of time (in minutes) that the IAST scan will run.'
+        },
+        :'security.scan_schedule.schedule' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :external => true,
+          :allowed_from_server => true,
+          :description => 'Specifies a cron expression that sets when the IAST scan should run.',
+          :dynamic_name => true
+        },
+        :'security.scan_schedule.always_sample_traces' => {
+          :default => false,
+          :external => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Defines the request body limit to process in security events (in KB). The default value is 300, for 300KB.'
+          :description => 'If `true`, allows IAST to continuously gather trace data in the background. Collected data will be used by the security agent to perform an IAST scan at the scheduled time.'
+        },
+        :'security.scan_controllers.iast_scan_request_rate_limit' => {
+          :default => 3600,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => true,
+          :description => 'Sets the maximum number of HTTP requests allowed for the IAST scan per minute. Any Integer between 12 and 3600 is valid. The default value is 3600.'
+        },
+        :'security.scan_controllers.scan_instance_count' => {
+          :default => 0,
+          :public => true,
+          :type => Integer,
+          :external => true,
+          :allowed_from_server => true,
+          :description => 'The number of application instances for a specific entity on which IAST analysis is performed.'
+        },
+        :'security.scan_controllers.report_http_response_body' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :external => true,
+          :allowed_from_server => true,
+          :description => 'If `true`, enables the sending of HTTP responses bodies. Disabling this also disables Reflected Cross-Site Scripting (RXSS) vulnerability detection.'
+        },
+        :'security.iast_test_identifier' => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
+          :external => true,
+          :allowed_from_server => true,
+          :description => 'Unique test identifier when runnning IAST in CI/CD environment to differentiate between different test runs, e.g., a build number.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
