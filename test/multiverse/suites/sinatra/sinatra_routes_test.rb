@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 class SinatraRouteTestApp < Sinatra::Base
+  set :host_authorization, {permitted_hosts: []}
   configure do
     # create a condition (sintra's version of a before_filter) that returns the
     # value that was passed into it.

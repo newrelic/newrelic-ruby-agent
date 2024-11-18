@@ -49,6 +49,7 @@ if !defined?(MyApp)
     end
 
     class SinatraTestApp < Sinatra::Base
+      set :host_authorization, {permitted_hosts: []}
       get '/' do
         raise 'Intentional error' if params['raise']
 

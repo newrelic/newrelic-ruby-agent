@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 class SinatraParameterCaptureTestApp < Sinatra::Base
+  set :host_authorization, {permitted_hosts: []}
   post '/capture_test' do
     'capture test'
   end

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 class SinatraTestApp < Sinatra::Base
+  set :host_authorization, {permitted_hosts: []}
   get '/hello/:name' do |name|
     name ||= 'world'
     "hello #{name}"
