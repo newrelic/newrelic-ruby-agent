@@ -252,7 +252,7 @@ end
 class SinatraIgnoreApdexAndEndUserApp < Sinatra::Base
   newrelic_ignore_apdex
   newrelic_ignore_enduser
-  
+
   set :host_authorization, {permitted_hosts: []}
   get '/' do
     request.path_info
