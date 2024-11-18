@@ -2,7 +2,7 @@
 
 ## dev
 
-Version <dev> introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, and fixes a bug with explain plans on Rails 7.2+.
+Version <dev> introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, updates View Component instrumentation, and fixes a bug with explain plans on Rails 7.2+.
 
 - **Feature: Instrumentation for aws-sdk-lambda**
 
@@ -11,6 +11,10 @@ Version <dev> introduces instrumentation for the aws-sdk-lambda gem, allows user
 - **Feature: Add new configuration options to attach custom tags (labels) to logs**
 
   The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
+
+- **Feature: Update View Component instrumentation+**
+
+  The `.identifier` method will be formally exposed as part of the View Component public API. The agent will now use this method for building metric names when available, ensuring ongoing compatibility with all View Component versions. [PR#2956](https://github.com/newrelic/newrelic-ruby-agent/pull/2956)
 
 - **Bugfix: Record explain plan traces on Rails 7.2+**
 
