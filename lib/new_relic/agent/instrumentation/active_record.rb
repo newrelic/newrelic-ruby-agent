@@ -9,14 +9,7 @@ module NewRelic
     module Instrumentation
       module ActiveRecord
         EXPLAINER = lambda do |statement|
-          connection = NewRelic::Agent::Database.get_connection(statement.config) do
-            ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
-              statement.config)
-          end
-          # the following line needs else branch coverage
-          if connection && connection.respond_to?(:execute) # rubocop:disable Style/SafeNavigation
-            return connection.execute("EXPLAIN #{statement.sql}")
-          end
+          NewRelic::Agent::Database.explain_this(statement, true)
         end
 
         def self.insert_instrumentation
