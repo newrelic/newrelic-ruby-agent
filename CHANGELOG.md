@@ -2,11 +2,19 @@
 
 ## dev
 
-Version <dev> introduces instrumentation for the aws-sdk-lambda gem.
+Version <dev> introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, and fixes a bug with explain plans on Rails 7.2+.
 
 - **Feature: Instrumentation for aws-sdk-lambda**
 
-  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926)
+  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926).
+
+- **Feature: Add new configuration options to attach custom tags (labels) to logs**
+
+  The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
+
+- **Bugfix: Record explain plan traces on Rails 7.2+**
+
+  Rails 7.2 removed adapter-specific connection methods (ex. `ActiveRecord::Base.postgresql_connection`) and replaced them with `ActiveRecord::Base.with_connection`. Our explain plan feature relies on making a connection to the database to create an explain plan trace. Due to a bug in our tests, we missed this regression. Now, the agent uses the new method to fetch explain plans on Rails 7.2+. Thank you, [@gsar](https://github.com/gsar) and [@gstark](https://github.com/gstark) for bringing this to our attention! [Issue#2922](https://github.com/newrelic/newrelic-ruby-agent/issues/2922) [PR#2940](https://github.com/newrelic/newrelic-ruby-agent/pull/2940)
 
 ## v9.15.0
 

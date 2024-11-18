@@ -167,15 +167,17 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_harvest_should_collect_explain_plans
-    @connection.expects(:execute).with('EXPLAIN select * from test') \
-      .returns(dummy_mysql_explain_result({'header0' => 'foo0', 'header1' => 'foo1', 'header2' => 'foo2'}))
-    @connection.expects(:execute).with('EXPLAIN select * from test2') \
-      .returns(dummy_mysql_explain_result({'header0' => 'bar0', 'header1' => 'bar1', 'header2' => 'bar2'}))
-
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info('/c/a', 'guid')
     data.set_transaction_name('WebTransaction/Controller/c/a')
-    explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
+    explainer = proc do |statement|
+      hash = if statement.sql.match?('test2')
+        {'header0' => 'bar0', 'header1' => 'bar1', 'header2' => 'bar2'}
+      else
+        {'header0' => 'foo0', 'header1' => 'foo1', 'header2' => 'foo2'}
+      end
+      dummy_mysql_explain_result(hash)
+    end
     config = {:adapter => 'mysql'}
     queries = [
       NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new('select * from test', config, explainer),
