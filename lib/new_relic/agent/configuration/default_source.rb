@@ -443,7 +443,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic's data collection service."
+          :description => "Manual override for the path to your local CA bundle. This CA bundle validates the SSL certificate presented by New Relic's data collection service."
         },
         :capture_memcache_keys => {
           :default => false,
@@ -1189,7 +1189,7 @@ module NewRelic
 
             Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
 
-            ```ruby
+            ```rb
             module MyCompany
               class Image
                 def render_png
@@ -1207,7 +1207,7 @@ module NewRelic
 
             Given that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
 
-            ```yml
+            ```yaml
             automatic_custom_instrumentation_method_list:
               - MyCompany::Image#render_png
               - MyCompany::User.notify
@@ -1215,7 +1215,7 @@ module NewRelic
 
             That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
 
-            ```yml
+            ```yaml
             automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
             ```
 
@@ -1925,8 +1925,8 @@ module NewRelic
             An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
             not be reported to New Relic. Each string in this array will be turned into a regular expression via
             `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the
-            pair will not be reported. By default, no `user_data` is reported, so this option should only be used if
-            the `stripe.user_data.include` option is being used.
+            pair will not be reported. By default, no `user_data` is reported. Use this option only if the
+            `stripe.user_data.include` option is also used.
           DESCRIPTION
         },
         :'instrumentation.thread' => {
@@ -2689,7 +2689,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
+          :description => "If `true`, the security agent is loaded (the agent performs a Ruby 'require')"
         },
         :'security.enabled' => {
           :default => false,
@@ -2725,7 +2725,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => false,
-          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. Other servers are detected by default.'
+          :description => 'The port the application is listening on. This setting is mandatory for Passenger servers. The agent detects other servers by default.'
         },
         :'security.exclude_from_iast_scan.api' => {
           :default => [],
@@ -2734,7 +2734,7 @@ module NewRelic
           :external => true,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_list),
-          :description => 'Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should provide a complete match for the URL without the endpoint. For example, `[".*account.*"], [".*/\api\/v1\/.*?\/login"]`'
+          :description => 'Defines API paths the security agent should ignore in IAST scans. Accepts an array of regex patterns matching the URI to ignore. The regex pattern should find a complete match for the URL without the endpoint. For example, `[".*account.*"], [".*/\api\/v1\/.*?\/login"]`'
         },
         :'security.exclude_from_iast_scan.http_request_parameters.header' => {
           :default => [],
@@ -2769,7 +2769,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables the detection of low-severity insecure settings (e.g., hash, crypto, cookie, random generators, trust boundary).'
+          :description => 'If `true`, disables the detection of low-severity insecure settings. For example, hash, crypto, cookie, random generators, trust boundary).'
         },
         :'security.exclude_from_iast_scan.iast_detection_category.invalid_file_access' => {
           :default => false,
@@ -2890,7 +2890,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'The number of application instances for a specific entity on which IAST analysis is performed.'
+          :description => 'The number of application instances for a specific entity to perform IAST analysis on.'
         },
         :'security.scan_controllers.report_http_response_body' => {
           :default => true,
@@ -2907,7 +2907,7 @@ module NewRelic
           :type => String,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Unique test identifier when runnning IAST in CI/CD environment to differentiate between different test runs, e.g., a build number.'
+          :description => 'A unique test identifier when runnning IAST in a CI/CD environment to differentiate between different test runs. For example, a build number.'
         }
       }.freeze
       # rubocop:enable Metrics/CollectionLiteralLength
