@@ -1,8 +1,8 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.16.0
 
-Version <dev> introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, updates View Component instrumentation, and fixes a bug with explain plans on Rails 7.2+.
+Version 9.16.0 introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, updates View Component instrumentation, and fixes a bug with explain plans on Rails 7.2+.
 
 - **Feature: Instrumentation for aws-sdk-lambda**
 
