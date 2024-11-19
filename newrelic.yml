@@ -131,20 +131,22 @@ common: &default_settings
   # MyCompany module namespace:
   #
   # module MyCompany
-  # class Image
-  # def render_png
-  # # code to render a PNG
-  # end
-  # end
-  # class User
-  # def self.notify
-  # # code to notify users
-  # end
-  # end
+  #   class Image
+  #     def render_png
+  #       # code to render a PNG
+  #     end
+  #   end
+  #
+  #   class User
+  #     def self.notify
+  #       # code to notify users
+  #     end
+  #   end
   # end
   #
   # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
+  #
   # automatic_custom_instrumentation_method_list:
   # - MyCompany::Image#render_png
   # - MyCompany::User.notify
