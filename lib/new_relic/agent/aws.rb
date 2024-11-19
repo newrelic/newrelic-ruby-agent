@@ -9,6 +9,9 @@ module NewRelic
       HEX_MASK = '7fffffffff80'
 
       def self.create_arn(service, resource, region, account_id)
+        # if any of the values are nil, we can't create an ARN
+        return unless service && resource && region && account_id
+
         "arn:aws:#{service}:#{region}:#{account_id}:#{resource}"
       rescue => e
         NewRelic::Agent.logger.warn("Failed to create ARN: #{e}")
