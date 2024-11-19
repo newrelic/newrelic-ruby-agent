@@ -2,11 +2,6 @@ db:
   repository:
     - mirror.gcr.io/aquasec/trivy-db:2
 
-scan:
-  scanners:
-    - vuln
-    - misconfig
-
 severities:
   - CRITICAL
   - HIGH
