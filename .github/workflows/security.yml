@@ -21,8 +21,6 @@ jobs:
           ruby-version: 3.3
 
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-        with:
-          path: ruby-agent
 
       - run: bundle # Generate a Gemfile.lock to scan
 
@@ -32,8 +30,8 @@ jobs:
         uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v0.28.0
         with:
           scan-type: fs
-          scan-ref: ./ruby-agent
-          trivy-config: ./ruby-agent/trivy.yaml
+          scan-ref: .
+          trivy-config: trivy.yaml
           format: table
           exit-code: 1
 
