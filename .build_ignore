@@ -19,6 +19,7 @@ lefthook.yml
 log/
 README.md
 test/
+trivy.yaml
 lib/tasks/bump_version.rb
 lib/tasks/coverage_report.rb
 lib/tasks/multiverse.rake

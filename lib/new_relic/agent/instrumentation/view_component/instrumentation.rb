@@ -21,7 +21,11 @@ module NewRelic::Agent::Instrumentation
     end
 
     def metric_name
-      "View/#{metric_path(self.class.source_location)}/#{self.class.name}"
+      # ViewComponent determines a component's identifier differently depending on the version
+      # https://github.com/ViewComponent/view_component/pull/2153
+      component_identifier = defined?(self.class.source_location) ? self.class.source_location : self.class.identifier
+
+      "View/#{metric_path(component_identifier)}/#{self.class.name}"
     rescue => e
       NewRelic::Agent.logger.error('Error identifying View Component metric name', e)
 

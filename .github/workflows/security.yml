@@ -12,9 +12,11 @@ jobs:
   build:
     name: Trivy Scan
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
       - name: Install Ruby 3.3
-        uses: ruby/setup-ruby@f26937343756480a8cb3ae1f623b9c8d89ed6984 # tag v1.196.0
+        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
         with:
           ruby-version: 3.3
 
@@ -25,24 +27,24 @@ jobs:
       - name: Run Trivy in table mode
         # Table output is only useful when running on a pull request or push.
         if: contains(fromJSON('["push", "pull_request"]'), github.event_name)
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v.0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v0.28.0
         with:
           scan-type: fs
+          scan-ref: .
+          trivy-config: trivy.yaml
           format: table
           exit-code: 1
-          ignore-unfixed: true
-          severity: CRITICAL,HIGH,MEDIUM,LOW
 
       - name: Run Trivy in report mode
         # Only generate sarif when running nightly on the dev branch.
         if: ${{ github.event_name == 'schedule' }}
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v.0.28.0
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # tag v0.28.0
         with:
           scan-type: fs
+          scan-ref: .
+          trivy-config: trivy.yaml
           format: sarif
           output: trivy-results.sarif
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
       - name: Upload Trivy scan results to GitHub Security tab
         # Only upload sarif when running nightly on the dev branch.

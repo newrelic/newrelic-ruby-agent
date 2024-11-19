@@ -10,6 +10,7 @@ require_relative '../../../helpers/exceptions'
 class DeferredSinatraTestApp < Sinatra::Base
   include NewRelic::TestHelpers::Exceptions
 
+  set :host_authorization, {permitted_hosts: []}
   configure do
     # display exceptions so we see what's going on
     disable :show_exceptions

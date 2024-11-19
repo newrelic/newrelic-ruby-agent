@@ -52,7 +52,8 @@ module NewRelic::Agent
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::METRICS_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true,
-        LogEventAggregator::DECORATING_ENABLED_KEY => true
+        LogEventAggregator::DECORATING_ENABLED_KEY => true,
+        LogEventAggregator::LABELS_ENABLED_KEY => true
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
@@ -61,7 +62,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/enabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/enabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -72,7 +74,8 @@ module NewRelic::Agent
         LogEventAggregator::OVERALL_ENABLED_KEY => false,
         LogEventAggregator::METRICS_ENABLED_KEY => false,
         LogEventAggregator::FORWARDING_ENABLED_KEY => false,
-        LogEventAggregator::DECORATING_ENABLED_KEY => false
+        LogEventAggregator::DECORATING_ENABLED_KEY => false,
+        LogEventAggregator::LABELS_ENABLED_KEY => false
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
@@ -81,7 +84,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -324,6 +328,35 @@ module NewRelic::Agent
       end
     end
 
+    def test_seen_and_sent_zeroed_out_on_reset!
+      with_config(CAPACITY_KEY => 3) do
+        3.times { @aggregator.record('Are you counting this?', 'DEBUG') }
+        @aggregator.harvest! # seen/sent are counted on harvest, this zeroes things out
+
+        assert_metrics_recorded_exclusive({
+          'Logging/lines' => {:call_count => 3},
+          'Logging/lines/DEBUG' => {:call_count => 3},
+          'Logging/Forwarding/Dropped' => {:call_count => 0},
+          'Supportability/Logging/Forwarding/Seen' => {:call_count => 3},
+          'Supportability/Logging/Forwarding/Sent' => {:call_count => 3}
+        },
+          :ignore_filter => %r{^Supportability/API/})
+
+        @aggregator.record('Are you counting this?', 'DEBUG')
+        @aggregator.reset! # set seen/sent to zero, throwing out the latest #record
+        @aggregator.harvest! # nothing new should be available to count, so use same numbers as before
+
+        assert_metrics_recorded_exclusive({
+          'Logging/lines' => {:call_count => 3},
+          'Logging/lines/DEBUG' => {:call_count => 3},
+          'Logging/Forwarding/Dropped' => {:call_count => 0},
+          'Supportability/Logging/Forwarding/Seen' => {:call_count => 3},
+          'Supportability/Logging/Forwarding/Sent' => {:call_count => 3}
+        },
+          :ignore_filter => %r{^Supportability/API/})
+      end
+    end
+
     def test_high_security_mode
       with_config(CAPACITY_KEY => 5, :high_security => true) do
         # We refresh the high security setting on this notification
@@ -343,14 +376,24 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/enabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/enabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/enabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
     end
 
     def test_overall_disabled
-      with_config(LogEventAggregator::OVERALL_ENABLED_KEY => false) do
+      # set the overall enabled key to false
+      # put all other configs as true
+      with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false,
+        :'instrumentation.logger' => 'auto',
+        LogEventAggregator::METRICS_ENABLED_KEY => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true,
+        LogEventAggregator::DECORATING_ENABLED_KEY => true,
+        LogEventAggregator::LABELS_ENABLED_KEY => true
+      ) do
         # Refresh the value of @enabled on the LogEventAggregator
         NewRelic::Agent.config.notify_server_source_added
 
@@ -366,7 +409,8 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
@@ -392,13 +436,18 @@ module NewRelic::Agent
           'Supportability/Logging/Ruby/LogStasher/disabled' => {:call_count => 1},
           'Supportability/Logging/Metrics/Ruby/disabled' => {:call_count => 1},
           'Supportability/Logging/Forwarding/Ruby/disabled' => {:call_count => 1},
-          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1}
+          'Supportability/Logging/LocalDecorating/Ruby/disabled' => {:call_count => 1},
+          'Supportability/Logging/Labels/Ruby/disabled' => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
     end
 
     def test_basic_conversion_to_melt_format
+      # If @labels was assigned in another test, it might leak into the common attributes
+      # forcibly remove them so that the melt format method has to freshly add them
+      @aggregator.remove_instance_variable(:@labels) if @aggregator.instance_variable_defined?(:@labels)
+
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
         'entity.guid' => 'GUID',
         'entity.name' => 'Hola'
@@ -691,6 +740,72 @@ module NewRelic::Agent
         _, results = @aggregator.harvest!
 
         assert_empty results
+      end
+    end
+
+    def test_labels_added_as_common_attributes_when_enabled
+      config = {:labels => 'Server:One;Data Center:Primary', :'application_logging.forwarding.labels.enabled' => true}
+      expected_label_attributes = {'tags.Server' => 'One', 'tags.Data Center' => 'Primary'}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def test_labels_not_added_as_common_attributes_when_disabled
+      config = {:labels => 'Server:One;Data Center:Primary', :'application_logging.forwarding.labels.enabled' => false}
+      expected_label_attributes = {}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def test_labels_not_added_as_common_attributes_when_excluded
+      config = {
+        :labels => 'Server:One;Data Center:Primary;Fake:two',
+        :'application_logging.forwarding.labels.enabled' => true,
+        :'application_logging.forwarding.labels.exclude' => ['Fake']
+      }
+      expected_label_attributes = {'tags.Server' => 'One', 'tags.Data Center' => 'Primary'}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    def test_labels_excluded_only_for_case_insensitive_match
+      config = {
+        :labels => 'Server:One;Data Center:Primary;fake:two;Faker:three',
+        :'application_logging.forwarding.labels.enabled' => true,
+        :'application_logging.forwarding.labels.exclude' => ['Fake']
+      }
+      expected_label_attributes = {'tags.Server' => 'One', 'tags.Data Center' => 'Primary', 'tags.Faker' => 'three'}
+
+      assert_labels(config, expected_label_attributes)
+    end
+
+    private
+
+    def assert_labels(config, expected_attributes = {})
+      # we should only have one log event aggregator per agent instance
+      # simulate that by resetting @labels between tests
+      @aggregator.remove_instance_variable(:@labels) if @aggregator.instance_variable_defined?(:@labels)
+
+      with_config(config) do
+        LinkingMetadata.stub('append_service_linking_metadata', {'entity.guid' => 'GUID', 'entity.name' => 'Hola'}) do
+          log_data = [
+            {
+              events_seen: 0,
+              reservoir_size: 0
+            },
+            [
+              [{"priority": 1}, {"message": 'This is a mess'}]
+            ]
+          ]
+
+          payload, _ = LogEventAggregator.payload_to_melt_format(log_data)
+          expected = [{
+            common: {attributes: {'entity.guid' => 'GUID', 'entity.name' => 'Hola'}.merge!(expected_attributes)},
+            logs: [{"message": 'This is a mess'}]
+          }]
+
+          assert_equal(payload, expected)
+        end
       end
     end
   end

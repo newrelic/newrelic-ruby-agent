@@ -4,6 +4,8 @@
 
 instrumentation_methods :chain, :prepend
 
+# ActiveSupport::Logger.broadcast is only defined on Rails 7.0 and below.
+# Do not test newer Rails versions on this suite.
 ACTIVE_SUPPORT_VERSIONS = [
   ['7.0.4', 2.7],
   ['6.1.7', 2.5],

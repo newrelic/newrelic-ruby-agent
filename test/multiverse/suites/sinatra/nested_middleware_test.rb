@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 class MiddlewareApp < Sinatra::Base
+  set :host_authorization, {permitted_hosts: []}
   get '/middle' do
     'From the middlewarez'
   end
@@ -11,6 +12,7 @@ end
 class MainApp < Sinatra::Base
   use MiddlewareApp
 
+  set :host_authorization, {permitted_hosts: []}
   get '/main' do
     'mainly done'
   end
