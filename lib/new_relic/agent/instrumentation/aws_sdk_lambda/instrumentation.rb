@@ -63,10 +63,9 @@ module NewRelic::Agent::Instrumentation
     def generate_segment(action, options = {})
       function = function_name(options)
       region = aws_region
-      account_id = aws_account_id
       arn = aws_arn(function, region)
       segment = NewRelic::Agent::Tracer.start_segment(name: "Lambda/#{action}/#{function}")
-      segment.add_agent_attribute('cloud.account.id', account_id)
+      segment.add_agent_attribute('cloud.account.id', nr_account_id)
       segment.add_agent_attribute('cloud.platform', CLOUD_PLATFORM)
       segment.add_agent_attribute('cloud.region', region)
       segment.add_agent_attribute('cloud.resource_id', arn) if arn
@@ -77,18 +76,18 @@ module NewRelic::Agent::Instrumentation
       (options.fetch(:function_name, nil) if options.respond_to?(:fetch)) || NewRelic::UNKNOWN
     end
 
-    def aws_account_id
-      return unless self.respond_to?(:config)
-
-      config&.account_id || NewRelic::Agent.config[:'cloud.aws.account_id']
-    end
-
     def aws_region
       config&.region if self.respond_to?(:config)
     end
 
     def aws_arn(function, region)
-      NewRelic::Agent::Aws.create_arn(AWS_SERVICE, "function:#{function}", region)
+      NewRelic::Agent::Aws.create_arn(AWS_SERVICE, "function:#{function}", region, nr_account_id)
+    end
+
+    def nr_account_id
+      return @nr_account_id if defined?(@nr_account_id)
+
+      @nr_account_id = NewRelic::Agent::Aws.get_account_id(config)
     end
   end
 end
