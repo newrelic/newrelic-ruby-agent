@@ -646,7 +646,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, enables the collection of explain plans in transaction traces. This setting will also apply to explain plans in slow SQL traces if [`slow_sql.explain_enabled`](#slow_sql-explain_enabled) is not set separately.'
+          :description => "If `true`, enables the collection of explain plans in transaction traces. This setting will also apply to explain plans in slow SQL traces if [`slow_sql.explain_enabled`](#slow_sql-explain_enabled) isn't set separately."
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
@@ -1911,7 +1911,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             An array of strings to specify which keys inside a Stripe event's `user_data` hash should be reported
             to New Relic. Each string in this array will be turned into a regular expression via `Regexp.new` to
-            permit advanced matching. Setting the value to `["."]` will report all `user_data`.
+            enable advanced matching. Setting the value to `["."]` will report all `user_data`.
           DESCRIPTION
         },
         :'stripe.user_data.exclude' => {
@@ -1924,8 +1924,8 @@ module NewRelic
           :description => <<~DESCRIPTION
             An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
             not be reported to New Relic. Each string in this array will be turned into a regular expression via
-            `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the
-            pair will not be reported. By default, no `user_data` is reported. Use this option only if the
+            `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the pair
+            isn't reported. By default, no `user_data` is reported. Use this option only if the
             `stripe.user_data.include` option is also used.
           DESCRIPTION
         },
@@ -2069,7 +2069,7 @@ module NewRelic
           :transform => proc { |bool| NewRelic::Agent::ServerlessHandler.env_var_set? || bool },
           :description => 'If `true`, the agent will operate in a streamlined mode suitable for use with short-lived ' \
                           'serverless functions. NOTE: Only AWS Lambda functions are supported currently and this ' \
-                          "option is not intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
+                          "option isn't intended for use without [New Relic's Ruby Lambda layer](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/get-started/monitoring-aws-lambda-serverless-monitoring/) offering."
         },
         # Sidekiq
         :'sidekiq.args.include' => {
@@ -2689,7 +2689,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "If `true`, the security agent is loaded (the agent performs a Ruby 'require')"
+          :description => "If `true`, the security agent loads (the agent performs a Ruby 'require')"
         },
         :'security.enabled' => {
           :default => false,
@@ -2857,7 +2857,7 @@ module NewRelic
           :type => Integer,
           :external => true,
           :allowed_from_server => true,
-          :description => 'Specifies the length of time (in minutes) that the IAST scan will run.'
+          :description => 'Indicates the duration (in minutes) for which the IAST scan will be performed.'
         },
         :'security.scan_schedule.schedule' => {
           :default => '',
@@ -2874,7 +2874,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, allows IAST to continuously gather trace data in the background. Collected data will be used by the security agent to perform an IAST scan at the scheduled time.'
+          :description => 'If `true`, allows IAST to continuously gather trace data in the background. The security agent uses collected data to perform an IAST scan at the scheduled time.'
         },
         :'security.scan_controllers.iast_scan_request_rate_limit' => {
           :default => 3600,
