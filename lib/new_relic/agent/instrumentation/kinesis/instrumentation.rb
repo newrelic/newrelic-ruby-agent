@@ -2,8 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# external_request segment?
-
 module NewRelic::Agent::Instrumentation
   module Kinesis
     INSTRUMENTED_METHODS = %w[
@@ -35,7 +33,7 @@ module NewRelic::Agent::Instrumentation
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       NewRelic::Agent.record_instrumentation_invocation(KINESIS)
-      
+
       params = args[0]
       segment = NewRelic::Agent::Tracer.start_segment(name: segment_name(method_name, params))
       arn = get_arn(params) if params
@@ -58,10 +56,16 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.logger.warn("Failed to create segment name: #{e}")
     end
 
+    def nr_account_id
+      return @nr_account_id if defined?(@nr_account_id)
+
+      @nr_account_id = NewRelic::Agent::Aws.get_account_id(config)
+    end
+
     def get_arn(params)
       return params[:stream_arn] if params[:stream_arn]
 
-      NewRelic::Agent::Aws.create_arn(KINESIS.downcase, "stream/#{params[:stream_name]}", config&.region) if params[:stream_name]
+      NewRelic::Agent::Aws.create_arn(KINESIS.downcase, "stream/#{params[:stream_name]}", config&.region, nr_account_id) if params[:stream_name]
     end
   end
 end
