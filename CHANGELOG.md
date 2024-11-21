@@ -1,12 +1,32 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.16.0
 
-Version <dev> updates View Componment instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
-  
+Version 9.16.0 introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, updates View Component instrumentation, and fixes a bug with explain plans on Rails 7.2+.
+
+- **Feature: Instrumentation for aws-sdk-lambda**
+
+  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926).
+
+- **Feature: Add new configuration options to attach custom tags (labels) to logs**
+
+  The Ruby agent now allows you to opt-in to adding your custom tags (labels) to agent-forwarded logs. With custom tags on logs, platform engineers can easily filter, search, and correlate log data for faster and more efficient troubleshooting, improved performance, and optimized resource utilization. [PR#2925](https://github.com/newrelic/newrelic-ruby-agent/pull/2925)
+
+- **Feature: Update View Component instrumentation+**
+
+  The `.identifier` method will be formally exposed as part of the View Component public API. The agent will now use this method for building metric names when available, ensuring ongoing compatibility with all View Component versions. [PR#2956](https://github.com/newrelic/newrelic-ruby-agent/pull/2956)
+
+- **Bugfix: Record explain plan traces on Rails 7.2+**
+
+  Rails 7.2 removed adapter-specific connection methods (ex. `ActiveRecord::Base.postgresql_connection`) and replaced them with `ActiveRecord::Base.with_connection`. Our explain plan feature relies on making a connection to the database to create an explain plan trace. Due to a bug in our tests, we missed this regression. Now, the agent uses the new method to fetch explain plans on Rails 7.2+. Thank you, [@gsar](https://github.com/gsar) and [@gstark](https://github.com/gstark) for bringing this to our attention! [Issue#2922](https://github.com/newrelic/newrelic-ruby-agent/issues/2922) [PR#2940](https://github.com/newrelic/newrelic-ruby-agent/pull/2940)
+
+## v9.15.0
+
+Version 9.15.0 updates View Component instrumentation to use a default metric name when one is unavailable, adds a configuration option to associate the AWS account ID with the DynamoDB calls from the AWS SDK, resolves a bug in rdkafka instrumentation when using the karafka-rdkafka gem, resolves a bug in the ruby-kafka instrumentation, fixes a bug with Grape instrumentation, and addresses a bug preventing the agent from running in serverless mode in an AWS Lambda layer.
+
 - **Feature: New configuration option cloud.aws.account_id**
 
-  A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS SDK. One example, is that relationships between AWS services instrumented with New Relic's CloudWatch Metric Streams will have relationships formed in the service map with APM applications. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
+  A new configuration option has been added, `cloud.aws.account_id`, that will allow New Relic to provide more details about certain calls made using the AWS SDK. For example, relationships between AWS services instrumented with New Relic's CloudWatch Metric Streams will have relationships formed in the service map with APM applications. Currently, the DynamoDB instrumentation is the only instrumentation that will make use of this configuration option, but this will be used in future instrumentation as well. [PR#2904](https://github.com/newrelic/newrelic-ruby-agent/pull/2904)
 
 - **Feature: Use default `View/component` metric name for unidentified View Components**
 

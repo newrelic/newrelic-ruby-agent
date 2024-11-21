@@ -8,6 +8,7 @@ instrumentation_methods :chain, :prepend
 # Rails 7.1 is the latest version at the time of writing.
 ACTIVE_SUPPORT_VERSIONS = [
   [nil, 3.2],
+  ['8.0.0', 3.2],
   ['7.2.0', 3.1],
   ['7.1.0', 2.7]
 ]

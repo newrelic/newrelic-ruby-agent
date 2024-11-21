@@ -90,6 +90,42 @@ module NewRelic
         ConnectionManager.instance.get_connection(config, &connector)
       end
 
+      def explain_this(statement, use_execute = false)
+        if supports_with_connection?
+          explain_this_using_with_connection(statement)
+        else
+          explain_this_using_adapter_connection(statement, use_execute)
+        end
+      rescue => e
+        NewRelic::Agent.logger.error("Couldn't fetch the explain plan for statement: #{e}")
+      end
+
+      def explain_this_using_with_connection(statement)
+        ::ActiveRecord::Base.with_connection do |conn|
+          conn.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
+        end
+      end
+
+      def explain_this_using_adapter_connection(statement, use_execute)
+        connection = get_connection(statement.config) do
+          ::ActiveRecord::Base.send(:"#{statement.config[:adapter]}_connection", statement.config)
+        end
+
+        if use_execute
+          connection.execute("EXPLAIN #{statement.sql}")
+        else
+          connection.exec_query("EXPLAIN #{statement.sql}", "Explain #{statement.name}", statement.binds)
+        end
+      end
+
+      # ActiveRecord v7.2.0 introduced with_connection
+      def supports_with_connection?
+        return @supports_with_connection if defined?(@supports_with_connection)
+
+        @supports_with_connection = defined?(::ActiveRecord::VERSION::STRING) &&
+          Gem::Version.new(ActiveRecord::VERSION::STRING) >= Gem::Version.new('7.2.0')
+      end
+
       def close_connections
         ConnectionManager.instance.close_connections
       end

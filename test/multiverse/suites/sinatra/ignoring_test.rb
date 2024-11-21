@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 class SinatraIgnoreTestApp < Sinatra::Base
+  set :host_authorization, {permitted_hosts: []}
   get '/record' do
     request.path_info
   end
@@ -224,6 +225,7 @@ end
 class SinatraIgnoreItAllApp < Sinatra::Base
   newrelic_ignore
 
+  set :host_authorization, {permitted_hosts: []}
   get '/' do
     request.path_info
   end
@@ -251,6 +253,7 @@ class SinatraIgnoreApdexAndEndUserApp < Sinatra::Base
   newrelic_ignore_apdex
   newrelic_ignore_enduser
 
+  set :host_authorization, {permitted_hosts: []}
   get '/' do
     request.path_info
   end

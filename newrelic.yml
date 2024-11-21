@@ -65,6 +65,13 @@ common: &default_settings
   # If true, the agent captures log records emitted by your application.
   # application_logging.forwarding.enabled: true
 
+  # If true, the agent attaches labels to log records.
+  # application_logging.forwarding.labels.enabled: false
+
+  # A case-insensitive array or comma-delimited string containing the labels to
+  # exclude from log records.
+  # application_logging.forwarding.labels.exclude: []
+
   # Sets the minimum level a log event must have to be forwarded to New Relic.
   # This is based on the integer values of Ruby's Logger::Severity constants:
   # https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
@@ -114,17 +121,15 @@ common: &default_settings
   # audit_log.path: log/newrelic_audit.log
 
   # An array of CLASS#METHOD (for instance methods) and/or CLASS.METHOD (for class
-  # methods) strings representing Ruby methods for the agent to automatically add
-  # custom instrumentation to without the need for altering any of the source code
-  # that defines the methods.
-  #
+  # methods) strings representing Ruby methods that the agent can automatically
+  # add custom instrumentation to. This doesn't require any modifications of the
+  # source code that defines the methods.
   # Use fully qualified class names (using the :: delimiter) that include any
   # module or class namespacing.
-  #
   # Here is some Ruby source code that defines a render_png instance method for an
   # Image class and a notify class method for a User class, both within a
   # MyCompany module namespace:
-  # 
+  #
   # module MyCompany
   #   class Image
   #     def render_png
@@ -138,26 +143,29 @@ common: &default_settings
   #     end
   #   end
   # end
-  # 
+  #
   # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
-  # 
+  #
   # automatic_custom_instrumentation_method_list:
   # - MyCompany::Image#render_png
   # - MyCompany::User.notify
   #
   # That configuration example uses YAML array syntax to specify both methods.
-  # Alternatively, a comma-delimited string can be used instead:
-  # 
-  # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
-  # 
+  # Alternatively, you can use a comma-delimited string:
+  #
+  # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png,
+  # MyCompany::User.notify'
+  #
   # Whitespace around the comma(s) in the list is optional. When configuring the
   # agent with a list of methods via the
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST environment variable,
-  # this comma-delimited string format should be used:
-  # 
-  # export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
-  # 
+  # use this comma-delimited string format:
+  #
+  # export
+  # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png,
+  # MyCompany::User.notify'
+  #
   # automatic_custom_instrumentation_method_list: []
 
   # Specify a list of constants that should prevent the agent from starting
@@ -215,6 +223,9 @@ common: &default_settings
 
   # If true, the agent will clear Tracer::State in Agent.drop_buffered_data.
   # clear_transaction_state_after_fork: false
+
+  # The AWS account ID for the AWS account associated with this app
+  # cloud.aws.account_id: nil
 
   # If true, the agent will report source code level metrics for traced methods.
   # See:
@@ -312,18 +323,7 @@ common: &default_settings
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
-  # Cross application tracing is deprecated in favor of distributed tracing.
-  # Distributed tracing is on by default for Ruby agent versions 8.0.0 and above.
-  # Middlewares are not required to support distributed tracing.
-  # To continue using cross application tracing, update the following options in
-  # your newrelic.yml configuration file:
-  # ``yaml
-  # # newrelic.yml
-  # cross_application_tracer:
-  # enabled: true
-  # distributed_tracing:
-  # enabled: false
-  # ``
+  #
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
@@ -454,6 +454,10 @@ common: &default_settings
   # Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.async_http: auto
+
+  # Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_lambda: auto
 
   # Controls auto-instrumentation of the aws-sdk-sqs library at start-up. May be
   # one of: auto, prepend, chain, disabled.
@@ -947,33 +951,104 @@ common: &default_settings
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
-  
+
   # If true, the security agent is loaded (a Ruby 'require' is performed)
   # security.agent.enabled: false
 
   # The port the application is listening on. This setting is mandatory for
-  # Passenger servers. Other servers should be detected by default.
+  # Passenger servers. Other servers are detected by default.
   # security.application_info.port: nil
-
-  # If true, enables deserialization detection
-  # security.detection.deserialization.enabled: true
-
-  # If true, enables RCI (remote code injection) detection
-  # security.detection.rci.enabled: true
-
-  # If true, enables RXSS (reflected cross-site scripting) detection
-  # security.detection.rxss.enabled: true
 
   # If true, the security agent is started (the agent runs in its event loop)
   # security.enabled: false
+
+  # Defines API paths the security agent should ignore in IAST scans. Accepts an
+  # array of regex patterns matching the URI to ignore. The regex pattern should
+  # provide a complete match for the URL without the endpoint. For example,
+  # [".*account.*"], [".*/\api\/v1\/.*?\/login"]
+  # security.exclude_from_iast_scan.api: []
+
+  # An array of HTTP request body keys the security agent should ignore in IAST
+  # scans.
+  # security.exclude_from_iast_scan.http_request_parameters.body: []
+
+  # An array of HTTP request headers the security agent should ignore in IAST
+  # scans. The array should specify a list of patterns matching the headers to
+  # ignore.
+  # security.exclude_from_iast_scan.http_request_parameters.header: []
+
+  # An array of HTTP request query parameters the security agent should ignore in
+  # IAST scans. The array should specify a list of patterns matching the HTTP
+  # request query parameters to ignore.
+  # security.exclude_from_iast_scan.http_request_parameters.query: []
+
+  # If true, disables system command injection detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.command_injection: false
+
+  # If true, disables the detection of low-severity insecure settings (e.g., hash,
+  # crypto, cookie, random generators, trust boundary).
+  # security.exclude_from_iast_scan.iast_detection_category.insecure_settings: false
+
+  # If true, disables file operation-related IAST detections (File Access &
+  # Application integrity violation)
+  # security.exclude_from_iast_scan.iast_detection_category.invalid_file_access: false
+
+  # If true, disables Javascript injection detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.javascript_injection: false
+
+  # If true, disables LDAP injection detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.ldap_injection: false
+
+  # If true, disables NOSQL injection detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.nosql_injection: false
+
+  # If true, disables Reflected Cross-Site Scripting (RXSS) detection in IAST
+  # scans.
+  # security.exclude_from_iast_scan.iast_detection_category.rxss: false
+
+  # If true, disables SQL injection detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.sql_injection: false
+
+  # If true, disables Sever-Side Request Forgery (SSRF) detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.ssrf: false
+
+  # If true, disables XPATH injection detection in IAST scans.
+  # security.exclude_from_iast_scan.iast_detection_category.xpath_injection: false
+
+  # Unique test identifier when runnning IAST in CI/CD environment to
+  # differentiate between different test runs, e.g., a build number.
+  # security.iast_test_identifier: nil
 
   # Defines the mode for the security agent to operate in. Currently only IAST is
   # supported
   # security.mode: IAST
 
-  # Defines the request body limit to process in security events (in KB). The
-  # default value is 300, for 300KB.
-  # security.request.body_limit: 300
+  # Sets the maximum number of HTTP requests allowed for the IAST scan per minute.
+  # Any Integer between 12 and 3600 is valid. The default value is 3600.
+  # security.scan_controllers.iast_scan_request_rate_limit: 3600
+
+  # If true, enables the sending of HTTP responses bodies. Disabling this also
+  # disables Reflected Cross-Site Scripting (RXSS) vulnerability detection.
+  # security.scan_controllers.report_http_response_body: true
+
+  # The number of application instances for a specific entity on which IAST
+  # analysis is performed.
+  # security.scan_controllers.scan_instance_count: 0
+
+  # If true, allows IAST to continuously gather trace data in the background.
+  # Collected data will be used by the security agent to perform an IAST scan at
+  # the scheduled time.
+  # security.scan_schedule.always_sample_traces: false
+
+  # Specifies the delay time (in minutes) before the IAST scan begins after the
+  # application starts.
+  # security.scan_schedule.delay: 0
+
+  # Specifies the length of time (in minutes) that the IAST scan will run.
+  # security.scan_schedule.duration: 0
+
+  # Specifies a cron expression that sets when the IAST scan should run.
+  # security.scan_schedule.schedule: ""
 
   # Defines the endpoint URL for posting security-related data
   # security.validator_service_url: wss://csec.nr-data.net
