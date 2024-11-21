@@ -109,7 +109,7 @@ module Multiverse
       'httpclients' => %w[async_http curb excon httpclient],
       'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
       'infinite_tracing' => %w[infinite_tracing],
-      'view_component' => %w[view_component]
+      'view_component' => %w[view_component],
 
       'rest' => [] # Specially handled below
     }
