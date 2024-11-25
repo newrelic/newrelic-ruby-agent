@@ -55,6 +55,12 @@ module NewRelic::Agent::Instrumentation
       assert_equal 'Model', collection
     end
 
+    def test_product_operation_collection_for_with_product_name_from_adapter_trilogy
+      product, _operation, _collection = ActiveRecordHelper.product_operation_collection_for(nil, '', 'trilogy')
+
+      assert_equal 'MySQL', product
+    end
+
     def test_product_operation_collection_for_from_sql
       product, operation, collection = ActiveRecordHelper.product_operation_collection_for('invalid', 'SELECT * FROM boo', nil)
 
