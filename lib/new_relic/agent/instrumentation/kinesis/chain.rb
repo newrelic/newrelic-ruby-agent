@@ -7,7 +7,7 @@ module NewRelic::Agent::Instrumentation
     def self.instrument!
       ::Aws::Kinesis::Client.class_eval do
         include NewRelic::Agent::Instrumentation::Kinesis
-  
+
         NewRelic::Agent::Instrumentation::Kinesis::INSTRUMENTED_METHODS.each do |method_name|
           alias_method("#{method_name}_without_new_relic".to_sym, method_name.to_sym)
 

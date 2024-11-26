@@ -19,7 +19,7 @@ class KinesisInstrumentationTest < Minitest::Test
 
   def test_all_attributes_added_to_segment
     client = create_client
-  
+
     NewRelic::Agent::Aws.stub(:create_arn, 'test-arn') do
       in_transaction do |txn|
         txn.stubs(:sampled?).returns(true)
@@ -463,7 +463,7 @@ class KinesisInstrumentationTest < Minitest::Test
           stream_name: 'deschutes_river',
           shard_count: 2
         })
-        
+
         client.enable_enhanced_monitoring({
           stream_name: 'deschutes_river',
           shard_level_metrics: ['ALL']
