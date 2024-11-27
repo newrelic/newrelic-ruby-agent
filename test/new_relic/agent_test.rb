@@ -123,9 +123,9 @@ module NewRelic
       NewRelic::Agent.shutdown
     end
 
-    def test_agent_logs_warning_when_not_started
+    def test_agent_logs_debug_when_not_started
       with_unstarted_agent do
-        expects_logging(:warn, includes("hasn't been started"))
+        expects_logging(:debug, includes("hasn't been started"))
         NewRelic::Agent.agent
       end
     end

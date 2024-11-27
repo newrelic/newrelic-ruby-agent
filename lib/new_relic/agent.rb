@@ -132,8 +132,8 @@ module NewRelic
     def agent # :nodoc:
       return @agent if @agent
 
-      NewRelic::Agent.logger.warn("Agent unavailable as it hasn't been started.")
-      NewRelic::Agent.logger.warn(caller.join("\n"))
+      NewRelic::Agent.logger.debug("Agent unavailable as it hasn't been started.")
+      NewRelic::Agent.logger.debug(caller.join("\n"))
       nil
     end
 
