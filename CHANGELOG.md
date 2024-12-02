@@ -2,7 +2,7 @@
 
 ## dev
 
-- **Feature: Add support for Trilogy database adapter**
+- **Bugfix: Add support for Trilogy database adapter**
 
   The agent now fully supports Trilogy, a client library for MySQL-compatible database servers, and correctly lists MySQL as the corresponding database in the UI. [PR#2966](https://github.com/newrelic/newrelic-ruby-agent/pull/2966).
 
