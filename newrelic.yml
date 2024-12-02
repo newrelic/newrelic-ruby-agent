@@ -146,7 +146,7 @@ common: &default_settings
   #
   # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
-  # 
+  #
   # automatic_custom_instrumentation_method_list:
   # - MyCompany::Image#render_png
   # - MyCompany::User.notify
