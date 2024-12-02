@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.16.1
 
 - **Bugfix: Add support for Trilogy database adapter**
 
