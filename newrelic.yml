@@ -322,7 +322,6 @@ common: &default_settings
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
-  
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
