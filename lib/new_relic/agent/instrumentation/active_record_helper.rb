@@ -170,6 +170,9 @@ module NewRelic
 
           'sqlite3' => 'SQLite',
 
+          # https://rubygems.org/gems/trilogy
+          'trilogy' => 'MySQL',
+
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           'jdbcmysql' => 'MySQL',
 
