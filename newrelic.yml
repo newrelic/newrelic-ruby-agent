@@ -957,7 +957,6 @@ common: &default_settings
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
-
   # If true, the security agent loads (the agent performs a Ruby 'require')
   # security.agent.enabled: false
 
