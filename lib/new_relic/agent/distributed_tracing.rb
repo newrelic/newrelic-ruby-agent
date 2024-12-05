@@ -99,7 +99,7 @@ module NewRelic
         record_api_supportability_metric(:accept_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.warn('Not configured to accept distributed trace headers')
+          NewRelic::Agent.logger.debug('Not configured to accept distributed trace headers')
           return nil
         end
 
