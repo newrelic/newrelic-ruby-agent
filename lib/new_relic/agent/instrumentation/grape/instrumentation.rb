@@ -56,10 +56,7 @@ module NewRelic::Agent::Instrumentation
 
       def name_transaction(route, class_name, version)
         txn_name = name_for_transaction(route, class_name, version)
-        segment_name = "Middleware/Grape/#{class_name}/call"
         NewRelic::Agent::Transaction.set_default_transaction_name(txn_name, :grape)
-        txn = NewRelic::Agent::Transaction.tl_current
-        txn.segments.last.name = segment_name
       end
 
       def name_for_transaction(route, class_name, version)
