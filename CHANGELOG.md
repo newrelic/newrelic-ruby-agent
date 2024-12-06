@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Do not attempt to decorate `nil` logs**
+
+  The agent no longer attempts to decorate `nil` logs with New Relic linking metadata. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)
+
 ## v9.16.1
 
 - **Bugfix: Add support for Trilogy database adapter**
