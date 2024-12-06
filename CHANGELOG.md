@@ -2,7 +2,7 @@
 
 ## dev
 
-- **Bugfix: Do not rename final Grape segment**
+- **Bugfix: Stop renaming final Grape segment**
 
   Previously, the agent renamed the final segment in Grape transactions to `"Middleware/Grape/#{class_name}/call"`. This was a part of an old instrumentation pattern that is no longer relevant. Many thanks to [@seriousdev-gh](https://github.com/seriousdev-gh) for bringing this issue to our attention and along with a great reproduction and suggested fix. [PR#2987](https://github.com/newrelic/newrelic-ruby-agent/pull/2987).
 
