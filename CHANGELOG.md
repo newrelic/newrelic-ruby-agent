@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Bugfix: Do not attempt to decorate logs with `nil` messages**
+
+  The agent no longer attempts to add New Relic linking metadata to logs with `nil` messages. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)
+
 - **Bugfix: Stop renaming final Grape segment**
 
   Previously, the agent renamed the final segment in Grape transactions to `"Middleware/Grape/#{class_name}/call"`. This was a part of an old instrumentation pattern that is no longer relevant. Many thanks to [@seriousdev-gh](https://github.com/seriousdev-gh) for bringing this issue to our attention and along with a great reproduction and suggested fix. [PR#2987](https://github.com/newrelic/newrelic-ruby-agent/pull/2987).
