@@ -18,7 +18,6 @@ def stringio_version
   end
 end
 
-
 def date_version
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
     "gem 'date', '~> 3.3.4'"
