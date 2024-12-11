@@ -6,13 +6,13 @@ omit_collector!
 
 PSYCH_VERSIONS = [
   [nil],
-  ['4.0.0'],
-  ['3.3.0']
+  ['4.0.0', 2.4, 3.3],
+  ['3.3.0', 2.4, 3.3]
 ]
 
 def stringio_version
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
-    "gem 'stringio', '3.1.2.dev'"
+    "gem 'stringio', '~> 3.1.2'"
   else
     "gem 'stringio'"
   end
