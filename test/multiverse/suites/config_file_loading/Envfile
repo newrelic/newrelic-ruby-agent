@@ -25,6 +25,7 @@ def gem_list(psych_version = nil)
     # various places.
     gem 'fakefs', :require => false
 
+    gem 'date', '3.4.1' if Gem::Version.new(#{psych_version}) >= Gem::Version.new('5.2.1')
     gem 'psych'#{psych_version}
     gem 'jar-dependencies', '0.4.1' if RUBY_PLATFORM == 'java'
 
