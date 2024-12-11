@@ -158,16 +158,16 @@ class ConfigFileLoadingTest < Minitest::Test
     assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
   end
 
-    def test_warning_logged_when_config_file_erb_error
-      path = File.join(@cwd, 'config', 'newrelic.yml')
-      setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
-      setup_agent
+  def test_warning_logged_when_config_file_erb_error
+    path = File.join(@cwd, 'config', 'newrelic.yml')
+    setup_config(path, {}, "\n\n\n<%= this is not ruby %>") # the error is on line 4
+    setup_agent
 
-      log = with_array_logger { NewRelic::Agent.manual_start }
+    log = with_array_logger { NewRelic::Agent.manual_start }
 
-      assert_log_contains(log, /ERROR.*Failed ERB processing/)
-      assert_log_contains(log, /\(erb\):4/)
-    end
+    assert_log_contains(log, /ERROR.*Failed ERB processing/)
+    assert_log_contains(log, /\(erb\):4/)
+  end
 
   def test_exclude_commented_out_erb_lines
     config_contents = <<~YAML
