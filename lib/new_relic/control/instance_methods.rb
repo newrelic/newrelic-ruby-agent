@@ -5,6 +5,7 @@
 require 'new_relic/agent/null_logger'
 require 'new_relic/agent/memory_logger'
 require 'new_relic/agent/agent_logger'
+require 'new_relic/agent/health_check'
 
 require_relative 'private_instance_methods'
 
@@ -53,7 +54,7 @@ module NewRelic
         env = determine_env(options)
 
         configure_agent(env, options)
-
+        #health_check
         # Be sure to only create once! RUBY-1020
         create_logger(options)
 
@@ -151,6 +152,14 @@ module NewRelic
       # each subclass
       def newrelic_root
         self.class.newrelic_root
+      end
+
+      def health_check
+        return NewRelic::Agent.logger.debug('superagent.fleet_id not found, skipping health checks') unless NewRelic::Agent.config[:'superagent.fleet_id']
+        return NewRelic::Agent.logger.debug('superagent.health.file_destination not found, skipping health checks') unless NewRelic::Agent.config[:'superagent.health.delivery_location']
+
+        # NewRelic::Agent::HealthCheck.new
+        # start the loop here?
       end
 
       protected
