@@ -54,7 +54,7 @@ module NewRelic
         env = determine_env(options)
 
         configure_agent(env, options)
-        #health_check
+        # health_check
         # Be sure to only create once! RUBY-1020
         create_logger(options)
 

@@ -26,7 +26,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         health_check.write_file
 
         assert File.directory?('health'), 'Directory not found'
-        assert File.exist?('health/health-abc123.yml'), 'File not found'
+        assert File.exist?('health/health-abc123.yml'), 'File not found' # rubocop:disable Minitest/AssertPathExists
       end
     end
   ensure
@@ -46,12 +46,11 @@ class NewRelicHealthCheckTest < Minitest::Test
   def test_yaml_file_name_has_health_plus_uuid_without_hyphens
     health_check = NewRelic::Agent::HealthCheck.new
     # ex: health-bc21b5891f5e44fc9272caef924611a8.yml
-    assert_match /health-(.*){32}\.ya?ml/, health_check.file_name
+    assert_match(/health-(.*){32}\.ya?ml/, health_check.file_name)
   end
 
   def test_yaml_health_file_written_on_interval
     with_config(:'superagent.health.frequency' => 5) do
-
     end
   end
 
@@ -64,7 +63,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         health_check = NewRelic::Agent::HealthCheck.new
         health_check.write_file
 
-        assert File.readlines('health/health-abc123.yml').grep(/health:/).any?
+        assert_predicate File.readlines('health/health-abc123.yml').grep(/health:/), :any?
       end
     end
   ensure
@@ -77,7 +76,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         health_check = NewRelic::Agent::HealthCheck.new
         health_check.write_file
 
-        assert File.readlines('health/health-abc123.yml').grep(/status:/).any?
+        assert_predicate File.readlines('health/health-abc123.yml').grep(/status:/), :any?
       end
     end
   ensure
@@ -90,7 +89,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         health_check = NewRelic::Agent::HealthCheck.new
         health_check.write_file
 
-        assert File.readlines('health/health-abc123.yml').grep(/last_error:/).any?
+        assert_predicate File.readlines('health/health-abc123.yml').grep(/last_error:/), :any?
       end
     end
   ensure
@@ -101,14 +100,14 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_has_start_time_unix_nano
-    # TODO - validate timestamp
+    # TODO: - validate timestamp
     # TODO - validate timestamp same for every file created by that instance
     with_config(:'superagent.health.delivery_location' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
         health_check.write_file
 
-        assert File.readlines('health/health-abc123.yml').grep(/start_time_unix_nano:/).any?
+        assert_predicate File.readlines('health/health-abc123.yml').grep(/start_time_unix_nano:/), :any?
       end
     end
   ensure
@@ -124,7 +123,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         health_check = NewRelic::Agent::HealthCheck.new
         health_check.write_file
 
-        assert File.readlines('health/health-abc123.yml').grep(/status_time_unix_nano:/).any?
+        assert_predicate File.readlines('health/health-abc123.yml').grep(/status_time_unix_nano:/), :any?
       end
     end
   ensure

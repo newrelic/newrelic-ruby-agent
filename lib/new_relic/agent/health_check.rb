@@ -54,12 +54,11 @@ module NewRelic
       def write_file
         @path ||= find_or_create_file_path
 
-        File.open("#{@path}/#{file_name}", 'w') do |f|
-          f.write(contents) # add .to_yaml?
-        end
+        File.write("#{@path}/#{file_name}", contents)
       end
 
       def contents
+        # TODO: should I add .to_yaml?
         [health, status, last_error, status_time, start_time].join("\n")
       end
 
