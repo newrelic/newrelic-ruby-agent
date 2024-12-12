@@ -86,6 +86,7 @@ module NewRelic
         # is the worker thread that gathers data and talks to the
         # server.
         def handle_force_disconnect(error)
+          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FORCED_DISCONNECT)
           ::NewRelic::Agent.logger.warn('Agent received a ForceDisconnectException from the server, disconnecting. ' \
             "(#{error.message})")
           disconnect

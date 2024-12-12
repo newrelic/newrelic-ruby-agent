@@ -11,6 +11,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def setup
     @harvester = stub('dummy harvester')
+    @health_check = stub('dummy health check')
     @harvest_samplers = stub('dummy sampler collection')
   end
 
@@ -62,6 +63,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_check_config_and_start_agent_normal
     @harvester.expects(:mark_started)
     @harvest_samplers.expects(:load_samplers)
+    @health_check.expects(:create_and_run_health_check_loop)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
     self.expects(:environment_for_connect)
@@ -74,6 +76,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_check_config_and_start_agent_sync
     @harvester.expects(:mark_started)
     @harvest_samplers.expects(:load_samplers)
+    @health_check.expects(:create_and_run_health_check_loop)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)

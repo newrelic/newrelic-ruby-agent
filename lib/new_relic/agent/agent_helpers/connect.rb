@@ -198,6 +198,7 @@ module NewRelic
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
         rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
+          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
           retry if retry_from_error?(e, opts)
         rescue Exception => e
           ::NewRelic::Agent.logger.error('Exception of unexpected type during Agent#connect():', e)

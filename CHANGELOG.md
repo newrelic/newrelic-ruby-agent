@@ -6,6 +6,10 @@
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
 
+- **Feature: Add health checks when the agent runs within Agent Control**
+
+  When the agent is started with a within an agent control environment, automatic health check files will be created within the configured file destination at the configured frequency. [PR#2995](https://github.com/newrelic/newrelic-ruby-agent/pull/2995)
+
 - **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
 
   In the previous major release, we dropped support for `disable_<library_name>` configuration options in favor of `instrumentation.<library_name>`. Previously, a DEBUG level log warning appeared whenever `disable_*` options were set to `true`, even for libraries (e.g. Action Dispatch) without equivalent `instrumentation.*` options:
