@@ -36,7 +36,6 @@ module NewRelic::Agent::Instrumentation
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
         segment&.add_agent_attribute('cloud.platform', AWS_KINESIS_DELIVERY_STREAMS)
-        segment&.add_agent_attribute('name', segment_name(method_name, params))
         segment&.finish
       end
     end

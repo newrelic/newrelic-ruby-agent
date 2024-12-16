@@ -99,7 +99,7 @@ class FirehoseInstrumentationTest < Minitest::Test
       spans = harvest_span_events!
       span = spans[1][1]
 
-      assert_equal 'Firehose/list_delivery_streams', span[2]['name']
+      assert_equal 'Firehose/list_delivery_streams', span[0]['name']
       assert_equal 'aws_kinesis_delivery_streams', span[2]['cloud.platform']
       refute span[2]['cloud.resource_id']
     end
@@ -239,7 +239,7 @@ class FirehoseInstrumentationTest < Minitest::Test
       spans = harvest_span_events!
       span = spans[1][1]
 
-      assert_equal 'Firehose/put_record_batch/the_shire', span[2]['name']
+      assert_equal 'Firehose/put_record_batch/the_shire', span[0]['name']
       assert_equal 'aws_kinesis_delivery_streams', span[2]['cloud.platform']
       assert_equal 'test-arn', span[2]['cloud.resource_id']
     end

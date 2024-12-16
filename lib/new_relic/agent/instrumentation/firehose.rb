@@ -2,12 +2,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'firehose/instrumentation'
-require_relative 'firehose/chain'
-require_relative 'firehose/prepend'
+require_relative 'aws_sdk_firehose/instrumentation'
+require_relative 'aws_sdk_firehose/chain'
+require_relative 'aws_sdk_firehose/prepend'
 
 DependencyDetection.defer do
-  named :firehose
+  named :aws_sdk_firehose
 
   depends_on do
     defined?(Aws::Firehose::Client)
