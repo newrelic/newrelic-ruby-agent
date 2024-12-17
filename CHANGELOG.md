@@ -1,12 +1,28 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Bugfix: Do not attempt to decorate logs with `nil` messages**
+
+  The agent no longer attempts to add New Relic linking metadata to logs with `nil` messages. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)
+
+- **Bugfix: Stop renaming final Grape segment**
+
+  Previously, the agent renamed the final segment in Grape transactions to `"Middleware/Grape/#{class_name}/call"`. This was a part of an old instrumentation pattern that is no longer relevant. Many thanks to [@seriousdev-gh](https://github.com/seriousdev-gh) for bringing this issue to our attention and along with a great reproduction and suggested fix. [PR#2987](https://github.com/newrelic/newrelic-ruby-agent/pull/2987).
+
+## v9.16.1
+
+- **Bugfix: Add support for Trilogy database adapter**
+
+  The agent now fully supports Trilogy, a client library for MySQL-compatible database servers, and correctly lists MySQL as the corresponding database in the UI. [PR#2966](https://github.com/newrelic/newrelic-ruby-agent/pull/2966).
+
 ## v9.16.0
 
-Version 9.16.0 introduces instrumentation for the aws-sdk-lambda gem, allows users to opt-in to adding labels to logs, updates View Component instrumentation, and fixes a bug with explain plans on Rails 7.2+.
+Version 9.16.0 introduces the following features and bug fixes:
 
 - **Feature: Instrumentation for aws-sdk-lambda**
 
-  If the aws-sdk-lambda gem is present and used to invoke remote AWS Lambda functions, timing and error details for the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926).
+  When the aws-sdk-lambda gem is available and used to invoke remote AWS Lambda functions, the timing and error details of the invocations will be reported to New Relic. [PR#2926](https://github.com/newrelic/newrelic-ruby-agent/pull/2926).
 
 - **Feature: Add new configuration options to attach custom tags (labels) to logs**
 

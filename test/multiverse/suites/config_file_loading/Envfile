@@ -4,28 +4,32 @@
 
 omit_collector!
 
-# TODO: RUBY 3.4
-# The CI has a prism-related error when it tries to run this suite
-# The problem may be a bug fixed in future preview releases
-# Disable ths suite for now, and try again when the next version
-# is out.
 PSYCH_VERSIONS = [
-  [nil, 2.4, 3.3],
+  [nil],
   ['4.0.0', 2.4, 3.3],
   ['3.3.0', 2.4, 3.3]
 ]
 
 def stringio_version
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
-    "gem 'stringio', '3.1.2.dev'"
+    "gem 'stringio', '~> 3.1.2'"
   else
     "gem 'stringio'"
+  end
+end
+
+def date_version
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4')
+    "gem 'date', '~> 3.3.4'"
+  else
+    "gem 'date'"
   end
 end
 
 def gem_list(psych_version = nil)
   <<~RB
     #{stringio_version}
+    #{date_version}
     # stub file system so we can test that newrelic.yml can be loaded from
     # various places.
     gem 'fakefs', :require => false
