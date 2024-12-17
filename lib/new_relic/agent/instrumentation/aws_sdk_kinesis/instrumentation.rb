@@ -28,14 +28,26 @@ module NewRelic::Agent::Instrumentation
 
     KINESIS = 'Kinesis'
     AWS_KINESIS_DATA_STREAMS = 'aws_kinesis_data_streams'
+    BROKER_METHODS = %w[put_record put_records get_records].freeze
 
     def instrument_method_with_new_relic(method_name, *args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
 
       NewRelic::Agent.record_instrumentation_invocation(KINESIS)
-
       params = args[0]
-      segment = NewRelic::Agent::Tracer.start_segment(name: segment_name(method_name, params))
+
+      if BROKER_METHODS.include?(method_name)
+        stream_name = get_stream_name(params)
+        segment = NewRelic::Agent::Tracer.start_message_broker_segment(
+          action: method_name == 'get_records' ? :consume : :produce,
+          library: KINESIS,
+          destination_type: :stream,
+          destination_name: stream_name
+        )
+      else
+        segment = NewRelic::Agent::Tracer.start_segment(name: get_segment_name(method_name, params))
+      end
+
       arn = get_arn(params) if params
       segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
@@ -43,17 +55,28 @@ module NewRelic::Agent::Instrumentation
         NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
       ensure
         segment&.add_agent_attribute('cloud.platform', AWS_KINESIS_DATA_STREAMS)
-        segment&.add_agent_attribute('name', segment_name(method_name, params))
         segment&.finish
       end
     end
 
-    def segment_name(method_name, params)
+    def get_segment_name(method_name, params)
       return "#{KINESIS}/#{method_name}/#{params[:stream_name]}" if params&.dig(:stream_name)
 
       "#{KINESIS}/#{method_name}"
     rescue => e
       NewRelic::Agent.logger.warn("Failed to create segment name: #{e}")
+    end
+
+    def get_stream_name(params)
+      return params[:stream_name] if params&.dig(:stream_name)
+
+      arn = get_arn(params)
+
+      return arn.split('/').last if arn
+    rescue => e
+      NewRelic::Agent.logger.warn("Failed to get stream name: #{e}")
+
+      'unknown'
     end
 
     def nr_account_id

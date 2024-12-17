@@ -1561,14 +1561,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
-        :'instrumentation.kinesis' => {
+        :'instrumentation.aws_sdk_kinesis' => {
           :default => 'auto',
           :documentation_default => 'auto',
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of the kinesis library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+          :description => 'Controls auto-instrumentation of the aws_sdk_kinesis library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.ruby_kafka' => {
           :default => 'auto',

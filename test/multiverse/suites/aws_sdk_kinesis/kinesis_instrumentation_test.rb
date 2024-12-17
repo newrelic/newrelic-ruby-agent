@@ -10,6 +10,7 @@ class KinesisInstrumentationTest < Minitest::Test
   end
 
   def teardown
+    harvest_span_events!
     NewRelic::Agent.instance.stats_engine.clear_stats
   end
 
@@ -105,7 +106,7 @@ class KinesisInstrumentationTest < Minitest::Test
       spans = harvest_span_events!
       span = spans[1][1]
 
-      assert_equal 'Kinesis/list_streams', span[2]['name']
+      assert_equal 'Kinesis/list_streams', span[0]['name']
       assert_equal 'aws_kinesis_data_streams', span[2]['cloud.platform']
       refute span[2]['cloud.resource_id']
     end
@@ -270,7 +271,8 @@ class KinesisInstrumentationTest < Minitest::Test
       spans = harvest_span_events!
       span = spans[1][1]
 
-      assert_equal 'Kinesis/put_record/deschutes_river', span[0]['name']
+      assert_metrics_recorded(['MessageBroker/Kinesis/Stream/Produce/Named/deschutes_river'])
+      assert_equal 'MessageBroker/Kinesis/Stream/Produce/Named/deschutes_river', span[0]['name']
       assert_equal 'aws_kinesis_data_streams', span[2]['cloud.platform']
       assert_equal 'test-arn', span[2]['cloud.resource_id']
     end
@@ -307,13 +309,14 @@ class KinesisInstrumentationTest < Minitest::Test
       spans = harvest_span_events!
       span = spans[1][1]
 
-      assert_equal 'Kinesis/put_records/deschutes_river', span[2]['name']
+      assert_metrics_recorded(['MessageBroker/Kinesis/Stream/Produce/Named/deschutes_river'])
+      assert_equal 'MessageBroker/Kinesis/Stream/Produce/Named/deschutes_river', span[0]['name']
       assert_equal 'aws_kinesis_data_streams', span[2]['cloud.platform']
       assert_equal 'test-arn', span[2]['cloud.resource_id']
     end
   end
 
-  def test_get_record
+  def test_get_records
     client = create_client
 
     NewRelic::Agent::Aws.stub(:create_arn, 'test-arn') do
@@ -339,7 +342,8 @@ class KinesisInstrumentationTest < Minitest::Test
       spans = harvest_span_events!
       span = spans[1][2]
 
-      assert_equal 'Kinesis/get_records', span[0]['name']
+      assert_metrics_recorded(['MessageBroker/Kinesis/Stream/Consume/Named/deschutes_river'])
+      assert_equal 'MessageBroker/Kinesis/Stream/Consume/Named/deschutes_river', span[0]['name']
       assert_equal 'aws_kinesis_data_streams', span[2]['cloud.platform']
       assert_equal 'arn:aws:kinesis:us-east-1:123456789012:stream/deschutes_river', span[2]['cloud.resource_id']
     end

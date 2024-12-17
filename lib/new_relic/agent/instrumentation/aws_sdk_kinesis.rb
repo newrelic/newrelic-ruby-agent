@@ -2,12 +2,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'kinesis/instrumentation'
-require_relative 'kinesis/chain'
-require_relative 'kinesis/prepend'
+require_relative 'aws_sdk_kinesis/instrumentation'
+require_relative 'aws_sdk_kinesis/chain'
+require_relative 'aws_sdk_kinesis/prepend'
 
 DependencyDetection.defer do
-  named :kinesis
+  named :aws_sdk_kinesis
 
   depends_on do
     defined?(Aws::Kinesis::Client)
