@@ -228,7 +228,6 @@ module NewRelic::Agent::Threading
     end
 
     def test_aggregate_limits_recorded_depth
-
       deep_backtrace = (0..2000).to_a.map { |i| ruby_3_4_0_or_above? ? "foo.rb:#{i}:in 'Foo#foo'" : "foo.rb:#{i}:in `foo'" }
 
       root = BacktraceRoot.new
