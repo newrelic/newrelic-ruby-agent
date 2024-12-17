@@ -35,9 +35,10 @@ module NewRelic::Agent::Instrumentation
 
       NewRelic::Agent.record_instrumentation_invocation(KINESIS)
       params = args[0]
+      arn = get_arn(params) if params
 
       if BROKER_METHODS.include?(method_name)
-        stream_name = get_stream_name(params)
+        stream_name = get_stream_name(params, arn)
         segment = NewRelic::Agent::Tracer.start_message_broker_segment(
           action: method_name == 'get_records' ? :consume : :produce,
           library: KINESIS,
@@ -48,7 +49,6 @@ module NewRelic::Agent::Instrumentation
         segment = NewRelic::Agent::Tracer.start_segment(name: get_segment_name(method_name, params))
       end
 
-      arn = get_arn(params) if params
       segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
       begin
@@ -67,16 +67,10 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.logger.warn("Failed to create segment name: #{e}")
     end
 
-    def get_stream_name(params)
-      return params[:stream_name] if params&.dig(:stream_name)
-
-      arn = get_arn(params)
-
-      return arn.split('/').last if arn
+    def get_stream_name(params, arn)
+      params[:stream_name] || arn.split('/').last || 'unknown'
     rescue => e
       NewRelic::Agent.logger.warn("Failed to get stream name: #{e}")
-
-      'unknown'
     end
 
     def nr_account_id
