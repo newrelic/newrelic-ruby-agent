@@ -28,7 +28,7 @@ module NewRelic::Agent::Instrumentation
       NewRelic::Agent.record_instrumentation_invocation(FIREHOSE)
 
       params = args[0]
-      segment = NewRelic::Agent::Tracer.start_segment(name: segment_name(method_name, params))
+      segment = NewRelic::Agent::Tracer.start_segment(name: get_segment_name(method_name, params))
       arn = get_arn(params) if params
       segment&.add_agent_attribute('cloud.resource_id', arn) if arn
 
@@ -40,7 +40,7 @@ module NewRelic::Agent::Instrumentation
       end
     end
 
-    def segment_name(method_name, params)
+    def get_segment_name(method_name, params)
       return "#{FIREHOSE}/#{method_name}/#{params[:delivery_stream_name]}" if params&.dig(:delivery_stream_name)
 
       "#{FIREHOSE}/#{method_name}"
