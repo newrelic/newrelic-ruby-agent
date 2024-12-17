@@ -139,7 +139,7 @@ module NewRelic
               case Rails::VERSION::MAJOR
               when 3
                 :rails3
-              when 4..7
+              when 4..8
                 :rails_notifications
               else
                 ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
@@ -2186,7 +2186,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If true, the agent strips messages from all exceptions except those in the [allowlist](#strip_exception_messages-allowlist). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
+          :description => 'If true, the agent strips messages from all exceptions except those in the [allowed classes list](#strip_exception_messages-allowed_classes). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
         },
         :'strip_exception_messages.allowed_classes' => {
           :default => '',

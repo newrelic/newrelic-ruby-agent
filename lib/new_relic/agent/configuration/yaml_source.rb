@@ -99,7 +99,10 @@ module NewRelic
             file.gsub!(/^\s*#.*$/, '#')
             ERB.new(file).result(binding)
           rescue ScriptError, StandardError => e
-            log_failure('Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.', e)
+            message = 'Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.'
+            failure_array = [message, e]
+            failure_array << e.backtrace[0] if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+            log_failure(*failure_array)
             nil
           end
         end

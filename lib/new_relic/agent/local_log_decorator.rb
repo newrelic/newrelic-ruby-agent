@@ -9,7 +9,7 @@ module NewRelic
       extend self
 
       def decorate(message)
-        return message unless decorating_enabled?
+        return message if !decorating_enabled? || message.nil?
 
         metadata = NewRelic::Agent.linking_metadata
 

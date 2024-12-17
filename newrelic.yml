@@ -205,9 +205,8 @@ common: &default_settings
   # monitoring scripts. For now, auto-injection only works with Rails 5.2+.
   # browser_monitoring.content_security_policy_nonce: true
 
-  # Manual override for the path to your local CA bundle. This CA bundle will be
-  # used to validate the SSL certificate presented by New Relic's data collection
-  # service.
+  # Manual override for the path to your local CA bundle. This CA bundle validates
+  # the SSL certificate presented by New Relic's data collection service.
   # ca_bundle_path: nil
 
   # Enable or disable the capture of memcache keys from transaction traces.
@@ -323,7 +322,6 @@ common: &default_settings
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
-  #
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
@@ -723,8 +721,8 @@ common: &default_settings
 
   # If true, the agent will operate in a streamlined mode suitable for use with
   # short-lived serverless functions. NOTE: Only AWS Lambda functions are
-  # supported currently and this option is not intended for use without New
-  # Relic's Ruby Lambda layer offering.
+  # supported currently and this option isn't intended for use without New Relic's
+  # Ruby Lambda layer offering.
   # serverless_mode.enabled: false
 
   # An array of strings that will collectively serve as a denylist for filtering
@@ -803,17 +801,17 @@ common: &default_settings
   # not be reported to New Relic. Each string in this array will be turned into a
   # regular expression via
   # Regexp.new to permit advanced matching. For each hash pair, if either the key
-  # or value is matched the
-  # pair will not be reported. By default, no user_data is reported, so this
-  # option should only be used if
-  # the stripe.user_data.include option is being used.
+  # or value is matched the pair
+  # isn't reported. By default, no user_data is reported. Use this option only if
+  # the
+  # stripe.user_data.include option is also used.
   # stripe.user_data.exclude: []
 
   # An array of strings to specify which keys inside a Stripe event's user_data
   # hash should be reported
   # to New Relic. Each string in this array will be turned into a regular
   # expression via Regexp.new to
-  # permit advanced matching. Setting the value to ["."] will report all
+  # enable advanced matching. Setting the value to ["."] will report all
   # user_data.
   # stripe.user_data.include: []
 
@@ -877,7 +875,7 @@ common: &default_settings
 
   # If true, enables the collection of explain plans in transaction traces. This
   # setting will also apply to explain plans in slow SQL traces if
-  # slow_sql.explain_enabled is not set separately.
+  # slow_sql.explain_enabled isn't set separately.
   # transaction_tracer.explain_enabled: true
 
   # Threshold (in seconds) above which the agent will collect explain plans.
@@ -951,12 +949,12 @@ common: &default_settings
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
-
-  # If true, the security agent is loaded (a Ruby 'require' is performed)
+  
+  # If true, the security agent loads (the agent performs a Ruby 'require')
   # security.agent.enabled: false
 
   # The port the application is listening on. This setting is mandatory for
-  # Passenger servers. Other servers are detected by default.
+  # Passenger servers. The agent detects other servers by default.
   # security.application_info.port: nil
 
   # If true, the security agent is started (the agent runs in its event loop)
@@ -964,7 +962,7 @@ common: &default_settings
 
   # Defines API paths the security agent should ignore in IAST scans. Accepts an
   # array of regex patterns matching the URI to ignore. The regex pattern should
-  # provide a complete match for the URL without the endpoint. For example,
+  # find a complete match for the URL without the endpoint. For example,
   # [".*account.*"], [".*/\api\/v1\/.*?\/login"]
   # security.exclude_from_iast_scan.api: []
 
@@ -985,8 +983,8 @@ common: &default_settings
   # If true, disables system command injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.command_injection: false
 
-  # If true, disables the detection of low-severity insecure settings (e.g., hash,
-  # crypto, cookie, random generators, trust boundary).
+  # If true, disables the detection of low-severity insecure settings. For
+  # example, hash, crypto, cookie, random generators, trust boundary).
   # security.exclude_from_iast_scan.iast_detection_category.insecure_settings: false
 
   # If true, disables file operation-related IAST detections (File Access &
@@ -1015,8 +1013,8 @@ common: &default_settings
   # If true, disables XPATH injection detection in IAST scans.
   # security.exclude_from_iast_scan.iast_detection_category.xpath_injection: false
 
-  # Unique test identifier when runnning IAST in CI/CD environment to
-  # differentiate between different test runs, e.g., a build number.
+  # A unique test identifier when runnning IAST in a CI/CD environment to
+  # differentiate between different test runs. For example, a build number.
   # security.iast_test_identifier: nil
 
   # Defines the mode for the security agent to operate in. Currently only IAST is
@@ -1031,20 +1029,20 @@ common: &default_settings
   # disables Reflected Cross-Site Scripting (RXSS) vulnerability detection.
   # security.scan_controllers.report_http_response_body: true
 
-  # The number of application instances for a specific entity on which IAST
-  # analysis is performed.
+  # The number of application instances for a specific entity to perform IAST
+  # analysis on.
   # security.scan_controllers.scan_instance_count: 0
 
-  # If true, allows IAST to continuously gather trace data in the background.
-  # Collected data will be used by the security agent to perform an IAST scan at
-  # the scheduled time.
+  # If true, allows IAST to continuously gather trace data in the background. The
+  # security agent uses collected data to perform an IAST scan at the scheduled
+  # time.
   # security.scan_schedule.always_sample_traces: false
 
   # Specifies the delay time (in minutes) before the IAST scan begins after the
   # application starts.
   # security.scan_schedule.delay: 0
 
-  # Specifies the length of time (in minutes) that the IAST scan will run.
+  # Indicates the duration (in minutes) for which the IAST scan will be performed.
   # security.scan_schedule.duration: 0
 
   # Specifies a cron expression that sets when the IAST scan should run.
