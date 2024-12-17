@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: Add instrumentation for aws-sdk-kinesis**
+
+  The agent now has instrumentation for the [aws-sdk-kinesis](https://rubygems.org/gems/aws-sdk-kinesis) gem. [PR#2974](https://github.com/newrelic/newrelic-ruby-agent/pull/2974)
+
 - **Bugfix: Do not attempt to decorate logs with `nil` messages**
 
   The agent no longer attempts to add New Relic linking metadata to logs with `nil` messages. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)
