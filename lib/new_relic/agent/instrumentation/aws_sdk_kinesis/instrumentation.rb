@@ -28,7 +28,7 @@ module NewRelic::Agent::Instrumentation
 
     KINESIS = 'Kinesis'
     AWS_KINESIS_DATA_STREAMS = 'aws_kinesis_data_streams'
-    BROKER_METHODS = %w[put_record put_records get_records].freeze
+    MESSAGE_BROKER_SEGMENT_METHODS = %w[put_record put_records get_records].freeze
 
     def instrument_method_with_new_relic(method_name, *args)
       return yield unless NewRelic::Agent::Tracer.tracing_enabled?
@@ -37,7 +37,7 @@ module NewRelic::Agent::Instrumentation
       params = args[0]
       arn = get_arn(params) if params
 
-      if BROKER_METHODS.include?(method_name)
+      if MESSAGE_BROKER_SEGMENT_METHODS.include?(method_name)
         stream_name = get_stream_name(params, arn)
         segment = NewRelic::Agent::Tracer.start_message_broker_segment(
           action: method_name == 'get_records' ? :consume : :produce,
