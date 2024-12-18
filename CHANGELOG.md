@@ -4,7 +4,7 @@
 
 - **Feature: Add instrumentation for aws-sdk-kinesis**
 
-  The agent now has instrumentation for the [aws-sdk-kinesis](https://rubygems.org/gems/aws-sdk-kinesis) gem. [PR#2974](https://github.com/newrelic/newrelic-ruby-agent/pull/2974)
+  The agent now has instrumentation for the [aws-sdk-kinesis](https://rubygems.org/gems/aws-sdk-kinesis) gem. It will record message broker segments for `get_records`, `put_record`, and `put_records` operations. All other operations will record standard segments. [PR#2974](https://github.com/newrelic/newrelic-ruby-agent/pull/2974)
 
 - **Bugfix: Do not attempt to decorate logs with `nil` messages**
 
