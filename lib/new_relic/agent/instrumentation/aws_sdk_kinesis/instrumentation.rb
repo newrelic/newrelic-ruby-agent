@@ -68,7 +68,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_stream_name(params, arn)
-      params[:stream_name] || arn.split('/').last || 'unknown'
+      params&.dig(:stream_name) || arn.split('/').last || 'unknown'
     rescue => e
       NewRelic::Agent.logger.warn("Failed to get stream name: #{e}")
     end
@@ -80,9 +80,9 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_arn(params)
-      return params[:stream_arn] if params[:stream_arn]
+      return params[:stream_arn] if params&.dig(:stream_arn)
 
-      NewRelic::Agent::Aws.create_arn(KINESIS.downcase, "stream/#{params[:stream_name]}", config&.region, nr_account_id) if params[:stream_name]
+      NewRelic::Agent::Aws.create_arn(KINESIS.downcase, "stream/#{params[:stream_name]}", config&.region, nr_account_id) if params&.dig(:stream_name)
     end
   end
 end
