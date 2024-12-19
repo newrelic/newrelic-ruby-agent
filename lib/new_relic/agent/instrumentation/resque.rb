@@ -19,7 +19,13 @@ DependencyDetection.defer do
   end
 
   executes do
-    if NewRelic::Agent.config[:'resque.use_ruby_dns'] && NewRelic::Agent.config[:dispatcher] == :resque
+    if NewRelic::Agent.config[:'resque.use_ruby_dns'] &&
+      NewRelic::Agent.config[:dispatcher] == :resque &&
+      # resolv-replace is no longer part of the language in Ruby 3.4.
+      # we don't believe this lib still necessary for Ruby 3.4 users.
+      # however, if we receive customer feedback to the contrary, we can find
+      # an alternate approach.
+      Gem::Version.new(RUBY_VERSION) < Gem::Version.new('3.4')
       NewRelic::Agent.logger.info('Requiring resolv-replace')
       require 'resolv'
       require 'resolv-replace'
