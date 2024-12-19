@@ -36,6 +36,7 @@ module NewRelic
 
       def escape_entity_name(entity_name)
         return unless entity_name
+
         # TODO: OLD RUBIES 3.3
         # URI version 1.0 marked URI::RFC3986_PARSER.escape as obsolete,
         # which URI::DEFAULT_PARSER is an alias for.
