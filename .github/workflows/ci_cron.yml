@@ -79,13 +79,13 @@ jobs:
                 "rails": "norails,rails61,rails70,rails71,rails72"
               },
               "3.2.6": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
               },
               "3.3.6": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
               },
               "3.4.0-rc1": {
-                "rails": "norails,rails61,rails70,rails71,rails72"
+                "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
               }
             }
 
