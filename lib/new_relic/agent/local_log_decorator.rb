@@ -37,7 +37,17 @@ module NewRelic
       def escape_entity_name(entity_name)
         return unless entity_name
 
-        URI::DEFAULT_PARSER.escape(entity_name)
+        # TODO: OLD RUBIES 3.3
+        # URI version 1.0 marked URI::RFC3986_PARSER.escape as obsolete,
+        # which URI::DEFAULT_PARSER is an alias for.
+        # URI version 1.0+ will ship with Ruby 3.4
+        # Once we drop support for Rubies below 3.4, we can use the
+        # URI::RFC2396 parser exclusively.
+        if Gem::Version.new(URI::VERSION) >= Gem::Version.new('1.0')
+          URI::RFC2396_PARSER.escape(entity_name)
+        else
+          URI::DEFAULT_PARSER.escape(entity_name)
+        end
       end
     end
   end
