@@ -16,11 +16,19 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def setup
         setup_fake_threads
 
-        @single_trace = [
-          "irb.rb:69:in `catch'",
-          "irb.rb:69:in `start'",
-          "irb:12:in `<main>'"
-        ]
+        @single_trace = if ruby_3_4_0_or_above?
+          [
+            "irb.rb:69:in 'Kernel#catch'",
+            "irb.rb:69:in 'Object#start'",
+            "irb:12:in '<main>'"
+          ]
+        else
+          [
+            "irb.rb:69:in `catch'",
+            "irb.rb:69:in `start'",
+            "irb:12:in `<main>'"
+          ]
+        end
 
         @profile = ThreadProfile.new
 
@@ -239,6 +247,14 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         end
 
         count
+      end
+
+      # TODO: OLD RUBIES < 3.4
+      # Ruby 3.4 introduced a new format for backtraces
+      # These tests have examples with the old the and new formats
+      # When we drop support for Ruby 3.3, we can remove the condition
+      def ruby_3_4_0_or_above?
+        Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
       end
     end
   end

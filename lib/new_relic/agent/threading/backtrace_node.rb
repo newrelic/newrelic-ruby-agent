@@ -125,7 +125,16 @@ module NewRelic
 
         # Returns [filename, method, line number]
         def parse_backtrace_frame(frame)
-          frame =~ /([^:]*)(\:(\d+))?\:in `(.*)'/
+          # TODO: OLD RUBIES - Ruby 3.3
+          # The (?:`|') non-capturing group can be removed when the agent
+          # drops support for Ruby 3.3
+          # This group is used to capture the pre-Ruby 3.4.0 backtrace syntax.
+          # Example frame:
+          # Ruby 3.3.0 and below
+          # "irb.rb:69:in `catch'"
+          # Ruby 3.4.0+
+          # "irb.rb:69:in 'Kernel#catch'"
+          frame =~ /([^:]*)(\:(\d+))?\:in (?:`|')(.*)'/
           [$1, $4, $3] # sic
         end
       end
