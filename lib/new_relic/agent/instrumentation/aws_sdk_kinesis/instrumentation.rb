@@ -60,7 +60,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_segment_name(method_name, params)
-      return "#{KINESIS}/#{method_name}/#{params[:stream_name]}" if params&.dig(:stream_name)
+      stream_name = params&.dig(:stream_name)
+      return "#{KINESIS}/#{method_name}/#{stream_name}" if stream_name
 
       "#{KINESIS}/#{method_name}"
     rescue => e
@@ -80,9 +81,11 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_arn(params)
-      return params[:stream_arn] if params&.dig(:stream_arn)
+      stream_arn = params&.dig(:stream_arn)
+      return stream_arn if stream_arn
 
-      NewRelic::Agent::Aws.create_arn(KINESIS.downcase, "stream/#{params[:stream_name]}", config&.region, nr_account_id) if params&.dig(:stream_name)
+      stream_name = params&.dig(:stream_name)
+      NewRelic::Agent::Aws.create_arn(KINESIS.downcase, "stream/#{stream_name}", config&.region, nr_account_id) if stream_name
     end
   end
 end
