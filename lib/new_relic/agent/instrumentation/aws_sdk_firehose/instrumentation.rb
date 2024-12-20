@@ -55,7 +55,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_arn(params)
-      return params[:delivery_stream_arn] if params[:delivery_stream_arn]
+      return params[:delivery_stream_arn] if params&.dig(:delivery_stream_arn)
 
       NewRelic::Agent::Aws.create_arn(FIREHOSE.downcase, "deliverystream/#{params[:delivery_stream_name]}", config&.region, nr_account_id) if params[:delivery_stream_name]
     end
