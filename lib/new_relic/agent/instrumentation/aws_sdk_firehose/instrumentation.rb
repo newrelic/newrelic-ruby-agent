@@ -41,7 +41,8 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_segment_name(method_name, params)
-      return "#{FIREHOSE}/#{method_name}/#{params[:delivery_stream_name]}" if params&.dig(:delivery_stream_name)
+      stream_name = params&.dig(:delivery_stream_name)
+      return "#{FIREHOSE}/#{method_name}/#{stream_name}" if stream_name
 
       "#{FIREHOSE}/#{method_name}"
     rescue => e
@@ -55,9 +56,10 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_arn(params)
-      return params[:delivery_stream_arn] if params&.dig(:delivery_stream_arn)
+      return params.dig(:delivery_stream_arn) if params&.dig(:delivery_stream_arn)
 
-      NewRelic::Agent::Aws.create_arn(FIREHOSE.downcase, "deliverystream/#{params[:delivery_stream_name]}", config&.region, nr_account_id) if params[:delivery_stream_name]
+      stream_name = params&.dig(:delivery_stream_name)
+      NewRelic::Agent::Aws.create_arn(FIREHOSE.downcase, "deliverystream/#{stream_name}", config&.region, nr_account_id) if stream_name
     end
   end
 end
