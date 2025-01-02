@@ -14,7 +14,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+      - uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: '3.3'
       - run: bundle
@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -63,7 +63,7 @@ jobs:
                 "rails": "norails,rails42,rails52"
               },
               "3.3.6": {
-                "rails": "norails,rails61,rails72"
+                "rails": "norails,rails61,rails72,rails80"
               }
             }
 
@@ -231,7 +231,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -324,7 +324,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -364,7 +364,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+      - uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: '3.3'
       - run: bundle

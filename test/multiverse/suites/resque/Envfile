@@ -4,7 +4,7 @@
 
 RESQUE_VERSIONS = [
   [nil],
-  ['2.2.0', 2.4],
+  ['2.2.0'],
   ['1.27.0']
 ]
 
@@ -12,8 +12,6 @@ def gem_list(resque_version = nil)
   <<~RB
     gem 'resque'#{resque_version}
     #{"gem 'rackup'" if RUBY_VERSION >= '2.7.8'}
-
-  
   RB
 end
 

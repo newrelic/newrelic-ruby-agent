@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: jruby-9.4.9.0
 
@@ -49,7 +49,7 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install JRuby
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
         with:
           ruby-version: jruby-9.4.9.0
 
