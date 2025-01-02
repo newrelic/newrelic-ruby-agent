@@ -6,6 +6,14 @@
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
 
+- **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
+
+  During our last major version release, we dropped support for a number of configuration options for instrumentation that uses alias method chaining or module prepending and began with `disable_<library_name>`. The remaining configuration option had the format `instrumentation.<library_name>`, with options to allow users to select their preferred patching approach. There was a deprecation message emitted at the DEBUG level of the agent logs when any configuration option with `disable_*` was `true`. For example:
+
+  >DEBUG : [DEPRECATED] configuration disable_<library_name> for <library_name> will be removed in the next major release. Use instrumentation.<library_name> with one of ["auto", "disabled", "prepend", "chain"]
+
+  However, this could emit warnings for configuration options without an equivalent `instrumentation.*` option, such as Action Dispatch. This inaccurate warning is now removed. If you are disabling instrumentation using `instrumentation.<library_name>: disabled` or `NEW_RELIC_INSTRUMENTATION_<LIBRARY_NAME>=disabled`, please verify the option exists by consulting our [configuration documentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#instrumentation). If the option does not exist, check the ['Disabling' section](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#disabling) to see if there is a related option. We apologize for the confusion. [PR#3005](https://github.com/newrelic/newrelic-ruby-agent/pull/3005)
+
 - **Bugfix: Do not attempt to decorate logs with `nil` messages**
 
   The agent no longer attempts to add New Relic linking metadata to logs with `nil` messages. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)

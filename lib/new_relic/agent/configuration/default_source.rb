@@ -1310,6 +1310,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :aliases => %i[disable_active_job],
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Job instrumentation.'
         },
