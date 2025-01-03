@@ -8,9 +8,9 @@ end
 
 instrumentation_methods(:chain, :prepend)
 
-# TODO: permit testing of the nil (latest) version against Ruby 3.3+
+# TODO: permit testing of the nil (latest) version against Ruby 3.4+
 GRPC_VERSIONS = [
-  [nil, 2.6, 3.2],
+  [nil, 2.6],
   ['1.48.0', 2.5, 3.1]
 ]
 
