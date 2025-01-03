@@ -8,7 +8,7 @@
 
 - **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
 
-  During our last major version release, we dropped support for a number of configuration options for instrumentation that uses alias method chaining or module prepending and began with `disable_<library_name>`. The remaining configuration option had the format `instrumentation.<library_name>`, with options to allow users to select their preferred patching approach. There was a deprecation message emitted at the DEBUG level of the agent logs when any configuration option with `disable_*` was `true`. For example:
+  In the previous major release, we dropped support for `disable_<library_name>` configuration options in favor of `instrumentation.<library_name>`. Previously, a DEBUG level log warning appeared whenever `disable_*` options were set to `true`, even for libraries (e.g. Action Dispatch) without equivalent `instrumentation.*` options:
 
   >DEBUG : [DEPRECATED] configuration disable_<library_name> for <library_name> will be removed in the next major release. Use instrumentation.<library_name> with one of ["auto", "disabled", "prepend", "chain"]
 
