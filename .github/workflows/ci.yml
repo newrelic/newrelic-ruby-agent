@@ -14,9 +14,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
-          ruby-version: '3.3'
+          ruby-version: 3.4
       - run: bundle
       - run: rubocop
 
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.3.6]
+        ruby-version: [2.4.10, 3.4.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -62,7 +62,7 @@ jobs:
               "2.4.10": {
                 "rails": "norails,rails42,rails52"
               },
-              "3.3.6": {
+              "3.4.1": {
                 "rails": "norails,rails61,rails72,rails80"
               }
             }
@@ -217,7 +217,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, kafka, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 3.3.6]
+        ruby-version: [2.4.10, 3.4.1]
 
     steps:
       - name: Configure git
@@ -231,7 +231,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -317,14 +317,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.3.6]
+        ruby-version: [2.7.8, 3.4.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -364,9 +364,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
-          ruby-version: '3.3'
+          ruby-version: 3.4
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # tag v4.1.8
