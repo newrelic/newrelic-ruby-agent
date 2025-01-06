@@ -27,11 +27,11 @@
 #   - Next, use the "RUBYOPT" environment variable to require ("-r") this
 #     file (note that the ".rb" extension is dropped):
 #       ```
-#       export RUBYOPT="-r /newrelic/lib/boot/strap"
+#       export RUBYOPT="-r /Users/hramadan/newrelic-ruby-agent/lib/boot/strap.rb"
 #       ```
 #    - Add your New Relic license key as an environment variable.
 #       ```
-#       export NEW_RELIC_LICENSE_KEY=1a2b3c4d5e67f8g9h0i
+#       export NEW_RELIC_LICENSE_KEY=47ae68e8919929c1d99fa3a1a36a0aa8c06ba690
 #       ```
 #   - Launch an existing Ruby app as usual. For a Ruby on Rails app, this might
 #     involve running `bin/rails server`.
@@ -44,9 +44,9 @@ module NRBundlerPatch
   NR_AGENT_GEM = 'newrelic_rpm'
 
   def require(*_groups)
-    super
-
     require_newrelic
+
+    super
   end
 
   def require_newrelic
