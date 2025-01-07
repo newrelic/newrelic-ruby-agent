@@ -100,6 +100,7 @@ class NewRelicHealthCheckTest < Minitest::Test
   def test_frequency_defaults_to_five
     # deliberately not setting the `NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY` env var
     health_check = NewRelic::Agent::HealthCheck.new
+
     assert_equal 5, health_check.instance_variable_get(:@frequency)
   end
 
@@ -331,6 +332,6 @@ class NewRelicHealthCheckTest < Minitest::Test
     health_check.update_status(NewRelic::Agent::HealthCheck::HTTP_ERROR, ['401', :preconnect])
     result = health_check.instance_variable_get(:@status)[:message]
 
-    assert_equal "HTTP error response code [401] recevied from New Relic while sending data type [preconnect]", result
+    assert_equal 'HTTP error response code [401] recevied from New Relic while sending data type [preconnect]', result
   end
 end
