@@ -66,10 +66,10 @@ module NewRelic
 
       def contents
         <<~CONTENTS
-        healthy: #{@status[:healthy]}
-        status: #{@status[:message]}#{last_error}
-        start_time_unix_nano: #{@start_time}
-        status_time_unix_nano: #{nano_time}
+          healthy: #{@status[:healthy]}
+          status: #{@status[:message]}#{last_error}
+          start_time_unix_nano: #{@start_time}
+          status_time_unix_nano: #{nano_time}
         CONTENTS
       end
 
