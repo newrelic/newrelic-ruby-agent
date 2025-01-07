@@ -115,10 +115,10 @@ module NewRelic
       end
 
       def update_message(options)
-        @status[:message] = sprintf(@status[:message], **options)
+        @status[:message] = sprintf(@status[:message], *options)
       rescue StandardError => e
         NewRelic::Agent.logger.debug("Error raised while updating agent control health check message: #{e}." \
-          "Reverting to original message.\noptions = #{options}, @status[:message] = #{@status[:message]}")
+          "Reverting to original message. options = #{options}, @status[:message] = #{@status[:message]}")
       end
     end
   end

@@ -325,4 +325,12 @@ class NewRelicHealthCheckTest < Minitest::Test
       assert_equal NewRelic::Agent::HealthCheck::HEALTHY, health_check.instance_variable_get(:@status)
     end
   end
+
+  def test_update_message_works_with_http_arrays
+    health_check = NewRelic::Agent::HealthCheck.new
+    health_check.update_status(NewRelic::Agent::HealthCheck::HTTP_ERROR, ['401', :preconnect])
+    result = health_check.instance_variable_get(:@status)[:message]
+
+    assert_equal "HTTP error response code [401] recevied from New Relic while sending data type [preconnect]", result
+  end
 end
