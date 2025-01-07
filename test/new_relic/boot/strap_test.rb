@@ -26,7 +26,7 @@ class NewRelicBootstrapTest < Minitest::Test
     end
 
     assert_equal 2, required_gems.size, "Expected 2 gems to be required, saw #{required_gems.size}."
-    assert_equal [PhonyBundler::DEFAULT_GEM_NAME, 'newrelic_rpm'], required_gems,
+    assert_equal ['newrelic_rpm', PhonyBundler::DEFAULT_GEM_NAME], required_gems,
       "Expected to see 'newrelic_rpm' required. Only saw #{required_gems}"
   end
 

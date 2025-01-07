@@ -17,6 +17,9 @@
 #   - Ruby (tested v2.4+)
 #   - Bundler (included with Ruby, tested v1.17+)
 #
+# Note: The latest version of the New Relic Ruby agent will be used when
+# instrumenting your application using this method.
+#
 # Instructions:
 #   - First, make sure the New Relic Ruby agent exists on disk. For these
 #     instructions, we'll assume the agent exists at `/newrelic`.
@@ -44,13 +47,14 @@ module NRBundlerPatch
   NR_AGENT_GEM = 'newrelic_rpm'
 
   def require(*_groups)
-    super
-
     require_newrelic
+
+    super
   end
 
   def require_newrelic
     lib = File.expand_path('../..', __FILE__)
+    $LOAD_PATH.reject! { |path| path.include?('newrelic_rpm') }
     $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
     Kernel.require NR_AGENT_GEM
   end
