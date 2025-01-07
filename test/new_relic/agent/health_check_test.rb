@@ -182,18 +182,19 @@ class NewRelicHealthCheckTest < Minitest::Test
     assert(time.to_s.length >= 19)
   end
 
-  def test_yaml_file_has_same_start_time_unix_nano_for_all_files
+  def test_yaml_file_has_same_start_time_unix_every_write
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
-      health_check = NewRelic::Agent::HealthCheck.new
-      start_time = health_check.instance_variable_get(:@start_time_unix_nano)
-      health_check.expects(:file_name).times(2).then.returns('health-1.yml').then.returns('health-2.yml')
-      health_check.send(:write_file)
+      NewRelic::Agent::GuidGenerator.stub(:generate_guid, '1') do
+        health_check = NewRelic::Agent::HealthCheck.new
+        start_time = health_check.instance_variable_get(:@start_time_unix_nano)
+        health_check.send(:write_file)
 
-      assert_predicate File.readlines('health/health-1.yml').grep(/start_time_unix_nano: #{start_time}/), :any?
+        assert_predicate File.readlines('health/health-1.yml').grep(/start_time_unix_nano: #{start_time}/), :any?
 
-      health_check.send(:write_file)
+        health_check.send(:write_file)
 
-      assert_predicate File.readlines('health/health-2.yml').grep(/start_time_unix_nano: #{start_time}/), :any?
+        assert_predicate File.readlines('health/health-1.yml').grep(/start_time_unix_nano: #{start_time}/), :any?
+      end
     end
   ensure
     FileUtils.rm_rf('health')
@@ -212,17 +213,18 @@ class NewRelicHealthCheckTest < Minitest::Test
     FileUtils.rm_rf('health')
   end
 
-  def test_yaml_file_has_new_status_time_each_file
+  def test_yaml_file_has_new_status_time_each_write
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
-      health_check = NewRelic::Agent::HealthCheck.new
-      health_check.expects(:file_name).times(2).then.returns('health-1.yml').then.returns('health-2.yml')
-      health_check.send(:write_file)
-      # on a healthy file, the third index/fourth line should hold the status_time_unix_nano data
-      first_status_time = File.readlines('health/health-1.yml')[3]
-      health_check.send(:write_file)
-      second_status_time = File.readlines('health/health-2.yml')[3]
+      NewRelic::Agent::GuidGenerator.stub(:generate_guid, '1') do
+        health_check = NewRelic::Agent::HealthCheck.new
+        health_check.send(:write_file)
+        # on a healthy file, the third index/fourth line should hold the status_time_unix_nano data
+        first_status_time = File.readlines('health/health-1.yml')[3]
+        health_check.send(:write_file)
+        second_status_time = File.readlines('health/health-1.yml')[3]
 
-      refute_equal(first_status_time, second_status_time)
+        refute_equal(first_status_time, second_status_time)
+      end
     end
   ensure
     FileUtils.rm_rf('health')

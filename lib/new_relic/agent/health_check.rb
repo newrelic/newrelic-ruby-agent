@@ -86,9 +86,9 @@ module NewRelic
       end
 
       def write_file
-        @path ||= create_file_path
+        @file ||= "#{create_file_path}/#{file_name}"
 
-        File.write("#{@path}/#{file_name}", contents)
+        File.write(@file, contents)
       rescue StandardError => e
         NewRelic::Agent.logger.error("Agent control health check raised an error while writing a file: #{e}")
         @continue = false
