@@ -16,18 +16,18 @@ module NewRelic
         @status = HEALTHY
       end
 
-      HEALTHY = {healthy: true, last_error: 'NR-APM-000', message: 'Healthy'}
-      INVALID_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-001', message: 'Invalid liense key (HTTP status code 401)'}
-      MISSING_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-002', message: 'License key missing in configuration'}
-      FORCED_DISCONNECT = {healthy: false, last_error: 'NR-APM-003', message: 'Forced disconnect received from New Relic (HTTP status code 410)'}
-      HTTP_ERROR = {healthy: false, last_error: 'NR-APM-004', message: 'HTTP error response code [%s] recevied from New Relic while sending data type [%s]'}
-      MISSING_APP_NAME = {healthy: false, last_error: 'NR-APM-005', message: 'Missing application name in agent configuration'}
-      APP_NAME_EXCEEDED = {healthy: false, last_error: 'NR-APM-006', message: 'The maximum number of configured app names (3) exceeded'}
-      PROXY_CONFIG_ERROR = {healthy: false, last_error: 'NR-APM-007', message: 'HTTP Proxy configuration error; response code [%s]'}
-      AGENT_DISABLED = {healthy: false, last_error: 'NR-APM-008', message: 'Agent is disabled via configuration'}
-      FAILED_TO_CONNECT = {healthy: false, last_error: 'NR-APM-009', message: 'Failed to connect to New Relic data collector'}
-      FAILED_TO_PARSE_CONFIG = {healthy: false, last_error: 'NR-APM-010', message: 'Agent config file is not able to be parsed'}
-      SHUTDOWN = {healthy: true, last_error: 'NR-APM-099', message: 'Agent has shutdown'}
+      HEALTHY = {healthy: true, last_error: 'NR-APM-000', message: 'Healthy'}.freeze
+      INVALID_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-001', message: 'Invalid liense key (HTTP status code 401)'}.freeze
+      MISSING_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-002', message: 'License key missing in configuration'}.freeze
+      FORCED_DISCONNECT = {healthy: false, last_error: 'NR-APM-003', message: 'Forced disconnect received from New Relic (HTTP status code 410)'}.freeze
+      HTTP_ERROR = {healthy: false, last_error: 'NR-APM-004', message: 'HTTP error response code [%s] recevied from New Relic while sending data type [%s]'}.freeze
+      MISSING_APP_NAME = {healthy: false, last_error: 'NR-APM-005', message: 'Missing application name in agent configuration'}.freeze
+      APP_NAME_EXCEEDED = {healthy: false, last_error: 'NR-APM-006', message: 'The maximum number of configured app names (3) exceeded'}.freeze
+      PROXY_CONFIG_ERROR = {healthy: false, last_error: 'NR-APM-007', message: 'HTTP Proxy configuration error; response code [%s]'}.freeze
+      AGENT_DISABLED = {healthy: false, last_error: 'NR-APM-008', message: 'Agent is disabled via configuration'}.freeze
+      FAILED_TO_CONNECT = {healthy: false, last_error: 'NR-APM-009', message: 'Failed to connect to New Relic data collector'}.freeze
+      FAILED_TO_PARSE_CONFIG = {healthy: false, last_error: 'NR-APM-010', message: 'Agent config file is not able to be parsed'}.freeze
+      SHUTDOWN = {healthy: true, last_error: 'NR-APM-099', message: 'Agent has shutdown'}.freeze
 
       def create_and_run_health_check_loop
         unless health_check_enabled?
@@ -58,7 +58,7 @@ module NewRelic
       def update_status(status, options = [])
         return unless @continue
 
-        @status = status
+        @status = status.dup
         update_message(options) unless options.empty?
       end
 
