@@ -97,6 +97,12 @@ class NewRelicHealthCheckTest < Minitest::Test
     FileUtils.rm_rf('health')
   end
 
+  def test_frequency_defaults_to_five
+    # deliberately not setting the `NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY` env var
+    health_check = NewRelic::Agent::HealthCheck.new
+    assert_equal 5, health_check.instance_variable_get(:@frequency)
+  end
+
   def test_create_file_path_sets_continue_false_when_error_raised
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do

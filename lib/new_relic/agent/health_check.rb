@@ -11,7 +11,7 @@ module NewRelic
         # The spec states file paths for the delivery location will begin with file://
         # This does not create a valid path in Ruby, so remove the prefix when present
         @delivery_location = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']&.gsub('file://', '')
-        @frequency = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'].to_i
+        @frequency = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'] ? ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'].to_i : 5
         @continue = true
         @status = HEALTHY
       end
