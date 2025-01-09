@@ -36,6 +36,9 @@ module NewRelic
         # setting up the worker thread and the exit handler to shut
         # down the agent
         def check_config_and_start_agent
+          # some health statuses, such as invalid license key, are ran before
+          # the agent officially starts
+          @health_check.create_and_run_health_check_loop
           return unless monitoring? && has_correct_license_key?
           return if using_forking_dispatcher?
 
@@ -48,7 +51,6 @@ module NewRelic
         # Treatment of @started and env report is important to get right.
         def setup_and_start_agent(options = {})
           @started = true
-          @health_check.create_and_run_health_check_loop
           @harvester.mark_started
 
           unless in_resque_child_process?

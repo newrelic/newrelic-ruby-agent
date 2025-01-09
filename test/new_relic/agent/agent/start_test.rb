@@ -44,12 +44,14 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_check_config_and_start_agent_disabled
     self.expects(:monitoring?).returns(false)
+    @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
   end
 
   def test_check_config_and_start_agent_incorrect_key
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(false)
+    @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
   end
 
@@ -57,6 +59,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(true)
     self.expects(:using_forking_dispatcher?).returns(true)
+    @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
   end
 

@@ -66,13 +66,14 @@ module NewRelic
         # no longer try to connect to the server, saving the
         # application and the server load
         def handle_license_error(error)
-          ::NewRelic::Agent.logger.error(error.message,
+          NewRelic::Agent.logger.error(error.message,
             'Visit newrelic.com to obtain a valid license key, or to upgrade your account.')
+          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
           disconnect
         end
 
         def handle_unrecoverable_agent_error(error)
-          ::NewRelic::Agent.logger.error(error.message)
+          NewRelic::Agent.logger.error(error.message)
           disconnect
           shutdown
         end
@@ -96,7 +97,7 @@ module NewRelic
         # connects, then configures the agent using the response from
         # the connect service
         def connect_to_server
-          request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(
+          request_builder = NewRelic::Agent::Connect::RequestBuilder.new(
             @service,
             Agent.config,
             event_harvest_config,
@@ -104,7 +105,7 @@ module NewRelic
           )
           connect_response = @service.connect(request_builder.connect_payload)
 
-          response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
+          response_handler = NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
           response_handler.configure_agent(connect_response)
 
           log_connection(connect_response) if connect_response
@@ -114,9 +115,9 @@ module NewRelic
         # Logs when we connect to the server, for debugging purposes
         # - makes sure we know if an agent has not connected
         def log_connection(config_data)
-          ::NewRelic::Agent.logger.debug("Connected to NewRelic Service at #{@service.collector.name}")
-          ::NewRelic::Agent.logger.debug("Agent Run       = #{@service.agent_id}.")
-          ::NewRelic::Agent.logger.debug("Connection data = #{config_data.inspect}")
+          NewRelic::Agent.logger.debug("Connected to NewRelic Service at #{@service.collector.name}")
+          NewRelic::Agent.logger.debug("Agent Run       = #{@service.agent_id}.")
+          NewRelic::Agent.logger.debug("Connection data = #{config_data.inspect}")
           if config_data['messages']&.any?
             log_collector_messages(config_data['messages'])
           end
@@ -124,7 +125,7 @@ module NewRelic
 
         def log_collector_messages(messages)
           messages.each do |message|
-            ::NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
+            NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
           end
         end
 
@@ -186,11 +187,12 @@ module NewRelic
           opts = connect_options(options)
           return unless should_connect?(opts[:force_reconnect])
 
-          ::NewRelic::Agent.logger.debug("Connecting Process to New Relic: #$0")
+          NewRelic::Agent.logger.debug("Connecting Process to New Relic: #$0")
           connect_to_server
           @connected_pid = $$
           @connect_state = :connected
           signal_connected
+          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
         rescue NewRelic::Agent::ForceDisconnectException => e
           handle_force_disconnect(e)
         rescue NewRelic::Agent::LicenseException => e
@@ -201,7 +203,7 @@ module NewRelic
           NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
           retry if retry_from_error?(e, opts)
         rescue Exception => e
-          ::NewRelic::Agent.logger.error('Exception of unexpected type during Agent#connect():', e)
+          NewRelic::Agent.logger.error('Exception of unexpected type during Agent#connect():', e)
 
           raise
         end
@@ -215,7 +217,7 @@ module NewRelic
           return false unless opts[:keep_retrying]
 
           note_connect_failure
-          ::NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
+          NewRelic::Agent.logger.info("Will re-attempt in #{connect_retry_period} seconds")
           sleep(connect_retry_period)
           true
         end
