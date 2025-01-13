@@ -4,6 +4,10 @@
 
 instrumentation_methods :chain, :prepend
 
+suite_condition('skip view component for debugging purposes') do
+  false
+end
+
 VIEW_COMPONENT_VERSIONS = [
   [nil, 2.7],
   ['3.15.0', 2.7], # 3.15.0 should remain tested due to API differences before and after this version
