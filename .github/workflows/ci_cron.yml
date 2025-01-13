@@ -137,7 +137,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-          --memory-reservation "1024m"
+          --memory-reservation "512m"
           --oom-kill-disable=true
       elasticsearch8:
         image: elasticsearch:8.4.2
@@ -151,7 +151,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-          --memory-reservation "1024m"
+          --memory-reservation "512m"
           --oom-kill-disable=true
       zookeeper:
         image: bitnami/zookeeper
@@ -197,7 +197,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --memory-reservation "1024m" --oom-kill-disable=true
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3 --memory-reservation "512m" --oom-kill-disable=true
         ports:
           - 3306
       postgres:
