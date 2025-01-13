@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   run_rubocop:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -23,7 +23,7 @@ jobs:
 
   unit_tests:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       mysql:
         image: mysql:5.7
@@ -111,7 +111,7 @@ jobs:
 
   multiverse:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       elasticsearch7:
         image: elasticsearch:7.16.2
@@ -317,7 +317,7 @@ jobs:
 
   infinite_tracing:
     needs: run_rubocop
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -360,7 +360,7 @@ jobs:
 
   simplecov:
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       pull-requests: write

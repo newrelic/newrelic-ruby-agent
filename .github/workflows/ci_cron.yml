@@ -11,7 +11,7 @@ on:
 
 jobs:
   run_rubocop:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -24,7 +24,7 @@ jobs:
 
 
   unit_tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       mysql:
         image: mysql:5.7
@@ -124,7 +124,7 @@ jobs:
 
 
   multiverse:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     services:
       elasticsearch7:
         image: elasticsearch:7.16.2
@@ -308,7 +308,7 @@ jobs:
 
 
   infinite_tracing:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -344,7 +344,7 @@ jobs:
   notify_slack_fail:
     name: Notify slack fail
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     if: always()
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
@@ -362,7 +362,7 @@ jobs:
   notify_slack_success:
     name: Notify slack success
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     if: always()
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
