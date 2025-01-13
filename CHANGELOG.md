@@ -626,7 +626,7 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
   | --------------------------- | ------- | ------------------------------------------------------ | ------ |
   | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
 
-  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
+  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb#L6-L17) to determine precedence.
 
 - **Feature: Custom attributes for logs**
 
