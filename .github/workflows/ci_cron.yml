@@ -11,7 +11,7 @@ on:
 
 jobs:
   run_rubocop:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -24,7 +24,7 @@ jobs:
 
 
   unit_tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: mysql:5.7
@@ -244,7 +244,8 @@ jobs:
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
         # - sasl is needed for memcached
       - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+        # run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
@@ -308,7 +309,7 @@ jobs:
 
 
   infinite_tracing:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -344,7 +345,7 @@ jobs:
   notify_slack_fail:
     name: Notify slack fail
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: always()
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
@@ -362,7 +363,7 @@ jobs:
   notify_slack_success:
     name: Notify slack success
     needs: [unit_tests, multiverse, infinite_tracing]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: always()
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
