@@ -233,7 +233,7 @@ jobs:
         # - sasl is needed for memcached
       - name: Install OS packages
         # run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev libssl-dev
 
 
       - name: Install Ruby ${{ matrix.ruby-version }}
