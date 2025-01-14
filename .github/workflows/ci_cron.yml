@@ -364,22 +364,6 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-      - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
-        with:
-          name: coverage-report-multiverse-${{ matrix.ruby-version }}-${{ matrix.multiverse }}
-          path: lib/coverage_*/.resultset.json
-          retention-days: 2
-
-      - name: Generate gem manifest
-        run: rake test:multiverse:gem_manifest
-
-      - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
-        with:
-          name: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
-          path: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
-          retention-days: 2
 
   multiverse_services_mysql_pg:
     needs: run_rubocop
@@ -482,22 +466,6 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
-      - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
-        with:
-          name: coverage-report-multiverse-${{ matrix.ruby-version }}-${{ matrix.multiverse }}
-          path: lib/coverage_*/.resultset.json
-          retention-days: 2
-
-      - name: Generate gem manifest
-        run: rake test:multiverse:gem_manifest
-
-      - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
-        with:
-          name: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
-          path: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
-          retention-days: 2
 
 
 
