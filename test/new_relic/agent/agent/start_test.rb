@@ -48,6 +48,27 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     check_config_and_start_agent
   end
 
+  def test_monitoring_false_updates_health_status
+    with_config(:monitoring => false) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::AGENT_DISABLED)
+      monitoring?
+    end
+  end
+
+  def test_missing_app_name_updates_health_status
+    with_config(:app_name => nil) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::MISSING_APP_NAME)
+      agent_should_start?
+    end
+  end
+
+  def test_missing_license_key_updates_health_status
+    with_config(:license_key => nil) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::MISSING_LICENSE_KEY)
+      has_license_key?
+    end
+  end
+
   def test_check_config_and_start_agent_incorrect_key
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(false)
@@ -190,6 +211,13 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_correct_license_length_negative
     with_config(:license_key => 'a' * 30) do
       refute correct_license_length
+    end
+  end
+
+  def test_correct_license_length_negative_updates_health_status
+    with_config(:license_key => 'a' * 30) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
+      correct_license_length
     end
   end
 

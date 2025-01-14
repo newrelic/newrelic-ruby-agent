@@ -585,6 +585,7 @@ class NewRelicServiceTest < Minitest::Test
       method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
       define_method(method_name) do
         @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
+
         assert_raises exception_type do
           stats_hash = NewRelic::Agent::StatsHash.new
           @service.metric_data(stats_hash)
@@ -607,6 +608,38 @@ class NewRelicServiceTest < Minitest::Test
     417 => NewRelic::Agent::UnrecoverableServerException,
     429 => NewRelic::Agent::ServerConnectionException,
     431 => NewRelic::Agent::UnrecoverableServerException)
+
+  def self.check_agent_health_status_updates(expected_exceptions)
+    expected_exceptions.each do |status_code|
+      method_name = "test_#{status_code}_updates_agent_health_check"
+      define_method(method_name) do
+        NewRelic::Agent.agent.health_check.instance_variable_set(:@continue, true)
+        NewRelic::Agent.agent.health_check.instance_variable_set(:@status, NewRelic::Agent::HealthCheck::HEALTHY)
+
+        begin
+          @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
+          stats_hash = NewRelic::Agent::StatsHash.new
+          @service.metric_data(stats_hash)
+        rescue
+          # no-op, raise the error
+        end
+
+        expected = {
+          healthy: false,
+          last_error: 'NR-APM-004',
+          message: "HTTP error response code [#{status_code}] recevied from New Relic while sending data type [metric_data]"
+        }
+
+        assert_equal expected, NewRelic::Agent.agent.health_check.instance_variable_get(:@status)
+      end
+    end
+  end
+
+  # Some status codes may also eventually report other health checks
+  # Status code 401 is also invalid license key, but that will return a different health check value if that's the reason for the 401
+  # Status code 410 is also for forced disconnect, but that forced disconnect is handled where forced disconnect is rescued
+  # In this method, however, they should report HTTP_ERROR
+  check_agent_health_status_updates([400, 401, 403, 405, 407, 408, 409, 410, 411, 413, 415, 417, 429, 431])
 
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
