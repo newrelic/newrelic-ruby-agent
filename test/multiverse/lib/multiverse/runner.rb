@@ -108,7 +108,7 @@ module Multiverse
       'rails' => %w[active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
 
       # these neede services running in github actions, so they are separated
-      'services_1' => %w[elasticsearch mongo sequel bunny],
+      'services_1' => %w[elasticsearch mongo bunny],
       'services_2' => %w[redis sidekiq memcache],
       'services_kafka' => %w[rdkafka ruby_kafka],
       'services_mysql_pg' => %w[active_record active_record_pg],
