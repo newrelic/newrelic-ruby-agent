@@ -639,7 +639,9 @@ class NewRelicServiceTest < Minitest::Test
   # Status code 401 is also invalid license key, but that will return a different health check value if that's the reason for the 401
   # Status code 410 is also for forced disconnect, but that forced disconnect is handled where forced disconnect is rescued
   # In this method, however, they should report HTTP_ERROR
-  check_agent_health_status_updates([400, 401, 403, 405, 407, 408, 409, 410, 411, 413, 415, 417, 429, 431])
+  check_agent_health_status_updates([
+    400, 401, 403, 405, 407, 408, 409, 410, 411, 413, 415, 417, 429, 431
+  ])
 
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
