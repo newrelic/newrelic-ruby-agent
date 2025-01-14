@@ -107,7 +107,7 @@ module Multiverse
       'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
       'rails' => %w[active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
 
-      # these neede services running in github actions, so they are separated
+      # these need services running in github actions, so they are separated
       'services_1' => %w[elasticsearch mongo bunny],
       'services_2' => %w[redis sidekiq memcache],
       'services_kafka' => %w[rdkafka ruby_kafka],
