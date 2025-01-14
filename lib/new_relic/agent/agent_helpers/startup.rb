@@ -127,13 +127,11 @@ module NewRelic
         # Warn the user if they have configured their agent not to
         # send data, that way we can see this clearly in the log file
         def monitoring?
-          puts '********** monitoring? **************'
           return false if Agent.config[:'serverless_mode.enabled']
 
           if Agent.config[:monitor_mode]
             true
           else
-            puts '********* else reached! *********'
             NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::AGENT_DISABLED)
             ::NewRelic::Agent.logger.warn('Agent configured not to send data in this environment.')
             false

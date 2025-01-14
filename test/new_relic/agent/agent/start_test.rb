@@ -49,16 +49,12 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   end
 
   def test_monitoring_false_updates_health_status
-    puts '*************** monitoring false test ***************'
-    puts '*************** TEST START ******************'
-    with_config(:monitoring => false) do
-      puts NewRelic::Agent.agent.health_check.inspect
+    with_config(:monitor_mode => false) do
       # make sure the health checks are set up to run
       NewRelic::Agent.agent.health_check.instance_variable_set(:@continue, true)
-
       NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::AGENT_DISABLED)
+
       monitoring?
-      puts '************ TEST END *********************'
     end
   end
 

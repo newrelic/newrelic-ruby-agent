@@ -56,10 +56,8 @@ module NewRelic
       end
 
       def update_status(status, options = [])
-        puts '***** update_status AGENT_DISABLED *******' if status == AGENT_DISABLED
         return unless @continue
 
-        puts '***** update_status @continue = true *****' if status == AGENT_DISABLED
         @status = status.dup
         update_message(options) unless options.empty?
       end
