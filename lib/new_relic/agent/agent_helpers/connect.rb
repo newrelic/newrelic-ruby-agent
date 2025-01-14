@@ -54,7 +54,7 @@ module NewRelic
         # to tell the user what happened, since this is not an error
         # we can handle gracefully.
         def log_error(error)
-          ::NewRelic::Agent.logger.error("Error establishing connection with New Relic Service at #{control.server}:",
+          NewRelic::Agent.logger.error("Error establishing connection with New Relic Service at #{control.server}:",
             error)
         end
 
