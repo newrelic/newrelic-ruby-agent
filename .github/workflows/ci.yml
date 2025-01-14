@@ -147,13 +147,6 @@ jobs:
           command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
           VERBOSE_TEST_OUTPUT: true
-          MYSQL_PASSWORD: root
-          DB_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
           SERIALIZE: 1
           COVERAGE: true
           CI_FOR_PR: true
@@ -266,13 +259,6 @@ jobs:
           command: bundle exec rake test:multiverse[group="services_1"]
         env:
           VERBOSE_TEST_OUTPUT: true
-          MYSQL_PASSWORD: root
-          DB_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
           SERIALIZE: 1
           COVERAGE: true
           CI_FOR_PR: true
@@ -371,13 +357,6 @@ jobs:
           command: bundle exec rake test:multiverse[group="services_2"]
         env:
           VERBOSE_TEST_OUTPUT: true
-          MYSQL_PASSWORD: root
-          DB_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
           SERIALIZE: 1
           COVERAGE: true
           CI_FOR_PR: true
@@ -458,13 +437,6 @@ jobs:
           command: bundle exec rake test:multiverse[group="services_kafka"]
         env:
           VERBOSE_TEST_OUTPUT: true
-          MYSQL_PASSWORD: root
-          DB_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
           SERIALIZE: 1
           COVERAGE: true
           CI_FOR_PR: true
@@ -489,7 +461,6 @@ jobs:
           name: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
           retention-days: 2
-
 
 
   multiverse_services_mysql_pg:
@@ -608,7 +579,6 @@ jobs:
           name: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
           path: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
           retention-days: 2
-
 
 
   infinite_tracing:
