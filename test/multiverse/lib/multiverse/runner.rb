@@ -102,9 +102,11 @@ module Multiverse
       'ai' => %w[ruby_openai],
       'background' => %w[delayed_job sidekiq resque],
       'background_2' => %w[rake],
-      'kafka' => %w[rdkafka],
-      'database' => %w[elasticsearch mongo redis sequel],
-      'rails' => %w[active_record active_record_pg active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
+      # 'kafka' => %w[rdkafka ruby_kafka],
+      'services' => %w[elasticsearch mongo redis sequel bunny memcache rdkafka ruby_kafka], # needs github actions services, other than PG and mysql
+      'services_2' => %w[active_record active_record_pg], # needs github actions services for mysql and pg
+      # 'database' => %w[elasticsearch mongo redis sequel],
+      'rails' => %w[active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
       'frameworks' => %w[grape padrino roda sinatra],
       'httpclients' => %w[async_http curb excon httpclient],
       'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
