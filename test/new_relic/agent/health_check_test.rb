@@ -85,8 +85,9 @@ class NewRelicHealthCheckTest < Minitest::Test
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         File.stub(:write, ->(arg1, arg2) { raise 'boom!' }) do
           health_check = NewRelic::Agent::HealthCheck.new
+          # stub a valid health check, by setting @continue = true
+          health_check.instance_variable_set(:@continue, true)
 
-          assert(health_check.instance_variable_get(:@continue))
           health_check.send(:write_file)
 
           refute(health_check.instance_variable_get(:@continue))
@@ -109,8 +110,8 @@ class NewRelicHealthCheckTest < Minitest::Test
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         File.stub(:directory?, ->(arg1) { raise 'boom!' }) do
           health_check = NewRelic::Agent::HealthCheck.new
-
-          assert(health_check.instance_variable_get(:@continue))
+          # stub a valid health check, by setting @continue = true
+          health_check.instance_variable_set(:@continue, true)
           health_check.send(:create_file_path)
 
           refute(health_check.instance_variable_get(:@continue))
@@ -151,6 +152,8 @@ class NewRelicHealthCheckTest < Minitest::Test
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
+        # stub a valid health check, by setting @continue = true
+        health_check.instance_variable_set(:@continue, true)
         health_check.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
         health_check.send(:write_file)
 
@@ -329,6 +332,8 @@ class NewRelicHealthCheckTest < Minitest::Test
 
   def test_update_message_works_with_http_arrays
     health_check = NewRelic::Agent::HealthCheck.new
+    # stub a valid health check, by setting @continue = true
+    health_check.instance_variable_set(:@continue, true)
     result = health_check.update_status(NewRelic::Agent::HealthCheck::HTTP_ERROR, ['401', :preconnect])
 
     assert_equal 'HTTP error response code [401] recevied from New Relic while sending data type [preconnect]', result

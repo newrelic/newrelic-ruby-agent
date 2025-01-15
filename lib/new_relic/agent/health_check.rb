@@ -7,13 +7,12 @@ module NewRelic
     class HealthCheck
       def initialize
         @start_time = nano_time
-        @fleet_id = ENV['NEW_RELIC_AGENT_CONTROL_FLEET_ID']
-        # The spec states file paths for the delivery location will begin with file://
-        # This does not create a valid path in Ruby, so remove the prefix when present
-        @delivery_location = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']&.gsub('file://', '')
-        @frequency = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'] ? ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'].to_i : 5
         @continue = true
         @status = HEALTHY
+        # the following assignments may set @continue = false if they are invalid
+        set_fleet_id
+        set_delivery_location
+        set_frequency
       end
 
       HEALTHY = {healthy: true, last_error: 'NR-APM-000', message: 'Healthy'}.freeze
@@ -30,13 +29,7 @@ module NewRelic
       SHUTDOWN = {healthy: true, last_error: 'NR-APM-099', message: 'Agent has shutdown'}.freeze
 
       def create_and_run_health_check_loop
-        unless health_check_enabled?
-          @continue = false
-        end
-
-        return NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_FLEET_ID not found, skipping health checks') unless @fleet_id
-        return NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION not found, skipping health checks') unless @delivery_location
-        return NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less, skipping health checks') unless @frequency > 0
+        return unless health_checks_enabled? && @continue
 
         NewRelic::Agent.logger.debug('Agent control health check conditions met. Starting health checks.')
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
@@ -67,6 +60,37 @@ module NewRelic
       end
 
       private
+
+      def set_fleet_id
+        @fleet_id = if ENV['NEW_RELIC_AGENT_CONTROL_FLEET_ID']
+          ENV['NEW_RELIC_AGENT_CONTROL_FLEET_ID']
+        else
+          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_FLEET_ID not found, disabling health checks')
+          @continue = false
+          nil
+        end
+      end
+
+      def set_delivery_location
+        @delivery_location = if ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']
+          # The spec states file paths for the delivery location will begin with file://
+          # This does not create a valid path in Ruby, so remove the prefix when present
+          ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']&.gsub('file://', '')
+        else
+          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION not found, disabling health checks')
+          @continue = false
+          nil
+        end
+      end
+
+      def set_frequency
+        @frequency = ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'] ? ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY'].to_i : 5
+
+        if @frequency <= 0
+          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less, disabling health checks')
+          @continue = false
+        end
+      end
 
       def contents
         <<~CONTENTS
@@ -114,8 +138,8 @@ module NewRelic
         @continue = false
       end
 
-      def health_check_enabled?
-        @fleet_id && @delivery_location && (@frequency > 0)
+      def health_checks_enabled?
+        @fleet_id && @delivery_location && @frequency > 0
       end
 
       def update_message(options)
