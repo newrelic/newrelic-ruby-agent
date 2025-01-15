@@ -846,7 +846,7 @@ module NewRelic
 
         @agent.shutdown
 
-        assert_equal NewRelic::Agent::HealthCheck::SHUTDOWN, @agent.health_check.instance_variable_get(:@status)
+        assert_equal NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY, @agent.health_check.instance_variable_get(:@status)
       end
     end
 

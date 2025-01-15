@@ -19,7 +19,9 @@ module NewRelic
           revert_to_default_configuration
 
           @started = nil
-          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::SHUTDOWN)
+
+          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::SHUTDOWN) if NewRelic::Agent.agent.health_check.healthy?
+
           Control.reset
         end
 

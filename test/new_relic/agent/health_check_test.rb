@@ -333,4 +333,22 @@ class NewRelicHealthCheckTest < Minitest::Test
 
     assert_equal 'HTTP error response code [401] recevied from New Relic while sending data type [preconnect]', result
   end
+
+  def test_healthy_true_when_healthy
+    health_check = NewRelic::Agent::HealthCheck.new
+    # stub a valid health check, by setting @continue = true
+    health_check.instance_variable_set(:@continue, true)
+    health_check.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
+
+    assert_predicate health_check, :healthy?
+  end
+
+  def test_healthy_false_when_invalid_license_key
+    health_check = NewRelic::Agent::HealthCheck.new
+    # stub a valid health check, by setting @continue = true
+    health_check.instance_variable_set(:@continue, true)
+    health_check.update_status(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
+
+    refute_predicate health_check, :healthy?
+  end
 end

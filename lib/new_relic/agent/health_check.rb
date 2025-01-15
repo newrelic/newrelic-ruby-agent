@@ -62,6 +62,10 @@ module NewRelic
         update_message(options) unless options.empty?
       end
 
+      def healthy?
+        @status == HEALTHY
+      end
+
       private
 
       def contents
