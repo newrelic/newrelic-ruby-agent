@@ -55,7 +55,7 @@ module NRBundlerPatch
   def require_newrelic
     lib = File.expand_path('../..', __FILE__)
     $LOAD_PATH.reject! { |path| path.include?('newrelic_rpm') }
-    $LOAD_PATH.unshift(lib)
+    $LOAD_PATH.push(lib)
     Kernel.require NR_AGENT_GEM
   end
 end
