@@ -25,5 +25,5 @@ jobs:
              labels: ['community']
            })
         if: |
-          github.event.issue.user.login != 'fallwith' && github.event.issue.user.login != 'kaylareopelle' && github.event.issue.user.login != 'tannalynn' && github.event.issue.user.login != 'kford-newrelic' && github.event.issue.user.login != 'elucus' && github.event.issue.user.login != 'hannahramadan' &&
-          github.event.pull_request.user.login != 'fallwith' && github.event.pull_request.user.login != 'kaylareopelle' && github.event.pull_request.user.login != 'tannalynn' && github.event.pull_request.user.login != 'kford-newrelic' && github.event.pull_request.user.login != 'elucus' && github.event.pull_request.user.login != 'hannahramadan'
+          github.event.issue.user.login != 'fallwith' && github.event.issue.user.login != 'kaylareopelle' && github.event.issue.user.login != 'tannalynn' && github.event.issue.user.login != 'chynesNR' && github.event.issue.user.login != 'elucus' && github.event.issue.user.login != 'hannahramadan' &&
+          github.event.pull_request.user.login != 'fallwith' && github.event.pull_request.user.login != 'kaylareopelle' && github.event.pull_request.user.login != 'tannalynn' && github.event.pull_request.user.login != 'chynesNR' && github.event.pull_request.user.login != 'elucus' && github.event.pull_request.user.login != 'hannahramadan'

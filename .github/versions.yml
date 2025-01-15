@@ -1,8 +1,8 @@
 ---
 # This file is consumed by lib/tasks/gha.rake
 ruby/setup-ruby:
-  :tag: v1.202.0
-  :sha: a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc
+  :tag: v1.207.0
+  :sha: 4a9ddd6f338a97768b8006bf671dfbad383215f4
 actions/checkout:
   :tag: v4.1.7
   :sha: 692973e3d937129bcbf40652eb9f2f61becf3332

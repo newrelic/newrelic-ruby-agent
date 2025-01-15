@@ -14,9 +14,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
-          ruby-version: '3.3'
+          ruby-version: 3.4
       - run: bundle
       - run: rubocop
 
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.3.6]
+        ruby-version: [2.4.10, 3.4.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -62,8 +62,8 @@ jobs:
               "2.4.10": {
                 "rails": "norails,rails42,rails52"
               },
-              "3.3.6": {
-                "rails": "norails,rails61,rails72"
+              "3.4.1": {
+                "rails": "norails,rails61,rails72,rails80"
               }
             }
 
@@ -112,112 +112,11 @@ jobs:
   multiverse:
     needs: run_rubocop
     runs-on: ubuntu-22.04
-    services:
-      elasticsearch7:
-        image: elasticsearch:7.16.2
-        env:
-          discovery.type: single-node
-        ports:
-          - 9200:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      elasticsearch8:
-        image: elasticsearch:8.13.0
-        env:
-          discovery.type: single-node
-          xpack.security.enabled: false
-        ports:
-          - 9250:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      zookeeper:
-        image: bitnami/zookeeper
-        ports:
-          - 2181:2181
-        env:
-          ALLOW_ANONYMOUS_LOGIN: yes
-        options: >-
-          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      kafka:
-        image: bitnami/kafka
-        ports:
-          - 9092:9092
-        options: >-
-          --health-cmd "kafka-broker-api-versions.sh --version"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        env:
-          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-          ALLOW_PLAINTEXT_LISTENER: yes
-          KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
-          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-          KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-          KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-        options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      mongodb:
-        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
-        ports:
-          - 27017:27017
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - 3306
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: >-
-          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, ai, background, background_2, kafka, database, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 3.3.6]
+        multiverse: [agent, ai, background, background_2, frameworks, httpclients, httpclients_2, rails, rest]
+        ruby-version: [2.4.10, 3.4.1]
 
     steps:
       - name: Configure git
@@ -231,44 +130,14 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-        # This allows the cache in the following step to be able to write files to the directory needed for mysql
-      - if: matrix.ruby-version == '2.4.10'
-        name: Prepare mysql directory
-        run: sudo chown -R $USER /usr/local
-
-      - if: matrix.ruby-version == '2.4.10'
-        name: Cache mysql55
-        id: mysql55-cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
-        with:
-          path: /usr/local/mysql55
-          key: mysql55-install
-
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
-        name: Install mysql55
-        run: sudo ./test/script/install_mysql55
 
       - name: Setup bundler
         run: ./.github/workflows/scripts/setup_bundler
         env:
           RUBY_VERSION: ${{ matrix.ruby-version }}
-
-
-      - name: Wait for/Check Mysql
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
-        with:
-          timeout_minutes: 1
-          max_attempts: 20
-          command: |
-            mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'";
-            if [[ $? != 0 ]]; then
-              sleep 1;
-            fi
-
 
       - name: Run Multiverse Tests
         uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
@@ -278,13 +147,6 @@ jobs:
           command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
         env:
           VERBOSE_TEST_OUTPUT: true
-          MYSQL_PASSWORD: root
-          DB_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
           SERIALIZE: 1
           COVERAGE: true
           CI_FOR_PR: true
@@ -311,20 +173,428 @@ jobs:
           retention-days: 2
 
 
+
+  multiverse_services_1:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch8:
+        image: elasticsearch:8.13.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      mongodb:
+        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+        ports:
+          - 27017:27017
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_1"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+          COVERAGE: true
+          CI_FOR_PR: true
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_1
+          path: lib/coverage_*/.resultset.json
+          retention-days: 2
+
+      - name: Generate gem manifest
+        run: rake test:multiverse:gem_manifest
+
+      - name: Save gem manifest
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: gem_manifest_${{ matrix.ruby-version }}_services_1.json
+          path: gem_manifest_${{ matrix.ruby-version }}_services_1.json
+          retention-days: 2
+
+
+  multiverse_services_2:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      kafka:
+        image: bitnami/kafka
+        ports:
+          - 9092:9092
+        options: >-
+          --health-cmd "kafka-broker-api-versions.sh --version"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          ALLOW_PLAINTEXT_LISTENER: yes
+          KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+          KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_2"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+          COVERAGE: true
+          CI_FOR_PR: true
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_2
+          path: lib/coverage_*/.resultset.json
+          retention-days: 2
+
+      - name: Generate gem manifest
+        run: rake test:multiverse:gem_manifest
+
+      - name: Save gem manifest
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: gem_manifest_${{ matrix.ruby-version }}_services_2.json
+          path: gem_manifest_${{ matrix.ruby-version }}_services_2.json
+          retention-days: 2
+
+
+  multiverse_services_kafka:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      kafka:
+        image: bitnami/kafka
+        ports:
+          - 9092:9092
+        options: >-
+          --health-cmd "kafka-broker-api-versions.sh --version"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          ALLOW_PLAINTEXT_LISTENER: yes
+          KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+          KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
+      zookeeper:
+        image: bitnami/zookeeper
+        ports:
+          - 2181:2181
+        env:
+          ALLOW_ANONYMOUS_LOGIN: yes
+        options: >-
+          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_kafka"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+          COVERAGE: true
+          CI_FOR_PR: true
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_kafka
+          path: lib/coverage_*/.resultset.json
+          retention-days: 2
+
+      - name: Generate gem manifest
+        run: rake test:multiverse:gem_manifest
+
+      - name: Save gem manifest
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
+          path: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
+          retention-days: 2
+
+
+  multiverse_services_mysql_pg:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - 3306
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+        # This allows the cache in the following step to be able to write files to the directory needed for mysql
+      - if: matrix.ruby-version == '2.4.10'
+        name: Prepare mysql directory
+        run: sudo chown -R $USER /usr/local
+
+      - if: matrix.ruby-version == '2.4.10'
+        name: Cache mysql55
+        id: mysql55-cache
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
+        with:
+          path: /usr/local/mysql55
+          key: mysql55-install
+
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
+        name: Install mysql55
+        run: sudo ./test/script/install_mysql55
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Wait for/Check Mysql
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 1
+          max_attempts: 20
+          command: |
+            mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'";
+            if [[ $? != 0 ]]; then
+              sleep 1;
+            fi
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_mysql_pg"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          MYSQL_PASSWORD: root
+          DB_PASSWORD: root
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_HOST: 127.0.0.1
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+          SERIALIZE: 1
+          COVERAGE: true
+          CI_FOR_PR: true
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+      - name: Save coverage results
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: coverage-report-multiverse-${{ matrix.ruby-version }}-service_mysql_pg
+          path: lib/coverage_*/.resultset.json
+          retention-days: 2
+
+      - name: Generate gem manifest
+        run: rake test:multiverse:gem_manifest
+
+      - name: Save gem manifest
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        with:
+          name: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
+          path: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
+          retention-days: 2
+
+
   infinite_tracing:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.3.6]
+        ruby-version: [2.7.8, 3.4.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -364,9 +634,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@a2bbe5b1b236842c1cb7dd11e8e3b51e0a616acc # tag v1.202.0
+      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
-          ruby-version: '3.3'
+          ruby-version: 3.4
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # tag v4.1.8

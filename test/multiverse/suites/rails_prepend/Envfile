@@ -24,7 +24,7 @@ def gem_list(rails_version = nil)
   minitest_version = rails_version && rails_version.include?('4.0') ? '4.2.0' : '5.2.3'
   <<~RB
     gem 'rails'#{rails_version}
-    gem 'haml'
+    gem 'haml', '~> 6.0'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '~> #{minitest_version}'
     gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
