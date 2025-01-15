@@ -858,7 +858,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
-            This is based on the integer values of Ruby's `Logger::Severity` constants: https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
+            This is based on the integer values of [Ruby's `Logger::Severity` constants](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
 
             The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
 
