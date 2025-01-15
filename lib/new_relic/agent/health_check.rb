@@ -17,7 +17,7 @@ module NewRelic
       end
 
       HEALTHY = {healthy: true, last_error: 'NR-APM-000', message: 'Healthy'}.freeze
-      INVALID_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-001', message: 'Invalid liense key (HTTP status code 401)'}.freeze
+      INVALID_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-001', message: 'Invalid license key (HTTP status code 401)'}.freeze
       MISSING_LICENSE_KEY = {healthy: false, last_error: 'NR-APM-002', message: 'License key missing in configuration'}.freeze
       FORCED_DISCONNECT = {healthy: false, last_error: 'NR-APM-003', message: 'Forced disconnect received from New Relic (HTTP status code 410)'}.freeze
       HTTP_ERROR = {healthy: false, last_error: 'NR-APM-004', message: 'HTTP error response code [%s] recevied from New Relic while sending data type [%s]'}.freeze

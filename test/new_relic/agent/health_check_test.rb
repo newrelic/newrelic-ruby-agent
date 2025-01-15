@@ -50,7 +50,7 @@ class NewRelicHealthCheckTest < Minitest::Test
     health_check = NewRelic::Agent::HealthCheck.new
 
     # ex: health-bc21b5891f5e44fc9272caef924611a8.yml
-    assert_match(/health-(.*){32}\.ya?ml/, health_check.send(:file_name))
+    assert_match(/^health-[0-9a-f]{32}\.ya?ml$/, health_check.send(:file_name))
   end
 
   def test_write_file_called_on_interval
