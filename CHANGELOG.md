@@ -6,7 +6,7 @@
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
 
-- **Feature: Use the agent version recieved from Kubernetes APM auto-attach**
+- **Feature: Use the agent deployment received from Kubernetes APM auto-attach**
 
   Previously, an existing deployment Ruby agent would continue be used if re-installing the agent via [Kubernetes APM auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/). Now, the agent version installed from Kubernetes APM auto-attach will be deployed and any existing deployment will be removed. [PR#3018](https://github.com/newrelic/newrelic-ruby-agent/pull/3018)
 
