@@ -131,9 +131,7 @@ def skip_unless_ci_cron
   skip 'This test only runs as part of the CI cron workflow'
 end
 
-# If in a CI (non local dev) context, skip unless operating within the
-# special CI context. When in a local dev context or in a special CI context,
-# permit the test(s) to run.
+# skip unless operating within the special CI context
 def skip_unless_special_ci
   return if ENV.fetch('SPECIAL_CI', nil)
 
