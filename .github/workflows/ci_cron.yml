@@ -16,9 +16,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
-          ruby-version: '3.3'
+          ruby-version: 3.4
       - run: bundle
       - run: rubocop
 
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.0-rc1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
 
     steps:
       - name: Configure git
@@ -50,7 +50,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -79,13 +79,13 @@ jobs:
                 "rails": "norails,rails61,rails70,rails71,rails72"
               },
               "3.2.6": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
               },
               "3.3.6": {
-                "rails": "norails,rails61,rails70,rails71,rails72,railsedge"
+                "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
               },
-              "3.4.0-rc1": {
-                "rails": "norails,rails61,rails70,rails71,rails72"
+              "3.4.1": {
+                "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
               }
             }
 
@@ -125,6 +125,50 @@ jobs:
 
   multiverse:
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        multiverse: [agent, ai, background, background_2, frameworks, httpclients, httpclients_2, rails, rest]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+
+  multiverse_services_1:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
     services:
       elasticsearch7:
         image: elasticsearch:7.16.2
@@ -138,7 +182,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
       elasticsearch8:
-        image: elasticsearch:8.4.2
+        image: elasticsearch:8.13.0
         env:
           discovery.type: single-node
           xpack.security.enabled: false
@@ -149,17 +193,64 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-      zookeeper:
-        image: bitnami/zookeeper
+      mongodb:
+        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
-          - 2181:2181
-        env:
-          ALLOW_ANONYMOUS_LOGIN: yes
+          - 27017:27017
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
         options: >-
-          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_1"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+
+  multiverse_services_2:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
       kafka:
         image: bitnami/kafka
         ports:
@@ -185,10 +276,133 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      mongodb:
-        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+      redis:
+        image: redis
         ports:
-          - 27017:27017
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_2"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+
+
+  multiverse_services_kafka:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      kafka:
+        image: bitnami/kafka
+        ports:
+          - 9092:9092
+        options: >-
+          --health-cmd "kafka-broker-api-versions.sh --version"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          ALLOW_PLAINTEXT_LISTENER: yes
+          KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+          KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
+      zookeeper:
+        image: bitnami/zookeeper
+        ports:
+          - 2181:2181
+        env:
+          ALLOW_ANONYMOUS_LOGIN: yes
+        options: >-
+          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="services_kafka"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+
+  multiverse_services_mysql_pg:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
       mysql:
         image: mysql:5.7
         env:
@@ -208,29 +422,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: >-
-          --health-cmd "rabbitmq-diagnostics -q check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, ai, background, background_2, database, kafka, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.0-rc1]
+        ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
+
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -243,12 +439,13 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
+        # This allows the cache in the following step to be able to write files to the directory needed for mysql
       - if: matrix.ruby-version == '2.4.10'
-        name: Prepare mysql dirextory
+        name: Prepare mysql directory
         run: sudo chown -R $USER /usr/local
 
       - if: matrix.ruby-version == '2.4.10'
@@ -259,7 +456,7 @@ jobs:
           path: /usr/local/mysql55
           key: mysql55-install
 
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && ( matrix.ruby-version == '2.4.10')
+      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
         name: Install mysql55
         run: sudo ./test/script/install_mysql55
 
@@ -280,13 +477,12 @@ jobs:
               sleep 1;
             fi
 
-
       - name: Run Multiverse Tests
         uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
+          command: bundle exec rake test:multiverse[group="services_mysql_pg"]
         env:
           VERBOSE_TEST_OUTPUT: true
           DB_PASSWORD: root
@@ -303,19 +499,21 @@ jobs:
         uses: ./.github/actions/annotate
 
 
+
+
   infinite_tracing:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.0-rc1]
+        ruby-version: [2.7.8, 3.0.7, 3.1.6, 3.2.6, 3.3.6, 3.4.1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@401c19e14f474b54450cd3905bb8b86e2c8509cf # tag v1.204.0
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 

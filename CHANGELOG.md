@@ -2,6 +2,18 @@
 
 ## dev
 
+- **Feature: Support Ruby 3.4.0**
+
+  The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
+
+- **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
+
+  In the previous major release, we dropped support for `disable_<library_name>` configuration options in favor of `instrumentation.<library_name>`. Previously, a DEBUG level log warning appeared whenever `disable_*` options were set to `true`, even for libraries (e.g. Action Dispatch) without equivalent `instrumentation.*` options:
+
+  >DEBUG : [DEPRECATED] configuration disable_<library_name> for <library_name> will be removed in the next major release. Use instrumentation.<library_name> with one of ["auto", "disabled", "prepend", "chain"]
+
+  This inaccurate warning has been removed. If you are disabling instrumentation using `instrumentation.<library_name>: disabled` or `NEW_RELIC_INSTRUMENTATION_<LIBRARY_NAME>=disabled`, please verify the option exists by consulting our [configuration documentation](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#instrumentation). If the option does not exist, check the ['Disabling' section](https://docs.newrelic.com/docs/apm/agents/ruby-agent/configuration/ruby-agent-configuration/#disabling) to see if there is a related option. We apologize for the confusion. [PR#3005](https://github.com/newrelic/newrelic-ruby-agent/pull/3005)
+
 - **Bugfix: Do not attempt to decorate logs with `nil` messages**
 
   The agent no longer attempts to add New Relic linking metadata to logs with `nil` messages. Thank you, [@arlando](https://github.com/arlando) for bringing this to our attention! [Issue#2985](https://github.com/newrelic/newrelic-ruby-agent/issues/2985) [PR#2986](https://github.com/newrelic/newrelic-ruby-agent/pull/2986)
@@ -614,7 +626,7 @@ Version 9.3.0 of the agent adds log-level filtering, adds custom attributes for 
   | --------------------------- | ------- | ------------------------------------------------------ | ------ |
   | `application_logging.forwarding.log_level` | `debug` | Sets the minimum log level for events forwarded to New Relic | `debug`, `info`, `warn`, `error`, `fatal`, `unknown` |
 
-  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb#L6-L17) to determine precedence.
+  This setting uses [Ruby's Logger::Severity constants integer values](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb#L6-L17) to determine precedence.
 
 - **Feature: Custom attributes for logs**
 

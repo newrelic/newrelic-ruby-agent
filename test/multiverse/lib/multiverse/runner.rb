@@ -100,14 +100,19 @@ module Multiverse
     GROUPS = {
       'agent' => %w[agent_only bare config_file_loading deferred_instrumentation high_security no_json json marshalling thread yajl],
       'ai' => %w[ruby_openai],
-      'background' => %w[delayed_job sidekiq resque],
+      'background' => %w[delayed_job resque],
       'background_2' => %w[rake],
-      'kafka' => %w[rdkafka],
-      'database' => %w[elasticsearch mongo redis sequel],
-      'rails' => %w[active_record active_record_pg active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
       'frameworks' => %w[grape padrino roda sinatra],
       'httpclients' => %w[async_http curb excon httpclient],
       'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
+      'rails' => %w[active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
+
+      # these need services running in github actions, so they are separated
+      'services_1' => %w[elasticsearch mongo bunny],
+      'services_2' => %w[redis sidekiq memcache],
+      'services_kafka' => %w[rdkafka ruby_kafka],
+      'services_mysql_pg' => %w[active_record active_record_pg],
+
       'infinite_tracing' => %w[infinite_tracing],
 
       'rest' => [] # Specially handled below
