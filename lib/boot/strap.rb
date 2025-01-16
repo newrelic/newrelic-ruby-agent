@@ -17,9 +17,6 @@
 #   - Ruby (tested v2.4+)
 #   - Bundler (included with Ruby, tested v1.17+)
 #
-# Note: The latest version of the New Relic Ruby agent will be used when
-# instrumenting your application using this method.
-#
 # Instructions:
 #   - First, make sure the New Relic Ruby agent exists on disk. For these
 #     instructions, we'll assume the agent exists at `/newrelic`.
