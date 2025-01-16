@@ -15,6 +15,12 @@ $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../test', __FILE__)
 $:.uniq!
 
+# TODO: OLD RAILS - 6.0, 6.1, 7.0
+# Suites related to these versions started failing because of an uninitialized
+# constant error related to Logger::Severity, regardless of Ruby version.
+# Explicitly requiring 'logger' seems to fix the problem
+# We can remove this workaround when we drop support for these Rails versions
+require 'logger'
 require 'rubygems'
 require 'rake'
 
