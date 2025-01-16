@@ -47,9 +47,9 @@ module NRBundlerPatch
   NR_AGENT_GEM = 'newrelic_rpm'
 
   def require(*_groups)
-    require_newrelic
-
     super
+
+    require_newrelic
   end
 
   def require_newrelic
