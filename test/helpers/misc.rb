@@ -135,7 +135,7 @@ end
 # special CI context. When in a local dev context or in a special CI context,
 # permit the test(s) to run.
 def skip_unless_special_ci
-  return if ENV.fetch('CI', nil).nil? || ENV.fetch('SPECIAL_CI', nil)
+  return if ENV.fetch('SPECIAL_CI', nil)
 
   skip 'This test only runs as part of the special CI workflow'
 end
