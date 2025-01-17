@@ -6,6 +6,10 @@
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
 
+- **Feature: Kubernetes APM auto-attach - new agent version precedent**
+
+  Previously, when a customer installed the Ruby agent via [Kubernetes APM auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/) and also had the Ruby agent listed in their `Gemfile`, the agent version in `Gemfile` would take precedence. Now, the agent version installed by auto-attach takes priority. [PR#3018](https://github.com/newrelic/newrelic-ruby-agent/pull/3018)
+
 - **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
 
   In the previous major release, we dropped support for `disable_<library_name>` configuration options in favor of `instrumentation.<library_name>`. Previously, a DEBUG level log warning appeared whenever `disable_*` options were set to `true`, even for libraries (e.g. Action Dispatch) without equivalent `instrumentation.*` options:
