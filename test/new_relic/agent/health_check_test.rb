@@ -270,6 +270,7 @@ class NewRelicHealthCheckTest < Minitest::Test
     with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '5') do
       health_check = NewRelic::Agent::HealthCheck.new
+
       assert_equal '/newrelic/apm/health', health_check.instance_variable_get(:@delivery_location)
     end
   end
