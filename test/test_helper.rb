@@ -15,12 +15,6 @@ $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../test', __FILE__)
 $:.uniq!
 
-# TODO: OLD RAILS - 6.0, 6.1, 7.0
-# Suites related to these versions started failing because of an uninitialized
-# constant error related to Logger::Severity, regardless of Ruby version.
-# Explicitly requiring 'logger' seems to fix the problem
-# We can remove this workaround when we drop support for these Rails versions
-require 'logger'
 require 'rubygems'
 require 'rake'
 
@@ -55,6 +49,7 @@ end
 
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
+require 'logger'
 NewRelic::Agent.require_test_helper
 
 # If these are set, many tests fail. We delete them from this process.
