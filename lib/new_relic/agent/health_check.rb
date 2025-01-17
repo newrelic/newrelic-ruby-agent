@@ -31,7 +31,7 @@ module NewRelic
       def create_and_run_health_check_loop
         return unless health_checks_enabled? && @continue
 
-        NewRelic::Agent.logger.debug('Agent control health check conditions met. Starting health checks.')
+        NewRelic::Agent.logger.debug('Agent Control health check conditions met. Starting health checks.')
         NewRelic::Agent.record_metric('Supportability/AgentControl/Health/enabled', 1)
 
         Thread.new do
@@ -41,7 +41,7 @@ module NewRelic
               write_file
               @continue = false if @status == SHUTDOWN
             rescue StandardError => e
-              NewRelic::Agent.logger.error("Aborting agent control health check. Error raised: #{e}")
+              NewRelic::Agent.logger.error("Aborting Agent Control health check. Error raised: #{e}")
               @continue = false
             end
           end
@@ -117,7 +117,7 @@ module NewRelic
 
         File.write(@file, contents)
       rescue StandardError => e
-        NewRelic::Agent.logger.error("Agent control health check raised an error while writing a file: #{e}")
+        NewRelic::Agent.logger.error("Agent Control health check raised an error while writing a file: #{e}")
         @continue = false
       end
 
@@ -131,7 +131,7 @@ module NewRelic
         nil
       rescue StandardError => e
         NewRelic::Agent.logger.error(
-          'Agent control health check raised an error while finding or creating the file path defined in ' \
+          'Agent Control health check raised an error while finding or creating the file path defined in ' \
           "NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION: #{e}"
         )
         @continue = false
@@ -144,7 +144,7 @@ module NewRelic
       def update_message(options)
         @status[:message] = sprintf(@status[:message], *options)
       rescue StandardError => e
-        NewRelic::Agent.logger.debug("Error raised while updating agent control health check message: #{e}." \
+        NewRelic::Agent.logger.debug("Error raised while updating Agent Control health check message: #{e}." \
           "Reverting to original message. options = #{options}, @status[:message] = #{@status[:message]}")
       end
     end

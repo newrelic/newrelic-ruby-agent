@@ -243,7 +243,7 @@ class NewRelicHealthCheckTest < Minitest::Test
         health_check.create_and_run_health_check_loop
       end
 
-      assert_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
+      assert_log_contains(log, 'Agent Control health check conditions met. Starting health checks.')
       refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_ENABLED not true')
       refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less')
     end
@@ -262,7 +262,7 @@ class NewRelicHealthCheckTest < Minitest::Test
       end
 
       assert_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_ENABLED not true')
-      refute_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
+      refute_log_contains(log, 'Agent Control health check conditions met. Starting health checks.')
     end
   end
 
@@ -288,7 +288,7 @@ class NewRelicHealthCheckTest < Minitest::Test
       end
 
       assert_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less')
-      refute_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
+      refute_log_contains(log, 'Agent Control health check conditions met. Starting health checks.')
     end
   end
 
