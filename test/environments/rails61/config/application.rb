@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'boot'
-
+require 'logger'
 require 'rails/all'
 require 'active_record/base'
 
