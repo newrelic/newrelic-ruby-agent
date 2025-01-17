@@ -6,6 +6,10 @@
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
 
+- **Feature: Kubernetes APM auto-attach - new agent version precedent**
+
+  Previously, when a customer installed the Ruby agent via [Kubernetes APM auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/) and also had the Ruby agent listed in their `Gemfile`, the agent version in `Gemfile` would take precedence. Now, the agent version installed by auto-attach takes priority. [PR#3018](https://github.com/newrelic/newrelic-ruby-agent/pull/3018)
+
 - **Feature: Add health checks when the agent runs within Agent Control**
 
   When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file will be created at the configured file location for every agent process. By default, this location is: '/newrelic/apm/health'. The health check files will be updated at the configured frequency, which defaults to every five seconds. [PR#2995](https://github.com/newrelic/newrelic-ruby-agent/pull/2995)
