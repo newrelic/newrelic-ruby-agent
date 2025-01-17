@@ -27,3 +27,4 @@ if RUBY_VERSION.split('.')[0..1].join('.').to_f >= 3.4
   gem 'mutex_m'
   gem 'ostruct'
 end
+gem 'logger'
