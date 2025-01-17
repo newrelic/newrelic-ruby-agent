@@ -10,7 +10,7 @@ module NewRelic
         @continue = true
         @status = HEALTHY
         # the following assignments may set @continue = false if they are invalid
-        set_fleet_id
+        set_enabled
         set_delivery_location
         set_frequency
       end
@@ -61,13 +61,13 @@ module NewRelic
 
       private
 
-      def set_fleet_id
-        @fleet_id = if ENV['NEW_RELIC_AGENT_CONTROL_FLEET_ID']
-          ENV['NEW_RELIC_AGENT_CONTROL_FLEET_ID']
+      def set_enabled
+        @enabled = if ENV['NEW_RELIC_AGENT_CONTROL_ENABLED'] == 'true'
+          true
         else
-          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_FLEET_ID not found, disabling health checks')
+          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_ENABLED not true, disabling health checks')
           @continue = false
-          nil
+          false
         end
       end
 
@@ -139,7 +139,7 @@ module NewRelic
       end
 
       def health_checks_enabled?
-        @fleet_id && @delivery_location && @frequency > 0
+        @enabled && @delivery_location && @frequency > 0
       end
 
       def update_message(options)

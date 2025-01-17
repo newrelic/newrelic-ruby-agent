@@ -55,7 +55,7 @@ class NewRelicHealthCheckTest < Minitest::Test
 
   def test_write_file_called_on_interval
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '3',
-      'NEW_RELIC_AGENT_CONTROL_FLEET_ID' => 'abc',
+      'NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       health_check = NewRelic::Agent::HealthCheck.new
       health_check.stub(:write_file, nil) do
@@ -68,7 +68,7 @@ class NewRelicHealthCheckTest < Minitest::Test
 
   def test_create_and_run_health_check_loop_exits_after_shutdown
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '3',
-      'NEW_RELIC_AGENT_CONTROL_FLEET_ID' => 'abc',
+      'NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       health_check = NewRelic::Agent::HealthCheck.new
       health_check.stub(:write_file, nil) do
@@ -235,7 +235,7 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_agent_health_started_if_required_info_present
-    with_environment('NEW_RELIC_AGENT_CONTROL_FLEET_ID' => 'landslide',
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => '/health',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '5') do
       log = with_array_logger(:debug) do
@@ -244,13 +244,13 @@ class NewRelicHealthCheckTest < Minitest::Test
       end
 
       assert_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
-      refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_FLEET_ID not found')
+      refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_ENABLED not true')
       refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION not found')
       refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less')
     end
   end
 
-  def test_agent_health_not_generated_if_agent_control_fleet_id_absent
+  def test_agent_health_not_generated_if_agent_control_enabled_missing
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => '/health',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '5') do
       log = with_array_logger(:debug) do
@@ -262,13 +262,13 @@ class NewRelicHealthCheckTest < Minitest::Test
         end
       end
 
-      assert_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_FLEET_ID not found')
+      assert_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_ENABLED not true')
       refute_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
     end
   end
 
   def test_agent_health_not_generated_if_delivery_location_absent
-    with_environment('NEW_RELIC_AGENT_CONTROL_FLEET_ID' => 'mykonos',
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '5') do
       log = with_array_logger(:debug) do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -285,7 +285,7 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_agent_health_not_generated_if_frequency_is_zero
-    with_environment('NEW_RELIC_AGENT_CONTROL_FLEET_ID' => 'anchors-away',
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => '/health',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '0') do
       log = with_array_logger(:debug) do
@@ -305,7 +305,7 @@ class NewRelicHealthCheckTest < Minitest::Test
   def test_agent_health_supportability_metric_generated_recorded_when_health_check_loop_starts
     NewRelic::Agent.instance.stats_engine.clear_stats
 
-    with_environment('NEW_RELIC_AGENT_CONTROL_FLEET_ID' => 'landslide',
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => '/health',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '5') do
       health_check = NewRelic::Agent::HealthCheck.new
@@ -316,7 +316,7 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_update_status_is_a_no_op_when_health_checks_disabled
-    with_environment('NEW_RELIC_AGENT_CONTROL_FLEET_ID' => nil,
+    with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'false',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => nil,
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '0') do
       health_check = NewRelic::Agent::HealthCheck.new
