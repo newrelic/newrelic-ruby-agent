@@ -49,7 +49,6 @@ end
 
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
-require 'logger'
 NewRelic::Agent.require_test_helper
 
 # If these are set, many tests fail. We delete them from this process.
