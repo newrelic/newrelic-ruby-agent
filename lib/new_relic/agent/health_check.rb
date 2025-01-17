@@ -77,9 +77,8 @@ module NewRelic
           # This does not create a valid path in Ruby, so remove the prefix when present
           ENV['NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION']&.gsub('file://', '')
         else
-          NewRelic::Agent.logger.debug('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION not found, disabling health checks')
-          @continue = false
-          nil
+          # The spec default is 'file:///newrelic/apm/health', but since we're just going to remove it anyway...
+          '/newrelic/apm/health'
         end
       end
 

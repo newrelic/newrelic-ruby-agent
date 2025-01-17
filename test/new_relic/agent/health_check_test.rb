@@ -245,7 +245,6 @@ class NewRelicHealthCheckTest < Minitest::Test
 
       assert_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
       refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_ENABLED not true')
-      refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION not found')
       refute_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY zero or less')
     end
   end
@@ -267,20 +266,11 @@ class NewRelicHealthCheckTest < Minitest::Test
     end
   end
 
-  def test_agent_health_not_generated_if_delivery_location_absent
+  def test_agent_health_falls_back_to_default_value_when_env_var_missing
     with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'true',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '5') do
-      log = with_array_logger(:debug) do
-        health_check = NewRelic::Agent::HealthCheck.new
-        # loop should exit before write_file is called
-        # raise an error if it's invoked
-        health_check.stub(:write_file, -> { raise 'kaboom!' }) do
-          health_check.create_and_run_health_check_loop
-        end
-      end
-
-      assert_log_contains(log, 'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION not found')
-      refute_log_contains(log, 'Agent control health check conditions met. Starting health checks.')
+      health_check = NewRelic::Agent::HealthCheck.new
+      assert_equal '/newrelic/apm/health', health_check.instance_variable_get(:@delivery_location)
     end
   end
 
@@ -317,7 +307,7 @@ class NewRelicHealthCheckTest < Minitest::Test
 
   def test_update_status_is_a_no_op_when_health_checks_disabled
     with_environment('NEW_RELIC_AGENT_CONTROL_ENABLED' => 'false',
-      'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => nil,
+      'NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'whatev',
       'NEW_RELIC_AGENT_CONTROL_HEALTH_FREQUENCY' => '0') do
       health_check = NewRelic::Agent::HealthCheck.new
 

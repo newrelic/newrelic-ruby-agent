@@ -2197,12 +2197,11 @@ module NewRelic
           :description => 'Boolean value that denotes whether agent control functionality should be enabled. At the moment, this functionality is limited to whether agent health should be reported. This configuration will be set using an environment variable by agent control, or one of its components, prior to agent startup.'
         },
         :'agent_control.health.delivery_location' => {
-          :default => nil,
-          :allow_nil => true,
+          :default => 'file:///newrelic/apm/health',
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A `file:` URI that specifies the fully qualified directory path for health file(s) to be written to. For example: `file:///var/lib/newrelic-super-agent/fleet/agents.d/<fleet_id>`. This configuration will be set by agent control, or one of its components, prior to agent startup.'
+          :description => 'A `file:` URI that specifies the fully qualified directory path for health file(s) to be written to. This defaults to: `file:///newrelic/apm/health`. This configuration will be set using an environment variable by agent control, or one of its components, prior to agent startup.'
         },
         :'agent_control.health.frequency' => {
           :default => 5,
