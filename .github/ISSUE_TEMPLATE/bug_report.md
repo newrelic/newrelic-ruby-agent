@@ -16,7 +16,7 @@ TIP: Do NOT share sensitive information, whether personal, proprietary, or other
 ## Expected Behavior
 Tell us what you expected to happen.
 
-## [Troubleshooting](https://discuss.newrelic.com/t/troubleshooting-frameworks/108787) or [NR Diag](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) results
+## [Troubleshooting](https://forum.newrelic.com/s/hubtopic/aAX8W0000008bSoWAI/troubleshooting-frameworks) or [NR Diag](https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/new-relic-diagnostics) results
 Provide any other relevant log data.
 TIP:  Scrub logs and diagnostic information for sensitive information 
 
