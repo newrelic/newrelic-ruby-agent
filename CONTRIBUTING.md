@@ -186,7 +186,7 @@ practices. Like all official New Relic open source projects, there's a related
 Community topic in the New Relic Explorers Hub. You can find this project's
 topic/threads under the "Ruby Agent" category here:
 
-[Explorer's Hub](https://forum.newrelic.com/s/)
+[Explorer's Hub](https://forum.newrelic.com/s/category/Category__c/Default)
 
 ## And Finally...
 
