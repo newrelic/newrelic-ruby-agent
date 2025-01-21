@@ -19,6 +19,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_health_file_written_to_delivery_location
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -33,6 +35,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_health_file_written_to_delivery_location_with_file_path_prefix
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'file://health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -81,6 +85,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_write_file_sets_continue_false_when_error
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         File.stub(:write, ->(arg1, arg2) { raise 'boom!' }) do
@@ -105,24 +111,9 @@ class NewRelicHealthCheckTest < Minitest::Test
     assert_equal 5, health_check.instance_variable_get(:@frequency)
   end
 
-  def test_create_file_path_sets_continue_false_when_error_raised
-    with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
-      NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
-        File.stub(:directory?, ->(arg1) { raise 'boom!' }) do
-          health_check = NewRelic::Agent::HealthCheck.new
-          # stub a valid health check, by setting @continue = true
-          health_check.instance_variable_set(:@continue, true)
-          health_check.send(:create_file_path)
-
-          refute(health_check.instance_variable_get(:@continue))
-        end
-      end
-    end
-  ensure
-    FileUtils.rm_rf('health')
-  end
-
   def test_yaml_file_has_healthy_field
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -136,6 +127,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_has_status_field
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -149,6 +142,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_has_last_error_field_when_status_not_healthy
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -165,6 +160,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_does_not_have_last_error_field_when_status_healthy
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -187,6 +184,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_has_same_start_time_unix_every_write
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, '1') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -205,6 +204,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_has_status_time_unix_nano
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, 'abc123') do
         health_check = NewRelic::Agent::HealthCheck.new
@@ -218,6 +219,8 @@ class NewRelicHealthCheckTest < Minitest::Test
   end
 
   def test_yaml_file_has_new_status_time_each_write
+    Dir.mkdir('health')
+
     with_environment('NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION' => 'health/') do
       NewRelic::Agent::GuidGenerator.stub(:generate_guid, '1') do
         health_check = NewRelic::Agent::HealthCheck.new

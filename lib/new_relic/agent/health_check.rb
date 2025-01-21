@@ -113,27 +113,11 @@ module NewRelic
       end
 
       def write_file
-        @file ||= "#{create_file_path}/#{file_name}"
+        @file ||= "#{@delivery_location}/#{file_name}"
 
         File.write(@file, contents)
       rescue StandardError => e
         NewRelic::Agent.logger.error("Agent Control health check raised an error while writing a file: #{e}")
-        @continue = false
-      end
-
-      def create_file_path
-        for abs_path in [File.expand_path(@delivery_location),
-          File.expand_path(File.join('', @delivery_location))] do
-          if File.directory?(abs_path) || (Dir.mkdir(abs_path) rescue nil)
-            return abs_path[%r{^(.*?)/?$}]
-          end
-        end
-        nil
-      rescue StandardError => e
-        NewRelic::Agent.logger.error(
-          'Agent Control health check raised an error while finding or creating the file path defined in ' \
-          "NEW_RELIC_AGENT_CONTROL_HEALTH_DELIVERY_LOCATION: #{e}"
-        )
         @continue = false
       end
 
@@ -145,7 +129,7 @@ module NewRelic
         @status[:message] = sprintf(@status[:message], *options)
       rescue StandardError => e
         NewRelic::Agent.logger.debug("Error raised while updating Agent Control health check message: #{e}." \
-          "Reverting to original message. options = #{options}, @status[:message] = #{@status[:message]}")
+          "options = #{options}, @status[:message] = #{@status[:message]}")
       end
     end
   end
