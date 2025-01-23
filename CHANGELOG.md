@@ -14,6 +14,10 @@
 
   When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file will be created at the configured file location for every agent process. By default, this location is: '/newrelic/apm/health'. The health check files will be updated at the configured frequency, which defaults to every five seconds. [PR#2995](https://github.com/newrelic/newrelic-ruby-agent/pull/2995)
 
+- **Feature: Add Redshift as recognized ActiveRecord adapter**
+
+  When the agent does not recognize an activerecord adapter, host, port, and database name information is not added to the datastore span. Redshift will now be treated like PostgreSQL, and the agent will save the host, port, and database name on the span. [PR#3032](https://github.com/newrelic/newrelic-ruby-agent/pull/3032)
+
 - **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
 
   In the previous major release, we dropped support for `disable_<library_name>` configuration options in favor of `instrumentation.<library_name>`. Previously, a DEBUG level log warning appeared whenever `disable_*` options were set to `true`, even for libraries (e.g. Action Dispatch) without equivalent `instrumentation.*` options:
