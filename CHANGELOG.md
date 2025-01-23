@@ -5,6 +5,10 @@
 - **Feature: Support Ruby 3.4.0**
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
+  
+- **Feature: Add instrumentation for aws-sdk-firehose**
+
+  The agent now has instrumentation for the [aws-sdk-firehose](https://rubygems.org/gems/aws-sdk-firehose) gem. [PR#2973](https://github.com/newrelic/newrelic-ruby-agent/pull/2973)
 
 - **Feature: Kubernetes APM auto-attach - new agent version precedent**
 
@@ -17,6 +21,10 @@
 - **Feature: Add Redshift as recognized ActiveRecord adapter**
 
   When the agent does not recognize an activerecord adapter, host, port, and database name information is not added to the datastore span. Redshift will now be treated like PostgreSQL, and the agent will save the host, port, and database name on the span. [PR#3032](https://github.com/newrelic/newrelic-ruby-agent/pull/3032)
+
+- **Feature: Add instrumentation for aws-sdk-kinesis**
+
+  The agent now has instrumentation for the [aws-sdk-kinesis](https://rubygems.org/gems/aws-sdk-kinesis) gem. It will record message broker segments for `get_records`, `put_record`, and `put_records` operations. All other operations will record standard segments. [PR#2974](https://github.com/newrelic/newrelic-ruby-agent/pull/2974)
 
 - **Bugfix: Stop emitting inaccurate debug-level log about deprecated configuration options**
 
