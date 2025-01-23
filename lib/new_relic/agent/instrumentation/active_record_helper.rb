@@ -225,7 +225,8 @@ module NewRelic
 
             'postgresql' => :postgres,
             'jdbcpostgresql' => :postgres,
-            'postgis' => :postgres
+            'postgis' => :postgres,
+            'redshift' => :postgres
           }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
