@@ -53,6 +53,7 @@ module OpenAIHelpers
   end
 
   def connection_client
+    client # can cause failure if this has never been created before on older versions for the test that uses connection_client
     Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('4.3.2') ? OpenAI::Client : client
   end
 
