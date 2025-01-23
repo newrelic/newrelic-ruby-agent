@@ -52,6 +52,13 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal(:postgres, statement.adapter)
   end
 
+  def test_adapter_from_config_string_redshift
+    config = {:adapter => 'redshift'}
+    statement = NewRelic::Agent::Database::Statement.new('some query', config)
+
+    assert_equal(:postgres, statement.adapter)
+  end
+
   def test_adapter_from_config_trilogy
     config = {:adapter => 'trilogy'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
