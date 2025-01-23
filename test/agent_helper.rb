@@ -115,6 +115,13 @@ def assert_log_contains(log, message)
     "Could not find message: '#{message.inspect}'. Log contained: #{lines.join("\n")}"
 end
 
+def refute_log_contains(log, message)
+  lines = log.array
+
+  refute (lines.any? { |line| line.match(message) }),
+    "Found message: '#{message.inspect}'. Log contained: #{lines.join("\n")}"
+end
+
 def assert_audit_log_contains(audit_log_contents, needle)
   # Original request bodies dumped to the log have symbol keys, but once
   # they go through a dump/load, they're strings again, so we strip

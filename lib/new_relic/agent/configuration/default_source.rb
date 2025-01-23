@@ -2188,6 +2188,28 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Specify a list of exceptions you do not want the agent to strip when [strip_exception_messages](#strip_exception_messages-enabled) is `true`. Separate exceptions with a comma. For example, `"ImportantException,PreserveMessageException"`.'
         },
+        # Agent Control
+        :'agent_control.enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Boolean value that denotes whether Agent Control functionality should be enabled. At the moment, this functionality is limited to whether agent health should be reported. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
+        },
+        :'agent_control.health.delivery_location' => {
+          :default => '/newrelic/apm/health',
+          :public => false,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'A `file:` URI that specifies the fully qualified directory path for health file(s) to be written to. This defaults to: `file:///newrelic/apm/health`. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
+        },
+        :'agent_control.health.frequency' => {
+          :default => 5,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => false,
+          :description => 'The interval, in seconds, of how often the health file(s) will be written to. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
+        },
         # Thread profiler
         :'thread_profiler.enabled' => {
           :default => DefaultSource.thread_profiler_enabled,

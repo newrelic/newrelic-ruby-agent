@@ -455,6 +455,8 @@ module NewRelic
       end
 
       def handle_error_response(response, endpoint)
+        NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::HTTP_ERROR, [response.code, endpoint])
+
         case response
         when Net::HTTPRequestTimeOut,
              Net::HTTPTooManyRequests,
@@ -637,9 +639,13 @@ module NewRelic
       def send_request(opts)
         request = prep_request(opts)
         response = relay_request(request, opts)
-        return response if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
 
-        handle_error_response(response, opts[:endpoint])
+        if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPAccepted)
+          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::HEALTHY)
+          response
+        else
+          handle_error_response(response, opts[:endpoint])
+        end
       end
 
       def log_response(response)
