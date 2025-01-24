@@ -73,8 +73,7 @@ common: &default_settings
   # application_logging.forwarding.labels.exclude: []
 
   # Sets the minimum level a log event must have to be forwarded to New Relic.
-  # This is based on the integer values of Ruby's Logger::Severity constants:
-  # https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb
+  # This is based on the integer values of Ruby's Logger::Severity constants.
   # The intention is to forward logs with the level given to the configuration, as
   # well as any logs with a higher level of severity.
   # For example, setting this value to "debug" will forward all log events to New
@@ -129,43 +128,42 @@ common: &default_settings
   # Here is some Ruby source code that defines a render_png instance method for an
   # Image class and a notify class method for a User class, both within a
   # MyCompany module namespace:
-  #
+  # ``rb
   # module MyCompany
-  #   class Image
-  #     def render_png
-  #       # code to render a PNG
-  #     end
-  #   end
-  #
-  #   class User
-  #     def self.notify
-  #       # code to notify users
-  #     end
-  #   end
+  # class Image
+  # def render_png
+  # # code to render a PNG
   # end
-  #
+  # end
+  # class User
+  # def self.notify
+  # # code to notify users
+  # end
+  # end
+  # end
+  # `
   # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
-  #
+  # `yaml
   # automatic_custom_instrumentation_method_list:
   # - MyCompany::Image#render_png
   # - MyCompany::User.notify
-  #
+  # `
   # That configuration example uses YAML array syntax to specify both methods.
   # Alternatively, you can use a comma-delimited string:
-  #
+  # `yaml
   # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png,
   # MyCompany::User.notify'
-  #
+  # `
   # Whitespace around the comma(s) in the list is optional. When configuring the
   # agent with a list of methods via the
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST environment variable,
   # use this comma-delimited string format:
-  #
+  # `sh
   # export
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png,
   # MyCompany::User.notify'
-  #
+  # ``
   # automatic_custom_instrumentation_method_list: []
 
   # Specify a list of constants that should prevent the agent from starting
@@ -322,6 +320,18 @@ common: &default_settings
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
+  # Cross application tracing is deprecated in favor of distributed tracing.
+  # Distributed tracing is on by default for Ruby agent versions 8.0.0 and above.
+  # Middlewares are not required to support distributed tracing.
+  # To continue using cross application tracing, update the following options in
+  # your newrelic.yml configuration file:
+  # ``yaml
+  # # newrelic.yml
+  # cross_application_tracer:
+  # enabled: true
+  # distributed_tracing:
+  # enabled: false
+  # ``
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
@@ -452,6 +462,14 @@ common: &default_settings
   # Controls auto-instrumentation of Async::HTTP at start up. May be one of: auto,
   # prepend, chain, disabled.
   # instrumentation.async_http: auto
+
+  # Controls auto-instrumentation of the aws-sdk-firehose library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_firehose: auto
+
+  # Controls auto-instrumentation of the aws-sdk-kinesis library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_kinesis: auto
 
   # Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May
   # be one of auto, prepend, chain, disabled.
@@ -793,7 +811,7 @@ common: &default_settings
   # strip_exception_messages.allowed_classes: ""
 
   # If true, the agent strips messages from all exceptions except those in the
-  # allowlist. Enabled automatically in high security mode.
+  # allowed classes list. Enabled automatically in high security mode.
   # strip_exception_messages.enabled: false
 
   # An array of strings to specify which keys and/or values inside a Stripe
@@ -949,7 +967,7 @@ common: &default_settings
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
-
+  
   # If true, the security agent loads (the agent performs a Ruby 'require')
   # security.agent.enabled: false
 

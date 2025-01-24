@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.17.0
 
 - **Feature: Support Ruby 3.4.0**
 
