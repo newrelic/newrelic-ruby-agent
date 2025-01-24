@@ -123,7 +123,7 @@ module NewRelic
               database = config && config[:database]
             end
           rescue
-            NewRelic::Agent.logger.debug("Failed to retrieve ActiveRecord host port and database details for adapter: #{config && config[:adapter]}")
+            NewRelic::Agent.logger.debug("Failed to retrieve ActiveRecord host, port, and database details for adapter: #{config && config[:adapter]}")
           end
 
           segment = Tracer.start_datastore_segment(product: product,
