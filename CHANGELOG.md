@@ -20,7 +20,7 @@
 
 - **Feature: Add Redshift as recognized ActiveRecord adapter**
 
-  When the agent does not recognize an activerecord adapter, host, port, and database name information is not added to the datastore span. Redshift will now be treated like PostgreSQL, and the agent will save the host, port, and database name on the span. [PR#3032](https://github.com/newrelic/newrelic-ruby-agent/pull/3032)
+  When the agent does not recognize an ActiveRecord adapter, the host, port, and database name information is not added to the datastore span. Redshift will now be treated like PostgreSQL, and the agent will save the host, port, and database name on the span. [PR#3032](https://github.com/newrelic/newrelic-ruby-agent/pull/3032)
 
 - **Feature: Add instrumentation for aws-sdk-kinesis**
 
