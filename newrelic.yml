@@ -453,6 +453,14 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.async_http: auto
 
+  # Controls auto-instrumentation of the aws-sdk-firehose library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_firehose: auto
+
+  # Controls auto-instrumentation of the aws-sdk-kinesis library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_kinesis: auto
+
   # Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May
   # be one of auto, prepend, chain, disabled.
   # instrumentation.aws_sdk_lambda: auto
@@ -793,7 +801,7 @@ common: &default_settings
   # strip_exception_messages.allowed_classes: ""
 
   # If true, the agent strips messages from all exceptions except those in the
-  # allowlist. Enabled automatically in high security mode.
+  # allowed classes list. Enabled automatically in high security mode.
   # strip_exception_messages.enabled: false
 
   # An array of strings to specify which keys and/or values inside a Stripe
