@@ -278,9 +278,10 @@ module NewRelic
         MYSQL2_PREFIX = 'mysql2'.freeze
         SQLITE_PREFIX = 'sqlite'.freeze
         TRILOGY_PREFIX = 'trilogy'.freeze
+        REDSHIFT_PREFIX = 'redshift'.freeze
 
         def symbolized_adapter(adapter)
-          if adapter.start_with?(POSTGRES_PREFIX) || adapter == POSTGIS_PREFIX
+          if adapter.start_with?(POSTGRES_PREFIX) || adapter == POSTGIS_PREFIX || adapter == REDSHIFT_PREFIX
             :postgres
           elsif adapter == MYSQL_PREFIX
             :mysql

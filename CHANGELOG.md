@@ -18,6 +18,10 @@
 
   When the agent is started within an [Agent Control](https://docs-preview.newrelic.com/docs/new-relic-agent-control) environment, a health check file will be created at the configured file location for every agent process. By default, this location is: '/newrelic/apm/health'. The health check files will be updated at the configured frequency, which defaults to every five seconds. [PR#2995](https://github.com/newrelic/newrelic-ruby-agent/pull/2995)
 
+- **Feature: Add Redshift as recognized ActiveRecord adapter**
+
+  When the agent does not recognize an ActiveRecord adapter, the host, port, and database name information is not added to the datastore span. Redshift will now be treated like PostgreSQL, and the agent will save the host, port, and database name on the span. [PR#3032](https://github.com/newrelic/newrelic-ruby-agent/pull/3032)
+
 - **Feature: Add instrumentation for aws-sdk-kinesis**
 
   The agent now has instrumentation for the [aws-sdk-kinesis](https://rubygems.org/gems/aws-sdk-kinesis) gem. It will record message broker segments for `get_records`, `put_record`, and `put_records` operations. All other operations will record standard segments. [PR#2974](https://github.com/newrelic/newrelic-ruby-agent/pull/2974)
