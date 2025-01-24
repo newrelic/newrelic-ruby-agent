@@ -322,18 +322,6 @@ common: &default_settings
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
-  # Cross application tracing is deprecated in favor of distributed tracing.
-  # Distributed tracing is on by default for Ruby agent versions 8.0.0 and above.
-  # Middlewares are not required to support distributed tracing.
-  # To continue using cross application tracing, update the following options in
-  # your newrelic.yml configuration file:
-  # ``yaml
-  # # newrelic.yml
-  # cross_application_tracer:
-  # enabled: true
-  # distributed_tracing:
-  # enabled: false
-  # ``
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
