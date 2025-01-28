@@ -1466,6 +1466,13 @@ module NewRelic
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
         },
         # Elasticsearch
+        :'elasticsearch.capture_cluster_name' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, the agent captures the Elasticsearch cluster name in transaction traces.'
+        },
         :'elasticsearch.capture_queries' => {
           :default => true,
           :public => true,
