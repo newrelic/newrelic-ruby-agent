@@ -2730,7 +2730,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "If `true`, the security agent loads (the agent performs a Ruby 'require')"
+          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
         },
         :'security.enabled' => {
           :default => false,
