@@ -4,6 +4,7 @@
 
 require 'simplecov'
 require 'socket'
+require 'logger'
 require_relative 'options'
 
 module Performance
