@@ -60,16 +60,3 @@ jobs:
 
     - name: Publish newrelic-infinite_tracing to rubygems.org
       run: ruby ./.github/workflows/scripts/rubygems-publish.rb infinite_tracing/newrelic-infinite_tracing
-
-    - name: Create release tags for Lambda and K8s Init Containers
-      run: |
-        RELEASE_TITLE="New Relic Ruby Agent ${GITHUB_REF}.0"
-        RELEASE_TAG="${GITHUB_REF}.0_ruby"
-        RELEASE_NOTES="Automated release for [Ruby Agent ${GITHUB_REF}](https://github.com/newrelic/newrelic-ruby-agent/releases/tag/${GITHUB_REF})"
-        gh auth login --with-token <<< $GH_RELEASE_TOKEN
-        echo "newrelic/newrelic-lambda-layers - Releasing ${RELEASE_TITLE} with tag ${RELEASE_TAG}"
-        gh release create "${RELEASE_TAG}" --title=${RELEASE_TITLE} --repo=newrelic/newrelic-lambda-layers --notes=${RELEASE_NOTES}
-        echo "newrelic/newrelic-agent-init-container - Releasing ${RELEASE_TITLE} with tag ${RELEASE_TAG}"
-        gh release create "${RELEASE_TAG}" --title=${RELEASE_TITLE} --repo=newrelic/newrelic-agent-init-container --notes=${RELEASE_NOTES}
-      env:
-        GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
