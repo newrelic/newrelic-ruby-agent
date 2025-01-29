@@ -279,6 +279,8 @@ class BunnyTest < Minitest::Test
 
     wait_until_not_nil(5) { txn }
 
+    puts txn.inspect
+    puts '***** test_noticed_error_at_segment_and_txn_on_error in bunny *****'
     assert_segment_noticed_error txn, /^MessageBroker\/RabbitMQ/, 'Timeout::Error', /timeout/i
     assert_transaction_noticed_error txn, 'Timeout::Error'
   end

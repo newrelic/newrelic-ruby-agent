@@ -974,13 +974,22 @@ end
 # selects the last segment with a noticed_error and checks
 # the expectations against it.
 def assert_segment_noticed_error(txn, segment_name, error_classes, error_message)
+  puts '***** txn *****'
+  puts txn.inspect
+
   error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
+
+  puts '***** error_segment *****'
+  puts error_segment.inspect
 
   assert error_segment, 'Expected at least one segment with a noticed_error'
 
   assert_match_or_equal segment_name, error_segment.name
 
   noticed_error = error_segment.noticed_error
+
+  puts '***** noticed error *****'
+  puts noticed_error.inspect
 
   assert_match_or_equal error_classes, noticed_error.exception_class_name
   assert_match_or_equal error_message, noticed_error.message
