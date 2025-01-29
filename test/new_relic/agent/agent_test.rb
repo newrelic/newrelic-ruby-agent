@@ -335,11 +335,23 @@ module NewRelic
         @agent.send(:connect)
 
         assert_predicate(@agent, :connected?)
+
+        # status should be healthy because the retry successfully connects
+        assert_equal NewRelic::Agent::HealthCheck::HEALTHY, @agent.health_check.instance_variable_get(:@status)
       end
 
       def test_connect_does_not_retry_if_keep_retrying_false
         @agent.service.expects(:connect).once.raises(Timeout::Error)
         @agent.send(:connect, :keep_retrying => false)
+      end
+
+      def test_agent_health_status_set_to_failed_to_connect
+        # stub a valid health check, by setting @continue = true
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.service.expects(:connect).once.raises(Timeout::Error)
+        @agent.send(:connect, :keep_retrying => false)
+
+        assert_equal NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT, @agent.health_check.instance_variable_get(:@status)
       end
 
       def test_connect_does_not_retry_on_license_error
@@ -562,6 +574,16 @@ module NewRelic
         assert_match(/No application name configured/i, logmsg)
       end
 
+      def test_health_status_updated_if_no_app_name_configured
+        with_config(:app_name => false) do
+          # stub a valid health check, by setting @continue = true
+          @agent.health_check.instance_variable_set(:@continue, true)
+          @agent.start
+        end
+
+        assert_equal NewRelic::Agent::HealthCheck::MISSING_APP_NAME, @agent.health_check.instance_variable_get(:@status)
+      end
+
       def test_harvest_from_container
         container = mock
         harvested_items = %w[foo bar baz]
@@ -750,6 +772,17 @@ module NewRelic
         refute_empty matching_lines, 'logs should say the agent is disconnecting'
       end
 
+      def test_force_disconnect_sets_health_status
+        @agent.instance_variable_set(:@service, nil)
+        @agent.stubs(:sleep)
+        error = NewRelic::Agent::ForceDisconnectException.new
+        # stub a valid health check, by setting @continue = true
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.handle_force_disconnect(error)
+
+        assert_equal NewRelic::Agent::HealthCheck::FORCED_DISCONNECT, @agent.health_check.instance_variable_get(:@status)
+      end
+
       def test_discarding_logs_message
         @agent.service.stubs(:send).raises(UnrecoverableServerException)
 
@@ -800,6 +833,28 @@ module NewRelic
         worker.kill
 
         assert worker.join(1), 'Worker thread hang on shutdown'
+      end
+
+      def test_agent_health_status_set_to_shutdown_when_healthy
+        # stub a valid health check, by setting @continue = true
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.setup_and_start_agent
+
+        assert_equal NewRelic::Agent::HealthCheck::HEALTHY, @agent.health_check.instance_variable_get(:@status)
+
+        @agent.shutdown
+
+        assert_equal NewRelic::Agent::HealthCheck::SHUTDOWN, @agent.health_check.instance_variable_get(:@status)
+      end
+
+      def test_agent_health_status_when_not_healthy_is_same_after_shutdown
+        # stub a valid health check, by setting @continue = true
+        @agent.health_check.instance_variable_set(:@continue, true)
+        @agent.setup_and_start_agent
+        @agent.health_check.instance_variable_set(:@status, NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
+        @agent.shutdown
+
+        assert_equal NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY, @agent.health_check.instance_variable_get(:@status)
       end
     end
 

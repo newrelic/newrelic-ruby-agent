@@ -6,7 +6,7 @@
 #       Delayed extensions are disabled by default in Sidekiq 5 and 6 and
 #       were removed entirely in Sidekiq 7.
 #
-#       see https://github.com/mperham/sidekiq/issues/5076 for the discussion
+#       see https://github.com/sidekiq/sidekiq/issues/5076 for the discussion
 #       of the removal, which includes mentions of alternatives
 if defined?(Sidekiq::VERSION) && Sidekiq::VERSION < '7.0.0'
   class Sidekiq::Extensions::DelayedClass

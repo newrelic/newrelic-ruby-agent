@@ -13,6 +13,7 @@ require 'new_relic/traced_thread'
 require 'new_relic/coerce'
 require 'new_relic/agent/autostart'
 require 'new_relic/agent/harvester'
+require 'new_relic/agent/health_check'
 require 'new_relic/agent/hostname'
 require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
@@ -88,6 +89,7 @@ module NewRelic
       end
 
       def init_components
+        @health_check = HealthCheck.new
         @service = NewRelicService.new
         @events = EventListener.new
         @stats_engine = StatsEngine.new
@@ -139,6 +141,8 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
+        # the agent control health check file generator
+        attr_reader :health_check
         # the statistics engine that holds all the timeslice data
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions

@@ -109,7 +109,7 @@ Multiverse groups collect multiple suites together within a shared broad topic. 
 ```shell
 # database = group name
 rake 'test:multiverse[group=database]'
-``
+```
 
 You can pass these additional parameters to the test:multiverse rake task to control how tests are run:
 

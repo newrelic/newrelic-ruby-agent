@@ -877,7 +877,7 @@ Naming/VariableNumber:
 Performance/BindCall:
   Enabled: false
 
-# TODO: OLD RUBIES - Requites 2.5
+# TODO: OLD RUBIES - Requires 2.5
 Performance/DeletePrefix:
   Enabled: false
 

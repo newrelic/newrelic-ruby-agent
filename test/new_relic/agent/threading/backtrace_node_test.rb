@@ -7,15 +7,22 @@ require 'new_relic/agent/threading/backtrace_node'
 
 module NewRelic::Agent::Threading
   class BacktraceNodeTest < Minitest::Test
-    SINGLE_LINE = "irb.rb:69:in `catch'"
-
     def setup
+      @single_line = ruby_3_4_0_or_above? ? "irb.rb:69:in 'Kernel#catch'" : "irb.rb:69:in `catch'"
       @node = BacktraceRoot.new
-      @single_trace = [
-        "irb.rb:69:in `catch'",
-        "irb.rb:69:in `start'",
-        "irb:12:in `<main>'"
-      ]
+      @single_trace = if ruby_3_4_0_or_above?
+        [
+          "irb.rb:69:in 'Kernel#catch'",
+          "irb.rb:69:in 'Object#start'",
+          "irb:12:in '<main>'"
+        ]
+      else
+        [
+          "irb.rb:69:in `catch'",
+          "irb.rb:69:in `start'",
+          "irb:12:in `<main>'"
+        ]
+      end
     end
 
     def assert_backtrace_trees_equal(a, b, original_a = a, original_b = b)
@@ -43,12 +50,18 @@ module NewRelic::Agent::Threading
     end
 
     def test_single_node_converts_to_array
-      line = "irb.rb:69:in `catch'"
+      line = ruby_3_4_0_or_above? ? "irb.rb:69:in 'Kernel#catch'" : "irb.rb:69:in `catch'"
       node = BacktraceNode.new(line)
       convert_nodes_to_array([node])
 
+      expected = if ruby_3_4_0_or_above?
+        ['irb.rb', 'Kernel#catch', 69]
+      else
+        ['irb.rb', 'catch', 69]
+      end
+
       assert_equal([
-        ['irb.rb', 'catch', 69],
+        expected,
         0, 0,
         []
       ],
@@ -56,18 +69,30 @@ module NewRelic::Agent::Threading
     end
 
     def test_multiple_nodes_converts_to_array
-      line = "irb.rb:69:in `catch'"
-      child_line = "bacon.rb:42:in `yum'"
+      line = ruby_3_4_0_or_above? ? "irb.rb:69:in 'Kernel#catch'" : "irb.rb:69:in `catch'"
+      child_line = ruby_3_4_0_or_above? ? "bacon.rb:42:in 'Bacon#yum'" : "bacon.rb:42:in `yum'"
       node = create_node(line)
       child_node = create_node(child_line, node)
       convert_nodes_to_array([node, child_node])
 
+      expected_1 = if ruby_3_4_0_or_above?
+        ['irb.rb', 'Kernel#catch', 69]
+      else
+        ['irb.rb', 'catch', 69]
+      end
+
+      expected_2 = if ruby_3_4_0_or_above?
+        ['bacon.rb', 'Bacon#yum', 42]
+      else
+        ['bacon.rb', 'yum', 42]
+      end
+
       assert_equal([
-        ['irb.rb', 'catch', 69],
+        expected_1,
         0, 0,
         [
           [
-            ['bacon.rb', 'yum', 42],
+            expected_2,
             0, 0,
             []
           ]
@@ -76,13 +101,22 @@ module NewRelic::Agent::Threading
         node.as_array)
     end
 
+    def test_nodes_in_ruby_3_4_work_with_class_methods
+    end
+
     def test_nodes_without_line_numbers
-      line = "transaction_sample_buffer.rb:in `visit_node'"
+      line = ruby_3_4_0_or_above? ? "transaction_sample_buffer.rb:in 'TransactionSampleBuffer#visit_node'" : "transaction_sample_buffer.rb:in `visit_node'"
       node = create_node(line)
       convert_nodes_to_array([node])
 
+      expected = if ruby_3_4_0_or_above?
+        ['transaction_sample_buffer.rb', 'TransactionSampleBuffer#visit_node', -1]
+      else
+        ['transaction_sample_buffer.rb', 'visit_node', -1]
+      end
+
       assert_equal([
-        ['transaction_sample_buffer.rb', 'visit_node', -1],
+        expected,
         0, 0,
         []
       ],
@@ -90,7 +124,7 @@ module NewRelic::Agent::Threading
     end
 
     def test_gracefully_handle_bad_values_in_to_array
-      node = BacktraceNode.new(SINGLE_LINE)
+      node = BacktraceNode.new(@single_line)
       node.stubs(:parse_backtrace_frame).returns(['irb.rb', 'catch', 'blarg'])
       node.runnable_count = Rational(10, 1)
       convert_nodes_to_array([node])
@@ -104,8 +138,8 @@ module NewRelic::Agent::Threading
     end
 
     def test_add_child_twice
-      parent = BacktraceNode.new(SINGLE_LINE)
-      child = BacktraceNode.new(SINGLE_LINE)
+      parent = BacktraceNode.new(@single_line)
+      child = BacktraceNode.new(@single_line)
 
       parent.add_child_unless_present(child)
       parent.add_child_unless_present(child)
@@ -137,17 +171,33 @@ module NewRelic::Agent::Threading
     end
 
     def test_aggregate_builds_tree_from_diverging_traces
-      backtrace1 = [
-        "baz.rb:3:in `baz'",
-        "bar.rb:2:in `bar'",
-        "foo.rb:1:in `foo'"
-      ]
+      backtrace1 = if ruby_3_4_0_or_above?
+        [
+          "baz.rb:3:in 'Object#baz'",
+          "bar.rb:2:in 'Object#bar'",
+          "foo.rb:1:in 'Object#foo'"
+        ]
+      else
+        [
+          "baz.rb:3:in `baz'",
+          "bar.rb:2:in `bar'",
+          "foo.rb:1:in `foo'"
+        ]
+      end
 
-      backtrace2 = [
-        "wiggle.rb:3:in `wiggle'",
-        "qux.rb:2:in `qux'",
-        "foo.rb:1:in `foo'"
-      ]
+      backtrace2 = if ruby_3_4_0_or_above?
+        [
+          "wiggle.rb:3:in 'Object#wiggle'",
+          "qux.rb:2:in 'Object#qux'",
+          "foo.rb:1:in 'Object#foo'"
+        ]
+      else
+        [
+          "wiggle.rb:3:in `wiggle'",
+          "qux.rb:2:in `qux'",
+          "foo.rb:1:in `foo'"
+        ]
+      end
 
       @node.aggregate(backtrace1)
       @node.aggregate(backtrace2)
@@ -178,12 +228,22 @@ module NewRelic::Agent::Threading
     end
 
     def test_aggregate_limits_recorded_depth
-      deep_backtrace = (0..2000).to_a.map { |i| "foo.rb:#{i}:in `foo'" }
+      deep_backtrace = (0..2000).to_a.map { |i| ruby_3_4_0_or_above? ? "foo.rb:#{i}:in 'Foo#foo'" : "foo.rb:#{i}:in `foo'" }
 
       root = BacktraceRoot.new
       root.aggregate(deep_backtrace)
 
       assert_equal(MAX_THREAD_PROFILE_DEPTH, root.flattened.size)
+    end
+
+    private
+
+    # TODO: OLD RUBIES < 3.4
+    # Ruby 3.4 introduced a new format for backtraces
+    # These tests have examples with the old the and new formats
+    # When we drop support for Ruby 3.3, we can remove the condition
+    def ruby_3_4_0_or_above?
+      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
     end
   end
 end

@@ -116,10 +116,14 @@ module NewRelic
           port_path_or_id = nil
           database = nil
 
-          if ActiveRecordHelper::InstanceIdentification.supported_adapter?(config)
-            host = ActiveRecordHelper::InstanceIdentification.host(config)
-            port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
-            database = config && config[:database]
+          begin
+            if ActiveRecordHelper::InstanceIdentification.supported_adapter?(config)
+              host = ActiveRecordHelper::InstanceIdentification.host(config)
+              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
+              database = config && config[:database]
+            end
+          rescue
+            NewRelic::Agent.logger.debug("Failed to retrieve ActiveRecord host, port, and database details for adapter: #{config && config[:adapter]}")
           end
 
           segment = Tracer.start_datastore_segment(product: product,

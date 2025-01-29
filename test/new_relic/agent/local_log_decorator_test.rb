@@ -77,6 +77,13 @@ module NewRelic::Agent
         assert_equal decorated_message, "#{MESSAGE} #{METADATA_STRING}"
       end
 
+      def test_does_not_decorate_if_message_is_nil
+        metadata_stubs
+        decorated_message = LocalLogDecorator.decorate(nil)
+
+        assert_nil(decorated_message)
+      end
+
       def test_decorate_puts_metadata_at_end_of_first_newline
         metadata_stubs
         message = "This is a test of the Emergency Alert System\n this is only a test...."

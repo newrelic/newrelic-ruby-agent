@@ -74,7 +74,7 @@ common: &default_settings
 
   # Sets the minimum level a log event must have to be forwarded to New Relic.
   # This is based on the integer values of Ruby's Logger::Severity constants:
-  # https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
+  # https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb
   # The intention is to forward logs with the level given to the configuration, as
   # well as any logs with a higher level of severity.
   # For example, setting this value to "debug" will forward all log events to New
@@ -453,6 +453,14 @@ common: &default_settings
   # prepend, chain, disabled.
   # instrumentation.async_http: auto
 
+  # Controls auto-instrumentation of the aws-sdk-firehose library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_firehose: auto
+
+  # Controls auto-instrumentation of the aws-sdk-kinesis library at start-up. May
+  # be one of auto, prepend, chain, disabled.
+  # instrumentation.aws_sdk_kinesis: auto
+
   # Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May
   # be one of auto, prepend, chain, disabled.
   # instrumentation.aws_sdk_lambda: auto
@@ -793,7 +801,7 @@ common: &default_settings
   # strip_exception_messages.allowed_classes: ""
 
   # If true, the agent strips messages from all exceptions except those in the
-  # allowlist. Enabled automatically in high security mode.
+  # allowed classes list. Enabled automatically in high security mode.
   # strip_exception_messages.enabled: false
 
   # An array of strings to specify which keys and/or values inside a Stripe
@@ -949,8 +957,8 @@ common: &default_settings
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
-  
-  # If true, the security agent loads (the agent performs a Ruby 'require')
+
+  # If true, the security agent is loaded (a Ruby 'require' is performed)
   # security.agent.enabled: false
 
   # The port the application is listening on. This setting is mandatory for

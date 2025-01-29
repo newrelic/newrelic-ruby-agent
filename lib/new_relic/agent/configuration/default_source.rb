@@ -139,7 +139,7 @@ module NewRelic
               case Rails::VERSION::MAJOR
               when 3
                 :rails3
-              when 4..7
+              when 4..8
                 :rails_notifications
               else
                 ::NewRelic::Agent.logger.warn("Detected untested Rails version #{Rails::VERSION::STRING}")
@@ -858,7 +858,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
-            This is based on the integer values of Ruby's `Logger::Severity` constants: https://github.com/ruby/ruby/blob/master/lib/logger/severity.rb
+            This is based on the integer values of [Ruby's `Logger::Severity` constants](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
 
             The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
 
@@ -1310,6 +1310,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :aliases => %i[disable_active_job],
           :allowed_from_server => false,
           :description => 'If `true`, disables Active Job instrumentation.'
         },
@@ -1552,6 +1553,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start-up. May be one of: `auto`, `prepend`, `chain`, `disabled`.'
         },
+        :'instrumentation.aws_sdk_firehose' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the aws-sdk-firehose library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
         :'instrumentation.aws_sdk_lambda' => {
           :default => 'auto',
           :documentation_default => 'auto',
@@ -1560,6 +1570,15 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of the aws_sdk_lambda library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
+        },
+        :'instrumentation.aws_sdk_kinesis' => {
+          :default => 'auto',
+          :documentation_default => 'auto',
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of the aws-sdk-kinesis library at start-up. May be one of `auto`, `prepend`, `chain`, `disabled`.'
         },
         :'instrumentation.ruby_kafka' => {
           :default => 'auto',
@@ -2177,7 +2196,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If true, the agent strips messages from all exceptions except those in the [allowlist](#strip_exception_messages-allowlist). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
+          :description => 'If true, the agent strips messages from all exceptions except those in the [allowed classes list](#strip_exception_messages-allowed_classes). Enabled automatically in [high security mode](/docs/accounts-partnerships/accounts/security/high-security).'
         },
         :'strip_exception_messages.allowed_classes' => {
           :default => '',
@@ -2186,6 +2205,28 @@ module NewRelic
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Specify a list of exceptions you do not want the agent to strip when [strip_exception_messages](#strip_exception_messages-enabled) is `true`. Separate exceptions with a comma. For example, `"ImportantException,PreserveMessageException"`.'
+        },
+        # Agent Control
+        :'agent_control.enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Boolean value that denotes whether Agent Control functionality should be enabled. At the moment, this functionality is limited to whether agent health should be reported. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
+        },
+        :'agent_control.health.delivery_location' => {
+          :default => '/newrelic/apm/health',
+          :public => false,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'A `file:` URI that specifies the fully qualified directory path for health file(s) to be written to. This defaults to: `file:///newrelic/apm/health`. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
+        },
+        :'agent_control.health.frequency' => {
+          :default => 5,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => false,
+          :description => 'The interval, in seconds, of how often the health file(s) will be written to. This configuration will be set using an environment variable by Agent Control, or one of its components, prior to agent startup.'
         },
         # Thread profiler
         :'thread_profiler.enabled' => {
@@ -2689,7 +2730,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => "If `true`, the security agent loads (the agent performs a Ruby 'require')"
+          :description => "If `true`, the security agent is loaded (a Ruby 'require' is performed)"
         },
         :'security.enabled' => {
           :default => false,

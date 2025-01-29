@@ -11,6 +11,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def setup
     @harvester = stub('dummy harvester')
+    @health_check = stub('dummy health check')
     @harvest_samplers = stub('dummy sampler collection')
   end
 
@@ -43,12 +44,38 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
 
   def test_check_config_and_start_agent_disabled
     self.expects(:monitoring?).returns(false)
+    @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
+  end
+
+  def test_monitoring_false_updates_health_status
+    with_config(:monitor_mode => false) do
+      # make sure the health checks are set up to run
+      NewRelic::Agent.agent.health_check.instance_variable_set(:@continue, true)
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::AGENT_DISABLED)
+
+      monitoring?
+    end
+  end
+
+  def test_missing_app_name_updates_health_status
+    with_config(:app_name => nil) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::MISSING_APP_NAME)
+      agent_should_start?
+    end
+  end
+
+  def test_missing_license_key_updates_health_status
+    with_config(:license_key => nil) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::MISSING_LICENSE_KEY)
+      has_license_key?
+    end
   end
 
   def test_check_config_and_start_agent_incorrect_key
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(false)
+    @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
   end
 
@@ -56,12 +83,14 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     self.expects(:monitoring?).returns(true)
     self.expects(:has_correct_license_key?).returns(true)
     self.expects(:using_forking_dispatcher?).returns(true)
+    @health_check.expects(:create_and_run_health_check_loop)
     check_config_and_start_agent
   end
 
   def test_check_config_and_start_agent_normal
     @harvester.expects(:mark_started)
     @harvest_samplers.expects(:load_samplers)
+    @health_check.expects(:create_and_run_health_check_loop)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
     self.expects(:environment_for_connect)
@@ -74,6 +103,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_check_config_and_start_agent_sync
     @harvester.expects(:mark_started)
     @harvest_samplers.expects(:load_samplers)
+    @health_check.expects(:create_and_run_health_check_loop)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
@@ -184,6 +214,13 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_correct_license_length_negative
     with_config(:license_key => 'a' * 30) do
       refute correct_license_length
+    end
+  end
+
+  def test_correct_license_length_negative_updates_health_status
+    with_config(:license_key => 'a' * 30) do
+      NewRelic::Agent.agent.health_check.expects(:update_status).with(NewRelic::Agent::HealthCheck::INVALID_LICENSE_KEY)
+      correct_license_length
     end
   end
 

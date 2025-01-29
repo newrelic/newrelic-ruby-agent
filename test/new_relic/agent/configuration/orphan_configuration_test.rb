@@ -9,7 +9,15 @@ class OrphanedConfigTest < Minitest::Test
   include NewRelic::TestHelpers::ConfigScanning
 
   # :automatic_custom_instrumentation_method_list - the tranform proc handles all processing, no other reference exists
-  IGNORED_KEYS = %i[automatic_custom_instrumentation_method_list]
+  # :'agent_control.enabled' - the config is set by environment variable in agent control, the symbol config is not used
+  # :'agent_control.health.delivery_location - the config is set by environment variable in agent control, the symbol config is not used
+  # :'agent_control.health.frequency' - the config is set by environment variable in agent control, the symbol config is not used
+  IGNORED_KEYS = %i[
+    automatic_custom_instrumentation_method_list
+    agent_control.enabled
+    agent_control.health.delivery_location
+    agent_control.health.frequency
+  ]
 
   def setup
     @default_keys = ::NewRelic::Agent::Configuration::DEFAULTS.keys

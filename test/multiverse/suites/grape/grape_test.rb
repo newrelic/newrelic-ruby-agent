@@ -36,38 +36,38 @@ class GrapeTest < Minitest::Test
 
       expected_txn_name = 'Controller/Grape/GrapeTestApi/self_destruct (GET)'
 
-      assert_grape_metrics(expected_txn_name)
+      assert_metrics_recorded(expected_txn_name)
       assert_metrics_recorded(["Errors/#{expected_txn_name}"])
     end
 
     def test_getting_a_list_of_grape_apes
       get('/grape_ape')
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape (GET)')
     end
 
     def test_showing_a_grape_ape
       get('/grape_ape/1')
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (GET)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape/:id (GET)')
     end
 
     def test_creating_a_grape_ape
       post('/grape_ape', {})
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape (POST)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape (POST)')
     end
 
     def test_updating_a_grape_ape
       put('/grape_ape/1', {})
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape/:id (PUT)')
     end
 
     def test_deleting_a_grape_ape
       delete('/grape_ape/1')
 
-      assert_grape_metrics('Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)')
+      assert_metrics_recorded('Controller/Grape/GrapeTestApi/grape_ape/:id (DELETE)')
     end
 
     def test_transaction_renaming
@@ -81,7 +81,7 @@ class GrapeTest < Minitest::Test
       # internal representation of the name and category of a transaction as
       # truly separate entities.
       #
-      assert_grape_metrics('Controller/Rack/RenamedTxn')
+      assert_metrics_recorded('Controller/Rack/RenamedTxn')
     end
 
     def test_params_are_not_captured_with_capture_params_disabled
@@ -259,16 +259,6 @@ class GrapeTest < Minitest::Test
       assert_equal paths.size, names.uniq.size,
         'Expected there to be one unique transaction name per unique full route path'
     end
-
-    def assert_grape_metrics(expected_txn_name)
-      expected_node_name = 'Middleware/Grape/GrapeTestApi/call'
-
-      assert_metrics_recorded([
-        expected_node_name,
-        [expected_node_name, expected_txn_name],
-        expected_txn_name
-      ])
-    end
   end
 end
 
@@ -286,14 +276,7 @@ class GrapeApiInstanceTest < Minitest::Test
     def test_subclass_of_grape_api_instance
       get('/banjaxing')
 
-      expected_node_name = 'Middleware/Grape/GrapeApiInstanceTestApi/call'
-      expected_txn_name = 'Controller/Grape/GrapeApiInstanceTestApi/banjaxing (GET)'
-
-      assert_metrics_recorded([
-        expected_node_name,
-        [expected_node_name, expected_txn_name],
-        expected_txn_name
-      ])
+      assert_metrics_recorded('Controller/Grape/GrapeApiInstanceTestApi/banjaxing (GET)')
     end
   end
 end
