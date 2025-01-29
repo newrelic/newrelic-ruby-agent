@@ -207,8 +207,6 @@ common: &default_settings
 
   # Manual override for the path to your local CA bundle. This CA bundle validates
   # the SSL certificate presented by New Relic's data collection service.
-  # Manual override for the path to your local CA bundle. This CA bundle validates
-  # the SSL certificate presented by New Relic's data collection service.
   # ca_bundle_path: nil
 
   # Enable or disable the capture of memcache keys from transaction traces.
