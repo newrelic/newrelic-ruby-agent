@@ -13,3 +13,5 @@ gem 'redis'
 gem 'simplecov'
 gem 'stackprof'
 gem 'webrick' if RUBY_VERSION >= '3.0'
+
+gem 'logger'
