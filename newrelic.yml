@@ -207,6 +207,8 @@ common: &default_settings
 
   # Manual override for the path to your local CA bundle. This CA bundle validates
   # the SSL certificate presented by New Relic's data collection service.
+  # Manual override for the path to your local CA bundle. This CA bundle validates
+  # the SSL certificate presented by New Relic's data collection service.
   # ca_bundle_path: nil
 
   # Enable or disable the capture of memcache keys from transaction traces.
@@ -958,7 +960,7 @@ common: &default_settings
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
 
-  # If true, the security agent loads (the agent performs a Ruby 'require')
+  # If true, the security agent is loaded (a Ruby 'require' is performed)
   # security.agent.enabled: false
 
   # The port the application is listening on. This setting is mandatory for
