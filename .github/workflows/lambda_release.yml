@@ -29,7 +29,7 @@ jobs:
       run: |
         RELEASE_TITLE="New Relic Ruby Agent ${{ env.VERSION }}.0"
         RELEASE_TAG="${{ env.VERSION }}.0_ruby"
-        RELEASE_NOTES="Automated release for [Ruby Agent ${{ env.VERSION }}](https://github.com/newrelic/newrelic-ruby-agent/releases/tag/${GITHUB_REF})"
+        RELEASE_NOTES="Automated release for [Ruby Agent ${{ env.VERSION }}](https://github.com/newrelic/newrelic-ruby-agent/releases/tag/${env.VERSION})"
         gh auth login --with-token <<< $GH_RELEASE_TOKEN
         echo "newrelic/newrelic-lambda-layers - Releasing ${RELEASE_TITLE} with tag ${RELEASE_TAG}"
         gh release create "${RELEASE_TAG}" --title=${RELEASE_TITLE} --repo=newrelic/newrelic-lambda-layers --notes=${RELEASE_NOTES}
