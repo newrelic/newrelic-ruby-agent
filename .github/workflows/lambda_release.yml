@@ -21,6 +21,9 @@ jobs:
       with:
         ruby-version: 3.4
 
+    - name: Build newrelic_rpm gem
+      run: gem build newrelic_rpm.gemspec
+
     - name: Determine version
       run: |
         echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
