@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'logger'
 require 'json'
 require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
 
