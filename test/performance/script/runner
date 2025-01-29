@@ -4,6 +4,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'logger'
 APP_PATH = File.expand_path('../rails_app/config/application', __dir__)
 require_relative '../rails_app/config/boot'
 require 'rails/command'
