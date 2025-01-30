@@ -1,10 +1,10 @@
 name: Lambda Release
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
 
 jobs:
   release:
@@ -21,18 +21,11 @@ jobs:
       with:
         ruby-version: 3.4
 
-    - name: Build newrelic_rpm gem
-      run: gem build newrelic_rpm.gemspec
-
-    - name: Determine version
-      run: |
-        echo "VERSION=$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
-
     - name: Create release tags for Lambda and K8s Init Containers
       run: |
-        RELEASE_TITLE="New Relic Ruby Agent ${{ env.VERSION }}.0"
-        RELEASE_TAG="${{ env.VERSION }}.0_ruby"
-        RELEASE_NOTES="Automated release for [Ruby Agent ${{ env.VERSION }}](https://github.com/newrelic/newrelic-ruby-agent/releases/tag/${{ env.VERSION }})"
+        RELEASE_TITLE="New Relic Ruby Agent ${GITHUB_REF}.0"
+        RELEASE_TAG="${GITHUB_REF}.0_ruby"
+        RELEASE_NOTES="Automated release for [Ruby Agent ${GITHUB_REF}](https://github.com/newrelic/newrelic-ruby-agent/releases/tag/${GITHUB_REF})"
         gh auth login --with-token <<< $GH_RELEASE_TOKEN
         echo "newrelic/newrelic-lambda-layers - Releasing ${RELEASE_TITLE} with tag ${RELEASE_TAG}"
         gh release create "${RELEASE_TAG}" --title=${RELEASE_TITLE} --repo=newrelic/newrelic-lambda-layers --notes=${RELEASE_NOTES}
