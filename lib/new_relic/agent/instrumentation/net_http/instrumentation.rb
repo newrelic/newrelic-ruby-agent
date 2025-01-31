@@ -21,7 +21,7 @@ module NewRelic
 
           begin
             response = nil
-            segment.add_request_headers(wrapped_request)
+            segment&.add_request_headers(wrapped_request)
 
             # RUBY-1244 Disable further tracing in request to avoid double
             # counting if connection wasn't started (which calls request again).
@@ -34,10 +34,10 @@ module NewRelic
             wrapped_response = NewRelic::Agent::HTTPClients::NetHTTPResponse.new(response)
 
             if NewRelic::Agent::LLM.openai_parent?(segment)
-              NewRelic::Agent::LLM.populate_openai_response_headers(wrapped_response, segment.parent)
+              NewRelic::Agent::LLM.populate_openai_response_headers(wrapped_response, segment&.parent)
             end
 
-            segment.process_response_headers(wrapped_response)
+            segment&.process_response_headers(wrapped_response)
 
             response
           ensure
