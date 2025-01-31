@@ -111,6 +111,14 @@ class ElasticsearchInstrumentationTest < Minitest::Test
     assert_nil @segment.database_name
   end
 
+  def test_capture_cluster_name_config_is_false
+    with_config(:'elasticsearch.capture_cluster_name' => false) do
+      search
+
+      assert_nil @segment.database_name
+    end
+  end
+
   def test_nosql_statement_recorded_params_obfuscated
     with_config(:'elasticsearch.obfuscate_queries' => true) do
       txn = in_transaction do
