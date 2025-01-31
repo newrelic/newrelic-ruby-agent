@@ -2,7 +2,7 @@
 
 ## dev
 
-- **Bugfix: Prevent a nil segment from causing errors in Net HTTP instrumentation**
+- **Bugfix: Prevent a `nil` segment from causing errors in Net::HTTP instrumentation**
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and returns nil. This would cause an error to occur when methods were later called on the nil segment. These methods will not be called now if it is nil, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
 
