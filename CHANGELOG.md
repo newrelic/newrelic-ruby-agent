@@ -4,7 +4,12 @@
 
 - **Feature: Add elasticsearch.capture_cluster_name configuration option**
 
-    A new configuration option, `elasticsearch.capture_cluster_name`, has been added to control capturing Elasticsearch cluster names. Cluster names are captured by default, but can now be disabled as needed. [PR#3038](https://github.com/newrelic/newrelic-ruby-agent/pull/3038)
+  A new configuration option, `elasticsearch.capture_cluster_name`, has been added to control capturing Elasticsearch cluster names. Cluster names are captured by default, but can now be disabled as needed. [PR#3038](https://github.com/newrelic/newrelic-ruby-agent/pull/3038)
+
+- **Bugfix: Prevent a `nil` segment from causing errors in Net::HTTP instrumentation**
+
+  When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
+
 
 ## v9.17.0
 
