@@ -2,10 +2,9 @@
 
 ## dev
 
-
 - **Feature: Add elasticsearch.capture_cluster_name configuration option**
 
-    A new configuration option, `elasticsearch.capture_cluster_name`, has been added to control capturing Elasticsearch cluster names. Cluster names are captured by default, but can now be disabled as needed. [PR#3038](https://github.com/newrelic/newrelic-ruby-agent/pull/3038)
+  A new configuration option, `elasticsearch.capture_cluster_name`, has been added to control capturing Elasticsearch cluster names. Cluster names are captured by default, but can now be disabled as needed. [PR#3038](https://github.com/newrelic/newrelic-ruby-agent/pull/3038)
 
 - **Bugfix: Prevent a `nil` segment from causing errors in Net::HTTP instrumentation**
 
