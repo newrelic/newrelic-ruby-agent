@@ -42,8 +42,7 @@ module NewRelic
         def thread_starting_span
           # if the previous current segment was in another thread, use the thread local parent
           if ThreadLocalStorage[:newrelic_thread_span_parent] &&
-              current_segment &&
-              current_segment.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
+              current_segment&.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
 
             ThreadLocalStorage[:newrelic_thread_span_parent]
           end
@@ -51,7 +50,7 @@ module NewRelic
 
         def segment_complete(segment)
           # if parent was in another thread, remove the current_segment entry for this thread
-          if segment.parent && segment.parent.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
+          if segment&.parent&.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
             remove_current_segment_by_thread_id(NewRelic::Agent::Tracer.current_segment_key)
           else
             set_current_segment(segment.parent)
