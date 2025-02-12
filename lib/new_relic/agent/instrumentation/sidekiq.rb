@@ -29,7 +29,14 @@ DependencyDetection.defer do
         chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Client)
       end
       config.server_middleware do |chain|
-        chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Server)
+        # We started prepending v chaining NR middleware in 9.18.0 in response to:
+        # https://github.com/newrelic/newrelic-ruby-agent/issues/3037
+        # This way, exceptions resolved by Sidekiq's own middleware are not reported in the agent
+        if chain.respond_to?(:prepend)
+          chain.prepend(NewRelic::Agent::Instrumentation::Sidekiq::Server)
+        else
+          chain.add(NewRelic::Agent::Instrumentation::Sidekiq::Server)
+        end
       end
 
       if config.respond_to?(:error_handlers)
