@@ -10,13 +10,16 @@
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
 
+- **Bugfix: Protect against nil agents or health checks**
+
+  In some cases the agent or health checks may be nil when they are called. Safe navigation operators have been added for protection on those occasions. [PR#3049](https://github.com/newrelic/newrelic-ruby-agent/pull/3049)
 
 ## v9.17.0
 
 - **Feature: Support Ruby 3.4.0**
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
-  
+
 - **Feature: Add instrumentation for aws-sdk-firehose**
 
   The agent now has instrumentation for the [aws-sdk-firehose](https://rubygems.org/gems/aws-sdk-firehose) gem. [PR#2973](https://github.com/newrelic/newrelic-ruby-agent/pull/2973)
@@ -3318,7 +3321,7 @@ When using `add_method_tracer` on a class method but without passing in a
 `Custom/ClassName/Class/method_name`. We also addressed default
 metric names for anonymous classes and modules.
 
-- Fix issue when rendering SQL strings in developer mode
+- Fix issue when rendering SQL strings in developder mode
 
 When we obfuscate SQL statements, we rewrite the Statement objects as
 SQL strings inline in our sample buffers at harvest time. However, in
