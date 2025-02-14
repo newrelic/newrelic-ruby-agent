@@ -36,7 +36,7 @@ module NewRelic
             erb_file = process_erb(raw_file)
             config = process_yaml(erb_file, env, config, @file_path)
           rescue ScriptError, StandardError => e
-            NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_PARSE_CONFIG)
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_PARSE_CONFIG)
             log_failure("Failed to read or parse configuration file at #{path}", e)
           end
 
@@ -100,7 +100,7 @@ module NewRelic
             file.gsub!(/^\s*#.*$/, '#')
             ERB.new(file).result(binding)
           rescue ScriptError, StandardError => e
-            NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_PARSE_CONFIG)
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_PARSE_CONFIG)
             message = 'Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.'
             failure_array = [message, e]
             failure_array << e.backtrace[0] if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
