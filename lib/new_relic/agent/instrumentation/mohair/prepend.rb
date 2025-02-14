@@ -5,9 +5,9 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module MonitoredFiber
+  module Mohair
     module Prepend
-      include NewRelic::Agent::Instrumentation::MonitoredFiber
+      include NewRelic::Agent::Instrumentation::Mohair
 
       if RUBY_VERSION < '2.7.0'
         def initialize(*_args, &block)

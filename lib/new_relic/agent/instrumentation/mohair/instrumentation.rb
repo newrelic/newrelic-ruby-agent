@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module MonitoredFiber
+  module Mohair
     attr_reader :nr_parent_key
 
     def initialize_with_newrelic_tracing

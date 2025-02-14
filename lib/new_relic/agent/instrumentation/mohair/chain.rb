@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent::Instrumentation
-  module MonitoredFiber::Chain
+  module Mohair::Chain
     def self.instrument!
       ::Fiber.class_eval do
-        include NewRelic::Agent::Instrumentation::MonitoredFiber
+        include NewRelic::Agent::Instrumentation::Mohair
 
         alias_method(:initialize_without_new_relic, :initialize)
 
