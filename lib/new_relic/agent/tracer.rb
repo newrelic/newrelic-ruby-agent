@@ -2,7 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'fiber'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction/datastore_segment'
