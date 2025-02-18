@@ -698,20 +698,6 @@ module NewRelic
           :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string `apdex_f`.'
         },
         # Error collector
-        :'error_collector.ignore_classes' => {
-          :default => ['ActionController::RoutingError', 'Sinatra::NotFound'],
-          :public => true,
-          :type => Array,
-          :allowed_from_server => true,
-          :dynamic_name => true,
-          :description => <<~DESCRIPTION
-            A list of error classes that the agent should ignore.
-
-              <Callout variant="caution">
-                This option can't be set via environment variable.
-              </Callout>
-          DESCRIPTION
-        },
         :'error_collector.capture_events' => {
           :default => value_of(:'error_collector.enabled'),
           :documentation_default => true,
@@ -764,7 +750,20 @@ module NewRelic
           :dynamic_name => true,
           :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be treated as expected.'
         },
+        :'error_collector.ignore_classes' => {
+          :default => ['ActionController::RoutingError', 'Sinatra::NotFound'],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => true,
+          :dynamic_name => true,
+          :description => <<~DESCRIPTION
+            A list of error classes that the agent should ignore.
 
+              <Callout variant="caution">
+                This option can't be set via environment variable.
+              </Callout>
+          DESCRIPTION
+        },
         :'error_collector.ignore_messages' => {
           :default => {},
           :public => true,
