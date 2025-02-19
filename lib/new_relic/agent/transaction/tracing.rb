@@ -25,7 +25,7 @@ module NewRelic
           segment.parent = parent || thread_starting_span || current_segment
           set_current_segment(segment)
           if @segments.length < segment_limit
-            @segments << segment
+            @segment_lock.synchronize { @segments << segment }
           else
             segment.record_on_finish = true
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
