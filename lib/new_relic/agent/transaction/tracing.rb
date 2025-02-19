@@ -64,7 +64,7 @@ module NewRelic
         private
 
         def finalize_segments
-          segments.each { |s| s&.finalize }
+          @segment_lock.synchronize { segments.each { |s| s&.finalize } }
         end
 
         WEB_TRANSACTION_TOTAL_TIME = 'WebTransactionTotalTime'.freeze
