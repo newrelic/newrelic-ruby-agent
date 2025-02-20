@@ -10,6 +10,10 @@
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
 
+- **Bugfix: JRuby multithreading improvements**
+  
+  Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
+
 
 ## v9.17.0
 
