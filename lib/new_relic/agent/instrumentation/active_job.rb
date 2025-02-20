@@ -89,6 +89,7 @@ module NewRelic
         end
 
         def self.transaction_category
+          # puts "**************** adapter:", adapter, "****************"
           "OtherTransaction/#{adapter}"
         end
 
@@ -97,6 +98,7 @@ module NewRelic
         end
 
         def self.transaction_name_for_job(job)
+          # puts "**************** transaction_name_suffix_for_job:", transaction_name_suffix_for_job(job), "****************"
           "#{transaction_category}/#{transaction_name_suffix_for_job(job)}"
         end
 
