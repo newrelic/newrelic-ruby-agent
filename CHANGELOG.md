@@ -12,7 +12,7 @@
 
 - **Bugfix: JRuby multithreading improvements**
   
-  Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
+  Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. Thanks to @NC-piercej for bringing this to our attention [Issue#3021](https://github.com/newrelic/newrelic-ruby-agent/issues/3021) [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
 
 - **Bugfix: Stop reporting rescued Sidekiq::OverLimit exceptions**
 
