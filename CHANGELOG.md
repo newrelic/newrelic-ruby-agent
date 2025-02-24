@@ -12,7 +12,7 @@
 
 - **Bugfix: Protect against nil agents or health checks**
 
-  In some cases the agent or health checks may be nil when they are called. Safe navigation operators have been added for protection on those occasions. [PR#3049](https://github.com/newrelic/newrelic-ruby-agent/pull/3049)
+  In some cases the agent or health checks may be `nil` when they are called. Safe navigation operators have been added for protection on those occasions. [PR#3049](https://github.com/newrelic/newrelic-ruby-agent/pull/3049)
 
 ## v9.17.0
 
@@ -3321,7 +3321,7 @@ When using `add_method_tracer` on a class method but without passing in a
 `Custom/ClassName/Class/method_name`. We also addressed default
 metric names for anonymous classes and modules.
 
-- Fix issue when rendering SQL strings in developder mode
+- Fix issue when rendering SQL strings in developer mode
 
 When we obfuscate SQL statements, we rewrite the Statement objects as
 SQL strings inline in our sample buffers at harvest time. However, in
