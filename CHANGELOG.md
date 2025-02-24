@@ -10,9 +10,14 @@
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
 
+- **Bugfix: JRuby multithreading improvements**
+  
+  Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. Thanks to @NC-piercej for bringing this to our attention [Issue#3021](https://github.com/newrelic/newrelic-ruby-agent/issues/3021) [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
+
 - **Bugfix: Stop reporting rescued Sidekiq::OverLimit exceptions**
 
   When Sidekiq's concurrent rate limiters encounter an `OverLimit` exception, Sidekiq typically handles this by re-enqueuing the job. Previously, all occurrences of `Sidekiq::OverLimit` were logged as errors in New Relic, even when Sidekiq's middleware resolved the exception. New Relic will no longer report errors that are handled by Sidekiq's own middleware. Thanks to [@97jaz](https://github.com/97jaz) for reporting this issue. [Issue#3037](https://github.com/newrelic/newrelic-ruby-agent/issues/3037) [PR#3047](https://github.com/newrelic/newrelic-ruby-agent/pull/3047)
+
 
 ## v9.17.0
 
