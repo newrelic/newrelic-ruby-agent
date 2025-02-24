@@ -5,6 +5,7 @@
 require_relative 'sidekiq/client'
 require_relative 'sidekiq/server'
 require_relative 'sidekiq/extensions/delayed_class'
+require_relative 'sidekiq/extensions/delay_extensions'
 
 DependencyDetection.defer do
   @name = :sidekiq
