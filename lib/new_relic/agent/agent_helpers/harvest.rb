@@ -119,7 +119,7 @@ module NewRelic
           rescue UnrecoverableServerException => e
             NewRelic::Agent.logger.warn("#{endpoint} data was rejected by remote service, discarding. Error: ", e)
           rescue ServerConnectionException => e
-            NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
             log_remote_unavailable(endpoint, e)
             container.merge!(payload)
           rescue => e
@@ -134,11 +134,11 @@ module NewRelic
           rescue ForceRestartException, ForceDisconnectException
             raise
           rescue UnrecoverableServerException => e
-            NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
+            NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
             NewRelic::Agent.logger.warn('get_agent_commands message was rejected by remote service, discarding. ' \
               'Error: ', e)
           rescue ServerConnectionException => e
-            NewRelic::Agent.health_check.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
+            NewRelic::agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_CONNECT)
             log_remote_unavailable(:get_agent_commands, e)
           rescue => e
             NewRelic::Agent.logger.info('Error during check_for_and_handle_agent_commands, will retry later: ', e)

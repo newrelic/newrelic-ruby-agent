@@ -20,7 +20,7 @@ module NewRelic
 
           @started = nil
 
-          NewRelic::Agent.agent.health_check.update_status(NewRelic::Agent::HealthCheck::SHUTDOWN) if NewRelic::Agent.agent.health_check.healthy?
+          NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::SHUTDOWN) if NewRelic::Agent.agent&.health_check&.healthy?
 
           Control.reset
         end
