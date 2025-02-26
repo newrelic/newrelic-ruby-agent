@@ -4,6 +4,11 @@
 
 # instrumentation_methods :chain, :prepend
 
+suite_condition('OpenTelemetry requires CRuby version 3.1+') do
+  RUBY_VERSION >= '3.1.0'
+end
+
 gemfile <<~RB
+  gem 'opentelemetry-api'
   gem 'opentelemetry-sdk'
 RB
