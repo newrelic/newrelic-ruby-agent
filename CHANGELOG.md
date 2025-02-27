@@ -26,6 +26,10 @@
 
   In some cases the agent or health checks may be `nil` when they are called. Safe navigation operators have been added for protection on those occasions. [PR#3049](https://github.com/newrelic/newrelic-ruby-agent/pull/3049)
 
+- **Bugfix: Ignore Solid Queue `ThreadError: queue empty` error message by default**
+
+  When using the solid_queue gem, the agent previously generated excessive warn-level logs when the queue was empty. The agent now ignores `queue empty` error messages of the `ThreadError` class by default. This behavior can be adjusted using the `error_collector.ignore_messages` configuration option. [PR#3060](https://github.com/newrelic/newrelic-ruby-agent/pull/3060)
+
 ## v9.17.0
 
 - **Feature: Support Ruby 3.4.0**

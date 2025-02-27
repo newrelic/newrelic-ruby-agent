@@ -765,7 +765,7 @@ module NewRelic
           DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
-          :default => {},
+          :default => {'ThreadError' => ['queue empty']},
           :public => true,
           :type => Hash,
           :allowed_from_server => true,
