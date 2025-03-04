@@ -150,6 +150,23 @@ class NewRelic::ControlTest < Minitest::Test
     end
   end
 
+  def test_init_plugin_records_agent_version_metric
+    reset_agent
+
+    NewRelic::VERSION.stub_const(:STRING, '1.2.3') do
+      with_config(:disable_samplers => true,
+        :disable_harvest_thread => true,
+        :agent_enabled          => true,
+        :monitor_mode           => true,
+        :license_key            => 'a' * 40) do
+
+        NewRelic::Control.instance.init_plugin
+
+        assert_metrics_recorded('Supportability/AgentVersion/newrelic_rpm/1.2.3')
+      end
+    end
+  end
+
   def reset_agent
     NewRelic::Agent.shutdown
     NewRelic::Agent.instance.instance_variable_get(:@harvest_samplers).clear
