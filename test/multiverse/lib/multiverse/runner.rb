@@ -105,7 +105,7 @@ module Multiverse
       'frameworks' => %w[grape padrino roda sinatra],
       'httpclients' => %w[async_http curb excon httpclient],
       'httpclients_2' => %w[typhoeus net_http httprb ethon httpx],
-      'hybrid_agent' => %w[hybrid_agent]
+      'hybrid_agent' => %w[hybrid_agent],
       'rails' => %w[active_support_broadcast_logger active_support_logger rails rails_prepend activemerchant],
 
       # these need services running in github actions, so they are separated

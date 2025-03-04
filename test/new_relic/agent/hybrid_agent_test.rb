@@ -28,14 +28,13 @@ module NewRelic::Agent
 
     test_cases = load_cross_agent_test('hybrid_agent')
     test_cases.each do |test_case|
-      name = test_case["testDescription"].downcase.gsub(' ', '_')
-      binding.irb
+      name = test_case['testDescription'].downcase.tr(' ', '_')
       # operations
-        # command
-        # parameters
-          # spanName
-          # spanKind
-        # assertions
+      # command
+      # parameters
+      # spanName
+      # spanKind
+      # assertions
       # name = test_case['name']
       query = test_case['sql']
       acceptable_outputs = test_case['obfuscated']
