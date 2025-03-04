@@ -159,7 +159,6 @@ class NewRelic::ControlTest < Minitest::Test
         :agent_enabled          => true,
         :monitor_mode           => true,
         :license_key            => 'a' * 40) do
-
         NewRelic::Control.instance.init_plugin
 
         assert_metrics_recorded('Supportability/AgentVersion/newrelic_rpm/1.2.3')
