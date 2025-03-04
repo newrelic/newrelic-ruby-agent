@@ -74,7 +74,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # tag v4.2.2
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -515,7 +515,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # tag v4.2.2
         with:
           path: /usr/local/mysql55
           key: mysql55-install
