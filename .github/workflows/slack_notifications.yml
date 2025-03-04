@@ -11,7 +11,7 @@ jobs:
       - uses: ruby/setup-ruby@32110d4e311bd8996b2a82bf2a43b714ccc91777 # tag v1.221.0
         with:
           ruby-version: 3.4
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - run: gem install httparty
       - name: Check for outdated gems
         run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb ${{ env.gems }}
@@ -50,7 +50,7 @@ jobs:
       - uses: ruby/setup-ruby@32110d4e311bd8996b2a82bf2a43b714ccc91777 # tag v1.221.0
         with:
           ruby-version: 3.4
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - run: gem install httparty
       - run: gem install feedjira
       - name: Check for CVEs

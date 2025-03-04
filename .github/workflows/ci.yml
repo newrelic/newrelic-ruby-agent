@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - uses: ruby/setup-ruby@32110d4e311bd8996b2a82bf2a43b714ccc91777 # tag v1.221.0
         with:
           ruby-version: 3.4
@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -121,7 +121,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -222,7 +222,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -320,7 +320,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -411,7 +411,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -494,7 +494,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -591,7 +591,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
       - name: Install Ruby ${{ matrix.ruby-version }}
         uses: ruby/setup-ruby@32110d4e311bd8996b2a82bf2a43b714ccc91777 # tag v1.221.0
@@ -633,7 +633,7 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - uses: ruby/setup-ruby@32110d4e311bd8996b2a82bf2a43b714ccc91777 # tag v1.221.0
         with:
           ruby-version: 3.4
