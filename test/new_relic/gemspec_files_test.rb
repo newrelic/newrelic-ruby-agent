@@ -11,6 +11,7 @@ class GemspecFilesTest < Minitest::Test
 
     gem_spec_file_path = File.expand_path('../../../newrelic_rpm.gemspec', __FILE__)
     gem_spec_content = Gem.open_file(gem_spec_file_path, 'r:UTF-8:-', &:read)
+    gem_spec_content.gsub!('__FILE__', "'#{gem_spec_file_path}'")
 
     Dir.chdir(File.dirname(gem_spec_file_path)) do
       gem_spec = eval(gem_spec_content)

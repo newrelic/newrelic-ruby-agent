@@ -25,7 +25,7 @@ module Multiverse
       @ignore_ruby_version = options[:ignore_ruby_version] if options.key?(:ignore_ruby_version)
       if File.exist?(file_path)
         @text = File.read(self.file_path)
-
+        @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
       @gemfiles = [''] if @gemfiles.empty?
