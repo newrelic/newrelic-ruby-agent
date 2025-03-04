@@ -16,8 +16,6 @@ module NewRelic
         end
 
         def self.find_all_subscribers
-          # TODO: need to talk to Rails core about an API for this,
-          # rather than digging through Listener ivars
           instance_variable_names = [:@subscribers, :@string_subscribers, :@other_subscribers]
           all_subscribers = []
 
