@@ -3,124 +3,30 @@
 # frozen_string_literal: true
 
 require 'opentelemetry'
+require_relative 'commands'
+require_relative 'assertion_parameters'
 
 class HybridAgentTest < Minitest::Test
+  include Commands
+  include AssertionParameters
+
   def setup
     @tracer = OpenTelemetry.tracer_provider.tracer
   end
 
-  # Questions:
-  # Should we use the in_span and in_transaction apis instead of start_*?
-  # Should I move the span kind coercion into an earlier helper method, mirroring what Chris did for .NET?
-  # What operations run in your work() funtion?
-
-  # TODO: break the methods up into a command module and an assertions module
-
-  # Commands
-  def do_work_in_span(span_name:, span_kind:, &block)
-    kind = span_kind.downcase.to_sym
-    span = @tracer.start_span(span_name, kind: kind)
-    yield if block
-  ensure
-    span&.finish
-  end
-
-  def do_work_in_span_with_remote_parent(span_name:, span_kind:, &block)
-    kind = span_kind.downcase.to_sym
-    span = @tracer.start_span(span_name, kind: span_kind)
-    span.context.instance_variable_set(:@remote, true)
-    yield if block
-  ensure
-    span&.finish
-  end
-
-  def do_work_in_transaction(transaction_name:, &block)
-    transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
-    yield if block
-  ensure
-    transaction&.finish
-  end
-
-  def do_work_in_segment(segment_name:, &block)
-    segment = NewRelic::Agent::Tracer.start_segment(name: segment_name)
-    yield if block
-  ensure
-    segment&.finish
-  end
-
-  def add_otel_attribute(name:, value:, &block)
-    OpenTelemetry::Trace.current_span&.set_attribute(name, value)
-    yield if block
-  end
-
-  def record_exception_on_span(error_message:, &block)
-    exception = StandardError.new(error_message)
-    OpenTelemetry::Trace.current_span.record_exception(exception)
-    yield if block
-  end
-
-  def simulate_external_call(url:, &block)
-    # TODO
-    yield if block
-  end
-
-  def o_tel_inject_headers
-    # TODO
-    yield if block_given?
-  end
-
-  def n_rinject_headers(&block)
-    # TODO
-    yield if block
-  end
-
-  ## Assertions
-
-  # provides the context to help with the assertions
-  # which access trace_id and span_id
-  def current_otel_span
-    return nil if OpenTelemetry::Trace.current_span == OpenTelemetry::Trace::Span::INVALID
-
-    OpenTelemetry::Trace.current_span.context
-  end
-
-  def current_transaction
-    NewRelic::Agent::Tracer.current_transaction
-  end
-
-  # this needs some finagling
-  # we don't have a span_id on our segment
-  # the segment id should be equal to the span id
-  # and both are accessed with guid, not id
-  def current_segment
-    NewRelic::Agent::Tracer.current_segment
-  end
-
-  def injected
-    # TODO
-    # should be able to return
-    # injected.trace_id
-    # inject.span_id
-    # injected.sampled
-    # maybe use a struct?
-  end
-
-  # TODO: define all commands in a module and include that module
-  # TODO: define all assertion -> rule -> parameters as methods
-  # TODO: Write better error messages?
-  # TODO: Reduce duplication with snake case parsing
   test_cases = load_cross_agent_test('hybrid_agent')
   test_cases.each do |test_case|
     name = test_case['testDescription'].downcase.tr(' ', '_')
 
     define_method("test_hybrid_agent_#{name}") do
-      puts "TEST: #{name}"
+      puts "TEST: #{name}" if ENV['ENABLE_OUTPUT']
+
       operations = test_case['operations']
       operations.map do |o|
         parse_operation(o)
       end
 
-      harvest_and_verify_agent_output(test_case['agent_output'])
+      harvest_and_verify_agent_output(test_case['agentOutput'])
     end
   end
 
@@ -133,24 +39,16 @@ class HybridAgentTest < Minitest::Test
   end
 
   def parse_operation(operation)
-    # maybe make first letter lowercase?
-    # to avoid some strange method names?
-    # or use case statement?
-    command = operation['command'].gsub!(/(.)([A-Z])/, '\1_\2').downcase.to_sym
-    parameters = operation['parameters']&.transform_keys { |k| k.gsub(/(.)([A-Z])/, '\1_\2').downcase.to_sym }
-    puts command
-    puts parameters
-    # need an option for send if there aren't any parameters
-    # ex. OTelInjectHeaders command has not parameters
-    # is the recursion working? maybe more puts about what's coming through?
+    command = parse_command(operation['command'])
+    parameters = parse_parameters(operation['parameters'])
+
+    puts command if ENV['ENABLE_OUTPUT']
+    puts parameters if ENV['ENABLE_OUTPUT']
+
     if operation['childOperations']
-      # send with a block isn't working... the next binding is never hit
       send(command, **parameters) do
         operation['childOperations'].each do |o|
           parse_operation(o)
-          # do we need to parse assertions here?
-          # this isn't being reached because we'd get an arg error...
-          parse_assertions if operation['assertions']
         end
       end
     else
@@ -159,69 +57,112 @@ class HybridAgentTest < Minitest::Test
     end
   end
 
+  def parse_command(command)
+    return 'nr_inject_headers' if command == 'NRInjectHeaders'
+
+    snake_sub_downcase(command).to_sym
+  end
+
+  def parse_parameters(parameters)
+    return {} unless parameters
+
+    params = parameters.transform_keys { |k| snake_sub_downcase(k).to_sym }
+
+    if params[:span_kind]
+      params[:span_kind] = params[:span_kind].downcase.to_sym
+    end
+
+    params
+  end
+
   def parse_assertions(assertions)
-    # only the assertions for Does not create segment without a transaction
-    # are actually being evaluated
-
-    # we would either need to change the names to the right case
-    # or define methods with casing matching the JSON file
-    # for all the objects under test
-
-    # for this one, the parameters are what would need to get
-    # translated, since we're explicitly using cases for the
-    # various operators
     assertions.each do |assertion|
-      puts assertion['description']
       rule = assertion['rule']
-      parameters = rule['parameters'].transform_values { |k| k.gsub(/(.)([A-Z])/, '\1_\2').downcase }
-      puts rule['operator']
-      puts parameters
+      parameters = rule['parameters'].transform_values { |k| snake_sub_downcase(k) }
+
+      puts assertion['description'] if ENV['ENABLE_OUTPUT']
+      puts rule if ENV['ENABLE_OUTPUT']
+
       case rule['operator']
       when 'Equals'
-        # TODO: Re-enable assertions
-        # msg = "Expected #{parmeters['left']} to equal #{parameters['right']}.\nResult:\b#{parameters['left']} = #{eval(parameters['left'])};\n#{parameters['right']} = #{eval(parameters['right'])}"
-        # assert_equal eval(parameters["left"]), eval(parameters["right"]), msg
+        equals_assertion(parameters)
       when 'NotValid'
-        # TODO: Re-enable assertions
-        # assert_nil eval(parameters["object"]), "Expected #{parameters['object']} to be nil"
+        not_valid_assertion(parameters)
       else
-        raise 'missing rule case for assertions!'
+        raise "Missing rule case for assertions! Received: #{rule['operator']}"
       end
     end
   end
 
-  def verify_agent_output(harvest, output, type)
-    puts "Agent Output: #{type}: #{output[type]}"
-    if output[type].empty?
-      assert_empty harvest, "Agent output expected no transactions or spans. Found: #{harvest}"
+  def equals_assertion(parameters)
+    left = parameters['left']
+    left_result = evaluate_param_for_assertion(left)
+
+    right = parameters['right']
+    right_result = evaluate_param_for_assertion(right)
+
+    assert_equal left_result, right_result, "Expected #{left} to equal #{right}"
+  end
+
+  def evaluate_param_for_assertion(param)
+    puts param if ENV['ENABLE_OUTPUT']
+
+    case param
+    when 'current_otel_span.trace_id' then current_otel_span_context&.trace_id
+    when 'current_transaction.trace_id' then current_transaction&.trace_id
+    when 'current_otel_span.span_id' then current_otel_span_context&.span_id
+    when 'current_segment.span_id' then NewRelic::Agent::Tracer.current_segment&.guid
+    when 'current_transaction.sampled' then current_transaction&.sampled?
+    when 'injected.trace_id' then puts 'TODO'
+    when 'injected.span_id' then puts 'TODO'
+    when 'injected.sampled' then puts 'TODO'
     else
-      harvest = harvest[0]
-      output = snakeify(output[type])
+      raise "Missing parameter for assertion! Received: #{param}."
+    end
+  end
 
-      harvest.each do |h|
-        # maybe we do want this b/c of the extra empty hashes that appear sometimes?
-        # break if h.empty?
-        # or if that's not right:
-        # raise 'Agent Output: Found harvest empty when agent output expected data.' if h.empty?
+  def not_valid_assertion(parameters)
+    puts parameters['object'] if ENV['ENABLE_OUTPUT']
 
-        output&.each do |o|
-          if o && h
-            # msg =  "Agent output for #{type.capitalize} wasn't found in the harvest.\nharvest = #{h}\nagent output = #{o}"
-            # TODO: Re-enable assertions
-            # assert h >= o, msg
-          end
+    case parameters['object']
+    when 'current_otel_span' then current_otel_span
+    when 'current_transaction' then current_transaction
+    else
+      raise "Missing NotValid assertion object! Received: #{parameters['object']}"
+    end
+
+    assert_nil eval(parameters['object']), "Expected #{parameters['object']} to be nil"
+  end
+
+  def verify_agent_output(harvest, output, type)
+    puts "Agent Output: #{type}: #{output[type]}" if ENV['ENABLE_OUTPUT']
+    if output[type].empty?
+      assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
+    else
+      h = harvest[0][1]
+      output = prepare_keys(output[type])
+
+      output&.each do |o|
+        if o && h
+          msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
+
+          assert h >= o, msg
         end
       end
     end
   end
 
-  def snakeify(output)
+  def snake_sub_downcase(key)
+    key.gsub(/(.)([A-Z])/, '\1_\2').downcase
+  end
+
+  def prepare_keys(output)
     output.map do |o|
       o.transform_keys do |k|
         if k == 'entryPoint'
           k = 'nr.entryPoint'
         else
-          k.gsub(/(.)([A-Z])/, '\1_\2').downcase
+          snake_sub_downcase(k)
         end
       end
     end
