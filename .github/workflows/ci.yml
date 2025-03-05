@@ -91,7 +91,7 @@ jobs:
           CI_FOR_PR: true
 
       - name: Run Unit Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 30
           max_attempts: 2
@@ -140,7 +140,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -241,7 +241,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -339,7 +339,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -430,7 +430,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -530,7 +530,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Wait for/Check Mysql
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 1
           max_attempts: 20
@@ -541,7 +541,7 @@ jobs:
             fi
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -602,7 +602,7 @@ jobs:
         run: bundle install
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 15
           max_attempts: 2
