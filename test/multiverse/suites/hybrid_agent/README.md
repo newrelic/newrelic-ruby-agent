@@ -56,6 +56,7 @@ Fabulous run in 0.003526s, 1985.2524 runs/s, 1701.6449 assertions/s.
 ```
 
 ### ENABLE_OUTPUT
+
 You can pass `ENABLE_OUTPUT=true` to the test to get a print out of all the evaluated JSON content. This can be helpful
 to debug whether all levels of the test fixture are executed.
 
