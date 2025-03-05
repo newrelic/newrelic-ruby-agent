@@ -1,0 +1,14 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
+# instrumentation_methods :chain, :prepend
+
+suite_condition('OpenTelemetry requires CRuby version 3.1+') do
+  RUBY_VERSION >= '3.1.0'
+end
+
+gemfile <<~RB
+  gem 'opentelemetry-api'
+  gem 'opentelemetry-sdk'
+RB
