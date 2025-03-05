@@ -588,6 +588,44 @@
         }
       ]
     }
+  },
+
+  {
+    "testDescription": "Inbound distributed tracing tests",
+
+    "operations": [
+      {
+        "command": "DoWorkInSpanWithInboundContext",
+        "parameters": {
+          "spanName": "Foo",
+          "spanKind": "Server",
+          "traceIdInHeader": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "spanIdInHeader": "7d3efb1b173fecfa",
+          "sampledFlagInHeader": "0"
+        },
+        "assertions": [
+          {
+            "description": "Current span has expected traceId",
+            "rule": {
+              "operator": "Matches",
+              "parameters": {
+                "object": "currentOTelSpan.traceId",
+                "value": "da8bc8cc6d062849b0efcf3c169afb5a"
+              }
+            }
+          }
+        ]
+      }
+    ],
+
+    "agentOutput": {
+      "transactions": [
+        {
+          "name": "Foo"
+        }
+      ],
+      "spans": []
+    }
   }
 
 ]

@@ -18,6 +18,12 @@ module Commands
     span&.finish
   end
 
+  def do_work_in_span_with_inbound_context(span_name:, span_kind:, trace_id_in_header:,
+    span_id_in_header:, sampled_flag_in_header:, &block)
+    # TODO
+    yield if block
+  end
+
   def do_work_in_transaction(transaction_name:, &block)
     transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
     yield if block
@@ -48,13 +54,13 @@ module Commands
     yield if block
   end
 
-  def o_tel_inject_headers
+  def o_tel_inject_headers(&block)
     # TODO
-    yield if block_given?
+    yield if block
   end
 
   def nr_inject_headers(&block)
-    # TODO
+    # NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(headers)
     yield if block
   end
 end

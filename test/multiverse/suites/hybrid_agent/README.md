@@ -30,6 +30,32 @@ TracerProvider running. This may need to change once we implement the Hybrid Age
 
 ## Debugging
 
+### focus_tests
+
+The `HybridAgentTest` class includes a method, `#focus_tests` that can be used to run select tests based on the snake-
+cased version of the corresponding `testDescription` key in the `hybrid_agent.json` fixture.
+
+Example:
+```ruby
+# Update the focus_tests method with one or more testDescriptions you want to run
+def focus_tests
+  %w[does_not_create_segment_without_a_transaction]
+end
+
+```output
+$ bermq hybrid_agent
+
+...
+# Running:
+
+S.SSSSS
+
+Fabulous run in 0.003526s, 1985.2524 runs/s, 1701.6449 assertions/s.
+
+7 runs, 6 assertions, 0 failures, 0 errors, 6 skips
+```
+
+### ENABLE_OUTPUT
 You can pass `ENABLE_OUTPUT=true` to the test to get a print out of all the evaluated JSON content. This can be helpful
 to debug whether all levels of the test fixture are executed.
 
