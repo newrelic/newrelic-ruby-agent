@@ -71,15 +71,15 @@ module ParsingHelpers
 
   def equals_assertion(parameters)
     left = parameters['left']
-    left_result = evaluate_param_for_assertion(left)
+    left_result = evaluate_param_for_equals(left)
 
     right = parameters['right']
-    right_result = evaluate_param_for_assertion(right)
+    right_result = evaluate_param_for_equals(right)
 
     assert_equal left_result, right_result, "Expected #{left} to equal #{right}"
   end
 
-  def evaluate_param_for_assertion(param)
+  def evaluate_param_for_equals(param)
     puts param if ENV['ENABLE_OUTPUT']
 
     case param
@@ -88,9 +88,9 @@ module ParsingHelpers
     when 'current_otel_span.span_id' then current_otel_span_context&.span_id
     when 'current_segment.span_id' then NewRelic::Agent::Tracer.current_segment&.guid
     when 'current_transaction.sampled' then current_transaction&.sampled?
-    when 'injected.trace_id' then puts 'TODO'
-    when 'injected.span_id' then puts 'TODO'
-    when 'injected.sampled' then puts 'TODO'
+    when 'injected.trace_id' then 'TODO'
+    when 'injected.span_id' then 'TODO'
+    when 'injected.sampled' then 'TODO'
     else
       raise "Missing parameter for assertion! Received: #{param}"
     end

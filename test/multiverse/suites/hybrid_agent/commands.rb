@@ -55,12 +55,16 @@ module Commands
   end
 
   def o_tel_inject_headers(&block)
-    # TODO
+    # TODO: figure out how to pass the request
+    request = {}
+    OpenTelemetry.propagation.inject(request)
     yield if block
   end
 
   def nr_inject_headers(&block)
-    # NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(headers)
+    # TODO: figure out how to get the headers
+    headers = {}
+    NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(headers)
     yield if block
   end
 end
