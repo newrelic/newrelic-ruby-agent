@@ -107,6 +107,7 @@ jobs:
         with:
           name: coverage-report-unit-tests-${{ matrix.ruby-version }}-${{ env.rails }}
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
 
 
   multiverse:
@@ -160,6 +161,7 @@ jobs:
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-${{ matrix.multiverse }}
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
@@ -261,6 +263,7 @@ jobs:
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_1
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
@@ -359,6 +362,7 @@ jobs:
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_2
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
@@ -450,6 +454,7 @@ jobs:
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_kafka
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
@@ -568,6 +573,7 @@ jobs:
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-service_mysql_pg
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
@@ -622,6 +628,7 @@ jobs:
         with:
           name: coverage-report-infinite-tracing-${{ matrix.ruby-version }}-infinite_tracing
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
 
 
   simplecov:
@@ -647,6 +654,7 @@ jobs:
         with:
           name: coverage-report-combined-${{ matrix.ruby-version }}
           path: lib/coverage_results
+          include-hidden-files: true
           retention-days: 2
       - name: Simplecov Report
         uses: ./.github/actions/simplecov-report
