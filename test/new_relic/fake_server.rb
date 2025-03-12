@@ -5,7 +5,7 @@
 require 'webrick'
 require 'webrick/https'
 require 'rack'
-require 'rackup/handler' unless /^1|2/.match?(Rack.release)
+require 'rackup/handler' unless /^1|^2/.match?(::Rack.release)
 require 'timeout'
 require 'json'
 
@@ -85,6 +85,7 @@ module NewRelic
     end
 
     def webrick_handler
+      binding.irb
       handler = defined?(::Rackup) ? ::Rackup::Handler : ::Rack::Handler
       handler.get(:webrick)
     end
