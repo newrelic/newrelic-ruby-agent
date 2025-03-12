@@ -15,6 +15,7 @@ def gem_list(view_component_version = nil)
     gem 'rails'
     gem 'view_component'#{view_component_version}
     gem 'rack-test'
+    gem 'rack', '3.1.11'
     gem 'loofah', '~> 2.20.0' if RUBY_VERSION >= '2.4.0' && RUBY_VERSION < '2.5.0'
   RB
 end
