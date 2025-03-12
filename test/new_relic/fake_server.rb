@@ -85,7 +85,6 @@ module NewRelic
     end
 
     def webrick_handler
-      binding.irb
       handler = defined?(::Rackup) ? ::Rackup::Handler : ::Rack::Handler
       handler.get(:webrick)
     end
