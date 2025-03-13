@@ -74,6 +74,7 @@ module NewRelic
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
         init_instrumentation
         init_security_agent
+        report_agent_version_metric
       end
 
       def determine_env(options)
@@ -170,6 +171,10 @@ module NewRelic
 
       def stdout
         STDOUT
+      end
+
+      def report_agent_version_metric
+        NewRelic::Agent.record_metric_once("Supportability/AgentVersion/newrelic_rpm/#{NewRelic::VERSION::STRING}")
       end
     end
     include InstanceMethods
