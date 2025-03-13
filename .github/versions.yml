@@ -42,3 +42,6 @@ aquasecurity/trivy-action:
 github/codeql-action/upload-sarif:
   :tag: v3.27.0
   :sha: 662472033e021d55d94146f66f6058822b0b39fd
+actions/add-to-project:
+  :tag: v1.0.2
+  :sha: 244f685bbc3b7adfa8466e08b698b5577571133e
