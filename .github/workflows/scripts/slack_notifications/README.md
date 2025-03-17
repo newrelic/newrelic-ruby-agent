@@ -9,8 +9,6 @@ This script runs every 24 hours via GitHub Actions and sends notifications for 1
 ### Gem Version Updates
 The RubyGems API is used to see if gems were updated during that time. A Slack alert is sent to the Ruby agent team's notification channel (ruby-agent-notifications) when an update is found. This alert contains the updated gem name, the gem's previous and latest version, and how to view more information on the update.
 
-### Ruby CVE Updates
-An XML feed from [RubySec](https://rubysec.com/) reports updates on Ruby CVEs. When a vulnerability is found, a Slack alert is sent to the Ruby agent team's notification channel (ruby-agent-notifications). This alert contains the security alert and related RubySec link.
 ## Helpful Information
 
 ### Adding or Removing Gem Version Updates
@@ -25,9 +23,6 @@ This project uses the internal Ruby Gem Updates Slackbot to post notifications. 
 
 **Gem Version Updates** 
 * [gem_notifier](.github/workflows/scripts/slack_notifications/gem_notifier.rb)
-
-**Ruby CVE Updates**
-* [cve_methods](.github/workflows/scripts/slack_notifications/cve_notifier.rb)
 
 **Shared**
 * [slack_notifications](.github/workflows/slack_notifications.yml)
