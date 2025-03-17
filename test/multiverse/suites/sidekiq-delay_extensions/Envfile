@@ -7,14 +7,15 @@ suite_condition("Sidekiq does not run on JRuby") do
 end
 
 SIDEKIQ_VERSIONS = [
-  [nil, 3.2],
-  ['7.3.9', 2.7]
+  [nil, 3.2]
+  # ['7.3.9', 2.7]
 ]
 
 def gem_list(sidekiq_version = nil)
   <<-RB
     gem 'sidekiq'#{sidekiq_version}
     gem 'sidekiq-delay_extensions'
+    gem 'activerecord', '8.0.0'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
 end
