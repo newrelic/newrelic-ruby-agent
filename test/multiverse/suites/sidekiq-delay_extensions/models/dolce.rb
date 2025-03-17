@@ -6,6 +6,6 @@ require 'new_relic/agent/datastores'
 
 class Dolce < ActiveRecord::Base
 	def long_method
-			puts "Running long method with dolce test"
+		puts "Running long method with dolce test"
 	end
 end
