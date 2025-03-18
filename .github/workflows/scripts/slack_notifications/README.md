@@ -1,6 +1,6 @@
 # Slack Notifications
 
-An internal tool for alerting the Ruby agent team of gem version updates and Ruby CVEs. 
+An internal tool for alerting the Ruby agent team of gem version updates. 
 
 ## Description
 
