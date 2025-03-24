@@ -252,7 +252,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       kafka:
-        image: bitnami/kafka
+        image: bitnami/kafka:3.9.0
         ports:
           - 9092:9092
         options: >-
@@ -267,7 +267,6 @@ jobs:
           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
           KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
           KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
-          KAFKA_CFG_PROCESS_ROLES: ''
       memcached:
         image: memcached:latest
         ports:
@@ -333,7 +332,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       kafka:
-        image: bitnami/kafka
+        image: bitnami/kafka:3.9.0
         ports:
           - 9092:9092
         options: >-
@@ -348,7 +347,6 @@ jobs:
           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
           KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
           KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
-          KAFKA_CFG_PROCESS_ROLES: ''
       zookeeper:
         image: bitnami/zookeeper
         ports:
