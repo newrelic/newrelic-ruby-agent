@@ -64,9 +64,10 @@ jobs:
 
       - name: Checkout docs website repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+        env:
+          token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
         with:
           repository: newrelic/docs-website
-          token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
 
       - name: Build delete command
         run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV

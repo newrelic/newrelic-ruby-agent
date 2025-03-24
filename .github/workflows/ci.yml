@@ -658,8 +658,9 @@ jobs:
           retention-days: 2
       - name: Simplecov Report
         uses: ./.github/actions/simplecov-report
-        with:
+        env:
           token: ${{ secrets.GITHUB_TOKEN }}
+        with:
           resultPath: lib/coverage_results/.last_run.json
           failedThreshold: 93.5
           failedThresholdBranch: 0
