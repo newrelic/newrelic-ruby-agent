@@ -48,8 +48,7 @@ jobs:
           path: ./test/performance/performance_results.md
       - name: Slack results
         uses: adrey/slack-file-upload-action@903be3678c88966c762193f06530c39178b44d68 # tag v1.0.5
-        env:
-          token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
         with:
+          token: ${{ secrets.RUBY_GITHUB_ACTIONS_BOT_WEBHOOK }}
           path: ./test/performance/performance_results.md
           channel: ruby-agent-notifications
