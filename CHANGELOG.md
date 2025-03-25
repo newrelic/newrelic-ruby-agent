@@ -10,6 +10,10 @@
 
   Sidekiq delay extensions were removed from Sidekiq in 7.x and are now avaliable through the [sidekiq-delay_extensions](https://rubygems.org/gems/sidekiq-delay_extensions) gem. Thanks to [@sobrinho](https://github.com/sobrinho), the agent now has continued support for delay extensions.[PR#3056](https://github.com/newrelic/newrelic-ruby-agent/pull/3056)
 
+- **Feature: Parallelize calls for vendor metadata**
+
+  Previously, the agent would make calls for vendor metadata in a serial fashion. This could lead to a delay in starting the agent. Now, the agent will make these calls in parallel, reducing the time it takes to start the agent. [PR#3094](https://github.com/newrelic/newrelic-ruby-agent/pull/3094)
+
 - **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
