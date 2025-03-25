@@ -78,7 +78,7 @@ module Multiverse
         end
       end
     end
-    require 'irb'
+
     def parse_lockfile(dir)
       return unless File.exist?(File.join(dir, LOCKFILE))
 
