@@ -90,6 +90,16 @@ module NewRelic::Agent
         assert_equal(expected, result)
       end
 
+      def test_uses_process_host_display_name_as_hostname
+        with_config(:'process_host.display_name' => 'crossword-oreo-panda') do
+          result = Hash.new
+          LinkingMetadata.append_service_linking_metadata(result)
+
+          refute_equal(('crossword-oreo-panda'), Hostname.get)
+          assert_equal('crossword-oreo-panda', result['hostname'])
+        end
+      end
+
       def apply_config(config)
         @config = config
         NewRelic::Agent.config.add_config_for_testing(@config)

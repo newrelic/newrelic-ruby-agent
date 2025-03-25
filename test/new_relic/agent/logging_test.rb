@@ -142,6 +142,17 @@ module NewRelic
 
           refute_equal formatter, logger.formatter
         end
+
+        def test_hostname_is_same_as_process_host_display_name_config
+          logger = DecoratingLogger.new(@output)
+
+          with_config(:'process_host.display_name' => 'soothing-caramel-bedtime') do
+            logger.info('one')
+
+            refute_equal 'soothing-caramel-bedtime', Hostname.get
+            assert_equal 'soothing-caramel-bedtime', last_message['hostname']
+          end
+        end
       end
     end
   end

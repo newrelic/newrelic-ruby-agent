@@ -81,7 +81,7 @@ module NewRelic
         end
 
         def add_hostname(message)
-          add_key_value(message, HOSTNAME_KEY, Hostname.get)
+          add_key_value(message, HOSTNAME_KEY, NewRelic::Agent.config[:'process_host.display_name'])
         end
 
         def add_entity_guid(message)
