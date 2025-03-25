@@ -86,11 +86,10 @@ module NewRelic
 
       def append_vendor_info(collector_hash)
         threads = []
+        complete = false
 
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
-
-          # complete = false
 
           threads << Thread.new do
             vendor = klass.new
@@ -99,16 +98,14 @@ module NewRelic
               collector_hash[:vendors] ||= {}
               collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
 
-              # complete = true
+              complete = true
             end
           end
         end
 
-        threads.each(&:join)
-        # while complete == false && threads.any?(&:alive?)
-        #   threads.each
-        #   sleep 0.01
-        # end
+        while complete == false && threads.any?(&:alive?)
+          sleep 0.01
+        end
       end
 
       def append_docker_info(collector_hash)
