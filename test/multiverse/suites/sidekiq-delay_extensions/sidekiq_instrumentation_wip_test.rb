@@ -16,9 +16,8 @@ class SidekiqInstrumentationTest < Minitest::Test
   include SidekiqTestHelpers
 
   def test_running_a_job_produces_a_healthy_segment
-    # NOTE: run_job itself asserts that exactly 1 segment could be found
     segment = run_job
-    binding.irb
-    assert segment.duration.is_a?(Float)
+
+    assert_equal 'Nested/OtherTransaction/SidekiqJob/Dolce/long_running_task', segment.name
   end
 end

@@ -9,7 +9,7 @@ class Dolce < ActiveRecord::Base
 	COMPLETION_VAR = :@@nr_job_complete
 
   def long_running_task
-    puts "Running long method with Dolce instance"
+    #NOOP
 	ensure
 		@@nr_job_complete = true
   end

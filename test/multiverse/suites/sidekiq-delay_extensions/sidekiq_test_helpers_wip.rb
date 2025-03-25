@@ -31,22 +31,13 @@ module SidekiqTestHelpers
     Dolce.class_variable_set(Dolce::COMPLETION_VAR, false)
     config = cli.instance_variable_defined?(:@config) ? cli.instance_variable_get(:@config) : Sidekiq.options
 
-    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
-    require 'sidekiq/launcher' if Sidekiq::VERSION.split('.').first.to_i < 6
-
     launcher = Sidekiq::Launcher.new(config)
     launcher.run
     Timeout.timeout(5) do
       sleep 0.01 until Dolce.class_variable_get(Dolce::COMPLETION_VAR)
     end
 
-    # TODO: MAJOR VERSION - Sidekiq v7 is fine with launcher.stop, but v5 and v6
-    #                       need the Manager#quiet call
-    if launcher.instance_variable_defined?(:@manager)
-      launcher.instance_variable_get(:@manager).quiet
-    else
-      launcher.stop
-    end
+    launcher.stop
   end
 
   def cli
