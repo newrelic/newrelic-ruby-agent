@@ -6,11 +6,11 @@ require 'new_relic/agent/datastores'
 require 'active_record'
 
 class Dolce < ActiveRecord::Base
-	COMPLETION_VAR = :@@nr_job_complete
+  COMPLETION_VAR = :@@nr_job_complete
 
   def long_running_task
-    #NOOP
-	ensure
-		@@nr_job_complete = true
+  # NOOP
+  ensure
+    @@nr_job_complete = true
   end
 end
