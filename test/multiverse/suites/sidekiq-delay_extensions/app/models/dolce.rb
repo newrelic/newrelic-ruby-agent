@@ -9,8 +9,6 @@ class Dolce < ActiveRecord::Base
   COMPLETION_VAR = :@@nr_job_complete
 
   def long_running_task
-  # NOOP
-  ensure
     @@nr_job_complete = true
   end
 end
