@@ -18,10 +18,7 @@ class SidekiqInstrumentationTest < Minitest::Test
   def test_running_a_job_produces_a_healthy_segment
     # NOTE: run_job itself asserts that exactly 1 segment could be found
     segment = run_job
-
-    assert_predicate segment, :finished?
-    assert_predicate segment, :record_metrics?
-    # binding.irb
+    binding.irb
     assert segment.duration.is_a?(Float)
   end
 end

@@ -2,6 +2,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'sidekiq/cli'
+
 def redefine_mysql_primary_key(const_str)
   const = Object.const_get(const_str) rescue return
   const[:primary_key] = 'int(11) auto_increment PRIMARY KEY'
@@ -26,9 +28,6 @@ end
 class Minitest::Test
   def after_teardown
     super
-    User.delete_all if defined?(User)
-    Alias.delete_all if defined?(Alias)
-    Order.delete_all if defined?(Order)
-    Shipment.delete_all if defined?(Shipment)
+    Dolce.delete_all if defined?(Dolce)
   end
 end
