@@ -5,7 +5,7 @@
 require 'webrick'
 require 'webrick/https'
 require 'rack'
-require 'rackup/handler' unless /^1|2/.match?(Rack.release)
+require 'rackup/handler' unless /^1|^2/.match?(Rack.release)
 require 'timeout'
 require 'json'
 

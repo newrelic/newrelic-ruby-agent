@@ -13,11 +13,11 @@ jobs:
       contents: write
       repository-projects: write
     steps:
-    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       with:
         fetch-depth: 0
 
-    - uses: ruby/setup-ruby@32110d4e311bd8996b2a82bf2a43b714ccc91777 # tag v1.221.0
+    - uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
       with:
         ruby-version: 3.4
 
