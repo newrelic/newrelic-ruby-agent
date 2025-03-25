@@ -13,9 +13,11 @@ SIDEKIQ_VERSIONS = [
 
 def gem_list(sidekiq_version = nil)
   <<-RB
-    gem 'sidekiq'#{sidekiq_version}
-    gem 'sidekiq-delay_extensions'
+    gem 'sidekiq'#{sidekiq_version}, :path => '/Users/hramadan/repos/sidekiq'
+    gem 'sidekiq-delay_extensions', :path => '/Users/hramadan/repos/sidekiq-delay_extensions'
     gem 'activerecord', '8.0.0'
+    gem 'pg'
+    gem 'rack'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
 end

@@ -1,0 +1,13 @@
+# This file is distributed under new relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/license for complete details.
+# frozen_string_literal: true
+
+require File.expand_path('config/database')
+
+desc 'Setup for ActiveRecord'
+task :environment do
+  if defined?(DatabaseTasks)
+    ActiveRecord::Base.configurations = DatabaseTasks.database_configuration
+    ActiveRecord::Base.establish_connection(DatabaseTasks.env.to_sym)
+  end
+end
