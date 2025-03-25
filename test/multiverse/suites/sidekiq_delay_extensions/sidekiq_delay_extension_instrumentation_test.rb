@@ -2,7 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative 'sidekiq-delay_extensions_test_helpers'
+require_relative 'sidekiq_delay_extensions_test_helpers'
 
 class SidekiqInstrumentationTest < Minitest::Test
   include MultiverseHelpers
