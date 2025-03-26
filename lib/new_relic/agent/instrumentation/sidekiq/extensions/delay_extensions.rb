@@ -13,7 +13,7 @@ if defined?(Sidekiq::DelayExtensions)
 
       {
         :name => method_name,
-        :class_name => target.name,
+        :class_name => target.class.name,
         :category => 'OtherTransaction/SidekiqJob'
       }
     rescue => e

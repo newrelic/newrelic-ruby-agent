@@ -80,6 +80,8 @@ module Multiverse
     end
 
     def parse_lockfile(dir)
+      return unless File.exist?(File.join(dir, LOCKFILE))
+
       content = File.read(File.join(dir, LOCKFILE))
       gem_specs = Regexp.last_match(1) if content =~ /\AGEM\n.*\n\s+specs:\n(.*?)\n\n/m
       desired_indentation = nil
