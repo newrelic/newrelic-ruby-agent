@@ -10,12 +10,16 @@
 
   Sidekiq delay extensions were removed from Sidekiq in 7.x and are now avaliable through the [sidekiq-delay_extensions](https://rubygems.org/gems/sidekiq-delay_extensions) gem. Thanks to [@sobrinho](https://github.com/sobrinho), the agent now has continued support for delay extensions.[PR#3056](https://github.com/newrelic/newrelic-ruby-agent/pull/3056)
 
+- **Feature: Use process_host.display_name configuration to set Hostname attribute on logs and other linking metadata**
+
+  Previously, the hostname was assigned by the `NewRelic::Agent::Hostname.get` API. This API is the default value of `process_host.display_name`. Now, user-configured values for the host name will be applied. Thank you [@flivni](https://github.com/flivni) for bringing this to our attention! [Issue#1696](https://github.com/newrelic/newrelic-ruby-agent/issues/1696) [PR#](https://github.com/newrelic/newrelic-ruby-agent/pulls)
+
 - **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
 
 - **Bugfix: JRuby multithreading improvements**
-  
+
   Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. Thanks to @NC-piercej for bringing this to our attention [Issue#3021](https://github.com/newrelic/newrelic-ruby-agent/issues/3021) [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
 
 - **Bugfix: Stop reporting rescued Sidekiq::OverLimit exceptions**
