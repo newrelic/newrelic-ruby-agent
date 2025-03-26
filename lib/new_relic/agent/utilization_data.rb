@@ -85,16 +85,26 @@ module NewRelic
       end
 
       def append_vendor_info(collector_hash)
+        threads = []
+        complete = false
+
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
 
-          vendor = klass.new
+          threads << Thread.new do
+            vendor = klass.new
 
-          if vendor.detect
-            collector_hash[:vendors] ||= {}
-            collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
-            break
+            if vendor.detect
+              collector_hash[:vendors] ||= {}
+              collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
+
+              complete = true
+            end
           end
+        end
+
+        while complete == false && threads.any?(&:alive?)
+          sleep 0.01
         end
       end
 
