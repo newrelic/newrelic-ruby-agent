@@ -23,10 +23,6 @@ module SidekiqTestHelpers
     segments.first
   end
 
-  def run_job_and_get_attributes(*args)
-    run_job(*args).attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
-  end
-
   def process_queued_jobs
     Dolce.class_variable_set(Dolce::COMPLETION_VAR, false)
     config = cli.instance_variable_defined?(:@config) ? cli.instance_variable_get(:@config) : Sidekiq.options
@@ -57,9 +53,5 @@ module SidekiqTestHelpers
 
     require 'sidekiq/config'
     cli.instance_variable_set(:@config, ::Sidekiq::Config.new)
-  end
-
-  def flatten(object)
-    NewRelic::Agent::AttributeProcessing.flatten_and_coerce(object, 'job.sidekiq.args')
   end
 end

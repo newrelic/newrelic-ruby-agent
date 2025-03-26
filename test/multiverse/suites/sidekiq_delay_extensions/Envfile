@@ -10,9 +10,10 @@ SIDEKIQ_DELAY_EXTENSIONS_VERSIONS = [
   [nil, 3.2]
 ]
 
-def gem_list(sidekiq_version = nil)
+# sidekiq-delay_extensions brings in the latest Sidekiq
+def gem_list(sidekiq_delay_extensions_version = nil)
   <<-RB
-    gem 'sidekiq-delay_extensions'#{sidekiq_version}
+    gem 'sidekiq-delay_extensions'#{sidekiq_delay_extensions_version}
     gem 'activerecord', '8.0.0'
     gem 'pg'
     gem 'rack'

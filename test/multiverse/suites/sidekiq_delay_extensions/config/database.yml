@@ -1,10 +1,5 @@
 default: &default
-  adapter: <%=
-    if defined?(JRuby)
-      'jdbcpostgresql'
-    else
-      'postgresql'
-    end %>
+  adapter: 'postgresql'
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: <%= File.exist?('/.dockerenv') ? 'postgres' : 'localhost' %>

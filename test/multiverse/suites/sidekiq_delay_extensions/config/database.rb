@@ -11,11 +11,7 @@ DependencyDetection.detect!
 db_dir = File.expand_path('../../db', __FILE__)
 config_dir = File.expand_path(File.dirname(__FILE__))
 
-if defined?(ActiveRecord::VERSION)
-  ENV['DATABASE_NAME'] = "multiverse_activerecord_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr('.', '_')
-else
-  ENV['DATABASE_NAME'] = "multiverse_activerecord_2_x_#{ENV['MULTIVERSE_ENV']}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr('.', '_')
-end
+ENV['DATABASE_NAME'] = "multiverse_sidekiq-delay_extensions_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{RUBY_ENGINE}".tr('.', '_')
 
 config_raw = File.read(File.join(config_dir, 'database.yml'))
 config_erb = ERB.new(config_raw).result

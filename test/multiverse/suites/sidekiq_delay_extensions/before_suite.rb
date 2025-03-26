@@ -4,11 +4,6 @@
 
 require 'sidekiq/cli'
 
-def redefine_mysql_primary_key(const_str)
-  const = Object.const_get(const_str) rescue return
-  const[:primary_key] = 'int(11) auto_increment PRIMARY KEY'
-end
-
 begin
   # disable the environment check that would otherwise raise
   # ActiveRecord::EnvironmentMismatchError when switching between the
