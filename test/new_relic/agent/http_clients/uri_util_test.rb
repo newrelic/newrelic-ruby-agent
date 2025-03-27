@@ -65,7 +65,8 @@ class URIUtilTest < Minitest::Test
     uri = URI('http://RITAS.com/treats/mango-vanilla-gelati')
     uri.host = uri.host.freeze
 
-    assert_equal('http://ritas.com', NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(uri).to_s)
+    assert_equal('http://ritas.com/treats/mango-vanilla-gelati',
+      NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(uri).to_s)
   end
 
   def assert_obfuscated(original, expected)
