@@ -19,7 +19,7 @@
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
 
 - **Bugfix: JRuby multithreading improvements**
-  
+
   Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. Thanks to @NC-piercej for bringing this to our attention [Issue#3021](https://github.com/newrelic/newrelic-ruby-agent/issues/3021) [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
 
 - **Bugfix: Stop reporting rescued Sidekiq::OverLimit exceptions**
@@ -33,6 +33,10 @@
 - **Bugfix: Ignore Solid Queue `ThreadError: queue empty` error message by default**
 
   When using the solid_queue gem, the agent previously generated excessive warn-level logs when the queue was empty. The agent now ignores `queue empty` error messages of the `ThreadError` class by default. This behavior can be adjusted using the `error_collector.ignore_messages` configuration option. [PR#3060](https://github.com/newrelic/newrelic-ruby-agent/pull/3060)
+
+- **Bugfix: Refactor URI host handling to accommodate downcasing frozen strings**
+
+  When URI host string was frozen, a FrozenError would be raised when the agent attempted to downcase the host as part of its data normalization process. Now, the update is friendly for frozen strings. Thank you [@pedrol3001](https://github.com/pedrol3001) for your contribution! [PR#3097](https://github.com/newrelic/newrelic-ruby-agent/pull/3097)
 
 ## v9.17.0
 
