@@ -2185,7 +2185,7 @@ module NewRelic
           # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
             - Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
-            - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
+              - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
             This ensures the agent captures the maximum amount of distributed traces.
           DESC
         },
