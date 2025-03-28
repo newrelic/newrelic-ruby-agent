@@ -348,6 +348,14 @@ module NewRelic
           end
         end
 
+        def test_thread_id_is_added_to_span_events
+          in_transaction do |txn|
+            intrinsics, _custom, _agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
+
+            assert_equal Thread.current.object_id, intrinsics['thread.id']
+          end
+        end
+
         private
 
         def uri_for_testing
