@@ -1427,7 +1427,6 @@ module NewRelic
             To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
             ```yaml
-            # newrelic.yml
             cross_application_tracer:
               enabled: true
             distributed_tracing:
