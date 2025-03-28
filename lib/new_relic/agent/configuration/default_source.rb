@@ -408,8 +408,8 @@ module NewRelic
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
             The excluded attributes include:
-              * `content` from LlmChatCompletionMessage events
-              * `input` from LlmEmbedding events
+            - `content` from LlmChatCompletionMessage events
+            - `input` from LlmEmbedding events
 
             This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
           DESCRIPTION
@@ -461,7 +461,7 @@ module NewRelic
             When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
             <Callout variant="caution">
-              When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+            When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
             </Callout>
           DESCRIPTION
         },
@@ -487,10 +487,10 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESC
             Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order):
-              * `config/newrelic.yml`
-              * `newrelic.yml`
-              * `$HOME/.newrelic/newrelic.yml`
-              * `$HOME/newrelic.yml`
+            - `config/newrelic.yml`
+            - `newrelic.yml`
+            - `$HOME/.newrelic/newrelic.yml`
+            - `$HOME/newrelic.yml`
           DESC
         },
         :'exclude_newrelic_header' => {
@@ -723,7 +723,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             A list of error classes that the agent should treat as expected.
             <Callout variant="caution">
-              This option can't be set via environment variable.
+            This option can't be set via environment variable.
             </Callout>
           DESCRIPTION
         },
@@ -736,7 +736,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
             <Callout variant="caution">
-              This option can't be set via environment variable.
+            This option can't be set via environment variable.
             </Callout>
           DESCRIPTION
         },
@@ -757,7 +757,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             A list of error classes that the agent should ignore.
             <Callout variant="caution">
-              This option can't be set via environment variable.
+            This option can't be set via environment variable.
             </Callout>
           DESCRIPTION
         },
@@ -770,7 +770,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
             <Callout variant="caution">
-              This option can't be set via environment variable.
+            This option can't be set via environment variable.
             </Callout>
           DESCRIPTION
         },
@@ -860,12 +860,12 @@ module NewRelic
             For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
 
             Valid values (ordered lowest to highest):
-            * "debug"
-            * "info"
-            * "warn"
-            * "error"
-            * "fatal"
-            * "unknown"
+            - "debug"
+            - "info"
+            - "warn"
+            - "error"
+            - "fatal"
+            - "unknown"
           DESCRIPTION
         },
         :'application_logging.forwarding.custom_attributes' => {
@@ -1237,8 +1237,8 @@ module NewRelic
           :dynamic_name => true,
           # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
-            * Specify a maximum number of custom events to buffer in memory at a time.
-            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
+            - Specify a maximum number of custom events to buffer in memory at a time.
+              - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
             set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
           DESC
         },
@@ -1381,7 +1381,7 @@ module NewRelic
             If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
 
             <Callout variant="important">
-              When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+            When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
             </Callout>
           DESCRIPTION
         },
@@ -1422,17 +1422,17 @@ module NewRelic
             If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
             <Callout variant="important">
-              Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+            Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
-              To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+            To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
-              ```yaml
-              # newrelic.yml
-              cross_application_tracer:
-                enabled: true
-              distributed_tracing:
-                enabled: false
-              ```
+            ```yaml
+            # newrelic.yml
+            cross_application_tracer:
+              enabled: true
+            distributed_tracing:
+              enabled: false
+            ```
             </Callout>
           DESCRIPTION
         },
@@ -2047,7 +2047,7 @@ module NewRelic
             If `true`, when the agent is in an application using Ruby on Rails, it will start after `config/initializers` run.
 
             <Callout variant="caution">
-              This option may only be set by environment variable.
+            This option may only be set by environment variable.
             </Callout>
           DESCRIPTION
         },
@@ -2185,8 +2185,8 @@ module NewRelic
           :allowed_from_server => true,
           # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
-            * Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
-            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
+            - Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
+            - When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
             This ensures the agent captures the maximum amount of distributed traces.
           DESC
         },

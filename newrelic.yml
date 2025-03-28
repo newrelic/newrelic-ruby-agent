@@ -42,8 +42,8 @@ common: &default_settings
   # output content on specific LLM events.
   # 
   # The excluded attributes include:
-  #   * content from LlmChatCompletionMessage events
-  #   * input from LlmEmbedding events
+  # - content from LlmChatCompletionMessage events
+  # - input from LlmEmbedding events
   # 
   # This is an optional security setting to prevent recording sensitive data sent
   # to and received from your LLMs.
@@ -86,12 +86,12 @@ common: &default_settings
   # levels "error", "fatal", and "unknown".
   # 
   # Valid values (ordered lowest to highest):
-  # * "debug"
-  # * "info"
-  # * "warn"
-  # * "error"
-  # * "fatal"
-  # * "unknown"
+  # - "debug"
+  # - "info"
+  # - "warn"
+  # - "error"
+  # - "fatal"
+  # - "unknown"
   # application_logging.forwarding.log_level: debug
 
   # Defines the maximum number of log records to buffer in memory at a time.
@@ -224,7 +224,7 @@ common: &default_settings
   # When true, the agent captures HTTP request parameters and attaches them to
   # transaction traces, traced errors, and TransactionError events.
   # 
-  #   When using the capture_params setting, the Ruby agent will not attempt to
+  # When using the capture_params setting, the Ruby agent will not attempt to
   # filter secret information. Recommendation: To filter secret information from
   # request parameters, use the attributes.include setting instead. For more
   # information, see the Ruby attribute examples.
@@ -243,10 +243,10 @@ common: &default_settings
 
   # Path to newrelic.yml. If undefined, the agent checks the following directories
   # (in order):
-  #   * config/newrelic.yml
-  #   * newrelic.yml
-  #   * $HOME/.newrelic/newrelic.yml
-  #   * $HOME/newrelic.yml
+  # - config/newrelic.yml
+  # - newrelic.yml
+  # - $HOME/.newrelic/newrelic.yml
+  # - $HOME/newrelic.yml
   # config_path: newrelic.yml
 
   # If false, custom attributes will not be sent on events.
@@ -255,9 +255,9 @@ common: &default_settings
   # If true, the agent captures custom events.
   # custom_insights_events.enabled: true
 
-  # * Specify a maximum number of custom events to buffer in memory at a time.
-  # * When configuring the agent for AI monitoring, set to max value 100000. This
-  # ensures the agent captures the maximum amount of LLM events.
+  # - Specify a maximum number of custom events to buffer in memory at a time.
+  #   - When configuring the agent for AI monitoring, set to max value 100000.
+  # This ensures the agent captures the maximum amount of LLM events.
   # custom_insights_events.max_samples_stored: 3000
 
   # If false, the agent will not add database_name parameter to transaction or
@@ -311,7 +311,7 @@ common: &default_settings
   # If true, the agent won't wrap third-party middlewares in instrumentation
   # (regardless of whether they are installed via Rack::Builder or Rails).
   # 
-  #   When middleware instrumentation is disabled, if an application is using
+  # When middleware instrumentation is disabled, if an application is using
   # middleware that could alter the response code, the HTTP status code reported
   # on the transaction may not reflect the altered value.
   # disable_middleware_instrumentation: false
@@ -334,18 +334,18 @@ common: &default_settings
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
   # 
-  #   Cross application tracing is deprecated in favor of distributed tracing.
+  # Cross application tracing is deprecated in favor of distributed tracing.
   # Distributed tracing is on by default for Ruby agent versions 8.0.0 and above.
   # Middlewares are not required to support distributed tracing.
   # 
-  #   To continue using cross application tracing, update the following options in
+  # To continue using cross application tracing, update the following options in
   # your newrelic.yml configuration file:
   # 
-  #     # newrelic.yml
-  #   cross_application_tracer:
-  #     enabled: true
-  #   distributed_tracing:
-  #     enabled: false
+  # # newrelic.yml
+  # cross_application_tracer:
+  #   enabled: true
+  # distributed_tracing:
+  #   enabled: false
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
@@ -388,13 +388,13 @@ common: &default_settings
   # error_collector.enabled: true
 
   # A list of error classes that the agent should treat as expected.
-  #   This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.expected_classes: []
 
   # A map of error classes to a list of messages. When an error of one of the
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be treated as expected.
-  #   This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.expected_messages: {}
 
   # A comma separated list of status codes, possibly including ranges. Errors
@@ -403,13 +403,13 @@ common: &default_settings
   # error_collector.expected_status_codes: ""
 
   # A list of error classes that the agent should ignore.
-  #   This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.ignore_classes: ["ActionController::RoutingError", "Sinatra::NotFound"]
 
   # A map of error classes to a list of messages. When an error of one of the
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be ignored.
-  #   This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.ignore_messages: {"ThreadError"=>["queue empty"]}
 
   # A comma separated list of status codes, possibly including ranges. Errors
@@ -813,9 +813,9 @@ common: &default_settings
   # If true, enables span event sampling.
   # span_events.enabled: true
 
-  # * Defines the maximum number of span events reported from a single harvest.
+  # - Defines the maximum number of span events reported from a single harvest.
   # Any Integer between 1 and 10000 is valid.'
-  # * When configuring the agent for AI monitoring, set to max value 10000.This
+  # - When configuring the agent for AI monitoring, set to max value 10000.This
   # ensures the agent captures the maximum amount of distributed traces.
   # span_events.max_samples_stored: 2000
 
