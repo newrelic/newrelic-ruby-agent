@@ -18,7 +18,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
-          ruby-version: jruby-9.4.9.0
+          ruby-version: jruby-9.4.12.0
 
       - name: Bundle
         run: bundle install
@@ -51,7 +51,7 @@ jobs:
       - name: Install JRuby
         uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
-          ruby-version: jruby-9.4.9.0
+          ruby-version: jruby-9.4.12.0
 
       - name: Bundle
         run: bundle install
