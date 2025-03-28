@@ -135,7 +135,7 @@ module NewRelicYML
   end
 
   def self.sanitize_description(description)
-    # remove callouts 
+    # remove callouts
     description = description.split("\n").reject { |line| line.match?('</?Callout') }.join("\n")
     # remove InlinePopover, keep the text inside type
     description.gsub!(/<InlinePopover type="(.*)" \/>/, '\1')
