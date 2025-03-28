@@ -2,10 +2,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-suite_condition("Sidekiq does not run on JRuby") do
-  RUBY_PLATFORM != 'java'
-end
-
 SIDEKIQ_VERSIONS = [
   [nil, 3.2],
   ['7.3.9', 2.7],
