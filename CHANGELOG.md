@@ -14,6 +14,10 @@
 
   Previously, the agent would make calls for vendor metadata in a serial fashion. This could lead to a delay in starting the agent. Now, the agent will make these calls in parallel, reducing the time it takes to start the agent. [PR#3094](https://github.com/newrelic/newrelic-ruby-agent/pull/3094)
 
+- **Feature: Add Thread ID as attribute to all spans**
+
+  The agent will now record the Thread ID as an attribute on each span. []()
+
 - **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
 
   When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
