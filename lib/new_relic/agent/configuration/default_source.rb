@@ -387,9 +387,9 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
             An array of ActiveSupport custom event names to subscribe to and instrument. For example,
-              - one.custom.event
-              - another.event
-              - a.third.event
+            - one.custom.event
+            - another.event
+            - a.third.event
           DESCRIPTION
         },
         :'ai_monitoring.enabled' => {
@@ -407,11 +407,11 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
-              The excluded attributes include:
-                * `content` from LlmChatCompletionMessage events
-                * `input` from LlmEmbedding events
+            The excluded attributes include:
+              * `content` from LlmChatCompletionMessage events
+              * `input` from LlmEmbedding events
 
-              This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
+            This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
           DESCRIPTION
         },
         # this is only set via server side config
@@ -460,9 +460,9 @@ module NewRelic
           :description => <<~DESCRIPTION
             When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
-                <Callout variant="caution">
-                  When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
-                </Callout>
+            <Callout variant="caution">
+              When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+            </Callout>
           DESCRIPTION
         },
         :'clear_transaction_state_after_fork' => {
@@ -487,10 +487,10 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESC
             Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order):
-                * `config/newrelic.yml`
-                * `newrelic.yml`
-                * `$HOME/.newrelic/newrelic.yml`
-                * `$HOME/newrelic.yml`
+              * `config/newrelic.yml`
+              * `newrelic.yml`
+              * `$HOME/.newrelic/newrelic.yml`
+              * `$HOME/newrelic.yml`
           DESC
         },
         :'exclude_newrelic_header' => {
@@ -674,13 +674,13 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes.
-
-  By default, this is set to `obfuscated`, which strips out the numeric and string literals.
-
-  - If you do not want the agent to capture query information, set this to `none`.
-  - If you want the agent to capture all query information in its original form, set this to `raw`.
-  - When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.'
+          :description => <<~DESC
+            Obfuscation level for SQL queries reported in transaction trace nodes.
+            By default, this is set to `obfuscated`, which strips out the numeric and string literals.
+            - If you do not want the agent to capture query information, set this to `none`.
+            - If you want the agent to capture all query information in its original form, set this to `raw`.
+            - When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
+          DESC
         },
 
         :'transaction_tracer.stack_trace_threshold' => {
@@ -722,10 +722,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A list of error classes that the agent should treat as expected.
-
-              <Callout variant="caution">
-                This option can't be set via environment variable.
-              </Callout>
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
           DESCRIPTION
         },
         :'error_collector.expected_messages' => {
@@ -736,10 +735,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
-
-              <Callout variant="caution">
-                This option can't be set via environment variable.
-              </Callout>
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
           DESCRIPTION
         },
         :'error_collector.expected_status_codes' => {
@@ -758,10 +756,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A list of error classes that the agent should ignore.
-
-              <Callout variant="caution">
-                This option can't be set via environment variable.
-              </Callout>
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
@@ -772,10 +769,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
-
-              <Callout variant="caution">
-                This option can't be set via environment variable.
-              </Callout>
+            <Callout variant="caution">
+              This option can't be set via environment variable.
+            </Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_status_codes' => {
@@ -864,12 +860,12 @@ module NewRelic
             For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
 
             Valid values (ordered lowest to highest):
-              * "debug"
-              * "info"
-              * "warn"
-              * "error"
-              * "fatal"
-              * "unknown"
+            * "debug"
+            * "info"
+            * "warn"
+            * "error"
+            * "fatal"
+            * "unknown"
           DESCRIPTION
         },
         :'application_logging.forwarding.custom_attributes' => {
@@ -1242,7 +1238,7 @@ module NewRelic
           # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
             * Specify a maximum number of custom events to buffer in memory at a time.
-              * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
+            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), \
             set to max value `100000`. This ensures the agent captures the maximum amount of LLM events.
           DESC
         },
@@ -1384,9 +1380,9 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
 
-              <Callout variant="important">
-                When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
-              </Callout>
+            <Callout variant="important">
+              When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+            </Callout>
           DESCRIPTION
         },
         :disable_samplers => {
@@ -1425,20 +1421,19 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
-                <Callout variant="important">
-                  Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+            <Callout variant="important">
+              Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
-                  To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+              To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
-                  ```yaml
-                  # newrelic.yml
-
-                    cross_application_tracer:
-                      enabled: true
-                    distributed_tracing:
-                      enabled: false
-                  ```
-                </Callout>
+              ```yaml
+              # newrelic.yml
+              cross_application_tracer:
+                enabled: true
+              distributed_tracing:
+                enabled: false
+              ```
+            </Callout>
           DESCRIPTION
         },
         :disable_view_instrumentation => {
@@ -2191,7 +2186,7 @@ module NewRelic
           # Keep the extra two-space indent before the second bullet to appease translation tool
           :description => <<~DESC
             * Defines the maximum number of span events reported from a single harvest. Any Integer between `1` and `10000` is valid.'
-              * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
+            * When configuring the agent for [AI monitoring](/docs/ai-monitoring/intro-to-ai-monitoring), set to max value `10000`.\
             This ensures the agent captures the maximum amount of distributed traces.
           DESC
         },
@@ -2534,11 +2529,9 @@ module NewRelic
           :allowlist => %i[none low medium high],
           :external => :infinite_tracing,
           :description => <<~DESC
-            Configure the compression level for data sent to the trace observer.
-
-              May be one of: `:none`, `:low`, `:medium`, `:high`.
-
-              Set the level to `:none` to disable compression.
+            Configure the compression level for data sent to the trace observer. \
+            May be one of: `:none`, `:low`, `:medium`, `:high`. \
+            Set the level to `:none` to disable compression.
           DESC
         },
         :js_agent_file => {

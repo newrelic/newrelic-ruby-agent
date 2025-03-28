@@ -135,12 +135,14 @@ module NewRelicYML
   end
 
   def self.sanitize_description(description)
-    # remove callouts
+    # remove callouts 
     description = description.split("\n").reject { |line| line.match?('</?Callout') }.join("\n")
     # remove InlinePopover, keep the text inside type
     description.gsub!(/<InlinePopover type="(.*)" \/>/, '\1')
     # remove hyperlinks
     description.gsub!(/\[([^\]]+)\]\([^\)]+\)/, '\1')
+    # delete lines with code fences including the language
+    description.gsub!(/```[a-zA-Z0-9_]*\n(.*?)```/m, '\1')
     # remove single pairs of backticks
     description.gsub!(/`([^`]+)`/, '\1')
     # removed href links
@@ -153,8 +155,8 @@ module NewRelicYML
     # remove leading and trailing whitespace
     description.strip!
     # wrap text after 80 characters, assuming we're at one tabstop's (two
-    # spaces') level of indentation already
-    description.gsub!(/(.{1,78})(\s+|\Z)/, "\\1\n")
+    # spaces') level of indentation already, keep leading whitespace
+    description.gsub!(/(.{1,78})(\s|\Z)/, "\\1\n")
     # add hashtags to lines
     description = description.split("\n").map { |line| "  # #{line}" }.join("\n")
 
