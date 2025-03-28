@@ -8,6 +8,9 @@ module NewRelic::Agent::Instrumentation
     # If that is not the appropriate name, set INSTRUMENTATION_NAME
     # to a different string
     # Example: lib/new_relic/agent/instrumentation/sidekiq/client.rb
+    # INSTRUMENTATION_NAME is also used for Slack notifications of gem
+    # releases. If INSTRUMENTATION_NAME is not the official name of the
+    # gem, please edit GEM_NAME_MAPPING in gem_notifier.rb.
     INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
     def <%= @method.downcase %>_with_new_relic<%= "(#{@args})" unless @args.empty? %>
