@@ -42,6 +42,7 @@ class Instrumentation < Thor
     append_to_default_source(@name, @snake_name)
     # append_to_newrelic_yml(@name, @snake_name) # This is now done on release, we don't need it anymore, but leaving it to be sure.
     create_tests(name)
+    add_to_instrumented_gems(name)
   end
 
   desc 'add_new_method NAME', 'Inserts a new method into an existing piece of instrumentation'
@@ -95,6 +96,14 @@ class Instrumentation < Thor
       yaml_block(name, snake_name),
       after: "# instrumentation.bunny: auto\n"
     )
+  end
+
+  def add_to_instrumented_gems(name)
+    path = '.github/workflows/scripts/slack_notifications/instrumented_gems.txt'
+    File.open(path, 'a') do |file|
+      file.puts name
+    end
+    puts "Is '#{name}' the correct spelling of the gem on RubyGems.com? If not, please update it in #{path}."
   end
 
   def config_block(name, snake_name)
