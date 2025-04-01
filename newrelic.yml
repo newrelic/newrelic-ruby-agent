@@ -409,7 +409,7 @@ common: &default_settings
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be ignored.
   # This option can't be set via environment variable.
-  # error_collector.ignore_messages: {"ThreadError"=>["queue empty"]}
+  # error_collector.ignore_messages: {"ThreadError" => ["queue empty"]}
 
   # A comma separated list of status codes, possibly including ranges. Errors
   # associated with these status codes, where applicable, will be ignored.
