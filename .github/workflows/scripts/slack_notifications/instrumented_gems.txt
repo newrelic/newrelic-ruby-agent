@@ -1,6 +1,4 @@
 activerecord
-activesupport-broadcast_logger
-activesupport-logger
 activemerchant
 async-http
 aws-sdk-firehose
@@ -17,15 +15,12 @@ dynamodb
 elasticsearch
 ethon
 excon
-fiber
 grape
 grpc
-grpc_server
 http
 httpclient
 httprb
 httpx
-kafka
 logger
 json
 logstasher
@@ -33,7 +28,6 @@ memcache
 memcache-client
 memcached
 mongo
-net-http
 opensearch
 padrino
 puma
@@ -51,7 +45,6 @@ sidekiq
 sidekiq-delay_extensions
 sinatra
 stripe
-thread
 tilt
 typhoeus
 unicorn
