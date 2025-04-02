@@ -23,6 +23,10 @@ jobs:
     - name: Install onetimepass
       run: pip install onetimepass==1.0.1
 
+    - name: Configure gem credentials
+      run: |
+        echo "RUBYGEMS_MFA_KEY=${{ secrets.RUBYGEMS_MFA_KEY }}" >> $GITHUB_ENV
+
     - name: Build newrelic_rpm gem
       run: gem build newrelic_rpm.gemspec
 
@@ -45,19 +49,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Obtain OTP to publish newrelic_rpm to rubygems.org
-      env:
-        RUBYGEMS_MFA_KEY: ${{ secrets.RUBYGEMS_MFA_KEY }}
-      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py $RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
+      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
 
     - name: Publish newrelic_rpm to rubygems.org
-      env:
-        RUBYGEMS_OTP: ${{ env.RUBYGEMS_OTP }}
       run: ruby ./.github/workflows/scripts/rubygems-publish.rb newrelic_rpm
 
     - name: Obtain OTP to publish newrelic-infinite_tracing to rubygems.org
-      env:
-        RUBYGEMS_MFA_KEY: ${{ secrets.RUBYGEMS_MFA_KEY }}
-      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py $RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
+      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)" >> $GITHUB_ENV
 
     - name: Publish newrelic-infinite_tracing to rubygems.org
       run: ruby ./.github/workflows/scripts/rubygems-publish.rb infinite_tracing/newrelic-infinite_tracing
