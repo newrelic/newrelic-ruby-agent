@@ -1,11 +1,49 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.18.0
+
+- **Feature: Add elasticsearch.capture_cluster_name configuration option**
+
+  A new configuration option, `elasticsearch.capture_cluster_name`, has been added to control capturing Elasticsearch cluster names. Cluster names are captured by default, but can now be disabled as needed. [PR#3038](https://github.com/newrelic/newrelic-ruby-agent/pull/3038)
+
+- **Feature: Add support for sidekiq-delay_extensions**
+
+  Sidekiq delay extensions were removed from Sidekiq in 7.x and are now avaliable through the [sidekiq-delay_extensions](https://rubygems.org/gems/sidekiq-delay_extensions) gem. Thanks to [@sobrinho](https://github.com/sobrinho), the agent now has continued support for delay extensions.[PR#3056](https://github.com/newrelic/newrelic-ruby-agent/pull/3056)
+
+- **Feature: Parallelize calls for vendor metadata**
+
+  Previously, the agent would make calls for vendor metadata in a serial fashion. This could lead to a delay in starting the agent. Now, the agent will make these calls in parallel, reducing the time it takes to start the agent. [PR#3094](https://github.com/newrelic/newrelic-ruby-agent/pull/3094)
+
+- **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
+
+  When using JRuby, a race condition can happen that causes the segment creation to fail and return `nil`. This would cause an error to occur when methods were later called on the `nil` segment. These methods will no longer be called if the segment is `nil`, preventing that error from occurring. [PR#3046](https://github.com/newrelic/newrelic-ruby-agent/pull/3046)
+
+- **Bugfix: JRuby multithreading improvements**
+
+  Added some additional nil checks and mutexes to prevent issues when using the agent on JRuby with multiple threads. Thanks to @NC-piercej for bringing this to our attention [Issue#3021](https://github.com/newrelic/newrelic-ruby-agent/issues/3021) [PR#3053](https://github.com/newrelic/newrelic-ruby-agent/pull/3053)
+
+- **Bugfix: Stop reporting rescued Sidekiq::OverLimit exceptions**
+
+  When Sidekiq's concurrent rate limiters encounter an `OverLimit` exception, Sidekiq typically handles this by re-enqueuing the job. Previously, all occurrences of `Sidekiq::OverLimit` were logged as errors in New Relic, even when Sidekiq's middleware resolved the exception. New Relic will no longer report errors that are handled by Sidekiq's own middleware. Thanks to [@97jaz](https://github.com/97jaz) for reporting this issue. [Issue#3037](https://github.com/newrelic/newrelic-ruby-agent/issues/3037) [PR#3047](https://github.com/newrelic/newrelic-ruby-agent/pull/3047)
+
+- **Bugfix: Protect against nil agents or health checks**
+
+  In some cases the agent or health checks may be `nil` when they are called. Safe navigation operators have been added for protection on those occasions. [PR#3049](https://github.com/newrelic/newrelic-ruby-agent/pull/3049)
+
+- **Bugfix: Ignore Solid Queue `ThreadError: queue empty` error message by default**
+
+  When using the solid_queue gem, the agent previously generated excessive warn-level logs when the queue was empty. The agent now ignores `queue empty` error messages of the `ThreadError` class by default. This behavior can be adjusted using the `error_collector.ignore_messages` configuration option. [PR#3060](https://github.com/newrelic/newrelic-ruby-agent/pull/3060)
+
+- **Bugfix: Refactor URI host handling to accommodate downcasing frozen strings**
+
+  When URI host string was frozen, a FrozenError would be raised when the agent attempted to downcase the host as part of its data normalization process. Now, the update is friendly for frozen strings. Thank you [@pedrol3001](https://github.com/pedrol3001) for your contribution! [PR#3097](https://github.com/newrelic/newrelic-ruby-agent/pull/3097)
+
 ## v9.17.0
 
 - **Feature: Support Ruby 3.4.0**
 
   The agent now supports Ruby 3.4.0. We've made incremental changes throughout the preview stage to reach compatibility. This release includes an update to the Thread Profiler for compatibility with Ruby 3.4.0's new backtrace format. [Issue#2992](https://github.com/newrelic/newrelic-ruby-agent/issues/2992) [PR#2997](https://github.com/newrelic/newrelic-ruby-agent/pull/2997)
-  
+
 - **Feature: Add instrumentation for aws-sdk-firehose**
 
   The agent now has instrumentation for the [aws-sdk-firehose](https://rubygems.org/gems/aws-sdk-firehose) gem. [PR#2973](https://github.com/newrelic/newrelic-ruby-agent/pull/2973)

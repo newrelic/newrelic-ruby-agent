@@ -215,6 +215,7 @@ module NewRelic
         @nesting_max_depth = 0
         @current_segment_by_thread = {}
         @current_segment_lock = Mutex.new
+        @segment_lock = Mutex.new
         @segments = []
 
         self.default_name = options[:transaction_name]
@@ -437,7 +438,7 @@ module NewRelic
       end
 
       def initial_segment
-        segments.first
+        segments&.first
       end
 
       def finished?

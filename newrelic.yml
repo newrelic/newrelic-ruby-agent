@@ -40,9 +40,11 @@ common: &default_settings
 
   # If false, LLM instrumentation (OpenAI only for now) will not capture input and
   # output content on specific LLM events.
+  # 
   # The excluded attributes include:
-  # * content from LlmChatCompletionMessage events
-  # * input from LlmEmbedding events
+  # - content from LlmChatCompletionMessage events
+  # - input from LlmEmbedding events
+  # 
   # This is an optional security setting to prevent recording sensitive data sent
   # to and received from your LLMs.
   # ai_monitoring.record_content.enabled: true
@@ -73,20 +75,23 @@ common: &default_settings
   # application_logging.forwarding.labels.exclude: []
 
   # Sets the minimum level a log event must have to be forwarded to New Relic.
-  # This is based on the integer values of Ruby's Logger::Severity constants:
-  # https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb
+  # 
+  # This is based on the integer values of Ruby's Logger::Severity constants.
+  # 
   # The intention is to forward logs with the level given to the configuration, as
   # well as any logs with a higher level of severity.
+  # 
   # For example, setting this value to "debug" will forward all log events to New
   # Relic. Setting this value to "error" will only forward log events with the
   # levels "error", "fatal", and "unknown".
+  # 
   # Valid values (ordered lowest to highest):
-  # * "debug"
-  # * "info"
-  # * "warn"
-  # * "error"
-  # * "fatal"
-  # * "unknown"
+  # - "debug"
+  # - "info"
+  # - "warn"
+  # - "error"
+  # - "fatal"
+  # - "unknown"
   # application_logging.forwarding.log_level: debug
 
   # Defines the maximum number of log records to buffer in memory at a time.
@@ -124,48 +129,52 @@ common: &default_settings
   # methods) strings representing Ruby methods that the agent can automatically
   # add custom instrumentation to. This doesn't require any modifications of the
   # source code that defines the methods.
+  # 
   # Use fully qualified class names (using the :: delimiter) that include any
   # module or class namespacing.
+  # 
   # Here is some Ruby source code that defines a render_png instance method for an
   # Image class and a notify class method for a User class, both within a
   # MyCompany module namespace:
-  #
+  # 
   # module MyCompany
   #   class Image
   #     def render_png
   #       # code to render a PNG
   #     end
   #   end
-  #
+  # 
   #   class User
   #     def self.notify
   #       # code to notify users
   #     end
   #   end
   # end
-  #
+  # 
+  # 
   # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
-  #
+  # 
   # automatic_custom_instrumentation_method_list:
-  # - MyCompany::Image#render_png
-  # - MyCompany::User.notify
-  #
+  #   - MyCompany::Image#render_png
+  #   - MyCompany::User.notify
+  # 
+  # 
   # That configuration example uses YAML array syntax to specify both methods.
   # Alternatively, you can use a comma-delimited string:
-  #
+  # 
   # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png,
   # MyCompany::User.notify'
-  #
+  # 
+  # 
   # Whitespace around the comma(s) in the list is optional. When configuring the
   # agent with a list of methods via the
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST environment variable,
   # use this comma-delimited string format:
-  #
+  # 
   # export
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png,
   # MyCompany::User.notify'
-  #
   # automatic_custom_instrumentation_method_list: []
 
   # Specify a list of constants that should prevent the agent from starting
@@ -214,6 +223,7 @@ common: &default_settings
 
   # When true, the agent captures HTTP request parameters and attaches them to
   # transaction traces, traced errors, and TransactionError events.
+  # 
   # When using the capture_params setting, the Ruby agent will not attempt to
   # filter secret information. Recommendation: To filter secret information from
   # request parameters, use the attributes.include setting instead. For more
@@ -233,10 +243,10 @@ common: &default_settings
 
   # Path to newrelic.yml. If undefined, the agent checks the following directories
   # (in order):
-  # * config/newrelic.yml
-  # * newrelic.yml
-  # * $HOME/.newrelic/newrelic.yml
-  # * $HOME/newrelic.yml
+  # - config/newrelic.yml
+  # - newrelic.yml
+  # - $HOME/.newrelic/newrelic.yml
+  # - $HOME/newrelic.yml
   # config_path: newrelic.yml
 
   # If false, custom attributes will not be sent on events.
@@ -245,9 +255,9 @@ common: &default_settings
   # If true, the agent captures custom events.
   # custom_insights_events.enabled: true
 
-  # * Specify a maximum number of custom events to buffer in memory at a time.
-  # * When configuring the agent for AI monitoring, set to max value 100000. This
-  # ensures the agent captures the maximum amount of LLM events.
+  # - Specify a maximum number of custom events to buffer in memory at a time.
+  #   - When configuring the agent for AI monitoring, set to max value 100000.
+  # This ensures the agent captures the maximum amount of LLM events.
   # custom_insights_events.max_samples_stored: 3000
 
   # If false, the agent will not add database_name parameter to transaction or
@@ -300,6 +310,7 @@ common: &default_settings
 
   # If true, the agent won't wrap third-party middlewares in instrumentation
   # (regardless of whether they are installed via Rack::Builder or Rails).
+  # 
   # When middleware instrumentation is disabled, if an application is using
   # middleware that could alter the response code, the HTTP status code reported
   # on the transaction may not reflect the altered value.
@@ -322,6 +333,18 @@ common: &default_settings
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
+  # 
+  # Cross application tracing is deprecated in favor of distributed tracing.
+  # Distributed tracing is on by default for Ruby agent versions 8.0.0 and above.
+  # Middlewares are not required to support distributed tracing.
+  # 
+  # To continue using cross application tracing, update the following options in
+  # your newrelic.yml configuration file:
+  # 
+  # cross_application_tracer:
+  #   enabled: true
+  # distributed_tracing:
+  #   enabled: false
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
@@ -335,6 +358,10 @@ common: &default_settings
   # New Relic features, so carefully consult the transition guide before you
   # enable this feature.
   # distributed_tracing.enabled: true
+
+  # If true, the agent captures the Elasticsearch cluster name in transaction
+  # traces.
+  # elasticsearch.capture_cluster_name: true
 
   # If true, the agent captures Elasticsearch queries in transaction traces.
   # elasticsearch.capture_queries: true
@@ -382,7 +409,7 @@ common: &default_settings
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be ignored.
   # This option can't be set via environment variable.
-  # error_collector.ignore_messages: {}
+  # error_collector.ignore_messages: {"ThreadError" => ["queue empty"]}
 
   # A comma separated list of status codes, possibly including ranges. Errors
   # associated with these status codes, where applicable, will be ignored.
@@ -428,9 +455,9 @@ common: &default_settings
   # sending each span individually.
   # infinite_tracing.batching: true
 
-  # Configure the compression level for data sent to the trace observer.
-  # May be one of: :none, :low, :medium, :high.
-  # Set the level to :none to disable compression.
+  # Configure the compression level for data sent to the trace observer. May be
+  # one of: :none, :low, :medium, :high. Set the level to :none to disable
+  # compression.
   # infinite_tracing.compression_level: high
 
   # Configures the hostname for the trace observer Host. When configured, enables
@@ -785,9 +812,9 @@ common: &default_settings
   # If true, enables span event sampling.
   # span_events.enabled: true
 
-  # * Defines the maximum number of span events reported from a single harvest.
+  # - Defines the maximum number of span events reported from a single harvest.
   # Any Integer between 1 and 10000 is valid.'
-  # * When configuring the agent for AI monitoring, set to max value 10000.This
+  #   - When configuring the agent for AI monitoring, set to max value 10000.This
   # ensures the agent captures the maximum amount of distributed traces.
   # span_events.max_samples_stored: 2000
 
@@ -957,7 +984,7 @@ common: &default_settings
   #   NOTE: All "security.*" configuration parameters are related only to the
   #         security agent, and all other configuration parameters that may
   #         have "security" in the name somewhere are related to the APM agent.
-
+  
   # If true, the security agent is loaded (a Ruby 'require' is performed)
   # security.agent.enabled: false
 

@@ -14,7 +14,7 @@ jobs:
     outputs:
       changed: ${{ steps.branch_change_output.outputs.has-new-commits }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - name: check branch changes
         id: branch_change_output
         uses: adriangl/check-new-commits-action@e6471f4fda990ebdb3bf44726371e1ad45ac4d37 # tag v1.0.7
@@ -30,19 +30,19 @@ jobs:
       run:
         working-directory: ./test/performance
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
         with:
           ref: 'main'
-      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+      - uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: 3.4
       - run: bundle
       - run: bundle exec script/runner -B
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - run: bundle
       - run: bundle exec script/runner -C -M > performance_results.md
       - name: Save performance results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: performance-test-results-${{ matrix.ruby-version }}
           path: ./test/performance/performance_results.md

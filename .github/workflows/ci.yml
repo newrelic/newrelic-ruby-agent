@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: 3.4
       - run: bundle
@@ -36,11 +36,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.1]
+        ruby-version: [2.4.10, 3.4.2]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -49,7 +49,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -62,7 +62,7 @@ jobs:
               "2.4.10": {
                 "rails": "norails,rails42,rails52"
               },
-              "3.4.1": {
+              "3.4.2": {
                 "rails": "norails,rails61,rails72,rails80"
               }
             }
@@ -74,7 +74,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -91,7 +91,7 @@ jobs:
           CI_FOR_PR: true
 
       - name: Run Unit Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 30
           max_attempts: 2
@@ -103,10 +103,11 @@ jobs:
           CI_FOR_PR: true
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-unit-tests-${{ matrix.ruby-version }}-${{ env.rails }}
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
 
 
   multiverse:
@@ -116,12 +117,12 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, frameworks, httpclients, httpclients_2, rails, rest]
-        ruby-version: [2.4.10, 3.4.1]
+        ruby-version: [2.4.10, 3.4.2]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -130,7 +131,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -140,7 +141,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -156,17 +157,18 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-${{ matrix.multiverse }}
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
           path: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
@@ -217,12 +219,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.1]
+        ruby-version: [2.4.10, 3.4.2]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -231,7 +233,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -241,7 +243,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -257,17 +259,18 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_1
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_services_1.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_1.json
@@ -279,7 +282,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       kafka:
-        image: bitnami/kafka
+        image: bitnami/kafka:3.9.0
         ports:
           - 9092:9092
         options: >-
@@ -312,15 +315,27 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.1]
+        ruby-version: [2.4.10, 3.4.2]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -329,7 +344,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -339,7 +354,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -349,23 +364,26 @@ jobs:
           SERIALIZE: 1
           COVERAGE: true
           CI_FOR_PR: true
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_2
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_services_2.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_2.json
@@ -377,7 +395,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       kafka:
-        image: bitnami/kafka
+        image: bitnami/kafka:3.9.0
         ports:
           - 9092:9092
         options: >-
@@ -406,12 +424,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.1]
+        ruby-version: [2.4.10, 3.4.2]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -420,7 +438,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -430,7 +448,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -446,17 +464,18 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_kafka
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
@@ -489,12 +508,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.1]
+        ruby-version: [2.4.10, 3.4.2]
 
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
         # - curl is needed for Curb
         # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
@@ -503,7 +522,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -515,7 +534,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # tag v4.0.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -530,7 +549,7 @@ jobs:
           RUBY_VERSION: ${{ matrix.ruby-version }}
 
       - name: Wait for/Check Mysql
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 1
           max_attempts: 20
@@ -541,7 +560,7 @@ jobs:
             fi
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -564,17 +583,18 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-service_mysql_pg
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
           retention-days: 2
 
       - name: Generate gem manifest
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
           path: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
@@ -587,14 +607,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.4.1]
+        ruby-version: [2.7.8, 3.4.2]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
       - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+        uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -602,7 +622,7 @@ jobs:
         run: bundle install
 
       - name: Run Multiverse Tests
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # tag v3.0.0
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
         with:
           timeout_minutes: 15
           max_attempts: 2
@@ -618,10 +638,11 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-infinite-tracing-${{ matrix.ruby-version }}-infinite_tracing
           path: lib/coverage_*/.resultset.json
+          include-hidden-files: true
 
 
   simplecov:
@@ -633,20 +654,21 @@ jobs:
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
-      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: 3.4
       - run: bundle
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # tag v4.1.8
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # tag v4.2.1
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # tag v4.3.4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-combined-${{ matrix.ruby-version }}
           path: lib/coverage_results
+          include-hidden-files: true
           retention-days: 2
       - name: Simplecov Report
         uses: ./.github/actions/simplecov-report

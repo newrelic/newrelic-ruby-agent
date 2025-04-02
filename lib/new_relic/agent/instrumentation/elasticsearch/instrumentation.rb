@@ -102,6 +102,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def nr_cluster_name
+      return unless NewRelic::Agent.config[:'elasticsearch.capture_cluster_name']
       return @nr_cluster_name if defined?(@nr_cluster_name)
       return if nr_hosts.empty?
 

@@ -13,11 +13,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # tag v1.207.0
+      - uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
         with:
           ruby-version: 3.4
       - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
       - name: Generate release notes and environment variables
         run: |
@@ -57,16 +57,16 @@ jobs:
     if: failure()
     steps:
       - name: Checkout agent repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
       - name: Get branch name
         run: echo "branch_name=$(ruby -r $PWD/.github/workflows/scripts/generate_release_notes.rb -e GenerateReleaseNotes.new.branch_name)" >> $GITHUB_ENV
 
       - name: Checkout docs website repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # tag v4.1.7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
         with:
-          repository: newrelic/docs-website
           token: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+          repository: newrelic/docs-website
 
       - name: Build delete command
         run: echo "delete_file=git push origin --delete ${{env.branch_name}} --force" >> $GITHUB_ENV

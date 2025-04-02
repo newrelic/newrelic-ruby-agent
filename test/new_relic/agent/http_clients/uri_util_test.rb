@@ -61,6 +61,14 @@ class URIUtilTest < Minitest::Test
       'foobarbaz')
   end
 
+  def test_normalized_on_frozen_string_still_downcases
+    uri = URI('http://RITAS.com/treats/mango-vanilla-gelati')
+    uri.host = uri.host.freeze
+
+    assert_equal('http://ritas.com/treats/mango-vanilla-gelati',
+      NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(uri).to_s)
+  end
+
   def assert_obfuscated(original, expected)
     assert_equal expected, NewRelic::Agent::HTTPClients::URIUtil.obfuscated_uri(original).to_s
   end
