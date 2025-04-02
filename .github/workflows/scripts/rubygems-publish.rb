@@ -2,6 +2,9 @@
 gem_name = ARGV[0]
 raise "gem name sans version must be supplied" if gem_name.to_s == ""
 
+api_key = ENV["GEM_HOST_API_KEY"]
+raise "GEM_HOST_API_KEY must be set" if api_key.to_s == ""
+
 version = ENV["VERSION"]
 raise "VERSION environment must be set" if version.to_s == ""
 

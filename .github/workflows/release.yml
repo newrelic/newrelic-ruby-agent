@@ -25,6 +25,7 @@ jobs:
 
     - name: Configure gem credentials
       run: |
+        echo "GEM_HOST_API_KEY=${{ secrets.RUBYGEMS_API_KEY }}" >> $GITHUB_ENV
         echo "RUBYGEMS_MFA_KEY=${{ secrets.RUBYGEMS_MFA_KEY }}" >> $GITHUB_ENV
 
     - name: Build newrelic_rpm gem
