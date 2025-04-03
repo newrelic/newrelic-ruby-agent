@@ -222,7 +222,8 @@ class GrapeTest < Minitest::Test
         'request.headers.contentLength' => last_request.content_length.to_i,
         'request.headers.contentType' => last_request.content_type,
         'request.headers.host' => last_request.host,
-        'request.method' => last_request.request_method
+        'request.method' => last_request.request_method,
+        'request.uri' => last_request.path_info
       }
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
