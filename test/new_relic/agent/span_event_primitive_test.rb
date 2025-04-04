@@ -349,11 +349,22 @@ module NewRelic
         end
 
         def test_thread_id_is_added_to_span_events
+          harvest_span_events! # clear out any previous events
+          thread_id = nil
+
           in_transaction do |txn|
+            txn.stubs(:sampled?).returns(true)
             intrinsics, _custom, _agent_attributes = SpanEventPrimitive.for_segment(txn.current_segment)
 
-            assert_equal Thread.current.object_id, intrinsics['thread.id']
+            thread_id = Thread.current.object_id
+
+            assert_equal thread_id, intrinsics['thread.id']
           end
+
+          # make sure attribute is present after harvest
+          spans = harvest_span_events!
+
+          assert_equal thread_id, spans[1][0][0]['thread.id']
         end
 
         private
