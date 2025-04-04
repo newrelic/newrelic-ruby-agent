@@ -16,7 +16,7 @@
 
 - **Feature: Add Thread ID as attribute to all spans**
 
-  The agent will now record the Thread ID as an attribute on each span. []()
+  The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
 
 - **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
 
