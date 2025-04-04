@@ -44,6 +44,7 @@ module NewRelic
       TRUSTED_PARENT_KEY = 'trustedParentId'
       TRACING_VENDORS_KEY = 'tracingVendors'
       TRANSACTION_NAME_KEY = 'transaction.name'
+      THREAD_ID_KEY = 'thread.id'
 
       # Strings for static values of the event structure
       EVENT_TYPE = 'Span'
@@ -135,7 +136,8 @@ module NewRelic
           PRIORITY_KEY => segment.transaction.priority,
           TIMESTAMP_KEY => milliseconds_since_epoch(segment),
           DURATION_KEY => segment.duration,
-          NAME_KEY => segment.name
+          NAME_KEY => segment.name,
+          THREAD_ID_KEY => segment.thread_id
         }
 
         # with infinite-tracing, transactions may or may not be sampled!
