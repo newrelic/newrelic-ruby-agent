@@ -35,6 +35,11 @@ module NewRelic::Agent::Instrumentation
         SUBSCRIBER.send(:metric_name, 'indecipherable', {job: TestJob.new})
     end
 
+    def test_segment_naming_multiple_jobs
+      assert_equal 'Ruby/ActiveJob/default/Unknown',
+        SUBSCRIBER.send(:metric_name, 'indecipherable', {jobs: [TestJob.new, TestJob.new]})
+    end
+
     # perform.active_job
     def test_perform_active_job
       job = TestJob.new
