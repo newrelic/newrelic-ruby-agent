@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add Thread ID as attribute to all spans**
+
+  The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
+
 ## v9.18.0
 
 - **Feature: Add elasticsearch.capture_cluster_name configuration option**
@@ -13,10 +19,6 @@
 - **Feature: Parallelize calls for vendor metadata**
 
   Previously, the agent would make calls for vendor metadata in a serial fashion. This could lead to a delay in starting the agent. Now, the agent will make these calls in parallel, reducing the time it takes to start the agent. [PR#3094](https://github.com/newrelic/newrelic-ruby-agent/pull/3094)
-
-- **Feature: Add Thread ID as attribute to all spans**
-
-  The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
 
 - **Bugfix: Prevent a nil segment from causing errors in Net::HTTP instrumentation**
 
