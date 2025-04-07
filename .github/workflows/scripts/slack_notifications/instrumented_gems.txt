@@ -1,6 +1,7 @@
 activerecord
 activemerchant
 async-http
+aws-sdk-dynamodb
 aws-sdk-firehose
 aws-sdk-kinesis
 aws-sdk-lambda
@@ -11,7 +12,6 @@ concurrent-ruby
 curb
 dalli
 delayed_job
-dynamodb
 elasticsearch
 ethon
 excon
@@ -22,7 +22,6 @@ httpclient
 httprb
 httpx
 logger
-json
 logstasher
 memcache
 memcache-client

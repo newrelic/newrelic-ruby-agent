@@ -9,7 +9,7 @@ require 'httparty'
 require_relative 'slack_notifier'
 
 class GemNotifier < SlackNotifier
-  INSTRUMENTED_GEMS_FILE = '.github/workflows/scripts/slack_notifications/instrumented_gems.txt'
+  SUPPORTED_GEMS_FILE = '.github/workflows/scripts/slack_notifications/supported_gems.txt'
 
   def self.check_for_updates(watched_gems)
     return if verify_gem_list(watched_gems)
@@ -95,8 +95,8 @@ class GemNotifier < SlackNotifier
 end
 
 if $PROGRAM_NAME == __FILE__
-  File.open(GemNotifier::INSTRUMENTED_GEMS_FILE, 'r') do |file|
-    gems = File.readlines(GemNotifier::INSTRUMENTED_GEMS_FILE).map(&:chomp)
+  File.open(GemNotifier::SUPPORTED_GEMS_FILE, 'r') do |file|
+    gems = File.readlines(GemNotifier::SUPPORTED_GEMS_FILE).map(&:chomp)
     GemNotifier.check_for_updates(gems)
   end
 end

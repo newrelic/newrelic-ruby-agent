@@ -42,7 +42,7 @@ class Instrumentation < Thor
     append_to_default_source(@name, @snake_name)
     # append_to_newrelic_yml(@name, @snake_name) # This is now done on release, we don't need it anymore, but leaving it to be sure.
     create_tests(name)
-    add_to_instrumented_gems(name)
+    add_to_supported_gems(name)
   end
 
   desc 'add_new_method NAME', 'Inserts a new method into an existing piece of instrumentation'
@@ -98,8 +98,8 @@ class Instrumentation < Thor
     )
   end
 
-  def add_to_instrumented_gems(name)
-    path = '.github/workflows/scripts/slack_notifications/instrumented_gems.txt'
+  def add_to_supported_gems(name)
+    path = '.github/workflows/scripts/slack_notifications/supported_gems.txt'
     File.open(path, 'a') do |file|
       file.puts name
     end
