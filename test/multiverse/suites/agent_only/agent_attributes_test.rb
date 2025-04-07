@@ -226,7 +226,7 @@ class AgentAttributesTest < Minitest::Test
     assert_transaction_trace_has_agent_attribute('request.uri', '/foobar')
 
     assert_error_has_agent_attribute('request.uri', '/foobar')
-    refute_event_has_agent_attribute('request.uri')
+    assert_event_has_agent_attribute('request.uri', '/foobar')
     refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
@@ -242,8 +242,8 @@ class AgentAttributesTest < Minitest::Test
     refute last_transaction_trace.uri
 
     assert_error_has_agent_attribute('request.uri', '/foobar')
+    assert_event_has_agent_attribute('request.uri', '/foobar')
     refute_transaction_trace_has_agent_attribute('request.uri')
-    refute_event_has_agent_attribute('request.uri')
     refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
@@ -259,8 +259,8 @@ class AgentAttributesTest < Minitest::Test
     refute last_error_trace.params['agentAttributes']['request.uri']
 
     assert_transaction_trace_has_agent_attribute('request.uri', '/foobar')
+    assert_event_has_agent_attribute('request.uri', '/foobar')
     refute_error_has_agent_attribute('request.uri')
-    refute_event_has_agent_attribute('request.uri')
     refute_browser_monitoring_has_agent_attribute('request.uri')
   end
 
