@@ -74,7 +74,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # tag v4.2.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -103,7 +103,7 @@ jobs:
           CI_FOR_PR: true
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-unit-tests-${{ matrix.ruby-version }}-${{ env.rails }}
           path: lib/coverage_*/.resultset.json
@@ -157,7 +157,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-${{ matrix.multiverse }}
           path: lib/coverage_*/.resultset.json
@@ -168,7 +168,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
           path: gem_manifest_${{ matrix.ruby-version }}_${{ matrix.multiverse }}.json
@@ -259,7 +259,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_1
           path: lib/coverage_*/.resultset.json
@@ -270,7 +270,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_services_1.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_1.json
@@ -372,7 +372,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_2
           path: lib/coverage_*/.resultset.json
@@ -383,7 +383,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_services_2.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_2.json
@@ -464,7 +464,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_kafka
           path: lib/coverage_*/.resultset.json
@@ -475,7 +475,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
           path: gem_manifest_${{ matrix.ruby-version }}_services_kafka.json
@@ -534,7 +534,7 @@ jobs:
       - if: matrix.ruby-version == '2.4.10'
         name: Cache mysql55
         id: mysql55-cache
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # tag v4.2.2
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
         with:
           path: /usr/local/mysql55
           key: mysql55-install
@@ -583,7 +583,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-multiverse-${{ matrix.ruby-version }}-service_mysql_pg
           path: lib/coverage_*/.resultset.json
@@ -594,7 +594,7 @@ jobs:
         run: rake test:multiverse:gem_manifest
 
       - name: Save gem manifest
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
           path: gem_manifest_${{ matrix.ruby-version }}_service_mysql_pg.json
@@ -638,7 +638,7 @@ jobs:
         uses: ./.github/actions/annotate
 
       - name: Save coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-infinite-tracing-${{ matrix.ruby-version }}-infinite_tracing
           path: lib/coverage_*/.resultset.json
@@ -660,11 +660,11 @@ jobs:
           ruby-version: 3.4
       - run: bundle
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # tag v4.1.9
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # tag v4.2.1
       - name: Collate Coverage Results
         run: bundle exec rake coverage:report
       - name: Upload coverage results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # tag v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
           name: coverage-report-combined-${{ matrix.ruby-version }}
           path: lib/coverage_results

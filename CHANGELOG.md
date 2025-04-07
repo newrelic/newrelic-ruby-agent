@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.18.0
 
 - **Feature: Add elasticsearch.capture_cluster_name configuration option**
 
