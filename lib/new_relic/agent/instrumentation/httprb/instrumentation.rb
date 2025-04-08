@@ -27,6 +27,7 @@ module NewRelic::Agent::Instrumentation
 
         response
       ensure
+        # do we have to do that? 
         ::NewRelic::Agent::Transaction::Segment.finish(segment)
       end
     end

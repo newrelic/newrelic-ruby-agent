@@ -38,6 +38,7 @@ require 'new_relic/agent/adaptive_sampler'
 require 'new_relic/agent/serverless_handler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
+require 'new_relic/agent/opentelemetry'
 
 require 'new_relic/agent/agent_helpers/connect'
 require 'new_relic/agent/agent_helpers/harvest'
@@ -113,6 +114,7 @@ module NewRelic
         @custom_event_aggregator = CustomEventAggregator.new(@events)
         @span_event_aggregator = SpanEventAggregator.new(@events)
         @log_event_aggregator = LogEventAggregator.new(@events)
+        @opentelemetry = Opentelemetry.new
       end
 
       def setup_attribute_filter

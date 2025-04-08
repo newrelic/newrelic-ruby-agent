@@ -2490,6 +2490,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
+        :'feature_flag.opentelemetry_bridge' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enables the creation of Transaction Trace segments and time slices metrics from opentelemetry spans. This will help drive New Relic UI experience for opentelemetry spans. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
+        },
         :force_reconnect => {
           :default => false,
           :public => false,
