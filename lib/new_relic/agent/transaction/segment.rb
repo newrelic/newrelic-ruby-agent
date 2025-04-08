@@ -46,6 +46,12 @@ module NewRelic
           attributes.merge_custom_attributes(p)
         end
 
+        # TODO: THIS IS AN OTEL OVERRIDE
+        # IT SHOULD NOT LIVE HERE
+        def set_attribute(key, value)
+          add_custom_attributes({key => value})
+        end
+
         def self.finish(segment)
           return unless segment
 

@@ -1,4 +1,12 @@
-# Hybrid Agent Cross Agent Tests
+# Hybrid Agent Testing
+
+Since all the OpenTelemetry bridge code relies on the presence of the opentelemetry-api gem, the unit tests for the code in `lib/new_relic/agent/opentelemetry` live in this multiverse suite, rather than in the more standard `test/newrelic` directory.
+
+Unit test files are named based on their class. They are not nested because multiverse cannot find them if they're inside directories.
+
+The rest of the tests are Hybrid Agent Cross Agent Tests, which are described below.
+
+## Hybrid Agent Cross Agent Tests
 
 These tests are drawn from the [Hybrid Agent Cross Agent Test Example][example] repository.
 
@@ -6,7 +14,7 @@ The file used to generate the test content can be found in [test/fixtures/cross_
 
 The parser converts most keys to snake case to adhere with Ruby's standard naming practices.
 
-## Updating the tests
+### Updating the tests
 
 The test fixture is not currently in the cross agent tests repo and will need to be manually updated until it is moved.
 You can update the fixture by copying the [TestCaseDefinitions.json][test-cases] file and overwriting the
@@ -28,9 +36,9 @@ execute.
 At this time, only the OpenTelemetry::API methods are called. There is not an active SDK with a functional
 TracerProvider running. This may need to change once we implement the Hybrid Agent functionality.
 
-## Debugging
+### Debugging
 
-### focus_tests
+#### focus_tests
 
 The `HybridAgentTest` class includes a method, `#focus_tests` that can be used to run select tests based on the snake-
 cased version of the corresponding `testDescription` key in the `hybrid_agent.json` fixture.
@@ -55,7 +63,7 @@ Fabulous run in 0.003526s, 1985.2524 runs/s, 1701.6449 assertions/s.
 7 runs, 6 assertions, 0 failures, 0 errors, 6 skips
 ```
 
-### ENABLE_OUTPUT
+#### ENABLE_OUTPUT
 
 You can pass `ENABLE_OUTPUT=true` to the test to get a print out of all the evaluated JSON content. This can be helpful
 to debug whether all levels of the test fixture are executed.
