@@ -6,6 +6,10 @@
 
   The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
 
+- **Bugfix: Include request.uri in Transaction events by default**
+
+  [The New Relic data dictionary expects Transaction events to have the `request.uri` attribute.](https://docs.newrelic.com/attribute-dictionary/?event=Transaction&attribute=request.uri) The Ruby agent now fulfills this expectation. If you would like to exclude `request.uri` from Transaction events, you can do so by setting `transaction_events.attributes.exclude` to `'request.uri'`. [PR#3103](https://github.com/newrelic/newrelic-ruby-agent/pull/3103)
+
 ## v9.18.0
 
 - **Feature: Add elasticsearch.capture_cluster_name configuration option**

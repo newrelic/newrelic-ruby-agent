@@ -3,43 +3,18 @@ name: Slack Notifications
 on:
   schedule:
     - cron:  '0 8 * * *'
+  workflow_dispatch:
 
 jobs:
   gem_notifications:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ruby/setup-ruby@bbda85882f33075a3727c01e3c8d0de0be6146ce # tag v1.224.0
+      - uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252 # tag v1.229.0
         with:
           ruby-version: 3.4
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - run: gem install httparty
       - name: Check for outdated gems
-        run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb ${{ env.gems }}
+        run: ruby .github/workflows/scripts/slack_notifications/gem_notifier.rb
         env:
           SLACK_GEM_NOTIFICATIONS_WEBHOOK: ${{ secrets.SLACK_GEM_NOTIFICATIONS_WEBHOOK }}
-          gems:
-            "activerecord
-            bunny
-            dalli
-            delayed_job
-            elasticsearch
-            excon
-            grape
-            http
-            httpclient
-            mongo
-            puma
-            rack
-            rails
-            rake
-            rdkafka
-            redis
-            resque
-            roda
-            ruby-openai
-            sidekiq
-            sinatra
-            stripe
-            tilt
-            unicorn
-            view_component"
