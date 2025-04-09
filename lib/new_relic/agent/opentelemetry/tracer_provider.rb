@@ -6,6 +6,9 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class TracerProvider
+        def initialize
+          @span_processors = []
+        end
         # do we need a registration mechanism like in the main SDK?
         def tracer(name = nil, version = nil)
           @tracer ||= Tracer.new(name, version)

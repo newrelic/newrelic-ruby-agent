@@ -19,13 +19,27 @@ module NewRelic
         end
 
         def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
+          # copied
+          parent_context = with_parent || ::OpenTelemetry::Context.current
+          parent_span = ::OpenTelemetry::Trace.current_span(parent_context)
+          parent_span_context = parent_span.context
+
+          if parent_span_context.valid?
+            parent_span_id = parent_span_context.span_id
+            trace_id = parent_span_context.trace_id
+          end
+
+          # Otel sdk configurator assigns an ID generator
+          # this one is based on the OTel API
+          # for now, setting the ID generator to use what we'd use for our traces
+          # trace_id ||= NewRelic::GuidGenerator.generate_guid
           # start_segment maybe instead? But if you don't give it a parent, it just takes the current context and will create a new trace, right?
           # NewRelic::Agent::Tracer.start_transaction_or_segment
-          binding.irb
-          NewRelic::Agent::Tracer.start_segment(
+          # binding.irb
+          segment = NewRelic::Agent::Tracer.start_segment(
             name: name,
             start_time: start_timestamp,
-            parent: with_parent || NewRelic::Agent::Tracer.
+            # parent: with_parent || NewRelic::Agent::Tracer.current_transaction
           )
         end
 
