@@ -951,6 +951,11 @@ module NewRelic
         @ignore_trace
       end
 
+      # TODO: THIS IS FOR OTEL AND SHOULD NOT STAY HEERE
+      def set_attribute(key, value)
+        current_segment&.set_attribute(key, value)
+      end
+
       private
 
       def process_cpu

@@ -64,12 +64,37 @@ module NewRelic
                 # parent: ----
               )
               # do we try to capture segment errors?
-              NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
+              NewRelic::Agent::Tracer.capture_segment_error(segment) { yield(segment) }
             ensure
               segment&.finish
             end
           when :server
-            binding.irb
+            # attributes = {"component" => "http",
+            #  "http.method" => "GET",
+            #  "http.route" => "/hello",
+            #  "http.url" => "/hello"}
+            # span name is "/hello"
+            # set as partial_name: "Nested/Controller//hello"
+            # set as :name => "/hello"
+            # Should they be named like NR names?
+            # sincei t's a block, use in_transaction
+            # also considered #start_transaction_or_segment
+            # NewRelic::Agent::Tracer.in_transaction(
+            begin
+              finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
+                name: name,
+                category: :web,
+                # do we want the request?
+                # what are all the options for :options?
+              )
+              yield(finishable)
+            rescue Exception => e
+              binding.irb
+              NewRelic::Agent.notice_error(e)
+              raise e
+            ensure
+              finishable&.finish
+            end
           else
             binding.irb
           end
