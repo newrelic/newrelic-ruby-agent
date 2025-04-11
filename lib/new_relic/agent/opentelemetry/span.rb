@@ -7,6 +7,10 @@ module NewRelic
   module Agent
     module OpenTelemetry
       class Span
+        def initialize
+          
+        end
+
         def set_attribute(key, value)
           binding.irb
         end

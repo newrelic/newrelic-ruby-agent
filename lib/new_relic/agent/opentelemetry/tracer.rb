@@ -20,7 +20,9 @@ module NewRelic
 
         def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
           # copied
-          parent_context = with_parent || ::OpenTelemetry::Context.current
+          parent_context = with_parent || (::OpenTelemetry::Context.current == ::OpenTelemetry::Trace::Span::INVALID ? ::OpenTelemetry::Context.empty : ::OpenTelemetry::Context.current)
+
+          # parent_context = with_parent || ::OpenTelemetry::Context.current
           parent_span = ::OpenTelemetry::Trace.current_span(parent_context)
           parent_span_context = parent_span.context
 
@@ -28,6 +30,21 @@ module NewRelic
             parent_span_id = parent_span_context.span_id
             trace_id = parent_span_context.trace_id
           end
+          # maybe we don't bother generating guids and instead just apply
+          # the ones we get from NR to the spans?
+          # trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid
+          # there's some stuff about untraced spans in the original code that
+          # we're not going to account for right now
+          # if OpenTelemetry::Common::Utilities.untraced?(parent_context)
+          #   span_id = parent_span_id || NewRelic::Agent::GuidGenerator.generate_guid
+          #   return OpenTelemetry::Trace.non_recording_span(OpenTelemetry::Trace::SpanContext.new(trace_id: trace_id, span_id: span_id))
+          # end
+          # maybe we don't need to generate guids and just apply the ones from
+          # NR objects to the spans?
+          # span_id = NewRelic::Agent::GuidGenerator.generate_guid
+          # stuff about samplers that we're not addressing yet
+          # result = @sampler.should_sample?(trace_id: trace_id, parent_context: parent_context, links: links, name: name, kind: kind, attributes: attributes)
+          trace_flags = 1
 
           # Otel sdk configurator assigns an ID generator
           # this one is based on the OTel API
@@ -41,6 +58,8 @@ module NewRelic
             start_time: start_timestamp,
             # parent: with_parent || NewRelic::Agent::Tracer.current_transaction
           )
+          context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: segment.transaction.trace_id, span_id: segment.guid)
+          span = ::OpenTelemetry::Trace::Span.new(span_context: context)
         end
 
         def in_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
