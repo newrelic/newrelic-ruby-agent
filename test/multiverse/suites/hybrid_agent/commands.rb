@@ -4,10 +4,15 @@
 
 module Commands
   def do_work_in_span(span_name:, span_kind:, &block)
-    span = @tracer.start_span(span_name, kind: span_kind)
-    yield if block
-  ensure
-    span&.finish
+    @tracer.in_span(span_name, kind: span_kind) do
+      if block
+        yield
+      else
+        1 ** 2 # do we really need this? 
+    end
+    # yield if block
+  # ensure
+    # span&.finish
   end
 
   def do_work_in_span_with_remote_parent(span_name:, span_kind:, &block)
@@ -25,10 +30,18 @@ module Commands
   end
 
   def do_work_in_transaction(transaction_name:, &block)
-    transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
-    yield if block
-  ensure
-    transaction&.finish
+    NewRelic::Agent::Tracer.in_transaction(name: transaction_name, category: :web) do
+      if block
+        yield
+      else
+        1 ** 2
+      end
+    end
+  #   binding.irb
+  #   transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
+  #   yield if block
+  # ensure
+  #   transaction&.finish
   end
 
   def do_work_in_segment(segment_name:, &block)

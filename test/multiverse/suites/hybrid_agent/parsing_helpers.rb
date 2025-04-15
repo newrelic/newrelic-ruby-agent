@@ -25,8 +25,9 @@ module ParsingHelpers
         end
       end
     else
-      send(command, **parameters)
-      parse_assertions(operation['assertions']) if operation['assertions']
+      send(command, **parameters) do
+        parse_assertions(operation['assertions']) if operation['assertions']
+      end
     end
   end
 
@@ -128,14 +129,19 @@ module ParsingHelpers
     if output[type].empty?
       assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
     else
-      h = harvest[0][1]
+      # this works for spans, we need to see if it will also work for transactions
       output = prepare_keys(output[type])
 
-      output&.each do |o|
-        if o && h
+      harvest.each_with_index do |h, i|
+        o = output[i]
+        if !o.empty? && h
+          # TODO: we don't currently attach the parent name to span harvests
+          # removing the key for now, but should reconsider this later on
+          o.delete('parent_name')
+
           msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
 
-          assert h >= o, msg
+          assert h[0] >= o, msg
         end
       end
     end

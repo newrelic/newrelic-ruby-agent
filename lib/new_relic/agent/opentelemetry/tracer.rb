@@ -66,8 +66,27 @@ module NewRelic
           # start_segment_or_transaction ?
           case kind
           when :internal
-            binding.irb
-            segment = NewRelic::Agent::Tracer.start_segment_or_transaction
+            begin
+              # what's the right category for an internal?
+              finishable = nil
+              span = nil
+
+              finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
+              # will it always be a segment? # when would it be a transaction?
+              if finishable.is_a?(NewRelic::Agent::Transaction::Segment)
+                span = Span.new(segment: finishable, transaction: finishable.transaction)
+              else
+                # this happens, not sure what test case
+                # also happens in the "outer" example for simple.rb
+                span = Span.new(segment: finishable.segments.first, transaction: finishable)
+              end
+
+              ::OpenTelemetry::Trace.with_span(span) do
+                yield
+              end
+            ensure
+              finishable&.finish
+            end
           when :client
             # abstract this into a separate class
             begin
