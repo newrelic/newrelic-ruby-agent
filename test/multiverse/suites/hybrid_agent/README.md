@@ -49,6 +49,7 @@ Example:
 def focus_tests
   %w[does_not_create_segment_without_a_transaction]
 end
+```
 
 ```output
 $ bermq hybrid_agent
