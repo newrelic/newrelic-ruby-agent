@@ -134,10 +134,22 @@ module ParsingHelpers
 
       harvest.each_with_index do |h, i|
         o = output[i]
-        if !o.empty? && h
+        if o && h
+          msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
           # TODO: we don't currently attach the parent name to span harvests
           # removing the key for now, but should reconsider this later on
-          o.delete('parent_name')
+          if o['parent_name']
+            parent_id = h[0]['parentId']
+
+            spans = harvest.flatten.select { |a| a.key?('type') }
+            result = spans.find{ |s| s['guid'] == parent_id }.dig('name')
+
+            expected = o['parent_name']
+
+            assert_equal expected, result, msg
+            o.delete('parent_name')
+          end
+
 
           msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
 

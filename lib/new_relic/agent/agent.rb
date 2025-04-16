@@ -114,6 +114,7 @@ module NewRelic
         @custom_event_aggregator = CustomEventAggregator.new(@events)
         @span_event_aggregator = SpanEventAggregator.new(@events)
         @log_event_aggregator = LogEventAggregator.new(@events)
+        # TODO: Is this the best name?
         @opentelemetry = Opentelemetry.new
       end
 

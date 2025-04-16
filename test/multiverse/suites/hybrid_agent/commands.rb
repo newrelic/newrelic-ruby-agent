@@ -8,7 +8,8 @@ module Commands
       if block
         yield
       else
-        1 ** 2 # do we really need this? 
+        1 ** 2 # do we really need this?
+      end
     end
     # yield if block
   # ensure
@@ -37,8 +38,8 @@ module Commands
         1 ** 2
       end
     end
-  #   binding.irb
-  #   transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
+
+    #   transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
   #   yield if block
   # ensure
   #   transaction&.finish

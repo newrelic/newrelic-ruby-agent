@@ -5,9 +5,12 @@
 module NewRelic
   module Agent
     module OpenTelemetry
-      class Tracer
+      # TODO: Decide if we should inherit this from the API
+      class Tracer # < ::OpenTelemetry::Trace::Tracer
         attr_accessor :name, :version
 
+        # TODO: decide if we should set up a default traver value
+        # What does the API/SDK do?
         def initialize(name, version)
           @name = name # || 'newrelic_rpm'
           @version = version # || NewRelic::VERSION::STRING
@@ -15,14 +18,12 @@ module NewRelic
 
         def start_root_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
           binding.irb
-          # start_transaction
+          # start_transaction?
         end
 
         def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
-          # copied
-          parent_context = with_parent || (::OpenTelemetry::Context.current == ::OpenTelemetry::Trace::Span::INVALID ? ::OpenTelemetry::Context.empty : ::OpenTelemetry::Context.current)
-
-          # parent_context = with_parent || ::OpenTelemetry::Context.current
+          # TODO: copied, is this the right choice for us?
+          parent_context = with_parent || find_context
           parent_span = ::OpenTelemetry::Trace.current_span(parent_context)
           parent_span_context = parent_span.context
 
@@ -71,7 +72,10 @@ module NewRelic
               finishable = nil
               span = nil
 
-              finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :web)
+              # maybe check to see if there's a current transaction, if so, add it; if not, start one?
+              # TODO: check to see if we have the right category
+              # how is node setting the category?
+              finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :other)
               # will it always be a segment? # when would it be a transaction?
               if finishable.is_a?(NewRelic::Agent::Transaction::Segment)
                 span = Span.new(segment: finishable, transaction: finishable.transaction)
@@ -136,6 +140,12 @@ module NewRelic
           else
             binding.irb
           end
+        end
+
+        private
+
+        def find_context
+          ::OpenTelemetry::Context.current == ::OpenTelemetry::Trace::Span::INVALID ? ::OpenTelemetry::Context.empty : ::OpenTelemetry::Context.current
         end
       end
     end

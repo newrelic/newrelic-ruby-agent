@@ -5,6 +5,7 @@
 module NewRelic
   module Agent
     module OpenTelemetry
+      # TODO: Do we need a SpanProcessor if we're becoming a pseudo-SDK?
       class SpanProcessor
         def on_start(span, parent_context)
           binding.irb
@@ -14,7 +15,7 @@ module NewRelic
           binding.irb
         end
 
-        # do we need a force_flush or shutdown?
+        # TODO: do we need a force_flush or shutdown?
       end
     end
   end

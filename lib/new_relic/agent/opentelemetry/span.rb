@@ -6,12 +6,11 @@
 module NewRelic
   module Agent
     module OpenTelemetry
-      class Span # should this inherit from the OpenTelemetry API?
+      # TODO: Should this inherit from the OpenTelemetry API like the SDK does?
+      class Span #  < ::OpenTelemetry::Trace::Span
         attr_reader :context
 
         def initialize(segment:, transaction:)
-          # @segment = segment
-          # @transaction = transaction
           @context = ::OpenTelemetry::Trace::SpanContext.new(
             trace_id: transaction.trace_id,
             span_id: segment.guid,
@@ -20,7 +19,8 @@ module NewRelic
         end
 
         def record_exception(exception, attributes: nil)
-          # TODO: not really tested
+          # TODO: test this
+          # TODO: Consider removing it from the first PR
           if attributes.nil?
             NewRelic::Agent.notice_error(exception)
           else
@@ -29,7 +29,8 @@ module NewRelic
         end
 
         def set_attribute(key, value)
-          # TODO: not really tested
+          # TODO: test this
+          # TODO: Consider removing it from the first issue
           NewRelic::Agent.add_custom_span_attributes({key => value})
         end
       end
