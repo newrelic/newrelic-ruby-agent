@@ -8,11 +8,11 @@ module Commands
       if block
         yield
       else
-        1 ** 2 # do we really need this?
+        1**2 # do we really need this?
       end
     end
     # yield if block
-  # ensure
+    # ensure
     # span&.finish
   end
 
@@ -35,14 +35,14 @@ module Commands
       if block
         yield
       else
-        1 ** 2
+        1**2
       end
     end
 
     #   transaction = NewRelic::Agent::Tracer.start_transaction(name: transaction_name, category: :web)
-  #   yield if block
-  # ensure
-  #   transaction&.finish
+    #   yield if block
+    # ensure
+    #   transaction&.finish
   end
 
   def do_work_in_segment(segment_name:, &block)

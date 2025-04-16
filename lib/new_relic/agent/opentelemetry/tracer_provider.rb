@@ -17,7 +17,6 @@ module NewRelic
           @tracer ||= Tracer.new(name, version)
         end
 
-
         def add_span_processor(span_processor)
           puts 'add_span_processor hit'
         end

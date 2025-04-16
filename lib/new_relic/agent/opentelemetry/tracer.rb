@@ -56,7 +56,7 @@ module NewRelic
           # binding.irb
           segment = NewRelic::Agent::Tracer.start_segment(
             name: name,
-            start_time: start_timestamp,
+            start_time: start_timestamp
             # parent: with_parent || NewRelic::Agent::Tracer.current_transaction
           )
           context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: segment.transaction.trace_id, span_id: segment.guid)
@@ -125,7 +125,7 @@ module NewRelic
             begin
               finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(
                 name: name,
-                category: :web,
+                category: :web
                 # do we want the request?
                 # what are all the options for :options?
               )

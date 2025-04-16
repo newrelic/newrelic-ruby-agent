@@ -142,14 +142,13 @@ module ParsingHelpers
             parent_id = h[0]['parentId']
 
             spans = harvest.flatten.select { |a| a.key?('type') }
-            result = spans.find{ |s| s['guid'] == parent_id }.dig('name')
+            result = spans.find { |s| s['guid'] == parent_id }.dig('name')
 
             expected = o['parent_name']
 
             assert_equal expected, result, msg
             o.delete('parent_name')
           end
-
 
           msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
 
