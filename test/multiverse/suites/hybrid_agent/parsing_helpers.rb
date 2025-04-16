@@ -129,15 +129,13 @@ module ParsingHelpers
     if output[type].empty?
       assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
     else
-      # this works for spans, we need to see if it will also work for transactions
       output = prepare_keys(output[type])
 
       harvest.each_with_index do |h, i|
         o = output[i]
         if o && h
           msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
-          # TODO: we don't currently attach the parent name to span harvests
-          # removing the key for now, but should reconsider this later on
+
           if o['parent_name']
             parent_id = h[0]['parentId']
 

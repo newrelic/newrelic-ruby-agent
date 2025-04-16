@@ -11,7 +11,7 @@ module NewRelic
           attr_accessor :name, :version
 
           def initialize(name, version)
-            # TODO: do we want to set these to empty strings?
+            # TODO: Set these to empty strings
             # TODO: Implement a tracer registry similar to the OTel SDK
             @name = name
             @version = version

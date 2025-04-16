@@ -10,5 +10,4 @@ end
 
 gemfile <<~RB
   gem 'opentelemetry-api', path: '../../../../../opentelemetry-ruby/api'
-  gem 'opentelemetry-sdk'
 RB
