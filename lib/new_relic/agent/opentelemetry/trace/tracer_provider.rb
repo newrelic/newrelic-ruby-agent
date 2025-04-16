@@ -7,7 +7,7 @@ module NewRelic
     module OpenTelemetry
       module Trace
         # TODO: Do we inherit from the OpenTelemetry API like the SDK does?
-        class TracerProvider # < ::OpenTelemetry::Trace::TracerProvider
+        class TracerProvider < ::OpenTelemetry::Trace::TracerProvider
           # TODO: Add a registration mechanism for tracers like exists in the SDK
           def tracer(name = nil, version = nil)
             @tracer ||= Tracer.new(name, version)

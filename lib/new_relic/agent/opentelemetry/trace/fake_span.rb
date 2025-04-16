@@ -7,7 +7,7 @@ module NewRelic
     module OpenTelemetry
       module Trace
         # TODO: Should this inherit from the OpenTelemetry API like the SDK does?
-        class FakeSpan #  < ::OpenTelemetry::Trace::Span
+        class FakeSpan < ::OpenTelemetry::Trace::Span
           attr_reader :context
 
           def initialize(segment:, transaction:)

@@ -7,7 +7,7 @@ module NewRelic
     module OpenTelemetry
       # TODO: Decide if we should inherit this from the API
       module Trace
-        class Tracer # < ::OpenTelemetry::Trace::Tracer
+        class Tracer < ::OpenTelemetry::Trace::Tracer
           attr_accessor :name, :version
 
           def initialize(name, version)
