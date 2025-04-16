@@ -6,6 +6,10 @@
 
   The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
 
+- **Feature: Add support for W3C TraceContext Trace Flag**
+
+  Previously, the agent would not use the Trace flag field of the traceparent header for sampling decisions. This could lead to fragmented traces in the UI. While the default behavior remains unchanged, 2 new configuration options, `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled`, have been introduced that will allow more control over the way sampling decisions are made. [PR#3135](https://github.com/newrelic/newrelic-ruby-agent/pull/3135)
+
 - **Bugfix: Include request.uri in Transaction events by default**
 
   [The New Relic data dictionary expects Transaction events to have the `request.uri` attribute.](https://docs.newrelic.com/attribute-dictionary/?event=Transaction&attribute=request.uri) The Ruby agent now fulfills this expectation. If you would like to exclude `request.uri` from Transaction events, you can do so by setting `transaction_events.attributes.exclude` to `'request.uri'`. [PR#3103](https://github.com/newrelic/newrelic-ruby-agent/pull/3103)
