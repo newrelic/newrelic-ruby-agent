@@ -311,7 +311,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
       }
 
-      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_on') do
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'always_on') do
         in_transaction('accepting_txn') do |txn|
           txn.sampled = false
           NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
@@ -330,7 +330,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
       }
 
-      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_off') do
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'always_off') do
         in_transaction('accepting_txn') do |txn|
           txn.sampled = false
           NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
@@ -366,7 +366,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
       }
 
-      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_on') do
+      with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'always_on') do
         in_transaction('accepting_txn') do |txn|
           txn.sampled = false
           NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
@@ -385,7 +385,7 @@ module NewRelic::Agent::DistributedTracing
         NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
       }
 
-      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_off') do
+      with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'always_off') do
         in_transaction('accepting_txn') do |txn|
           txn.sampled = false
           NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')

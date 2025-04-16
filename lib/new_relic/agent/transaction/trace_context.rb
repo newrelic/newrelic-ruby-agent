@@ -136,7 +136,7 @@ module NewRelic
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
 
-          trace_context_sampled_priority(payload)
+          determine_sampling_decision(payload, header_data)
 
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
@@ -146,8 +146,24 @@ module NewRelic
           false
         end
 
-        def trace_context_sampled_priority(payload)
+        def determine_sampling_decision(payload, header_data)
           unless payload.sampled.nil?
+            if header_data.trace_parent['trace_flags'] == '01'
+              set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
+            else
+              set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
+            end
+          end
+        end
+
+        def set_priority_and_sampled(config, payload)
+          if config == 'always_on'
+            transaction.sampled = true
+            transaction.priority = 2.0
+          elsif config == 'always_off'
+            transaction.sampled = false
+            transaction.priority = 0
+          else # default
             transaction.sampled = payload.sampled
             transaction.priority = payload.priority if payload.priority
           end
