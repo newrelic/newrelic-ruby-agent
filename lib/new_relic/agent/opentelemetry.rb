@@ -16,19 +16,12 @@ module NewRelic
 
         # TODO: Turn off New Relic instrumentation?
         # TODO: Do we need an Exporter?
-        ::OpenTelemetry.tracer_provider = NewRelic::Agent::OpenTelemetry::TracerProvider.new
-
-        processor = NewRelic::Agent::OpenTelemetry::SpanProcessor.new
-
-        ::OpenTelemetry.tracer_provider.add_span_processor(processor)
+        ::OpenTelemetry.tracer_provider = NewRelic::Agent::OpenTelemetry::Trace::TracerProvider.new
       end
 
       def run_requires
         require 'opentelemetry' # requires the OpenTelemetry API
-        require_relative 'opentelemetry/tracer_provider'
-        require_relative 'opentelemetry/tracer'
-        require_relative 'opentelemetry/span_processor'
-        require_relative 'opentelemetry/span'
+        require_relative 'opentelemetry/trace'
       end
     end
   end
