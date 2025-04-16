@@ -286,6 +286,116 @@ module NewRelic::Agent::DistributedTracing
       assert_false TraceContext.send(:trace_parent_valid?, invalid_trace_parent)
     end
 
+    def test_traceparent_sampled_config_default
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      in_transaction('accepting_txn') do |txn|
+        txn.sampled = true
+        NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+        # make sure it uses trace state
+        refute_predicate txn, :sampled?
+      end
+    end
+
+    def test_traceparent_sampled_config_always_on
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_on') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          assert_predicate txn, :sampled?
+          assert_in_delta(2.0, txn.priority)
+        end
+      end
+    end
+
+    def test_traceparent_sampled_config_always_off
+      payload = make_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_off') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          refute_predicate txn, :sampled?
+          assert_equal 0, txn.priority
+        end
+      end
+    end
+
+    def test_traceparent_unsampled_config_default
+      payload = make_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-00',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      in_transaction('accepting_txn') do |txn|
+        txn.sampled = false
+        NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+        # make sure it uses trace state
+        assert_predicate txn, :sampled?
+      end
+    end
+
+    def test_traceparent_unsampled_config_always_on
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-00',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_on') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          assert_predicate txn, :sampled?
+          assert_in_delta(2.0, txn.priority)
+        end
+      end
+    end
+
+    def test_traceparent_unsampled_config_always_off
+      payload = make_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-00',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampled.remote_parent_sampled' => 'always_off') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = false
+          NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+
+          refute_predicate txn, :sampled?
+          assert_equal 0, txn.priority
+        end
+      end
+    end
+
     def make_inbound_carrier(options = {})
       {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
@@ -295,6 +405,13 @@ module NewRelic::Agent::DistributedTracing
 
     def make_payload
       in_transaction('test_txn') do |txn|
+        return txn.distributed_tracer.create_trace_state_payload
+      end
+    end
+
+    def make_unsampled_payload
+      in_transaction('test_txn') do |txn|
+        txn.stubs(:sampled?).returns(false)
         return txn.distributed_tracer.create_trace_state_payload
       end
     end
