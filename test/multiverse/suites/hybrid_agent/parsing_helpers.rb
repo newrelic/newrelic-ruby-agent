@@ -129,28 +129,23 @@ module ParsingHelpers
     if output[type].empty?
       assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
     else
-      output = prepare_keys(output[type])
+      outputs = prepare_keys(output[type])
+      events = harvest.flatten.select { |a| a.key?('type') }
 
-      harvest.each_with_index do |h, i|
-        o = output[i]
-        if o && h
-          msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
+      events.each_with_index do |event, i|
+        output = outputs[i]
+        if output && event
+          msg = "Agent output for #{type.capitalize} wasn't found in the harvest." \
+            "\nHarvest: #{event}\nAgent output: #{output}"
 
-          if o['parent_name']
-            parent_id = h[0]['parentId']
+          if output['parent_name']
+            result = events.find { |e| e['guid'] == event['parentId'] }.dig('name')
 
-            spans = harvest.flatten.select { |a| a.key?('type') }
-            result = spans.find { |s| s['guid'] == parent_id }.dig('name')
-
-            expected = o['parent_name']
-
-            assert_equal expected, result, msg
-            o.delete('parent_name')
+            assert_equal output['parent_name'], result, msg
+            output.delete('parent_name')
           end
 
-          msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
-
-          assert h[0] >= o, msg
+          assert event >= output, msg
         end
       end
     end
