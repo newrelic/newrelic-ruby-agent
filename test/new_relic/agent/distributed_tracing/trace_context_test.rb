@@ -353,7 +353,6 @@ module NewRelic::Agent::DistributedTracing
         txn.sampled = false
         NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
 
-        # make sure it uses trace state
         assert_predicate txn, :sampled?
       end
     end
