@@ -136,16 +136,21 @@ module NewRelic
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
 
-          unless payload.sampled.nil?
-            transaction.sampled = payload.sampled
-            transaction.priority = payload.priority if payload.priority
-          end
+          trace_context_sampled_priority(payload)
+
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
         rescue => e
           NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
           NewRelic::Agent.logger.warn('Failed to accept trace context payload', e)
           false
+        end
+
+        def trace_context_sampled_priority(payload)
+          unless payload.sampled.nil?
+            transaction.sampled = payload.sampled
+            transaction.priority = payload.priority if payload.priority
+          end
         end
 
         def ignore_trace_context?
