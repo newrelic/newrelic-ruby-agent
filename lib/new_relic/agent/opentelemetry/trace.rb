@@ -8,7 +8,7 @@ module NewRelic
       module Trace
         require_relative 'trace/tracer_provider'
         require_relative 'trace/tracer'
-        require_relative 'trace/fake_span'
+        require_relative 'trace/span'
       end
     end
   end

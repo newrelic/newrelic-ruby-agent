@@ -6,15 +6,15 @@ module NewRelic
   module Agent
     module OpenTelemetry
       module Trace
-        class FakeSpanTest < Minitest::Test
+        class SpanTest < Minitest::Test
           Segment = Struct.new(:guid)
           Transaction = Struct.new(:trace_id)
 
-          def test_fake_span_has_context
+          def test_span_has_context
             segment = Segment.new('123')
             transaction = Transaction.new('456')
 
-            span = FakeSpan.new(segment: segment, transaction: transaction)
+            span = Span.new(segment: segment, transaction: transaction)
 
             assert_equal '123', span.context.span_id
             assert_equal '456', span.context.trace_id

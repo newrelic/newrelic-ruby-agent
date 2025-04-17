@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     module OpenTelemetry
       module Trace
-        class FakeSpan < ::OpenTelemetry::Trace::Span
+        class Span < ::OpenTelemetry::Trace::Span
           attr_reader :context
 
           def initialize(segment:, transaction:)

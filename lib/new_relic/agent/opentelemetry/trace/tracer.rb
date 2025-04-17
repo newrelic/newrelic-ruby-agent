@@ -17,7 +17,7 @@ module NewRelic
             when :internal
               begin
                 segment = NewRelic::Agent::Tracer.start_segment(name: name)
-                span = FakeSpan.new(segment: segment, transaction: segment.transaction)
+                span = Span.new(segment: segment, transaction: segment.transaction)
 
                 ::OpenTelemetry::Trace.with_span(span) do
                   yield
