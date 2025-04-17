@@ -2493,7 +2493,7 @@ module NewRelic
         # TODO: Sync with the other agents to see what the config should be named, how it should be enabled, how it should be described
         :'feature_flag.opentelemetry_bridge' => {
           :default => false,
-          :public => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
