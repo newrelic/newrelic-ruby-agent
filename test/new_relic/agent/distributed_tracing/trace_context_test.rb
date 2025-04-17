@@ -404,6 +404,7 @@ module NewRelic::Agent::DistributedTracing
 
     def make_payload
       in_transaction('test_txn') do |txn|
+        txn.stubs(:sampled?).returns(true)
         return txn.distributed_tracer.create_trace_state_payload
       end
     end
