@@ -38,7 +38,7 @@ require 'new_relic/agent/adaptive_sampler'
 require 'new_relic/agent/serverless_handler'
 require 'new_relic/agent/connect/request_builder'
 require 'new_relic/agent/connect/response_handler'
-require 'new_relic/agent/opentelemetry_handler'
+require 'new_relic/agent/opentelemetry_bridge'
 
 require 'new_relic/agent/agent_helpers/connect'
 require 'new_relic/agent/agent_helpers/harvest'
@@ -101,7 +101,7 @@ module NewRelic
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
         @serverless_handler = ServerlessHandler.new
-        @opentelemetry_handler = OpenTelemetryHandler.new
+        @opentelemetry_bridge = OpenTelemetryBridge.new
       end
 
       def init_event_handlers

@@ -4,18 +4,18 @@
 
 module NewRelic
   module Agent
-    class OpenTelemetryHandler
+    class OpenTelemetryBridge
       def initialize
         # no-op without OpenTelemetry API & config
         return unless defined?(OpenTelemetry) &&
           NewRelic::Agent.config[:'opentelemetry_bridge.enabled']
 
-        OpenTelemetryHandler.install_bridge
+        OpenTelemetryBridge.install
       end
 
       private
 
-      def self.install_bridge
+      def self.install
         require 'opentelemetry' # requires the opentelemetry-api gem
         require_relative 'opentelemetry/trace'
 

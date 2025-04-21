@@ -3,23 +3,23 @@
 # frozen_string_literal: true
 
 require_relative '../../test_helper'
-require 'new_relic/agent/opentelemetry_handler'
+require 'new_relic/agent/opentelemetry_bridge'
 
 module NewRelic
   module Agent
-    class OpenTelemetryHandlerTest < Minitest::Test
+    class OpenTelemetryBridgeTest < Minitest::Test
       class BridgeInstallationError < StandardError; end
 
       def test_does_not_run_requires_without_opentelemetry_api_gem
         with_config(:'opentelemetry_bridge.enabled' => true) do
-          assert NewRelic::Agent::OpenTelemetryHandler.new
+          assert NewRelic::Agent::OpenTelemetryBridge.new
         end
       end
 
       def test_does_not_run_requires_without_config
         with_config(:'opentelemetry_bridge.enabled' => false) do
           Object.stub_const(:OpenTelemetry, nil) do
-            assert NewRelic::Agent::OpenTelemetryHandler.new
+            assert NewRelic::Agent::OpenTelemetryBridge.new
           end
         end
       end
@@ -27,8 +27,8 @@ module NewRelic
       def test_installs_bridge_when_configured
         with_config(:'opentelemetry_bridge.enabled' => true) do
           Object.stub_const(:OpenTelemetry, nil) do
-            NewRelic::Agent::OpenTelemetryHandler.stub(:install_bridge, -> { raise BridgeInstallationError.new }) do
-              assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryHandler.new }
+            NewRelic::Agent::OpenTelemetryBridge.stub(:install, -> { raise BridgeInstallationError.new }) do
+              assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryBridge.new }
             end
           end
         end
