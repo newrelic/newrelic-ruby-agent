@@ -11,13 +11,13 @@ module NewRelic
       class BridgeInstallationError < StandardError; end
 
       def test_does_not_run_requires_without_opentelemetry_api_gem
-        with_config(:'feature_flag.opentelemetry_bridge' => true) do
+        with_config(:'opentelemetry_bridge.enabled' => true) do
           assert NewRelic::Agent::OpenTelemetryHandler.new
         end
       end
 
       def test_does_not_run_requires_without_config
-        with_config(:'feature_flag.opentelemetry_bridge' => false) do
+        with_config(:'opentelemetry_bridge.enabled' => false) do
           Object.stub_const(:OpenTelemetry, nil) do
             assert NewRelic::Agent::OpenTelemetryHandler.new
           end
@@ -25,7 +25,7 @@ module NewRelic
       end
 
       def test_installs_bridge_when_configured
-        with_config(:'feature_flag.opentelemetry_bridge' => true) do
+        with_config(:'opentelemetry_bridge.enabled' => true) do
           Object.stub_const(:OpenTelemetry, nil) do
             NewRelic::Agent::OpenTelemetryHandler.stub(:install_bridge, -> { raise BridgeInstallationError.new }) do
               assert_raises(BridgeInstallationError) { NewRelic::Agent::OpenTelemetryHandler.new }
