@@ -5,7 +5,7 @@
 module Commands
   def do_work_in_span(span_name:, span_kind:, &block)
     @tracer.in_span(span_name, kind: span_kind) do
-      block ? yield : true
+      yield if block
     end
   end
 
@@ -25,7 +25,7 @@ module Commands
 
   def do_work_in_transaction(transaction_name:, &block)
     NewRelic::Agent::Tracer.in_transaction(name: transaction_name, category: :web) do
-      block ? yield : true
+      yield if block
     end
   end
 
