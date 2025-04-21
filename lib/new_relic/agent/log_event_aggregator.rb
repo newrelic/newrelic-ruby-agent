@@ -209,8 +209,15 @@ module NewRelic
         # sent by classic logs-in-context
         common_attributes.delete(ENTITY_TYPE_KEY)
         aggregator = NewRelic::Agent.agent.log_event_aggregator
+
+        # Add custom attributes and labels to the common attributes
+        # As they will be consistent across all log events
         common_attributes.merge!(aggregator.attributes.custom_attributes)
         common_attributes.merge!(aggregator.labels)
+
+        if common_attributes['hostname'] != NewRelic::Agent.config[:'process_host.display_name']
+          common_attributes['host.displayName'] = NewRelic::Agent.config[:'process_host.display_name']
+        end
 
         _, items = data
         payload = [{

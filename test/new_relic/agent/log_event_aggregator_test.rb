@@ -17,7 +17,10 @@ module NewRelic::Agent
         :'instrumentation.logger' => 'auto',
         :'instrumentation.logstasher' => 'auto',
         LogEventAggregator::OVERALL_ENABLED_KEY => true,
-        LogEventAggregator::FORWARDING_ENABLED_KEY => true
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true,
+        # set process_host.display name to nil to avoid adding unnecessary
+        # attributes to test expectations
+        :'process_host.display_name' => nil
       }
       NewRelic::Agent.config.add_config_for_testing(@enabled_config)
 
@@ -28,6 +31,10 @@ module NewRelic::Agent
     end
 
     def teardown
+      # If @labels was assigned in another test, it might leak into the common attributes
+      # forcibly remove them so that the melt format method has to freshly add them
+      @aggregator.remove_instance_variable(:@labels) if @aggregator.instance_variable_defined?(:@labels)
+
       NewRelic::Agent.config.remove_config(@enabled_config)
     end
 
@@ -444,10 +451,6 @@ module NewRelic::Agent
     end
 
     def test_basic_conversion_to_melt_format
-      # If @labels was assigned in another test, it might leak into the common attributes
-      # forcibly remove them so that the melt format method has to freshly add them
-      @aggregator.remove_instance_variable(:@labels) if @aggregator.instance_variable_defined?(:@labels)
-
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
         'entity.guid' => 'GUID',
         'entity.name' => 'Hola'
@@ -471,6 +474,54 @@ module NewRelic::Agent
 
       assert_equal 1, size
       assert_equal expected, payload
+    end
+
+    def test_process_host_display_name_added_when_different_from_hostname
+      with_config(:'process_host.display_name' => 'wadsworth') do
+        LinkingMetadata.stub('append_service_linking_metadata', {'hostname' => 'yvette'}) do
+          log_data = [
+            {
+              events_seen: 0,
+              reservoir_size: 0
+            },
+            [
+              [{"priority": 1}, {"message": 'This is a mess'}]
+            ]
+          ]
+
+          payload, _ = LogEventAggregator.payload_to_melt_format(log_data)
+          expected = [{
+            common: {attributes: {'hostname' => 'yvette', 'host.displayName' => 'wadsworth'}},
+            logs: [{"message": 'This is a mess'}]
+          }]
+
+          assert_equal expected, payload
+        end
+      end
+    end
+
+    def test_process_host_display_name_not_added_when_same_as_hostname
+      with_config(:'process_host.display_name' => 'mr.boddy') do
+        LinkingMetadata.stub('append_service_linking_metadata', {'hostname' => 'mr.boddy'}) do
+          log_data = [
+            {
+              events_seen: 0,
+              reservoir_size: 0
+            },
+            [
+              [{"priority": 1}, {"message": 'This is a mess'}]
+            ]
+          ]
+
+          payload, _ = LogEventAggregator.payload_to_melt_format(log_data)
+          expected = [{
+            common: {attributes: {'hostname' => 'mr.boddy'}},
+            logs: [{"message": 'This is a mess'}]
+          }]
+
+          assert_equal expected, payload
+        end
+      end
     end
 
     def test_create_event_truncates_message_when_exceeding_max_bytes
