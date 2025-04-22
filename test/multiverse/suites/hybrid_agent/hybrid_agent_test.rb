@@ -32,8 +32,9 @@ class HybridAgentTest < Minitest::Test
   # until the full suite can be run on the CI
   def focus_tests
     %w[
-      creates_opentelemetry_segment_in_a_transaction
       does_not_create_segment_without_a_transaction
+      creates_opentelemetry_segment_in_a_transaction
+      creates_new_relic_span_as_child_of_opentelemetry_span
     ]
   end
 
