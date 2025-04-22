@@ -25,8 +25,9 @@ module ParsingHelpers
         end
       end
     else
-      send(command, **parameters)
-      parse_assertions(operation['assertions']) if operation['assertions']
+      send(command, **parameters) do
+        parse_assertions(operation['assertions']) if operation['assertions']
+      end
     end
   end
 
@@ -128,14 +129,23 @@ module ParsingHelpers
     if output[type].empty?
       assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
     else
-      h = harvest[0][1]
-      output = prepare_keys(output[type])
+      outputs = prepare_keys(output[type])
+      events = harvest.flatten.select { |a| a.key?('type') }
 
-      output&.each do |o|
-        if o && h
-          msg = "Agent output for #{type.capitalize} wasn't found in the harvest.\nHarvest: #{h}\nAgent output: #{o}"
+      events.each_with_index do |event, i|
+        output = outputs[i]
+        if output && event
+          msg = "Agent output for #{type.capitalize} wasn't found in the harvest." \
+            "\nHarvest: #{event}\nAgent output: #{output}"
 
-          assert h >= o, msg
+          if output['parent_name']
+            result = events.find { |e| e['guid'] == event['parentId'] }.dig('name')
+
+            assert_equal output['parent_name'], result, msg
+            output.delete('parent_name')
+          end
+
+          assert event >= output, msg
         end
       end
     end

@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, ruby_openai, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
+        suite: [active_support_broadcast_logger, active_support_logger, activemerchant, agent_only, async_http, bare, deferred_instrumentation, grape, high_security, httpclient, httprb, httpx, hybrid_agent, json, logger, marshalling, rack, resque, roda, roda_agent_disabled, ruby_openai, sequel, sinatra, sinatra_agent_disabled, stripe, thread, tilt, typhoeus]
 
     steps:
       - name: Configure git
