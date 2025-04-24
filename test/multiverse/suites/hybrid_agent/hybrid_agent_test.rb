@@ -31,7 +31,10 @@ class HybridAgentTest < Minitest::Test
   # Now that we're starting to implement, use this to add tests individually
   # until the full suite can be run on the CI
   def focus_tests
-    %w[creates_opentelemetry_segment_in_a_transaction]
+    %w[
+      creates_opentelemetry_segment_in_a_transaction
+      does_not_create_segment_without_a_transaction
+    ]
   end
 
   test_cases = load_cross_agent_test('hybrid_agent')

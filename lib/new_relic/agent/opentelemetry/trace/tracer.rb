@@ -16,6 +16,8 @@ module NewRelic
             case kind
             when :internal
               begin
+                return yield unless NewRelic::Agent::Tracer.current_transaction
+
                 segment = NewRelic::Agent::Tracer.start_segment(name: name)
                 span = Span.new(segment: segment, transaction: segment.transaction)
 
