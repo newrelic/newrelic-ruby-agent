@@ -8,7 +8,7 @@
 
 - **Feature: Add support for W3C TraceContext Trace Flag**
 
-  Previously, the agent would not use the Trace flag field of the traceparent header for sampling decisions. This could lead to fragmented traces in the UI. While the default behavior remains unchanged, 2 new configuration options, `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled`, have been introduced that will allow more control over the way sampling decisions are made. [PR#3135](https://github.com/newrelic/newrelic-ruby-agent/pull/3135)
+  Previously, the agent would not use the trace flag field of the traceparent header for sampling decisions. This could lead to fragmented traces in the UI. While the default behavior remains unchanged, two new configuration options, `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled`, have been introduced to allow more control over the way sampling decisions are made. [PR#3135](https://github.com/newrelic/newrelic-ruby-agent/pull/3135)
 
 - **Bugfix: Include request.uri in Transaction events by default**
 
