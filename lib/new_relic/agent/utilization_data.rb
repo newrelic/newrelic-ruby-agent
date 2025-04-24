@@ -84,9 +84,30 @@ module NewRelic
         result
       end
 
+      # ECS Fargate docker ID is treated differently
+      def append_ecs_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_aws']
+
+        # do v4 first, and only try other one if it fails
+        ecs_v4 = Utilization::ECSV4.new
+        if ecs_v4.detect
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:ecs] = ecs_v4.metadata
+        else
+          ecs = Utilization::ECS.new
+          if ecs.detect
+            collector_hash[:vendors] ||= {}
+            collector_hash[:vendors][:ecs] = ecs.metadata
+          end
+        end
+      end
+
       def append_vendor_info(collector_hash)
         threads = []
         complete = false
+
+        # ecs
+        append_ecs_info(collector_hash)
 
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
