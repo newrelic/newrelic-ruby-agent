@@ -147,12 +147,21 @@ module NewRelic
         end
 
         def determine_sampling_decision(payload, header_data)
+          if header_data.trace_parent['trace_flags'] == '01'
+            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
+          elsif header_data.trace_parent['trace_flags'] == '00'
+            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
+          else
+            use_nr_tracestate_sampled(payload)
+          end
+        rescue
+          use_nr_tracestate_sampled(payload)
+        end
+
+        def use_nr_tracestate_sampled(payload)
           unless payload.sampled.nil?
-            if header_data.trace_parent['trace_flags'] == '01'
-              set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
-            else
-              set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
-            end
+            transaction.sampled = payload.sampled
+            transaction.priority = payload.priority if payload.priority
           end
         end
 
@@ -164,8 +173,7 @@ module NewRelic
             transaction.sampled = false
             transaction.priority = 0
           else # default
-            transaction.sampled = payload.sampled
-            transaction.priority = payload.priority if payload.priority
+            use_nr_tracestate_sampled(payload)
           end
         end
 
