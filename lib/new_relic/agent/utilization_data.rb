@@ -6,6 +6,8 @@ require 'new_relic/agent/utilization/aws'
 require 'new_relic/agent/utilization/gcp'
 require 'new_relic/agent/utilization/azure'
 require 'new_relic/agent/utilization/pcf'
+require 'new_relic/agent/utilization/ecs'
+require 'new_relic/agent/utilization/ecs_v4'
 
 module NewRelic
   module Agent
@@ -84,20 +86,21 @@ module NewRelic
         result
       end
 
-      # ECS Fargate docker ID is treated differently
       def append_ecs_info(collector_hash)
         return unless Agent.config[:'utilization.detect_aws']
 
-        # do v4 first, and only try other one if it fails
-        ecs_v4 = Utilization::ECSV4.new
-        if ecs_v4.detect
-          collector_hash[:vendors] ||= {}
-          collector_hash[:vendors][:ecs] = ecs_v4.metadata
-        else
-          ecs = Utilization::ECS.new
+        Thread.new do
+          # try v4 first, and only try unversioned endpoint if v4 fails
+          ecs = Utilization::ECSV4.new
           if ecs.detect
             collector_hash[:vendors] ||= {}
             collector_hash[:vendors][:ecs] = ecs.metadata
+          else
+            ecs = Utilization::ECS.new
+            if ecs.detect
+              collector_hash[:vendors] ||= {}
+              collector_hash[:vendors][:ecs] = ecs.metadata
+            end
           end
         end
       end
@@ -106,8 +109,8 @@ module NewRelic
         threads = []
         complete = false
 
-        # ecs
-        append_ecs_info(collector_hash)
+        # ecs needs be checked even if AWS check succeeds
+        ecs_thread = append_ecs_info(collector_hash)
 
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
@@ -127,6 +130,7 @@ module NewRelic
         while complete == false && threads.any?(&:alive?)
           sleep 0.01
         end
+        ecs_thread&.join
       end
 
       def append_docker_info(collector_hash)

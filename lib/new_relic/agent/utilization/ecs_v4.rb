@@ -8,13 +8,13 @@ module NewRelic
   module Agent
     module Utilization
       class ECSV4 < Vendor
-        vendor_name 'ecs'
+        vendor_name 'ecs_v4'
         endpoint ENV['ECS_CONTAINER_METADATA_URI_V4']
-        keys 'ecsDockerId'
-        # headers ''
-        # key_transforms :to_sym
+        keys 'DockerId'
 
-       
+        def transform_key(key)
+          key.prepend('ecs')
+        end
       end
     end
   end
