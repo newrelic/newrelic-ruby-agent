@@ -136,16 +136,45 @@ module NewRelic
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
 
-          unless payload.sampled.nil?
-            transaction.sampled = payload.sampled
-            transaction.priority = payload.priority if payload.priority
-          end
+          determine_sampling_decision(payload, header_data)
+
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
         rescue => e
           NewRelic::Agent.increment_metric(ACCEPT_EXCEPTION_METRIC)
           NewRelic::Agent.logger.warn('Failed to accept trace context payload', e)
           false
+        end
+
+        def determine_sampling_decision(payload, header_data)
+          if header_data.trace_parent['trace_flags'] == '01'
+            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
+          elsif header_data.trace_parent['trace_flags'] == '00'
+            set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
+          else
+            use_nr_tracestate_sampled(payload)
+          end
+        rescue
+          use_nr_tracestate_sampled(payload)
+        end
+
+        def use_nr_tracestate_sampled(payload)
+          unless payload.sampled.nil?
+            transaction.sampled = payload.sampled
+            transaction.priority = payload.priority if payload.priority
+          end
+        end
+
+        def set_priority_and_sampled(config, payload)
+          if config == 'always_on'
+            transaction.sampled = true
+            transaction.priority = 2.0
+          elsif config == 'always_off'
+            transaction.sampled = false
+            transaction.priority = 0
+          else # default
+            use_nr_tracestate_sampled(payload)
+          end
         end
 
         def ignore_trace_context?

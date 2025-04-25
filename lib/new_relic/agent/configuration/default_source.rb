@@ -1458,6 +1458,20 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
         },
+        :'distributed_tracing.sampler.remote_parent_sampled' => {
+          :default => 'default',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled and the trace flag is set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+        },
+        :'distributed_tracing.sampler.remote_parent_not_sampled' => {
+          :default => 'default',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled and the trace flag is not set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+        },
         # Elasticsearch
         :'elasticsearch.capture_cluster_name' => {
           :default => true,
