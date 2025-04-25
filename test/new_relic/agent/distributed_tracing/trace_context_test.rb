@@ -395,6 +395,28 @@ module NewRelic::Agent::DistributedTracing
       end
     end
 
+    def test_sampled_logic_if_error
+      payload = make_unsampled_payload
+
+      carrier = {
+        NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+      }
+
+      with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'always_on') do
+        in_transaction('accepting_txn') do |txn|
+          txn.sampled = true
+          # stub set_priority_and_sampled to raise an error to exercise the rescue
+          txn.distributed_tracer.stub(:set_priority_and_sampled, ->(config, payload) { raise 'error' }) do
+            NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers(carrier, 'other')
+          end
+
+          # should fall back to using nr state sampled flag
+          refute_predicate txn, :sampled?
+        end
+      end
+    end
+
     def make_inbound_carrier(options = {})
       {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
