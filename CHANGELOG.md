@@ -14,6 +14,10 @@
 
   [The New Relic data dictionary expects Transaction events to have the `request.uri` attribute.](https://docs.newrelic.com/attribute-dictionary/?event=Transaction&attribute=request.uri) The Ruby agent now fulfills this expectation. If you would like to exclude `request.uri` from Transaction events, you can do so by setting `transaction_events.attributes.exclude` to `'request.uri'`. [PR#3103](https://github.com/newrelic/newrelic-ruby-agent/pull/3103)
 
+- **Bugfix: Fix error in Active Job instrumentation when using perform_all_later**
+
+  Previously, when Active Job's `perform_all_later` method was called and the agent was running, a `NoMethodError` would be raised with the message `undefined method 'queue_name' for nil`. The error has been fixed and the name of the segment will reflect the first job in the queue. Our thanks goes to [@tan-linx](https://github.com/tan-linx) for bringing this to our attention and providing a fix. [PR#3110](https://github.com/newrelic/newrelic-ruby-agent/pull/3110)
+
 ## v9.18.0
 
 - **Feature: Add elasticsearch.capture_cluster_name configuration option**
