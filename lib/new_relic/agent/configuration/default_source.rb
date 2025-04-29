@@ -762,7 +762,12 @@ module NewRelic
           DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
+          # we have to keep the hash rocket in the actual default so the
+          # class name key is treated like a string rather than a symbol.
+          # however, this isn't valid yaml, so document something that is
+          # valid yaml
           :default => {'ThreadError' => ['queue empty']},
+          :documentation_default => {'ThreadError': ['queue empty']},
           :public => true,
           :type => Hash,
           :allowed_from_server => true,
