@@ -39,7 +39,7 @@ jobs:
         git push --set-upstream origin "prerelease_updates_${{ env.prerelease_tag }}"
         gh pr create --label $LABEL --title "$TITLE" --body "$BODY"
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
         TITLE: "Prerelease ${{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml (if it needs updating). This is an automated PR."
         LABEL: prerelease
