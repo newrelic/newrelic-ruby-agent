@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.19.0
 
 - **Feature: Add Thread ID as attribute to all spans**
 
