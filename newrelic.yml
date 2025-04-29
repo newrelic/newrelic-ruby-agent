@@ -359,6 +359,16 @@ common: &default_settings
   # enable this feature.
   # distributed_tracing.enabled: true
 
+  # This setting controls the behavior of transaction sampling when a remote
+  # parent is not sampled and the trace flag is not set in the traceparent.
+  # Available values are default, always_on, and always_off.
+  # distributed_tracing.sampler.remote_parent_not_sampled: default
+
+  # This setting controls the behavior of transaction sampling when a remote
+  # parent is sampled and the trace flag is set in the traceparent. Available
+  # values are default, always_on, and always_off.
+  # distributed_tracing.sampler.remote_parent_sampled: default
+
   # If true, the agent captures the Elasticsearch cluster name in transaction
   # traces.
   # elasticsearch.capture_cluster_name: true
@@ -409,7 +419,7 @@ common: &default_settings
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be ignored.
   # This option can't be set via environment variable.
-  # error_collector.ignore_messages: {"ThreadError" => ["queue empty"]}
+  # error_collector.ignore_messages: {ThreadError: ["queue empty"]}
 
   # A comma separated list of status codes, possibly including ranges. Errors
   # associated with these status codes, where applicable, will be ignored.
