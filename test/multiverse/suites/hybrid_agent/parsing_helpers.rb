@@ -3,14 +3,6 @@
 # frozen_string_literal: true
 
 module ParsingHelpers
-  def harvest_and_verify_agent_output(agent_output)
-    txns = harvest_transaction_events![1]
-    spans = harvest_span_events![1]
-
-    verify_agent_output(txns, agent_output, 'transactions')
-    verify_agent_output(spans, agent_output, 'spans')
-  end
-
   def parse_operation(operation)
     command = parse_command(operation['command'])
     parameters = parse_parameters(operation['parameters'])
@@ -123,47 +115,48 @@ module ParsingHelpers
     assert_equal expected, actual, "Expected #{object} to equal #{expected}"
   end
 
-  def verify_agent_output(harvest, output, type)
-    puts "Agent Output: #{type}: #{output[type]}" if ENV['ENABLE_OUTPUT']
+  def verify_agent_output(output)
+    verify_transaction_output(output['transactions'])
+    verify_span_output(output['spans'])
+  end
 
-    if output[type].empty?
-      assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
-    else
-      outputs = prepare_keys(output[type])
-      events = harvest.flatten.select { |a| a.key?('type') }
+  def verify_transaction_output(output)
+    txns = harvest_transaction_events![1].flatten.map { |t| t['name'] }.compact
 
-      events.each_with_index do |event, i|
-        output = outputs[i]
-        if output && event
-          msg = "Agent output for #{type.capitalize} wasn't found in the harvest." \
-            "\nHarvest: #{event}\nAgent output: #{output}"
+    assert_equal output.length, txns.length, 'Wrong number of transactions found'
 
-          if output['parent_name']
-            result = events.find { |e| e['guid'] == event['parentId'] }.dig('name')
+    output.each do |txn|
+      assert_includes(txns, txn['name'], "Transaction name #{txn['name']} missing from output")
+    end
+  end
 
-            assert_equal output['parent_name'], result, msg
-            output.delete('parent_name')
-          end
+  def verify_span_output(output)
+    spans = harvest_span_events![1].flatten.reject { |h| h.empty? }
 
-          assert event >= output, msg
-        end
+    output.each do |expected|
+      actual = spans.find { |s| s['name'] == expected['name'] }
+
+      if expected['category']
+        assert_equal expected['category'], actual['category'], 'Unexpected category'
+      end
+
+      if expected['entryPoint']
+        assert_equal expected['entryPoint'], actual['nr.entryPoint'], 'Unexpected entryPoint'
+      end
+
+      expected['attributes']&.each do |expected_key, expected_value|
+        assert_equal expected_value, actual['attributes'][expected_key], 'Unexpected attribute'
+      end
+
+      if expected['parentName']
+        result = spans.find { |s| s['guid'] == actual['parentId'] }.dig('name')
+
+        assert_equal expected['parentName'], result, 'Unexpected parent name'
       end
     end
   end
 
   def snake_sub_downcase(key)
     key.gsub(/(.)([A-Z])/, '\1_\2').downcase
-  end
-
-  def prepare_keys(output)
-    output.map do |o|
-      o.transform_keys do |k|
-        if k == 'entryPoint'
-          k = 'nr.entryPoint'
-        else
-          snake_sub_downcase(k)
-        end
-      end
-    end
   end
 end

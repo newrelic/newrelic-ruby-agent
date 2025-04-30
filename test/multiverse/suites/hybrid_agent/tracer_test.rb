@@ -16,14 +16,6 @@ module NewRelic
             NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
-          def test_in_span_logs_when_span_kind_unknown
-            NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
-              @tracer.in_span('fruit', kind: :mango) { 'yep' }
-
-              assert_logged(/Span kind: mango is not supported yet/)
-            end
-          end
-
           def test_in_span_creates_segment_when_span_kind_internal
             txn = in_transaction do
               @tracer.in_span('fruit', kind: :internal) { 'seeds' }

@@ -13,11 +13,6 @@ module NewRelic
           super
         end
 
-        def otel_current_span_key
-          # CURRENT_SPAN_KEY is a private constant
-          ::OpenTelemetry::Trace.const_get(:CURRENT_SPAN_KEY)
-        end
-
         def set_current_segment(new_segment)
           @current_segment_lock.synchronize do
             # detach the current token, if one is present
@@ -26,7 +21,7 @@ module NewRelic
             end
 
             # create an otel span for the new segment
-            span = Trace::Span.new(segment: new_segment, transaction: new_segment.transaction)
+            span = Trace::Span.new(span_context: span_context_from_segment(new_segment))
 
             # set otel's current span to the newly created otel span
             ctx = ::OpenTelemetry::Context.current.set_value(otel_current_span_key, span)
@@ -42,6 +37,15 @@ module NewRelic
           super
         end
 
+        def span_context_from_segment(segment)
+          ::OpenTelemetry::Trace::SpanContext.new(
+            trace_id: segment.transaction.trace_id,
+            span_id: segment.guid,
+            trace_flags: ::OpenTelemetry::Trace::TraceFlags::SAMPLED,
+            remote: false
+          )
+        end
+
         def remove_current_segment_by_thread_id(id)
           # make sure the context is fully detached when the transaction ends
           @current_segment_lock.synchronize do
@@ -50,6 +54,13 @@ module NewRelic
           end
 
           super
+        end
+
+        private
+
+        def otel_current_span_key
+          # CURRENT_SPAN_KEY is a private constant
+          ::OpenTelemetry::Trace.const_get(:CURRENT_SPAN_KEY)
         end
       end
     end

@@ -10,11 +10,20 @@ module Commands
   end
 
   def do_work_in_span_with_remote_parent(span_name:, span_kind:, &block)
-    span = @tracer.start_span(span_name, kind: span_kind)
-    span.context.instance_variable_set(:@remote, true)
+    context = OpenTelemetry::Context.current
+    span_context = OpenTelemetry::Trace::SpanContext.new(
+      trace_id: 'ba8bc8cc6d062849b0efcf3c169afb5a',
+      span_id: '6d3efb1b173fecfa',
+      trace_flags: '01',
+      remote: true
+    )
+
+    span = OpenTelemetry::Trace.non_recording_span(span_context)
+    parent_context = OpenTelemetry::Trace.context_with_span(span, parent_context: context)
+
+    span = @tracer.start_span(span_name, with_parent: parent_context, kind: span_kind)
     yield if block
-  ensure
-    span&.finish
+    span.finish
   end
 
   def do_work_in_span_with_inbound_context(span_name:, span_kind:, trace_id_in_header:,

@@ -12,21 +12,39 @@ module NewRelic
             @version = version || ''
           end
 
-          def in_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
-            case kind
-            when :internal
-              begin
-                return yield unless NewRelic::Agent::Tracer.current_transaction
+          def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
+            parent_span_context = ::OpenTelemetry::Trace.current_span(with_parent).context
+            # have the option of starting a transaction if the parent is remote or the span context is invalid/empty
+            if parent_span_context.remote? || !parent_span_context.valid?
+              # internal spans without a parent context should not start transactions
+              # but internal spans with a remote parent should start transactions
+              return if !parent_span_context.valid? && kind == :internal
 
-                segment = NewRelic::Agent::Tracer.start_segment(name: name)
+              finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
 
-                NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-              ensure
-                segment&.finish
+              if finishable.is_a?(NewRelic::Agent::Transaction)
+                finishable.trace_id = parent_span_context.trace_id
+                finishable.parent_span_id = parent_span_context.span_id
               end
             else
-              NewRelic::Agent.logger.debug("Span kind: #{kind} is not supported yet")
+              finishable = NewRelic::Agent::Tracer.start_segment(name: name)
             end
+
+            span = ::OpenTelemetry::Trace.current_span
+            span.finishable = finishable
+            span
+          end
+
+          def in_span(name, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
+            span = start_span(name, attributes: attributes, links: links, start_timestamp: start_timestamp, kind: kind)
+            begin
+              yield
+            rescue => e
+              NewRelic::Agent.notice_error(e)
+              raise
+            end
+          ensure
+            span&.finish
           end
         end
       end

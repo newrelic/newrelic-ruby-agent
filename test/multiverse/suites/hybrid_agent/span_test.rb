@@ -7,7 +7,7 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class SpanTest < Minitest::Test
-          Segment = Struct.new(:guid)
+          Segment = Struct.new(:guid, :transaction)
           Transaction = Struct.new(:trace_id)
 
           def teardown
@@ -15,15 +15,31 @@ module NewRelic
             NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
-          def test_span_has_context
-            segment = Segment.new('123')
-            transaction = Transaction.new('456')
+          def test_finish_does_not_fail_if_no_finishable_present
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
 
-            span = Span.new(segment: segment, transaction: transaction)
+            assert_nil span.finishable
+            assert_nil span.finish
+          end
 
-            assert_equal '123', span.context.span_id
-            assert_equal '456', span.context.trace_id
-            assert_equal 1, span.context.trace_flags
+          def test_finishable_can_finish_transactions
+            txn = NewRelic::Agent::Tracer.start_transaction_or_segment(category: :web, name: 'test')
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+            span.finishable = txn
+            span.finish
+
+            assert_predicate span.finishable, :finished?
+            assert_predicate txn, :finished?
+          end
+
+          def test_finishable_can_finish_segments
+            segment = NewRelic::Agent::Transaction::Segment.new
+            span = NewRelic::Agent::OpenTelemetry::Trace::Span.new
+            span.finishable = segment
+            span.finish
+
+            assert_predicate span.finishable, :finished?
+            assert_predicate segment, :finished?
           end
         end
       end
