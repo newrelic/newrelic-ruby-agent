@@ -257,7 +257,8 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       'response.headers.contentType' => "#{response.content_type}; charset=#{response.charset}",
       'request.headers.contentLength' => request.content_length.to_i,
       'request.headers.host' => request.host,
-      'request.headers.accept' => request.accept
+      'request.headers.accept' => request.accept,
+      'request.uri' => request.path_info
     }
 
     if request.content_type

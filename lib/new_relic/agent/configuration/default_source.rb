@@ -762,7 +762,12 @@ module NewRelic
           DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
+          # we have to keep the hash rocket in the actual default so the
+          # class name key is treated like a string rather than a symbol.
+          # however, this isn't valid yaml, so document something that is
+          # valid yaml
           :default => {'ThreadError' => ['queue empty']},
+          :documentation_default => {'ThreadError': ['queue empty']},
           :public => true,
           :type => Hash,
           :allowed_from_server => true,
@@ -1457,6 +1462,20 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
+        },
+        :'distributed_tracing.sampler.remote_parent_sampled' => {
+          :default => 'default',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled and the trace flag is set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+        },
+        :'distributed_tracing.sampler.remote_parent_not_sampled' => {
+          :default => 'default',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled and the trace flag is not set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
         },
         # Elasticsearch
         :'elasticsearch.capture_cluster_name' => {
@@ -2489,6 +2508,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
+        },
+        # TODO: Sync with the other agents to see what the config should be named, how it should be enabled, how it should be described
+        :'opentelemetry_bridge.enabled' => {
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enables the creation of Transaction Trace segments and timeslice metrics from OpenTelemetry Spans. This will help drive New Relic UI experience for opentelemetry spans. **WARNING**: This is not feature complete and is not intended to be enabled yet.'
         },
         :force_reconnect => {
           :default => false,

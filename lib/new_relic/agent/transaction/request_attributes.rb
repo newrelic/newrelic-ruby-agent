@@ -43,12 +43,7 @@ module NewRelic
           end
 
           if request_path
-            destinations = if allow_other_headers?
-              default_destinations
-            else
-              AttributeFilter::DST_TRANSACTION_TRACER | AttributeFilter::DST_ERROR_COLLECTOR
-            end
-            txn.add_agent_attribute(:'request.uri', request_path, destinations)
+            txn.add_agent_attribute(:'request.uri', request_path, default_destinations)
           end
 
           if accept
