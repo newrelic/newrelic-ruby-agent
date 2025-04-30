@@ -387,9 +387,9 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
             An array of ActiveSupport custom event names to subscribe to and instrument. For example,
-            - one.custom.event
-            - another.event
-            - a.third.event
+            \t- one.custom.event
+            \t- another.event
+            \t- a.third.event
           DESCRIPTION
         },
         :'ai_monitoring.enabled' => {
@@ -408,10 +408,10 @@ module NewRelic
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
             The excluded attributes include:
-            - `content` from LlmChatCompletionMessage events
-            - `input` from LlmEmbedding events
+            \t- `content` from LlmChatCompletionMessage events
+            \t- `input` from LlmEmbedding events
 
-            This is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
+            \tThis is an optional security setting to prevent recording sensitive data sent to and received from your LLMs.
           DESCRIPTION
         },
         # this is only set via server side config
@@ -460,9 +460,9 @@ module NewRelic
           :description => <<~DESCRIPTION
             When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
-            <Callout variant="caution">
-            When using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
-            </Callout>
+            \t\t<Callout variant="caution">
+              \t\tWhen using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+            \t\t</Callout>
           DESCRIPTION
         },
         :'clear_transaction_state_after_fork' => {
@@ -487,10 +487,10 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESC
             Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order):
-            - `config/newrelic.yml`
-            - `newrelic.yml`
-            - `$HOME/.newrelic/newrelic.yml`
-            - `$HOME/newrelic.yml`
+            \t\t- `config/newrelic.yml`
+            \t\t- `newrelic.yml`
+            \t\t- `$HOME/.newrelic/newrelic.yml`
+            \t\t- `$HOME/newrelic.yml`
           DESC
         },
         :'exclude_newrelic_header' => {
@@ -676,10 +676,10 @@ module NewRelic
           :allowed_from_server => true,
           :description => <<~DESC
             Obfuscation level for SQL queries reported in transaction trace nodes.
-            By default, this is set to `obfuscated`, which strips out the numeric and string literals.
-            - If you do not want the agent to capture query information, set this to `none`.
-            - If you want the agent to capture all query information in its original form, set this to `raw`.
-            - When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
+            \tBy default, this is set to `obfuscated`, which strips out the numeric and string literals.
+            \t\t- If you do not want the agent to capture query information, set this to `none`.
+            \t\t- If you want the agent to capture all query information in its original form, set this to `raw`.
+            \t\t- When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
           DESC
         },
 
@@ -722,9 +722,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A list of error classes that the agent should treat as expected.
-            <Callout variant="caution">
-            This option can't be set via environment variable.
-            </Callout>
+            \t<Callout variant="caution">
+            \t\tThis option can't be set via environment variable.
+            \t</Callout>
           DESCRIPTION
         },
         :'error_collector.expected_messages' => {
@@ -735,9 +735,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.
-            <Callout variant="caution">
-            This option can't be set via environment variable.
-            </Callout>
+            \t<Callout variant="caution">
+            \t\tThis option can't be set via environment variable.
+            \t</Callout>
           DESCRIPTION
         },
         :'error_collector.expected_status_codes' => {
@@ -756,9 +756,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A list of error classes that the agent should ignore.
-            <Callout variant="caution">
-            This option can't be set via environment variable.
-            </Callout>
+            \t<Callout variant="caution">
+            \t\tThis option can't be set via environment variable.
+            \t</Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_messages' => {
@@ -774,9 +774,9 @@ module NewRelic
           :dynamic_name => true,
           :description => <<~DESCRIPTION
             A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.
-            <Callout variant="caution">
-            This option can't be set via environment variable.
-            </Callout>
+            \t<Callout variant="caution">
+            \t\tThis option can't be set via environment variable.
+            \t</Callout>
           DESCRIPTION
         },
         :'error_collector.ignore_status_codes' => {
@@ -1385,9 +1385,9 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
 
-            <Callout variant="important">
-            When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
-            </Callout>
+            \t<Callout variant="important">
+            \t\tWhen middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+            \t</Callout>
           DESCRIPTION
         },
         :disable_samplers => {
@@ -2064,9 +2064,9 @@ module NewRelic
           :description => <<-DESCRIPTION
             If `true`, when the agent is in an application using Ruby on Rails, it will start after `config/initializers` run.
 
-            <Callout variant="caution">
-            This option may only be set by environment variable.
-            </Callout>
+            \t<Callout variant="caution">
+            \t\tThis option may only be set by environment variable.
+            \t</Callout>
           DESCRIPTION
         },
         # Rake
@@ -2555,9 +2555,9 @@ module NewRelic
           :allowlist => %i[none low medium high],
           :external => :infinite_tracing,
           :description => <<~DESC
-            Configure the compression level for data sent to the trace observer. \
-            May be one of: `:none`, `:low`, `:medium`, `:high`. \
-            Set the level to `:none` to disable compression.
+            Configure the compression level for data sent to the trace observer.
+            \n\tMay be one of: `:none`, `:low`, `:medium`, `:high`.
+            \n\tSet the level to `:none` to disable compression.
           DESC
         },
         :js_agent_file => {
