@@ -387,9 +387,9 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESCRIPTION
             An array of ActiveSupport custom event names to subscribe to and instrument. For example,
-            \t- one.custom.event
-            \t- another.event
-            \t- a.third.event
+            \t\t- one.custom.event
+            \t\t- another.event
+            \t\t- a.third.event
           DESCRIPTION
         },
         :'ai_monitoring.enabled' => {
@@ -407,7 +407,7 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `false`, LLM instrumentation (OpenAI only for now) will not capture input and output content on specific LLM events.
 
-            The excluded attributes include:
+            \tThe excluded attributes include:
             \t- `content` from LlmChatCompletionMessage events
             \t- `input` from LlmEmbedding events
 
@@ -460,9 +460,9 @@ module NewRelic
           :description => <<~DESCRIPTION
             When `true`, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and [`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241).
 
-            \t\t<Callout variant="caution">
-              \t\tWhen using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
-            \t\t</Callout>
+            <Callout variant="caution">
+            \tWhen using the `capture_params` setting, the Ruby agent will not attempt to filter secret information. `Recommendation:` To filter secret information from request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) instead. For more information, see the <a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">Ruby attribute examples</a>.
+            </Callout>
           DESCRIPTION
         },
         :'clear_transaction_state_after_fork' => {
@@ -487,10 +487,10 @@ module NewRelic
           :allowed_from_server => false,
           :description => <<~DESC
             Path to `newrelic.yml`. If undefined, the agent checks the following directories (in order):
-            \t\t- `config/newrelic.yml`
-            \t\t- `newrelic.yml`
-            \t\t- `$HOME/.newrelic/newrelic.yml`
-            \t\t- `$HOME/newrelic.yml`
+            \t- `config/newrelic.yml`
+            \t- `newrelic.yml`
+            \t- `$HOME/.newrelic/newrelic.yml`
+            \t- `$HOME/newrelic.yml`
           DESC
         },
         :'exclude_newrelic_header' => {
@@ -677,9 +677,9 @@ module NewRelic
           :description => <<~DESC
             Obfuscation level for SQL queries reported in transaction trace nodes.
             \tBy default, this is set to `obfuscated`, which strips out the numeric and string literals.
-            \t\t- If you do not want the agent to capture query information, set this to `none`.
-            \t\t- If you want the agent to capture all query information in its original form, set this to `raw`.
-            \t\t- When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
+            \t- If you do not want the agent to capture query information, set this to `none`.
+            \t- If you want the agent to capture all query information in its original form, set this to `raw`.
+            \t- When you enable [high security mode](/docs/agents/manage-apm-agents/configuration/high-security-mode), this is automatically set to `obfuscated`.
           DESC
         },
 
@@ -1185,45 +1185,45 @@ module NewRelic
           :description => <<~DESCRIPTION
             An array of `CLASS#METHOD` (for instance methods) and/or `CLASS.METHOD` (for class methods) strings representing Ruby methods that the agent can automatically add custom instrumentation to. This doesn't require any modifications of the source code that defines the methods.
 
-              Use fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
+            \tUse fully qualified class names (using the `::` delimiter) that include any module or class namespacing.
 
-              Here is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
+            \tHere is some Ruby source code that defines a `render_png` instance method for an `Image` class and a `notify` class method for a `User` class, both within a `MyCompany` module namespace:
 
-              ```rb
-              module MyCompany
-                class Image
-                  def render_png
-                    # code to render a PNG
-                  end
-                end
+            \t```rb
+            \t\tmodule MyCompany
+            \t\t\tclass Image
+            \t\t\t\tdef render_png
+            \t\t\t\t\t# code to render a PNG
+            \t\t\t\tend
+            \t\t\tend
 
-                class User
-                  def self.notify
-                    # code to notify users
-                  end
-                end
-              end
-              ```
+            \t\t\tclass User
+            \t\t\t\tdef self.notify
+            \t\t\t\t\t# code to notify users
+            \t\t\t\tend
+            \t\t\tend
+            \t\tend
+            \t```
 
-              Given that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
+            \tGiven that source code, the `newrelic.yml` config file might request instrumentation for both of these methods like so:
 
-              ```yaml
-              automatic_custom_instrumentation_method_list:
-                - MyCompany::Image#render_png
-                - MyCompany::User.notify
-              ```
+            \t```yaml
+            \t\tautomatic_custom_instrumentation_method_list:
+            \t\t\t- MyCompany::Image#render_png
+            \t\t\t- MyCompany::User.notify
+            \t```
 
-              That configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
+            \tThat configuration example uses YAML array syntax to specify both methods. Alternatively, you can use a comma-delimited string:
 
-              ```yaml
-              automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
-              ```
+            \t```yaml
+            \t\tautomatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png, MyCompany::User.notify'
+            \t```
 
-              Whitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
+            \tWhitespace around the comma(s) in the list is optional. When configuring the agent with a list of methods via the `NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST` environment variable, use this comma-delimited string format:
 
-              ```sh
-              export NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
-              ```
+            \t```sh
+            \t\texport NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png, MyCompany::User.notify'
+            \t```
           DESCRIPTION
         },
         # Custom events
@@ -1385,9 +1385,9 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `true`, the agent won't wrap third-party middlewares in instrumentation (regardless of whether they are installed via `Rack::Builder` or Rails).
 
-            \t<Callout variant="important">
-            \t\tWhen middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
-            \t</Callout>
+            <Callout variant="important">
+            When middleware instrumentation is disabled, if an application is using middleware that could alter the response code, the HTTP status code reported on the transaction may not reflect the altered value.
+            </Callout>
           DESCRIPTION
         },
         :disable_samplers => {
@@ -1426,18 +1426,18 @@ module NewRelic
           :description => <<~DESCRIPTION
             If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).
 
-              <Callout variant="important">
-              Cross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
+            \t<Callout variant="important">
+            \t\tCross application tracing is deprecated in favor of [distributed tracing](/docs/apm/distributed-tracing/getting-started/introduction-distributed-tracing). Distributed tracing is on by default for Ruby agent versions 8.0.0 and above. Middlewares are not required to support distributed tracing.
 
-              To continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
+            \t\tTo continue using cross application tracing, update the following options in your `newrelic.yml` configuration file:
 
-              ```yaml
-              cross_application_tracer:
-                enabled: true
-              distributed_tracing:
-                enabled: false
-              ```
-              </Callout>
+            \t\t```yaml
+            \t\t\tcross_application_tracer:
+            \t\t\t\tenabled: true
+            \t\t\tdistributed_tracing:
+            \t\t\t\tenabled: false
+            \t\t```
+            \t</Callout>
           DESCRIPTION
         },
         :disable_view_instrumentation => {
@@ -1961,10 +1961,10 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_list),
           :description => <<~DESCRIPTION
             An array of strings to specify which keys and/or values inside a Stripe event's `user_data` hash should
-              not be reported to New Relic. Each string in this array will be turned into a regular expression via
-              `Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the pair
-              isn't reported. By default, no `user_data` is reported. Use this option only if the
-              `stripe.user_data.include` option is also used.
+            \tnot be reported to New Relic. Each string in this array will be turned into a regular expression via
+            \t`Regexp.new` to permit advanced matching. For each hash pair, if either the key or value is matched the pair
+            \tisn't reported. By default, no `user_data` is reported. Use this option only if the
+            \t`stripe.user_data.include` option is also used.
           DESCRIPTION
         },
         :'instrumentation.thread' => {
@@ -2064,9 +2064,9 @@ module NewRelic
           :description => <<-DESCRIPTION
             If `true`, when the agent is in an application using Ruby on Rails, it will start after `config/initializers` run.
 
-            \t<Callout variant="caution">
-            \t\tThis option may only be set by environment variable.
-            \t</Callout>
+            <Callout variant="caution">
+            \tThis option may only be set by environment variable.
+            </Callout>
           DESCRIPTION
         },
         # Rake
@@ -2555,9 +2555,9 @@ module NewRelic
           :allowlist => %i[none low medium high],
           :external => :infinite_tracing,
           :description => <<~DESC
-            Configure the compression level for data sent to the trace observer.
-            \n\tMay be one of: `:none`, `:low`, `:medium`, `:high`.
-            \n\tSet the level to `:none` to disable compression.
+            Configure the compression level for data sent to the trace observer. \
+            May be one of: `:none`, `:low`, `:medium`, `:high`. \
+            Set the level to `:none` to disable compression.
           DESC
         },
         :js_agent_file => {
