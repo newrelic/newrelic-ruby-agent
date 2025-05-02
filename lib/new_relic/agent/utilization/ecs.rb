@@ -10,10 +10,11 @@ module NewRelic
       class ECS < Vendor
         vendor_name 'ecs'
         endpoint ENV['ECS_CONTAINER_METADATA_URI']
-        keys 'DockerId'
+        headers 'Metadata' => 'true'
+        keys %w[DockerId]
 
         def transform_key(key)
-          key.prepend('ecs')
+          'ecs' + key
         end
       end
     end
