@@ -5,7 +5,15 @@
 omit_collector!
 
 PSYCH_VERSIONS = [
-  [nil],
+  # TODO: Psych 5.2 supports Ruby 2.5+, but we began to get some Bundler errors
+  # On May 1, 2025 for Ruby 2.5 and 2.6 for Psych 5.2.4.
+  # Until those errors are resolved, limit testing for the newest versions of
+  # Psych to 2.7+
+  # 
+  [nil, 2.7, 3.4],
+  ['5.2.0', 2.7, 3.4],
+  ['5.1.0', 2.4, 3.3],
+  ['5.0.0', 2.4, 3.3],
   ['4.0.0', 2.4, 3.3],
   ['3.3.0', 2.4, 3.3]
 ]
