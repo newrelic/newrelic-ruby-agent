@@ -1,14 +1,22 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.19.0
 
 - **Feature: Add Thread ID as attribute to all spans**
 
   The agent will now record the Thread ID as an attribute on each span. [PR#3122](https://github.com/newrelic/newrelic-ruby-agent/pull/3122)
 
+- **Feature: Add support for W3C TraceContext Trace Flag**
+
+  Previously, the agent would not use the trace flag field of the traceparent header for sampling decisions. This could lead to fragmented traces in the UI. While the default behavior remains unchanged, two new configuration options, `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled`, have been introduced to allow more control over the way sampling decisions are made. [PR#3135](https://github.com/newrelic/newrelic-ruby-agent/pull/3135)
+
 - **Bugfix: Include request.uri in Transaction events by default**
 
   [The New Relic data dictionary expects Transaction events to have the `request.uri` attribute.](https://docs.newrelic.com/attribute-dictionary/?event=Transaction&attribute=request.uri) The Ruby agent now fulfills this expectation. If you would like to exclude `request.uri` from Transaction events, you can do so by setting `transaction_events.attributes.exclude` to `'request.uri'`. [PR#3103](https://github.com/newrelic/newrelic-ruby-agent/pull/3103)
+
+- **Bugfix: Fix error in Active Job instrumentation when using perform_all_later**
+
+  Previously, when Active Job's `perform_all_later` method was called and the agent was running, a `NoMethodError` would be raised with the message `undefined method 'queue_name' for nil`. The error has been fixed and the name of the segment will reflect the first job in the queue. Our thanks goes to [@tan-linx](https://github.com/tan-linx) for bringing this to our attention and providing a fix. [PR#3110](https://github.com/newrelic/newrelic-ruby-agent/pull/3110)
 
 ## v9.18.0
 
