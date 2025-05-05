@@ -10,7 +10,7 @@ end
 
 ASYNC_HTTP_VERSIONS = [
   [nil, 3.0],
-  ['0.59.0', 2.5]
+  ['0.59.0', 2.5, 3.3]
 ]
 
 def async_gem_version(async_http_version)
