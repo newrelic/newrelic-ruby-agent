@@ -10,6 +10,11 @@ module NewRelic
           Segment = Struct.new(:guid)
           Transaction = Struct.new(:trace_id)
 
+          def teardown
+            NewRelic::Agent.instance.transaction_event_aggregator.reset!
+            NewRelic::Agent.instance.span_event_aggregator.reset!
+          end
+
           def test_span_has_context
             segment = Segment.new('123')
             transaction = Transaction.new('456')

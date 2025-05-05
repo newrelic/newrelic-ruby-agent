@@ -19,11 +19,8 @@ module NewRelic
                 return yield unless NewRelic::Agent::Tracer.current_transaction
 
                 segment = NewRelic::Agent::Tracer.start_segment(name: name)
-                span = Span.new(segment: segment, transaction: segment.transaction)
 
-                ::OpenTelemetry::Trace.with_span(span) do
-                  yield
-                end
+                NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
               ensure
                 segment&.finish
               end
