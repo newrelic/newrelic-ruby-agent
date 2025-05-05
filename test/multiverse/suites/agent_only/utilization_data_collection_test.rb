@@ -79,6 +79,38 @@ class UtilizationDataCollectionTest < Minitest::Test
     assert_equal expected, single_connect_posted.utilization
   end
 
+  def test_ecs_v4_vendor_data
+    expected = {'ecsDockerId' => '1234567890987654321'}
+
+    aws_fixture_path = File.expand_path('../../../../fixtures/utilization/aws', __FILE__)
+    fixture = File.read(File.join(aws_fixture_path, 'ecs.json'))
+
+    NewRelic::Agent::Utilization::ECSV4.endpoint('http://169.254.169.254:51117/v4/metadata')
+    with_fake_metadata_service do |service|
+      service.set_response_for_path('/v4/metadata', fixture)
+      setup_agent
+      vendors = single_connect_posted.utilization['vendors']
+
+      assert_equal expected, vendors['ecs']
+    end
+  end
+
+  def test_ecs_vendor_data
+    expected = {'ecsDockerId' => '1234567890987654321'}
+
+    aws_fixture_path = File.expand_path('../../../../fixtures/utilization/aws', __FILE__)
+    fixture = File.read(File.join(aws_fixture_path, 'ecs.json'))
+
+    NewRelic::Agent::Utilization::ECS.endpoint('http://169.254.169.254:51117/metadata')
+    with_fake_metadata_service do |service|
+      service.set_response_for_path('/metadata', fixture)
+      setup_agent
+      vendors = single_connect_posted.utilization['vendors']
+
+      assert_equal expected, vendors['ecs']
+    end
+  end
+
   def with_fake_metadata_service
     metadata_service = NewRelic::FakeInstanceMetadataService.new
     metadata_service.run
