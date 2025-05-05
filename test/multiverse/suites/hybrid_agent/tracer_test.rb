@@ -11,6 +11,11 @@ module NewRelic
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
           end
 
+          def teardown
+            NewRelic::Agent.instance.transaction_event_aggregator.reset!
+            NewRelic::Agent.instance.span_event_aggregator.reset!
+          end
+
           def test_in_span_logs_when_span_kind_unknown
             NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
               @tracer.in_span('fruit', kind: :mango) { 'yep' }
@@ -25,6 +30,21 @@ module NewRelic
             end
 
             assert_includes(txn.segments.map(&:name), 'fruit')
+          end
+
+          def test_in_span_captures_error_when_span_kind_internal
+            txn = nil
+            begin
+              in_transaction do |zombie_txn|
+                txn = zombie_txn
+                @tracer.in_span('brains', kind: :internal) { raise 'the dead' }
+              end
+            rescue => e
+              # NOOP - allow transaction to capture error
+            end
+
+            assert_segment_noticed_error txn, /brains/, 'RuntimeError', /the dead/
+            assert_transaction_noticed_error txn, 'RuntimeError'
           end
 
           private
