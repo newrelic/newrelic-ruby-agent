@@ -9,7 +9,8 @@ module NewRelic
     module Utilization
       class ECS < Vendor
         vendor_name 'ecs'
-        endpoint ENV['ECS_CONTAINER_METADATA_URI']
+        # @endpoint = nil
+        endpoint ENV['ECS_CONTAINER_METADATA_URI'] || ''
         headers 'Metadata' => 'true'
         keys %w[DockerId]
 
