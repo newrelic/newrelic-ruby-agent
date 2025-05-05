@@ -13,6 +13,14 @@ ASYNC_HTTP_VERSIONS = [
   ['0.59.0', 2.5]
 ]
 
+def async_gem_version(async_http_version)
+  return if
+    Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.1') ||
+      async_http_version.nil?
+
+  ", '2.23.1'"
+end
+
 def gem_list(async_http_version = nil)
   <<~GEM_LIST
     gem 'async-http'#{async_http_version}
