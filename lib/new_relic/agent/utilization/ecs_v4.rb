@@ -9,7 +9,6 @@ module NewRelic
     module Utilization
       class ECSV4 < Vendor
         vendor_name 'ecs_v4'
-        # @endpoint = nil
         endpoint ENV['ECS_CONTAINER_METADATA_URI_V4'] || ''
         headers 'Metadata' => 'true'
         keys %w[DockerId]
