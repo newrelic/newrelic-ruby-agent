@@ -83,6 +83,7 @@ end
   #
   def test_version_satisfied_greater_than
     assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '<', '1.2.4'))
+    assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '<', '1.2.3'))
     assert(true, NewRelic::Helper.version_satisfied?(1, '<', 2))
     assert(true, NewRelic::Helper.version_satisfied?(1.2, '<', 1.3))
     assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<', Gem::Version.new('1.3')))
@@ -93,6 +94,7 @@ end
 
   def test_version_satisfied_greater_than_or_equal_to
     assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '<=', '1.2.4'))
+    assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '<=', '1.2.2'))
     assert(true, NewRelic::Helper.version_satisfied?(1, '<=', 2))
     assert(true, NewRelic::Helper.version_satisfied?(1.2, '<=', 1.3))
     assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<=', Gem::Version.new('1.3')))
@@ -102,7 +104,8 @@ end
   end
 
   def test_version_satisfied_less_than
-    assert(true, NewRelic::Helper.version_satisfied?('1.2.4', '>', '1.2.3'))
+    assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '>', '1.2.2'))
+    assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '>', '1.2.3'))
     assert(true, NewRelic::Helper.version_satisfied?(2, '>', 1))
     assert(true, NewRelic::Helper.version_satisfied?(1.3, '>', 1.2))
     assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>', Gem::Version.new('1.2')))
@@ -112,7 +115,8 @@ end
   end
 
   def test_version_satisfied_less_than_or_equal_to
-    assert(true, NewRelic::Helper.version_satisfied?('1.2.4', '>=', '1.2.3'))
+    assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '>=', '1.2.2'))
+    assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '>=', '1.2.4'))
     assert(true, NewRelic::Helper.version_satisfied?(2, '>=', 1))
     assert(true, NewRelic::Helper.version_satisfied?(1.3, '>=', 1.2))
     assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>=', Gem::Version.new('1.2')))
