@@ -42,8 +42,8 @@ module NewRelic
             return nil
           end
 
-          return_value(::JSON.load(data))
-        rescue => e
+          return_value(::JSON.parse(data))
+        rescue JSON::ParserError => e
           ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} encountered loading collector response: #{data}")
           raise
         end
