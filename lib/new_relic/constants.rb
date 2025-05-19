@@ -16,6 +16,7 @@ module NewRelic
   HTTP = 'HTTP'
   HTTPS = 'HTTPS'
   UNKNOWN = 'Unknown'
+  UNKNOWN_LOWER = 'unknown'
 
   FORMAT_NON_RACK = 0
   FORMAT_RACK = 1

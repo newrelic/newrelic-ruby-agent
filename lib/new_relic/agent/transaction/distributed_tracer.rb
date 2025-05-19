@@ -35,7 +35,7 @@ module NewRelic
         end
 
         def caller_transport_type
-          @caller_transport_type ||= 'Unknown'
+          @caller_transport_type ||= NewRelic::UNKNOWN
         end
 
         def accept_transport_type_from_api(value)

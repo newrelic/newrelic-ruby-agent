@@ -69,7 +69,7 @@ module NewRelic::Agent::Instrumentation
     end
 
     def get_stream_name(params, arn)
-      params&.dig(:stream_name) || arn.split('/').last || 'unknown'
+      params&.dig(:stream_name) || arn.split('/').last || NewRelic::UNKNOWN_LOWER
     rescue => e
       NewRelic::Agent.logger.warn("Failed to get stream name: #{e}")
     end

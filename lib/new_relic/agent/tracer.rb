@@ -247,7 +247,7 @@ module NewRelic
           log_error('start_segment', exception)
         end
 
-        UNKNOWN = 'Unknown'.freeze
+        UNKNOWN = NewRelic::UNKNOWN
         OTHER = 'other'.freeze
 
         # Creates and starts a datastore segment used to time
