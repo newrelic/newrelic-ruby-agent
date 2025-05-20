@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Memcache
     module Tracer
       SLASH = '/'
-      UNKNOWN = 'unknown'
+      UNKNOWN = NewRelic::UNKNOWN_LOWER
       LOCALHOST = 'localhost'
       MULTIGET_METRIC_NAME = 'get_multi_request'
       MEMCACHED = 'Memcached'

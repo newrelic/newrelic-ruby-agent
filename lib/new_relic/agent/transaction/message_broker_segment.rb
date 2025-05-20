@@ -18,7 +18,7 @@ module NewRelic
         STREAM = 'Stream'.freeze
         TEMP = 'Temp'.freeze
         TOPIC = 'Topic'.freeze
-        UNKNOWN = 'Unknown'.freeze
+        UNKNOWN = NewRelic::UNKNOWN
 
         DESTINATION_TYPES = [
           :exchange,

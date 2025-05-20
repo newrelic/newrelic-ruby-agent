@@ -45,7 +45,7 @@ module NewRelic
         end
 
         PATTERN = /\A([^\.]+)\.action_dispatch\z/
-        UNKNOWN = 'unknown'.freeze
+        UNKNOWN = NewRelic::UNKNOWN_LOWER
 
         METHOD_NAME_MAPPING = Hash.new do |h, k|
           if PATTERN =~ k

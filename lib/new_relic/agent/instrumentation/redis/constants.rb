@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation::Redis
   class Constants
     PRODUCT_NAME = 'Redis'
     CONNECT = 'connect'
-    UNKNOWN = 'unknown'
+    UNKNOWN = NewRelic::UNKNOWN_LOWER
     LOCALHOST = 'localhost'
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
