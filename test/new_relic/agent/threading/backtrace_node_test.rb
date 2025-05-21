@@ -243,7 +243,7 @@ module NewRelic::Agent::Threading
     # These tests have examples with the old the and new formats
     # When we drop support for Ruby 3.3, we can remove the condition
     def ruby_3_4_0_or_above?
-      Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+      NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
     end
   end
 end

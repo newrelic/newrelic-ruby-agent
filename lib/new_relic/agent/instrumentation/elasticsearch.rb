@@ -14,7 +14,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    to_instrument = if Gem::Version.create(Elasticsearch::VERSION) < Gem::Version.create('8.0.0')
+    to_instrument = if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       Elasticsearch::Transport::Client
     else
       Elastic::Transport::Client

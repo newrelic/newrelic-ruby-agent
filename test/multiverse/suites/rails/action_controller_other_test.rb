@@ -125,7 +125,7 @@ if defined?(ActionController::Live)
 
       # in Rails < 7 the context key is not present in this payload, so it changes the params and name
       # because we're using context info to create the name
-      rails7 = Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
+      rails7 = NewRelic::Helper.version_satisfied?(Rails::VERSION::STRING, '>=', '7.0.0')
 
       segment_name = if rails7
         'Ruby/ActionController/data/unpermitted_parameters'

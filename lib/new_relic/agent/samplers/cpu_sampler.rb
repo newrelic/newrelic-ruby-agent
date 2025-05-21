@@ -42,7 +42,7 @@ module NewRelic
           # Process.times on JRuby < 1.7.0 reports wall clock elapsed time,
           # not actual cpu time used, so this sampler can only be used on JRuby >= 1.7.0.
           if defined?(JRuby)
-            return JRUBY_VERSION >= '1.7.0'
+            return NewRelic::Helper.version_satisfied?(JRUBY_VERSION, '>=', '1.7.0')
           end
 
           true

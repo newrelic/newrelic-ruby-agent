@@ -75,54 +75,54 @@ class HelperTest < Minitest::Test
     Open3.stubs('capture2e').raises(exception)
     assert_raises(NewRelic::CommandRunFailedError, "#{exception.class} - #{exception.message}") do
       NewRelic::Helper.run_command('executable that existed at detection time but is not there now')
-end   
+    end
   end
 
   #
   # version_satisfied?
   #
   def test_version_satisfied_greater_than
-    assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '<', '1.2.4'))
+    assert(NewRelic::Helper.version_satisfied?('1.2.3', '<', '1.2.4'))
     assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '<', '1.2.3'))
-    assert(true, NewRelic::Helper.version_satisfied?(1, '<', 2))
-    assert(true, NewRelic::Helper.version_satisfied?(1.2, '<', 1.3))
-    assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<', Gem::Version.new('1.3')))
-    assert(true, NewRelic::Helper.version_satisfied?(nil, '<', 1))
-    assert(true, NewRelic::Helper.version_satisfied?('', '<', 1))
-    assert(true, NewRelic::Helper.version_satisfied?('1.2', '<', 1.3))
+    assert(NewRelic::Helper.version_satisfied?(1, '<', 2))
+    assert(NewRelic::Helper.version_satisfied?(1.2, '<', 1.3))
+    assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<', Gem::Version.new('1.3')))
+    assert(NewRelic::Helper.version_satisfied?(nil, '<', 1))
+    assert(NewRelic::Helper.version_satisfied?('', '<', 1))
+    assert(NewRelic::Helper.version_satisfied?('1.2', '<', 1.3))
   end
 
   def test_version_satisfied_greater_than_or_equal_to
-    assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '<=', '1.2.4'))
+    assert(NewRelic::Helper.version_satisfied?('1.2.3', '<=', '1.2.4'))
     assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '<=', '1.2.2'))
-    assert(true, NewRelic::Helper.version_satisfied?(1, '<=', 2))
-    assert(true, NewRelic::Helper.version_satisfied?(1.2, '<=', 1.3))
-    assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<=', Gem::Version.new('1.3')))
-    assert(true, NewRelic::Helper.version_satisfied?(nil, '<=', 1))
-    assert(true, NewRelic::Helper.version_satisfied?('', '<=', 1))
-    assert(true, NewRelic::Helper.version_satisfied?('1.2', '<=', 1.3))
+    assert(NewRelic::Helper.version_satisfied?(1, '<=', 2))
+    assert(NewRelic::Helper.version_satisfied?(1.2, '<=', 1.3))
+    assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<=', Gem::Version.new('1.3')))
+    assert(NewRelic::Helper.version_satisfied?(nil, '<=', 1))
+    assert(NewRelic::Helper.version_satisfied?('', '<=', 1))
+    assert(NewRelic::Helper.version_satisfied?('1.2', '<=', 1.3))
   end
 
   def test_version_satisfied_less_than
-    assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '>', '1.2.2'))
+    assert(NewRelic::Helper.version_satisfied?('1.2.3', '>', '1.2.2'))
     assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '>', '1.2.3'))
-    assert(true, NewRelic::Helper.version_satisfied?(2, '>', 1))
-    assert(true, NewRelic::Helper.version_satisfied?(1.3, '>', 1.2))
-    assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>', Gem::Version.new('1.2')))
-    assert(true, NewRelic::Helper.version_satisfied?(1, '>', nil))
-    assert(true, NewRelic::Helper.version_satisfied?(1, '>', ''))
-    assert(true, NewRelic::Helper.version_satisfied?(1.3, '>', '1.2'))
+    assert(NewRelic::Helper.version_satisfied?(2, '>', 1))
+    assert(NewRelic::Helper.version_satisfied?(1.3, '>', 1.2))
+    assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>', Gem::Version.new('1.2')))
+    assert(NewRelic::Helper.version_satisfied?(1, '>', nil))
+    assert(NewRelic::Helper.version_satisfied?(1, '>', ''))
+    assert(NewRelic::Helper.version_satisfied?(1.3, '>', '1.2'))
   end
 
   def test_version_satisfied_less_than_or_equal_to
-    assert(true, NewRelic::Helper.version_satisfied?('1.2.3', '>=', '1.2.2'))
+    assert(NewRelic::Helper.version_satisfied?('1.2.3', '>=', '1.2.2'))
     assert_false(NewRelic::Helper.version_satisfied?('1.2.3', '>=', '1.2.4'))
-    assert(true, NewRelic::Helper.version_satisfied?(2, '>=', 1))
-    assert(true, NewRelic::Helper.version_satisfied?(1.3, '>=', 1.2))
-    assert(true, NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>=', Gem::Version.new('1.2')))
-    assert(true, NewRelic::Helper.version_satisfied?(1, '>=', nil))
-    assert(true, NewRelic::Helper.version_satisfied?(1, '>=', ''))
-    assert(true, NewRelic::Helper.version_satisfied?(1.3, '>=', '1.2'))
+    assert(NewRelic::Helper.version_satisfied?(2, '>=', 1))
+    assert(NewRelic::Helper.version_satisfied?(1.3, '>=', 1.2))
+    assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>=', Gem::Version.new('1.2')))
+    assert(NewRelic::Helper.version_satisfied?(1, '>=', nil))
+    assert(NewRelic::Helper.version_satisfied?(1, '>=', ''))
+    assert(NewRelic::Helper.version_satisfied?(1.3, '>=', '1.2'))
   end
 
   #

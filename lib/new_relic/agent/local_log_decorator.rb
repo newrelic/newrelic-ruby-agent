@@ -43,7 +43,7 @@ module NewRelic
         # URI version 1.0+ will ship with Ruby 3.4
         # Once we drop support for Rubies below 3.4, we can use the
         # URI::RFC2396 parser exclusively.
-        if Gem::Version.new(URI::VERSION) >= Gem::Version.new('1.0')
+        if NewRelic::Helper.version_satisfied?(URI::VERSION, '>=', '1.0')
           URI::RFC2396_PARSER.escape(entity_name)
         else
           URI::DEFAULT_PARSER.escape(entity_name)

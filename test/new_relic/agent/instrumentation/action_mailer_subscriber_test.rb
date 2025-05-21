@@ -8,7 +8,7 @@ require 'new_relic/agent/instrumentation/action_mailer_subscriber'
 if defined?(ActiveSupport) &&
     defined?(ActionMailer) &&
     ActionMailer.respond_to?(:gem_version) &&
-    ActionMailer.gem_version >= Gem::Version.new('5.0') && RUBY_VERSION > '2.4.0'
+    NewRelic::Helper.version_satisfied?(ActionMailer.gem_version, '>=', '5.0') && NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>', '2.4.0')
   require_relative 'rails/action_mailer_subscriber'
 else
   puts "Skipping tests in #{File.basename(__FILE__)} because ActionMailer is unavailable" if ENV['VERBOSE_TEST_OUTPUT']

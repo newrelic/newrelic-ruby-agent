@@ -61,7 +61,7 @@ class SidekiqInstrumentationTest < Minitest::Test
     # Sidekiq version 6.4.2 ends up invoking String#constantize, which is only
     # delivered by ActiveSupport, which this test suite doesn't currently
     # include.
-    skip 'This test requires Sidekiq v7+' unless Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('7.0.0')
+    skip 'This test requires Sidekiq v7+' unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
 
     in_transaction do |txn|
       NRDeadEndJob.perform_inline

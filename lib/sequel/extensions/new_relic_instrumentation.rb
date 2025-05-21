@@ -79,7 +79,7 @@ module Sequel
 
     THREAD_SAFE_CONNECTION_POOL_CLASSES = [
       (defined?(::Sequel::ThreadedConnectionPool) && ::Sequel::ThreadedConnectionPool),
-      (defined?(::Sequel::TimedQueueConnectionPool) && RUBY_VERSION >= '3.2' && ::Sequel::TimedQueueConnectionPool)
+      (defined?(::Sequel::TimedQueueConnectionPool) && NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.2') && ::Sequel::TimedQueueConnectionPool)
     ].compact.freeze
 
     def explainer_for(sql)

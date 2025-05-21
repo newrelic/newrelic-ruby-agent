@@ -12,7 +12,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Curl) && defined?(Curl::CURB_VERSION) &&
-      Gem::Version.new(Curl::CURB_VERSION) >= CURB_MIN_VERSION
+      NewRelic::Helper.version_satisfied?(Curl::CURB_VERSION, '>=', CURB_MIN_VERSION)
   end
 
   executes do

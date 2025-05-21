@@ -173,7 +173,7 @@ module NewRelic
             assert_equal 2, txn.segments.size
 
             # the :store key is only in the payload for Rails 6.1+
-            rails61 = Gem::Version.new(ActiveSupport::VERSION::STRING) >= Gem::Version.new('6.1.0')
+            rails61 = NewRelic::Helper.version_satisfied?(ActiveSupport::VERSION::STRING, '>=', '6.1.0')
             segment_name = if rails61
               "Ruby/ActiveSupport/#{store}/write"
             else

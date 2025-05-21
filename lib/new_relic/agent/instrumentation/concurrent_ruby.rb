@@ -12,7 +12,7 @@ DependencyDetection.defer do
   depends_on do
     defined?(Concurrent) &&
       defined?(Concurrent::VERSION) &&
-      Gem::Version.new(Concurrent::VERSION) >= Gem::Version.new('1.1.5')
+      NewRelic::Helper.version_satisfied?(Concurrent::VERSION, '>=', '1.1.5')
   end
 
   executes do

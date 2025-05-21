@@ -11,7 +11,7 @@ module NewRelic::Agent::Instrumentation::Redis
     MULTI_OPERATION = 'multi'
     PIPELINE_OPERATION = 'pipeline'
     HAS_REDIS_CLIENT = defined?(::Redis) &&
-      Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('5.0.0') &&
+      NewRelic::Helper.version_satisfied?(::Redis::VERSION, '>=', '5.0.0') &&
       !defined?(::RedisClient).nil?
   end
 end

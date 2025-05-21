@@ -90,7 +90,7 @@ class RackBuilderTest < Minitest::Test
   end
 
   def test_run_with_tracing
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     instance = TestBuilderClass.new
     app = :the_app
@@ -128,7 +128,7 @@ class RackBuilderTest < Minitest::Test
   end
 
   def test_use_with_tracing
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     instance = TestBuilderClass.new
     def instance.middleware_instrumentation_enabled?; true; end
@@ -156,7 +156,7 @@ class RackBuilderTest < Minitest::Test
   end
 
   def test_generate_traced_map
-    skip 'Requires MiniTest v5+' unless MiniTest::Unit::VERSION > '5.0'
+    skip 'Requires MiniTest v5+' unless NewRelic::Helper.version_satisfied?(MiniTest::Unit::VERSION, '>', '5.0')
 
     url = :url
     handler = 'handler'

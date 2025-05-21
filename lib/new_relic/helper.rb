@@ -90,7 +90,6 @@ module NewRelic
       left.public_send(operator, right)
     end
 
-
     # Bundler version 2.5.12 deprecated all_specs and added installed_specs.
     # To support newer Bundler versions, try to use installed_specs first,
     # then fall back to all_specs.

@@ -8,7 +8,7 @@
 #
 #       see https://github.com/sidekiq/sidekiq/issues/5076 for the discussion
 #       of the removal, which includes mentions of alternatives
-if defined?(Sidekiq::VERSION) && Sidekiq::VERSION < '7.0.0'
+if defined?(Sidekiq::VERSION) && NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '<', '7.0.0')
   class Sidekiq::Extensions::DelayedClass
     def newrelic_trace_args(msg, queue)
       (target, method_name, _args) = if YAML.respond_to?(:unsafe_load)

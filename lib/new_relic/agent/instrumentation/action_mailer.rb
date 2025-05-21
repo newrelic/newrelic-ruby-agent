@@ -15,7 +15,7 @@ DependencyDetection.defer do
     defined?(ActiveSupport) &&
       defined?(ActionMailer) &&
       ActionMailer.respond_to?(:gem_version) &&
-      ActionMailer.gem_version >= Gem::Version.new('5.0') &&
+      NewRelic::Helper.version_satisfied?(ActionMailer.gem_version, '>=', '5.0') &&
       !NewRelic::Agent::Instrumentation::ActionMailerSubscriber.subscribed?
   end
 

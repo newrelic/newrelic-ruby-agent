@@ -77,7 +77,7 @@ module NewRelic::Agent
       }
 
       def setup
-        skip 'Serverless usage is limited to Ruby v3.2+' unless ruby_version_float >= 3.2
+        skip 'Serverless usage is limited to Ruby v3.2+' unless NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.2')
 
         config_hash = {:'serverless_mode.enabled' => true}
         @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)

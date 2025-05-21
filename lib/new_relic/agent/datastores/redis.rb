@@ -83,7 +83,7 @@ module NewRelic
         end
 
         def self.is_supported_version?
-          Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('3.0.0')
+          NewRelic::Helper.version_satisfied?(::Redis::VERSION, '>=', '3.0.0')
         end
 
         def self.ellipsize(result, string)

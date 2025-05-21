@@ -506,7 +506,7 @@ module HttpClientTestCases
     # transaction in which the error occurs. That, coupled with the fact that
     # fixing it for old versions of Typhoeus would require large changes to
     # the instrumentation, makes us say 'meh'.
-    skip 'Not tested with Typhoeus < 0.5.4' if client_name == 'Typhoeus' && Typhoeus::VERSION < '0.5.4'
+    skip 'Not tested with Typhoeus < 0.5.4' if client_name == 'Typhoeus' && NewRelic::Helper.version_satisfied?(Typhoeus::VERSION, '<', '0.5.4')
 
     evil_server = NewRelic::EvilServer.new
     evil_server.start

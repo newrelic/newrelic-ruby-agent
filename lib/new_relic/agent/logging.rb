@@ -165,7 +165,7 @@ module NewRelic
         # Positional and Keyword arguments are separated beginning with Ruby 2.7
         # Signature of ::Logger constructor changes in Ruby 2.4 to have both positional and keyword args
         # We pivot on Ruby 2.7 for widest supportability with least amount of hassle.
-        if RUBY_VERSION < '2.7.0'
+        if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
           def initialize(*args)
             super(*args)
             self.formatter = DecoratingFormatter.new
