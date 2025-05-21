@@ -14,23 +14,18 @@ module NewRelic
 
           def start_span(name, with_parent: nil, attributes: nil, links: nil, start_timestamp: nil, kind: nil)
             parent_span_context = ::OpenTelemetry::Trace.current_span(with_parent).context
-            # have the option of starting a transaction if the parent is remote or the span context is invalid/empty
-            if parent_span_context.remote? || !parent_span_context.valid?
-              # internal spans without a parent context should not start transactions
-              # but internal spans with a remote parent should start transactions
-              return if !parent_span_context.valid? && kind == :internal
 
-              finishable = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
+            finishable = if can_start_transaction?(parent_span_context)
+              return if internal_span_kind_with_invalid_parent?(kind, parent_span_context)
 
-              if finishable.is_a?(NewRelic::Agent::Transaction)
-                finishable.trace_id = parent_span_context.trace_id
-                finishable.parent_span_id = parent_span_context.span_id
-              end
+              txn = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
+              add_remote_partent_span_context_to_txn(txn, parent_span_context) if txn.is_a?(NewRelic::Agent::Transaction) && parent_span_context.remote?
+              txn
             else
-              finishable = NewRelic::Agent::Tracer.start_segment(name: name)
+              NewRelic::Agent::Tracer.start_segment(name: name)
             end
 
-            span = ::OpenTelemetry::Trace.current_span
+            span = get_span_from_finishable(finishable)
             span.finishable = finishable
             span
           end
@@ -45,6 +40,32 @@ module NewRelic
             end
           ensure
             span&.finish
+          end
+
+          private
+
+          def get_span_from_finishable(finishable)
+            if finishable.is_a?(NewRelic::Agent::Transaction)
+              finishable.segments.first.instance_variable_get(:@otel_span)
+            elsif finishable.is_a?(NewRelic::Agent::Transaction::Segment)
+              finishable.instance_variable_get(:@otel_span)
+            else
+              NewRelic::Agent.logger.warn('Tracer#get_span_from_finishable failed to get span from finishable - finishable is not a transaction or segment')
+              nil
+            end
+          end
+
+          def can_start_transaction?(parent_span_context)
+            parent_span_context.remote? || !parent_span_context.valid?
+          end
+
+          def internal_span_kind_with_invalid_parent?(kind, parent_span_context)
+            !parent_span_context.valid? && kind == :internal
+          end
+
+          def add_remote_partent_span_context_to_txn(finishable, parent_span_context)
+            finishable.trace_id = parent_span_context.trace_id
+            finishable.parent_span_id = parent_span_context.span_id
           end
         end
       end

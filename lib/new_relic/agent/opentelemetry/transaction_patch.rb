@@ -20,8 +20,15 @@ module NewRelic
               ::OpenTelemetry::Context.detach(opentelemetry_context[otel_current_span_key])
             end
 
+            span = nil
+
             # create an otel span for the new segment
-            span = Trace::Span.new(span_context: span_context_from_segment(new_segment))
+            if new_segment.instance_variable_defined?(:@otel_span)
+              span = new_segment.instance_variable_get(:@otel_span)
+            else
+              span = Trace::Span.new(span_context: span_context_from_segment(new_segment))
+              new_segment.instance_variable_set(:@otel_span, span)
+            end
 
             # set otel's current span to the newly created otel span
             ctx = ::OpenTelemetry::Context.current.set_value(otel_current_span_key, span)
