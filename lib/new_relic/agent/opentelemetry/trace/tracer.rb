@@ -18,9 +18,9 @@ module NewRelic
             finishable = if can_start_transaction?(parent_span_context)
               return if internal_span_kind_with_invalid_parent?(kind, parent_span_context)
 
-              txn = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
-              add_remote_partent_span_context_to_txn(txn, parent_span_context) if txn.is_a?(NewRelic::Agent::Transaction) && parent_span_context.remote?
-              txn
+              nr_obj = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
+              add_remote_partent_span_context_to_txn(nr_obj, parent_span_context)
+              nr_obj
             else
               NewRelic::Agent::Tracer.start_segment(name: name)
             end
@@ -45,9 +45,10 @@ module NewRelic
           private
 
           def get_span_from_finishable(finishable)
-            if finishable.is_a?(NewRelic::Agent::Transaction)
+            case finishable
+            when NewRelic::Agent::Transaction
               finishable.segments.first.instance_variable_get(:@otel_span)
-            elsif finishable.is_a?(NewRelic::Agent::Transaction::Segment)
+            when NewRelic::Agent::Transaction::Segment
               finishable.instance_variable_get(:@otel_span)
             else
               NewRelic::Agent.logger.warn('Tracer#get_span_from_finishable failed to get span from finishable - finishable is not a transaction or segment')
@@ -63,9 +64,11 @@ module NewRelic
             !parent_span_context.valid? && kind == :internal
           end
 
-          def add_remote_partent_span_context_to_txn(finishable, parent_span_context)
-            finishable.trace_id = parent_span_context.trace_id
-            finishable.parent_span_id = parent_span_context.span_id
+          def add_remote_partent_span_context_to_txn(txn, parent_span_context)
+            return unless txn.is_a?(NewRelic::Agent::Transaction) && parent_span_context.remote?
+
+            txn.trace_id = parent_span_context.trace_id
+            txn.parent_span_id = parent_span_context.span_id
           end
         end
       end
