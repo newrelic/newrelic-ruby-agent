@@ -7,13 +7,20 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class SpanTest < Minitest::Test
+          include MultiverseHelpers
+          setup_and_teardown_agent
+
           Segment = Struct.new(:guid, :transaction)
           Transaction = Struct.new(:trace_id)
 
-          def teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
+          def after_setup
+            puts @NAME
           end
+
+          # def teardown
+          #   NewRelic::Agent.instance.transaction_event_aggregator.reset!
+          #   NewRelic::Agent.instance.span_event_aggregator.reset!
+          # end
 
           def test_finish_does_not_fail_if_no_finishable_present
             span = NewRelic::Agent::OpenTelemetry::Trace::Span.new

@@ -35,6 +35,7 @@ module NewRelic
             begin
               yield
             rescue => e
+              # TODO: Update for segment errors if finishable is a segment
               NewRelic::Agent.notice_error(e)
               raise
             end

@@ -7,13 +7,12 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class TracerTest < Minitest::Test
-          def setup
-            @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
-          end
+          include MultiverseHelpers
+          setup_and_teardown_agent
 
-          def teardown
-            NewRelic::Agent.instance.transaction_event_aggregator.reset!
-            NewRelic::Agent.instance.span_event_aggregator.reset!
+          def after_setup
+            puts @NAME
+            @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
           end
 
           def test_in_span_creates_segment_when_span_kind_internal
@@ -37,6 +36,17 @@ module NewRelic
 
             assert_segment_noticed_error txn, /brains/, 'RuntimeError', /the dead/
             assert_transaction_noticed_error txn, 'RuntimeError'
+          end
+
+          def test_start_span_assigns_finishable_to_transaction
+            otel_span = @tracer.start_span('otel_api_span')
+            otel_finishable = otel_span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, otel_finishable, "OTel span's finishable should be an NR Transaction"
+
+            otel_span.finish
+
+            assert_predicate otel_finishable, :finished?, 'OTel span should finish NR transaction'
           end
 
           private

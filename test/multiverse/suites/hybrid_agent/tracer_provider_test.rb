@@ -7,7 +7,11 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class TracerProviderTest < Minitest::Test
-          def setup
+          include MultiverseHelpers
+          setup_and_teardown_agent
+
+          def after_setup
+            puts @NAME
             @tracer_provider = NewRelic::Agent::OpenTelemetry::Trace::TracerProvider.new
           end
 
