@@ -20,11 +20,6 @@ class HybridAgentTest < Minitest::Test
     @tracer = OpenTelemetry.tracer_provider.tracer
   end
 
-  # def teardown
-  #   NewRelic::Agent.instance.transaction_event_aggregator.reset!
-  #   NewRelic::Agent.instance.span_event_aggregator.reset!
-  # end
-
   # This method, when returning a non-empty array, will cause the tests defined in the
   # JSON file to be skipped if they're not listed here. Useful for focusing on specific
   # failing tests.
@@ -35,10 +30,10 @@ class HybridAgentTest < Minitest::Test
   # Now that we're starting to implement, use this to add tests individually
   # until the full suite can be run on the CI
   def focus_tests
-    # creates_opentelemetry_segment_in_a_transaction
-    # creates_new_relic_span_as_child_of_opentelemetry_span
-    # does_not_create_segment_without_a_transaction
     %w[
+      creates_opentelemetry_segment_in_a_transaction
+      creates_new_relic_span_as_child_of_opentelemetry_span
+      does_not_create_segment_without_a_transaction
       starting_transaction_tests
     ]
   end
