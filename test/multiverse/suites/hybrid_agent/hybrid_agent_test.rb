@@ -45,6 +45,7 @@ class HybridAgentTest < Minitest::Test
       does_not_create_segment_without_a_transaction
       starting_transaction_tests
       opentelemetry_api_and_new_relic_api_can_inject_outbound_trace_context
+      inbound_distributed_tracing_tests
     ]
   end
 

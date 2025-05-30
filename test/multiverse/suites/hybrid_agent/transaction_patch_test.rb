@@ -11,8 +11,7 @@ module NewRelic
           NewRelic::Agent.instance.span_event_aggregator.reset!
         end
 
-        # We want to verify that the context switching works for both OTel
-        # and NR
+        # We want to verify the context switching works for both OTel and NR
         # Since the context switching methods are somewhat hidden within
         # the starting and finishing operations, we use the NR APIs to
         # start transactions and the OTel APIs to inject spans
