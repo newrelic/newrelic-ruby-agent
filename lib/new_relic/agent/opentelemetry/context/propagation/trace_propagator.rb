@@ -16,10 +16,24 @@ module NewRelic
               NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(carrier)
             end
 
-            # TODO: Implement in full for inbound distributed tracing test
-            # The getter argument is a no-op, added for consistency with the OpenTelemetry API
-            def extract(carrier, context: ::OpenTelemetry::Context.current, getter: nil)
-              NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers
+            def extract(carrier, context: ::OpenTelemetry::Context.current, getter: ::OpenTelemetry::Context::Propagation.text_map_getter)
+              trace_parent_value = carrier[TRACEPARENT_KEY]
+              return context unless trace_parent_value
+
+              # There's an optional format key that we may need to address eventually
+              # If the format is rack, then the key is HTTP_TRACEPARENT
+              trace_context = NewRelic::Agent::DistributedTracing::TraceContext.parse(carrier: carrier)
+
+              tp = trace_context.trace_parent
+
+              # TODO: Add tracestate parsing
+              span_context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: tp['trace_id'], span_id: tp['parent_id'], trace_flags: tp['trace_flags'], tracestate: nil, remote: true)
+
+              span = ::OpenTelemetry::Trace.non_recording_span(span_context)
+              ::OpenTelemetry::Trace.context_with_span(span, parent_context: context)
+            rescue StandardError => e
+              NewRelic::Agent.logger.error("Unable to extract context: #{e.message}")
+              context
             end
           end
         end
