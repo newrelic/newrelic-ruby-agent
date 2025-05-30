@@ -28,12 +28,19 @@ module Commands
 
   def do_work_in_span_with_inbound_context(span_name:, span_kind:, trace_id_in_header:,
     span_id_in_header:, sampled_flag_in_header:, &block)
-    # TODO
+
+    carrier = {'traceparent' => "00-#{trace_id_in_header}-#{span_id_in_header}-0#{sampled_flag_in_header}"}
+    parent_context = OpenTelemetry.propagation.extract(carrier)
+    span = @tracer.start_span(span_name, with_parent: parent_context, kind: span_kind)
+
     yield if block
+
+    span.finish
   end
 
   def do_work_in_transaction(transaction_name:, &block)
-    NewRelic::Agent::Tracer.in_transaction(name: transaction_name, category: :web) do
+    in_transaction(transaction_name, category: :web) do |txn|
+      txn.stubs(:sampled?).returns(true)
       yield if block
     end
   end
