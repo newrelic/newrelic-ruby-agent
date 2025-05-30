@@ -12,12 +12,17 @@ class HybridAgentTest < Minitest::Test
   include AssertionParameters
   include ParsingHelpers
 
-  include MultiverseHelpers
-  setup_and_teardown_agent
-
   def after_setup
     puts @NAME
     @tracer = OpenTelemetry.tracer_provider.tracer
+
+    # in order to inject headers, there must be a parent account ID and a
+    # parent application ID
+    @config = {
+      :account_id => '190',
+      :primary_application_id => '46954',
+    }
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   # This method, when returning a non-empty array, will cause the tests defined in the
@@ -35,6 +40,7 @@ class HybridAgentTest < Minitest::Test
       creates_new_relic_span_as_child_of_opentelemetry_span
       does_not_create_segment_without_a_transaction
       starting_transaction_tests
+      opentelemetry_api_and_new_relic_api_can_inject_outbound_trace_context
     ]
   end
 
