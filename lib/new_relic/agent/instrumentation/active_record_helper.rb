@@ -235,7 +235,7 @@ module NewRelic
           }.freeze
 
           DEFAULT = 'default'.freeze
-          UNKNOWN = 'unknown'.freeze
+          UNKNOWN = NewRelic::UNKNOWN_LOWER
           LOCALHOST = 'localhost'.freeze
 
           def adapter_from_config(config)

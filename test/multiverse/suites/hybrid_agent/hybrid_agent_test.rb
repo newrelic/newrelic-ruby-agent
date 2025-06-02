@@ -12,8 +12,7 @@ class HybridAgentTest < Minitest::Test
   include AssertionParameters
   include ParsingHelpers
 
-  def after_setup
-    puts @NAME
+  def setup
     @tracer = OpenTelemetry.tracer_provider.tracer
 
     # in order to inject headers, there must be a parent account ID and a
@@ -23,6 +22,11 @@ class HybridAgentTest < Minitest::Test
       :primary_application_id => '46954',
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
+  end
+
+  def teardown
+    NewRelic::Agent.instance.transaction_event_aggregator.reset!
+    NewRelic::Agent.instance.span_event_aggregator.reset!
   end
 
   # This method, when returning a non-empty array, will cause the tests defined in the

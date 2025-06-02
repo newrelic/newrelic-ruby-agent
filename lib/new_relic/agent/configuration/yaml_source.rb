@@ -67,7 +67,7 @@ module NewRelic
         end
 
         def warn_missing_config_file(path)
-          based_on = 'unknown'
+          based_on = NewRelic::UNKNOWN_LOWER
           source = ::NewRelic::Agent.config.source(:config_path)
           candidate_paths = [path]
 

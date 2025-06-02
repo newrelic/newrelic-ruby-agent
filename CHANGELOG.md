@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Add ECS Docker ID for Fargate**
+
+  Previously, the Ruby agent did not record the Docker ID when running in an AWS ECS Fargate environment. The Docker ID will now be recorded correctly. [PR#3172](https://github.com/newrelic/newrelic-ruby-agent/pull/3172)
+
+
 ## v9.19.0
 
 - **Feature: Add Thread ID as attribute to all spans**

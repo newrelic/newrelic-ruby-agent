@@ -106,7 +106,7 @@ module NewRelic
           )
         end
 
-        UNKNOWN = 'unknown'.freeze
+        UNKNOWN = NewRelic::UNKNOWN_LOWER
         LOCALHOST = 'localhost'.freeze
 
         def host_from_address(address)
