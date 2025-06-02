@@ -12,12 +12,13 @@ module NewRelic
             EMPTY_LIST = [].freeze
             private_constant(:EMPTY_LIST)
 
-            # TODO: determine if we need to create our own versions of the setter and getter
-            def inject(carrier, context: ::OpenTelemetry::Context.current, setter: ::OpenTelemetry::Context::Propagation.text_map_setter)
+            # The setter argument is a no-op, added for consistency with the OpenTelemetry API
+            def inject(carrier, context: ::OpenTelemetry::Context.current, setter: nil)
               NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(carrier)
             end
 
-            def extract(carrier, context: ::OpenTelemetry::Context.current, getter: ::OpenTelemetry::Context::Propagation.text_map_getter)
+            # The getter argument is a no-op, added for consistency with the OpenTelemetry API
+            def extract(carrier, context: ::OpenTelemetry::Context.current, getter: nil)
               NewRelic::Agent::DistributedTracing.accept_distributed_trace_headers
             end
 

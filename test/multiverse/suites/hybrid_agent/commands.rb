@@ -57,8 +57,8 @@ module Commands
   end
 
   def simulate_external_call(url:, &block)
-    # optional key, useful for debugging to see what part of the JSON
-    # is being executed
+    # optional key, useful for debugging to see what part of the cross
+    # agent test's JSON is being executed
     @headers = {url: url}
     yield if block
   end
