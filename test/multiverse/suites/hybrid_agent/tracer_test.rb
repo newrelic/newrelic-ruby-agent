@@ -7,12 +7,13 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class TracerTest < Minitest::Test
-          include MultiverseHelpers
-          setup_and_teardown_agent
-
-          def after_setup
-            puts @NAME
+          def setup
             @tracer = NewRelic::Agent::OpenTelemetry::Trace::Tracer.new
+          end
+
+          def teardown
+            NewRelic::Agent.instance.transaction_event_aggregator.reset!
+            NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
           def test_in_span_creates_segment_when_span_kind_internal

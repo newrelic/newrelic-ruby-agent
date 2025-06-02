@@ -12,12 +12,13 @@ class HybridAgentTest < Minitest::Test
   include AssertionParameters
   include ParsingHelpers
 
-  include MultiverseHelpers
-  setup_and_teardown_agent
-
-  def after_setup
-    puts @NAME
+  def setup
     @tracer = OpenTelemetry.tracer_provider.tracer
+  end
+
+  def teardown
+    NewRelic::Agent.instance.transaction_event_aggregator.reset!
+    NewRelic::Agent.instance.span_event_aggregator.reset!
   end
 
   # This method, when returning a non-empty array, will cause the tests defined in the
