@@ -8,4 +8,5 @@ end
 
 gemfile <<~RB
   gem 'opentelemetry-api'
+  gem 'rack'
 RB

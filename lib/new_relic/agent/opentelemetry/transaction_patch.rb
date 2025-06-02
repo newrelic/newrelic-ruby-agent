@@ -13,29 +13,16 @@ module NewRelic
           super
         end
 
-        def otel_current_span_key
-          # CURRENT_SPAN_KEY is a private constant
-          ::OpenTelemetry::Trace.const_get(:CURRENT_SPAN_KEY)
-        end
-
         def set_current_segment(new_segment)
           @current_segment_lock.synchronize do
-            # detach the current token, if one is present
             unless opentelemetry_context.empty?
               ::OpenTelemetry::Context.detach(opentelemetry_context[otel_current_span_key])
             end
 
-            # create an otel span for the new segment
-            span = Trace::Span.new(segment: new_segment, transaction: new_segment.transaction)
-
-            # set otel's current span to the newly created otel span
+            span = find_or_create_span(new_segment)
             ctx = ::OpenTelemetry::Context.current.set_value(otel_current_span_key, span)
-
-            # attach the token generated from updating the current span
             token = ::OpenTelemetry::Context.attach(ctx)
 
-            # update our context tracking hash to correlate the context token
-            # with the otel_current_span_key
             opentelemetry_context[otel_current_span_key] = token
           end
 
@@ -50,6 +37,32 @@ module NewRelic
           end
 
           super
+        end
+
+        private
+
+        def find_or_create_span(segment)
+          if segment.instance_variable_defined?(:@otel_span)
+            segment.instance_variable_get(:@otel_span)
+          else
+            span = Trace::Span.new(span_context: span_context_from_segment(segment))
+            segment.instance_variable_set(:@otel_span, span)
+            span
+          end
+        end
+
+        def span_context_from_segment(segment)
+          ::OpenTelemetry::Trace::SpanContext.new(
+            trace_id: segment.transaction.trace_id,
+            span_id: segment.guid,
+            trace_flags: ::OpenTelemetry::Trace::TraceFlags::SAMPLED,
+            remote: false
+          )
+        end
+
+        def otel_current_span_key
+          # CURRENT_SPAN_KEY is a private constant
+          ::OpenTelemetry::Trace.const_get(:CURRENT_SPAN_KEY)
         end
       end
     end

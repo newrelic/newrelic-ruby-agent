@@ -7,14 +7,10 @@ module NewRelic
     module OpenTelemetry
       module Trace
         class Span < ::OpenTelemetry::Trace::Span
-          attr_reader :context
+          attr_accessor :finishable
 
-          def initialize(segment:, transaction:)
-            @context = ::OpenTelemetry::Trace::SpanContext.new(
-              trace_id: transaction.trace_id,
-              span_id: segment.guid,
-              trace_flags: 1
-            )
+          def finish(end_timestamp: nil)
+            finishable&.finish
           end
         end
       end

@@ -32,9 +32,10 @@ class HybridAgentTest < Minitest::Test
   # until the full suite can be run on the CI
   def focus_tests
     %w[
-      does_not_create_segment_without_a_transaction
       creates_opentelemetry_segment_in_a_transaction
       creates_new_relic_span_as_child_of_opentelemetry_span
+      does_not_create_segment_without_a_transaction
+      starting_transaction_tests
     ]
   end
 
@@ -51,7 +52,7 @@ class HybridAgentTest < Minitest::Test
           parse_operation(o)
         end
 
-        harvest_and_verify_agent_output(test_case['agentOutput'])
+        verify_agent_output(test_case['agentOutput'])
       else
         skip('marked pending by exclusion from #focus_tests')
       end

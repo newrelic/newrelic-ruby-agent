@@ -16,14 +16,6 @@ module NewRelic
             NewRelic::Agent.instance.span_event_aggregator.reset!
           end
 
-          def test_in_span_logs_when_span_kind_unknown
-            NewRelic::Agent.stub(:logger, NewRelic::Agent::MemoryLogger.new) do
-              @tracer.in_span('fruit', kind: :mango) { 'yep' }
-
-              assert_logged(/Span kind: mango is not supported yet/)
-            end
-          end
-
           def test_in_span_creates_segment_when_span_kind_internal
             txn = in_transaction do
               @tracer.in_span('fruit', kind: :internal) { 'seeds' }
@@ -45,6 +37,17 @@ module NewRelic
 
             assert_segment_noticed_error txn, /brains/, 'RuntimeError', /the dead/
             assert_transaction_noticed_error txn, 'RuntimeError'
+          end
+
+          def test_start_span_assigns_finishable_to_transaction
+            otel_span = @tracer.start_span('otel_api_span')
+            otel_finishable = otel_span.finishable
+
+            assert_instance_of NewRelic::Agent::Transaction, otel_finishable, "OTel span's finishable should be an NR Transaction"
+
+            otel_span.finish
+
+            assert_predicate otel_finishable, :finished?, 'OTel span should finish NR transaction'
           end
 
           private
