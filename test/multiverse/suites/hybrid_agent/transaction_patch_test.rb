@@ -56,9 +56,9 @@ module NewRelic
             child_segment = Tracer.start_segment(name: 'child')
             child_otel_span = child_segment.instance_variable_get(:@otel_span)
 
-            refute_equal first_segment.guid, ::OpenTelemetry::Trace.current_span.context.span_id, "OTel current span ID should have changed from first segment"
+            refute_equal first_segment.guid, ::OpenTelemetry::Trace.current_span.context.span_id, 'OTel current span ID should have changed from first segment'
             assert_equal child_segment.guid, ::OpenTelemetry::Trace.current_span.context.span_id, "OTel current span ID should match child segment's GUID"
-            assert_equal child_segment.guid, Tracer.current_segment.guid, "NR current segment should be the child segment"
+            assert_equal child_segment.guid, Tracer.current_segment.guid, 'NR current segment should be the child segment'
             assert_equal child_otel_span.context.span_id, child_segment.guid, "Child segment's @otel_span ID should match segment's GUID"
 
             child_segment.finish
@@ -88,12 +88,12 @@ module NewRelic
             child_nr_segment = child_otel_span.finishable
 
             assert_instance_of Transaction::Segment, child_nr_segment, "OTel span's finishable should be an NR Segment"
-            assert_equal txn, child_nr_segment.transaction, "NR segment created for OTel span should belong to the active transaction"
+            assert_equal txn, child_nr_segment.transaction, 'NR segment created for OTel span should belong to the active transaction'
             assert_equal child_otel_span, child_nr_segment.instance_variable_get(:@otel_span), "NR segment's @otel_span should be the one created by the OTel API call"
 
             # Verify context update
             assert_equal child_nr_segment.guid, ::OpenTelemetry::Trace.current_span.context.span_id, "OTel current span ID should match OTel API created span's GUID"
-            assert_equal child_nr_segment.guid, Tracer.current_segment.guid, "NR current segment GUID should match segment for OTel API span"
+            assert_equal child_nr_segment.guid, Tracer.current_segment.guid, 'NR current segment GUID should match segment for OTel API span'
 
             child_otel_span.finish
           end
@@ -107,8 +107,7 @@ module NewRelic
 
             child_otel_span.finish # Finish using OTel API
 
-            assert_predicate child_nr_segment, :finished?, "Linked NR segment should be marked as finished when OTel span is finished"
-
+            assert_predicate child_nr_segment, :finished?, 'Linked NR segment should be marked as finished when OTel span is finished'
           end
         end
 
@@ -123,7 +122,7 @@ module NewRelic
 
             # The transaction itself should not be finished by this action
             refute_predicate txn, :finished?, "NR transaction should not be finished by OTel API call on its root segment's OTel span"
-            refute_predicate segment, :finished?, "NR root segment should not be finished by OTel API call on its OTel span"
+            refute_predicate segment, :finished?, 'NR root segment should not be finished by OTel API call on its OTel span'
           end
         end
 
@@ -132,7 +131,7 @@ module NewRelic
           txn.stubs(:sampled?).returns(true)
           txn.finish
 
-          assert_predicate txn, :finished?, "NR transaction should be marked as finished by NR API"
+          assert_predicate txn, :finished?, 'NR transaction should be marked as finished by NR API'
         end
 
         def test_finish_transaction_resets_contexts
