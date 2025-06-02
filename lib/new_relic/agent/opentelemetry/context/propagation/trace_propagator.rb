@@ -1,8 +1,7 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# Copyright The OpenTelemetry Authors
-#
-# SPDX-License-Identifier: Apache-2.0
 module NewRelic
   module Agent
     module OpenTelemetry
