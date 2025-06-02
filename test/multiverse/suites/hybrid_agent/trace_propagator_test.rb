@@ -14,7 +14,7 @@ module NewRelic
               @propagator = NewRelic::Agent::OpenTelemetry::Context::Propagation::TracePropagator.new
               fake_carrier = {}
 
-              NewRelic::Agent::DistributedTracing.stub(:insert_distributed_trace_headers, -> (args) { raise FakePropError.new }) do
+              NewRelic::Agent::DistributedTracing.stub(:insert_distributed_trace_headers, ->(carrier) { raise FakePropError.new }) do
                 assert_raises(FakePropError) { @propagator.inject(fake_carrier) }
               end
             end
@@ -24,3 +24,4 @@ module NewRelic
     end
   end
 end
+

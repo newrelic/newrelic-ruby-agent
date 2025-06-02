@@ -19,7 +19,7 @@ class HybridAgentTest < Minitest::Test
     # parent application ID
     @config = {
       :account_id => '190',
-      :primary_application_id => '46954',
+      :primary_application_id => '46954'
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
