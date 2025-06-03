@@ -19,9 +19,13 @@ module NewRelic
         require 'opentelemetry' # requires the opentelemetry-api gem
         require_relative 'opentelemetry/trace'
         require_relative 'opentelemetry/transaction_patch'
+        require_relative 'opentelemetry/context'
+
+        # TODO: Add a warning if SDK gem is installed
 
         ::OpenTelemetry.tracer_provider = OpenTelemetry::Trace::TracerProvider.new
         Transaction.prepend(OpenTelemetry::TransactionPatch)
+        ::OpenTelemetry.propagation = OpenTelemetry::Context::Propagation::TracePropagator.new
       end
     end
   end

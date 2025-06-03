@@ -18,6 +18,12 @@ module AssertionParameters
   end
 
   def injected
-    # TODO
+    injected = {}
+    split_headers = @headers['traceparent'].split('-')
+    injected['trace_id'] = split_headers[1]
+    injected['span_id'] = split_headers[2]
+    injected['sampled'] = split_headers[3] == '01'
+
+    injected
   end
 end

@@ -57,21 +57,23 @@ module Commands
   end
 
   def simulate_external_call(url:, &block)
-    # TODO
+    # optional key, useful for debugging to see what part of the cross
+    # agent test's JSON is being executed
+    @headers = {url: url}
     yield if block
   end
 
   def o_tel_inject_headers(&block)
-    # TODO: figure out how to pass the request
-    request = {}
-    OpenTelemetry.propagation.inject(request)
-    yield if block
+    NewRelic::Agent.instance.stub(:connected?, true) do
+      OpenTelemetry.propagation.inject(@headers)
+      yield if block
+    end
   end
 
   def nr_inject_headers(&block)
-    # TODO: figure out how to get the headers
-    headers = {}
-    NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(headers)
-    yield if block
+    NewRelic::Agent.instance.stub(:connected?, true) do
+      NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(@headers)
+      yield if block
+    end
   end
 end

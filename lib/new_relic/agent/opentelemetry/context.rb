@@ -2,10 +2,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-suite_condition('OpenTelemetry requires CRuby version 3.1+') do
-  RUBY_VERSION >= '3.1.0'
+module NewRelic
+  module Agent
+    module OpenTelemetry
+      module Context
+        require_relative 'context/propagation'
+      end
+    end
+  end
 end
-
-gemfile <<~RB
-  gem 'opentelemetry-api'
-RB
