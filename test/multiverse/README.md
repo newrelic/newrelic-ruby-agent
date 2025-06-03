@@ -38,21 +38,21 @@ The full list of data handling software used by the tests is as follows:
 * [Redis](https://redis.io)
 
 If you are using [Homebrew](https://brew.sh/), then you may make use of this
-project's [Brewfile](../../../Brewfile) file to automatically install all of
+project's [Brewfile](../../Brewfile) file to automatically install all of
 those applications as well as these additional dependency packages:
 
 * [pkg-config](https://freedesktop.org/wiki/Software/pkg-config/)
 * [OpenSSL](https://www.openssl.org/)
 * [ImageMagick](https://imagemagick.org/)
 
-To use the project [Brewfile](../../../Brewfile) file, run the following from
+To use the project [Brewfile](../../Brewfile) file, run the following from
 the root of the project git clone where the file resides:
 
 ```shell
 brew bundle
 ```
 
-The [Brewfile](../../../Brewfile) file will cause all of the following
+The [Brewfile](../../Brewfile) file will cause all of the following
 Homebrew services to be installed:
 
 * `elasticsearch`
