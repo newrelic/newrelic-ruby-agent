@@ -66,7 +66,7 @@ class GemNotifier < SlackNotifier
     abort("#{e.class}: #{e.message}")
   end
 
-  def self.validate_github_url(url)
+  def self.validate_url(url)
     uri = URI.parse(url)
     unless uri.scheme == "https"
       raise "Invalid or untrusted source_code_uri: #{url}"
