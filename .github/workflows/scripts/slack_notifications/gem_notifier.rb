@@ -59,13 +59,25 @@ class GemNotifier < SlackNotifier
     info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
     raise "Response unsuccessful: #{info}" unless info.success?
 
-    info["source_code_uri"]
+    source_code_uri = info["source_code_uri"]
+    validate_github_url(source_code_uri)
+
+    source_code_uri
   rescue StandardError => e
     abort("#{e.class}: #{e.message}")
   end
 
+  def self.validate_url(url)
+    uri = URI.parse(url)
+    unless uri.scheme == "https"
+      raise "Invalid or untrusted source_code_uri: #{url}"
+    end
+  rescue URI::InvalidURIError
+    raise "Malformed source_code_uri: #{url}"
+  end
+
   def self.github_diff(gem_name, newest, previous)
-    source_code_uri = gem_source_code_uri(gem_name)
+    source_code_uri = gem_source_code_uri(gem_name) # Already validated in gem_source_code_uri
     interpolated_url = interpolate_github_url(source_code_uri, newest, previous)
 
     interpolated_url if HTTParty.get(interpolated_url).success?
