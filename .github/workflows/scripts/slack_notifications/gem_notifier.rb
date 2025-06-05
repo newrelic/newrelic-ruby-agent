@@ -60,7 +60,7 @@ class GemNotifier < SlackNotifier
     raise "Response unsuccessful: #{info}" unless info.success?
 
     source_code_uri = info["source_code_uri"]
-    validate_github_url(source_code_uri)
+    validate_url(source_code_uri)
 
     source_code_uri
   rescue StandardError => e
