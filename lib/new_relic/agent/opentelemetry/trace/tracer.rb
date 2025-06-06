@@ -19,7 +19,7 @@ module NewRelic
               return if internal_span_kind_with_invalid_parent?(kind, parent_otel_context)
 
               nr_item = NewRelic::Agent::Tracer.start_transaction_or_segment(name: name, category: :otel)
-              add_remote_parent_otel_context_to_txn(nr_item, parent_otel_context)
+              add_remote_context_to_txn(nr_item, parent_otel_context)
               nr_item
             else
               NewRelic::Agent::Tracer.start_segment(name: name)
@@ -70,7 +70,7 @@ module NewRelic
             txn.is_a?(NewRelic::Agent::Transaction) && parent_otel_context.remote?
           end
 
-          def add_remote_parent_otel_context_to_txn(txn, parent_otel_context)
+          def add_remote_context_to_txn(txn, parent_otel_context)
             return unless transaction_and_remote_parent?(txn, parent_otel_context)
 
             txn.trace_id = parent_otel_context.trace_id
