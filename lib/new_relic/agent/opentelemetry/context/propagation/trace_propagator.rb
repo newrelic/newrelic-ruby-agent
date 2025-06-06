@@ -17,23 +17,32 @@ module NewRelic
             end
 
             def extract(carrier, context: ::OpenTelemetry::Context.current, getter: ::OpenTelemetry::Context::Propagation.text_map_getter)
-              trace_parent_value = carrier[TRACEPARENT_KEY]
-              return context unless trace_parent_value
-
-              # There's an optional format key that we may need to address eventually
-              # If the format is rack, then the key is HTTP_TRACEPARENT
-              trace_context = NewRelic::Agent::DistributedTracing::TraceContext.parse(carrier: carrier)
-
+              carrier_format = determine_format(getter)
+              trace_state_entry_key = "#{NewRelic::Agent.config[:account_id]}@nr"
+              trace_context = NewRelic::Agent::DistributedTracing::TraceContext.parse(carrier: carrier, format: carrier_format, trace_state_entry_key: trace_state_entry_key)
               tp = trace_context.trace_parent
 
-              # TODO: Add tracestate parsing
-              span_context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: tp['trace_id'], span_id: tp['parent_id'], trace_flags: tp['trace_flags'], tracestate: nil, remote: true)
+              # TODO: Not much happens with tracestate at this time, revisit before GA
+              span_context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: tp['trace_id'], span_id: tp['parent_id'], trace_flags: tp['trace_flags'], tracestate: trace_context.trace_state_payload, remote: true)
 
               span = ::OpenTelemetry::Trace.non_recording_span(span_context)
               ::OpenTelemetry::Trace.context_with_span(span, parent_context: context)
             rescue StandardError => e
               NewRelic::Agent.logger.error("Unable to extract context: #{e.message}")
               context
+            end
+
+            private
+
+            def determine_format(getter)
+              case getter
+              when ::OpenTelemetry::Context::Propagation::RackEnvGetter
+                FORMAT_RACK
+              when defined?(::OpenTelemetry::Common) && ::OpenTelemetry::Common::Propagation::RackEnvGetter
+                FORMAT_RACK
+              else
+                FORMAT_NON_RACK
+              end
             end
           end
         end
