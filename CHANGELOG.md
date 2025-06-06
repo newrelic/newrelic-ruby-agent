@@ -10,6 +10,10 @@
 
   Previously, the multiverse README's links to the Brewfile were broken. Our thanks go to [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) for submitting a PR to fix them! [PR#3191](https://github.com/newrelic/newrelic-ruby-agent/pull/3191)
 
+- **Bugfix: Fix error when using HTTPX 1.5.0**
+
+  The agent previously encountered an error when using the new HTTPX version 1.5.0. This was due to a change in the way HTTPX stores the response. The agent has been updated to handle this change correctly, and no longer encounters an error when using HTTPX 1.5.0. [PR#3203](https://github.com/newrelic/newrelic-ruby-agent/pull/3203)
+
 
 ## v9.19.0
 
