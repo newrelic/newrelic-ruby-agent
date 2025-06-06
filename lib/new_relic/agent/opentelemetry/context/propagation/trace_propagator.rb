@@ -16,16 +16,19 @@ module NewRelic
               NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(carrier)
             end
 
+            # The return value for this method should be an instance of the
+            # OpenTelemetry Context class. The return value of
+            # #accept_distributed_trace_headers is a transaction, so we cannot
+            # use it to extract the context.
             def extract(carrier, context: ::OpenTelemetry::Context.current, getter: ::OpenTelemetry::Context::Propagation.text_map_getter)
               carrier_format = determine_format(getter)
               trace_state_entry_key = "#{NewRelic::Agent.config[:account_id]}@nr"
               trace_context = NewRelic::Agent::DistributedTracing::TraceContext.parse(carrier: carrier, format: carrier_format, trace_state_entry_key: trace_state_entry_key)
               tp = trace_context.trace_parent
-
               # TODO: Not much happens with tracestate at this time, revisit before GA
               span_context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: tp['trace_id'], span_id: tp['parent_id'], trace_flags: tp['trace_flags'], tracestate: trace_context.trace_state_payload, remote: true)
-
               span = ::OpenTelemetry::Trace.non_recording_span(span_context)
+
               ::OpenTelemetry::Trace.context_with_span(span, parent_context: context)
             rescue StandardError => e
               NewRelic::Agent.logger.error("Unable to extract context: #{e.message}")
@@ -34,6 +37,9 @@ module NewRelic
 
             private
 
+            # The getter is the way OpenTelemetry handles Rack vs. non-Rack
+            # formats. Rather than using their parser, get the class info we
+            # need to do things the New Relic way
             def determine_format(getter)
               case getter
               when ::OpenTelemetry::Context::Propagation::RackEnvGetter
