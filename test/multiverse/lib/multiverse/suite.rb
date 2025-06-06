@@ -268,7 +268,7 @@ module Multiverse
     end
 
     def ruby3_gem_webrick
-      NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.0.0') ? "gem 'webrick'" : ''
+      RUBY_VERSION >= '3.0.0' ? "gem 'webrick'" : ''
     end
 
     def generate_gemfile(gemfile_text, env_index, local = true)
@@ -312,11 +312,11 @@ module Multiverse
     end
 
     def minitest_version
-      if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.6')
+      if RUBY_VERSION >= '2.6'
         '5.16.2'
-      elsif NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.5')
+      elsif RUBY_VERSION >= '2.5'
         '5.15.0'
-      elsif NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.4')
+      elsif RUBY_VERSION >= '2.4'
         '5.10.1'
       else
         '4.7.5'
@@ -327,7 +327,7 @@ module Multiverse
     # rack v3 and rackup require Ruby 2.4+, so assume rack v2 or below
     # (which doesn't need the separate rackup) for older rubies
     def need_rackup?(gemfile_text)
-      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/ && NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.4.0')
+      return false unless gemfile_text =~ /^\s*gem\s+['"]rack['"](?:\s*,[^\d]+(\d))?/ && RUBY_VERSION >= '2.4.0'
 
       rack_major_version = Regexp.last_match(1)
       return true if rack_major_version.nil? # no version constraint, latest rack, needs rackup
@@ -581,7 +581,7 @@ module Multiverse
 
       load(@after_file) if @after_file
 
-      if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.7.0')
+      if RUBY_VERSION >= '2.7.0'
         # This is only used for SimpleCov at this time,
         # an error will be raised on Ruby versions that do not run
         # SimpleCov without this condition
