@@ -28,8 +28,15 @@ module Commands
 
   def do_work_in_span_with_inbound_context(span_name:, span_kind:, trace_id_in_header:,
     span_id_in_header:, sampled_flag_in_header:, &block)
+    sampled = sampled_flag_in_header == '0' ? '00' : '01'
 
-    carrier = {'traceparent' => "00-#{trace_id_in_header}-#{span_id_in_header}-0#{sampled_flag_in_header}"}
+    carrier = {
+      'traceparent' => "00-#{trace_id_in_header}-#{span_id_in_header}-#{sampled}",
+      # 190 is the account ID stubbed in the config during setup
+      # 46954 is the parent app ID stubbed in the config during setup
+      'tracestate' => "190@nr=0-0-1-46954-#{span_id_in_header}-e8b91a159289ff74-#{sampled}-#{sampled}.23456-1518469636035"
+    }
+
     parent_context = OpenTelemetry.propagation.extract(carrier)
     span = @tracer.start_span(span_name, with_parent: parent_context, kind: span_kind)
 
