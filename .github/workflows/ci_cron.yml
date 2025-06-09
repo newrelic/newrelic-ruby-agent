@@ -181,8 +181,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
-      elasticsearch8:
-        image: elasticsearch:8.13.0
+      elasticsearch9:
+        image: elasticsearch:9.0.2
         env:
           discovery.type: single-node
           xpack.security.enabled: false
