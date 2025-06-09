@@ -170,29 +170,6 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
-      elasticsearch7:
-        image: elasticsearch:7.16.2
-        env:
-          discovery.type: single-node
-        ports:
-          - 9200:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      elasticsearch9:
-        image: elasticsearch:9.0.2
-        env:
-          discovery.type: single-node
-          xpack.security.enabled: false
-        ports:
-          - 9250:9200
-        options: >-
-          --health-cmd "curl http://localhost:9200/_cluster/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
       mongodb:
         image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
         ports:
@@ -334,6 +311,73 @@ jobs:
           SERIALIZE: 1
           POSTGRES_USERNAME: postgres
           POSTGRES_PASSWORD: password
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+  multiverse_elasticsearch:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      elasticsearch7:
+        image: elasticsearch:7.16.2
+        env:
+          discovery.type: single-node
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      elasticsearch9:
+        image: elasticsearch:9.0.2
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9250:9200
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4]
+
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+
+        # - curl is needed for Curb
+        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+        # - sasl is needed for memcached
+      - name: Install OS packages
+        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+      - name: Install Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Setup bundler
+        run: ./.github/workflows/scripts/setup_bundler
+        env:
+          RUBY_VERSION: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command: bundle exec rake test:multiverse[group="elasticsearch"]
+        env:
+          VERBOSE_TEST_OUTPUT: true
+          SERIALIZE: 1
 
       - name: Annotate errors
         if: ${{ failure() }}
