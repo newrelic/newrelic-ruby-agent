@@ -366,7 +366,7 @@ jobs:
           path: gem_manifest_${{ matrix.ruby-version }}_services_2.json
           retention-days: 2
 
-  multiverse_elasticsearch:
+  multiverse_services_elasticsearch:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
@@ -438,7 +438,7 @@ jobs:
       - name: Save coverage results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
-          name: coverage-report-multiverse-${{ matrix.ruby-version }}-elasticsearch
+          name: coverage-report-multiverse-${{ matrix.ruby-version }}-services_elasticsearch
           path: lib/coverage_*/.resultset.json
           include-hidden-files: true
           retention-days: 2
@@ -449,8 +449,8 @@ jobs:
       - name: Save gem manifest
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
         with:
-          name: gem_manifest_${{ matrix.ruby-version }}_elasticsearch.json
-          path: gem_manifest_${{ matrix.ruby-version }}_elasticsearch.json
+          name: gem_manifest_${{ matrix.ruby-version }}_services_elasticsearch.json
+          path: gem_manifest_${{ matrix.ruby-version }}_services_elasticsearch.json
           retention-days: 2
 
 
@@ -710,7 +710,7 @@ jobs:
 
 
   simplecov:
-    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
+    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_services_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04
     if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
