@@ -337,7 +337,7 @@ jobs:
           discovery.type: single-node
           xpack.security.enabled: false
         ports:
-          - 9250:9200
+          - 9252:9200
         options: >-
           --health-cmd "curl http://localhost:9200/_cluster/health"
           --health-interval 10s
