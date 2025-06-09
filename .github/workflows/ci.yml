@@ -710,7 +710,7 @@ jobs:
 
 
   simplecov:
-    needs: [unit_tests, multiverse, infinite_tracing]
+    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04
     if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
