@@ -374,7 +374,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group="elasticsearch"]
+          command: bundle exec rake test:multiverse[group="services_elasticsearch"]
         env:
           VERBOSE_TEST_OUTPUT: true
           SERIALIZE: 1
