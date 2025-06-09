@@ -5,7 +5,7 @@
 instrumentation_methods :chain, :prepend
 
 ELASTICSEARCH_VERSIONS = [
-  # [nil, 2.5], # temporarily stop testing elasticsearch 9
+  [nil, 2.5],
   ['8.12.0', 2.5],
   ['7.17.1', 2.4]
 ]

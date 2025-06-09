@@ -231,8 +231,10 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   def port
     if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
       9200 # 9200 for elasticsearch 7
-    else
+    elsif ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('9.0.0')
       9250 # 9250 for elasticsearch 8
+    else
+      9252 # 9252 for elasticsearch 9
     end
   end
 end
