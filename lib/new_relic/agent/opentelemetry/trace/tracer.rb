@@ -75,6 +75,10 @@ module NewRelic
 
             txn.trace_id = parent_otel_context.trace_id
             txn.parent_span_id = parent_otel_context.span_id
+
+            txn.distributed_tracer.instance_variable_set(:@trace_state_payload, parent_otel_context.tracestate)
+            txn.distributed_tracer.parent_transaction_id = txn.distributed_tracer.trace_state_payload.transaction_id
+            txn.distributed_tracer.determine_sampling_decision(parent_otel_context.tracestate, parent_otel_context.trace_flags)
           end
 
           def add_remote_context_to_otel_span(otel_span, parent_otel_context)

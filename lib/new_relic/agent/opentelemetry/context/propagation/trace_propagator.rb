@@ -22,11 +22,19 @@ module NewRelic
             # use it to extract the context.
             def extract(carrier, context: ::OpenTelemetry::Context.current, getter: ::OpenTelemetry::Context::Propagation.text_map_getter)
               carrier_format = determine_format(getter)
-              trace_state_entry_key = "#{NewRelic::Agent.config[:account_id]}@nr"
-              trace_context = NewRelic::Agent::DistributedTracing::TraceContext.parse(carrier: carrier, format: carrier_format, trace_state_entry_key: trace_state_entry_key)
+              trace_context = NewRelic::Agent::DistributedTracing::TraceContext.parse(
+                carrier: carrier,
+                format: carrier_format,
+                trace_state_entry_key: Transaction::TraceContext::AccountHelpers.trace_state_entry_key
+              )
               tp = trace_context.trace_parent
-              # TODO: Not much happens with tracestate at this time, revisit before GA
-              span_context = ::OpenTelemetry::Trace::SpanContext.new(trace_id: tp['trace_id'], span_id: tp['parent_id'], trace_flags: tp['trace_flags'], tracestate: trace_context.trace_state_payload, remote: true)
+              span_context = ::OpenTelemetry::Trace::SpanContext.new(
+                trace_id: tp['trace_id'],
+                span_id: tp['parent_id'],
+                trace_flags: tp['trace_flags'],
+                tracestate: trace_context.trace_state_payload,
+                remote: true
+              )
               span = ::OpenTelemetry::Trace.non_recording_span(span_context)
 
               ::OpenTelemetry::Trace.context_with_span(span, parent_context: context)

@@ -136,7 +136,7 @@ module NewRelic
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
 
-          determine_sampling_decision(payload, header_data)
+          determine_sampling_decision(payload, header_data.trace_parent['trace_flags'])
 
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
@@ -146,10 +146,10 @@ module NewRelic
           false
         end
 
-        def determine_sampling_decision(payload, header_data)
-          if header_data.trace_parent['trace_flags'] == '01'
+        def determine_sampling_decision(payload, trace_flags)
+          if trace_flags == '01'
             set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'], payload)
-          elsif header_data.trace_parent['trace_flags'] == '00'
+          elsif trace_flags == '00'
             set_priority_and_sampled(NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'], payload)
           else
             use_nr_tracestate_sampled(payload)
