@@ -9,7 +9,8 @@ require 'capistrano/deploy'
 # Newer Capistrano versions need us to load
 # Git SCM support explicitly
 if defined?(Capistrano::VERSION) &&
-    NewRelic::Helper.version_satisfied?(Capistrano::VERSION, '>=', '3.7.0')
+    Gem::Version.new(Capistrano::VERSION) >=
+        Gem::Version.new('3.7.0')
 
   require 'capistrano/scm/git'
   install_plugin Capistrano::SCM::Git

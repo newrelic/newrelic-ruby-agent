@@ -233,9 +233,9 @@ class GrapeTest < Minitest::Test
       #
       # Rack >= 3.1 further changes things, so we also excuse an actual 0 value
       # when it is in play
-      if NewRelic::Helper.version_satisfied?(::Grape::VERSION, '>=', '1.3.0')
+      if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('1.3.0')
         rack31_plus_and_zero = Rack.respond_to?(:release) &&
-          NewRelic::Helper.version_satisfied?(Rack.release, '>=', '3.1.0') &&
+          Gem::Version.new(Rack.release) >= Gem::Version.new('3.1.0') &&
           actual['request.headers.contentLength'] == 0
 
         if expected['response.headers.contentLength'] == 0 || rack31_plus_and_zero
@@ -269,7 +269,7 @@ class GrapeApiInstanceTest < Minitest::Test
 
   setup_and_teardown_agent
 
-  if NewRelic::Helper.version_satisfied?(::Grape::VERSION, '>=', '1.2.0')
+  if ::Grape::VERSION >= '1.2.0'
     def app
       Rack::Builder.app { run(GrapeApiInstanceTestApi.new) }
     end
