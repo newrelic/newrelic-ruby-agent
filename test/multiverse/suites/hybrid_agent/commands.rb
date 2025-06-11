@@ -50,6 +50,11 @@ module Commands
     yield if block
   end
 
+  def add_otel_attribute_hash(name:, value:, &block)
+    OpenTelemetry::Trace.current_span&.add_attributes(name => value)
+    yield if block
+  end
+
   def record_exception_on_span(error_message:, &block)
     exception = StandardError.new(error_message)
     OpenTelemetry::Trace.current_span.record_exception(exception)

@@ -12,6 +12,14 @@ module NewRelic
           def finish(end_timestamp: nil)
             finishable&.finish
           end
+
+          def set_attribute(key, value)
+            NewRelic::Agent.add_custom_span_attributes(key => value)
+          end
+
+          def add_attributes(attributes)
+            NewRelic::Agent.add_custom_span_attributes(attributes)
+          end
         end
       end
     end

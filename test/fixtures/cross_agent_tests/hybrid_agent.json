@@ -212,7 +212,7 @@
                 ]
               },
               {
-                "command": "AddOTelAttribute",
+                "command": "AddOTelAttributeHash",
                 "parameters": {
                   "name": "spanNumber",
                   "value": 1
