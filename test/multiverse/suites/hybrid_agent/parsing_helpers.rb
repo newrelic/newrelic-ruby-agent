@@ -131,28 +131,46 @@ module ParsingHelpers
   end
 
   def verify_span_output(output)
-    spans = harvest_span_events![1].flatten.reject { |h| h.empty? }
+    # The harvest payload for spans includes some info about the reservoir
+    # in the zero-index.
+    # The first-index includes the span events that were harvested, which is all
+    # we care about for these tests
+    spans = harvest_span_events![1]
 
     output.each do |expected|
-      actual = spans.find { |s| s['name'] == expected['name'] }
+      # A harvested span is an array with three hashes:
+      # span[0] is the Span event itself
+      # span[1] is for custom attributes
+      # span[2] is for agent attributes (which aren't tested here)
+      actual = spans.find { |s| s[0]['name'] == expected['name'] }
+
+      assert actual, "Span output could not be verified. Span was not found.\n" \
+        "Expected: #{expected}\n" \
+        "Harvested spans: #{spans}\n"
 
       if expected['category']
-        assert_equal expected['category'], actual['category'], 'Unexpected category'
+        assert_equal expected['category'], actual[0]['category'], 'Expected category not found.'
       end
 
       if expected['entryPoint']
-        assert_equal expected['entryPoint'], actual['nr.entryPoint'], 'Unexpected entryPoint'
+        assert_equal expected['entryPoint'], actual[0]['nr.entryPoint'], 'Span was not an entrypoint.'
       end
 
       expected['attributes']&.each do |expected_key, expected_value|
-        puts 'SKIPPING ASSERTION - NEED TO IMPLEMENT ATTRIBUTES AND ERROR HANDLING'
-        # assert_equal expected_value, actual['attributes'][expected_key], 'Unexpected attribute'
+        assert_equal expected_value, actual[1] & [expected_key],
+          "Expected attributes not found.\n" \
+          "Expected attribute: {'#{expected_key}' => '#{expected_value}'}\n" \
+          "Actual span: #{actual}\n"
       end
 
       if expected['parentName']
-        result = spans.find { |s| s['guid'] == actual['parentId'] }.dig('name')
+        result = spans.find { |s| s[0]['guid'] == actual[0]['parentId'] } if actual
+        result_name = result&.first&.dig('name')
 
-        assert_equal expected['parentName'], result, 'Unexpected parent name'
+        assert_equal expected['parentName'], result_name,
+          "Expected parent name not found.\n" \
+          "Expected parent name: #{expected['parentName']}\n" \
+          "Actual span: #{actual}\n"
       end
     end
   end
