@@ -409,14 +409,14 @@
           {
             "command": "DoWorkInSpan",
             "parameters": {
-              "spanName": "OTelSpan1",
+              "spanName": "OTelSpan2",
               "spanKind": "Client"
             },
             "childOperations": [
               {
                 "command": "SimulateExternalCall",
                 "parameters": {
-                  "url": "url4"
+                  "url": "url3"
                 },
                 "childOperations": [
                   {
@@ -461,7 +461,7 @@
           {
             "command": "DoWorkInSegment",
             "parameters": {
-              "segmentName": "segment1"
+              "segmentName": "segment2"
             },
             "childOperations": [
               {
@@ -521,10 +521,20 @@
       ],
       "spans": [
         {
-          "name": "Bar",
-          "attributes": {
-            "error.message": "Test exception message"
-          }
+          "name": "OTelSpan1",
+          "parentName": "Foo"
+        },
+        {
+          "name": "segment1",
+          "parentName": "Foo"
+        },
+        {
+          "name": "OTelSpan2",
+          "parentName": "Foo"
+        },
+        {
+          "name": "segment2",
+          "parentName": "Foo"
         }
       ]
     }
