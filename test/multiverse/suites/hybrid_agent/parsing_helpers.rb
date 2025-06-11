@@ -143,20 +143,21 @@ module ParsingHelpers
       # span[1] is for custom attributes
       # span[2] is for agent attributes (which aren't tested here)
       actual = spans.find { |s| s[0]['name'] == expected['name'] }
+
       assert actual, "Span output could not be verified. Span was not found.\n" \
         "Expected: #{expected}\n" \
         "Harvested spans: #{spans}\n"
 
       if expected['category']
-        assert_equal expected['category'], actual[0]['category'], "Expected category not found."
+        assert_equal expected['category'], actual[0]['category'], 'Expected category not found.'
       end
 
       if expected['entryPoint']
-        assert_equal expected['entryPoint'], actual[0]['nr.entryPoint'], 'Span was not an entrypoint'
+        assert_equal expected['entryPoint'], actual[0]['nr.entryPoint'], 'Span was not an entrypoint.'
       end
 
       expected['attributes']&.each do |expected_key, expected_value|
-        assert_equal expected_value, actual&[1]&[expected_key],
+        assert_equal expected_value, actual & [1] & [expected_key],
           "Expected attributes not found.\n" \
           "Expected attribute: {'#{expected_key}' => '#{expected_value}'}\n" \
           "Actual span: #{actual}\n"
