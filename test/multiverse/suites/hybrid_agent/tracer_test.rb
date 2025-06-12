@@ -50,6 +50,17 @@ module NewRelic
             assert_predicate otel_finishable, :finished?, 'OTel span should finish NR transaction'
           end
 
+          def test_start_span_with_attributes_captures_attributes
+            attributes = {'strawberry' => 'red'}
+            txn = in_transaction do
+              @tracer.in_span('fruit', kind: :internal, attributes: attributes) { 'seeds' }
+            end
+            spans = harvest_span_events![1]
+            span_attributes = spans[0][1]
+
+            assert_equal span_attributes, attributes
+          end
+
           private
 
           def assert_logged(expected)
