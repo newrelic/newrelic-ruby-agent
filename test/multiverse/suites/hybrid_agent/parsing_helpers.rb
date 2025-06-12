@@ -158,6 +158,7 @@ module ParsingHelpers
 
       expected['attributes']&.each do |expected_key, expected_value|
         actual_value = actual[1][expected_key]
+
         assert_equal expected_value, actual_value,
           "Expected attributes not found.\n" \
           "Expected attribute: {'#{expected_key}' => '#{expected_value}'}\n" \
