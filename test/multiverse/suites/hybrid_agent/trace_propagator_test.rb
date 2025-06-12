@@ -25,8 +25,8 @@ module NewRelic
             def test_extract_returns_context_with_standard_headers
               with_config(:account_id => '190', primary_application_id: '46954') do
                 carrier = {
-                  'traceparent' => "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-00",
-                  'tracestate' => "190@nr=0-0-1-46954-7d3efb1b173fecfa-e8b91a159289ff74-00-00.23456-1518469636035"
+                  'traceparent' => '00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-00',
+                  'tracestate' => '190@nr=0-0-1-46954-7d3efb1b173fecfa-e8b91a159289ff74-00-00.23456-1518469636035'
                 }
 
                 result = @propagator.extract(carrier)
@@ -35,6 +35,7 @@ module NewRelic
                 # from a context object. parsing the string will help us
                 # check the values with fewer shenanigans
                 context_string = result.instance_variable_get(:@entries).to_s
+
                 assert_match(/trace_id=\"da8bc8cc6d062849b0efcf3c169afb5a"/, context_string, 'trace_id does not match')
                 assert_match(/span_id=\"7d3efb1b173fecfa"/, context_string, "span_id doesn't match")
                 assert_match(/trace_flags=\"00\"/, context_string, "trace_flags doesn't match")
@@ -49,6 +50,7 @@ module NewRelic
             def test_extract_with_empty_carrier_returns_context
               carrier = {}
               result = @propagator.extract(carrier)
+
               assert_instance_of(::OpenTelemetry::Context, result)
             end
 
@@ -59,8 +61,8 @@ module NewRelic
               # the Envfile
               with_config(:account_id => '190', primary_application_id: '46954') do
                 rack_carrier = {
-                  'HTTP_TRACEPARENT' => "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01",
-                  'HTTP_TRACESTATE' => "190@nr=0-0-1-46954-7d3efb1b173fecfa-e8b91a159289ff74-01-01.23456-1518469636035"
+                  'HTTP_TRACEPARENT' => '00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01',
+                  'HTTP_TRACESTATE' => '190@nr=0-0-1-46954-7d3efb1b173fecfa-e8b91a159289ff74-01-01.23456-1518469636035'
                 }
                 result = @propagator.extract(rack_carrier, getter: ::OpenTelemetry::Context::Propagation.rack_env_getter)
 
@@ -68,6 +70,7 @@ module NewRelic
                 # from a context object. parsing the string will help us
                 # check the values with fewer shenanigans
                 context_string = result.instance_variable_get(:@entries).to_s
+
                 assert_match(/trace_id=\"da8bc8cc6d062849b0efcf3c169afb5a"/, context_string, 'trace_id does not match')
                 assert_match(/span_id=\"7d3efb1b173fecfa"/, context_string, "span_id doesn't match")
                 assert_match(/trace_flags=\"01\"/, context_string, "trace_flags doesn't match")
