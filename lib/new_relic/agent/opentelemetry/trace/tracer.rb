@@ -76,9 +76,45 @@ module NewRelic
             txn.trace_id = parent_otel_context.trace_id
             txn.parent_span_id = parent_otel_context.span_id
 
-            txn.distributed_tracer.instance_variable_set(:@trace_state_payload, parent_otel_context.tracestate)
-            txn.distributed_tracer.parent_transaction_id = txn.distributed_tracer.trace_state_payload.transaction_id
-            txn.distributed_tracer.determine_sampling_decision(parent_otel_context.tracestate, parent_otel_context.trace_flags)
+            set_tracestate(txn.distributed_tracer, parent_otel_context)
+          end
+
+          def set_tracestate(distributed_tracer, otel_context)
+            case otel_context.tracestate
+            when ::OpenTelemetry::Trace::Tracestate
+              set_otel_trace_state(distributed_tracer, otel_context)
+            when NewRelic::Agent::TraceContextPayload
+              set_nr_trace_state(distributed_tracer, otel_context)
+            end
+          end
+
+          def set_nr_trace_state(distributed_tracer, otel_context)
+            distributed_tracer.instance_variable_set(:@trace_state_payload, otel_context.tracestate)
+            distributed_tracer.parent_transaction_id = distributed_tracer.trace_state_payload.transaction_id
+            distributed_tracer.determine_sampling_decision(otel_context.tracestate, otel_context.trace_flags)
+          end
+
+          def set_otel_trace_state(distributed_tracer, otel_context)
+            nr_payload = nil
+            nr_entry = otel_context.tracestate.value(Transaction::TraceContext::AccountHelpers.trace_state_entry_key)
+            if nr_entry
+              nr_payload = NewRelic::Agent::TraceContextPayload.from_s(nr_entry)
+              distributed_tracer.instance_variable_set(:@trace_state_payload, nr_payload)
+              distributed_tracer.parent_transaction_id = distributed_tracer.trace_state_payload.transaction_id
+              trace_flags = parse_trace_flags(otel_context.trace_flags)
+              distributed_tracer.determine_sampling_decision(nr_payload, trace_flags)
+            end
+          end
+
+          def parse_trace_flags(trace_flags)
+            case trace_flags
+            when String
+              trace_flags
+            when Integer
+              trace_flags.to_s
+            when ::OpenTelemetry::Trace::TraceFlags
+              trace_flags.sampled? ? '01' : '00'
+            end
           end
 
           def add_remote_context_to_otel_span(otel_span, parent_otel_context)
