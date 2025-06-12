@@ -48,7 +48,7 @@ module NewRelic
 
           def test_add_attributes_patch_for_spans
             attributes = {
-              'yosemite' => 'california', 
+              'yosemite' => 'california',
               'yellowstone' => 'wyoming'
             }
             in_transaction do
