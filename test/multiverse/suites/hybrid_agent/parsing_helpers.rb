@@ -157,9 +157,14 @@ module ParsingHelpers
       end
 
       expected['attributes']&.each do |expected_key, expected_value|
-        actual_value = actual[1][expected_key]
+        # 0 is intrinsic attributes, 1 is custom attributes, 2 is agent attributes
+        attr_section = if expected_key.start_with?('error.')
+          actual[2] # error attributes are in the agent attributes section
+        else
+          actual[1]
+        end
 
-        assert_equal expected_value, actual_value,
+        assert_equal expected_value, attr_section[expected_key],
           "Expected attributes not found.\n" \
           "Expected attribute: {'#{expected_key}' => '#{expected_value}'}\n" \
           "Actual span: #{actual}\n"

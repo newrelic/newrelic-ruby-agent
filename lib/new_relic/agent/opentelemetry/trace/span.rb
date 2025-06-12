@@ -20,6 +20,10 @@ module NewRelic
           def add_attributes(attributes)
             NewRelic::Agent.add_custom_span_attributes(attributes)
           end
+
+          def record_exception(exception, attributes: nil)
+            NewRelic::Agent.notice_error(exception, attributes: attributes)
+          end
         end
       end
     end
