@@ -12,6 +12,10 @@ module NewRelic
           def finish(end_timestamp: nil)
             finishable&.finish
           end
+
+          def record_exception(exception, attributes: nil)
+            NewRelic::Agent.notice_error(exception, attributes: attributes)
+          end
         end
       end
     end
