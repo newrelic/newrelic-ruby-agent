@@ -51,10 +51,12 @@ module NewRelic
               'yosemite' => 'california',
               'yellowstone' => 'wyoming'
             }
-            in_transaction do
-              otel_span = @tracer.start_span('test_span')
-              otel_span.add_attributes(attributes)
-              otel_span.finish
+            in_transaction do |txn|
+              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                otel_span = @tracer.start_span('test_span')
+                otel_span.add_attributes(attributes)
+                otel_span.finish
+              end
             end
             spans = harvest_span_events![1]
             span_attributes = spans[0][1]
