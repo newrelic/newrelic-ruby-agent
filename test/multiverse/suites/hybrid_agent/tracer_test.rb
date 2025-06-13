@@ -18,7 +18,9 @@ module NewRelic
 
           def test_in_span_creates_segment_when_span_kind_internal
             txn = in_transaction do
-              @tracer.in_span('fruit', kind: :internal) { 'seeds' }
+              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                @tracer.in_span('fruit', kind: :internal) { 'seeds' }
+              end
             end
 
             assert_includes(txn.segments.map(&:name), 'fruit')
@@ -28,8 +30,10 @@ module NewRelic
             txn = nil
             begin
               in_transaction do |zombie_txn|
-                txn = zombie_txn
-                @tracer.in_span('brains', kind: :internal) { raise 'the dead' }
+                NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                  txn = zombie_txn
+                  @tracer.in_span('brains', kind: :internal) { raise 'the dead' }
+                end
               end
             rescue => e
               # NOOP - allow transaction to capture error
@@ -153,21 +157,35 @@ module NewRelic
             mock_otel_context.verify
           end
 
-          # def test_set_tracestate_with_otel_tracestate
-          #   mock_distributed_tracer = Minitest::Mock.new
-          #   mock_otel_context = Minitest::Mock.new
-          #   otel_tracestate = ::OpenTelemetry::Trace::Tracestate.create('nr' => 'payload')
+          def test_set_tracestate_with_otel_tracestate
+            mock_distributed_tracer = Minitest::Mock.new
+            mock_otel_context = Minitest::Mock.new
+            otel_tracestate = ::OpenTelemetry::Trace::Tracestate.create('nr' => 'payload')
 
-          #   mock_otel_context.expect :tracestate, otel_tracestate
+            mock_otel_context.expect :tracestate, otel_tracestate
 
-          #   @tracer.stub :set_otel_trace_state, ->(dt, oc) { :set_otel_trace_state_called } do
-          #     result = @tracer.send(:set_tracestate, mock_distributed_tracer, mock_otel_context)
+            @tracer.stub :set_otel_trace_state, ->(dt, oc) { :set_otel_trace_state_called } do
+              result = @tracer.send(:set_tracestate, mock_distributed_tracer, mock_otel_context)
 
-          #     assert_equal :set_otel_trace_state_called, result
-          #   end
+              assert_equal :set_otel_trace_state_called, result
+            end
 
-          #   mock_otel_context.verify
-          # end
+            mock_otel_context.verify
+          end
+
+          def test_start_span_with_attributes_captures_attributes
+            attributes = {'strawberry' => 'red'}
+            txn = in_transaction do
+              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                otel_span = @tracer.start_span('test_span', attributes: attributes)
+                otel_span.finish
+              end
+            end
+            spans = harvest_span_events![1]
+            span_attributes = spans[0][1]
+
+            assert_equal span_attributes, attributes
+          end
 
           private
 
