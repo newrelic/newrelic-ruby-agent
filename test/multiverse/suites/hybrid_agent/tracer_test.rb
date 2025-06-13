@@ -153,21 +153,21 @@ module NewRelic
             mock_otel_context.verify
           end
 
-          # def test_set_tracestate_with_otel_tracestate
-          #   mock_distributed_tracer = Minitest::Mock.new
-          #   mock_otel_context = Minitest::Mock.new
-          #   otel_tracestate = ::OpenTelemetry::Trace::Tracestate.create('nr' => 'payload')
+          def test_set_tracestate_with_otel_tracestate
+            mock_distributed_tracer = Minitest::Mock.new
+            mock_otel_context = Minitest::Mock.new
+            otel_tracestate = ::OpenTelemetry::Trace::Tracestate.create('nr' => 'payload')
 
-          #   mock_otel_context.expect :tracestate, otel_tracestate
+            mock_otel_context.expect :tracestate, otel_tracestate
 
-          #   @tracer.stub :set_otel_trace_state, ->(dt, oc) { :set_otel_trace_state_called } do
-          #     result = @tracer.send(:set_tracestate, mock_distributed_tracer, mock_otel_context)
+            @tracer.stub :set_otel_trace_state, ->(dt, oc) { :set_otel_trace_state_called } do
+              result = @tracer.send(:set_tracestate, mock_distributed_tracer, mock_otel_context)
 
-          #     assert_equal :set_otel_trace_state_called, result
-          #   end
+              assert_equal :set_otel_trace_state_called, result
+            end
 
-          #   mock_otel_context.verify
-          # end
+            mock_otel_context.verify
+          end
 
           private
 
