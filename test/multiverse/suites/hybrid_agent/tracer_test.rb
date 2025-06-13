@@ -18,7 +18,9 @@ module NewRelic
 
           def test_in_span_creates_segment_when_span_kind_internal
             txn = in_transaction do
-              @tracer.in_span('fruit', kind: :internal) { 'seeds' }
+              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                @tracer.in_span('fruit', kind: :internal) { 'seeds' }
+              end
             end
 
             assert_includes(txn.segments.map(&:name), 'fruit')
@@ -28,8 +30,10 @@ module NewRelic
             txn = nil
             begin
               in_transaction do |zombie_txn|
-                txn = zombie_txn
-                @tracer.in_span('brains', kind: :internal) { raise 'the dead' }
+                NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                  txn = zombie_txn
+                  @tracer.in_span('brains', kind: :internal) { raise 'the dead' }
+                end
               end
             rescue => e
               # NOOP - allow transaction to capture error
@@ -167,6 +171,20 @@ module NewRelic
             end
 
             mock_otel_context.verify
+          end
+
+          def test_start_span_with_attributes_captures_attributes
+            attributes = {'strawberry' => 'red'}
+            txn = in_transaction do
+              NewRelic::Agent.instance.adaptive_sampler.stub(:sampled?, true) do
+                otel_span = @tracer.start_span('test_span', attributes: attributes)
+                otel_span.finish
+              end
+            end
+            spans = harvest_span_events![1]
+            span_attributes = spans[0][1]
+
+            assert_equal span_attributes, attributes
           end
 
           private

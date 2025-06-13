@@ -28,6 +28,7 @@ module NewRelic
             otel_span = get_otel_span_from_finishable(finishable)
             otel_span.finishable = finishable
             add_remote_context_to_otel_span(otel_span, parent_otel_context)
+            otel_span.add_attributes(attributes) if attributes          
             otel_span
           end
 
