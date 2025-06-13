@@ -27,6 +27,7 @@ module NewRelic
 
             span = get_span_from_finishable(finishable)
             span.finishable = finishable
+            span.add_attributes(attributes) if attributes
             span
           end
 
