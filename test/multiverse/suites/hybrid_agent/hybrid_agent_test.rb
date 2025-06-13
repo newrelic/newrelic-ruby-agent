@@ -36,8 +36,7 @@ class HybridAgentTest < Minitest::Test
   # Ex: %w[does_not_create_segment_without_a_transaction] would only run
   # `"testDescription": "Does not create segment without a transaction"`
   def focus_tests
-    %w[
-    ]
+    %w[]
   end
 
   test_cases = load_cross_agent_test('hybrid_agent')
