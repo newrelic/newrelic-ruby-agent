@@ -11,10 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Configure git
-      run: 'git config --global init.defaultBranch main'
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-
       # - curl is needed for Curb
       # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
       # - sasl is needed for memcached
