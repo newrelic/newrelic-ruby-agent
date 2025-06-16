@@ -135,35 +135,12 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}"]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SERIALIZE: 1
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+          group: ${{ matrix.multiverse }}
+          pr-ci: false
 
 
   multiverse_services_1:
@@ -187,41 +164,17 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4]
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group="services_1"]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SERIALIZE: 1
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+          group: services_1
+          pr-ci: false
 
 
   multiverse_services_2:
@@ -278,43 +231,18 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4]
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          group: services_2
+          pr-ci: false
 
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group="services_2"]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SERIALIZE: 1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
 
   multiverse_elasticsearch:
     needs: run_rubocop
@@ -347,42 +275,17 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4]
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group="services_elasticsearch"]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SERIALIZE: 1
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
-
+          group: services_elasticsearch
+          pr-ci: false
 
 
   multiverse_services_kafka:
@@ -420,41 +323,17 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4]
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group="services_kafka"]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SERIALIZE: 1
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+          group: services_kafka
+          pr-ci: false
 
 
   multiverse_services_mysql_pg:
@@ -484,79 +363,17 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.4.10, 2.5.9, 2.6.10, 2.7.8, 3.0.7, 3.1.7, 3.2.8, 3.3.8, 3.4.4]
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-        # - curl is needed for Curb
-        # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-        # - sasl is needed for memcached
-      - name: Install OS packages
-        run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
-
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-        # This allows the cache in the following step to be able to write files to the directory needed for mysql
-      - if: matrix.ruby-version == '2.4.10'
-        name: Prepare mysql directory
-        run: sudo chown -R $USER /usr/local
-
-      - if: matrix.ruby-version == '2.4.10'
-        name: Cache mysql55
-        id: mysql55-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
-        with:
-          path: /usr/local/mysql55
-          key: mysql55-install
-
-      - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
-        name: Install mysql55
-        run: sudo ./test/script/install_mysql55
-
-      - name: Setup bundler
-        run: ./.github/workflows/scripts/setup_bundler
-        env:
-          RUBY_VERSION: ${{ matrix.ruby-version }}
-
-
-      - name: Wait for/Check Mysql
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 1
-          max_attempts: 20
-          command: |
-            mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'";
-            if [[ $? != 0 ]]; then
-              sleep 1;
-            fi
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 60
-          max_attempts: 2
-          command: bundle exec rake test:multiverse[group="services_mysql_pg"]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          DB_PASSWORD: root
-          MYSQL_PASSWORD: root
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
-          MYSQL_HOST: 127.0.0.1
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: password
-          SERIALIZE: 1
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
-
-
+          group: services_mysql_pg
+          pr-ci: false
 
 
   infinite_tracing:
@@ -570,27 +387,12 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Install Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      - name: Run Multiverse (${{ matrix.multiverse }})
+        uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Bundle
-        run: bundle install
-
-      - name: Run Multiverse Tests
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-        with:
-          timeout_minutes: 15
-          max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=infinite_tracing]
-        env:
-          VERBOSE_TEST_OUTPUT: true
-          SERIALIZE: 1
-
-      - name: Annotate errors
-        if: ${{ failure() }}
-        uses: ./.github/actions/annotate
+          group: infinite_tracing
+          pr-ci: false
 
 
   notify_slack_fail:

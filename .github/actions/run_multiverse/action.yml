@@ -7,6 +7,10 @@ inputs:
   group:
     description: 'What multiverse group to run'
     required: true
+  pr-ci:
+    description: 'If this is run on PR'
+    required: true
+    default: true
 
 runs:
   using: "composite"
@@ -45,7 +49,7 @@ runs:
         VERBOSE_TEST_OUTPUT: true
         SERIALIZE: 1
         COVERAGE: true
-        CI_FOR_PR: true
+        CI_FOR_PR: ${{ inputs.pr-ci}}
         POSTGRES_USERNAME: postgres
         POSTGRES_PASSWORD: password
         MYSQL_PASSWORD: root
@@ -59,6 +63,7 @@ runs:
       uses: ./.github/actions/annotate
 
     - name: Save coverage results
+      if: ${{ inputs.pr-ci }} == 'true'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
       with:
         name: coverage-report-multiverse-${{ inputs.ruby-version }}-${{ inputs.group }}
