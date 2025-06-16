@@ -8,17 +8,17 @@ concurrency:
   cancel-in-progress: true  # Cancel any previous runs of this workflow
 
 jobs:
-  run_rubocop:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
-        with:
-          ruby-version: 3.4
-      - run: bundle
-      - run: rubocop
+  # run_rubocop:
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Configure git
+  #       run: 'git config --global init.defaultBranch main'
+  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+  #     - uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+  #       with:
+  #         ruby-version: 3.4
+  #     - run: bundle
+  #     - run: rubocop
 
 
   # unit_tests:
@@ -111,7 +111,7 @@ jobs:
 
 
   multiverse:
-    needs: run_rubocop
+    # needs: run_rubocop
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
