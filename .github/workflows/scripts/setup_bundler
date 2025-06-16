@@ -90,6 +90,11 @@ function install_ruby_version_specific_gems {
     echo "DEBUG: running gem install set"
     gem install --default set:1.0.3
     echo "installed set 1.0.3"
+
+    echo "DEBUG: running gem install logger"
+    gem install --default logger:1.7.0
+    echo "installed logger 1.7.0"
+
   fi
 }
 
