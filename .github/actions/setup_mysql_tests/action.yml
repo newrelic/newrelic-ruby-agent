@@ -28,6 +28,7 @@ runs:
       run: sudo ./test/script/install_mysql55
 
     - name: Setup bundler
+      shell: bash
       run: ./.github/workflows/scripts/setup_bundler
       env:
         RUBY_VERSION: ${{ inputs.ruby-version }}
