@@ -88,12 +88,21 @@ function install_ruby_version_specific_gems {
     echo "installed strscan 3.0.4"
 
     echo "DEBUG: running gem install set"
-    gem install --default set:1.0.3
-    echo "installed set 1.0.3"
+    gem install --default set:1.1.2
+    echo "installed set 1.1.2"
 
     echo "DEBUG: running gem install logger"
     gem install --default logger:1.7.0
     echo "installed logger 1.7.0"
+
+    # maybe this one shouldnt be on 3.4 tho
+    echo "DEBUG: running gem install date"
+    gem install --default date:3.4.1
+    echo "installed date 3.4.1"
+
+    echo "DEBUG: running gem install erb"
+    gem install --default erb:5.0.1
+    echo "installed erb 5.0.1"
 
   fi
 }
