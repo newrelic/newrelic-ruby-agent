@@ -23,7 +23,13 @@ runs:
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
+    - name: Prepare mysql for tests
+      uses: ./.github/actions/setup_mysql_tests
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
     - name: Setup bundler
+      if: ${{ inputs.group }} != 'services_mysql_pg' # mysql setup will do this step
       shell: bash
       run: ./.github/workflows/scripts/setup_bundler
       env:
@@ -40,6 +46,13 @@ runs:
         SERIALIZE: 1
         COVERAGE: true
         CI_FOR_PR: true
+        POSTGRES_USERNAME: postgres
+        POSTGRES_PASSWORD: password
+        MYSQL_PASSWORD: root
+        DB_PASSWORD: root
+        DB_PORT: ${{ job.services.mysql.ports[3306] }}
+        MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+        MYSQL_HOST: 127.0.0.1
 
     - name: Annotate errors
       if: ${{ failure() }}
