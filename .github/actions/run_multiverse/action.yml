@@ -37,7 +37,7 @@ runs:
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
       with:
         timeout_minutes: 60
-        max_attempts: 2
+        max_attempts: 1
         command: bundle exec rake test:multiverse[group="${{ inputs.group }}"]
       env:
         VERBOSE_TEST_OUTPUT: true
