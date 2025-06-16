@@ -122,9 +122,9 @@ jobs:
         # ruby-version: [2.4.10, 3.4.4]
 
     steps:
-      - name: Configure git
-        run: 'git config --global init.defaultBranch main'
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      # - name: Configure git
+      #   run: 'git config --global init.defaultBranch main'
+      # - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
       - name: Run Multiverse (${{ matrix.multiverse }})
         uses: ./.github/actions/run_multiverse
