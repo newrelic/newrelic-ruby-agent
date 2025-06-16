@@ -19,6 +19,7 @@ runs:
       # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
       # - sasl is needed for memcached
     - name: Install OS packages
+      shell: bash
       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
     - name: Install Ruby ${{ inputs.ruby-version }}
@@ -27,6 +28,7 @@ runs:
         ruby-version: ${{ inputs.ruby-version }}
 
     - name: Setup bundler
+      shell: bash
       run: ./.github/workflows/scripts/setup_bundler
       env:
         RUBY_VERSION: ${{ inputs.ruby-version }}
@@ -54,3 +56,6 @@ runs:
         path: lib/coverage_*/.resultset.json
         include-hidden-files: true
         retention-days: 2
+
+
+
