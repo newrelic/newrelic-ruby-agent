@@ -15,10 +15,6 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
     NewRelic::Agent.drop_buffered_data
   end
 
-  def test_please_fail
-    raise 'This test should never pass'
-  end
-
   def test_instrumentation_doesnt_record_anything_with_other_paths_that_use_json_post
     in_transaction do
       stub_post_request do
