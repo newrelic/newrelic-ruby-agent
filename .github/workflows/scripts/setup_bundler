@@ -76,6 +76,7 @@ function install_ruby_version_specific_gems {
 
   # for some reason, ruby 3.0 fails unless 3.1.0 is installed before it bundles for rails_prepend suite/rails 7
   if [[ $RUBY_VERSION =~ ^3\.0 ]]; then 
+    echo 'nothing rn'
     # echo "DEBUG: running 'gem install digest'"
     # gem install --default digest:3.1.0
     # echo "installed digest 3.1.0"
@@ -108,6 +109,7 @@ function install_ruby_version_specific_gems {
     # echo "DEBUG: running gem install erb"
     # gem install --default erb:5.0.1
     # echo "installed erb 5.0.1"
+    echo 'nothing rn'
 
   fi
 }
