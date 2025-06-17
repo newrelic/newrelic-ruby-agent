@@ -30,7 +30,7 @@ module NewRelic::Agent::Instrumentation
       end
 
       def prepare!
-        if defined?(::Grape::VERSION) && NewRelic::Helper.version_satisfied?(::Grape::VERSION, '>=', '0.16.0')
+        if defined?(::Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('0.16.0')
           send(:remove_method, :name_for_transaction_deprecated)
         else
           send(:remove_method, :name_for_transaction)
@@ -42,7 +42,7 @@ module NewRelic::Agent::Instrumentation
       API_VERSION = 'api.version'.freeze
       FORMAT_REGEX = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
       VERSION_REGEX = /:version(\/|$)/.freeze
-      MIN_VERSION = '0.2.0'
+      MIN_VERSION = Gem::Version.new('0.2.0')
       PIPE_STRING = '|'.freeze
 
       def handle_transaction(endpoint, class_name, version)
