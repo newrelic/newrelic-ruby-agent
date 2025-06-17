@@ -79,6 +79,7 @@ function install_ruby_version_specific_gems {
   if [[ $RUBY_VERSION =~ ^3\. ]]; then 
     gem install --default digest:3.1.0
     gem install --default securerandom:0.4.1
+    gem install --default cgi:0.5.0
      
   fi
 
@@ -86,11 +87,13 @@ function install_ruby_version_specific_gems {
   if [[ $RUBY_VERSION =~ ^3\. || $RUBY_VERSION =~ ^2\.7 ]]; then 
     gem install --default strscan:3.0.4
     gem install --default set:1.1.2
-    gem install --default logger:1.7.0
     gem install --default date:3.4.1
     gem install --default erb:5.0.1
 
   fi
+
+    gem install --default logger:1.7.0
+
     echo "DEBUG: Completed installing gems"
 
 }
