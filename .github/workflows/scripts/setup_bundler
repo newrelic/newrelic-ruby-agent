@@ -74,44 +74,25 @@ function install_ruby_version_specific_gems {
     return
   fi
 
-  # for some reason, ruby 3.0 fails unless 3.1.0 is installed before it bundles for rails_prepend suite/rails 7
+    echo "DEBUG: running 'gem install' on specific gem versions"
+  # Ruby 3.0+
   if [[ $RUBY_VERSION =~ ^3\.0 ]]; then 
-    echo 'nothing rn'
-    # echo "DEBUG: running 'gem install digest'"
-    # gem install --default digest:3.1.0
-    # echo "installed digest 3.1.0"
-
-    # echo "DEBUG: running 'gem install securerandom'"
-    # gem install --default securerandom:0.3.2
-    # echo "installed securerandom 0.3.2"
+    gem install --default digest:3.1.0
+    gem install --default securerandom:0.3.2
      
   fi
 
-  # for some reason, ruby 2.7+ fails unless strscan 3.0.4 is installed
+  # 2.7+
   if [[ $RUBY_VERSION =~ ^3\. || $RUBY_VERSION =~ ^2\.7 ]]; then 
-    # echo "DEBUG: running 'gem install strscan'"
-    # gem install --default strscan:3.0.4
-    # echo "installed strscan 3.0.4"
-
-    # echo "DEBUG: running gem install set"
-    # gem install --default set:1.1.2
-    # echo "installed set 1.1.2"
-
-    # echo "DEBUG: running gem install logger"
-    # gem install --default logger:1.7.0
-    # echo "installed logger 1.7.0"
-
-    # # maybe this one shouldnt be on 3.4 tho
-    # echo "DEBUG: running gem install date"
-    # gem install --default date:3.4.1
-    # echo "installed date 3.4.1"
-
-    # echo "DEBUG: running gem install erb"
-    # gem install --default erb:5.0.1
-    # echo "installed erb 5.0.1"
-    echo 'nothing rn'
+    gem install --default strscan:3.0.4
+    gem install --default set:1.1.2
+    gem install --default logger:1.7.0
+    gem install --default date:3.4.1
+    gem install --default erb:5.0.1
 
   fi
+    echo "DEBUG: Completed installing gems"
+
 }
 
 function set_up_bundler {
