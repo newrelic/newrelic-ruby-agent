@@ -317,35 +317,35 @@ jobs:
           group: infinite_tracing
 
 
-  # simplecov:
-  #   needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_services_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
-  #   runs-on: ubuntu-22.04
-  #   if: github.event.pull_request.head.repo.full_name == github.repository
-  #   permissions:
-  #     pull-requests: write
-  #   steps:
-  #     - name: Configure git
-  #       run: 'git config --global init.defaultBranch main'
-  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-  #     - uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
-  #       with:
-  #         ruby-version: 3.4
-  #     - run: bundle
-  #     - name: Download all workflow run artifacts
-  #       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # tag v4.3.0
-  #     - name: Collate Coverage Results
-  #       run: bundle exec rake coverage:report
-  #     - name: Upload coverage results
-  #       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
-  #       with:
-  #         name: coverage-report-combined-${{ matrix.ruby-version }}
-  #         path: lib/coverage_results
-  #         include-hidden-files: true
-  #         retention-days: 2
-  #     - name: Simplecov Report
-  #       uses: ./.github/actions/simplecov-report
-  #       with:
-  #         token: ${{ secrets.GITHUB_TOKEN }}
-  #         resultPath: lib/coverage_results/.last_run.json
-  #         failedThreshold: 93.5
-  #         failedThresholdBranch: 0
+  simplecov:
+    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_services_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
+    runs-on: ubuntu-22.04
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+        with:
+          ruby-version: 3.4
+      - run: bundle
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # tag v4.3.0
+      - name: Collate Coverage Results
+        run: bundle exec rake coverage:report
+      - name: Upload coverage results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
+        with:
+          name: coverage-report-combined-${{ matrix.ruby-version }}
+          path: lib/coverage_results
+          include-hidden-files: true
+          retention-days: 2
+      - name: Simplecov Report
+        uses: ./.github/actions/simplecov-report
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          resultPath: lib/coverage_results/.last_run.json
+          failedThreshold: 93.5
+          failedThresholdBranch: 0
