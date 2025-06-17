@@ -55,7 +55,6 @@ module NewRelic
           ::OpenTelemetry::Trace::SpanContext.new(
             trace_id: segment.transaction.trace_id,
             span_id: segment.guid,
-            trace_flags: ::OpenTelemetry::Trace::TraceFlags::SAMPLED,
             remote: false
           )
         end

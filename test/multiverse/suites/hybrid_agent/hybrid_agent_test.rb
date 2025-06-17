@@ -35,19 +35,8 @@ class HybridAgentTest < Minitest::Test
   # It looks for the snake cased version of the testDescription field in the JSON
   # Ex: %w[does_not_create_segment_without_a_transaction] would only run
   # `"testDescription": "Does not create segment without a transaction"`
-  #
-  # Now that we're starting to implement, use this to add tests individually
-  # until the full suite can be run on the CI
   def focus_tests
-    %w[
-      creates_opentelemetry_segment_in_a_transaction
-      creates_new_relic_span_as_child_of_opentelemetry_span
-      does_not_create_segment_without_a_transaction
-      starting_transaction_tests
-      opentelemetry_api_and_new_relic_api_can_inject_outbound_trace_context
-      opentelemetry_api_can_record_errors
-      opentelemetry_api_can_add_custom_attributes_to_spans
-    ]
+    %w[]
   end
 
   test_cases = load_cross_agent_test('hybrid_agent')
