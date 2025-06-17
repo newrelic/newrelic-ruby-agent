@@ -21,93 +21,32 @@ jobs:
       - run: rubocop
 
 
-  # unit_tests:
-  #   needs: run_rubocop
-  #   runs-on: ubuntu-22.04
-  #   services:
-  #     mysql:
-  #       image: mysql:5.7
-  #       env:
-  #         MYSQL_ALLOW_EMPTY_PASSWORD: yes
-  #         CI_FOR_PR: true
-  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-  #       ports:
-  #         - "3306:3306"
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       ruby-version: [2.4.10, 3.4.4]
-  #   steps:
-  #     - name: Configure git
-  #       run: 'git config --global init.defaultBranch main'
-  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+  unit_tests:
+    needs: run_rubocop
+    runs-on: ubuntu-22.04
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          CI_FOR_PR: true
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - "3306:3306"
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.4.10, 3.4.4]
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-  #       # - curl is needed for Curb
-  #       # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
-  #       # - sasl is needed for memcached
-  #     - name: Install OS packages
-  #       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+      - name: Run Unit and Env tests
+        uses: ./.github/actions/run_unit_tests
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
 
-  #     - name: Install Ruby ${{ matrix.ruby-version }}
-  #       uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
-  #       with:
-  #         ruby-version: ${{ matrix.ruby-version }}
-
-  #     - name: Set up mini-envs for ruby version
-  #       uses: ./.github/actions/variable-mapper
-  #       with:
-  #         key: ${{ matrix.ruby-version }}
-  #         map: |
-  #           {
-  #             "2.4.10": {
-  #               "rails": "norails,rails42,rails52"
-  #             },
-  #             "3.4.4": {
-  #               "rails": "norails,rails61,rails72,rails80"
-  #             }
-  #           }
-
-  #     - if: matrix.ruby-version == '2.4.10'
-  #       name: Prepare mysql directory
-  #       run: sudo chown -R $USER /usr/local
-
-  #     - if: matrix.ruby-version == '2.4.10'
-  #       name: Cache mysql55
-  #       id: mysql55-cache
-  #       uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # tag v4.2.3
-  #       with:
-  #         path: /usr/local/mysql55
-  #         key: mysql55-install
-
-  #     - if: steps.mysql55-cache.outputs.cache-hit != 'true' && matrix.ruby-version == '2.4.10'
-  #       name: Install mysql55
-  #       run: sudo ./test/script/install_mysql55
-
-  #     - name: Setup bundler
-  #       run: ./.github/workflows/scripts/setup_bundler
-  #       env:
-  #         RUBY_VERSION: ${{ matrix.ruby-version }}
-  #         RAILS_VERSION: ${{ env.rails }}
-  #         CI_FOR_PR: true
-
-  #     - name: Run Unit Tests
-  #       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
-  #       with:
-  #         timeout_minutes: 30
-  #         max_attempts: 2
-  #         command: bundle exec rake test:env[${{ env.rails }}]
-  #       env:
-  #         DB_PORT: ${{ job.services.mysql.ports[3306] }}
-  #         VERBOSE_TEST_OUTPUT: true
-  #         COVERAGE: true
-  #         CI_FOR_PR: true
-
-  #     - name: Save coverage results
-  #       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
-  #       with:
-  #         name: coverage-report-unit-tests-${{ matrix.ruby-version }}-${{ env.rails }}
-  #         path: lib/coverage_*/.resultset.json
-  #         include-hidden-files: true
 
 
   multiverse:

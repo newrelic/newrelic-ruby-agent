@@ -1,0 +1,100 @@
+name: 'Run Unit tests'
+description: 'run unit and env tests'
+inputs:
+  ruby-version:  
+    description: 'What ruby version to install'
+    required: true
+  pr-ci:
+    description: 'If this is run on PR'
+    required: true
+    default: true
+
+runs:
+  using: "composite"
+  steps:
+      # - curl is needed for Curb
+      # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+      # - sasl is needed for memcached
+    - name: Install OS packages
+      shell: bash
+      run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+    - name: Install Ruby ${{ inputs.ruby-version }}
+      uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
+    - name: Set up mini-envs for ruby version
+      uses: ./.github/actions/variable-mapper
+      with:
+        key: ${{ inputs.ruby-version }}
+        map: |
+          {
+            "2.4.10": {
+              "rails": "norails,rails52,rails51,rails50,rails42,rails41,rails40"
+            },
+            "2.5.9": {
+              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
+            },
+            "2.6.10": {
+              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
+            },
+            "2.7.8": {
+              "rails": "norails,rails61,rails60,rails70,rails71"
+            },
+            "3.0.7": {
+              "rails": "norails,rails61,rails60,rails70,rails71"
+            },
+            "3.1.7": {
+              "rails": "norails,rails61,rails70,rails71,rails72"
+            },
+            "3.2.8": {
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+            },
+            "3.3.8": {
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+            },
+            "3.4.4": {
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+            }
+          }
+
+
+    - name: Prepare mysql for tests
+      uses: ./.github/actions/setup_mysql_tests
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
+    - name: Setup bundler
+      run: ./.github/workflows/scripts/setup_bundler
+      env:
+        RUBY_VERSION: ${{ matrix.ruby-version }}
+        RAILS_VERSION: ${{ env.rails }}
+        CI_FOR_PR: true
+
+    - name: Run Unit Tests
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+      with:
+        timeout_minutes: 30
+        max_attempts: 1
+        command: bundle exec rake test:env[${{ env.rails }}]
+      env:
+        DB_PORT: ${{ job.services.mysql.ports[3306] }}
+        VERBOSE_TEST_OUTPUT: true
+        COVERAGE: true
+        CI_FOR_PR: ${{ inputs.pr-ci}}
+
+    - name: Save coverage results
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
+      with:
+        name: coverage-report-unit-tests-${{ inputs.ruby-version }}-${{ env.rails }}
+        path: lib/coverage_*/.resultset.json
+        include-hidden-files: true
+
+
+
+
+
+
+
+

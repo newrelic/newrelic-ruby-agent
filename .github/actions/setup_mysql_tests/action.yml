@@ -27,12 +27,6 @@ runs:
       shell: bash
       run: sudo ./test/script/install_mysql55
 
-    - name: Setup bundler
-      shell: bash
-      run: ./.github/workflows/scripts/setup_bundler
-      env:
-        RUBY_VERSION: ${{ inputs.ruby-version }}
-
     - name: Wait for/Check Mysql
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
       with:

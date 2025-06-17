@@ -33,7 +33,6 @@ runs:
         ruby-version: ${{ inputs.ruby-version }}
 
     - name: Setup bundler
-      if: ${{ inputs.group }} != 'services_mysql_pg' # mysql setup will do this step
       shell: bash
       run: ./.github/workflows/scripts/setup_bundler
       env:
