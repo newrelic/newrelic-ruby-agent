@@ -76,7 +76,7 @@ function install_ruby_version_specific_gems {
 
     echo "DEBUG: running 'gem install' on specific gem versions"
   # Ruby 3.0+
-  if [[ $RUBY_VERSION =~ ^3\.0 ]]; then 
+  if [[ $RUBY_VERSION =~ ^3\. ]]; then 
     gem install --default digest:3.1.0
     gem install --default securerandom:0.4.1
      
