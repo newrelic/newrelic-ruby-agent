@@ -66,6 +66,7 @@ runs:
         ruby-version: ${{ inputs.ruby-version }}
 
     - name: Setup bundler
+      shell: bash
       run: ./.github/workflows/scripts/setup_bundler
       env:
         RUBY_VERSION: ${{ matrix.ruby-version }}
