@@ -95,7 +95,7 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Run Multiverse (${{ matrix.multiverse }})
+      - name: Run Multiverse (services_1)
         uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -145,7 +145,7 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Run Multiverse (${{ matrix.multiverse }})
+      - name: Run Multiverse (services_2)
         uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -188,7 +188,7 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Run Multiverse (${{ matrix.multiverse }})
+      - name: Run Multiverse (services_elasticsearch)
         uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -235,7 +235,7 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Run Multiverse (${{ matrix.multiverse }})
+      - name: Run Multiverse (services_kafka)
         uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -274,7 +274,7 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Run Multiverse (${{ matrix.multiverse }})
+      - name: Run Multiverse (services_mysql_pg)
         uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -293,7 +293,7 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Run Multiverse (${{ matrix.multiverse }})
+      - name: Run Multiverse (infinite_tracing)
         uses: ./.github/actions/run_multiverse
         with:
           ruby-version: ${{ matrix.ruby-version }}
