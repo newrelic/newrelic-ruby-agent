@@ -1,0 +1,74 @@
+name: 'Run Multiverse'
+description: 'run multiverse group tests'
+inputs:
+  ruby-version:  
+    description: 'What ruby version to install'
+    required: true
+  group:
+    description: 'What multiverse group to run'
+    required: true
+  pr-ci:
+    description: 'If this is run on PR'
+    required: true
+    default: true
+
+runs:
+  using: "composite"
+  steps:
+      # - curl is needed for Curb
+      # - xslt is needed for older Nokogiris, RUBY_VERSION < 2.5
+      # - sasl is needed for memcached
+    - name: Install OS packages
+      shell: bash
+      run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
+
+    - name: Install Ruby ${{ inputs.ruby-version }}
+      uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # tag v1.244.0
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
+    - name: Prepare mysql for tests
+      uses: ./.github/actions/setup_mysql_tests
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
+    - name: Setup bundler
+      shell: bash
+      run: ./.github/workflows/scripts/setup_bundler
+      env:
+        RUBY_VERSION: ${{ inputs.ruby-version }}
+
+    - name: Run Multiverse Tests
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # tag v3.0.2
+      with:
+        timeout_minutes: 60
+        max_attempts: 2
+        command: bundle exec rake test:multiverse[group="${{ inputs.group }}"]
+      env:
+        VERBOSE_TEST_OUTPUT: true
+        SERIALIZE: 1
+        COVERAGE: true
+        CI_FOR_PR: ${{ inputs.pr-ci}}
+        POSTGRES_USERNAME: postgres
+        POSTGRES_PASSWORD: password
+        MYSQL_PASSWORD: root
+        DB_PASSWORD: root
+        DB_PORT: ${{ job.services.mysql.ports[3306] }}
+        MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+        MYSQL_HOST: 127.0.0.1
+
+    - name: Annotate errors
+      if: ${{ failure() }}
+      uses: ./.github/actions/annotate
+
+    - name: Save coverage results
+      if: ${{ inputs.pr-ci }} == 'true'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
+      with:
+        name: coverage-report-multiverse-${{ inputs.ruby-version }}-${{ inputs.group }}
+        path: lib/coverage_*/.resultset.json
+        include-hidden-files: true
+        retention-days: 2
+
+
+

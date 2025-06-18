@@ -169,7 +169,7 @@ module Multiverse
 
     # are we running in a CI context intended for PR approvals?
     def ci_for_pr?
-      ENV.key?('CI_FOR_PR')
+      ENV['CI_FOR_PR'] == 'true'
     end
 
     private
