@@ -156,7 +156,6 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version: [2.4.10, 3.4.4]
-
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
