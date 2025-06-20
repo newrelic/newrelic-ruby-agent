@@ -6,6 +6,10 @@
 
   Previously, the Ruby agent did not record the Docker ID when running in an AWS ECS Fargate environment. The Docker ID will now be recorded correctly. [PR#3172](https://github.com/newrelic/newrelic-ruby-agent/pull/3172)
 
+- **Feature: Add NewRelic::Helper.version_satisfied?**
+
+  The agent has a new helper method to simplify version comparison. `NewRelic::Helper.version_satisfied?` accepts three arguments: a left-side version number, the comparison operator as a string, and a right-side version number. Our thanks go to [@kekke-n](https://github.com/kekke-n) for this contribution. [PR#3182](https://github.com/newrelic/newrelic-ruby-agent/pull/3182)
+
 - **Bugfix: Fix Brewfile source links**
 
   Previously, the multiverse README's links to the Brewfile were broken. Our thanks go to [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) for submitting a PR to fix them! [PR#3191](https://github.com/newrelic/newrelic-ruby-agent/pull/3191)
