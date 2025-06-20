@@ -19,7 +19,8 @@ DependencyDetection.defer do
 
   # Airbrake uses method chaining on Net::HTTP in versions < 10.0.2 (10.0.2 updated to prepend for Net:HTTP)
   conflicts_with_prepend do
-    defined?(Airbrake) && defined?(Airbrake::AIRBRAKE_VERSION) && Gem::Version.create(Airbrake::AIRBRAKE_VERSION) < Gem::Version.create('10.0.2')
+    defined?(Airbrake) && defined?(Airbrake::AIRBRAKE_VERSION) &&
+      NewRelic::Helper.version_satisfied?(Airbrake::AIRBRAKE_VERSION, '<', '10.0.2')
   end
 
   conflicts_with_prepend do

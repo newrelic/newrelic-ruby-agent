@@ -16,7 +16,7 @@ class TiltInstrumentationTest < Minitest::Test
   end
 
   def haml_render_metric(filename = 'test.haml')
-    if Gem::Version.new(Haml::VERSION) >= Gem::Version.new('6.0.0')
+    if NewRelic::Helper.version_satisfied?(Haml::VERSION, '>=', '6.0.0')
       "View/Haml::Template/#{filename}/Rendering"
     else
       "View/Tilt::HamlTemplate/#{filename}/Rendering"

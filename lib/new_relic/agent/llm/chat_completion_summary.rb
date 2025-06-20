@@ -32,7 +32,7 @@ module NewRelic
           # TODO: OLD RUBIES < 2.6
           # Hash#merge accepts multiple arguments in 2.6
           # Remove condition once support for Ruby <2.6 is dropped
-          if RUBY_VERSION >= '2.6.0'
+          if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.6.0')
             LlmEvent::ATTRIBUTE_NAME_EXCEPTIONS.merge(ResponseHeaders::ATTRIBUTE_NAME_EXCEPTIONS, ATTRIBUTE_NAME_EXCEPTIONS)
           else
             LlmEvent::ATTRIBUTE_NAME_EXCEPTIONS.merge(ResponseHeaders::ATTRIBUTE_NAME_EXCEPTIONS).merge(ATTRIBUTE_NAME_EXCEPTIONS)

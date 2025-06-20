@@ -49,7 +49,7 @@ module NewRelic
 
             alias_method(:delete_all_without_newrelic, :delete_all)
 
-            if RUBY_VERSION < '2.7.0'
+            if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
               def delete_all(*args, &blk)
                 ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                   delete_all_without_newrelic(*args, &blk)

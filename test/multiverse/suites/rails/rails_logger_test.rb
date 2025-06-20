@@ -18,7 +18,7 @@ class RailsLoggerTest < Minitest::Test
     @output = StringIO.new
     broadcasted_logger = Logger.new(@output)
 
-    if Gem::Version.new(Rails::VERSION::STRING) >= Gem::Version.new('7.1.0')
+    if NewRelic::Helper.version_satisfied?(Rails::VERSION::STRING, '>=', '7.1.0')
       Rails.logger.broadcast_to(broadcasted_logger)
     else
       Rails.logger.extend(ActiveSupport::Logger.broadcast(broadcasted_logger))

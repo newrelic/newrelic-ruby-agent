@@ -16,7 +16,7 @@ DependencyDetection.defer do
       defined?(ActionDispatch) &&
       defined?(ActionPack) &&
       ActionPack.respond_to?(:gem_version) &&
-      ActionPack.gem_version >= Gem::Version.new('6.0.0') && # notifications for dispatch added in Rails 6
+      NewRelic::Helper.version_satisfied?(ActionPack.gem_version, '>=', '6.0.0') && # notifications for dispatch added in Rails 6
       !NewRelic::Agent::Instrumentation::ActionDispatchSubscriber.subscribed?
   end
 

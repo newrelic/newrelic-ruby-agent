@@ -34,7 +34,7 @@ class HTTPXInstrumentationTest < Minitest::Test
     2.times { request.expect :response, :the_response }
     request.expect :hash, 1138
 
-    error = if Gem::Version.new(::HTTPX::VERSION) >= Gem::Version.new('1.3.0')
+    error = if NewRelic::Helper.version_satisfied?(::HTTPX::VERSION, '>=', '1.3.0')
       request.expect :options, ::HTTPX::Options.new({})
       ::HTTPX::ErrorResponse.new(request, StandardError.new)
     else

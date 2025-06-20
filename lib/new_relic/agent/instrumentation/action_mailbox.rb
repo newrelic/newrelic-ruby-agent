@@ -15,7 +15,7 @@ DependencyDetection.defer do
     defined?(ActiveSupport) &&
       defined?(ActionMailbox) &&
       ActionMailbox.respond_to?(:gem_version) && # 'require "action_mailbox"' doesn't require version...
-      ActionMailbox.gem_version >= Gem::Version.new('7.1.0.alpha') && # notifications added in Rails 7.1
+      NewRelic::Helper.version_satisfied?(ActionMailbox.gem_version, '>=', '7.1.0.alpha') && # notifications added in Rails 7.1
       !NewRelic::Agent::Instrumentation::ActionMailboxSubscriber.subscribed?
   end
 

@@ -16,10 +16,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    minimum_supported_version = Gem::Version.new(HTTPCLIENT_MIN_VERSION)
-    current_version = Gem::Version.new(HTTPClient::VERSION)
-
-    current_version >= minimum_supported_version
+    NewRelic::Helper.version_satisfied?(HTTPClient::VERSION, '>=', HTTPCLIENT_MIN_VERSION)
   end
 
   executes do

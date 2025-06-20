@@ -26,7 +26,7 @@ DependencyDetection.defer do
 
   executes do
     excon_version = Gem::Version.new(Excon::VERSION)
-    if excon_version >= EXCON_MIN_VERSION
+    if NewRelic::Helper.version_satisfied?(excon_version, '>=', EXCON_MIN_VERSION)
       install_excon_instrumentation(excon_version)
     else
       NewRelic::Agent.logger.warn("Excon instrumentation requires at least version #{EXCON_MIN_VERSION}")

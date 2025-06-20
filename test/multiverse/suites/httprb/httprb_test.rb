@@ -14,7 +14,7 @@ class HTTPTest < Minitest::Test
   end
 
   def is_unsupported_1x?
-    defined?(::HTTP::VERSION) && HTTP::VERSION < '1.0.0'
+    defined?(::HTTP::VERSION) && NewRelic::Helper.version_satisfied?(HTTP::VERSION, '<', '1.0.0')
   end
 
   def get_response(url = nil, headers = nil)

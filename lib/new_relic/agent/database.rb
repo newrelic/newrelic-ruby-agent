@@ -123,7 +123,7 @@ module NewRelic
         return @supports_with_connection if defined?(@supports_with_connection)
 
         @supports_with_connection = defined?(::ActiveRecord::VERSION::STRING) &&
-          Gem::Version.new(ActiveRecord::VERSION::STRING) >= Gem::Version.new('7.2.0')
+          NewRelic::Helper.version_satisfied?(ActiveRecord::VERSION::STRING, '>=', '7.2.0')
       end
 
       def close_connections

@@ -142,7 +142,7 @@ class StartUpTest < Minitest::Test
   end
 
   def jruby_9000
-    defined?(JRUBY_VERSION) && Gem::Version.new(JRUBY_VERSION) >= Gem::Version.new('9.0.0')
+    defined?(JRUBY_VERSION) && NewRelic::Helper.version_satisfied?(JRUBY_VERSION, '>=', '9.0.0')
   end
 
   def bundler_rubygem_conflicts?

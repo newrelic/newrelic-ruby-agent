@@ -8,7 +8,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   include MultiverseHelpers
 
   def test_action_view_prepended_metrics
-    value_for_haml_version = Gem::Version.new(Haml::VERSION) >= Gem::Version.new('6.0.0') ? 1 : 2
+    value_for_haml_version = NewRelic::Helper.version_satisfied?(Haml::VERSION, '>=', '6.0.0') ? 1 : 2
 
     assert_metrics_recorded({
 

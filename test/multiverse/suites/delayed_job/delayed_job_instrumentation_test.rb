@@ -57,7 +57,7 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
     # We can only test methods using delay and handle_asynchronously on versions that run jobs via
     # the invoke_job method.
     def self.dj_invokes_job_inline?
-      Gem.loaded_specs['delayed_job'].version >= Gem::Version.new('3.0.0')
+      NewRelic::Helper.version_satisfied?(Gem.loaded_specs['delayed_job'].version, '>=', '3.0.0')
     end
 
     if dj_invokes_job_inline?

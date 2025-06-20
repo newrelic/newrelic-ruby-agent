@@ -9,7 +9,7 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::MonitoredFiber
 
-      if RUBY_VERSION < '2.7.0'
+      if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
         def initialize(*_args, &block)
           traced_block = add_thread_tracing(&block)
           initialize_with_newrelic_tracing { super(&traced_block) }

@@ -112,7 +112,7 @@ if defined?(Dalli)
     end
   end
 
-  if Dalli::VERSION >= '2.7'
+  if NewRelic::Helper.version_satisfied?(Dalli::VERSION, '>=', '2.7')
     require 'dalli/cas/client'
     DependencyDetection.detect!
 

@@ -223,7 +223,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def transport_error_class
-    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
+    if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       ::Elasticsearch::Transport::Transport::Error
     else
       ::Elastic::Transport::Transport::Error
@@ -231,7 +231,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
+    if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       9200 # 9200 for elasticsearch 7
     elsif ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('9.0.0')
       9250 # 9250 for elasticsearch 8

@@ -61,7 +61,7 @@ module NewRelic
         end
 
         def gather_constant_cache_invalidations
-          RubyVM.stat[RUBY_VERSION >= '3.2.0' ? :constant_cache_invalidations : :global_constant_state]
+          RubyVM.stat[NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.2.0') ? :constant_cache_invalidations : :global_constant_state]
         end
 
         def gather_constant_cache_misses
@@ -86,9 +86,9 @@ module NewRelic
           when :gc_total_time
             NewRelic::LanguageSupport.gc_profiler_enabled?
           when :method_cache_invalidations
-            RUBY_VERSION < '3.0.0'
+            NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '3.0.0')
           when :constant_cache_misses
-            RUBY_VERSION >= '3.2.0'
+            NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.2.0')
           else
             false
           end

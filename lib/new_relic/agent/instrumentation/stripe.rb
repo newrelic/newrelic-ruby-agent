@@ -13,7 +13,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(Stripe) &&
-      Gem::Version.new(Stripe::VERSION) >= Gem::Version.new('5.38.0')
+      NewRelic::Helper.version_satisfied?(Stripe::VERSION, '>=', '5.38.0')
   end
 
   executes do

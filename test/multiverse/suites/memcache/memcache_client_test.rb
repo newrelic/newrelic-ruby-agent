@@ -12,13 +12,13 @@ if defined?(MemCache)
       @cache = MemCache.new("#{memcached_host}:11211")
     end
 
-    if MemCache::VERSION <= '1.5.0'
+    if NewRelic::Helper.version_satisfied?(MemCache::VERSION, '<=', '1.5.0')
       undef_method :test_append_in_web, :test_prepend_in_web, :test_replace_in_web,
         :test_append_in_background, :test_prepend_in_background,
         :test_replace_in_background
     end
 
-    if MemCache::VERSION <= '1.7.0'
+    if NewRelic::Helper.version_satisfied?(MemCache::VERSION, '<=', '1.7.0')
       undef_method :test_cas_in_web, :test_cas_in_background
     end
 

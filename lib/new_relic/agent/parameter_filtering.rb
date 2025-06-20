@@ -9,7 +9,7 @@ module NewRelic
 
       ACTION_DISPATCH_PARAMETER_FILTER ||= 'action_dispatch.parameter_filter'.freeze
 
-      if defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('5.0.0')
+      if defined?(Rails) && NewRelic::Helper.version_satisfied?(::Rails::VERSION::STRING, '>=', '5.0.0')
         Rails.application.config.to_prepare do
           RAILS_FILTER_CLASS ||= if defined?(ActiveSupport::ParameterFilter)
             ActiveSupport::ParameterFilter

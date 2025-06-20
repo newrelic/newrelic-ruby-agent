@@ -159,7 +159,7 @@ class RubyOpenAIInstrumentationTest < Minitest::Test
       end
     end
 
-    if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0')
+    if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '>=', '6.0.0')
       assert_equal ChatResponse.new.body, result
     else
       assert_equal ChatResponse.new.body(return_value: true), result
