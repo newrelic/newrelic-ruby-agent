@@ -318,8 +318,7 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
-    with_config(:'distributed_tracing.enabled' => false,
-      :cross_process_id => '') do
+    with_config(:cross_process_id => '') do
       in_transaction { get_response }
 
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
@@ -327,10 +326,7 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
-    with_config(
-      :'distributed_tracing.enabled' => false,
-      :encoding_key => ''
-    ) do
+    with_config(:encoding_key => '') do
       in_transaction { get_response }
 
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
@@ -594,8 +590,7 @@ module HttpClientTestCases
     define_method("test_synthetics_http_#{test['name']}") do
       config = {
         :encoding_key => test['settings']['agentEncodingKey'],
-        :trusted_account_ids => test['settings']['trustedAccountIds'],
-        :'distributed_tracing.enabled' => false
+        :trusted_account_ids => test['settings']['trustedAccountIds']
       }
 
       with_config config do
