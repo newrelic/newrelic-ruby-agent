@@ -17,7 +17,6 @@ module HttpClientTestCases
   $fake_secure_server = NewRelic::FakeSecureExternalServer.new
 
   setup_and_teardown_agent(
-    :"cross_application_tracer.enabled" => false,
     :cross_process_id => '269975#22824',
     :encoding_key => 'gringletoes',
     :trusted_account_ids => [269975]
@@ -31,7 +30,6 @@ module HttpClientTestCases
     $fake_secure_server.run
 
     NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
-    NewRelic::Agent::CrossAppTracing.instance_variable_set(:@obfuscator, nil)
   end
 
   # Helpers to support shared tests
@@ -320,9 +318,7 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
-    with_config(:'cross_application_tracer.enabled' => true,
-      :'distributed_tracing.enabled' => false,
-      :cross_process_id => '') do
+    with_config(:cross_process_id => '') do
       in_transaction { get_response }
 
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
@@ -330,11 +326,7 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
-    with_config(
-      :'cross_application_tracer.enabled' => true,
-      :'distributed_tracing.enabled' => false,
-      :encoding_key => ''
-    ) do
+    with_config(:encoding_key => '') do
       in_transaction { get_response }
 
       refute server.requests.last.keys.any? { |k| k.include?('NEWRELIC_ID') }
@@ -344,10 +336,8 @@ module HttpClientTestCases
   def test_instrumentation_with_crossapp_enabled_records_normal_metrics_if_no_header_present
     $fake_server.override_response_headers('X-NewRelic-App-Data' => '')
 
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction('test') do
-        get_response
-      end
+    in_transaction('test') do
+      get_response
     end
 
     assert_externals_recorded_for('localhost', 'GET')
@@ -410,10 +400,8 @@ module HttpClientTestCases
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
       make_app_data_payload('88#88#88', 'invalid', 1, 2, 4096, TRANSACTION_GUID))
 
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction('test') do
-        get_response
-      end
+    in_transaction('test') do
+      get_response
     end
 
     assert_externals_recorded_for('localhost', 'GET')
@@ -425,9 +413,7 @@ module HttpClientTestCases
     NewRelic::Agent.instance.stats_engine.stubs(:push_scope)
       .raises(NoMethodError, "undefined method `push_scope'")
 
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction { res = get_response }
-    end
+    in_transaction { res = get_response }
 
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
   end
@@ -437,9 +423,7 @@ module HttpClientTestCases
     NewRelic::Agent.instance.stats_engine.stubs(:pop_scope)
       .raises(NoMethodError, "undefined method `pop_scope'")
 
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction { res = get_response }
-    end
+    in_transaction { res = get_response }
 
     assert_equal NewRelic::FakeExternalServer::STATUS_MESSAGE, body(res)
   end
@@ -450,9 +434,7 @@ module HttpClientTestCases
     logger = NewRelic::Agent::MemoryLogger.new
     NewRelic::Agent.logger = logger
 
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction { get_response }
-    end
+    in_transaction { get_response }
 
     refute_match(/undefined method `.*" for nil:NilClass/i,
       logger.messages.flatten.map { |log| log.to_s }.join(' '))
@@ -475,9 +457,7 @@ module HttpClientTestCases
     # Fake a failure in our start-up code...
     ::JSON.stubs(:dump).raises('Boom!')
 
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction { get_response }
-    end
+    in_transaction { get_response }
 
     assert_externals_recorded_for('localhost', 'GET')
   end
@@ -488,9 +468,7 @@ module HttpClientTestCases
     ::JSON.stubs(:dump).raises('Boom!')
 
     in_transaction do
-      with_config(:"cross_application_tracer.enabled" => true) do
-        get_response
-      end
+      get_response
     end
 
     last_node = find_last_transaction_node()
@@ -541,36 +519,20 @@ module HttpClientTestCases
   end
 
   def test_raw_synthetics_header_is_passed_along_if_present
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction do
-        NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'
+    in_transaction do
+      NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'
 
-        get_response
+      get_response
 
-        assert_equal 'boo', server.requests.last['HTTP_X_NEWRELIC_SYNTHETICS']
-      end
+      assert_equal 'boo', server.requests.last['HTTP_X_NEWRELIC_SYNTHETICS']
     end
   end
 
   def test_no_raw_synthetics_header_if_not_present
-    with_config(:"cross_application_tracer.enabled" => true) do
-      in_transaction do
-        get_response
+    in_transaction do
+      get_response
 
-        refute_includes server.requests.last.keys, 'HTTP_X_NEWRELIC_SYNTHETICS'
-      end
-    end
-  end
-
-  def test_raw_synthetics_header_is_passed_along_when_cat_disabled
-    with_config(:"cross_application_tracer.enabled" => false) do
-      in_transaction do
-        NewRelic::Agent::Tracer.current_transaction.raw_synthetics_header = 'boo'
-
-        get_response
-
-        assert_equal 'boo', server.requests.last['HTTP_X_NEWRELIC_SYNTHETICS']
-      end
+      refute_includes server.requests.last.keys, 'HTTP_X_NEWRELIC_SYNTHETICS'
     end
   end
 
@@ -628,9 +590,7 @@ module HttpClientTestCases
     define_method("test_synthetics_http_#{test['name']}") do
       config = {
         :encoding_key => test['settings']['agentEncodingKey'],
-        :trusted_account_ids => test['settings']['trustedAccountIds'],
-        :'cross_application_tracer.enabled' => true,
-        :'distributed_tracing.enabled' => false
+        :trusted_account_ids => test['settings']['trustedAccountIds']
       }
 
       with_config config do
