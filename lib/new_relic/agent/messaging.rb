@@ -49,6 +49,7 @@ module NewRelic
       #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
+      # @!scope class
       # @api public
       #
       def start_message_broker_segment(action: nil,
@@ -107,6 +108,7 @@ module NewRelic
       # @return return value of given block, which will be the same as the
       #   return value of an un-instrumented subscribed callback
       #
+      # @!scope class
       # @api public
       #
       def wrap_message_broker_consume_transaction(library:,
@@ -180,6 +182,7 @@ module NewRelic
       #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
+      # @!scope class
       # @api public
       #
       def start_amqp_publish_segment(library:,
@@ -240,6 +243,7 @@ module NewRelic
       #
       # @return [NewRelic::Agent::Transaction::MessageBrokerSegment]
       #
+      # @!scope class
       # @api public
       #
       def start_amqp_consume_segment(library:,
@@ -301,6 +305,7 @@ module NewRelic
       # @return return value of given block, which will be the same as the
       #   return value of an un-instrumented subscribed callback
       #
+      # @!scope class
       # @api public
       #
       def wrap_amqp_consume_transaction(library: nil,
