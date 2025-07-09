@@ -300,7 +300,7 @@ module NewRelic::Agent::Configuration
 
       log_lines = log.array
 
-      refute_match(/DEBUG.*asdf/, log_lines[0])
+      refute_match(/DEBUG.*Config Stack.*asdf/, log_lines[0])
     end
 
     def test_config_is_correctly_initialized
@@ -533,7 +533,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_logger_does_not_receive_excluded_settings
-      log = with_array_logger(:debug) { @manager.log_config('direction', 'source') }.array.join('')
+      log = with_array_logger(:debug) { @manager.log_config('direction', ManualSource.new({})) }.array.join('')
 
       assert_includes(log, 'app_name')
       refute_includes(log, 'license_key')
