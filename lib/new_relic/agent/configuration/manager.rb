@@ -424,8 +424,10 @@ module NewRelic
           # actually going to be logging the message based on our current log
           # level, so use a `do` block.
           NewRelic::Agent.logger.debug do
-            hash = flattened.delete_if { |k, _h| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
-            "Updating config (#{direction}) from #{source.class}. Results: #{hash.inspect}"
+            source_hash = source.to_h.delete_if { |k, _v| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
+            final_hash = flattened.delete_if { |k, _h| DEFAULTS.fetch(k, {}).fetch(:exclude_from_reported_settings, false) }
+
+            "Updating config (#{direction}) from #{source.class} with values: #{source_hash}. \nConfig Stack Results: #{final_hash.inspect}"
           end
         end
 
