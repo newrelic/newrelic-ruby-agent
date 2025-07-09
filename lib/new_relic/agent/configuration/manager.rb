@@ -382,6 +382,7 @@ module NewRelic
           @security_policy_source = nil
           @high_security_source = nil
           @environment_source = EnvironmentSource.new
+          log_config(:add, @environment_source) # this is the only place the EnvironmentSource is ever created, so we should log it
           @server_source = nil
           @manual_source = nil
           @yaml_source = nil
