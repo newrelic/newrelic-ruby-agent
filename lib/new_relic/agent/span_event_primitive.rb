@@ -123,7 +123,7 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, DB_STATEMENT_MAX_BYTES)
         end
 
-        if segment.duration > NewRelic::Agent.config[:'transaction_tracer.stack_trace_threshold'] && segment.params[:backtrace]
+        if segment.params[:backtrace]
           agent_attributes[STACKTRACE_KEY] = segment.params[:backtrace]
         end
 
