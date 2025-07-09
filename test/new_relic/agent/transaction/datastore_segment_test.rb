@@ -743,7 +743,9 @@ module NewRelic
         def test_backtrace_not_appended_if_not_over_duration
           segment = nil
           with_config(:'transaction_tracer.stack_trace_threshold' => 2.0) do
-            in_web_transaction('test_txn') do
+            in_web_transaction('test_txn') do |txn|
+              txn.stubs(:sampled?).returns(true)
+
               segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: 'SQLite',
                 operation: 'insert',
@@ -761,12 +763,19 @@ module NewRelic
           node = find_node_with_name_matching(sample, /^Datastore/)
 
           assert_nil node.params[:backtrace]
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          _, _, agent_attributes = last_span_events[0]
+
+          assert_nil agent_attributes['code.stacktrace']
         end
 
         def test_backtrace_appended_when_over_duration
           segment = nil
           with_config(:'transaction_tracer.stack_trace_threshold' => 1.0) do
-            in_web_transaction('test_txn') do
+            in_web_transaction('test_txn') do |txn|
+              txn.stubs(:sampled?).returns(true)
+
               segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: 'SQLite',
                 operation: 'insert',
@@ -784,6 +793,11 @@ module NewRelic
           node = find_node_with_name_matching(sample, /^Datastore/)
 
           refute_nil node.params[:backtrace]
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          _, _, agent_attributes = last_span_events[0]
+
+          refute_nil agent_attributes['code.stacktrace']
         end
 
         def test_node_obfuscated
