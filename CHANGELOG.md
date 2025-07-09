@@ -18,6 +18,9 @@
 
   The agent previously encountered an error when using the new HTTPX version 1.5.0. This was due to a change in the way HTTPX stores the response. The agent has been updated to handle this change correctly, and no longer encounters an error when using HTTPX 1.5.0. [PR#3203](https://github.com/newrelic/newrelic-ruby-agent/pull/3203)
 
+- **Bugfix: Bugfixes and improvements to debug level agent logs**
+
+  Improves the information logged at the debug level by the agent when the agent reads in a configuration source. [PR#3221](https://github.com/newrelic/newrelic-ruby-agent/pull/3221)
 
 ## v9.19.0
 
