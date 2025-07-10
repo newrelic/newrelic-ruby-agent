@@ -40,6 +40,7 @@ module NewRelic
       SERVER_ADDRESS_KEY = 'server.address'
       SERVER_PORT_KEY = 'server.port'
       SPAN_KIND_KEY = 'span.kind'
+      STACKTRACE_KEY = 'code.stacktrace'
       ENTRY_POINT_KEY = 'nr.entryPoint'
       TRUSTED_PARENT_KEY = 'trustedParentId'
       TRACING_VENDORS_KEY = 'tracingVendors'
@@ -120,6 +121,10 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, DB_STATEMENT_MAX_BYTES)
         elsif segment.nosql_statement && allowed?(DB_STATEMENT_KEY)
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, DB_STATEMENT_MAX_BYTES)
+        end
+
+        if segment.params[:backtrace]
+          agent_attributes[STACKTRACE_KEY] = segment.params[:backtrace]
         end
 
         [intrinsics, custom_attributes(segment), agent_attributes.merge(agent_attributes(segment))]
