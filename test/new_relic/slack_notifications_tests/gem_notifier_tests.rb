@@ -48,32 +48,6 @@ class GemNotifierTests < Minitest::Test
     end
   end
 
-  def test_github_diff_get_request_failure
-    HTTParty.stub(:get, -> { raise 'Oh no a failure' }) do
-      GemNotifier.stub(:abort, nil) do
-        assert_raises(StandardError) { GemNotifier.github_diff('invalid_git_diff', '1.2', '1.1') }
-      end
-    end
-  end
-
-  def test_github_diff_invalid_url
-    response = unsuccessful_http_response
-    HTTParty.stub(:get, response) do
-      GemNotifier.stub(:abort, nil) do
-        assert_raises(StandardError) { GemNotifier.github_diff('invalid_git_diff', '1.2', '1.1') }
-      end
-    end
-  end
-
-  def test_github_diff_valid_url
-    response = successful_http_response
-    HTTParty.stub(:get, response) do
-      GemNotifier.stub(:gem_source_code_uri, 'uri') do
-        assert_equal 'uri/compare/v1.1...v1.2', GemNotifier.github_diff('valid_git_diff', '1.2', '1.1')
-      end
-    end
-  end
-
   def test_get_gem_info_returns_array
     versions = GemNotifier.gem_versions(http_get_response)
 
@@ -106,17 +80,6 @@ class GemNotifierTests < Minitest::Test
     refute GemNotifier.gem_updated?([{'created_at' => '1993-06-11T17:31:14.298Z'}])
   end
 
-  def test_interpolate_github_url_one_arg
-    gem_name = 'stegosaurus'
-    assert_raises(ArgumentError) { GemNotifier.interpolate_github_url(gem_name) }
-  end
-
-  def test_interpolate_github_url
-    gem_name, newest, previous = 'stegosaurus', '2.0', '1.0'
-
-    assert_kind_of String, GemNotifier.interpolate_github_url(gem_name, newest, previous)
-  end
-
   def test_interpolate_rubygems_url_one_arg
     assert_raises(ArgumentError) { GemNotifier.interpolate_rubygems_url }
   end
@@ -133,18 +96,17 @@ class GemNotifierTests < Minitest::Test
     end
   end
 
-  def test_gem_message_with_github_diff
-    GemNotifier.stub(:github_diff, 'fake_gem_diff_url') do
+  def test_gem_message_with_action_url
+    GemNotifier.stub(:action_url, 'changelog.com') do
       assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2' \
-      "\n\n<fake_gem_diff_url|See what's new.>",
+      "\n\n<changelog.com|See more.>",
         GemNotifier.gem_message('fake_gem', gem_versions_array)
     end
   end
 
-  def test_gem_message_with_gem_compare
-    GemNotifier.stub(:github_diff, false) do
-      assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2' \
-      "\n\nSee what's new with gem-compare:\n`gem compare fake_gem 1.1 1.2 --diff`",
+  def test_gem_message_with_nil_action_url
+    GemNotifier.stub(:action_url, nil) do
+      assert_equal 'A new gem version is out :sparkles: <https://rubygems.org/gems/fake_gem|*fake_gem*>, 1.1 -> 1.2',
         GemNotifier.gem_message('fake_gem', gem_versions_array)
     end
   end
