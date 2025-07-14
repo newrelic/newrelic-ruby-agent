@@ -179,7 +179,6 @@ module DependencyDetection
     # logs the resolved value during debug mode.
     def fetch_config_value(key)
       valid_value = valid_config_value(::NewRelic::Agent.config[key].to_s.to_sym)
-      ::NewRelic::Agent.logger.debug("Using #{valid_value} configuration value for #{self.name} to configure instrumentation")
       return valid_value
     end
 
