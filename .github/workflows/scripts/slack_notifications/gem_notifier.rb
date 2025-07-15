@@ -55,52 +55,24 @@ class GemNotifier < SlackNotifier
     Time.now.utc - Time.parse(versions[0]['created_at']) < CYCLE
   end
 
-  def self.gem_source_code_uri(gem_name)
+  def self.interpolate_rubygems_url(gem_name)
+    "https://rubygems.org/gems/#{gem_name}"
+  end
+
+  def self.action_url(gem_name)
     info = HTTParty.get("https://rubygems.org/api/v1/gems/#{gem_name}.json")
     raise "Response unsuccessful: #{info}" unless info.success?
 
-    source_code_uri = info["source_code_uri"]
-    validate_url(source_code_uri)
-
-    source_code_uri
-  rescue StandardError => e
-    abort("#{e.class}: #{e.message}")
-  end
-
-  def self.validate_url(url)
-    uri = URI.parse(url)
-    unless uri.scheme == "https"
-      raise "Invalid or untrusted source_code_uri: #{url}"
-    end
-  rescue URI::InvalidURIError
-    raise "Malformed source_code_uri: #{url}"
-  end
-
-  def self.github_diff(gem_name, newest, previous)
-    source_code_uri = gem_source_code_uri(gem_name) # Already validated in gem_source_code_uri
-    interpolated_url = interpolate_github_url(source_code_uri, newest, previous)
-
-    interpolated_url if HTTParty.get(interpolated_url).success?
-  end
-
-  def self.interpolate_github_url(source_code_uri, newest, previous)
-    "#{source_code_uri}/compare/v#{previous}...v#{newest}"
-  end
-
-  def self.interpolate_rubygems_url(gem_name)
-    "https://rubygems.org/gems/#{gem_name}"
+    info['changelog_uri'] || info['source_code_uri'] || info['homepage_uri']
   end
 
   def self.gem_message(gem_name, versions)
     abort("Expected exactly 2 version numbers in the 'versions' array") unless versions.size == 2
     newest, previous = versions[0]['number'], versions[1]['number']
     alert_message = "A new gem version is out :sparkles: <#{interpolate_rubygems_url(gem_name)}|*#{gem_name}*>, #{previous} -> #{newest}"
-    github_diff_exist = github_diff(gem_name, newest, previous)
-    if github_diff_exist
-      action_message = "<#{github_diff_exist}|See what's new.>"
-    else
-      action_message = "See what's new with gem-compare:\n`gem compare #{gem_name} #{previous} #{newest} --diff`"
-    end
+    action_url = action_url(gem_name)
+    action_message = "<#{action_url}|See more.>"
+    return alert_message if action_url.nil?
 
     alert_message + "\n\n" + action_message
   end
