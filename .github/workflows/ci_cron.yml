@@ -306,7 +306,7 @@ jobs:
 
   notify_slack_fail:
     name: Notify slack fail
-    needs: [unit_tests, multiverse, infinite_tracing]
+    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04
     if: always()
     steps:
@@ -324,7 +324,7 @@ jobs:
 
   notify_slack_success:
     name: Notify slack success
-    needs: [unit_tests, multiverse, infinite_tracing]
+    needs: [unit_tests, multiverse, infinite_tracing, multiverse_services_1, multiverse_services_2, multiverse_elasticsearch, multiverse_services_kafka, multiverse_services_mysql_pg]
     runs-on: ubuntu-22.04
     if: always()
     steps:
