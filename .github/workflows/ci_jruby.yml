@@ -125,6 +125,8 @@ jobs:
     needs: [jruby_unit_tests, jruby_multiverse, jruby_sidekiq]
     runs-on: ubuntu-22.04
     if: always()
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - uses: ./.github/actions/workflow-conclusion
@@ -143,6 +145,8 @@ jobs:
     needs: [jruby_unit_tests, jruby_multiverse, jruby_sidekiq]
     runs-on: ubuntu-22.04
     if: always()
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - uses: ./.github/actions/workflow-conclusion
