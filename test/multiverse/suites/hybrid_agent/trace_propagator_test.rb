@@ -42,7 +42,7 @@ module NewRelic
                 assert_match(/@transaction_id=\"e8b91a159289ff74\"/, context_string, "transaction_id doesn't match")
                 assert_match(/@sampled=false/, context_string, "sampled doesn't match")
                 assert_match(/@priority=0.23456/, context_string, "priority doesn't match")
-                assert_match(/@timestamp=1518469636035>/, context_string, "timestamp doesn't match")
+                assert_match(/@timestamp=1518469636035/, context_string, "timestamp doesn't match")
                 assert_match(/@parent_app_id=\"46954/, context_string, "parent_app_id doesn't match")
               end
             end
@@ -77,7 +77,7 @@ module NewRelic
                 assert_match(/@transaction_id=\"e8b91a159289ff74\"/, context_string, "transaction_id doesn't match")
                 assert_match(/@sampled=true/, context_string, "sampled doesn't match")
                 assert_match(/@priority=1.23456/, context_string, "priority doesn't match")
-                assert_match(/@timestamp=1518469636035>/, context_string, "timestamp doesn't match")
+                assert_match(/@timestamp=1518469636035/, context_string, "timestamp doesn't match")
                 assert_match(/@parent_app_id=\"46954/, context_string, "parent_app_id doesn't match")
               end
             end
