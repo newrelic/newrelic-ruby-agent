@@ -32,7 +32,7 @@ module NewRelic
 
       def deserialize_header(encoded_header, key)
         decoded_header = obfuscator.deobfuscate(encoded_header)
-        ::JSON.load(decoded_header)
+        ::JSON.parse(decoded_header)
       rescue => err
         # If we have a failure of any type here, just return nil and carry on
         NewRelic::Agent.logger.debug("Failure deserializing encoded header '#{key}' in #{self.class}, #{err.class}, #{err.message}")

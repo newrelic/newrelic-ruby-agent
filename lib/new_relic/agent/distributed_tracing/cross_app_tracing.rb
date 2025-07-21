@@ -207,7 +207,7 @@ module NewRelic
         decoded_appdata.set_encoding(::Encoding::UTF_8) if
           decoded_appdata.respond_to?(:set_encoding)
 
-        ::JSON.load(decoded_appdata)
+        ::JSON.parse(decoded_appdata)
       end
 
       def valid_cross_app_id?(xp_id)
