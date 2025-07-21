@@ -14,17 +14,18 @@ VERSIONS = [
 
 def gem_list(version = nil)
   <<-RB
-    gem 'rdkafka'#{version}, force_ruby_platform: true
-    #{ffi}
+    gem 'rdkafka'#{version}#{force_ruby_platform}
+    gem 'ffi'#{ffi_version}#{force_ruby_platform}
   RB
 end
 
-def ffi
-  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7')
-    "gem 'ffi', '< 1.17.0'"
-  else
-    "gem 'ffi', force_ruby_platform: true"
-  end
+# rdkafka 0.22.0 (compatible with Ruby 3.1+) introduced new binary platform releases
+def force_ruby_platform
+  ", force_ruby_platform: true" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.1')
+end
+
+def ffi_version
+  ", '< 1.17.0'" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.7')
 end
 
 create_gemfiles(VERSIONS)
