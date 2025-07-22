@@ -35,7 +35,7 @@ module NewRelic
       end
 
       def load_json(header, key)
-        ::JSON.load(header)
+        ::JSON.parse(header)
       rescue => err
         NewRelic::Agent.logger.debug("Failure loading json header '#{key}' in #{self.class}, #{err.class}, #{err.message}")
         nil
