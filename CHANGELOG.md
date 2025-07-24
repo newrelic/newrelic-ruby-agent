@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.20.0
 
 - **Feature: Add ECS Docker ID for Fargate**
 
