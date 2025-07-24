@@ -858,19 +858,19 @@ module NewRelic
           :description => <<~DESCRIPTION
             Sets the minimum level a log event must have to be forwarded to New Relic.
 
-              This is based on the integer values of [Ruby's `Logger::Severity` constants](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
+            This is based on the integer values of [Ruby's `Logger::Severity` constants](https://github.com/ruby/logger/blob/113b82a06b3076b93a71cd467e1605b23afb3088/lib/logger/severity.rb).
 
-              The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
+            The intention is to forward logs with the level given to the configuration, as well as any logs with a higher level of severity.
 
-              For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
+            For example, setting this value to "debug" will forward all log events to New Relic. Setting this value to "error" will only forward log events with the levels "error", "fatal", and "unknown".
 
-              Valid values (ordered lowest to highest):
-              - "debug"
-              - "info"
-              - "warn"
-              - "error"
-              - "fatal"
-              - "unknown"
+            Valid values (ordered lowest to highest):
+            - "debug"
+            - "info"
+            - "warn"
+            - "error"
+            - "fatal"
+            - "unknown"
           DESCRIPTION
         },
         :'application_logging.forwarding.custom_attributes' => {
@@ -1153,7 +1153,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => "If `true`, the agent will report source code level metrics for traced methods.\n  See: " \
+          :description => "If `true`, the agent will report source code level metrics for traced methods.\nSee: " \
                           'https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/'
         },
         # Cross application tracer
