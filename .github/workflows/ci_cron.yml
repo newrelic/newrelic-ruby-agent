@@ -63,6 +63,9 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
+      - name: Install Bundler
+        run: gem install bundler
+
       - name: Install dependencies
         run: bundle install
 
@@ -100,6 +103,9 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       
+      - name: Install Bundler
+        run: gem install bundler
+
       - name: Install dependencies
         run: bundle install
       
@@ -154,6 +160,9 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
+      - name: Install Bundler
+        run: gem install bundler
+
       - name: Install dependencies
         run: bundle install
 
@@ -200,6 +209,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+
+      - name: Install Bundler
+        run: gem install bundler
 
       - name: Install dependencies
         run: bundle install
@@ -252,6 +264,9 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
+      - name: Install Bundler
+        run: gem install bundler
+
       - name: Install dependencies
         run: bundle install
 
@@ -294,6 +309,9 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+
+      - name: Install Bundler
+        run: gem install bundler
 
       - name: Install dependencies
         run: bundle install
