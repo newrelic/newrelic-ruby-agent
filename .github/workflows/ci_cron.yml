@@ -62,6 +62,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
 
       - name: Install Bundler
         run: gem install bundler
@@ -102,7 +103,8 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
+
       - name: Install Bundler
         run: gem install bundler
 
@@ -159,6 +161,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
 
       - name: Install Bundler
         run: gem install bundler
@@ -209,6 +212,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
 
       - name: Install Bundler
         run: gem install bundler
@@ -263,6 +267,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
 
       - name: Install Bundler
         run: gem install bundler
@@ -309,6 +314,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
 
       - name: Install Bundler
         run: gem install bundler
@@ -334,6 +340,13 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
+      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
+
+      - name: Install Bundler
+        run: gem install bundler
+
+      - name: Install dependencies
+        run: bundle install
 
       - name: Run Multiverse (infinite_tracing)
         uses: ./.github/actions/run_multiverse
