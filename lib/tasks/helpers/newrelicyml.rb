@@ -153,7 +153,7 @@ module NewRelicYML
 
   def self.format_description(description)
     # remove all tab characters
-    description.gsub!("\t", "")
+    description.delete!("\t")
     # remove leading and trailing whitespace
     description.strip!
     # wrap text after 80 characters, assuming we're at one tabstop's (two
