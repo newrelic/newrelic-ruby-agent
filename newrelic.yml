@@ -28,9 +28,9 @@ common: &default_settings
 
   # An array of ActiveSupport custom event names to subscribe to and instrument.
   # For example,
-  # 		- one.custom.event
-  # 		- another.event
-  # 		- a.third.event
+  # - one.custom.event
+  # - another.event
+  # - a.third.event
   # active_support_custom_events_names: []
 
   # If false, all LLM instrumentation (OpenAI only for now) will be disabled and
@@ -41,11 +41,11 @@ common: &default_settings
   # If false, LLM instrumentation (OpenAI only for now) will not capture input and
   # output content on specific LLM events.
   # 
-  # 	The excluded attributes include:
-  # 	- content from LlmChatCompletionMessage events
-  # 	- input from LlmEmbedding events
+  # The excluded attributes include:
+  # - content from LlmChatCompletionMessage events
+  # - input from LlmEmbedding events
   # 
-  # 	This is an optional security setting to prevent recording sensitive data sent
+  # This is an optional security setting to prevent recording sensitive data sent
   # to and received from your LLMs.
   # ai_monitoring.record_content.enabled: true
 
@@ -76,22 +76,22 @@ common: &default_settings
 
   # Sets the minimum level a log event must have to be forwarded to New Relic.
   # 
-  #   This is based on the integer values of Ruby's Logger::Severity constants.
+  # This is based on the integer values of Ruby's Logger::Severity constants.
   # 
-  #   The intention is to forward logs with the level given to the configuration,
-  # as well as any logs with a higher level of severity.
+  # The intention is to forward logs with the level given to the configuration, as
+  # well as any logs with a higher level of severity.
   # 
-  #   For example, setting this value to "debug" will forward all log events to
-  # New Relic. Setting this value to "error" will only forward log events with the
+  # For example, setting this value to "debug" will forward all log events to New
+  # Relic. Setting this value to "error" will only forward log events with the
   # levels "error", "fatal", and "unknown".
   # 
-  #   Valid values (ordered lowest to highest):
-  #   - "debug"
-  #   - "info"
-  #   - "warn"
-  #   - "error"
-  #   - "fatal"
-  #   - "unknown"
+  # Valid values (ordered lowest to highest):
+  # - "debug"
+  # - "info"
+  # - "warn"
+  # - "error"
+  # - "fatal"
+  # - "unknown"
   # application_logging.forwarding.log_level: debug
 
   # Defines the maximum number of log records to buffer in memory at a time.
@@ -130,49 +130,49 @@ common: &default_settings
   # add custom instrumentation to. This doesn't require any modifications of the
   # source code that defines the methods.
   # 
-  # 	Use fully qualified class names (using the :: delimiter) that include any
+  # Use fully qualified class names (using the :: delimiter) that include any
   # module or class namespacing.
   # 
-  # 	Here is some Ruby source code that defines a render_png instance method for
-  # an Image class and a notify class method for a User class, both within a
+  # Here is some Ruby source code that defines a render_png instance method for an
+  # Image class and a notify class method for a User class, both within a
   # MyCompany module namespace:
   # 
-  # 			module MyCompany
-  # 			class Image
-  # 				def render_png
-  # 					# code to render a PNG
-  # 				end
-  # 			end
+  # module MyCompany
+  # class Image
+  # def render_png
+  # # code to render a PNG
+  # end
+  # end
   # 
-  # 			class User
-  # 				def self.notify
-  # 					# code to notify users
-  # 				end
-  # 			end
-  # 		end
-  # 	
+  # class User
+  # def self.notify
+  # # code to notify users
+  # end
+  # end
+  # end
   # 
-  # 	Given that source code, the newrelic.yml config file might request
+  # 
+  # Given that source code, the newrelic.yml config file might request
   # instrumentation for both of these methods like so:
   # 
-  # 			automatic_custom_instrumentation_method_list:
-  # 			- MyCompany::Image#render_png
-  # 			- MyCompany::User.notify
-  # 	
+  # automatic_custom_instrumentation_method_list:
+  # - MyCompany::Image#render_png
+  # - MyCompany::User.notify
   # 
-  # 	That configuration example uses YAML array syntax to specify both methods.
+  # 
+  # That configuration example uses YAML array syntax to specify both methods.
   # Alternatively, you can use a comma-delimited string:
   # 
-  # 			automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png,
+  # automatic_custom_instrumentation_method_list: 'MyCompany::Image#render_png,
   # MyCompany::User.notify'
-  # 	
   # 
-  # 	Whitespace around the comma(s) in the list is optional. When configuring the
+  # 
+  # Whitespace around the comma(s) in the list is optional. When configuring the
   # agent with a list of methods via the
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST environment variable,
   # use this comma-delimited string format:
   # 
-  # 			export
+  # export
   # NEW_RELIC_AUTOMATIC_CUSTOM_INSTRUMENTATION_METHOD_LIST='MyCompany::Image#render_png,
   # MyCompany::User.notify'
   # automatic_custom_instrumentation_method_list: []
@@ -224,7 +224,7 @@ common: &default_settings
   # When true, the agent captures HTTP request parameters and attaches them to
   # transaction traces, traced errors, and TransactionError events.
   # 
-  # 	When using the capture_params setting, the Ruby agent will not attempt to
+  # When using the capture_params setting, the Ruby agent will not attempt to
   # filter secret information. Recommendation: To filter secret information from
   # request parameters, use the attributes.include setting instead. For more
   # information, see the Ruby attribute examples.
@@ -237,16 +237,16 @@ common: &default_settings
   # cloud.aws.account_id: nil
 
   # If true, the agent will report source code level metrics for traced methods.
-  #   See:
+  # See:
   # https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/ruby-codestream-integration/
   # code_level_metrics.enabled: true
 
   # Path to newrelic.yml. If undefined, the agent checks the following directories
   # (in order):
-  # 	- config/newrelic.yml
-  # 	- newrelic.yml
-  # 	- $HOME/.newrelic/newrelic.yml
-  # 	- $HOME/newrelic.yml
+  # - config/newrelic.yml
+  # - newrelic.yml
+  # - $HOME/.newrelic/newrelic.yml
+  # - $HOME/newrelic.yml
   # config_path: newrelic.yml
 
   # If false, custom attributes will not be sent on events.
@@ -334,17 +334,17 @@ common: &default_settings
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
   # 
-  # 		Cross application tracing is deprecated in favor of distributed tracing.
+  # Cross application tracing is deprecated in favor of distributed tracing.
   # Distributed tracing is on by default for Ruby agent versions 8.0.0 and above.
   # Middlewares are not required to support distributed tracing.
   # 
-  # 		To continue using cross application tracing, update the following options in
+  # To continue using cross application tracing, update the following options in
   # your newrelic.yml configuration file:
   # 
-  # 					cross_application_tracer:
-  # 				enabled: true
-  # 			distributed_tracing:
-  # 				enabled: false
+  # cross_application_tracer:
+  # enabled: true
+  # distributed_tracing:
+  # enabled: false
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
@@ -397,13 +397,13 @@ common: &default_settings
   # error_collector.enabled: true
 
   # A list of error classes that the agent should treat as expected.
-  # 		This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.expected_classes: []
 
   # A map of error classes to a list of messages. When an error of one of the
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be treated as expected.
-  # 		This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.expected_messages: {}
 
   # A comma separated list of status codes, possibly including ranges. Errors
@@ -412,13 +412,13 @@ common: &default_settings
   # error_collector.expected_status_codes: ""
 
   # A list of error classes that the agent should ignore.
-  # 		This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.ignore_classes: ["ActionController::RoutingError", "Sinatra::NotFound"]
 
   # A map of error classes to a list of messages. When an error of one of the
   # classes specified here occurs, if its error message contains one of the
   # strings corresponding to it here, that error will be ignored.
-  # 		This option can't be set via environment variable.
+  # This option can't be set via environment variable.
   # error_collector.ignore_messages: {ThreadError: ["queue empty"]}
 
   # A comma separated list of status codes, possibly including ranges. Errors
@@ -843,13 +843,13 @@ common: &default_settings
 
   # An array of strings to specify which keys and/or values inside a Stripe
   # event's user_data hash should
-  # 	not be reported to New Relic. Each string in this array will be turned into a
+  # not be reported to New Relic. Each string in this array will be turned into a
   # regular expression via
-  # 	Regexp.new to permit advanced matching. For each hash pair, if either the key
+  # Regexp.new to permit advanced matching. For each hash pair, if either the key
   # or value is matched the pair
-  # 	isn't reported. By default, no user_data is reported. Use this option only if
+  # isn't reported. By default, no user_data is reported. Use this option only if
   # the
-  # 	stripe.user_data.include option is also used.
+  # stripe.user_data.include option is also used.
   # stripe.user_data.exclude: []
 
   # An array of strings to specify which keys inside a Stripe event's user_data
@@ -935,14 +935,12 @@ common: &default_settings
   # transaction_tracer.record_redis_arguments: false
 
   # Obfuscation level for SQL queries reported in transaction trace nodes.
-  # 	By default, this is set to obfuscated, which strips out the numeric and
-  # string literals.
-  # 	- If you do not want the agent to capture query information, set this to
-  # none.
-  # 	- If you want the agent to capture all query information in its original
-  # form, set this to raw.
-  # 	- When you enable high security mode, this is automatically set to
-  # obfuscated.
+  # By default, this is set to obfuscated, which strips out the numeric and string
+  # literals.
+  # - If you do not want the agent to capture query information, set this to none.
+  # - If you want the agent to capture all query information in its original form,
+  # set this to raw.
+  # - When you enable high security mode, this is automatically set to obfuscated.
   # transaction_tracer.record_sql: obfuscated
 
   # Specify a threshold in seconds. The agent includes stack traces in transaction
