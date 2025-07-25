@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.20.0
 
 - **Feature: Add ECS Docker ID for Fargate**
 
@@ -25,6 +25,14 @@
 - **Bugfix: Bugfixes and improvements to debug level agent logs**
 
   Improves the information logged at the debug level by the agent when the agent reads in a configuration source. [PR#3221](https://github.com/newrelic/newrelic-ruby-agent/pull/3221)
+
+- **Bugfix: Fix risk of server-side forgery for Slack workflow script**
+
+  Internally, we keep track of gems that are released using a GitHub actions workflow that posts updates on Slack. [@odaysec] identified a way we could reduce the risk of server-side forgery for this workflow. Thank you! [PR#3184](https://github.com/newrelic/newrelic-ruby-agent/pull/3184)
+
+- **Bugfix: Replace JSON.load calls with JSON.parse**
+
+  Generally, JSON.parse is seen as safer than JSON.load. Thank you, [@odaysec](https://github.com/odaysec), for bringing this to our attention! [PR#3183](https://github.com/newrelic/newrelic-ruby-agent/pull/3183) [PR#3230](https://github.com/newrelic/newrelic-ruby-agent/pull/3230)
 
 ## v9.19.0
 
