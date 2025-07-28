@@ -14,6 +14,10 @@
 
   The agent will now add the `code.stacktrace` attribute to datastore spans when the duration exceeds the configured threshold. The threshold is configured using the `transaction_tracer.stack_trace_threshold` configuration option. [PR#3220](https://github.com/newrelic/newrelic-ruby-agent/pull/3220)
 
+- **Feature: Consolidate "Unknown" constant values**
+
+  All references to the various capitalization styles for "Unknown" have been consolidated into two constants: `NewRelic::UNKNOWN` and `NewRelic::UNKNOWN_LOWER`. Thank you, [@tsubasa1122](https://github.com/@tsubasa1122), for your contribution! [PR#3185](https://github.com/newrelic/newrelic-ruby-agent/pull/3185)
+
 - **Bugfix: Fix Brewfile source links**
 
   Previously, the multiverse README's links to the Brewfile were broken. Our thanks go to [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) for submitting a PR to fix them! [PR#3191](https://github.com/newrelic/newrelic-ruby-agent/pull/3191)
