@@ -50,7 +50,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
 
-  s.add_runtime_dependency('logger')
+  spec.add_dependency 'logger'
 
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
