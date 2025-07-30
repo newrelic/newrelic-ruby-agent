@@ -42,9 +42,6 @@ jobs:
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
 
-      - name: Install dependencies
-        run: bundle install
-
       - name: Run Unit and Env tests
         uses: ./.github/actions/run_unit_tests
         with:
@@ -62,15 +59,6 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
-
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
 
       - name: Run Multiverse (${{ matrix.multiverse }})
         uses: ./.github/actions/run_multiverse
@@ -105,16 +93,7 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
 
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
-      
       - name: Run Multiverse (services_1)
         uses: ./.github/actions/run_multiverse
         with:
@@ -165,15 +144,6 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
-
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
 
       - name: Run Multiverse (services_2)
         uses: ./.github/actions/run_multiverse
@@ -218,15 +188,6 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
-
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
 
       - name: Run Multiverse (services_elasticsearch)
         uses: ./.github/actions/run_multiverse
@@ -275,15 +236,6 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
-
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
 
       - name: Run Multiverse (services_kafka)
         uses: ./.github/actions/run_multiverse
@@ -324,15 +276,6 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
-
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
 
       - name: Run Multiverse (services_mysql_pg)
         uses: ./.github/actions/run_multiverse
@@ -352,15 +295,6 @@ jobs:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
-      - uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
-        with:
-          ruby-version: 3.5.0-preview1
-
-      - name: Install Bundler
-        run: gem install bundler
-
-      - name: Install dependencies
-        run: bundle install
 
       - name: Run Multiverse (infinite_tracing)
         uses: ./.github/actions/run_multiverse
