@@ -11,6 +11,13 @@ require_relative '../../../warning_test_helper'
 require_relative '../../../simplecov_test_helper'
 require_relative '../../../../lib/new_relic/base64'
 
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'logger'
+end
+
 require 'logger'
 require 'rubygems'
 require 'fileutils'
