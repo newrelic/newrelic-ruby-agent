@@ -40,7 +40,20 @@ module NewRelic
 
         @event, @context = event, context
 
-        NewRelic::Agent::Tracer.in_transaction(category: category, name: function_name) do
+        # NEW_RELIC_APM_LAMBDA_MODE
+        # In Lambda APM Mode, if the current invocation has AWS Event Source information, 
+        # the agent **must** alter the function name segment of the current transaction name 
+        # to prepend the Event Source Type before the function name, with a space character 
+        # between the event source type and the function name. The prepended event source type **must** be in UPPER CASE.
+        # Assuming an invocation triggered from API Gateway and a transaction name such as `WebTransaction/Function/MyFunctionName`, 
+        # an agent in Serverless APM mode must rename the transaction to `WebTransaction/Function/APIGATEWAY MyFunctionName`.
+        txn_name = if ENV['NEW_RELIC_APM_LAMBDA_MODE'] == 'true'
+          source = ''
+          "#{source} #{function_name}"
+        else
+          function_name
+        end
+        NewRelic::Agent::Tracer.in_transaction(category: category, name: txn_name) do
           prep_transaction
 
           process_response(NewRelic::LanguageSupport.constantize(namespace)
