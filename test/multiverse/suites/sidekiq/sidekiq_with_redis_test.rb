@@ -78,7 +78,7 @@ class SidekiqWithRedisTest < MiniTest::Test
   # work as expected.
   def sidekiq_without_redis?
     require 'sidekiq'
-    return false unless Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('7.0.0')
+    return false unless NewRelic::Helper.version_satisfied?(Sidekiq::VERSION, '>=', '7.0.0')
     return false if defined?(RedisClient).nil?
 
     # NOTE: introspection through Bundler/RubyGems methods produces warnings,

@@ -65,6 +65,7 @@ module NewRelic
       # categories, but generally this *should never ever be done*.  Most of the time you can aggregate
       # on the server.
       #
+      # @!scope class
       # @api public
       #
       def trace_execution_scoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
@@ -81,6 +82,7 @@ module NewRelic
       #
       # * <tt>metric_names</tt> is a single name or an array of names of metrics
       #
+      # @!scope class
       # @api public
       #
       def trace_execution_unscoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
@@ -241,6 +243,7 @@ module NewRelic
         #   # Instrument foo in transaction traces only
         #   add_method_tracer :foo, 'Custom/foo', :metric => false
         #
+        # @!scope class
         # @api public
         #
         def add_method_tracer(method_name, metric_name = nil, options = {})

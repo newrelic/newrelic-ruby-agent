@@ -10,6 +10,8 @@
 #
 #       Step 1: define these shell aliases:
 #
+#         alias elastic9='docker run --rm --name elasticsearch -p 9252:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.enrollment.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:9.0.2'
+#
 #         alias elastic8='docker run --rm --name elasticsearch -p 9250:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" -e "xpack.security.enrollment.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:8.13.4'
 #
 #         alias elastic7='docker run --rm --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.16.2'
@@ -221,7 +223,7 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def transport_error_class
-    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
+    if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       ::Elasticsearch::Transport::Transport::Error
     else
       ::Elastic::Transport::Transport::Error
@@ -229,10 +231,12 @@ class ElasticsearchInstrumentationTest < Minitest::Test
   end
 
   def port
-    if ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('8.0.0')
+    if NewRelic::Helper.version_satisfied?(Elasticsearch::VERSION, '<', '8.0.0')
       9200 # 9200 for elasticsearch 7
-    else
+    elsif ::Gem::Version.create(Elasticsearch::VERSION) < ::Gem::Version.create('9.0.0')
       9250 # 9250 for elasticsearch 8
+    else
+      9252 # 9252 for elasticsearch 9
     end
   end
 end

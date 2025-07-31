@@ -25,7 +25,7 @@ module NewRelic
       end
 
       def value
-        match = VERSIONS.keys.find { |key| version >= Gem::Version.new(key) }
+        match = VERSIONS.keys.find { |key| NewRelic::Helper.version_satisfied?(version, '>=', key) }
         return unless match
 
         VERSIONS[match].call(env)

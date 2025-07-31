@@ -113,7 +113,7 @@ module NewRelic::Agent::Instrumentation
 
         assert segment
 
-        if defined?(Rails) && Rails.respond_to?(:version) && Gem::Version.new(Rails.version) >= Gem::Version.new('7.1')
+        if defined?(Rails) && Rails.respond_to?(:version) && NewRelic::Helper.version_satisfied?(Rails.version, '>=', '7.1')
           assert_match(/ActiveJob::QueueAdapters::(?:Test|Async)Adapter/, segment.params[:adapter].class.name)
         else
           assert_equal 'ActiveJob::QueueAdapters::AsyncAdapter', segment.params[:adapter].class.name

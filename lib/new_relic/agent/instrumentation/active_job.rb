@@ -30,7 +30,7 @@ DependencyDetection.defer do
   executes do
     if defined?(ActiveSupport) &&
         ActiveJob.respond_to?(:gem_version) &&
-        ActiveJob.gem_version >= Gem::Version.new('6.0.0') &&
+        NewRelic::Helper.version_satisfied?(ActiveJob.gem_version, '>=', '6.0.0') &&
         !NewRelic::Agent.config[:disable_activejob] &&
         !NewRelic::Agent::Instrumentation::ActiveJobSubscriber.subscribed?
       NewRelic::Agent.logger.info('Installing notifications based ActiveJob instrumentation')

@@ -14,6 +14,14 @@ class HybridAgentTest < Minitest::Test
 
   def setup
     @tracer = OpenTelemetry.tracer_provider.tracer
+
+    # in order to inject headers, there must be a parent account ID and a
+    # parent application ID
+    @config = {
+      :account_id => '190',
+      :primary_application_id => '46954'
+    }
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   def teardown
@@ -27,14 +35,8 @@ class HybridAgentTest < Minitest::Test
   # It looks for the snake cased version of the testDescription field in the JSON
   # Ex: %w[does_not_create_segment_without_a_transaction] would only run
   # `"testDescription": "Does not create segment without a transaction"`
-  #
-  # Now that we're starting to implement, use this to add tests individually
-  # until the full suite can be run on the CI
   def focus_tests
-    %w[
-      creates_opentelemetry_segment_in_a_transaction
-      does_not_create_segment_without_a_transaction
-    ]
+    %w[]
   end
 
   test_cases = load_cross_agent_test('hybrid_agent')
@@ -50,7 +52,7 @@ class HybridAgentTest < Minitest::Test
           parse_operation(o)
         end
 
-        harvest_and_verify_agent_output(test_case['agentOutput'])
+        verify_agent_output(test_case['agentOutput'])
       else
         skip('marked pending by exclusion from #focus_tests')
       end

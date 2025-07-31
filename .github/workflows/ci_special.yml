@@ -1,8 +1,8 @@
 name: URL Test CI
 
 on:
-  schedule:
-    - cron: '0 9 * * *'
+  # schedule:
+    # - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
       - name: Install Ruby 3.4
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252 # tag v1.229.0
+        uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
         with:
           ruby-version: 3.4
 
@@ -46,6 +46,8 @@ jobs:
     needs: [unit_tests]
     runs-on: ubuntu-22.04
     if: always()
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - uses: ./.github/actions/workflow-conclusion
@@ -64,6 +66,8 @@ jobs:
     needs: [unit_tests]
     runs-on: ubuntu-22.04
     if: always()
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag v4.2.2
       - uses: ./.github/actions/workflow-conclusion

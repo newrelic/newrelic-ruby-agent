@@ -54,6 +54,7 @@ module NewRelic
           # Have NewRelic ignore actions in this controller.  Specify the actions as hash options
           # using :except and :only.  If no actions are specified, all actions are ignored.
           #
+          # @!scope class
           # @api public
           #
           def newrelic_ignore(specifiers = {})
@@ -65,6 +66,7 @@ module NewRelic
           # actions that are not user facing or that skew your overall apdex measurement.
           # Accepts :except and :only options, as with #newrelic_ignore.
           #
+          # @!scope class
           # @api public
           #
           def newrelic_ignore_apdex(specifiers = {})
@@ -72,6 +74,7 @@ module NewRelic
             newrelic_ignore_aspect(NR_IGNORE_APDEX_KEY, specifiers)
           end
 
+          # @!scope class
           # @api public
           def newrelic_ignore_enduser(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_enduser)
@@ -159,6 +162,7 @@ module NewRelic
           # See NewRelic::Agent::Instrumentation::ControllerInstrumentation#perform_action_with_newrelic_trace
           # for the full list of available options.
           #
+          # @!scope class
           # @api public
           #
           def add_transaction_tracer(method, options = {})

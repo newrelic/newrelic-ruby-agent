@@ -39,6 +39,7 @@ module NewRelic
       # @return           {Transaction}     The transaction the headers were inserted from,
       #                                     or +nil+ if headers were not inserted.
       #
+      # @!scope class
       # @api public
       #
       def insert_distributed_trace_headers(headers = {})
@@ -93,6 +94,7 @@ module NewRelic
       #
       # @return {Transaction} if successful, +nil+ otherwise
       #
+      # @!scope class
       # @api public
       #
       def accept_distributed_trace_headers(headers, transport_type = NewRelic::HTTP)

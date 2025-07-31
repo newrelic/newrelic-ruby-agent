@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # disabling for anything that might run Minitest 4.x
-if RUBY_VERSION >= '2.7.0'
+if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.7.0')
   require 'fileutils'
   require 'minitest/autorun'
   require 'minitest/stub_const'

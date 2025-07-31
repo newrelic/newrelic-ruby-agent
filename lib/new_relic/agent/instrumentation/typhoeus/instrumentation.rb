@@ -8,11 +8,11 @@ module NewRelic
       module Typhoeus
         HYDRA_SEGMENT_NAME = 'External/Multiple/Typhoeus::Hydra/run'
         NOTICEABLE_ERROR_CLASS = 'Typhoeus::Errors::TyphoeusError'
-        EARLIEST_VERSION = Gem::Version.new('0.5.3')
+        EARLIEST_VERSION = '0.5.3'
         INSTRUMENTATION_NAME = NewRelic::Agent.base_name(name)
 
         def self.is_supported_version?
-          Gem::Version.new(::Typhoeus::VERSION) >= EARLIEST_VERSION
+          NewRelic::Helper.version_satisfied?(::Typhoeus::VERSION, '>=', EARLIEST_VERSION)
         end
 
         def self.request_is_hydra_enabled?(request)

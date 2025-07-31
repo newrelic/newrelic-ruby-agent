@@ -153,7 +153,7 @@ def newest_ruby
 end
 
 def skip_unless_newest_ruby
-  return if Gem::Version.new(RUBY_VERSION) >= newest_ruby
+  return if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', newest_ruby)
 
   skip 'This test only runs on the latest CI cron Ruby version'
 end

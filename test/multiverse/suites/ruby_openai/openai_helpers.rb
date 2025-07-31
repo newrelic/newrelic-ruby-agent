@@ -5,7 +5,7 @@
 module OpenAIHelpers
   class ChatResponse
     def body(return_value: false)
-      if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0') || return_value
+      if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '>=', '6.0.0') || return_value
         {'id' => 'chatcmpl-8nEZg6Gb5WFOwAz34Hivh4IXH0GHq',
          'object' => 'chat.completion',
          'created' => 1706744788,
@@ -23,7 +23,7 @@ module OpenAIHelpers
     end
 
     def error_response(return_value: false)
-      if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('4.3.2') || return_value
+      if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '>=', '4.3.2') || return_value
         nil
       else
         {'error' => {'message' => 'you must provide a model parameter', 'type' => 'invalid_request_error', 'param' => nil, 'code' => nil}}
@@ -33,7 +33,7 @@ module OpenAIHelpers
 
   class EmbeddingsResponse
     def body(return_value: false)
-      if Gem::Version.new(::OpenAI::VERSION) >= Gem::Version.new('6.0.0') || return_value
+      if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '>=', '6.0.0') || return_value
         {'object' => 'list',
          'data' => [{
            'object' => 'embedding',
@@ -54,7 +54,7 @@ module OpenAIHelpers
 
   def connection_client
     client # can cause failure if this has never been created before on older versions for the test that uses connection_client
-    Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('4.3.2') ? OpenAI::Client : client
+    NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '<=', '4.3.2') ? OpenAI::Client : client
   end
 
   def embeddings_params
@@ -148,7 +148,7 @@ module OpenAIHelpers
   end
 
   def simulate_error(&blk)
-    if Gem::Version.new(::OpenAI::VERSION) < Gem::Version.new('4.0.0')
+    if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '<', '4.0.0')
       error_httparty_connection
       yield
     else
@@ -184,7 +184,7 @@ module OpenAIHelpers
   end
 
   def stub_post_request(&blk)
-    if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
+    if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '<=', '3.4.0')
       HTTParty.stub(:post, ChatResponse.new.body(return_value: true)) do
         yield
       end
@@ -196,7 +196,7 @@ module OpenAIHelpers
   end
 
   def stub_error_post_request(&blk)
-    if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
+    if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '<=', '3.4.0')
       HTTParty.stub(:post, ChatResponse.new.error_response(return_value: true)) do
         yield
       end
@@ -208,7 +208,7 @@ module OpenAIHelpers
   end
 
   def stub_embeddings_post_request(&blk)
-    if Gem::Version.new(::OpenAI::VERSION) <= Gem::Version.new('3.4.0')
+    if NewRelic::Helper.version_satisfied?(::OpenAI::VERSION, '<=', '3.4.0')
       HTTParty.stub(:post, EmbeddingsResponse.new.body(return_value: true)) do
         yield
       end

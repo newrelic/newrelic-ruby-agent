@@ -12,7 +12,7 @@ DependencyDetection.defer do
   configure_with :rake
 
   depends_on { defined?(Rake) && defined?(Rake::VERSION) }
-  depends_on { Gem::Version.new(Rake::VERSION) >= Gem::Version.new('10.0.0') }
+  depends_on { NewRelic::Helper.version_satisfied?(Rake::VERSION, '>=', '10.0.0') }
   depends_on { NewRelic::Agent.config[:'rake.tasks'].any? }
   depends_on { NewRelic::Agent::Instrumentation::Rake.safe_from_third_party_gem? }
 

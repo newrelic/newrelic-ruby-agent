@@ -50,7 +50,7 @@ module NewRelic
             begin
               NewRelic::Helper.run_command('uname -s').downcase
             rescue NewRelic::CommandRunFailedError, NewRelic::CommandExecutableNotFoundError
-              'unknown'
+              NewRelic::UNKNOWN_LOWER
             end
           else
             RUBY_PLATFORM.downcase

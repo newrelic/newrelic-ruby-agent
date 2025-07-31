@@ -67,7 +67,7 @@ module NewRelic
         end
 
         def warn_missing_config_file(path)
-          based_on = 'unknown'
+          based_on = NewRelic::UNKNOWN_LOWER
           source = ::NewRelic::Agent.config.source(:config_path)
           candidate_paths = [path]
 
@@ -103,7 +103,7 @@ module NewRelic
             NewRelic::Agent.agent&.health_check&.update_status(NewRelic::Agent::HealthCheck::FAILED_TO_PARSE_CONFIG)
             message = 'Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.'
             failure_array = [message, e]
-            failure_array << e.backtrace[0] if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3.4.0')
+            failure_array << e.backtrace[0] if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3.4.0')
             log_failure(*failure_array)
             nil
           end

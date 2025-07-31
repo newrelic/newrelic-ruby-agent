@@ -3,14 +3,6 @@
 # frozen_string_literal: true
 
 module ParsingHelpers
-  def harvest_and_verify_agent_output(agent_output)
-    txns = harvest_transaction_events![1]
-    spans = harvest_span_events![1]
-
-    verify_agent_output(txns, agent_output, 'transactions')
-    verify_agent_output(spans, agent_output, 'spans')
-  end
-
   def parse_operation(operation)
     command = parse_command(operation['command'])
     parameters = parse_parameters(operation['parameters'])
@@ -89,9 +81,9 @@ module ParsingHelpers
     when 'current_otel_span.span_id' then current_otel_span_context&.span_id
     when 'current_segment.span_id' then NewRelic::Agent::Tracer.current_segment&.guid
     when 'current_transaction.sampled' then current_transaction&.sampled?
-    when 'injected.trace_id' then 'TODO'
-    when 'injected.span_id' then 'TODO'
-    when 'injected.sampled' then 'TODO'
+    when 'injected.trace_id' then injected['trace_id']
+    when 'injected.span_id' then injected['span_id']
+    when 'injected.sampled' then injected['sampled']
     else
       raise "Missing parameter for assertion! Received: #{param}"
     end
@@ -123,47 +115,74 @@ module ParsingHelpers
     assert_equal expected, actual, "Expected #{object} to equal #{expected}"
   end
 
-  def verify_agent_output(harvest, output, type)
-    puts "Agent Output: #{type}: #{output[type]}" if ENV['ENABLE_OUTPUT']
+  def verify_agent_output(output)
+    verify_transaction_output(output['transactions'])
+    verify_span_output(output['spans'])
+  end
 
-    if output[type].empty?
-      assert_empty harvest, "Agent output expected no #{type}. Found: #{harvest}"
-    else
-      outputs = prepare_keys(output[type])
-      events = harvest.flatten.select { |a| a.key?('type') }
+  def verify_transaction_output(output)
+    txns = harvest_transaction_events![1].flatten.map { |t| t['name'] }.compact
 
-      events.each_with_index do |event, i|
-        output = outputs[i]
-        if output && event
-          msg = "Agent output for #{type.capitalize} wasn't found in the harvest." \
-            "\nHarvest: #{event}\nAgent output: #{output}"
+    assert_equal output.length, txns.length, 'Wrong number of transactions found'
 
-          if output['parent_name']
-            result = events.find { |e| e['guid'] == event['parentId'] }.dig('name')
+    output.each do |txn|
+      assert_includes(txns, txn['name'], "Transaction name #{txn['name']} missing from output")
+    end
+  end
 
-            assert_equal output['parent_name'], result, msg
-            output.delete('parent_name')
-          end
+  def verify_span_output(output)
+    # The harvest payload for spans includes some info about the reservoir
+    # in the zero-index.
+    # The first-index includes the span events that were harvested, which is all
+    # we care about for these tests
+    spans = harvest_span_events![1]
 
-          assert event >= output, msg
+    output.each do |expected|
+      # A harvested span is an array with three hashes:
+      # span[0] is the Span event itself
+      # span[1] is for custom attributes
+      # span[2] is for agent attributes (which aren't tested here)
+      actual = spans.find { |s| s[0]['name'] == expected['name'] }
+
+      assert actual, "Span output could not be verified. Span was not found.\n" \
+        "Expected: #{expected}\n" \
+        "Harvested spans: #{spans}\n"
+
+      if expected['category']
+        assert_equal expected['category'], actual[0]['category'], 'Expected category not found.'
+      end
+
+      if expected['entryPoint']
+        assert_equal expected['entryPoint'], actual[0]['nr.entryPoint'], 'Span was not an entrypoint.'
+      end
+
+      expected['attributes']&.each do |expected_key, expected_value|
+        # 0 is intrinsic attributes, 1 is custom attributes, 2 is agent attributes
+        attr_section = if expected_key.start_with?('error.')
+          actual[2] # error attributes are in the agent attributes section
+        else
+          actual[1]
         end
+
+        assert_equal expected_value, attr_section[expected_key],
+          "Expected attributes not found.\n" \
+          "Expected attribute: {'#{expected_key}' => '#{expected_value}'}\n" \
+          "Actual span: #{actual}\n"
+      end
+
+      if expected['parentName']
+        result = spans.find { |s| s[0]['guid'] == actual[0]['parentId'] } if actual
+        result_name = result&.first&.dig('name')
+
+        assert_equal expected['parentName'], result_name,
+          "Expected parent name not found.\n" \
+          "Expected parent name: #{expected['parentName']}\n" \
+          "Actual span: #{actual}\n"
       end
     end
   end
 
   def snake_sub_downcase(key)
     key.gsub(/(.)([A-Z])/, '\1_\2').downcase
-  end
-
-  def prepare_keys(output)
-    output.map do |o|
-      o.transform_keys do |k|
-        if k == 'entryPoint'
-          k = 'nr.entryPoint'
-        else
-          snake_sub_downcase(k)
-        end
-      end
-    end
   end
 end

@@ -11,7 +11,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(LogStasher) &&
-      Gem::Version.new(LogStasher::VERSION) >= Gem::Version.new('1.0.0') &&
+      NewRelic::Helper.version_satisfied?(LogStasher::VERSION, '>=', '1.0.0') &&
       NewRelic::Agent.config[:'application_logging.enabled']
   end
 

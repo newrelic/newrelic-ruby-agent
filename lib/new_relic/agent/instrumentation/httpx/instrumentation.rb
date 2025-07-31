@@ -30,7 +30,7 @@ module NewRelic::Agent::Instrumentation::HTTPX
 
   def nr_finish_segment
     proc do |request, segment|
-      response = @responses[request]
+      response = request.response if request
 
       unless response
         NewRelic::Agent.logger.debug('Processed an on-response callback for HTTPX but could not find the response!')

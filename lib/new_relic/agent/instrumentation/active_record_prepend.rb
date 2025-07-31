@@ -11,7 +11,7 @@ module NewRelic
         ACTIVE_RECORD = 'ActiveRecord'.freeze
 
         module BaseExtensions
-          if RUBY_VERSION < '2.7.0'
+          if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
             def save(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
@@ -46,7 +46,7 @@ module NewRelic
           # Starting in v5.1.6, this call no longer happens. We'll
           # have to set the database metrics explicitly now.
           #
-          if RUBY_VERSION < '2.7.0'
+          if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '<', '2.7.0')
             def touch(*args, **kwargs, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super

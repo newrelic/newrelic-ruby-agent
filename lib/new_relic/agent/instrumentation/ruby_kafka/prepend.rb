@@ -20,7 +20,7 @@ module NewRelic::Agent::Instrumentation
     module Prepend
       include NewRelic::Agent::Instrumentation::RubyKafka
 
-      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('3')
+      if NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '3')
         def each_message(**args)
           super do |message|
             each_message_with_new_relic(message) do

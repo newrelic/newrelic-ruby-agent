@@ -1,5 +1,43 @@
 # New Relic Ruby Agent Release Notes
 
+## v9.20.0
+
+- **Feature: Add ECS Docker ID for Fargate**
+
+  Previously, the Ruby agent did not record the Docker ID when running in an AWS ECS Fargate environment. The Docker ID will now be recorded correctly. [PR#3172](https://github.com/newrelic/newrelic-ruby-agent/pull/3172)
+
+- **Feature: Add NewRelic::Helper.version_satisfied?**
+
+  The agent has a new helper method to simplify version comparison. `NewRelic::Helper.version_satisfied?` accepts three arguments: a left-side version number, the comparison operator as a string, and a right-side version number. Our thanks go to [@kekke-n](https://github.com/kekke-n) for this contribution. [PR#3182](https://github.com/newrelic/newrelic-ruby-agent/pull/3182)
+
+- **Feature: Add code.stacktrace attribute on datastore spans when duration exceeds configured threshold**
+
+  The agent will now add the `code.stacktrace` attribute to datastore spans when the duration exceeds the configured threshold. The threshold is configured using the `transaction_tracer.stack_trace_threshold` configuration option. [PR#3220](https://github.com/newrelic/newrelic-ruby-agent/pull/3220)
+
+- **Feature: Consolidate "Unknown" constant values**
+
+  All references to the various capitalization styles for "Unknown" have been consolidated into two constants: `NewRelic::UNKNOWN` and `NewRelic::UNKNOWN_LOWER`. Thank you, [@tsubasa1122](https://github.com/@tsubasa1122), for your contribution! [PR#3185](https://github.com/newrelic/newrelic-ruby-agent/pull/3185)
+
+- **Bugfix: Fix Brewfile source links**
+
+  Previously, the multiverse README's links to the Brewfile were broken. Our thanks go to [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) for submitting a PR to fix them! [PR#3191](https://github.com/newrelic/newrelic-ruby-agent/pull/3191)
+
+- **Bugfix: Fix error when using HTTPX 1.5.0**
+
+  The agent previously encountered an error when using the new HTTPX version 1.5.0. This was due to a change in the way HTTPX stores the response. The agent has been updated to handle this change correctly, and no longer encounters an error when using HTTPX 1.5.0. [PR#3203](https://github.com/newrelic/newrelic-ruby-agent/pull/3203)
+
+- **Bugfix: Bugfixes and improvements to debug level agent logs**
+
+  Improves the information logged at the debug level by the agent when the agent reads in a configuration source. [PR#3221](https://github.com/newrelic/newrelic-ruby-agent/pull/3221)
+
+- **Bugfix: Fix risk of server-side forgery for Slack workflow script**
+
+  Internally, we keep track of gems that are released using a GitHub actions workflow that posts updates on Slack. [@odaysec] identified a way we could reduce the risk of server-side forgery for this workflow. Thank you! [PR#3184](https://github.com/newrelic/newrelic-ruby-agent/pull/3184)
+
+- **Bugfix: Replace JSON.load calls with JSON.parse**
+
+  Generally, JSON.parse is seen as safer than JSON.load. Thank you, [@odaysec](https://github.com/odaysec), for bringing this to our attention! [PR#3183](https://github.com/newrelic/newrelic-ruby-agent/pull/3183) [PR#3230](https://github.com/newrelic/newrelic-ruby-agent/pull/3230)
+
 ## v9.19.0
 
 - **Feature: Add Thread ID as attribute to all spans**

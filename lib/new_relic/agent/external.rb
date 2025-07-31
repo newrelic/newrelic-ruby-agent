@@ -29,6 +29,7 @@ module NewRelic
       #
       # @param request_metadata [String] received obfuscated request metadata
       #
+      # @!scope class
       # @api public
       #
       def process_request_metadata(request_metadata)
@@ -74,6 +75,7 @@ module NewRelic
       #
       # @return [String] obfuscated response metadata to send
       #
+      # @!scope class
       # @api public
       #
       def get_response_metadata

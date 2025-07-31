@@ -293,6 +293,7 @@ module NewRelic
     #
     # This method is safe to use from any thread.
     #
+    # @!scope class
     # @api public
     def record_metric(metric_name, value) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:record_metric)
@@ -333,6 +334,7 @@ module NewRelic
     #
     # This method is safe to use from any thread.
     #
+    # @!scope class
     # @api public
     #
     def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
@@ -360,6 +362,7 @@ module NewRelic
     #
     # Return the new block or the existing filter Proc if no block is passed.
     #
+    # @!scope class
     # @api public
     #
     def ignore_error_filter(&block)
@@ -398,6 +401,7 @@ module NewRelic
     # them if you are calling <code>notice_error</code> outside a
     # transaction.
     #
+    # @!scope class
     # @api public
     #
     def notice_error(exception, options = {})
@@ -435,6 +439,7 @@ module NewRelic
     # :'error.expected' => Whether (true) or not (false) the error was expected
     # :options => The options hash passed to `NewRelic::Agent.notice_error`
     #
+    # @!scope class
     # @api public
     #
     def set_error_group_callback(callback_proc)
@@ -474,6 +479,7 @@ module NewRelic
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
+    # @!scope class
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
@@ -506,6 +512,7 @@ module NewRelic
     # @param [optional, Hash] Set of key-value pairs to store any other
     #   desired data to submit with the feedback event.
     #
+    # @!scope class
     # @api public
     #
     def record_llm_feedback_event(trace_id:,
@@ -559,6 +566,7 @@ module NewRelic
     # :model => [String] The name of the LLM model
     # :content => [String] The message content or prompt
     #
+    # @!scope class
     # @api public
     #
     def set_llm_token_count_callback(callback_proc)
@@ -591,6 +599,7 @@ module NewRelic
     # file logger.  The setting for the newrelic.yml section to use
     # (ie, RAILS_ENV) can be overridden with an :env argument.
     #
+    # @!scope class
     # @api public
     #
     def manual_start(options = {})
@@ -623,6 +632,7 @@ module NewRelic
     #   connection, this tells me to only try it once so this method returns
     #   quickly if there is some kind of latency with the server.
     #
+    # @!scope class
     # @api public
     #
     def after_fork(options = {})
@@ -636,6 +646,7 @@ module NewRelic
     #
     # @param options [Hash] Unused options Hash, for back compatibility only
     #
+    # @!scope class
     # @api public
     #
     def shutdown(options = {})
@@ -646,6 +657,7 @@ module NewRelic
     # Clear out any data the agent has buffered but has not yet transmitted
     # to the collector.
     #
+    # @!scope class
     # @api public
     def drop_buffered_data
       # the following line needs else branch coverage
@@ -660,6 +672,7 @@ module NewRelic
     # register instrumentation than just loading the files directly,
     # although that probably also works.
     #
+    # @!scope class
     # @api public
     #
     def add_instrumentation(file_pattern)
@@ -669,6 +682,7 @@ module NewRelic
 
     # Require agent testing helper methods
     #
+    # @!scope class
     # @api public
     def require_test_helper
       record_api_supportability_metric(:require_test_helper)
@@ -689,6 +703,7 @@ module NewRelic
     #       my_obfuscator(sql)
     #    end
     #
+    # @!scope class
     # @api public
     #
     def set_sql_obfuscator(type = :replace, &block)
@@ -704,6 +719,7 @@ module NewRelic
     # traced errors, transaction traces, Insights events, slow SQL traces,
     # or RUM injection will happen for this transaction.
     #
+    # @!scope class
     # @api public
     #
     def ignore_transaction
@@ -714,6 +730,7 @@ module NewRelic
     # This method disables the recording of Apdex metrics in the current
     # transaction.
     #
+    # @!scope class
     # @api public
     #
     def ignore_apdex
@@ -724,6 +741,7 @@ module NewRelic
     # This method disables browser monitoring javascript injection in the
     # current transaction.
     #
+    # @!scope class
     # @api public
     #
     def ignore_enduser
@@ -736,6 +754,7 @@ module NewRelic
     # track of the first entry point and turn on tracing again after
     # leaving that block.  This uses the thread local Tracer::State.
     #
+    # @!scope class
     # @api public
     #
     def disable_all_tracing
@@ -760,6 +779,7 @@ module NewRelic
     #     ...
     #   end
     #
+    # @!scope class
     # @api public
     #
     def disable_sql_recording
@@ -798,6 +818,7 @@ module NewRelic
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
+    # @!scope class
     # @api public
     #
     def add_custom_attributes(params) # THREAD_LOCAL_ACCESS
@@ -838,6 +859,7 @@ module NewRelic
     #                           booleans.
     #
     # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
+    # @!scope class
     # @api public
     def add_custom_span_attributes(params)
       record_api_supportability_metric(:add_custom_span_attributes)
@@ -879,6 +901,7 @@ module NewRelic
     #
     #                         Attribute pairs with empty or nil contents
     #                         will be dropped.
+    # @!scope class
     # @api public
     def add_custom_log_attributes(params)
       record_api_supportability_metric(:add_custom_log_attributes)
@@ -894,6 +917,7 @@ module NewRelic
     #
     # @param [String] user_id    The user id to add to the current transaction attributes
     #
+    # @!scope class
     # @api public
     def set_user_id(user_id)
       record_api_supportability_metric(:set_user_id)
@@ -937,6 +961,7 @@ module NewRelic
     #
     # The default category is the same as the running transaction.
     #
+    # @!scope class
     # @api public
     #
     def set_transaction_name(name, options = {})
@@ -947,6 +972,7 @@ module NewRelic
     # Get the name of the current running transaction.  This is useful if you
     # want to modify the default name.
     #
+    # @!scope class
     # @api public
     #
     def get_transaction_name # THREAD_LOCAL_ACCESS
@@ -1018,6 +1044,7 @@ module NewRelic
     # * entity.guid - The guid of the current entity.
     # * hostname    - The fully qualified hostname.
     #
+    # @!scope class
     # @api public
     def linking_metadata
       metadata = Hash.new
@@ -1044,6 +1071,7 @@ module NewRelic
     #
     # @param [String] nonce The nonce to use in the javascript tag for browser instrumentation
     #
+    # @!scope class
     # @api public
     #
     def browser_timing_header(nonce = nil)
