@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.20.0
 
 - **Feature: Add ECS Docker ID for Fargate**
 
@@ -14,6 +14,10 @@
 
   The agent will now add the `code.stacktrace` attribute to datastore spans when the duration exceeds the configured threshold. The threshold is configured using the `transaction_tracer.stack_trace_threshold` configuration option. [PR#3220](https://github.com/newrelic/newrelic-ruby-agent/pull/3220)
 
+- **Feature: Consolidate "Unknown" constant values**
+
+  All references to the various capitalization styles for "Unknown" have been consolidated into two constants: `NewRelic::UNKNOWN` and `NewRelic::UNKNOWN_LOWER`. Thank you, [@tsubasa1122](https://github.com/@tsubasa1122), for your contribution! [PR#3185](https://github.com/newrelic/newrelic-ruby-agent/pull/3185)
+
 - **Bugfix: Fix Brewfile source links**
 
   Previously, the multiverse README's links to the Brewfile were broken. Our thanks go to [@emmanuel-ferdman](https://github.com/emmanuel-ferdman) for submitting a PR to fix them! [PR#3191](https://github.com/newrelic/newrelic-ruby-agent/pull/3191)
@@ -25,6 +29,14 @@
 - **Bugfix: Bugfixes and improvements to debug level agent logs**
 
   Improves the information logged at the debug level by the agent when the agent reads in a configuration source. [PR#3221](https://github.com/newrelic/newrelic-ruby-agent/pull/3221)
+
+- **Bugfix: Fix risk of server-side forgery for Slack workflow script**
+
+  Internally, we keep track of gems that are released using a GitHub actions workflow that posts updates on Slack. [@odaysec] identified a way we could reduce the risk of server-side forgery for this workflow. Thank you! [PR#3184](https://github.com/newrelic/newrelic-ruby-agent/pull/3184)
+
+- **Bugfix: Replace JSON.load calls with JSON.parse**
+
+  Generally, JSON.parse is seen as safer than JSON.load. Thank you, [@odaysec](https://github.com/odaysec), for bringing this to our attention! [PR#3183](https://github.com/newrelic/newrelic-ruby-agent/pull/3183) [PR#3230](https://github.com/newrelic/newrelic-ruby-agent/pull/3230)
 
 ## v9.19.0
 
