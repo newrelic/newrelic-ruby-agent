@@ -38,6 +38,7 @@ module NewRelic
       def invoke_lambda_function_with_new_relic(event:, context:, method_name:, namespace: nil)
         NewRelic::Agent.increment_metric(SUPPORTABILITY_METRIC)
 
+        puts "New Relic Serverless Handler invoked with event: #{event.inspect}"
         @event, @context = event, context
 
         # NEW_RELIC_APM_LAMBDA_MODE

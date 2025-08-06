@@ -17,6 +17,11 @@
 
 require 'new_relic/control'
 
+puts "*" * 80
+puts "Loading agent"
+puts "#{caller_locations}"
+puts "*" * 80
+
 if defined?(Rails::VERSION)
   module NewRelic
     class Railtie < Rails::Railtie
