@@ -1,7 +1,7 @@
 name: 'Run Multiverse'
 description: 'run multiverse group tests'
 inputs:
-  ruby-version:  
+  ruby-version:
     description: 'What ruby version to install'
     required: true
   group:
@@ -23,7 +23,7 @@ runs:
       run: sudo apt-get update; sudo apt-get install -y --no-install-recommends libcurl4-nss-dev libsasl2-dev libxslt1-dev
 
     - name: Install Ruby ${{ inputs.ruby-version }}
-      uses: ruby/setup-ruby@a4effe49ee8ee5b8b5091268c473a4628afb5651 # tag v1.245.0
+      uses: ruby/setup-ruby@2a7b30092b0caf9c046252510f9273b4875f3db9 # tag v1.254.0
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
