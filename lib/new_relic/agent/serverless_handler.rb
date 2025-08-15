@@ -42,7 +42,7 @@ module NewRelic
 
         txn_name = function_name
         if ENV['NEW_RELIC_APM_LAMBDA_MODE'] == 'true'
-          source = event_source_event_info['name']
+          source = event_source_event_info['name'] if event_source_event_info
           txn_name = "#{source.upcase} #{txn_name}" if source
         end
 
