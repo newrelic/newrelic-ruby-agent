@@ -49,11 +49,15 @@ module NewRelic
         # Assuming an invocation triggered from API Gateway and a transaction name such as `WebTransaction/Function/MyFunctionName`, 
         # an agent in Serverless APM mode must rename the transaction to `WebTransaction/Function/APIGATEWAY MyFunctionName`.
         txn_name = if ENV['NEW_RELIC_APM_LAMBDA_MODE'] == 'true'
+          puts "in if"
           source = event_source_event_info['name']
+          puts "source: #{source}, event_source_event_info: #{event_source_event_info.inspect}"
           "#{source} #{function_name}"
         else
+          puts "in else"
           function_name
         end
+        puts "Transaction name: #{txn_name}"
         NewRelic::Agent::Tracer.in_transaction(category: category, name: txn_name) do
           prep_transaction
 
