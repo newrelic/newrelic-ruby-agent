@@ -43,7 +43,7 @@ module NewRelic
         txn_name = function_name
         if ENV['NEW_RELIC_APM_LAMBDA_MODE'] == 'true'
           source = event_source_event_info['name']
-          "#{source} #{txn_name}" if source
+          txn_name = "#{source} #{txn_name}" if source
         end
 
         NewRelic::Agent::Tracer.in_transaction(category: category, name: txn_name) do
