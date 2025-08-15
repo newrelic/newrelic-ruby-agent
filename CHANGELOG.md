@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: In Serverless APM mode, use event source name as transaction name prefix**
+
+  The agent will now use the event source name as a prefix for the transaction name in Serverless APM mode. This will help to better identify the source of the transaction in the New Relic UI. [PR#3245](https://github.com/newrelic/newrelic-ruby-agent/pull/3245)
+
 ## v9.20.0
 
 - **Feature: Add ECS Docker ID for Fargate**
