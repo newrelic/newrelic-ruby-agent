@@ -86,6 +86,7 @@ module NewRelic::Agent
       end
 
       def teardown
+        harvest_transaction_events!
         skip unless defined?(@test_config)
 
         NewRelic::Agent.config.remove_config(@test_config)
@@ -264,19 +265,22 @@ module NewRelic::Agent
 
       EVENT_SOURCES.each do |type, info|
         define_method(:"test_event_type_#{type}") do
-          output = with_output do
-            handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
-              event: info['event'],
-              context: testing_context)
-          end
-          attributes = output.last['analytic_event_data'].last.last.last
+          with_environment('NEW_RELIC_APM_LAMBDA_MODE' => 'true') do
+            output = with_output do
+              handler.invoke_lambda_function_with_new_relic(method_name: :customer_lambda_function,
+                event: info['event'],
+                context: testing_context)
+            end
+            attributes = output.last['analytic_event_data'].last.last.last
 
-          assert_equal info['expected_arn'], attributes['aws.lambda.eventSource.arn']
-          assert_equal info['expected_type'], attributes['aws.lambda.eventSource.eventType']
+            assert_equal info['expected_arn'], attributes['aws.lambda.eventSource.arn']
+            assert_equal info['expected_type'], attributes['aws.lambda.eventSource.eventType']
+            assert_equal "#{type.upcase} lambda_function", output.last['analytic_event_data'].last.first.first['name']
 
-          AWS_TYPE_SPECIFIC_ATTRIBUTES[type].each do |key, value|
-            assert_equal value, attributes[key],
-              "Expected agent attribute of '#{key}' with a value of '#{value}'. Got '#{attributes['key']}'"
+            AWS_TYPE_SPECIFIC_ATTRIBUTES[type].each do |key, value|
+              assert_equal value, attributes[key],
+                "Expected agent attribute of '#{key}' with a value of '#{value}'. Got '#{attributes['key']}'"
+            end
           end
         end
       end
