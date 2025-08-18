@@ -42,7 +42,8 @@ module NewRelic
         def thread_starting_span
           # if the previous current segment was in another thread, use the thread local parent
           if ThreadLocalStorage[:newrelic_thread_span_parent] &&
-              current_segment&.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
+              current_segment &&
+              current_segment.starting_segment_key != NewRelic::Agent::Tracer.current_segment_key
 
             ThreadLocalStorage[:newrelic_thread_span_parent]
           end
