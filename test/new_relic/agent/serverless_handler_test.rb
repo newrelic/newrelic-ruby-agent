@@ -83,10 +83,10 @@ module NewRelic::Agent
         @test_config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
         NewRelic::Agent.config.add_config_for_testing(@test_config, true)
         handler.send(:reset!)
+        harvest_transaction_events!
       end
 
       def teardown
-        harvest_transaction_events!
         skip unless defined?(@test_config)
 
         NewRelic::Agent.config.remove_config(@test_config)
