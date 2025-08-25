@@ -6,6 +6,10 @@
 
   The agent will now use the event source name as a prefix for the transaction name in Serverless APM mode. This will help to better identify the source of the transaction in the New Relic UI. [PR#3245](https://github.com/newrelic/newrelic-ruby-agent/pull/3245)
 
+- **Bugfix: Revert changed logic for how we track the thread the span starts in**
+
+  This change restores the previous behavior of tracking the thread the span starts in, addressing issues that arose from the updated logic. Thank you [@david-zw-liu](https://github.com/david-zw-liu) for bringing this to our attention. [PR#3248](https://github.com/newrelic/newrelic-ruby-agent/pull/3248)
+
 ## v9.20.0
 
 - **Feature: Add ECS Docker ID for Fargate**
