@@ -34,6 +34,6 @@ create_gemfiles(VERSIONS)
 # but we don't need to test it on every ruby version bc it should just be the same as rdkafka
 if Gem::Version.new(RUBY_VERSION) > Gem::Version.new('3.3.0')
   gemfile <<~RB
-    gem 'karafka-rdkafka', require: 'rdkafka'
+    gem 'karafka-rdkafka', '< 0.21.0', require: 'rdkafka'
   RB
 end
