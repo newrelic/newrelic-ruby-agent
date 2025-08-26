@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.21.0
 
 - **Feature: In Serverless APM mode, use event source name as transaction name prefix**
 
