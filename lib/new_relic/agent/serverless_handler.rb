@@ -40,7 +40,13 @@ module NewRelic
 
         @event, @context = event, context
 
-        NewRelic::Agent::Tracer.in_transaction(category: category, name: function_name) do
+        txn_name = function_name
+        if ENV['NEW_RELIC_APM_LAMBDA_MODE'] == 'true'
+          source = event_source_event_info['name'] if event_source_event_info
+          txn_name = "#{source.upcase} #{txn_name}" if source
+        end
+
+        NewRelic::Agent::Tracer.in_transaction(category: category, name: txn_name) do
           prep_transaction
 
           process_response(NewRelic::LanguageSupport.constantize(namespace)
