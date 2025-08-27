@@ -4,7 +4,7 @@
 
 class RdkafkaInstrumentationTest < Minitest::Test
   def setup
-    @topic = 'ruby-test-topic' + Time.now.to_i.to_s
+    @topic = 'ruby-test-topic' + Time.now.to_i.to_s + rand(1000).to_s
     Rdkafka::Config.logger = Logger.new(STDOUT, level: :error)
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
