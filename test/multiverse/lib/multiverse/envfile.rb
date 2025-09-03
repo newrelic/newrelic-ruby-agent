@@ -15,7 +15,6 @@ module Multiverse
       gem 'bigdecimal'
       gem 'mutex_m'
       gem 'ostruct'
-      gem 'logger'
     NON_BUILTIN_GEMS
 
     def initialize(file_path, options = {})
