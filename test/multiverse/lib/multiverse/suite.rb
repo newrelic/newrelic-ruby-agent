@@ -12,7 +12,6 @@ require_relative '../../../simplecov_test_helper'
 require_relative '../../../../lib/new_relic/base64'
 
 require 'rubygems'
-require 'logger'
 require 'fileutils'
 require 'digest'
 require_relative 'bundler_patch'
