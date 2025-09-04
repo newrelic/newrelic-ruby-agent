@@ -20,7 +20,6 @@ require_relative 'envfile'
 require_relative 'output_collector'
 require_relative 'runner'
 require_relative 'shell_utils'
-require 'logger'
 
 module Multiverse
   class Suite
