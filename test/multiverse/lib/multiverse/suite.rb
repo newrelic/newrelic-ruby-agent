@@ -12,6 +12,7 @@ require_relative '../../../simplecov_test_helper'
 require_relative '../../../../lib/new_relic/base64'
 
 require 'rubygems'
+require 'logger'
 require 'fileutils'
 require 'digest'
 require_relative 'bundler_patch'
@@ -285,6 +286,7 @@ module Multiverse
         f.puts "gem 'minitest-stub-const', '~> 0.6', require: false"
         f.puts "gem 'webrick'"
         f.puts "gem 'warning'"
+        f.puts "gem 'logger'"
 
         if debug
           f.puts "gem 'pry', '~> 0.14'" if ENV['ENABLE_PRY']
