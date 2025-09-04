@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'thread'
+require 'logger'
 require 'singleton'
 require 'new_relic/agent/hostname'
 require 'new_relic/agent/log_once'

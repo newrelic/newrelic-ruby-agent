@@ -2,6 +2,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'logger'
 require 'fileutils'
 require 'new_relic/agent/hostname'
 require 'new_relic/agent/instrumentation/logger/instrumentation'

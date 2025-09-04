@@ -5,6 +5,7 @@
 require 'socket'
 require 'net/https'
 require 'net/http'
+require 'logger'
 require 'zlib'
 require 'stringio'
 require 'new_relic/constants'
