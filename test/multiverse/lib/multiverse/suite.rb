@@ -609,6 +609,7 @@ module Multiverse
       prevent_minitest_auto_run
       require_mocha
       require_helpers
+      require_logger_if_needed
     end
 
     def patch_minitest_base_for_old_versions
@@ -639,6 +640,10 @@ module Multiverse
 
     def require_mocha
       require 'mocha/setup'
+    end
+
+    def require_logger_if_needed
+      require 'logger' if RUBY_VERSION >= '3.5.0'
     end
 
     def disable_harvest_thread
