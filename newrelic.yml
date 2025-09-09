@@ -138,17 +138,17 @@ common: &default_settings
   # MyCompany module namespace:
   # 
   # module MyCompany
-  #   class Image
-  #     def render_png
-  #       # code to render a PNG
-  #     end
-  #   end
+  # class Image
+  # def render_png
+  # # code to render a PNG
+  # end
+  # end
   # 
-  #   class User
-  #     def self.notify
-  #       # code to notify users
-  #     end
-  #   end
+  # class User
+  # def self.notify
+  # # code to notify users
+  # end
+  # end
   # end
   # 
   # 
@@ -156,8 +156,8 @@ common: &default_settings
   # instrumentation for both of these methods like so:
   # 
   # automatic_custom_instrumentation_method_list:
-  #   - MyCompany::Image#render_png
-  #   - MyCompany::User.notify
+  # - MyCompany::Image#render_png
+  # - MyCompany::User.notify
   # 
   # 
   # That configuration example uses YAML array syntax to specify both methods.
@@ -342,9 +342,9 @@ common: &default_settings
   # your newrelic.yml configuration file:
   # 
   # cross_application_tracer:
-  #   enabled: true
+  # enabled: true
   # distributed_tracing:
-  #   enabled: false
+  # enabled: false
   # disable_sinatra_auto_middleware: false
 
   # If true, disables view instrumentation.
