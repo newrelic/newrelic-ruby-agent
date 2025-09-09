@@ -72,7 +72,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(The::Example.singleton_class, :class_method)
 
       assert_equal({filepath: __FILE__,
-        lineno: The::Example.method(:class_method).source_location.last,
+        lineno: The::Example.method(:class_method).source_location[1],
         function: 'self.class_method',
         namespace: 'The::Example'},
         info)
@@ -84,7 +84,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(::The::Example, :instance_method)
 
       assert_equal({filepath: __FILE__,
-        lineno: The::Example.instance_method(:instance_method).source_location.last,
+        lineno: The::Example.instance_method(:instance_method).source_location[1],
         function: 'instance_method',
         namespace: 'The::Example'},
         info)
@@ -96,7 +96,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(::The::Example, :private_method)
 
       assert_equal({filepath: __FILE__,
-        lineno: The::Example.instance_method(:private_method).source_location.last,
+        lineno: The::Example.instance_method(:private_method).source_location[1],
         function: 'private_method',
         namespace: 'The::Example'},
         info)
@@ -111,7 +111,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(klass, :an_instance_method)
 
       assert_equal({filepath: __FILE__,
-        lineno: klass.instance_method(:an_instance_method).source_location.last,
+        lineno: klass.instance_method(:an_instance_method).source_location[1],
         function: 'an_instance_method',
         namespace: '(Anonymous)'},
         info)
@@ -126,7 +126,7 @@ class NewRelic::Agent::MethodTracerHelpersTest < Minitest::Test
       info = NewRelic::Agent::MethodTracerHelpers.code_information(klass, :a_class_method)
 
       assert_equal({filepath: __FILE__,
-        lineno: klass.method(:a_class_method).source_location.last,
+        lineno: klass.method(:a_class_method).source_location[1],
         function: 'self.a_class_method',
         namespace: '(Anonymous)'},
         info)
