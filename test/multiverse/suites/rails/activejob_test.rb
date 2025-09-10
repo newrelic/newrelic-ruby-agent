@@ -86,14 +86,14 @@ if Rails::VERSION::STRING >= '4.2.0'
 
       assert_equal __FILE__, code_attributes['code.filepath']
       assert_equal 'perform', code_attributes['code.function']
-      assert_equal MyJob.instance_method(:perform).source_location.last, code_attributes['code.lineno']
+      assert_equal MyJob.instance_method(:perform).source_location[1], code_attributes['code.lineno']
       assert_equal 'MyJob', code_attributes['code.namespace']
     end
 
     def test_code_information_recorded_with_new_transaction
       with_config(:'code_level_metrics.enabled' => true) do
         expected = {filepath: __FILE__,
-                    lineno: MyJob.instance_method(:perform).source_location.last,
+                    lineno: MyJob.instance_method(:perform).source_location[1],
                     function: 'perform',
                     namespace: 'MyJob'}
         segment = MiniTest::Mock.new
