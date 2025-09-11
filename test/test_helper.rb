@@ -17,6 +17,7 @@ $:.uniq!
 
 require 'rubygems'
 require 'rake'
+require 'logger'
 
 require 'minitest/autorun'
 require 'minitest/pride' unless ENV['CI']
