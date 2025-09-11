@@ -89,6 +89,7 @@ function install_ruby_version_specific_gems {
     # gem list logger
     # gem install logger
     gem --version
+    bundle -v
     gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
     gem install --default set:1.1.2
