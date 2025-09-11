@@ -4,3 +4,5 @@
 
 source 'https://rubygems.org'
 gemspec name: 'newrelic_rpm'
+
+gem 'logger'
