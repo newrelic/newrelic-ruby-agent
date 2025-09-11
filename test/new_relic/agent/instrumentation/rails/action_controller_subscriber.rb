@@ -344,7 +344,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
       assert_equal __FILE__, attributes['code.filepath']
       assert_equal 'index', attributes['code.function']
-      assert_equal TestController.instance_method(:index).source_location.last, attributes['code.lineno']
+      assert_equal TestController.instance_method(:index).source_location[1], attributes['code.lineno']
       assert_equal 'NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest::TestController',
         attributes['code.namespace']
     end

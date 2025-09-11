@@ -50,8 +50,8 @@ module NewRelic
         return ::NewRelic::EMPTY_HASH if info.empty?
 
         namespace, location, is_class_method = info
-        @code_information[cache_key] = {filepath: location.first,
-                                        lineno: location.last,
+        @code_information[cache_key] = {filepath: location[0],
+                                        lineno: location[1],
                                         function: "#{'self.' if is_class_method}#{method_name}",
                                         namespace: namespace}.freeze
       rescue StandardError => e
