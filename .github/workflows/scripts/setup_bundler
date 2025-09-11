@@ -51,7 +51,7 @@ function install_desired_bundler_version {
     gem list bundler
     echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
     echo "DEBUG: running 'gem uninstall bundler'"
-    gem uninstall bundler
+    gem uninstall bundler:2.7.0.dev --force
     echo "DEBUG: running 'gem list bundler' again"
     gem list bundler
   else
