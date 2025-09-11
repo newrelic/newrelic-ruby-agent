@@ -100,15 +100,14 @@ function install_ruby_version_specific_gems {
     gem install --default erb:4.0.4
     gem install --default erb:5.0.1
     gem install --default logger:1.7.0
-    # gem list logger
-    # gem install logger
-    gem --version
-    bundle -v
     gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
     gem install --default set:1.1.2
     gem install --default strscan:3.0.4
     gem install --default strscan:3.1.5
+    if [[ $RUBY_VERSION = '3.5.0-preview1' ]]; then
+      gem install logger
+    fi
 
     echo "DEBUG: Completed installing gems"
 
