@@ -31,9 +31,6 @@ function update_to_desired_rubygems_version {
   if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
     echo "DEBUG: running 'gem update --system 3.0.6 --force'"
     gem update --system 3.0.6 --force >/dev/null
-  elif [[ $RUBY_VERSION = '3.5.0-preview1' ]]; then
-    echo "DEBUG: running 'gem update --system 3.7.0.dev --force'"
-    gem update --system 3.7.0.dev --force >/dev/null
   else
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force >/dev/null
@@ -42,36 +39,22 @@ function update_to_desired_rubygems_version {
 }
 
 function install_desired_bundler_version {
-  if [[ $RUBY_VERSION = '3.5.0-preview1' ]]; then
-    echo "DEBUG: obtaining pre-installed Bundler version"
-    og_bundler=$(bundle --version | awk '{ print $3 }')
-    echo "DEBUG: running 'gem install bundler'"
-    gem install --default bundler:2.5.17 --force
-    echo "DEBUG: running 'gem list bundler'"
-    gem list bundler
-    echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-    echo "DEBUG: running 'gem uninstall bundler'"
-    gem uninstall bundler:2.7.0.dev --force
-    echo "DEBUG: running 'gem list bundler' again"
-    gem list bundler
-  else
-    echo "DEBUG: obtaining pre-installed Bundler version"
-    og_bundler=$(bundle --version | awk '{ print $3 }')
-    echo "DEBUG: pre-installed Bundler version is $og_bundler"
-    if [[ "$og_bundler" = "1.17.3" ]]; then
-      return
-    fi
-    # need to use bundler <2 for all rails 4 and below tests
-    echo "DEBUG: running 'gem install bundler'"
-    gem install --default bundler:1.17.3 --force
-    echo "DEBUG: running 'gem list bundler'"
-    gem list bundler
-    echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
-    echo "DEBUG: running 'gem uninstall bundler'"
-    gem uninstall bundler
-    echo "DEBUG: running 'gem list bundler' again"
-    gem list bundler
+  echo "DEBUG: obtaining pre-installed Bundler version"
+  og_bundler=$(bundle --version | awk '{ print $3 }')
+  echo "DEBUG: pre-installed Bundler version is $og_bundler"
+  if [[ "$og_bundler" = "1.17.3" ]]; then
+    return
   fi
+  # need to use bundler <2 for all rails 4 and below tests
+  echo "DEBUG: running 'gem install bundler'"
+  gem install --default bundler:1.17.3 --force
+  echo "DEBUG: running 'gem list bundler'"
+  gem list bundler
+  echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
+  echo "DEBUG: running 'gem uninstall bundler'"
+  gem uninstall bundler
+  echo "DEBUG: running 'gem list bundler' again"
+  gem list bundler
 }
 
 function configure_bundler {
@@ -105,9 +88,6 @@ function install_ruby_version_specific_gems {
     gem install --default set:1.1.2
     gem install --default strscan:3.0.4
     gem install --default strscan:3.1.5
-    # if [[ $RUBY_VERSION = '3.5.0-preview1' ]]; then
-    #   gem install logger
-    # fi
 
     echo "DEBUG: Completed installing gems"
 
