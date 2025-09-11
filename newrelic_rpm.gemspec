@@ -50,7 +50,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.summary = 'New Relic Ruby Agent'
 
-  # s.add_dependency 'logger'
+  s.add_dependency 'logger', '1.7.0'
 
   s.add_development_dependency 'logger'
   s.add_development_dependency 'bundler'
