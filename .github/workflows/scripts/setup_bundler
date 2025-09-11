@@ -47,6 +47,13 @@ function install_desired_bundler_version {
     og_bundler=$(bundle --version | awk '{ print $3 }')
     echo "DEBUG: running 'gem install bundler'"
     gem install --default bundler:2.5.17 --force
+    echo "DEBUG: running 'gem list bundler'"
+    gem list bundler
+    echo "DEBUG: RUBY_VERSION = $RUBY_VERSION"
+    echo "DEBUG: running 'gem uninstall bundler'"
+    gem uninstall bundler
+    echo "DEBUG: running 'gem list bundler' again"
+    gem list bundler
   else
     echo "DEBUG: obtaining pre-installed Bundler version"
     og_bundler=$(bundle --version | awk '{ print $3 }')
