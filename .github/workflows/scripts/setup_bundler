@@ -31,6 +31,9 @@ function update_to_desired_rubygems_version {
   if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
     echo "DEBUG: running 'gem update --system 3.0.6 --force'"
     gem update --system 3.0.6 --force >/dev/null
+  elif [[ $RUBY_VERSION = '3.5.0preview1' ]]; then
+    echo "DEBUG: running 'gem update --system 3.7.0.dev --force'"
+    gem update --system 3.7.0.dev --force >/dev/null
   else
     echo "DEBUG: running 'gem update --system 3.4.1 --force'"
     gem update --system 3.4.1 --force >/dev/null
@@ -83,8 +86,8 @@ function install_ruby_version_specific_gems {
     gem install --default erb:4.0.4
     gem install --default erb:5.0.1
     gem install --default logger:1.7.0
-    gem list logger
-    gem install logger
+    # gem list logger
+    # gem install logger
     gem --version
     gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
