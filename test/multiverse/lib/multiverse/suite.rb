@@ -11,7 +11,7 @@ require_relative '../../../warning_test_helper'
 require_relative '../../../simplecov_test_helper'
 require_relative '../../../../lib/new_relic/base64'
 
-require 'logger'
+# require 'logger'
 require 'rubygems'
 require 'fileutils'
 require 'digest'
