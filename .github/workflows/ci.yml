@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # tag v1.257.0
         with:
-          ruby-version: 3.4
+          ruby-version: 3.5.0-preview1
       - run: bundle
       - run: rubocop
 
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -56,7 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, frameworks, httpclients, httpclients_2, hybrid_agent, rails, rest]
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -89,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -182,7 +182,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -229,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -268,7 +268,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.4.10, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -287,7 +287,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.7.8, 3.4.4]
+        ruby-version: [2.7.8, 3.4.4, 3.5.0-preview1]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -312,7 +312,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
       - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # tag v1.257.0
         with:
-          ruby-version: 3.4
+          ruby-version: 3.5.0-preview1
       - run: bundle
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # tag v5.0.0
