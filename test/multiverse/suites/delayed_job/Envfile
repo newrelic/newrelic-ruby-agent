@@ -28,7 +28,6 @@ boilerplate_gems = <<~SQLITE
   gem 'rack'
   #{sqlite}
   #{bigdecimal}
-  gem 'benchmark'
 
 SQLITE
 
@@ -38,6 +37,7 @@ if RUBY_VERSION >= '2.6.0'
   # (built in for Ruby < v3.4.0) version of securerandom, so just declare a
   # top-level >= 0.3 dependency.
   gemfile <<~RB
+    gem 'benchmark'
     gem 'delayed_job'
     gem 'i18n'
     #{boilerplate_gems}
@@ -46,6 +46,7 @@ if RUBY_VERSION >= '2.6.0'
 
   # As of 6/13/22 delayed_job_active_record was not compatible with Rails 7
   gemfile <<~RB
+    gem 'benchmark'
     gem 'delayed_job'
     gem 'delayed_job_active_record'
     gem 'activerecord', '~> 6.1.0'
