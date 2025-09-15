@@ -28,6 +28,7 @@ boilerplate_gems = <<~SQLITE
   gem 'rack'
   #{sqlite}
   #{bigdecimal}
+  gem 'benchmark
 
 SQLITE
 
@@ -41,7 +42,6 @@ if RUBY_VERSION >= '2.6.0'
     gem 'i18n'
     #{boilerplate_gems}
     gem 'securerandom', '>= 0.3'
-    gem 'benchmark'
   RB
 
   # As of 6/13/22 delayed_job_active_record was not compatible with Rails 7
