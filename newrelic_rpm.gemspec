@@ -51,7 +51,7 @@ Gem::Specification.new do |s|
   s.summary = 'New Relic Ruby Agent'
 
   s.add_development_dependency 'logger'
-  
+
   s.add_development_dependency 'bundler'
   s.add_development_dependency 'feedjira', '3.2.1' unless ENV['CI'] || RUBY_VERSION < '2.5' # for Gabby
   s.add_development_dependency 'httparty' unless ENV['CI'] # for perf tests and Gabby
