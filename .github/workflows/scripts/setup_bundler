@@ -82,7 +82,6 @@ function install_ruby_version_specific_gems {
     gem install --default digest:3.2.0
     gem install --default erb:4.0.4
     gem install --default erb:5.0.2
-    gem install logger
     gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
     gem install --default set:1.1.2
