@@ -36,6 +36,7 @@ def gem_list(activerecord_version = nil)
 
     gem 'rack'
     gem 'minitest', '~> 5.2.3'
+    gem 'benchmark'
   RB
 end
 
