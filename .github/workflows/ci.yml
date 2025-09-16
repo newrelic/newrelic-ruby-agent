@@ -209,7 +209,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         env:
-          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
           ALLOW_PLAINTEXT_LISTENER: yes
           KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
@@ -221,6 +221,7 @@ jobs:
           - 2181:2181
         env:
           ALLOW_ANONYMOUS_LOGIN: yes
+          ZOOKEEPER_CLIENT_PORT: 2181
         options: >-
           --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
           --health-interval 10s
