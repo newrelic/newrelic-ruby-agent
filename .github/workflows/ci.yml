@@ -206,30 +206,28 @@ jobs:
         env:
           ZOOKEEPER_CLIENT_PORT: 2181
           ZOOKEEPER_TICK_TIME: 2000
-          ZOOKEEPER_4LW_COMMANDS_WHITELIST: mntr,ruok,conf
         options: >-
-          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+          --health-cmd "echo ruok | nc localhost 2181 | grep imok"
           --health-interval 10s
-          --health-timeout 15s
-          --health-retries 20
+          --health-timeout 10s
+          --health-retries 30
 
       kafka:
         image: confluentinc/cp-kafka:7.9.1
         ports:
           - 9092:9092
-          - 29092:29092
         env:
           KAFKA_BROKER_ID: 1
           KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,PLAINTEXT_HOST://localhost:9092
-          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
           KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
           KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         options: >-
-          --health-cmd "kafka-broker-api-versions.sh --version"
+          --health-cmd "kafka-topics --bootstrap-server localhost:9092 --list"
           --health-interval 15s
-          --health-timeout 15s
-          --health-retries 20
+          --health-timeout 20s
+          --health-retries 30
     strategy:
       fail-fast: false
       matrix:
