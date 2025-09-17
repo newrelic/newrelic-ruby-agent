@@ -201,6 +201,20 @@ jobs:
     needs: run_rubocop
     runs-on: ubuntu-22.04
     services:
+      zookeeper:
+        image: confluentinc/cp-zookeeper:7.9.1
+        ports:
+          - 2181:2181
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+          ZOOKEEPER_4LW_COMMANDS_WHITELIST: mntr,ruok,conf
+        options: >-
+          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 10
+
       kafka:
         image: confluentinc/cp-kafka:7.9.1
         ports:
@@ -216,21 +230,8 @@ jobs:
         options: >-
           --health-cmd "kafka-broker-api-versions.sh --version"
           --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      zookeeper:
-        image: confluentinc/cp-zookeeper:7.9.1
-        ports:
-          - 2181:2181
-        env:
-          ZOOKEEPER_CLIENT_PORT: 2181
-          ZOOKEEPER_TICK_TIME: 2000
-          ZOOKEEPER_4LW_COMMANDS_WHITELIST: mntr,ruok,conf
-        options: >-
-          --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-timeout 10s
+          --health-retries 10
     strategy:
       fail-fast: false
       matrix:
