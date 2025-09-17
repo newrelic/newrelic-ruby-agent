@@ -207,10 +207,10 @@ jobs:
           ZOOKEEPER_CLIENT_PORT: 2181
           ZOOKEEPER_TICK_TIME: 2000
         options: >-
-          --health-cmd "echo ruok | nc localhost 2181 | grep imok"
-          --health-interval 10s
+          --health-cmd "timeout 10s bash -c '</dev/tcp/localhost/2181'"
+          --health-interval 5s
           --health-timeout 10s
-          --health-retries 30
+          --health-retries 60
 
       kafka:
         image: confluentinc/cp-kafka:7.9.1
@@ -224,10 +224,10 @@ jobs:
           KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
           KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         options: >-
-          --health-cmd "kafka-topics --bootstrap-server localhost:9092 --list"
-          --health-interval 15s
-          --health-timeout 20s
-          --health-retries 30
+          --health-cmd "timeout 10s bash -c '</dev/tcp/localhost/9092'"
+          --health-interval 5s
+          --health-timeout 10s
+          --health-retries 60
     strategy:
       fail-fast: false
       matrix:
