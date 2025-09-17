@@ -210,8 +210,8 @@ jobs:
         options: >-
           --health-cmd "echo mntr | nc -w 2 -q 2 localhost 2181"
           --health-interval 10s
-          --health-timeout 10s
-          --health-retries 10
+          --health-timeout 15s
+          --health-retries 20
 
       kafka:
         image: confluentinc/cp-kafka:7.9.1
@@ -227,9 +227,9 @@ jobs:
           KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         options: >-
           --health-cmd "kafka-broker-api-versions.sh --version"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 10
+          --health-interval 15s
+          --health-timeout 15s
+          --health-retries 20
     strategy:
       fail-fast: false
       matrix:
