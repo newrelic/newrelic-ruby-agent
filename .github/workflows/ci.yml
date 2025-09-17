@@ -217,7 +217,7 @@ jobs:
           KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
           KAFKA_DEFAULT_REPLICATION_FACTOR: 1
           KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-          zookeeper:
+      zookeeper:
         image: confluentinc/cp-kafka:7.9.1
         ports:
           - 2181:2181
