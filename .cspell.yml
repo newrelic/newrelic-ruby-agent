@@ -1,0 +1,74 @@
+# cSpell:ignore textlintrc
+# For settings, see
+# https://www.streetsidesoftware.com/vscode-spell-checker/docs/configuration/
+version: '0.2'
+caseSensitive: false
+patterns:
+  - name: CodeBlock
+    pattern: |
+      /
+          ^(\s*[~`]{3,})   # code-block start
+          .*               # all languages and options, e.g. shell {hl_lines=[12]}
+          [\s\S]*?         # content
+          \1               # code-block end
+      /igmx
+languageSettings:
+  - languageId: markdown
+    ignoreRegExpList:
+      - CodeBlock
+words:
+  - AWSX
+  - Azuma
+  - backports
+  - behaviour
+  - callables
+  - circleci
+  - Clientcontext
+  - codeowners
+  - dalli
+  - datadog
+  - enqueuers
+  - ethon
+  - excon
+  - faas
+  - fanout
+  - faraday
+  - gettime
+  - gemfile
+  - gruf
+  - HTTPX
+  - httpx
+  - instrumenter
+  - linux
+  - lmdb
+  - microbenchmarks
+  - myapp
+  - namespacing
+  - opentelemetry
+  - otelcol
+  - ottrace
+  - postgres
+  - postgresql
+  - racecar
+  - rabbitmq
+  - Railtie
+  - Rakefile
+  - rdkafka
+  - resque
+  - restclient
+  - rubocop
+  - rubydocs
+  - ruboproof
+  - rubygems
+  - semconv
+  - sidekiq
+  - sinatra
+  - spanid
+  - toolset
+  - traceid
+  - traceresponse
+  - Untrace
+  - vitess
+  - webmocks
+  - yardoc
+  - traceparent
