@@ -6,7 +6,7 @@
 
   Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0. 
 
-  Going forward, there are a number of automated and manual ways ways to record changes in New Relic. Please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of avaliable options.
+  Going forward, there are a number of automated and manual ways ways to record changes in New Relic. Please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
 
 - **Feature: Ensure compatibility with Ruby 3.5 change to Method#source_location**
 
