@@ -15,6 +15,19 @@ require 'new_relic/agent/hostname'
 require 'new_relic/control' unless defined? NewRelic::Control
 
 class NewRelic::Cli::Deployments < NewRelic::Cli::Command
+  # DEPRECATION NOTICE (Effective September 2025)
+  #
+  # The entire `NewRelic::Cli::Deployments` class and its associated
+  # `newrelic deployments` command are deprecated and will be removed in
+  # agent version 10.0.0.
+  #
+  # Users should migrate to recording deployments directly via New Relic's
+  # APIs. For more information, please see the official Change Tracking
+  # documentation: https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/
+  #
+  # @api public
+  #
+
   attr_reader :control
   def self.command; 'deployments'; end
 
@@ -64,6 +77,12 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   # Run the Deployment upload in New Relic via Active Resource.
   # Will possibly print errors and exit the VM
   def run
+    msg = <<~TEXT
+      DEPRECATED: The `newrelic deployments` command will be removed in v10.0.0. Learn more about the alternate options: https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/
+    TEXT
+    NewRelic::Agent.logger.log_once(:warn, 'newrelic_deployments'.to_sym, msg)
+    warn msg
+
     begin
       @description = nil if @description && @description.strip.empty?
 
