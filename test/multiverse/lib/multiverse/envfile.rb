@@ -126,6 +126,7 @@ module Multiverse
 
     def add_version(version)
       return unless version
+      return '' if version.nil?
       return ", #{version}" unless version[0].match?(/^[><=0-9]$/) # permit git, github, path, etc. pragmas
 
       # If the Envfile based version starts with '>', '<', '=', '>=', or '<=',
