@@ -75,7 +75,9 @@ function install_ruby_version_specific_gems {
   fi
 
     echo "DEBUG: running 'gem install' on specific gem versions"
+    gem install --default cgi:0.1.1
     gem install --default cgi:0.5.0
+    gem install --default date:3.3.1
     gem install --default date:3.4.1
     gem install --default digest:3.1.0
     gem install --default digest:3.2.0
