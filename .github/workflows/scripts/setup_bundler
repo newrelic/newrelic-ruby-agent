@@ -75,25 +75,37 @@ function install_ruby_version_specific_gems {
   fi
 
     echo "DEBUG: running 'gem install' on specific gem versions"
-  if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
-    gem install --default cgi:0.1.1
-    gem install --default date:3.3.1
-    gem install --default digest:3.0.0
-    gem install --default erb:2.2.2
-    gem install --default logger:1.5.3
-    gem install --default securerandom:0.1.1
-    gem install --default set:1.0.3
-    gem install --default strscan:3.0.4
-  else
     gem install --default cgi:0.5.0
     gem install --default date:3.4.1
+    gem install --default digest:3.1.0
     gem install --default digest:3.2.0
+    gem install --default erb:4.0.4
     gem install --default erb:5.0.1
     gem install --default logger:1.7.0
+    gem install --default securerandom:0.3.2
     gem install --default securerandom:0.4.1
     gem install --default set:1.1.2
+    gem install --default strscan:3.0.4
     gem install --default strscan:3.1.5
-  fi
+  # if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
+  #   gem install --default cgi:0.1.1
+  #   gem install --default date:3.3.1
+  #   gem install --default digest:3.0.0
+  #   gem install --default erb:2.2.2
+  #   gem install --default logger:1.5.3
+  #   gem install --default securerandom:0.1.1
+  #   gem install --default set:1.0.3
+  #   gem install --default strscan:3.0.4
+  # else
+  #   gem install --default cgi:0.5.0
+  #   gem install --default date:3.4.1
+  #   gem install --default digest:3.2.0
+  #   gem install --default erb:5.0.1
+  #   gem install --default logger:1.7.0
+  #   gem install --default securerandom:0.4.1
+  #   gem install --default set:1.1.2
+  #   gem install --default strscan:3.1.5
+  # fi
     echo "DEBUG: Completed installing gems"
 }
 
