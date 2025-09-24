@@ -125,8 +125,7 @@ module Multiverse
     end
 
     def add_version(version)
-      return unless version
-      return if version.nil?
+      return unless version || version.nil? # `nil` versions test the latest version of a gem
       return ", #{version}" unless version[0].match?(/^[><=0-9]$/) # permit git, github, path, etc. pragmas
 
       # If the Envfile based version starts with '>', '<', '=', '>=', or '<=',
