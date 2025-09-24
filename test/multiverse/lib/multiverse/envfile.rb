@@ -28,7 +28,6 @@ module Multiverse
         @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
-
       @gemfiles = [''] if @gemfiles.empty?
     end
 

@@ -65,7 +65,7 @@ module Environments
 
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
-      return version if version.to_s == ''
+      return '' if version.to_s == ''
 
       test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? '' : version
@@ -75,8 +75,8 @@ module Environments
       return if RUBY_PLATFORM == 'java'
 
       fn = File.join(dir, '.bundler-version')
-      version = File.exist?(fn) ? File.read(fn).chomp!.strip : ''
-      safe_explicit(version.to_s == '' ? '' : "_#{version}_")
+      version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
+      safe_explicit(version.to_s == '' ? nil : "_#{version}_")
     end
 
     def bundle_config(dir, bundle_cmd)
