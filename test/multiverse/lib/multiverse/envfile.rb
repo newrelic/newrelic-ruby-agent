@@ -28,9 +28,8 @@ module Multiverse
         @text.gsub!('__FILE__', "'#{file_path}'")
         instance_eval(@text)
       end
+
       @gemfiles = [''] if @gemfiles.empty?
-      exit if @gemfiles[0].include?('nil')
-      @gemfiles
     end
 
     def suite_condition(skip_message, &block)

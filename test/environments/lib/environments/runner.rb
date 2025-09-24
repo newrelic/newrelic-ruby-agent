@@ -75,8 +75,8 @@ module Environments
       return if RUBY_PLATFORM == 'java'
 
       fn = File.join(dir, '.bundler-version')
-      version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
-      safe_explicit(version.to_s == '' ? nil : "_#{version}_")
+      version = File.exist?(fn) ? File.read(fn).chomp!.strip : ''
+      safe_explicit(version.to_s == '' ? '' : "_#{version}_")
     end
 
     def bundle_config(dir, bundle_cmd)
