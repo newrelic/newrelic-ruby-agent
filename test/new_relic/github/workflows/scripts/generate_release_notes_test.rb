@@ -7,7 +7,7 @@ require_relative '../../../../test_helper'
 require_relative '../../../../../.github/workflows/scripts/generate_release_notes'
 
 module NewRelic
-  class GenerateReleaseNotesTest < MiniTest::Test
+  class GenerateReleaseNotesTest < Minitest::Test
     def setup
       @fake_changelog_content = <<~CHANGELOG
         # New Relic Ruby Agent Release Notes
@@ -200,12 +200,13 @@ module NewRelic
       changelog_file = File.join(Dir.tmpdir, 'major_bump_changelog.md')
       File.write(changelog_file, major_bump_changelog)
 
-      generator = GenerateReleaseNotes.new(changelog_file)
-
       NewRelic::VERSION.stub_const(:MAJOR, 10) do
+        generator = GenerateReleaseNotes.new(changelog_file)
         content = generator.build_release_content
 
-        assert_includes content, GenerateReleaseNotes::MAJOR_VERSION_BANNER
+        assert_includes content, '**Major Version Update:** This version of the Ruby'
+        # make sure the migration guide link is interpolated correctly
+        assert_includes content, '10x-guide/'
       end
 
       File.delete(changelog_file)

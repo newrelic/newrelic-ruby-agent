@@ -12,12 +12,12 @@ class GenerateReleaseNotes
   <Callout variant="important">
     We recommend updating to the latest agent version as soon as it's available. If you can't upgrade to the latest version, update your agents to a version no more than 90 days old. Read more about [keeping agents up to date](/docs/new-relic-solutions/new-relic-one/install-configure/update-new-relic-agent/).
 
-    See the New Relic Ruby agent [EOL policy](https://docs.newrelic.com/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
+    See the New Relic Ruby agent [EOL policy](/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
   </Callout>
   SUPPORT_STATEMENT
   MAJOR_VERSION_BANNER = <<~BANNER
   <Callout variant='important'>
-    **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide.
+    **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide [here](/docs/apm/agents/ruby-agent/getting-started/migration-%sx-guide/).
   </Callout>
   BANNER
 
@@ -59,7 +59,7 @@ class GenerateReleaseNotes
       bugs: #{metadata[:bugs]}
       security: #{metadata[:security]}
       #{DIVIDER}
-      #{MAJOR_VERSION_BANNER if major_bump?}
+      #{MAJOR_VERSION_BANNER % NewRelic::VERSION::MAJOR if major_bump?}
       #{SUPPORT_STATEMENT}
       #{latest_entry}
     FRONTMATTER
