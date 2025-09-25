@@ -15,6 +15,11 @@ class GenerateReleaseNotes
     See the New Relic Ruby agent [EOL policy](https://docs.newrelic.com/docs/apm/agents/ruby-agent/getting-started/ruby-agent-eol-policy/) for information about agent releases and support dates.
   </Callout>
   SUPPORT_STATEMENT
+  MAJOR_VERSION_BANNER = <<~BANNER
+  <Callout variant='important'>
+    **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide.
+  </Callout>
+  BANNER
 
   # pass the filename as an arg to simplify testing
   def initialize(changelog_filename = 'CHANGELOG.md')
@@ -54,19 +59,10 @@ class GenerateReleaseNotes
       bugs: #{metadata[:bugs]}
       security: #{metadata[:security]}
       #{DIVIDER}
-      #{major_version_banner if major_bump?}
-
+      #{MAJOR_VERSION_BANNER if major_bump?}
       #{SUPPORT_STATEMENT}
       #{latest_entry}
     FRONTMATTER
-  end
-
-  def major_version_banner
-    <<~BANNER
-      <Callout variant='important'>
-        **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide.
-      </Callout>
-    BANNER
   end
 
   def major_bump?

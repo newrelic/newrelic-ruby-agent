@@ -1,6 +1,10 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'tmpdir'
-require_relative '../test_helper'
-require_relative '../../.github/workflows/scripts/generate_release_notes'
+require_relative '../../../../test_helper'
+require_relative '../../../../../.github/workflows/scripts/generate_release_notes'
 
 module NewRelic
   class GenerateReleaseNotesTest < MiniTest::Test
@@ -166,8 +170,7 @@ module NewRelic
     end
 
     def test_major_version_banner
-      generator = GenerateReleaseNotes.new(@fake_changelog_file)
-      banner = generator.major_version_banner
+      banner = GenerateReleaseNotes::MAJOR_VERSION_BANNER
 
       assert_includes banner, "Major Version Update"
       assert_includes banner, "SemVer MAJOR update"
@@ -201,7 +204,7 @@ module NewRelic
 
       NewRelic::VERSION.stub_const(:MAJOR, 10) do
         content = generator.build_release_content
-        assert_includes content, "Major Version Update"
+        assert_includes content, GenerateReleaseNotes::MAJOR_VERSION_BANNER
       end
 
       File.delete(changelog_file)
