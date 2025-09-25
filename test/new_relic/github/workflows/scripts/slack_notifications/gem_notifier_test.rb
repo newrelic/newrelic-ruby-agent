@@ -92,6 +92,7 @@ class GemNotifierTest < Minitest::Test
 
   def test_gem_message_incorrect_args
     skip 'this is broken, need to fix'
+
     GemNotifier.stub(:abort, nil) do
       assert_raises(StandardError) { GemNotifier.gem_message('fake_gem', '1.2') }
     end

@@ -154,7 +154,7 @@ module NewRelic
 
       # Mock the current version to be 10.0.0
       NewRelic::VERSION.stub_const(:MAJOR, 10) do
-        assert generator.major_bump?
+        assert_predicate generator, :major_bump?
       end
 
       File.delete(changelog_file)
@@ -165,17 +165,17 @@ module NewRelic
 
       # Mock the current version to be same major version
       NewRelic::VERSION.stub_const(:MAJOR, 9) do
-        refute generator.major_bump?
+        refute_predicate generator, :major_bump?
       end
     end
 
     def test_major_version_banner
       banner = GenerateReleaseNotes::MAJOR_VERSION_BANNER
 
-      assert_includes banner, "Major Version Update"
-      assert_includes banner, "SemVer MAJOR update"
-      assert_includes banner, "breaking changes"
-      assert_includes banner, "migration guide"
+      assert_includes banner, 'Major Version Update'
+      assert_includes banner, 'SemVer MAJOR update'
+      assert_includes banner, 'breaking changes'
+      assert_includes banner, 'migration guide'
     end
 
     def test_build_release_content_includes_major_banner_when_major_bump
@@ -204,6 +204,7 @@ module NewRelic
 
       NewRelic::VERSION.stub_const(:MAJOR, 10) do
         content = generator.build_release_content
+
         assert_includes content, GenerateReleaseNotes::MAJOR_VERSION_BANNER
       end
 
@@ -233,9 +234,11 @@ module NewRelic
         generator.write_output_file
 
         expected_filename = 'ruby-agent-9-8-0.mdx'
-        assert File.exist?(expected_filename)
+
+        assert_path_exists(expected_filename)
 
         content = File.read(expected_filename)
+
         assert_includes content, 'subject: Ruby agent'
         assert_includes content, 'version: 9.8.0'
 
