@@ -9,6 +9,8 @@ require_relative '../../../../../.github/workflows/scripts/generate_release_note
 module NewRelic
   class GenerateReleaseNotesTest < Minitest::Test
     def setup
+      skip unless NewRelic::Helper.version_satisfied?(RUBY_VERSION, '>=', '2.5.0')
+
       @fake_changelog_content = <<~CHANGELOG
         # New Relic Ruby Agent Release Notes
 
@@ -64,6 +66,7 @@ module NewRelic
     end
 
     def test_initialize_with_default_changelog
+      skip 'The CI cannot find the CHANGELOG.md file during the test' unless File.exist?('CHANGELOG.md')
       generator = GenerateReleaseNotes.new
 
       assert_instance_of GenerateReleaseNotes, generator
@@ -236,7 +239,7 @@ module NewRelic
 
         expected_filename = 'ruby-agent-9-8-0.mdx'
 
-        assert_path_exists(expected_filename)
+        assert File.exist?(expected_filename) # rubocop:disable Minitest/AssertPathExists
 
         content = File.read(expected_filename)
 
