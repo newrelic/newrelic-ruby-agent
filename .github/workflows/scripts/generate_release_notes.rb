@@ -16,9 +16,13 @@ class GenerateReleaseNotes
   </Callout>
   SUPPORT_STATEMENT
 
-  def build_metadata
+  def initialize
     changelog = File.read('CHANGELOG.md')
-    latest_entry = changelog.split('##')[1].prepend('##')
+    @split_changelog = changelog.split('##')
+  end
+
+  def build_metadata
+    latest_entry = @split_changelog[1].prepend('##')
     titles = latest_entry.scan(/^- \*{2}(.*?)\*{2}$/).flatten # Match strings between sets of '**'
     metadata = Hash.new { |h, k| h[k] = [] }
 
@@ -49,10 +53,26 @@ class GenerateReleaseNotes
       bugs: #{metadata[:bugs]}
       security: #{metadata[:security]}
       #{DIVIDER}
+      #{major_version_banner if major_bump?}
 
       #{SUPPORT_STATEMENT}
       #{latest_entry}
     FRONTMATTER
+  end
+
+  def major_version_banner
+    <<~BANNER
+      <Callout variant='important'>
+        **Major Version Update:** This version of the Ruby agent is a SemVer MAJOR update and contains breaking changes. MAJOR versions may drop support for language runtimes that have reached End-of-Life according to the maintainer. Additionally, MAJOR versions may drop support for and remove certain instrumentation. For more details on these changes please see the migration guide.
+      </Callout>
+    BANNER
+  end
+
+  def major_bump?
+    previous_release_version = @split_changelog[2][/^ v(\d+\.\d+\.\d+)$/, 1]
+    previous_major_version = previous_release_version.split('.')[0].to_i
+
+    NewRelic::VERSION::MAJOR > previous_major_version
   end
 
   def hyphenated_version_string
