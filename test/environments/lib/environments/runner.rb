@@ -65,7 +65,7 @@ module Environments
 
     # Ensures we bundle will recognize an explicit version number on command line
     def safe_explicit(version)
-      return nil if version.to_s == ''
+      return version if version.to_s == ''
 
       test_version = `bundle #{version} --version`.include?('Could not find command')
       test_version ? '' : version
