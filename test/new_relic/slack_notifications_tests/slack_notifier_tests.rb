@@ -2,10 +2,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../../../../../test_helper'
-require_relative '../../../../../../.github/workflows/scripts/slack_notifications/slack_notifier'
+require 'minitest/autorun'
+require_relative '../../../.github/workflows/scripts/slack_notifications/slack_notifier'
 
-class SlackNotifierTest < Minitest::Test
+class SlackNotifierTests < Minitest::Test
   def clear_errors_array
     SlackNotifier.errors_array.clear
   end
@@ -29,8 +29,6 @@ class SlackNotifierTest < Minitest::Test
   end
 
   def test_errors_array_no_errors
-    skip 'test is broken'
-
     SlackNotifier.stub(:sleep, nil) do
       HTTParty.stub(:post, nil) do
         SlackNotifier.send_slack_message('I am a notification message!')
@@ -41,8 +39,6 @@ class SlackNotifierTest < Minitest::Test
   end
 
   def test_errors_array_one_error
-    skip 'test is broken'
-
     HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
       SlackNotifier.send_slack_message('I am a notification message!')
 
@@ -52,8 +48,6 @@ class SlackNotifierTest < Minitest::Test
   end
 
   def test_errors_array_multiple_errors
-    skip 'test is broken'
-
     HTTParty.stub(:post, -> { raise "Yikes this didn't work!!" }) do
       SlackNotifier.send_slack_message('I am a notification message!')
       SlackNotifier.send_slack_message('I am a another notification message!')
@@ -64,14 +58,10 @@ class SlackNotifierTest < Minitest::Test
   end
 
   def test_report_errors_empty
-    skip 'test is broken'
-
     assert_nil SlackNotifier.report_errors
   end
 
   def test_report_errors_one
-    skip 'test is broken'
-
     SlackNotifier.errors_array << 'SomeError'
     exception = assert_raises StandardError do
       SlackNotifier.report_errors
@@ -82,8 +72,6 @@ class SlackNotifierTest < Minitest::Test
   end
 
   def test_report_errors_multiple_errors
-    skip 'test is broken'
-
     SlackNotifier.errors_array << 'SomeError'
     SlackNotifier.errors_array << 'AnotherError'
     exception = assert_raises StandardError do

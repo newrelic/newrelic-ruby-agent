@@ -2,10 +2,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require_relative '../../../../../test_helper'
-require_relative '../../../../../../.github/workflows/scripts/slack_notifications/gem_notifier'
+require 'minitest/autorun'
+require_relative '../../../.github/workflows/scripts/slack_notifications/gem_notifier'
 
-class GemNotifierTest < Minitest::Test
+class GemNotifierTests < Minitest::Test
   def successful_http_response
     response = MiniTest::Mock.new
     response.expect(:success?, true)
@@ -91,8 +91,6 @@ class GemNotifierTest < Minitest::Test
   end
 
   def test_gem_message_incorrect_args
-    skip 'this is broken, need to fix'
-
     GemNotifier.stub(:abort, nil) do
       assert_raises(StandardError) { GemNotifier.gem_message('fake_gem', '1.2') }
     end
