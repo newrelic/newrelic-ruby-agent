@@ -5,7 +5,7 @@ Describe the changes present in the pull request
 
 Submitter Checklist:
 - [ ] Include a link to the related GitHub issue, if applicable
-- [ ] Include a security review link, if applicable
+- [ ] Add new tests for your change, if applicable
 
 # Testing
 The agent includes a suite of unit and functional tests which should be used to
@@ -18,7 +18,5 @@ exercise your changes.
 
 # Reviewer Checklist
 - [ ] Perform code review
-- [ ] Add performance label
-- [ ] Perform appropriate level of performance testing
 - [ ] Confirm all checks passed
-- [ ] Add version label prior to acceptance
+- [ ] Open a separate PR to add a CHANGELOG entry
