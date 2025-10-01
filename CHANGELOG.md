@@ -2,6 +2,12 @@
 
 ## dev
 
+- **Feature: Deprecation notice for the `newrelic deployments` command**
+
+  Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0. 
+
+  Going forward, there are a number of automated and manual ways ways to record changes in New Relic. Please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
+
 - **Feature: Ensure compatibility with Ruby 3.5 change to Method#source_location**
 
   Updated the agent to correctly parse the return value of Method#source_location, which is changing in Ruby 3.5 from a two-element to a five-element array. This change maintains support for older Ruby versions while adding support for the future release.

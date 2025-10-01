@@ -428,7 +428,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :exclude_from_reported_settings => true,
-          :description => 'Your New Relic <InlinePopover type="userKey" />. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
+          :description => '# DEPRECATED: The `api_key` config setting is now deprecated. Its only use was for the `newrelic deployments` command, which is being removed in agent version 10.0.0.'
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
