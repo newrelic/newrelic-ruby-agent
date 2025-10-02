@@ -10,7 +10,7 @@
 
 - **Feature: Ensure compatibility with Ruby 3.5 change to Method#source_location**
 
-  Updated the agent to correctly parse the return value of Method#source_location, which is changing in Ruby 3.5 from a two-element to a five-element array. This change maintains support for older Ruby versions while adding support for the future release. [#PR3257](https://github.com/newrelic/newrelic-ruby-agent/pull/3257)
+  Updated the agent to correctly parse the return value of Method#source_location, which is changing in Ruby 3.5 from a two-element to a five-element array. This change maintains support for older Ruby versions while adding support for the future release. [PR#3257](https://github.com/newrelic/newrelic-ruby-agent/pull/3257)
 
 ## v9.21.0
 
