@@ -5,8 +5,6 @@
 # This file is designed to bootstrap a `Bundler.require`-based Ruby app (such as
 # a Ruby on Rails app) so the app can be instrumented and observed by the
 # New Relic Ruby agent without the agent being added to the app as a dependency.
-# NOTE: introducing the agent into your application via bootstrap is in beta.
-# Use at your own risk.
 #
 # Given a production-ready Ruby app that optionally has a pre-packaged "frozen"
 # or "deployment"–gem bundle, the New Relic Ruby agent can be introduced

@@ -2,6 +2,10 @@
 
 ## dev
 
+- **Feature: One-step instrumentation for Kubernetes**
+  
+  The Kubernetes APM auto-attach automatically instruments applications and manages agent upgrades within Kubernetes deployments. This feature has exited preview and is now generally avaliable. Learn more about [Kubernetes auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/). [PR#2635](https://github.com/newrelic/newrelic-ruby-agent/pull/2635) [PR#3287](https://github.com/newrelic/newrelic-ruby-agent/pull/3287)
+
 - **Feature: Deprecation notice for the `newrelic deployments` command**
 
   Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0. 
