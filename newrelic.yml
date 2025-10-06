@@ -52,8 +52,9 @@ common: &default_settings
   # If true, enables capture of all HTTP request headers for all destinations.
   # allow_all_headers: false
 
-  # Your New Relic userKey. Required when using the New Relic REST API v2 to
-  # record deployments using the newrelic deployments command.
+  # # DEPRECATED: The api_key config setting is now deprecated. Its only use was
+  # for the newrelic deployments command, which is being removed in agent version
+  # 10.0.0.
   # api_key: ""
 
   # If true, enables log decoration and the collection of log events and metrics.

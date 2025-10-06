@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.22.0
 
 - **Feature: One-step instrumentation for Kubernetes**
 
