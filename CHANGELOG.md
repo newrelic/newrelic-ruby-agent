@@ -3,14 +3,22 @@
 ## dev
 
 - **Feature: One-step instrumentation for Kubernetes**
-  
+
   The Kubernetes APM auto-attach automatically instruments applications and manages agent upgrades within Kubernetes deployments. This feature has exited preview and is now generally avaliable. Learn more about [Kubernetes auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/). [PR#2635](https://github.com/newrelic/newrelic-ruby-agent/pull/2635) [PR#3287](https://github.com/newrelic/newrelic-ruby-agent/pull/3287)
+
+- **Feature: Deprecation notice for Ruby 2.4 and Ruby 2.5**
+
+  Ruby agent support for Ruby versions 2.4 and 2.5 is deprecated and will be removed in agent version 10.0.0. The new miniumum required Ruby version will become Ruby 2.6 and we will stop testing with Ruby 2.4 and 2.5. [PR#3288](https://github.com/newrelic/newrelic-ruby-agent/pull/3288)
 
 - **Feature: Deprecation notice for the `newrelic deployments` command**
 
-  Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0. 
+  Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0.
 
   Going forward, there are a number of automated and manual ways ways to record changes in New Relic. Please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3262](https://github.com/newrelic/newrelic-ruby-agent/pull/3262)
+
+- **Feature: Deprecation reminder for cross application tracing**
+
+  Cross application tracing has been deprecated since major version 8.0.0 of the Ruby agent. We will remove support for it entirely in version 10.0.0 of the agent. [PR#3288](https://github.com/newrelic/newrelic-ruby-agent/pull/3288)
 
 - **Feature: Ensure compatibility with Ruby 3.5 change to Method#source_location**
 
