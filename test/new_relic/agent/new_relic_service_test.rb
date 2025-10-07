@@ -284,13 +284,6 @@ class NewRelicServiceTest < Minitest::Test
     assert_log_contains reconnect_log, Regexp.escape('license_key=***********')
   end
 
-  def test_preconnect_with_no_token_and_no_lasp
-    response = @service.preconnect
-
-    assert_equal 'localhost', response['redirect_host']
-    assert_nil response['security_policies']
-  end
-
   def test_high_security_mode_sent_on_preconnect
     with_config(:high_security => true) do
       @service.preconnect

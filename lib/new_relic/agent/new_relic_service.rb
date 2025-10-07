@@ -96,11 +96,9 @@ module NewRelic
       end
 
       def preconnect
-        if Agent.config[:high_security]
-          invoke_remote(:preconnect, [{'high_security' => true}])
-        else
-          invoke_remote(:preconnect, [{'high_security' => false}])
-        end
+        is_high_security = !!Agent.config[:high_security]
+
+        invoke_remote(:preconnect, [{'high_security' => is_high_security}])
       end
 
       def shutdown(time)
