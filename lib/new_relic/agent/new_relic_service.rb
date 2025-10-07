@@ -86,10 +86,8 @@ module NewRelic
 
       def connect(settings = {})
         @request_headers_map = nil
-        if response = preconnect
-          if host = response['redirect_host']
-            @collector = NewRelic::Control.instance.server_from_host(host)
-          end
+        if (response = preconnect) && (host = response['redirect_host'])
+          @collector = NewRelic::Control.instance.server_from_host(host)
         end
         response = invoke_remote(:connect, [settings])
         @request_headers_map = response['request_headers_map']
