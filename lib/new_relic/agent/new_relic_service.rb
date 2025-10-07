@@ -96,7 +96,7 @@ module NewRelic
       end
 
       def preconnect
-        is_high_security = !!Agent.config[:high_security]
+        is_high_security = Agent.config[:high_security] ? true : false
 
         invoke_remote(:preconnect, [{'high_security' => is_high_security}])
       end
