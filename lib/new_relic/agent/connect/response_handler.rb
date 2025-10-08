@@ -23,10 +23,7 @@ module NewRelic
 
           @agent.agent_id = config_data['agent_run_id']
 
-          security_policies = config_data.delete('security_policies')
-
           add_server_side_config(config_data)
-          add_security_policy_config(security_policies) if security_policies
 
           @agent.transaction_rules = RulesEngine.create_transaction_rules(config_data)
           @agent.stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
@@ -43,14 +40,6 @@ module NewRelic
           ::NewRelic::Agent.logger.debug("Server provided config: #{config_data.inspect}")
           server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, @config)
           @config.replace_or_add_config(server_config)
-        end
-
-        def add_security_policy_config(security_policies)
-          ::NewRelic::Agent.logger.info('Installing security policies')
-          security_policy_source = NewRelic::Agent::Configuration::SecurityPolicySource.new(security_policies)
-          @config.replace_or_add_config(security_policy_source)
-          # drop data collected before applying security policies
-          @agent.drop_buffered_data
         end
       end
     end

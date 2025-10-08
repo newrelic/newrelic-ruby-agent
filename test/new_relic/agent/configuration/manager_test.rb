@@ -310,15 +310,6 @@ module NewRelic::Agent::Configuration
       refute_includes @manager.config_classes_for_testing, ServerSource
       refute_includes @manager.config_classes_for_testing, YamlSource
       refute_includes @manager.config_classes_for_testing, HighSecuritySource
-      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
-    end
-
-    def test_high_security_source_addable
-      refute_includes @manager.config_classes_for_testing, SecurityPolicySource
-      security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
-      @manager.replace_or_add_config(security_policy_source)
-
-      assert_includes(@manager.config_classes_for_testing, SecurityPolicySource)
     end
 
     load_cross_agent_test('labels').each do |testcase|

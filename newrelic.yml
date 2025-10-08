@@ -758,9 +758,6 @@ common: &default_settings
   # ignoring specific transactions.
   # rules.ignore_url_regexes: []
 
-  # Applies Language Agent Security Policy settings.
-  # security_policies_token: ""
-
   # If true, enables the exit handler that sends data to the New Relic collector
   # before shutting down.
   # send_data_on_exit: true
