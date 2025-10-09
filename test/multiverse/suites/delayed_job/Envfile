@@ -26,6 +26,7 @@ end
 
 boilerplate_gems = <<~SQLITE
   gem 'rack'
+  gem 'benchmark'
   #{sqlite}
   #{bigdecimal}
 

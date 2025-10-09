@@ -9,5 +9,5 @@ end
 gemfile <<~RB
   gem 'capistrano', '~> 2.15.5'
   gem 'rack'
-  
+  gem 'benchmark' if RUBY_VERSION >= '3.5.0'
 RB
