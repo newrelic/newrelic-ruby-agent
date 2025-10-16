@@ -331,6 +331,10 @@ common: &default_settings
   # If true, disables Sidekiq instrumentation.
   # disable_sidekiq: false
 
+  # If true, when a sidekiq job fails only notify it after the last failing retry before going to the dead queue
+  # i.e. skip failures that will be retried
+  # sidekiq_notice_only_once: false
+
   # If true, disables agent middleware for Sinatra. This middleware is responsible
   # for advanced feature support such as cross application tracing, page load
   # timing, and error collection.
