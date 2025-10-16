@@ -1411,6 +1411,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
         },
+        :sidekiq_notice_only_once => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables reporting only on last sidekiq retry [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
+        },
         :disable_roda_auto_middleware => {
           :default => false,
           :public => true,
