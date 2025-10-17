@@ -1463,19 +1463,56 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
         },
+        :'distributed_tracing.sampler.root' => {
+          :default => nil,
+          :public => true,
+          :type => String,
+          :transform => DefaultSource.enforce_fallback(
+            allowed_values: ['default', 'adaptive', 'always_on', 'always_off', 'trace_id_ratio_based'],
+            fallback: 'default'),
+          :allowed_from_server => true,
+          :description => 'This setting controls the behavior of transaction sampling when a trace originates in the current service. Available values are `default`, `adaptive` `always_on`, `always_off`, and `trace_id_ratio_based`.'
+        },
+        :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => {
+          :default => nil,
+          :public => true,
+          :type => Float,
+          :allowed_from_server => true,
+          :description => 'A float from 0.0-1.0 representing the ratio of traces to sample. This setting must be given a value if `trace_id_ratio_based` sampling is selected for `distributed_tracing.sampler.root`. If a value is not given, the agent will ignore the `trace_id_ratio_based` setting and will revert to the default sampling behavior.'
+        },
         :'distributed_tracing.sampler.remote_parent_sampled' => {
           :default => 'default',
           :public => true,
           :type => String,
+          :transform => DefaultSource.enforce_fallback(
+            allowed_values: ['default', 'adaptive', 'always_on', 'always_off', 'trace_id_ratio_based'],
+            fallback: 'default'),
           :allowed_from_server => true,
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled and the trace flag is set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled and the trace flag is set in the traceparent. Available values are `default`, `adaptive` `always_on`, `always_off`, and `trace_id_ratio_based`.'
+        },
+        :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => {
+          :default => nil,
+          :public => true,
+          :type => Float,
+          :allowed_from_server => true,
+          :description => 'A float from 0.0-1.0 representing the ratio of traces to sample. This setting must be given a value if `trace_id_ratio_based` sampling is selected for `distributed_tracing.sampler.remote_parent_sampled`. If a value is not given, the agent will ignore the `trace_id_ratio_based` setting and will revert to the default sampling behavior.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled' => {
           :default => 'default',
           :public => true,
           :type => String,
+          :transform => DefaultSource.enforce_fallback(
+            allowed_values: ['default', 'adaptive', 'always_on', 'always_off', 'trace_id_ratio_based'],
+            fallback: 'default'),
           :allowed_from_server => true,
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled and the trace flag is not set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled and the trace flag is not set in the traceparent. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`.'
+        },
+        :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => {
+          :default => nil,
+          :public => true,
+          :type => Float,
+          :allowed_from_server => true,
+          :description => 'A float from 0.0-1.0 representing the ratio of traces to sample. This setting must be given a value if `trace_id_ratio_based` sampling is selected for `distributed_tracing.sampler.remote_parent_not_sampled`. If a value is not given, the agent will ignore the `trace_id_ratio_based` setting and will revert to the default sampling behavior.'
         },
         # Elasticsearch
         :'elasticsearch.capture_cluster_name' => {

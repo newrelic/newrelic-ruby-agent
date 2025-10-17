@@ -98,6 +98,7 @@ module NewRelic
         @sql_sampler = SqlSampler.new
         @transaction_rules = RulesEngine.new
         @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
+        # Probably where we make the other samplers?
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
           Agent.config[:sampling_target_period_in_seconds])
         @serverless_handler = ServerlessHandler.new

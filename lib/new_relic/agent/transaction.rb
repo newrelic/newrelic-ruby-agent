@@ -294,9 +294,26 @@ module NewRelic
         return false unless Agent.config[:'distributed_tracing.enabled']
 
         if @sampled.nil?
-          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
+          type = NewRelic::Agent.config[:'distributed_tracing.sampler.root']
+          @sampled = if %w[default adaptive].include?(type)
+            NewRelic::Agent.instance.adaptive_sampler.sampled?
+          elsif type == 'always_on'
+            true
+          elsif type == 'always_off'
+            false
+          elsif type == 'trace_id_ratio_based'
+            trace_id_ratio_based_sampler
+          end
         end
         @sampled
+      end
+
+      def trace_id_ratio_based_sampler
+        ratio = Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
+        return NewRelic::Agent.instance.adaptive_sampler.sampled? unless ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
+
+        upper_bound = (ratio * (2**64 - 1)).ceil
+        ratio == 1.0 || trace_id[8,8].unpack1('Q>') < upper_bound
       end
 
       def trace_id
