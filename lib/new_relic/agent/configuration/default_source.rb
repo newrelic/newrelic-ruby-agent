@@ -2305,7 +2305,7 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
         },
-          :api_host => {
+        :api_host => {
           :default => DefaultSource.api_host,
           :public => false,
           :type => String,
