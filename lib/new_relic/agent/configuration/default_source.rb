@@ -214,16 +214,10 @@ module NewRelic
         end
 
         def self.api_host
-          # only used for deployment task
           proc do
-            api_version = if NewRelic::Agent.config[:api_key].nil? || NewRelic::Agent.config[:api_key].empty?
-              'rpm'
-            else
-              'api'
-            end
             api_region = 'eu.' if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
 
-            "#{api_version}.#{api_region}newrelic.com"
+            "rpm.#{api_region}newrelic.com"
           end
         end
 
@@ -421,14 +415,6 @@ module NewRelic
           :type => Float,
           :allowed_from_server => true,
           :description => 'For agent versions 3.5.0 or higher, [set your Apdex T via the New Relic UI](/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings).'
-        },
-        :api_key => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :exclude_from_reported_settings => true,
-          :description => '# DEPRECATED: The `api_key` config setting is now deprecated. Its only use was for the `newrelic deployments` command, which is being removed in agent version 10.0.0.'
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
@@ -2319,7 +2305,7 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
         },
-        :api_host => {
+          :api_host => {
           :default => DefaultSource.api_host,
           :public => false,
           :type => String,
