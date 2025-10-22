@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes
 
+## dev
+
+- **Feature: Deprecation notice for recording deployments using Capistrano**
+
+  Sending application deployment information using a Capistrano recipe is deprecated and will be removed in agent version 10.0.0. For recording deployments, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
+
 ## v9.22.0
 
 - **Feature: One-step instrumentation for Kubernetes**
