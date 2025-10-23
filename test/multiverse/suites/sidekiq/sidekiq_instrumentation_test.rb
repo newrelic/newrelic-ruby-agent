@@ -70,4 +70,8 @@ class SidekiqInstrumentationTest < Minitest::Test
       assert_equal 1, segments.size, "Expected to find a single Sidekiq job segment, found #{segments.size}"
     end
   end
+
+  def test_sidekiq_notice_only_once_default_is_false
+    assert_equal false, NewRelic::Agent.config[:sidekiq_notice_only_once], 'Expected default value for sidekiq_notice_only_once to be false'
+  end
 end
