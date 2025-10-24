@@ -281,16 +281,6 @@ module NewRelic
           constants.compact!
           constants
         end
-
-        def self.enforce_fallback(allowed_values: nil, fallback: nil)
-          proc do |configured_value|
-            if allowed_values.any? { |v| v =~ /#{configured_value}/i }
-              configured_value
-            else
-              fallback
-            end
-          end
-        end
       end
 
       AUTOSTART_DENYLISTED_RAKE_TASKS = [
