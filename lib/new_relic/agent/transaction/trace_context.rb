@@ -132,9 +132,7 @@ module NewRelic
           transaction.trace_id = header_data.trace_id
           transaction.parent_span_id = header_data.parent_id
 
-          payload = assign_trace_state_payload
-
-          if payload
+          if payload = assign_trace_state_payload
             determine_sampling_decision(payload, header_data.trace_parent['trace_flags'])
           else
             determine_sampling_decision({}, header_data.trace_parent['trace_flags'])
@@ -142,8 +140,6 @@ module NewRelic
           end
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
-
-          determine_sampling_decision(payload, header_data.trace_parent['trace_flags'])
 
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true
