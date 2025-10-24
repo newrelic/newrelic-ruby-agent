@@ -263,7 +263,7 @@
     }
   },
   {
-    "test_name": "skip_no_headers_root_always_off",
+    "test_name": "no_headers_root_always_off",
     "comment": "Traces originating from current service are never sampled",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -284,6 +284,33 @@
         "exact": {
           "priority": 0.0,
           "sampled": false
+        },
+        "expected": [ "guid", "traceId" ]
+      }
+    }
+  },
+  {
+    "test_name": "no_headers_root_always_on",
+    "comment": "Traces originating from current service are always sampled",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "always_on",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {}
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "priority": 2.0,
+          "sampled": true
         },
         "expected": [ "guid", "traceId" ]
       }

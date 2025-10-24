@@ -294,7 +294,16 @@ module NewRelic
         return false unless Agent.config[:'distributed_tracing.enabled']
 
         if @sampled.nil?
-          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
+          @sampled = case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
+          when 'default'
+            NewRelic::Agent.instance.adaptive_sampler.sampled?
+          when 'always_on'
+            true
+          when 'always_off'
+            false
+          when 'adaptive'
+            NewRelic::Agent.instance.adaptive_sampler.sampled?
+          end
         end
         @sampled
       end
@@ -307,8 +316,22 @@ module NewRelic
         @trace_id = value
       end
 
+      # This may be better in the adaptive sampler?
+      def adaptive_priority
+        (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
+      end
+
       def priority
-        @priority ||= (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
+        @priority ||= case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
+        when 'default'
+          adaptive_priority
+        when 'always_on'
+          2.0
+        when 'always_off'
+          0
+        when 'adaptive'
+          adaptive_priority
+        end
       end
 
       def referer

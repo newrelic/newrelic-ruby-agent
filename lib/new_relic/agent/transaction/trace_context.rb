@@ -172,13 +172,16 @@ module NewRelic
         end
 
         def set_priority_and_sampled(config, payload)
-          if config == 'always_on'
+          case config
+          when 'default'
+            use_nr_tracestate_sampled(payload)
+          when 'always_on'
             transaction.sampled = true
             transaction.priority = 2.0
-          elsif config == 'always_off'
+          when 'always_off'
             transaction.sampled = false
             transaction.priority = 0
-          else # default
+          when 'adaptive'
             use_nr_tracestate_sampled(payload)
           end
         end

@@ -172,16 +172,23 @@ module NewRelic
           end
         end
 
+        def default_sampling(payload)
+          transaction.sampled = payload.sampled
+          transaction.priority = payload.priority if payload.priority
+        end
+
         def set_priority_and_sampled_newrelic_header(config, payload)
-          if config == 'always_on'
+          case config
+          when 'default'
+            default_sampling(payload)
+          when 'always_on'
             transaction.sampled = true
             transaction.priority = 2.0
-          elsif config == 'always_off'
+          when 'always_off'
             transaction.sampled = false
             transaction.priority = 0
-          else # case for 'default' value
-            transaction.sampled = payload.sampled
-            transaction.priority = payload.priority if payload.priority
+          when 'adaptive'
+            default_sampling(payload)
           end
         end
       end
