@@ -1,0 +1,24 @@
+name: Run Perfverse
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+
+
+
+jobs:
+  run_perf_tests_1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - run: echo 'hi im not doin nothin'
+
+
+
+
+
+
+
