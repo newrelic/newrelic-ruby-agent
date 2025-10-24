@@ -1,0 +1,69 @@
+name: 'Run Perfverse'
+description: 'Runs performance testing on the specified agent tag'
+inputs:
+  agent_tag:
+    description: 'What ruby version to install'
+    required: true
+  agent_env_vars:
+    description: '' 
+    required: false
+  run_time: 
+    description: '' 
+    required: true
+  nr_license_key: 
+    description: '' 
+    required: true
+  test_tag: 
+    description: '' 
+    required: true
+  docker_monitor_output_dir: 
+    description: '' 
+    required: true
+    default: docker_monitor_output
+  run_label:
+    description: '' 
+    required: true
+  iterations:
+    description: ''
+    required: true
+    default: 3
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Ruby
+      uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # tag v1.257.0
+      with:
+        ruby-version: 3.4
+
+    - name: Run ruby script
+      shell: bash
+      run: |
+        ruby ./.github/workflows/scripts/run_perf_tests.rb
+      env: 
+        AGENT_TAG: ${{ inputs.agent_tag }}
+        TEST_TAG: ${{ inputs.test_tag }}
+        RUN_TIME: ${{ inputs.run_time }}
+        NR_LICENSE_KEY: ${{ inputs.nr_license_key }}
+        DOCKER_MONITOR_OUTPUT_DIR: ${{ inputs.docker_monitor_output_dir }}
+        ITERATIONS: ${{ inputs.iterations }}
+
+    - name: Upload docker report
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
+      with:
+        if-no-files-found: error
+        path: test/perfverse/docker_monitor/${{ inputs.docker_monitor_output_dir}}/
+        name: test/perfverse/docker_monitor_report-${{ inputs.run_label }}
+        retention-days: 2
+
+
+
+
+
+
+
+
+
+
+
+

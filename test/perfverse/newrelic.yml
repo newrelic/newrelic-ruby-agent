@@ -1,0 +1,15 @@
+common: &default_settings
+  app_name: Ruby Agent Perf testing
+  log_level: info
+  log_file_path: STDOUT
+  code_level_metrics:
+    enabled: true
+  audit_log:
+    enabled: false
+  heroku:
+    use_dyno_names: true
+
+development:
+  <<: *default_settings
+production:
+  <<: *default_settings
