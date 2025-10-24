@@ -1,11 +1,423 @@
 [
   {
+    "test_name": "w3c_sampled_remote_parent_sampled_default_uses_adaptive_sampling_algo",
+    "comment": "W3C parent header is used to determine remote parent is sampled but W3C trace state is not present so decision goes to random adaptive sampler algo",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "expected_priority_between": [ 0, 1 ],
+    "force_adaptive_sampled_true": false,
+    "inbound_headers": [
+    {
+      "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01",
+      "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":1.234567,\"sa\":true,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+    }
+    ],
+    "intrinsics": {
+    "target_events": [ "Transaction" ],
+    "common": {
+      "exact": {
+        "traceId": "0af7651916cd43dd8448eb211c80319c",
+        "sampled": false
+      },
+      "expected": [ "guid" ]
+    }
+    }
+  },
+  {
+    "test_name": "w3c_sampled_remote_parent_sampled_default_uses_w3c_trace_state_remote_sampled",
+    "comment": "W3C parent header is used to determine remote parent is sampled and W3C trace state is used to set sampling decision",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "force_adaptive_sampled_true": false,
+    "inbound_headers": [
+      {
+        "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01",
+        "tracestate": "33@nr=0-0-33-2827902-0af7651916cd43dd--1-1.2-1518469636035",
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":0,\"sa\":false,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "priority": 1.2,
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "newrelic_sampled_remote_parent_sampled_default_uses_newrelic_remote_sampled",
+    "comment": "New Relic header is used to determine remote parent is sampled and to set sampling decision",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "force_adaptive_sampled_true": false,
+    "inbound_headers": [
+      {
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":1.2,\"sa\":true,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "priority": 1.2,
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "no_remote_parent_sampled_decision_so_default_uses_adaptive_sampling_algo",
+    "comment": "No headers so root default is used and sampling decision goes to random adaptive sampling algorithm",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "expected_priority_between": [ 1, 2 ],
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {}
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "sampled": true
+        },
+        "expected": [ "guid", "traceId" ]
+      }
+    }
+  },
+  {
+    "test_name": "w3c_remote_parent_not_sampled_so_adaptive_uses_adaptive_sampling_algo",
+    "comment": "W3C parent header indicates remote parent not sampled, adaptive is used, and no W3C trace state header present so sampling decision goes to random adaptive sampling algorithm",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "adaptive",
+    "expected_priority_between": [ 1, 2 ],
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {
+        "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-00"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "w3c_remote_parent_not_sampled_so_always_off",
+    "comment": "W3C parent header indicates remote parent not sampled and is set to always off",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "always_off",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {
+        "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-00",
+        // "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa--0-1.2-1518469636035",
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":1.2,\"sa\":true,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "priority": 0.0,
+          "sampled": false
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "newrelic_remote_parent_not_sampled_so_always_off",
+    "comment": "New Relic parent header indicates remote parent not sampled and is set to always off",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "always_off",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":1.2,\"sa\":false,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "priority": 0.0,
+          "sampled": false
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "newrelic_remote_parent_not_sampled_so_always_on",
+    "comment": "New Relic parent header indicates remote parent not sampled and is set to always on",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "always_on",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":1.2,\"sa\":false,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "priority": 2.0,
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "newrelic_remote_parent_sampled_so_always_on",
+    "comment": "New Relic parent header indicates remote parent sampled and is set to always on",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "remote_parent_sampled": "always_on",
+    "remote_parent_not_sampled": "always_off",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":1.2,\"sa\":true,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "priority": 2.0,
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "no_headers_root_always_off",
+    "comment": "Traces originating from current service are never sampled",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "always_off",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {}
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "priority": 0.0,
+          "sampled": false
+        },
+        "expected": [ "guid", "traceId" ]
+      }
+    }
+  },
+  {
+    "test_name": "no_headers_root_uses_ratio_sampler",
+    "comment": "Traces originating from current service are always sampled (because ratio=1.0)",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "trace_id_ratio_based",
+    "ratio": 1.0,
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "default",
+
+    "expected_priority_between": [ 1, 2 ],
+    "force_adaptive_sampled_true": false,
+    "inbound_headers": [
+      {}
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "sampled": true
+        },
+        "expected": [ "guid", "traceId" ]
+      }
+    }
+  },
+  {
+    "test_name": "no_headers_root_uses_adaptive_sampler_when_no_ratio",
+    "comment": "Traces originating from current service use adaptive sampler when no ratio is configured",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "trace_id_ratio_based",
+    "remote_parent_sampled": "default",
+    "remote_parent_not_sampled": "adaptive",
+    "expected_priority_between": [ 1, 2 ],
+    "force_adaptive_sampled_true": true,
+    "inbound_headers": [
+      {
+        "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-00"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "w3c_remote_parent_sampled_uses_ratio_sampler_w3c_trace_id",
+    "comment": "W3C parent header determines parent is sampled and W3C trace id is passed to ratio sampler",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "always_off",
+    "ratio": 1.0,
+    "remote_parent_sampled": "trace_id_ratio_based",
+    "remote_parent_not_sampled": "always_off",
+
+    "expected_priority_between": [ 1, 2 ],
+    "force_adaptive_sampled_true": false,
+    "inbound_headers": [
+      {
+        "traceparent": "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
+    "test_name": "newrelic_remote_parent_sampled_uses_ratio_sampler_newrelic_trace_id",
+    "comment": "New Relic parent header determines parent is sampled and New Relic trace id is passed to ratio sampler",
+    "trusted_account_key": "33",
+    "account_id": "33",
+    "web_transaction": true,
+    "raises_exception": false,
+    "span_events_enabled": true,
+    "transport_type": "HTTP",
+    "root": "always_off",
+    "ratio": 1.0,
+    "remote_parent_sampled": "trace_id_ratio_based",
+    "remote_parent_not_sampled": "always_off",
+    "expected_priority_between": [ 1, 2 ],
+    "force_adaptive_sampled_true": false,
+    "inbound_headers": [
+      {
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"2827902\",\"id\":\"7d3efb1b173fecfa\",\"tr\":\"0af7651916cd43dd8448eb211c80319c\",\"pr\":0.2,\"sa\":true,\"ti\":1518469636035,\"tx\":\"0af7651916cd43dd\"}}"
+      }
+    ],
+    "intrinsics": {
+      "target_events": [ "Transaction" ],
+      "common": {
+        "exact": {
+          "traceId": "0af7651916cd43dd8448eb211c80319c",
+          "sampled": true
+        },
+        "expected": [ "guid" ]
+      }
+    }
+  },
+  {
     "test_name": "accept_payload",
     "trusted_account_key": "33",
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -60,7 +472,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -132,7 +544,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -191,7 +603,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -274,7 +686,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": false,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -344,7 +756,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": false,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -400,7 +812,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": true,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -458,7 +870,7 @@
     "account_id": "33",
     "web_transaction": false,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -513,7 +925,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -568,7 +980,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "kafka",
@@ -622,7 +1034,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -700,7 +1112,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -800,7 +1212,7 @@
     "raises_exception": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "transport_type": "HTTP",
     "inbound_headers": [
       {
@@ -875,7 +1287,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -915,7 +1327,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -963,7 +1375,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1040,7 +1452,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1080,7 +1492,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1110,7 +1522,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1140,7 +1552,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1170,7 +1582,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1225,7 +1637,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1252,7 +1664,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1282,7 +1694,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1311,7 +1723,7 @@
           "tracestate.sampled",
           "tracestate.priority"
         ],
-        "tracingVendors": [
+        "vendors": [
           "foo",
           "bar"
         ]
@@ -1366,7 +1778,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1447,7 +1859,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1476,7 +1888,7 @@
           "tracestate.sampled",
           "tracestate.priority"
         ],
-        "tracingVendors": [
+        "vendors": [
         ]
       }
     ],
@@ -1490,7 +1902,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1529,7 +1941,7 @@
     "account_id": "99",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1559,7 +1971,7 @@
           "tracestate.parent_application_id",
           "tracestate.timestamp"
         ],
-        "tracingVendors": [
+        "vendors": [
           "44@nr"
         ]
       }
@@ -1608,7 +2020,7 @@
     "account_id": "99",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1675,7 +2087,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1755,7 +2167,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1808,7 +2220,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1881,7 +2293,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -1966,7 +2378,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": true,
     "transaction_events_enabled": false,
     "transport_type": "HTTP",
@@ -2040,7 +2452,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": true,
+    "force_adaptive_sampled_true": true,
     "span_events_enabled": false,
     "transaction_events_enabled": false,
     "transport_type": "HTTP",
@@ -2089,7 +2501,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -2149,7 +2561,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -2208,7 +2620,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
@@ -2271,7 +2683,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_adaptive_sampled_true": false,
     "span_events_enabled": true,
     "transaction_events_enabled": true,
     "transport_type": "HTTP",
