@@ -1463,19 +1463,26 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
         },
+        :'distributed_tracing.sampler.root' => {
+          :default => 'default',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'This setting controls the behavior of transaction sampling for transactions without a remote parent, traces that originate within this instance of the New Relic agent. Available values are `default`, `adaptive`, `always_on`, `always_off`. At this time `default` and `adaptive` are the same.'
+        },
         :'distributed_tracing.sampler.remote_parent_sampled' => {
           :default => 'default',
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled and the trace flag is set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled' => {
           :default => 'default',
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled and the trace flag is not set in the traceparent. Available values are `default`, `always_on`, and `always_off`.'
+          :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`. At this time `default` and `adaptive` are the same.'
         },
         # Elasticsearch
         :'elasticsearch.capture_cluster_name' => {
