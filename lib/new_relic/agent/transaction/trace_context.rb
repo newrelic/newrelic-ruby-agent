@@ -132,10 +132,13 @@ module NewRelic
           transaction.trace_id = header_data.trace_id
           transaction.parent_span_id = header_data.parent_id
 
-          if payload = assign_trace_state_payload
-            determine_sampling_decision(payload, header_data.trace_parent['trace_flags'])
+          trace_flags = header_data.trace_parent['trace_flags']
+          payload = assign_trace_state_payload
+
+          if payload
+            determine_sampling_decision(payload, trace_flags)
           else
-            determine_sampling_decision({}, header_data.trace_parent['trace_flags'])
+            determine_sampling_decision({}, trace_flags)
             return false
           end
 
