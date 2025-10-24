@@ -134,7 +134,7 @@ module NewRelic
 
           payload = assign_trace_state_payload
 
-          if payload = assign_trace_state_payload
+          if payload
             determine_sampling_decision(payload, header_data.trace_parent['trace_flags'])
           else
             determine_sampling_decision({}, header_data.trace_parent['trace_flags'])
