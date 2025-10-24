@@ -1458,6 +1458,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
+          :allowlist => %w[default adaptive always_on always_off],
           :description => 'This setting controls the behavior of transaction sampling for transactions without a remote parent, traces that originate within this instance of the New Relic agent. Available values are `default`, `adaptive`, `always_on`, `always_off`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.remote_parent_sampled' => {
@@ -1465,6 +1466,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
+          :allowlist => %w[default adaptive always_on always_off],
           :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled' => {
@@ -1472,6 +1474,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
+          :allowlist => %w[default adaptive always_on always_off],
           :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`. At this time `default` and `adaptive` are the same.'
         },
         # Elasticsearch
