@@ -317,7 +317,7 @@
     }
   },
   {
-    "test_name": "skip_no_headers_root_uses_ratio_sampler",
+    "test_name": "no_headers_root_uses_ratio_sampler",
     "comment": "Traces originating from current service are always sampled (because ratio=1.0)",
     "trusted_account_key": "33",
     "account_id": "33",
