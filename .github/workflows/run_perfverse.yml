@@ -1,4 +1,6 @@
 name: Run Perfverse
+permissions:
+  contents: read
 on:
   workflow_dispatch:
     inputs:
