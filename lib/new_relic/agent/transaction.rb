@@ -301,11 +301,24 @@ module NewRelic
             true
           when 'always_off'
             false
+          when 'trace_id_ratio_based'
+            ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
+            if valid_ratio?(ratio)
+              upper_bound = (ratio * (2**64 - 1)).ceil
+              ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
+            else
+              NewRelic::Agent.instance.adaptive_sampler.sampled?
+            end
           when 'adaptive'
             NewRelic::Agent.instance.adaptive_sampler.sampled?
           end
         end
         @sampled
+      end
+
+      def valid_ratio?(ratio)
+        # refactor, this should be validated earlier and default already selected
+        ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
       end
 
       def trace_id
@@ -329,6 +342,9 @@ module NewRelic
           2.0
         when 'always_off'
           0
+        when 'trace_id_ratio_based'
+          # what's the right priority for trace_id_ratio_based? Is it just whatever the sampled result is? 
+          sampled? ? 2.0 : 0
         when 'adaptive'
           adaptive_priority
         end

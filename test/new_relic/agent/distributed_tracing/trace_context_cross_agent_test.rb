@@ -55,6 +55,12 @@ module NewRelic
                 :'distributed_tracing.sampler.remote_parent_sampled' => test_case.fetch('remote_parent_sampled', 'default'),
                 :'distributed_tracing.sampler.remote_parent_not_sampled' => test_case.fetch('remote_parent_not_sampled', 'default')
               }
+
+              if test_case.key?('ratio')
+                key = %w[root remote_parent_sampled remote_parent_not_sampled].find { |f| test_case[f] == 'trace_id_ratio_based'}
+                config.merge!({"distributed_tracing.sampler.#{key}.trace_id_ratio_based.ratio".to_sym => test_case['ratio']}) if key
+              end
+
               with_server_source(config) do
                 run_test_case(test_case)
               end
@@ -229,8 +235,8 @@ module NewRelic
             pp(actual_attributes)
             puts '*' * 80
           end
-
           (test_case_attributes['exact'] || []).each do |k, v|
+            binding.irb
             assert_equal v,
               actual_attributes[k],
               %Q(Wrong "#{k}" #{event_type} attribute; expected #{v}, was #{actual_attributes[k].inspect})
