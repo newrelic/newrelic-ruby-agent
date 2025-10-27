@@ -83,8 +83,6 @@ module NewRelic
 
       alias_method :sampled?, :sampled
 
-      INVALID = create
-
       def initialize(version, parent_type_id, parent_account_id, parent_app_id,
         id, transaction_id, sampled, priority, timestamp)
         @version = version
@@ -97,6 +95,8 @@ module NewRelic
         @priority = priority
         @timestamp = timestamp
       end
+
+      INVALID = create
 
       def parent_type
         @parent_type_string ||= PARENT_TYPES[@parent_type_id]
