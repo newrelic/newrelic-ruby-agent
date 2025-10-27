@@ -346,7 +346,7 @@
     }
   },
   {
-    "test_name": "skip_no_headers_root_uses_adaptive_sampler_when_no_ratio",
+    "test_name": "no_headers_root_uses_adaptive_sampler_when_no_ratio",
     "comment": "Traces originating from current service use adaptive sampler when no ratio is configured",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -376,7 +376,7 @@
     }
   },
   {
-    "test_name": "skip_w3c_remote_parent_sampled_uses_ratio_sampler_w3c_trace_id",
+    "test_name": "w3c_remote_parent_sampled_uses_ratio_sampler_w3c_trace_id",
     "comment": "W3C parent header determines parent is sampled and W3C trace id is passed to ratio sampler",
     "trusted_account_key": "33",
     "account_id": "33",
@@ -408,7 +408,7 @@
     }
   },
   {
-    "test_name": "skip_newrelic_remote_parent_sampled_uses_ratio_sampler_newrelic_trace_id",
+    "test_name": "newrelic_remote_parent_sampled_uses_ratio_sampler_newrelic_trace_id",
     "comment": "New Relic parent header determines parent is sampled and New Relic trace id is passed to ratio sampler",
     "trusted_account_key": "33",
     "account_id": "33",
