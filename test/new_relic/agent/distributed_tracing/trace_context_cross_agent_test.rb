@@ -236,7 +236,6 @@ module NewRelic
             puts '*' * 80
           end
           (test_case_attributes['exact'] || []).each do |k, v|
-            binding.irb
             assert_equal v,
               actual_attributes[k],
               %Q(Wrong "#{k}" #{event_type} attribute; expected #{v}, was #{actual_attributes[k].inspect})

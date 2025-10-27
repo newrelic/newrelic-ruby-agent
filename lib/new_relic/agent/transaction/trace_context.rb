@@ -181,6 +181,19 @@ module NewRelic
           when 'always_off'
             transaction.sampled = false
             transaction.priority = 0
+          when 'trace_id_ratio_based'
+            ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
+            if ratio.is_a?(Float) && [0.0..1.0].cover?(ratio)
+              upper_bound = (ratio * (2**64 - 1)).ceil
+              sampled = ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
+              if sampled
+
+              else
+                
+              end
+            else
+              use_nr_tracestate_sampled(payload)
+            end
           when 'adaptive'
             use_nr_tracestate_sampled(payload)
           end

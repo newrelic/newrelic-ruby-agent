@@ -187,6 +187,8 @@ module NewRelic
           when 'always_off'
             transaction.sampled = false
             transaction.priority = 0
+          when 'trace_id_ratio_based'
+            raise
           when 'adaptive'
             default_sampling(payload)
           end
