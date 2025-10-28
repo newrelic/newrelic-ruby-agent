@@ -1478,23 +1478,26 @@ module NewRelic
           :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => {
-          :default => 2.0,
+          :default => nil,
           :public => true,
           :type => Float,
+          :allow_nil => true,
           :allowed_from_server => false,
           :description => 'The ratio used for the trace_id_ratio_based sampling decision for the root sampler. This must be a float between 0.0 and 1.0. If you provide an invalid value, the sampler will not use the trace_id_ratio_based sampler and will return to the default behavior. If you do not provide a value, the sampler will not use the trace_id_ratio_based_sampler and fall back to the default sampler.'
         },
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => {
-          :default => 2.0,
+          :default => nil,
           :public => true,
           :type => Float,
+          :allow_nil => true,
           :allowed_from_server => false,
           :description => 'The ratio used for the trace_id_ratio_based sampling decision for the remote parent sampled sampler. This must be a float between 0.0 and 1.0. If you provide an invalid value, the sampler will not use the trace_id_ratio_based sampler and will return to the default behavior. If you do not provide a value, the sampler will not use the trace_id_ratio_based_sampler and fall back to the default sampler.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => {
-          :default => 2.0,
+          :default => nil,
           :public => true,
           :type => Float,
+          :allow_nil => true,
           :allowed_from_server => false,
           :description => 'The ratio used for the trace_id_ratio_based sampling decision for the remote parent not sampled sampler. This must be a float between 0.0 and 1.0. If you provide an invalid value or do not provide a value, the sampler will not use the trace_id_ratio_based_sampler and fall back to the default sampler.'
         },
