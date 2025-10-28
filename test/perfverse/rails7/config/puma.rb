@@ -1,3 +1,5 @@
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 # Puma can serve each request in a thread from an internal thread pool.
