@@ -9,6 +9,7 @@ require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracer'
+require 'new_relic/agent/transaction/sampling_decision'
 require 'new_relic/agent/transaction_time_aggregator'
 require 'new_relic/agent/deprecator'
 require 'new_relic/agent/guid_generator'
@@ -292,33 +293,13 @@ module NewRelic
 
       def sampled?
         return false unless Agent.config[:'distributed_tracing.enabled']
-
-        if @sampled.nil?
-          @sampled = case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-          when 'default'
-            NewRelic::Agent.instance.adaptive_sampler.sampled?
-          when 'always_on'
-            true
-          when 'always_off'
-            false
-          when 'trace_id_ratio_based'
-            ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
-            if valid_ratio?(ratio)
-              upper_bound = (ratio * (2**64 - 1)).ceil
-              ratio == 1.0 || trace_id[8, 8].unpack1('Q>') < upper_bound
-            else
-              NewRelic::Agent.instance.adaptive_sampler.sampled?
-            end
-          when 'adaptive'
-            NewRelic::Agent.instance.adaptive_sampler.sampled?
-          end
-        end
+        ensure_sampling_decision
         @sampled
       end
 
-      def valid_ratio?(ratio)
-        # refactor, this should be validated earlier and default already selected
-        ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
+      def priority
+        ensure_sampling_decision
+        @priority
       end
 
       def trace_id
@@ -329,26 +310,25 @@ module NewRelic
         @trace_id = value
       end
 
-      # This may be better in the adaptive sampler?
-      def adaptive_priority
-        (sampled? ? rand + 1.0 : rand).round(NewRelic::PRIORITY_PRECISION)
-      end
+      private
 
-      def priority
-        @priority ||= case NewRelic::Agent.config[:'distributed_tracing.sampler.root']
-        when 'default'
-          adaptive_priority
-        when 'always_on'
-          2.0
-        when 'always_off'
-          0
-        when 'trace_id_ratio_based'
-          # what's the right priority for trace_id_ratio_based? Is it just whatever the sampled result is? 
-          sampled? ? 2.0 : 0
-        when 'adaptive'
-          adaptive_priority
+      def ensure_sampling_decision
+        if @sampled.nil? && @priority.nil?
+          # Neither sampled nor priority set - determine both
+          result = SamplingDecision.determine_root_sampling(self)
+          @sampled = result[:sampled]
+          @priority = result[:priority]
+        elsif @sampled.nil?
+          # Priority set but not sampled - determine both, but use the provided priority
+          result = SamplingDecision.determine_root_sampling(self)
+          @sampled = result[:sampled]
+        elsif @priority.nil?
+          # Sampled set but not priority - calculate priority based on sampled value
+          @priority = SamplingDecision.adaptive_priority(@sampled)
         end
       end
+
+      public
 
       def referer
         @request_attributes&.referer

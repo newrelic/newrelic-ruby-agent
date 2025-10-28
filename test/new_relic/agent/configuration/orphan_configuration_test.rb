@@ -12,11 +12,19 @@ class OrphanedConfigTest < Minitest::Test
   # :'agent_control.enabled' - the config is set by environment variable in agent control, the symbol config is not used
   # :'agent_control.health.delivery_location - the config is set by environment variable in agent control, the symbol config is not used
   # :'agent_control.health.frequency' - the config is set by environment variable in agent control, the symbol config is not used
+  # :'distributed_tracing.sampler.remote_parent_sampled' - the config is passed as a string argument in the SamplingDecision module
+  # :'distributed_tracing.sampler.remote_parent_not_sampled' - the config is passed as a string argument in the SamplingDecision module
+  # :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' - the config is interpolated in the SamplingDecision module
+  # :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' - the config is interpolated in the SamplingDecision module
   IGNORED_KEYS = %i[
     automatic_custom_instrumentation_method_list
     agent_control.enabled
     agent_control.health.delivery_location
     agent_control.health.frequency
+    distributed_tracing.sampler.remote_parent_sampled
+    distributed_tracing.sampler.remote_parent_not_sampled
+    distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio
+    distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio
   ]
 
   def setup
