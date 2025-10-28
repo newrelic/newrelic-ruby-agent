@@ -17,16 +17,16 @@ class SidekiqNoticeOnlyOnceEnabledTest < Minitest::Test
     skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
 
     config = if Sidekiq::VERSION.split('.').first.to_i >= 7
-               Sidekiq.default_configuration
-             else
-               Sidekiq
-             end
+      Sidekiq.default_configuration
+    else
+      Sidekiq
+    end
 
     death_handlers = if config.respond_to?(:death_handlers)
-                       config.death_handlers
-                     else
-                       config[:death_handlers] || []
-                     end
+      config.death_handlers
+    else
+      config[:death_handlers] || []
+    end
 
     nr_death_handler_found = death_handlers.any? do |handler|
       handler.is_a?(Proc) && handler.source_location&.first&.include?('newrelic')
@@ -41,16 +41,16 @@ class SidekiqNoticeOnlyOnceEnabledTest < Minitest::Test
     skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
 
     config = if Sidekiq::VERSION.split('.').first.to_i >= 7
-               Sidekiq.default_configuration
-             else
-               Sidekiq
-             end
+      Sidekiq.default_configuration
+    else
+      Sidekiq
+    end
 
     error_handlers = if config.respond_to?(:error_handlers)
-                       config.error_handlers
-                     else
-                       config[:error_handlers] || []
-                     end
+      config.error_handlers
+    else
+      config[:error_handlers] || []
+    end
 
     nr_error_handler_found = error_handlers.any? do |handler|
       handler.is_a?(Proc) && handler.source_location&.first&.include?('newrelic')
