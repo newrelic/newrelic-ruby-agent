@@ -8,7 +8,7 @@
 
 - **Feature: Use remote parent sampling configurations for decisions in more scenarios**
 
-  Previously, the `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` configuration options were used for the sampling decision only when the `traceparent` and `tracestate` headers were present. Now, these configuration options are applied in cases when the `tracestate` header is missing and when only the `newrelic` header is available. [PR#3306](https://github.com/newrelic/newrelic-ruby-agent/pull/3306)
+  Previously, the `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` configuration options were used for the sampling decision only when the `traceparent` and `tracestate` headers were present. Now, these configuration options are applied in cases when the `tracestate` header is missing and when only the `newrelic` header is available. This change makes distributed trace sampling more consistent and predictable. [PR#3306](https://github.com/newrelic/newrelic-ruby-agent/pull/3306)
 
 ## v9.22.0
 
