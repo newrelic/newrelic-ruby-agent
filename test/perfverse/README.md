@@ -62,7 +62,7 @@ This is the traffic driver. It is configured to provide a consistent load on the
     
     docker pull locustio/locust
 
-    docker run -p 8089:8089 --network=\"host\" -v $PWD:/mnt/locust locustio/locust -t 1m -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5
+    docker run -p 8089:8089 --network="host" -v $PWD:/mnt/locust locustio/locust -t 1m -f /mnt/locust/driver.py --host=http://127.0.0.1:3000 --headless -u 5
 
 
 

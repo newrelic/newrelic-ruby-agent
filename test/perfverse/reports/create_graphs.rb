@@ -19,7 +19,9 @@ def read_csv(file_path, agent_version, data)
       data[:agent_version] << agent_version
       values = line.split(',')
       headers.each_with_index do |header, index|
-        data[header.to_sym] << values[index].to_f
+        val = values[index]
+        val = val.to_f unless header.to_sym == :"Container Name"
+        data[header.to_sym] << val
       end
     end
   end
@@ -90,11 +92,26 @@ end
 unzip_all
 data = dockermon_data
 
-ignored_keys = [:agent_version, :"Container Name", :"Time"]
-data.keys.each do |key|
-  next if ignored_keys.include?(key)
-
+[:cpu_delta, :cpu_usage_perc, :cpu_usage, :memory_usage_perc, :memory_usage].each do |key|
   Charty.box_plot(data: data, x: :agent_version, y: key).save("output/#{key}.png")
 end
+
+max = {}
+
+data[:network_output].each_with_index do |val, index|
+  version = data[:agent_version][index]
+  name = data[:"Container Name"][index]
+  max[name] ||= {version: version, max: 0}
+  max[name][:max] = [max[name][:max], data[:network_output][index]].max
+end
+
+max_data = {agent_version: [], network_output: []}
+
+max.each do |key, val|
+  max_data[:agent_version] << val[:version]
+  max_data[:network_output] << val[:max]
+end
+
+Charty.box_plot(data: max_data, x: :agent_version, y: :network_output).save("output/network_output.png")
 
 puts '***** COMPLETE *****'
