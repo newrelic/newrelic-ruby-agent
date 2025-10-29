@@ -96,6 +96,14 @@ module NewRelic
         @timestamp = timestamp
       end
 
+      # This is an invalid instance of the TraceContextPayload that is used to
+      # help us determine the sampling decision for an incoming trace when the
+      # tracestate header is missing. Creating an invalid instance allows us
+      # to call methods like .sampled on it without throwing errors.
+      # The timestamp value will represent the time it was created/when this
+      # class was initialized.
+      #
+      # @api private
       INVALID = create
 
       def parent_type
