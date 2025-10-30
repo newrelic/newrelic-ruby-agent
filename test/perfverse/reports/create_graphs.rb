@@ -9,7 +9,7 @@ require 'matplotlib'
 Charty::Backends.use(:pyplot)
 Matplotlib.use(:agg)
 
-# currently for dockermon files
+# currently only used for dockermon csv files
 def read_csv(file_path, agent_version, data)
   File.open(file_path, 'r') do |f|
     headers = f.readline.split(',').map(&:strip)
@@ -87,31 +87,39 @@ def dockermon_data
   data
 end
 
+def create_graph(data, key)
+  Charty.box_plot(data: data, x: :agent_version, y: key).save("output/#{key}.png")
+end
+
+def create_network_output_graph(data)
+  max = {}
+
+  data[:network_output].each_with_index do |_val, index|
+    version = data[:agent_version][index]
+    name = data[:"Container Name"][index]
+    max[name] ||= {version: version, max: 0}
+    max[name][:max] = [max[name][:max], data[:network_output][index]].max
+  end
+
+  max_data = {agent_version: [], network_output: []}
+
+  max.each do |key, val|
+    max_data[:agent_version] << val[:version]
+    max_data[:network_output] << val[:max]
+  end
+
+  create_graph(max_data, :network_output)
+end
+
 ############################################################################################
 
 unzip_all
 data = dockermon_data
 
 [:cpu_delta, :cpu_usage_perc, :cpu_usage, :memory_usage_perc, :memory_usage].each do |key|
-  Charty.box_plot(data: data, x: :agent_version, y: key).save("output/#{key}.png")
+  create_graph(data, key)
 end
 
-max = {}
-
-data[:network_output].each_with_index do |val, index|
-  version = data[:agent_version][index]
-  name = data[:"Container Name"][index]
-  max[name] ||= {version: version, max: 0}
-  max[name][:max] = [max[name][:max], data[:network_output][index]].max
-end
-
-max_data = {agent_version: [], network_output: []}
-
-max.each do |key, val|
-  max_data[:agent_version] << val[:version]
-  max_data[:network_output] << val[:max]
-end
-
-Charty.box_plot(data: max_data, x: :agent_version, y: :network_output).save("output/network_output.png")
+create_network_output_graph(data)
 
 puts '***** COMPLETE *****'
