@@ -49,9 +49,10 @@ def run_rails_app(agent_tag, env_vars, iteration)
 
   app_name = "ruby_perf_app_#{ENV['TEST_TAG']}_#{agent_tag}_#{iteration}"
   output_line("Running ruby app in background. Name: #{app_name}")
+  cpu_mem = '--cpus 4 --memory 2G'
 
   Thread.new do
-    run_command("cd ./test/perfverse/ && docker run --rm --name #{app_name} #{env_str} -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=#{app_name} -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local")
+    run_command("cd ./test/perfverse/ && docker run --rm --name #{app_name} #{cpu_mem} #{env_str} -e NEW_RELIC_LICENSE_KEY=$NR_LICENSE_KEY -e NEW_RELIC_APP_NAME=#{app_name} -e NEW_RELIC_HOST=staging-collector.newrelic.com -e s -p 3000:3000 ruby_perf_app:local")
   end
   sleep 2
   thread = run_docker_report(agent_tag, app_name, iteration)
