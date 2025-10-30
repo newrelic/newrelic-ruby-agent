@@ -124,7 +124,7 @@ end
 unzip_all
 data = dockermon_data
 
-[:cpu_delta, :cpu_usage_perc, :cpu_usage, :memory_usage_perc, :memory_usage].each do |key|
+[:cpu_usage_perc, :cpu_usage, :memory_usage].each do |key|
   puts "key: #{key}, data: [#{data[key].min}, #{data[key].max}]"
   create_graph(data, key)
 end
