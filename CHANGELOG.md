@@ -6,6 +6,10 @@
 
   Sending application deployment information using a Capistrano recipe is deprecated and will be removed in agent version 10.0.0. For recording deployments, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
 
+- **Feature: Use remote parent sampling configurations for decisions in more scenarios**
+
+  Previously, the `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` configuration options were used for the sampling decision only when the `traceparent` and `tracestate` headers were present. Now, these configuration options are applied in cases when the `tracestate` header is missing and when only the `newrelic` header is available. This change makes distributed trace sampling more consistent and predictable. [PR#3306](https://github.com/newrelic/newrelic-ruby-agent/pull/3306)
+
 ## v9.22.0
 
 - **Feature: One-step instrumentation for Kubernetes**
