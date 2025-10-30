@@ -161,4 +161,4 @@ jobs:
           if-no-files-found: error
           path: test/perfverse/reports/output/
           name: graphs
-          retention-days: 10
+          retention-days: 14

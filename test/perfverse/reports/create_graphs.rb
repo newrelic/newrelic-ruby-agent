@@ -9,13 +9,21 @@ require 'matplotlib'
 Charty::Backends.use(:pyplot)
 Matplotlib.use(:agg)
 
+CSV_SKIP_LAST = 15
+CSV_SKIP_FIRST = 6
+
 # currently only used for dockermon csv files
 def read_csv(file_path, agent_version, data)
+  max_line_count = %x(wc -l "#{file_path}").split.first.to_i - CSV_SKIP_LAST
+
   File.open(file_path, 'r') do |f|
     headers = f.readline.split(',').map(&:strip)
     headers.each { |header| data[header.to_sym] ||= [] }
 
-    f.each_line do |line|
+    f.each_line.with_index do |line, index|
+      next if index <= CSV_SKIP_FIRST # skip the container starting up
+      break if index >= max_line_count # skip the container shutting down
+
       data[:agent_version] << agent_version
       values = line.split(',')
       headers.each_with_index do |header, index|
@@ -117,6 +125,7 @@ unzip_all
 data = dockermon_data
 
 [:cpu_delta, :cpu_usage_perc, :cpu_usage, :memory_usage_perc, :memory_usage].each do |key|
+  puts "key: #{key}, data: [#{data[key].min}, #{data[key].max}]"
   create_graph(data, key)
 end
 

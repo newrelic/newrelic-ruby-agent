@@ -54,7 +54,7 @@ runs:
         if-no-files-found: error
         path: test/perfverse/docker_monitor/${{ inputs.docker_monitor_output_dir}}/
         name: docker_monitor_report-${{ inputs.run_label }}
-        retention-days: 2
+        retention-days: 1
 
 
 
