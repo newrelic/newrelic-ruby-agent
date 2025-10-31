@@ -163,9 +163,17 @@ module NewRelic
 
           unless payload.sampled.nil?
             if payload.sampled == true
-              set_priority_and_sampled_newrelic_header('distributed_tracing.sampler.remote_parent_sampled', payload)
+              set_priority_and_sampled_newrelic_header(
+                :'distributed_tracing.sampler.remote_parent_sampled',
+                :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
+                payload
+              )
             elsif payload.sampled == false
-              set_priority_and_sampled_newrelic_header('distributed_tracing.sampler.remote_parent_not_sampled', payload)
+              set_priority_and_sampled_newrelic_header(
+                :'distributed_tracing.sampler.remote_parent_not_sampled',
+                :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
+                payload
+              )
             else
               transaction.sampled = payload.sampled
               transaction.priority = payload.priority if payload.priority
@@ -173,8 +181,8 @@ module NewRelic
           end
         end
 
-        def set_priority_and_sampled_newrelic_header(config, payload)
-          result = SamplingDecision.determine_remote_sampling(config, transaction.trace_id, payload)
+        def set_priority_and_sampled_newrelic_header(config_key, ratio_key, payload)
+          result = SamplingDecision.determine_remote_sampling(config_key, ratio_key, transaction.trace_id, payload)
           transaction.sampled = result[:sampled] if result.key?(:sampled)
           transaction.priority = result[:priority] if result.key?(:priority)
         end

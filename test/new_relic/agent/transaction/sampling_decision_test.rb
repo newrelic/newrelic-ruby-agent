@@ -183,7 +183,8 @@ module NewRelic
 
           with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'default') do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
@@ -201,7 +202,8 @@ module NewRelic
 
           with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'adaptive') do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_not_sampled',
+              :'distributed_tracing.sampler.remote_parent_not_sampled',
+              :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
@@ -219,7 +221,8 @@ module NewRelic
 
           with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'always_on') do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
@@ -237,7 +240,8 @@ module NewRelic
 
           with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'always_off') do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_not_sampled',
+              :'distributed_tracing.sampler.remote_parent_not_sampled',
+              :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
@@ -258,7 +262,8 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => 1.0
           ) do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
@@ -277,7 +282,8 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => 0.0
           ) do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_not_sampled',
+              :'distributed_tracing.sampler.remote_parent_not_sampled',
+              :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
@@ -295,7 +301,8 @@ module NewRelic
 
           with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'unknown_sampler') do
             result = SamplingDecision.determine_remote_sampling(
-              'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled',
+              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
               trace_id,
               payload
             )
