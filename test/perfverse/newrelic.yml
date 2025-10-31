@@ -2,8 +2,6 @@ common: &default_settings
   app_name: Ruby Agent Perf testing
   log_level: info
   log_file_path: STDOUT
-  code_level_metrics:
-    enabled: true
 
 development:
   <<: *default_settings
