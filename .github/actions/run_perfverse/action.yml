@@ -2,7 +2,7 @@ name: 'Run Perfverse'
 description: 'Runs performance testing on the specified agent tag'
 inputs:
   agent_tag:
-    description: 'What ruby version to install'
+    description: 'What agent version to install'
     required: true
   agent_env_vars:
     description: '' 
