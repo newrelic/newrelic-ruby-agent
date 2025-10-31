@@ -138,7 +138,7 @@ module NewRelic
           if payload
             determine_sampling_decision(payload, trace_flags)
           else
-            determine_sampling_decision({}, trace_flags)
+            determine_sampling_decision(TraceContextPayload::INVALID, trace_flags)
             return false
           end
 
