@@ -8,7 +8,7 @@ module NewRelic
       def initialize
         # no-op without OpenTelemetry API & config
         return unless defined?(OpenTelemetry) &&
-          NewRelic::Agent.config[:'opentelemetry_bridge.enabled']
+          NewRelic::Agent.config[:'opentelemetry.enabled']
 
         OpenTelemetryBridge.install
       end
