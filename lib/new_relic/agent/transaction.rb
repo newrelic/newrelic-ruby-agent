@@ -310,26 +310,6 @@ module NewRelic
         @trace_id = value
       end
 
-      private
-
-      def ensure_sampling_decision
-        if @sampled.nil? && @priority.nil?
-          # Neither sampled nor priority set - determine both
-          result = SamplingDecision.determine_root_sampling(self)
-          @sampled = result[:sampled]
-          @priority = result[:priority]
-        elsif @sampled.nil?
-          # Priority set but not sampled - determine both, but use the provided priority
-          result = SamplingDecision.determine_root_sampling(self)
-          @sampled = result[:sampled]
-        elsif @priority.nil?
-          # Sampled set but not priority - calculate priority based on sampled value
-          @priority = SamplingDecision.adaptive_priority(@sampled)
-        end
-      end
-
-      public
-
       def referer
         @request_attributes&.referer
       end
@@ -1005,6 +985,22 @@ module NewRelic
 
       def sql_sampler
         agent.sql_sampler
+      end
+
+      def ensure_sampling_decision
+        if @sampled.nil? && @priority.nil?
+          # Neither sampled nor priority set - determine both
+          result = SamplingDecision.determine_root_sampling(self)
+          @sampled = result[:sampled]
+          @priority = result[:priority]
+        elsif @sampled.nil?
+          # Priority set but not sampled - determine both, but use the provided priority
+          result = SamplingDecision.determine_root_sampling(self)
+          @sampled = result[:sampled]
+        elsif @priority.nil?
+          # Sampled set but not priority - calculate priority based on sampled value
+          @priority = SamplingDecision.adaptive_priority(@sampled)
+        end
       end
     end
   end
