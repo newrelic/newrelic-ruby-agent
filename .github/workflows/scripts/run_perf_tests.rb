@@ -1,4 +1,4 @@
-
+# frozen_string_literal: true
 
 def output_line(str)
   puts "*" * 120
@@ -101,3 +101,4 @@ iterations.times do |i|
   shutdown_rails_app(app_name)
   monitor_thread.join
 end
+
