@@ -19,11 +19,8 @@ module TimeReportOutput
     time_report_lines.map { |line| line.delete("\n", '') }.each_slice(2).to_h
   end
 
-  # TODO: OLD RUBIES - When we support only Ruby 2.4+, refactor to use #transform_values instead
   def hash_values_to_float(original_hash)
-    float_values = {}
-    original_hash.each { |k, v| float_values[k] = v.to_f }
-    float_values
+    original_hash.transform_values(&:to_f)
   end
 
   def print_top_ten(top_ten)
