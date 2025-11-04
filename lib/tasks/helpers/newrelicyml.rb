@@ -103,9 +103,7 @@ module NewRelicYML
 
       next unless public_config?(value) && !deprecated?(value)
 
-      # TODO: OLD RUBIES < 2.6
-      # Remove `to_s`. `start_with?` doesn't accept symbols in Ruby <2.6
-      if key.to_s.start_with?('security.')
+      if key.start_with?('security.')
         description, default = build_config(key, value)
         security_configs[key] = {description: description, default: default}
         next
