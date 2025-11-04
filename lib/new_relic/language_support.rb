@@ -51,9 +51,9 @@ module NewRelic
     #   Object.const_get(constant_as_string_or_symbol)
     # rescue NameError
     # end
-    #
+
     def constantize(const_name)
-      const_name.to_s.sub(/\A::/, '').split('::').inject(Object) do |namespace, name|
+      const_name.to_s.delete_prefix('::').split('::').inject(Object) do |namespace, name|
         begin
           result = namespace.const_get(name)
 
