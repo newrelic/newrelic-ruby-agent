@@ -30,12 +30,6 @@ runs:
         key: ${{ inputs.ruby-version }}
         map: |
           {
-            "2.4.10": {
-              "rails": "norails,rails52,rails51,rails50,rails42,rails41,rails40"
-            },
-            "2.5.9": {
-              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
-            },
             "2.6.10": {
               "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
             },

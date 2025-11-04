@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -56,7 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, ai, background, background_2, frameworks, httpclients, httpclients_2, hybrid_agent, rails, rest]
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-22.04
     services:
       mongodb:
-        image: ${{ contains(fromJson('["2.4.10"]'), matrix.ruby-version) && 'mongo:5.0.11' || 'mongo:latest' }}
+        image: mongo:latest
         ports:
           - 27017:27017
       rabbitmq:
@@ -89,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -182,7 +182,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -229,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
@@ -268,7 +268,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.4.10, 3.4.4]
+        ruby-version: [2.6.10, 3.4.4]
     steps:
       - name: Configure git
         run: 'git config --global init.defaultBranch main'
