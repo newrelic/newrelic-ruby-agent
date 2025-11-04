@@ -46,7 +46,7 @@ module VersionBump
   def self.determine_bump_type
     file = read_file('CHANGELOG.md')
     lines = file.split('## ')[1].split('- **')
-    return MAJOR if lines.any? { |line| line.include?('Breaking Change:') }
+    return MAJOR if lines.any? { |line| line.include?('Refactor:') }
     return MINOR if lines.any? { |line| line.include?('Feature:') }
 
     TINY
