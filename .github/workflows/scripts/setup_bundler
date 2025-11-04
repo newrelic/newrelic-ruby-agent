@@ -17,8 +17,7 @@ function using_old_rails {
 function update_to_desired_rubygems_version {
   # Older rubies come with older Rubygems and we need 3.0.6 to
   # correctly install Bundler 1.17 for the multiverse test suite
-  # Rubies < 2.3 need to use update_rubygems,
-  # newer Rubies can use 'gem update --system'
+
   if [[ $RUBY_VERSION =~ ^2\.[^7] ]]; then
     echo "DEBUG: running 'gem update --system 3.0.6 --force'"
     gem update --system 3.0.6 --force >/dev/null

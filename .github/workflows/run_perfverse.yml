@@ -1,0 +1,164 @@
+name: Run Perfverse
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+    inputs:
+      run_1:
+        description: "Git tag and env vars for runs. Format: \"git_tag:ENV_VAR_1=one;ENV_VAR_2=two\"\n 1st run"
+        required: true
+        type: string
+      run_2:
+        description: "2nd run"
+        required: false
+        type: string
+      run_3:
+        description: "3rd run"
+        required: false
+        type: string
+      run_4:
+        description: "4th run"
+        required: false
+        type: string
+      agent_test_agent_disabled:
+        description: "Test run with agent disabled?"
+        default: true
+        required: true
+        type: boolean
+      run_time:
+        description: "Run time"
+        default: 5m
+        required: true
+        type: string
+      iterations:
+        description: "Number of iterations to run"
+        default: 5
+        required: true
+        type: string
+      # maybe add a name for each run so its better on graph
+
+
+
+jobs:
+  run_perf_tests_1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: run 1st version
+        uses: ./.github/actions/run_perfverse
+        with:
+          agent_tag: ${{ inputs.run_1 }}
+          run_time: ${{ inputs.run_time }}
+          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          iterations: ${{ inputs.iterations }}
+          run_label: run_one
+
+  run_perf_tests_2:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_2 != '' }}
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: run 2nd version
+        uses: ./.github/actions/run_perfverse
+        with:
+          agent_tag: ${{ inputs.run_2 }}
+          run_time: ${{ inputs.run_time }}
+          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          iterations: ${{ inputs.iterations }}
+          run_label: run_two
+
+  run_perf_tests_3:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_3 != '' }}
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: run 3rd version
+        uses: ./.github/actions/run_perfverse
+        with:
+          agent_tag: ${{ inputs.run_3 }}
+          run_time: ${{ inputs.run_time }}
+          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          iterations: ${{ inputs.iterations }}
+          run_label: run_three
+
+  run_perf_tests_4:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_4 != '' }}
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: run 4th version
+        uses: ./.github/actions/run_perfverse
+        with:
+          agent_tag: ${{ inputs.run_4 }}
+          run_time: ${{ inputs.run_time }}
+          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          iterations: ${{ inputs.iterations }}
+          run_label: run_four
+
+
+  run_perf_tests_disabled:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.agent_test_agent_disabled }}
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: run agent disabled version
+        uses: ./.github/actions/run_perfverse
+        with:
+          agent_tag: "AGENT_DISABLED:NEW_RELIC_AGENT_ENABLED=false"
+          run_time: ${{ inputs.run_time }}
+          nr_license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          iterations: ${{ inputs.iterations }}
+          run_label: run_agent_disabled
+
+  create_graphs:
+    needs: [run_perf_tests_disabled, run_perf_tests_4, run_perf_tests_3, run_perf_tests_2, run_perf_tests_1]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure git
+        run: 'git config --global init.defaultBranch main'
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # tag v5.0.0
+
+      - name: create dirs
+        run: |
+          mkdir output
+          mkdir inputs
+        working-directory: ./test/perfverse/reports
+
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # tag v5.0.0
+        with:
+          path: test/perfverse/reports/inputs
+
+      - name: Build docker image to make graphs
+        run: |
+          docker build --pull --progress=plain -t charty:local .
+        working-directory: ./test/perfverse/reports
+
+      - name: Run docker image to make graphs
+        run: |
+          docker run --rm --name ruby-charty --mount type=bind,source=./output,target=/charty/output charty:local
+        working-directory: ./test/perfverse/reports
+
+      - name: Upload graphs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # tag v4.6.2
+        with:
+          if-no-files-found: error
+          path: test/perfverse/reports/output/
+          name: graphs
+          retention-days: 14
