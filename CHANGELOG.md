@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes
 
+## v10.0.0
+
+- **Removed support for Ruby 2.4 and 2.5**
+  Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
+
 ## dev
 
 - **Feature: Deprecation notice for recording deployments using Capistrano**
