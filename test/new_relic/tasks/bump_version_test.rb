@@ -64,8 +64,6 @@ module NewRelic
 
         ## v#{expected_version}
         
-        Version #{expected_version} of the agent does a bunch of stuff
-        
         - **Feature: feature or bugfix?**
         
           what a description
@@ -99,7 +97,9 @@ module NewRelic
     end
 
     def changelog(version)
-      feature_bugfix = if version == ::VersionBump::MINOR
+      feature_bugfix = if version == ::VersionBump::MAJOR
+        'Refactor:'
+      elsif version == ::VersionBump::MINOR
         'Feature:'
       elsif version == ::VersionBump::TINY
         'Bugfix:'
@@ -109,8 +109,6 @@ module NewRelic
         # New Relic Ruby Agent Release Notes
 
         ## dev
-        
-        #{version == ::VersionBump::MAJOR ? 'Major v' : 'V'}ersion <dev> of the agent does a bunch of stuff
         
         - **#{feature_bugfix} feature or bugfix?**
         
