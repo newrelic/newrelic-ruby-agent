@@ -89,7 +89,7 @@ module NewRelic
             result = SamplingDecision.determine_root_sampling(transaction)
 
             assert result[:sampled]
-            assert_equal 2.0, result[:priority]
+            assert_equal 2.0, result[:priority] # rubocop: disable Minitest/AssertInDelta
           end
         end
 
@@ -122,7 +122,7 @@ module NewRelic
             result = SamplingDecision.determine_root_sampling(transaction)
 
             assert result[:sampled]
-            assert_equal 2.0, result[:priority]
+            assert_in_delta(2.0, result[:priority])
           end
         end
 
@@ -153,7 +153,7 @@ module NewRelic
           ) do
             result = SamplingDecision.determine_root_sampling(transaction)
 
-            assert [true, false].include?(result[:sampled]), 'Sampled should be boolean'
+            assert_includes [true, false], result[:sampled], 'Sampled should be boolean'
             assert_equal(result[:sampled] ? 2.0 : 0, result[:priority])
           end
         end
@@ -189,8 +189,8 @@ module NewRelic
               payload
             )
 
-            assert_equal true, result[:sampled]
-            assert_equal 1.5, result[:priority]
+            assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
+            assert_equal 1.5, result[:priority] # rubocop:disable Minitest/AssertInDelta
           end
         end
 
@@ -208,8 +208,8 @@ module NewRelic
               payload
             )
 
-            assert_equal false, result[:sampled]
-            assert_equal 0.8, result[:priority]
+            assert_equal false, result[:sampled] # rubocop:disable Minitest/RefuteFalse
+            assert_equal 0.8, result[:priority] # rubocop:disable Minitest/AssertInDelta
           end
         end
 
@@ -227,8 +227,8 @@ module NewRelic
               payload
             )
 
-            assert_equal true, result[:sampled]
-            assert_equal 2.0, result[:priority]
+            assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
+            assert_equal 2.0, result[:priority] # rubocop:disable Minitest/AssertInDelta
           end
         end
 
@@ -246,7 +246,7 @@ module NewRelic
               payload
             )
 
-            assert_equal false, result[:sampled]
+            assert_equal false, result[:sampled] # rubocop:disable Minitest/RefuteFalse
             assert_equal 0, result[:priority]
           end
         end
@@ -268,8 +268,8 @@ module NewRelic
               payload
             )
 
-            assert_equal true, result[:sampled]
-            assert_equal 2.0, result[:priority]
+            assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
+            assert_equal 2.0, result[:priority] # rubocop:disable Minitest/AssertInDelta
           end
         end
 
@@ -288,7 +288,7 @@ module NewRelic
               payload
             )
 
-            assert_equal false, result[:sampled]
+            assert_equal false, result[:sampled] # rubocop:disable Minitest/RefuteFalse
             assert_equal 0, result[:priority]
           end
         end
@@ -307,8 +307,8 @@ module NewRelic
               payload
             )
 
-            assert_equal true, result[:sampled]
-            assert_equal 1.2, result[:priority]
+            assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
+            assert_equal 1.2, result[:priority] # rubocop:disable Minitest/AssertInDelta
           end
         end
 
@@ -319,8 +319,8 @@ module NewRelic
 
           result = SamplingDecision.use_payload_sampling(payload)
 
-          assert_equal true, result[:sampled]
-          assert_equal 1.75, result[:priority]
+          assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
+          assert_equal 1.75, result[:priority] # rubocop:disable Minitest/AssertInDelta
         end
 
         def test_use_payload_sampling_with_nil_sampled_returns_empty_hash
@@ -328,7 +328,7 @@ module NewRelic
 
           result = SamplingDecision.use_payload_sampling(payload)
 
-          assert_equal({}, result)
+          assert_empty(result)
         end
 
         def test_use_payload_sampling_with_sampled_but_no_priority
@@ -336,7 +336,7 @@ module NewRelic
 
           result = SamplingDecision.use_payload_sampling(payload)
 
-          assert_equal true, result[:sampled]
+          assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
           refute result.key?(:priority)
         end
 
@@ -384,9 +384,9 @@ module NewRelic
         def test_calculate_trace_id_ratio_sampled_with_realistic_trace_ids
           # Test with trace IDs that look like actual New Relic generated GUIDs
           # New Relic generates lowercase hex strings (0-9, a-f)
-          trace_id_numeric = '12345678' + '90123456' + '78901234567890ab'    # Mostly numeric
-          trace_id_mixed = 'a1b2c3d4' + 'e5f67890' + '123456789abcdef0'     # Mixed hex
-          trace_id_letters = 'abcdef01' + '23456789' + 'abcdefabcdefabcd'   # More letters
+          trace_id_numeric = '12345678' + '90123456' + '78901234567890ab' # Mostly numeric
+          trace_id_mixed = 'a1b2c3d4' + 'e5f67890' + '123456789abcdef0' # Mixed hex
+          trace_id_letters = 'abcdef01' + '23456789' + 'abcdefabcdefabcd' # More letters
           ratio = 0.5
 
           # All should be sampled at 0.5 ratio since ASCII values of hex chars

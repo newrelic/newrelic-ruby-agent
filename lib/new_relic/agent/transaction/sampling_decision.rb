@@ -36,14 +36,8 @@ module NewRelic
             priority = 0
           when 'trace_id_ratio_based'
             ratio = NewRelic::Agent.config[:'distributed_tracing.sampler.root.trace_id_ratio_based.ratio']
-            if valid_ratio?(ratio)
-              sampled = calculate_trace_id_ratio_sampled(ratio, trace_id)
-              priority = sampled ? 2.0 : 0
-            else
-              # Fall back to adaptive if ratio is invalid or nil
-              sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
-              priority = adaptive_priority(sampled)
-            end
+            sampled = calculate_trace_id_ratio_sampled(ratio, trace_id)
+            priority = sampled ? 2.0 : 0
           else
             # Unknown config value, fall back to adaptive
             sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
@@ -77,13 +71,8 @@ module NewRelic
             {sampled: false, priority: 0}
           when 'trace_id_ratio_based'
             ratio = NewRelic::Agent.config[ratio_key]
-            if valid_ratio?(ratio)
-              sampled = calculate_trace_id_ratio_sampled(ratio, trace_id)
-              {sampled: sampled, priority: sampled ? 2.0 : 0}
-            else
-              # Fall back to payload if ratio is invalid or nil
-              use_payload_sampling(payload)
-            end
+            sampled = calculate_trace_id_ratio_sampled(ratio, trace_id)
+            {sampled: sampled, priority: sampled ? 2.0 : 0}
           else
             # Unknown config value, fall back to payload
             use_payload_sampling(payload)
@@ -106,6 +95,8 @@ module NewRelic
         end
 
         # Calculates whether a trace should be sampled based on a Trace ID ratio.
+        # The ratio is expected to be validated at configuration time, so this method
+        # assumes it receives a valid Float between 0.0 and 1.0.
         #
         # @param ratio [Float] the sampling ratio (0.0 to 1.0)
         # @param trace_id [String] the trace ID to hash
@@ -117,16 +108,6 @@ module NewRelic
 
           upper_bound = (ratio * (2**64 - 1)).ceil
           trace_id[8, 8].unpack1('Q>') < upper_bound
-        end
-
-        # Validates that the ratio is a Float in the range [0.0, 1.0].
-        #
-        # @param ratio [Object] the value to validate
-        # @return [Boolean] true if valid
-        #
-        # @api private
-        def valid_ratio?(ratio)
-          ratio.is_a?(Float) && (0.0..1.0).cover?(ratio)
         end
 
         # Calculates adaptive priority based on sampled status.

@@ -4,6 +4,7 @@
 
 require 'forwardable'
 require_relative '../../constants'
+require_relative 'sampler_config_validator'
 
 module NewRelic
   module Agent
@@ -1457,24 +1458,36 @@ module NewRelic
           :default => 'default',
           :public => true,
           :type => String,
-          :allowed_from_server => true,
+          :allowed_from_server => false,
           :allowlist => %w[default adaptive always_on always_off trace_id_ratio_based],
+          :transform => SamplerConfigValidator.validate_sampler_strategy_with_ratio(
+            :'distributed_tracing.sampler.root',
+            :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio'
+          ),
           :description => 'This setting controls the behavior of transaction sampling for transactions without a remote parent, traces that originate within this instance of the New Relic agent. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.remote_parent_sampled' => {
           :default => 'default',
           :public => true,
           :type => String,
-          :allowed_from_server => true,
+          :allowed_from_server => false,
           :allowlist => %w[default adaptive always_on always_off trace_id_ratio_based],
+          :transform => SamplerConfigValidator.validate_sampler_strategy_with_ratio(
+            :'distributed_tracing.sampler.remote_parent_sampled',
+            :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'
+          ),
           :description => 'This setting controls the behavior of transaction sampling when a remote parent is sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled' => {
           :default => 'default',
           :public => true,
           :type => String,
-          :allowed_from_server => true,
+          :allowed_from_server => false,
           :allowlist => %w[default adaptive always_on always_off trace_id_ratio_based],
+          :transform => SamplerConfigValidator.validate_sampler_strategy_with_ratio(
+            :'distributed_tracing.sampler.remote_parent_not_sampled',
+            :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'
+          ),
           :description => 'This setting controls the behavior of transaction sampling when a remote parent is not sampled. Available values are `default`, `adaptive`, `always_on`, `always_off`, and `trace_id_ratio_based`. At this time `default` and `adaptive` are the same.'
         },
         :'distributed_tracing.sampler.root.trace_id_ratio_based.ratio' => {
@@ -1483,6 +1496,7 @@ module NewRelic
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
+          :transform => SamplerConfigValidator.method(:validate_sampling_ratio),
           :description => 'The ratio used for the trace_id_ratio_based sampling decision for the root sampler. This must be a float between 0.0 and 1.0. If you provide an invalid value, the sampler will not use the trace_id_ratio_based sampler and will return to the default behavior. If you do not provide a value, the sampler will not use the trace_id_ratio_based_sampler and fall back to the default sampler.'
         },
         :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => {
@@ -1491,6 +1505,7 @@ module NewRelic
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
+          :transform => SamplerConfigValidator.method(:validate_sampling_ratio),
           :description => 'The ratio used for the trace_id_ratio_based sampling decision for the remote parent sampled sampler. This must be a float between 0.0 and 1.0. If you provide an invalid value, the sampler will not use the trace_id_ratio_based sampler and will return to the default behavior. If you do not provide a value, the sampler will not use the trace_id_ratio_based_sampler and fall back to the default sampler.'
         },
         :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => {
@@ -1499,6 +1514,7 @@ module NewRelic
           :type => Float,
           :allow_nil => true,
           :allowed_from_server => false,
+          :transform => SamplerConfigValidator.method(:validate_sampling_ratio),
           :description => 'The ratio used for the trace_id_ratio_based sampling decision for the remote parent not sampled sampler. This must be a float between 0.0 and 1.0. If you provide an invalid value or do not provide a value, the sampler will not use the trace_id_ratio_based_sampler and fall back to the default sampler.'
         },
         # Elasticsearch
