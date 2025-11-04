@@ -30,7 +30,7 @@ runs:
         map: |
           {
             "2.6.10": {
-              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42,rails41,rails40"
+              "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
             },
             "2.7.8": {
               "rails": "norails,rails61,rails60,rails70,rails71"
