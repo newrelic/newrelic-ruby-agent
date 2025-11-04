@@ -50,8 +50,8 @@ module NewRelic
         # Determines sampling decision and priority for a distributed trace
         # based on remote parent's sampling information.
         #
-        # @param config_key [Symbol] the config key to check (e.g., 'distributed_tracing.sampler.remote_parent_sampled')
-        # @param ratio_key [Symbol] the related ratio config
+        # @param sampler [String] the value of the related sampler (e.g., 'distributed_tracing.sampler.remote_parent_sampled')
+        # @param ratio [Float] the related ratio config value
         #   (e.g., 'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio')
         #   to use when the config key's value is 'trace_id_ratio_based'
         # @param trace_id [String] the trace ID
@@ -59,10 +59,8 @@ module NewRelic
         # @return [Hash] with keys :sampled (Boolean) and :priority (Float)
         #
         # @api private
-        def determine_remote_sampling(config_key, ratio_key, trace_id, payload)
-          config_value = NewRelic::Agent.config[config_key]
-
-          case config_value
+        def determine_remote_sampling(sampler, ratio, trace_id, payload)
+          case sampler
           when 'default', 'adaptive'
             use_payload_sampling(payload)
           when 'always_on'
@@ -70,7 +68,6 @@ module NewRelic
           when 'always_off'
             {sampled: false, priority: 0}
           when 'trace_id_ratio_based'
-            ratio = NewRelic::Agent.config[ratio_key]
             sampled = calculate_trace_id_ratio_sampled(ratio, trace_id)
             {sampled: sampled, priority: sampled ? 2.0 : 0}
           else

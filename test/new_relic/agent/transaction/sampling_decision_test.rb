@@ -29,8 +29,6 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
-        # Test determine_root_sampling with 'default' sampler
-
         def test_determine_root_sampling_with_default_sampler_sampled
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
@@ -61,8 +59,6 @@ module NewRelic
           end
         end
 
-        # Test determine_root_sampling with 'adaptive' sampler
-
         def test_determine_root_sampling_with_adaptive_sampler_sampled
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
@@ -78,8 +74,6 @@ module NewRelic
           end
         end
 
-        # Test determine_root_sampling with 'always_on' sampler
-
         def test_determine_root_sampling_with_always_on_sampler
           transaction = in_transaction('test_txn') do |txn|
             txn
@@ -93,8 +87,6 @@ module NewRelic
           end
         end
 
-        # Test determine_root_sampling with 'always_off' sampler
-
         def test_determine_root_sampling_with_always_off_sampler
           transaction = in_transaction('test_txn') do |txn|
             txn
@@ -107,8 +99,6 @@ module NewRelic
             assert_equal 0, result[:priority]
           end
         end
-
-        # Test determine_root_sampling with 'trace_id_ratio_based' sampler
 
         def test_determine_root_sampling_with_trace_id_ratio_based_sampler_ratio_one
           transaction = in_transaction('test_txn') do |txn|
@@ -158,8 +148,6 @@ module NewRelic
           end
         end
 
-        # Test determine_root_sampling with unknown sampler (fallback to adaptive)
-
         def test_determine_root_sampling_with_unknown_sampler_falls_back_to_adaptive
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
@@ -175,16 +163,14 @@ module NewRelic
           end
         end
 
-        # Test determine_remote_sampling with 'default' sampler
-
         def test_determine_remote_sampling_with_default_sampler_uses_payload
           payload = OpenStruct.new(sampled: true, priority: 1.5)
           trace_id = '12345678901234567890123456789012'
 
           with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'default') do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_sampled',
-              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -194,16 +180,14 @@ module NewRelic
           end
         end
 
-        # Test determine_remote_sampling with 'adaptive' sampler
-
         def test_determine_remote_sampling_with_adaptive_sampler_uses_payload
           payload = OpenStruct.new(sampled: false, priority: 0.8)
           trace_id = '12345678901234567890123456789012'
 
           with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'adaptive') do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_not_sampled',
-              :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -213,16 +197,14 @@ module NewRelic
           end
         end
 
-        # Test determine_remote_sampling with 'always_on' sampler
-
         def test_determine_remote_sampling_with_always_on_sampler
           payload = OpenStruct.new(sampled: false, priority: 0.5)
           trace_id = '12345678901234567890123456789012'
 
           with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'always_on') do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_sampled',
-              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -232,16 +214,14 @@ module NewRelic
           end
         end
 
-        # Test determine_remote_sampling with 'always_off' sampler
-
         def test_determine_remote_sampling_with_always_off_sampler
           payload = OpenStruct.new(sampled: true, priority: 1.8)
           trace_id = '12345678901234567890123456789012'
 
           with_config(:'distributed_tracing.sampler.remote_parent_not_sampled' => 'always_off') do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_not_sampled',
-              :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -250,8 +230,6 @@ module NewRelic
             assert_equal 0, result[:priority]
           end
         end
-
-        # Test determine_remote_sampling with 'trace_id_ratio_based' sampler
 
         def test_determine_remote_sampling_with_trace_id_ratio_based_sampler_ratio_one
           payload = OpenStruct.new(sampled: false, priority: 0.5)
@@ -262,8 +240,8 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio' => 1.0
           ) do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_sampled',
-              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -282,8 +260,8 @@ module NewRelic
             :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio' => 0.0
           ) do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_not_sampled',
-              :'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_not_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -293,16 +271,14 @@ module NewRelic
           end
         end
 
-        # Test determine_remote_sampling with unknown sampler (fallback to payload)
-
         def test_determine_remote_sampling_with_unknown_sampler_falls_back_to_payload
           payload = OpenStruct.new(sampled: true, priority: 1.2)
           trace_id = '12345678901234567890123456789012'
 
           with_config(:'distributed_tracing.sampler.remote_parent_sampled' => 'unknown_sampler') do
             result = SamplingDecision.determine_remote_sampling(
-              :'distributed_tracing.sampler.remote_parent_sampled',
-              :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+              NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
               trace_id,
               payload
             )
@@ -311,8 +287,6 @@ module NewRelic
             assert_equal 1.2, result[:priority] # rubocop:disable Minitest/AssertInDelta
           end
         end
-
-        # Test use_payload_sampling
 
         def test_use_payload_sampling_returns_sampled_and_priority
           payload = OpenStruct.new(sampled: true, priority: 1.75)
@@ -339,8 +313,6 @@ module NewRelic
           assert_equal true, result[:sampled] # rubocop:disable Minitest/AssertTruthy
           refute result.key?(:priority)
         end
-
-        # Test calculate_trace_id_ratio_sampled
 
         def test_calculate_trace_id_ratio_sampled_with_ratio_one_always_returns_true
           trace_id = '12345678901234567890123456789012'
@@ -407,8 +379,6 @@ module NewRelic
           # High ratio - should sample low values
           assert SamplingDecision.calculate_trace_id_ratio_sampled(0.9999999, trace_id_leading_zeros)
         end
-
-        # Test adaptive_priority
 
         def test_adaptive_priority_sampled_returns_value_between_one_and_two
           100.times do

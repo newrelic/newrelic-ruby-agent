@@ -32,8 +32,6 @@ module NewRelic
         NewRelic::Agent::Configuration::SamplerConfigValidator.reset_warnings!
       end
 
-      # Integration test: invalid ratio causes fallback at config level
-
       def test_root_sampler_falls_back_to_default_with_invalid_ratio
         NewRelic::Agent.logger.expects(:warn).with(regexp_matches(/Invalid or missing ratio/)).once
 
@@ -83,8 +81,8 @@ module NewRelic
 
           # SamplingDecision should use payload (default behavior)
           result = Transaction::SamplingDecision.determine_remote_sampling(
-            :'distributed_tracing.sampler.remote_parent_sampled',
-            :'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio',
+            NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled'],
+            NewRelic::Agent.config[:'distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio'],
             trace_id,
             payload
           )

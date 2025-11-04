@@ -182,7 +182,7 @@ module NewRelic
         end
 
         def set_priority_and_sampled_newrelic_header(config_key, ratio_key, payload)
-          result = SamplingDecision.determine_remote_sampling(config_key, ratio_key, transaction.trace_id, payload)
+          result = SamplingDecision.determine_remote_sampling(NewRelic::Agent.config[config_key], NewRelic::Agent.config[ratio_key], transaction.trace_id, payload)
           transaction.sampled = result[:sampled] if result.key?(:sampled)
           transaction.priority = result[:priority] if result.key?(:priority)
         end
