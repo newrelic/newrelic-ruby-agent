@@ -293,6 +293,7 @@ module NewRelic
 
       def sampled?
         return false unless Agent.config[:'distributed_tracing.enabled']
+
         ensure_sampling_decision
         @sampled
       end

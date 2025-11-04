@@ -57,8 +57,9 @@ module NewRelic
               }
 
               if test_case.key?('ratio')
-                key = %w[root remote_parent_sampled remote_parent_not_sampled].find { |f| test_case[f] == 'trace_id_ratio_based'}
-                config.merge!({"distributed_tracing.sampler.#{key}.trace_id_ratio_based.ratio".to_sym => test_case['ratio']}) if key
+                strategies = %w[root remote_parent_sampled remote_parent_not_sampled]
+                key = strategies.find { |f| test_case[f] == 'trace_id_ratio_based' }
+                config["distributed_tracing.sampler.#{key}.trace_id_ratio_based.ratio".to_sym] = test_case['ratio']
               end
 
               with_server_source(config) do
@@ -235,6 +236,7 @@ module NewRelic
             pp(actual_attributes)
             puts '*' * 80
           end
+
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
               actual_attributes[k],
