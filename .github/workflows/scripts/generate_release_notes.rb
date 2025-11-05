@@ -35,8 +35,8 @@ class GenerateReleaseNotes
     titles.each do |t|
       category = t.split(':').first
       case category
-      when 'Refactor'
-        metadata[:features] << t.delete_prefix('Refactor: ')
+      when 'Breaking Change'
+        metadata[:features] << t.delete_prefix('Breaking Change: ')
       when 'Feature'
         metadata[:features] << t.delete_prefix('Feature: ')
       when 'Bugfix'

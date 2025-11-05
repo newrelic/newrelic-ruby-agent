@@ -98,7 +98,7 @@ module NewRelic
 
     def changelog(version)
       feature_bugfix = if version == ::VersionBump::MAJOR
-        'Refactor:'
+        'Breaking Change:'
       elsif version == ::VersionBump::MINOR
         'Feature:'
       elsif version == ::VersionBump::TINY
