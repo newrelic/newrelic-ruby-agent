@@ -1411,13 +1411,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
         },
-        :sidekiq.ignore_retry_errors => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
-        },
         :disable_roda_auto_middleware => {
           :default => false,
           :public => true,
@@ -2146,6 +2139,13 @@ module NewRelic
             For job argument hashes, if either a key or value matches the pair will be excluded. All matching job
             argument array elements and job argument scalars will be excluded.
           SIDEKIQ_ARGS_EXCLUDE
+        },
+        :'sidekiq.ignore_retry_errors' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
         },
         # Slow SQL
         :'slow_sql.enabled' => {
