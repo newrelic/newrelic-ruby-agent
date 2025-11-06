@@ -93,7 +93,7 @@ class SidekiqIgnoreRetryErrorsTest < Minitest::Test
         config[:death_handlers] || []
       end
 
-      puts "**************************"
+      puts '**************************'
       puts "death_handlers: #{death_handlers.inspect}"
 
       nr_death_handler_found = death_handlers.any? do |handler|
@@ -102,9 +102,8 @@ class SidekiqIgnoreRetryErrorsTest < Minitest::Test
 
       puts "nr_death_handler_found: #{nr_death_handler_found}"
 
-      puts "sidekiq.ignore_retry_errors:"
-      puts NewRelic::Agent.config[:'sidekiq.ignore_retry_errors']
-      puts "**************************"
+      puts "sidekiq.ignore_retry_errors: #{NewRelic::Agent.config[:'sidekiq.ignore_retry_errors']}"
+      puts '**************************'
 
       assert nr_death_handler_found,
         'Expected NewRelic death_handler to be registered when sidekiq.ignore_retry_errors is true'
