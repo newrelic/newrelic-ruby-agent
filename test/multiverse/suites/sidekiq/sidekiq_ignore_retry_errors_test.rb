@@ -87,13 +87,16 @@ class SidekiqIgnoreRetryErrorsTest < Minitest::Test
         Sidekiq
       end
 
+      puts '**************************'
+      puts "Sidekiq version: #{Sidekiq::VERSION}"
+      puts "config: #{config.inspect}"
+
       death_handlers = if config.respond_to?(:death_handlers)
         config.death_handlers
       else
         config[:death_handlers] || []
       end
 
-      puts '**************************'
       puts "death_handlers: #{death_handlers.inspect}"
 
       nr_death_handler_found = death_handlers.any? do |handler|
