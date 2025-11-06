@@ -18,5 +18,5 @@ development:
     transaction_threshold: 1.0
   capture_params: false
   log_file_path: log
-  # Enable sidekiq_notice_only_once to test death_handlers registration
-  sidekiq_notice_only_once: true
+  # Enable sidekiq.ignore_retry_errors to test death_handlers registration
+sidekiq.ignore_retry_errors: true

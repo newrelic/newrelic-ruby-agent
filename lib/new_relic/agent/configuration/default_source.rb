@@ -1411,12 +1411,12 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, disables [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
         },
-        :sidekiq_notice_only_once => {
+        :sidekiq.ignore_retry_errors => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables reporting only on last sidekiq retry [Sidekiq instrumentation](/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation).'
+          :description => 'If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.'
         },
         :disable_roda_auto_middleware => {
           :default => false,
