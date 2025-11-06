@@ -2510,7 +2510,7 @@ module NewRelic
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
         # TODO: Sync with the other agents to see what the config should be named, how it should be enabled, how it should be described
-        :'opentelemetry_bridge.enabled' => {
+        :'opentelemetry.enabled' => {
           :default => false,
           :public => false,
           :type => Boolean,
