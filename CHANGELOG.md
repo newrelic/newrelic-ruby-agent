@@ -2,6 +2,11 @@
 
 ## dev
 
+- **Breaking Change: Removed support for Ruby 2.4 and 2.5**
+  Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
+
+## v9.23.0
+
 - **Feature: Deprecation notice for recording deployments using Capistrano**
 
   Sending application deployment information using a Capistrano recipe is deprecated and will be removed in agent version 10.0.0. For recording deployments, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
