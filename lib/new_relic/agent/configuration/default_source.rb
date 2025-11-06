@@ -1416,7 +1416,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.'
+          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
         },
         :disable_roda_auto_middleware => {
           :default => false,
