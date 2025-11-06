@@ -51,10 +51,10 @@ class SidekiqIgnoreRetryErrorsTest < Minitest::Test
   end
 
   def test_error_handlers_not_registered_when_sidekiq_ignore_retry_errors_is_true
-    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
-    skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
-
     with_config(:'sidekiq.ignore_retry_errors' => true) do
+      # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
+      skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
+
       config = if Sidekiq::VERSION.split('.').first.to_i >= 7
         Sidekiq.default_configuration
       else
@@ -77,10 +77,10 @@ class SidekiqIgnoreRetryErrorsTest < Minitest::Test
   end
 
   def test_death_handlers_registered_when_sidekiq_ignore_retry_errors_is_true
-    # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
-    skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
-
     with_config(:'sidekiq.ignore_retry_errors' => true) do
+      # TODO: MAJOR VERSION - remove this when Sidekiq v5 is no longer supported
+      skip 'Test requires Sidekiq v6+' unless Sidekiq::VERSION.split('.').first.to_i >= 6
+
       config = if Sidekiq::VERSION.split('.').first.to_i >= 7
         Sidekiq.default_configuration
       else
