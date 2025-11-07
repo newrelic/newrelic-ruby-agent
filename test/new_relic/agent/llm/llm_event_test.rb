@@ -61,7 +61,7 @@ module NewRelic::Agent::Llm
     def test_record_does_not_create_an_event
       event = NewRelic::Agent::Llm::LlmEvent.new
       assert_raises(ArgumentError) { event.record('', foo: :bar) }
-      
+
       _, events = NewRelic::Agent.agent.custom_event_aggregator.harvest!
 
       assert_empty events
