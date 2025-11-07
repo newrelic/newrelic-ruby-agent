@@ -109,7 +109,7 @@ module NewRelic::Agent::Instrumentation
       refute_empty segments
 
       methods.each do |method|
-        segment = segments.detect { |s| s.name == "Ruby/ActiveJob/default/#{method}" }
+        segment = segments.detect { |s| s.name == "Ruby/ActiveJob/TestJob/default/#{method}" }
 
         assert segment
 
