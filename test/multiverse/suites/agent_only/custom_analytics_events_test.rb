@@ -36,13 +36,35 @@ class CustomAnalyticsEventsTest < Minitest::Test
     refute(result)
   end
 
-  def test_record_doesnt_record_if_invalid_event_type
+  def test_record_custom_event_accepts_valid_event_types
+    NewRelic::Agent.record_custom_event('ValidEvent', {})
+    NewRelic::Agent.record_custom_event('Valid_Event', {})
+    NewRelic::Agent.record_custom_event('Valid:Event', {})
+    NewRelic::Agent.record_custom_event('Valid Event', {})
+    NewRelic::Agent.record_custom_event(:ValidSymbol, {})
+    NewRelic::Agent.record_custom_event(:Valid_Symbol, {})
+
+    NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
+    events = last_posted_events
+
+    assert_equal(6, events.size)
+  end
+
+  def test_record_custom_event_raises_on_invalid_event_types
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('', foo: :bar) }
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('email@example.com', foo: :bar) }
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('bang!', foo: :bar) }
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('hyphen-ated', foo: :bar) }
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('bad$news', foo: :bar) }
+  end
+
+  def test_record_custom_event_skips_bad_event_types
     bad_event_type = 'bad$news'
     good_event_type = 'good news'
 
-    NewRelic::Agent.record_custom_event(bad_event_type, :foo => :bar)
-    NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event(bad_event_type, foo: :bar) }
 
+    NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
     NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     events = last_posted_events
 

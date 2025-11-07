@@ -117,6 +117,9 @@ module NewRelic
     # been configured for
     AUTOMATIC_TRACER_MAX_ATTEMPTS = 60 # 60 = try about twice a second for 30 seconds
 
+    # Event types must consist of only alphanumeric characters, '_', ':', or ' '.
+    VALID_CUSTOM_EVENT_TYPE = /\A[\w: ]+\z/
+
     attr_reader :error_group_callback
     attr_reader :llm_token_count_callback
 
@@ -483,6 +486,10 @@ module NewRelic
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
+      unless event_type =~ VALID_CUSTOM_EVENT_TYPE
+        raise ArgumentError, "Invalid event_type: '#{event_type}'. Event types must consist of only alphanumeric characters, '_', ':', or ' '."
+      end
+
       record_api_supportability_metric(:record_custom_event)
 
       if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
