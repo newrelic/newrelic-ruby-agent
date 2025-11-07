@@ -19,11 +19,13 @@ module NewRelic
         # NOTE: For `enqueue_all.active_job`, only the first job is used to determine the queue.
         # Therefore, this assumes all jobs given as arguments for perform_all_later share the same queue.
         def metric_name(name, payload)
+          binding.irb
           job = payload[:job] || payload[:jobs].first
 
           queue = job.queue_name
+          job_class = job.class.name
           method = method_from_name(name)
-          "Ruby/ActiveJob/#{queue}/#{method}"
+          "Ruby/ActiveJob/#{job_class}/#{queue}/#{method}"
         end
 
         PATTERN = /\A([^\.]+)\.active_job\z/
