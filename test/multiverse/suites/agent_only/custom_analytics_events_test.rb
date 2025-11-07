@@ -56,6 +56,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('bang!', foo: :bar) }
     assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('hyphen-ated', foo: :bar) }
     assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event('bad$news', foo: :bar) }
+    assert_raises(ArgumentError) { NewRelic::Agent.record_custom_event(nil, foo: :bar) }
   end
 
   def test_record_custom_event_skips_bad_event_types

@@ -486,7 +486,7 @@ module NewRelic
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
-      unless event_type.match?(VALID_CUSTOM_EVENT_TYPE)
+      unless event_type.to_s.match?(VALID_CUSTOM_EVENT_TYPE)
         raise ArgumentError, "Invalid event_type: '#{event_type}'. Event types must consist of only alphanumeric characters, '_', ':', or ' '."
       end
 
