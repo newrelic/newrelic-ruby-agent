@@ -31,12 +31,12 @@ module NewRelic::Agent::Instrumentation
     SUBSCRIBER = NewRelic::Agent::Instrumentation::ActiveJobSubscriber.new
 
     def test_segment_naming_with_unknown_method
-      assert_equal 'Ruby/ActiveJob/ActiveJobSubscriberTest/default/Unknown',
+      assert_equal 'Ruby/ActiveJob/TestJob/default/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {job: TestJob.new})
     end
 
     def test_segment_naming_multiple_jobs
-      assert_equal 'Ruby/ActiveJob/ActiveJobSubscriberTest/default/Unknown',
+      assert_equal 'Ruby/ActiveJob/TestJob/default/Unknown',
         SUBSCRIBER.send(:metric_name, 'indecipherable', {jobs: [TestJob.new, TestJob.new]})
     end
 

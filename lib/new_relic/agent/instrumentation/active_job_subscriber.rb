@@ -22,7 +22,7 @@ module NewRelic
           job = payload[:job] || payload[:jobs].first
 
           queue = job.queue_name
-          job_class = job.class.name
+          job_class = job.class.name.split('::').last
           method = method_from_name(name)
           "Ruby/ActiveJob/#{job_class}/#{queue}/#{method}"
         end
