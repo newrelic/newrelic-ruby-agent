@@ -15,12 +15,6 @@ module NewRelic
         @remote_server ||= server_from_host(nil)
       end
 
-      # the server we should contact for api requests, like uploading
-      # deployments and the like
-      def api_server
-        @api_server ||= NewRelic::Control::Server.new(Agent.config[:api_host], Agent.config[:api_port])
-      end
-
       def server_from_host(hostname = nil)
         NewRelic::Control::Server.new(hostname || Agent.config[:host], Agent.config[:port])
       end

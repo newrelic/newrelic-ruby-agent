@@ -213,14 +213,6 @@ module NewRelic
           end
         end
 
-        def self.api_host
-          proc do
-            api_region = 'eu.' if String(NewRelic::Agent.config[:license_key]).start_with?('eu')
-
-            "rpm.#{api_region}newrelic.com"
-          end
-        end
-
         def self.convert_to_regexp_list(raw_value)
           value_list = convert_to_list(raw_value)
           value_list.map do |value|
@@ -2305,12 +2297,6 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
         },
-        :api_host => {
-          :default => DefaultSource.api_host,
-          :public => false,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'API host for New Relic.'
         },
         :api_port => {
           :default => value_of(:port),
