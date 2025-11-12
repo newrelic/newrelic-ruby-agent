@@ -11,7 +11,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Install Ruby 3.4
-      uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb # tag v1.257.0
+      uses: ruby/setup-ruby@d5126b9b3579e429dd52e51e68624dda2e05be25 # tag v1.267.0
       with:
         ruby-version: 3.4
 
@@ -39,13 +39,13 @@ jobs:
         git push --set-upstream origin "prerelease_updates_${{ env.prerelease_tag }}"
         gh pr create --label $LABEL --title "$TITLE" --body "$BODY"
       env:
-        GITHUB_TOKEN: ${{ secrets.NEWRELIC_RUBY_AGENT_BOT_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TITLE: "Prerelease ${{env.prerelease_tag}}"
         BODY: "Updates the version number, changelog, and newrelic.yml (if it needs updating). This is an automated PR."
         LABEL: prerelease
 
     - name: Create pre release tag
-      uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # tag v2.3.2
+      uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # tag v2.4.1
       with:
         tag_name: ${{ env.prerelease_tag }}
         name: ${{ env.prerelease_tag }}

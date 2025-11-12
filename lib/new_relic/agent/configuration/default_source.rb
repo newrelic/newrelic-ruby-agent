@@ -428,7 +428,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :exclude_from_reported_settings => true,
-          :description => 'Your New Relic <InlinePopover type="userKey" />. Required when using the New Relic REST API v2 to record deployments using the `newrelic deployments` command.'
+          :description => '# DEPRECATED: The `api_key` config setting is now deprecated. Its only use was for the `newrelic deployments` command, which is being removed in agent version 10.0.0.'
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
@@ -2140,6 +2140,13 @@ module NewRelic
             argument array elements and job argument scalars will be excluded.
           SIDEKIQ_ARGS_EXCLUDE
         },
+        :'sidekiq.ignore_retry_errors' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
+        },
         # Slow SQL
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
@@ -2510,7 +2517,7 @@ module NewRelic
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
         # TODO: Sync with the other agents to see what the config should be named, how it should be enabled, how it should be described
-        :'opentelemetry_bridge.enabled' => {
+        :'opentelemetry.enabled' => {
           :default => false,
           :public => false,
           :type => Boolean,

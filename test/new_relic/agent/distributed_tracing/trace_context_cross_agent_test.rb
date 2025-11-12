@@ -42,7 +42,7 @@ module NewRelic
           if focus_tests.empty? || focus_tests.include?(test_case['test_name'])
 
             define_method("test_#{test_case['test_name']}") do
-              NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case['force_sampled_true'])
+              NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case['force_adaptive_sampled_true'])
 
               config = {
                 :'distributed_tracing.enabled' => true,
@@ -50,9 +50,10 @@ module NewRelic
                 :primary_application_id => '2827902',
                 :'transaction_events.enabled' => test_case.fetch('transaction_events_enabled', true),
                 :trusted_account_key => test_case['trusted_account_key'],
-                :'span_events.enabled' => test_case.fetch('span_events_enabled', true)
+                :'span_events.enabled' => test_case.fetch('span_events_enabled', true),
+                :'distributed_tracing.sampler.remote_parent_sampled' => test_case.fetch('remote_parent_sampled', 'default'),
+                :'distributed_tracing.sampler.remote_parent_not_sampled' => test_case.fetch('remote_parent_not_sampled', 'default')
               }
-
               with_server_source(config) do
                 run_test_case(test_case)
               end
@@ -231,7 +232,7 @@ module NewRelic
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
               actual_attributes[k],
-              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v}, was #{actual_attributes[k]})
+              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v}, was #{actual_attributes[k].inspect})
           end
 
           (test_case_attributes['notequal'] || []).each do |k, v|
@@ -313,6 +314,8 @@ module NewRelic
         end
 
         def verify_metrics(test_case)
+          return unless test_case.key?('expected_metrics')
+
           expected_metrics = test_case['expected_metrics'].inject({}) do |memo, (metric_name, call_count)|
             memo[metric_name] = {call_count: call_count}
             memo

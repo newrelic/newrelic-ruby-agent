@@ -49,16 +49,16 @@ runs:
               "rails": "norails,rails61,rails70,rails71,rails72"
             },
             "3.2.8": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "3.3.8": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "3.4.4": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             },
             "3.5.0-preview1": {
-              "rails": "norails,rails61,rails70,rails71,rails72,rails80,railsedge"
+              "rails": "norails,rails61,rails70,rails71,rails72,rails80"
             }
           }
 

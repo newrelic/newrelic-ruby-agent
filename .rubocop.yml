@@ -14,6 +14,7 @@ AllCops:
   Exclude:
     - 'test/multiverse/suites/active_record/db/schema.rb'
     - 'test/multiverse/suites/active_record_pg/db/schema.rb'
+    - 'test/perfverse/rails7/**/*'
   NewCops: enable
 
 Bundler/DuplicatedGem:

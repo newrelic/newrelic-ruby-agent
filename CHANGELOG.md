@@ -1,10 +1,42 @@
 # New Relic Ruby Agent Release Notes
 
-## dev
+## v9.23.0
+
+- **Feature: Add sidekiq.ignore_retry_errors configuration option**
+
+  A new configuration option, `sidekiq.ignore_retry_errors`, has been added to control if Sidekiq job retries are captured. Retry errors are captured by default, but now if `sidekiq.ignore_retry_errors` is set to `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails. Thank you [DonGiulio](https://github.com/DonGiulio) for recognizing this improvement and contributing a solution. [PR#3317](https://github.com/newrelic/newrelic-ruby-agent/pull/3317)
+
+- **Feature: Deprecation notice for recording deployments using Capistrano**
+
+  Sending application deployment information using a Capistrano recipe is deprecated and will be removed in agent version 10.0.0. For recording deployments, please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options.
+
+- **Feature: Use remote parent sampling configurations for decisions in more scenarios**
+
+  Previously, the `distributed_tracing.sampler.remote_parent_sampled` and `distributed_tracing.sampler.remote_parent_not_sampled` configuration options were used for the sampling decision only when the `traceparent` and `tracestate` headers were present. Now, these configuration options are applied in cases when the `tracestate` header is missing and when only the `newrelic` header is available. This change makes distributed trace sampling more consistent and predictable. [PR#3306](https://github.com/newrelic/newrelic-ruby-agent/pull/3306)
+
+## v9.22.0
+
+- **Feature: One-step instrumentation for Kubernetes**
+
+  The Kubernetes APM auto-attach automatically instruments applications and manages agent upgrades within Kubernetes deployments. This feature has exited preview and is now generally avaliable. Learn more about [Kubernetes auto-attach](https://docs.newrelic.com/docs/kubernetes-pixie/kubernetes-integration/installation/k8s-agent-operator/). [PR#2635](https://github.com/newrelic/newrelic-ruby-agent/pull/2635) [PR#3287](https://github.com/newrelic/newrelic-ruby-agent/pull/3287)
+
+- **Feature: Deprecation notice for Ruby 2.4 and Ruby 2.5**
+
+  Ruby agent support for Ruby versions 2.4 and 2.5 is deprecated and will be removed in agent version 10.0.0. The new miniumum required Ruby version will become Ruby 2.6 and we will stop testing with Ruby 2.4 and 2.5. [PR#3288](https://github.com/newrelic/newrelic-ruby-agent/pull/3288)
+
+- **Feature: Deprecation notice for the `newrelic deployments` command**
+
+  Support for recording deployments using the `newrelic deployments` command is now deprecated and will be removed in agent version 10.0.0.
+
+  Going forward, there are a number of automated and manual ways ways to record changes in New Relic. Please see our guide to [Change Tracking](https://docs.newrelic.com/docs/change-tracking/change-tracking-introduction/) for a list of available options. [PR#3262](https://github.com/newrelic/newrelic-ruby-agent/pull/3262)
+
+- **Feature: Deprecation reminder for cross application tracing**
+
+  Cross application tracing has been deprecated since major version 8.0.0 of the Ruby agent. We will remove support for it entirely in version 10.0.0 of the agent. [PR#3288](https://github.com/newrelic/newrelic-ruby-agent/pull/3288)
 
 - **Feature: Ensure compatibility with Ruby 3.5 change to Method#source_location**
 
-  Updated the agent to correctly parse the return value of Method#source_location, which is changing in Ruby 3.5 from a two-element to a five-element array. This change maintains support for older Ruby versions while adding support for the future release.
+  Updated the agent to correctly parse the return value of Method#source_location, which is changing in Ruby 3.5 from a two-element to a five-element array. This change maintains support for older Ruby versions while adding support for the future release. [PR#3257](https://github.com/newrelic/newrelic-ruby-agent/pull/3257)
 
 ## v9.21.0
 

@@ -87,7 +87,6 @@ class HelperTest < Minitest::Test
     assert(NewRelic::Helper.version_satisfied?(1, '<', 2))
     assert(NewRelic::Helper.version_satisfied?(1.2, '<', 1.3))
     assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<', Gem::Version.new('1.3')))
-    assert(NewRelic::Helper.version_satisfied?(nil, '<', 1))
     assert(NewRelic::Helper.version_satisfied?('', '<', 1))
     assert(NewRelic::Helper.version_satisfied?('1.2', '<', 1.3))
   end
@@ -98,7 +97,6 @@ class HelperTest < Minitest::Test
     assert(NewRelic::Helper.version_satisfied?(1, '<=', 2))
     assert(NewRelic::Helper.version_satisfied?(1.2, '<=', 1.3))
     assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.2'), '<=', Gem::Version.new('1.3')))
-    assert(NewRelic::Helper.version_satisfied?(nil, '<=', 1))
     assert(NewRelic::Helper.version_satisfied?('', '<=', 1))
     assert(NewRelic::Helper.version_satisfied?('1.2', '<=', 1.3))
   end
@@ -109,7 +107,6 @@ class HelperTest < Minitest::Test
     assert(NewRelic::Helper.version_satisfied?(2, '>', 1))
     assert(NewRelic::Helper.version_satisfied?(1.3, '>', 1.2))
     assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>', Gem::Version.new('1.2')))
-    assert(NewRelic::Helper.version_satisfied?(1, '>', nil))
     assert(NewRelic::Helper.version_satisfied?(1, '>', ''))
     assert(NewRelic::Helper.version_satisfied?(1.3, '>', '1.2'))
   end
@@ -120,7 +117,6 @@ class HelperTest < Minitest::Test
     assert(NewRelic::Helper.version_satisfied?(2, '>=', 1))
     assert(NewRelic::Helper.version_satisfied?(1.3, '>=', 1.2))
     assert(NewRelic::Helper.version_satisfied?(Gem::Version.new('1.3'), '>=', Gem::Version.new('1.2')))
-    assert(NewRelic::Helper.version_satisfied?(1, '>=', nil))
     assert(NewRelic::Helper.version_satisfied?(1, '>=', ''))
     assert(NewRelic::Helper.version_satisfied?(1.3, '>=', '1.2'))
   end
