@@ -132,11 +132,17 @@ module NewRelic
           transaction.trace_id = header_data.trace_id
           transaction.parent_span_id = header_data.parent_id
 
-          return false unless payload = assign_trace_state_payload
+          trace_flags = header_data.trace_parent['trace_flags']
+          payload = assign_trace_state_payload
+
+          if payload
+            determine_sampling_decision(payload, trace_flags)
+          else
+            determine_sampling_decision(TraceContextPayload::INVALID, trace_flags)
+            return false
+          end
 
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
-
-          determine_sampling_decision(payload, header_data.trace_parent['trace_flags'])
 
           NewRelic::Agent.increment_metric(ACCEPT_SUCCESS_METRIC)
           true

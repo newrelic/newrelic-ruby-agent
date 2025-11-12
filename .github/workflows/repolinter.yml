@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Test Default Branch
         id: default-branch
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # tag v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # tag v8.0.0
         with:
           script: |
             const data = await github.rest.repos.get(context.repo)

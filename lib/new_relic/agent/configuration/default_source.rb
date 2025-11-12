@@ -2140,6 +2140,13 @@ module NewRelic
             argument array elements and job argument scalars will be excluded.
           SIDEKIQ_ARGS_EXCLUDE
         },
+        :'sidekiq.ignore_retry_errors' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => %Q(If `true`, the agent will ignore exceptions raised during Sidekiq's retry attempts and will only report the error if the job permanently fails.)
+        },
         # Slow SQL
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
@@ -2510,7 +2517,7 @@ module NewRelic
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
         # TODO: Sync with the other agents to see what the config should be named, how it should be enabled, how it should be described
-        :'opentelemetry_bridge.enabled' => {
+        :'opentelemetry.enabled' => {
           :default => false,
           :public => false,
           :type => Boolean,

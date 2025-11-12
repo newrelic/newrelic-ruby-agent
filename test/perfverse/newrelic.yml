@@ -1,0 +1,9 @@
+common: &default_settings
+  app_name: Ruby Agent Perf testing
+  log_level: info
+  log_file_path: STDOUT
+
+development:
+  <<: *default_settings
+production:
+  <<: *default_settings
