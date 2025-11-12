@@ -118,7 +118,7 @@ module NewRelic
     AUTOMATIC_TRACER_MAX_ATTEMPTS = 60 # 60 = try about twice a second for 30 seconds
 
     # Event types must consist of only alphanumeric characters, '_', ':', or ' '.
-    VALID_CUSTOM_EVENT_TYPE = /\A[\w: ]+\z/
+    VALID_CUSTOM_EVENT_TYPE = /\A[\w:/. ]+\z/
 
     attr_reader :error_group_callback
     attr_reader :llm_token_count_callback
