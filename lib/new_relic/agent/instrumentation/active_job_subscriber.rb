@@ -22,7 +22,8 @@ module NewRelic
           job = payload[:job] || payload[:jobs].first
 
           queue = job.queue_name
-          job_class = class_name.include?('::') ? class_name[class_name.rindex('::') + 2..-1] : class_name
+          binding.irb
+          job_class = job.class.name.include?('::') ? job.class.name[job.class.name.rindex('::') + 2..-1] : job.class.name
           method = method_from_name(name)
           "Ruby/ActiveJob/#{job_class}/#{queue}/#{method}"
         end
