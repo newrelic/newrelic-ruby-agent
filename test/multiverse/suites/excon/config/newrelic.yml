@@ -7,7 +7,6 @@ development:
   license_key: bootstrap_newrelic_admin_license_key_000
   app_name: test
   host: 127.0.0.1
-  api_host: 127.0.0.1
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
