@@ -5,6 +5,9 @@
 - **Breaking Change: Removed support for Ruby 2.4 and 2.5**
   Support for Ruby versions 2.4 and 2.5 has been removed. The new minimum required Ruby version is now 2.6. [PR#3314](https://github.com/newrelic/newrelic-ruby-agent/pull/3314)
 
+- **Feature: Add `logger` as a dependency**
+  The `logger` gem is now listed as a dependency of the agent to ensure continued logging functionality and support for Ruby 3.5.0 and newer versions. [PR#3293](https://github.com/newrelic/newrelic-ruby-agent/pull/3293)
+
 ## v9.23.0
 
 - **Feature: Add sidekiq.ignore_retry_errors configuration option**
